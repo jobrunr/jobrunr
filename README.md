@@ -19,6 +19,6 @@ JobRunr provides a unified programming model to handle background tasks in a **r
 - updating elasticsearch/solr after data changes 
 - *…and so on*
 
-JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and similar to [Quartz](https://github.com/quartz-scheduler/quartz), [Sprint Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
+JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz), [Sprint Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
 
 More info will follow soon
