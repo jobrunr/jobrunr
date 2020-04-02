@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <wildcardResourcePatterns>
+      <entry name="!?*.java" />
+      <entry name="!?*.form" />
+      <entry name="!?*.class" />
+      <entry name="!?*.groovy" />
+      <entry name="!?*.scala" />
+      <entry name="!?*.flex" />
+      <entry name="!?*.kt" />
+      <entry name="!?*.clj" />
+      <entry name="!?*.aj!?*.sql" />
+    </wildcardResourcePatterns>
+    <bytecodeTargetLevel>
+      <module name="JangFire.backgroundjob-server.main" target="1.8" />
+      <module name="JangFire.backgroundjob-server.test" target="1.8" />
+      <module name="JangFire.backgroundjob-server.testFixtures" target="1.8" />
+      <module name="JangFire.core.main" target="1.8" />
+      <module name="JangFire.core.test" target="11" />
+      <module name="JangFire.core.testFixtures" target="1.8" />
+      <module name="JangFire.e2e-base.main" target="1.8" />
+      <module name="JangFire.e2e-base.test" target="11" />
+      <module name="JangFire.e2e-base.testFixtures" target="1.8" />
+      <module name="JangFire.e2e-mariadb.main" target="1.8" />
+      <module name="JangFire.e2e-mariadb.test" target="11" />
+      <module name="JangFire.e2e-mariadb.testFixtures" target="1.8" />
+      <module name="JangFire.main" target="11" />
+      <module name="JangFire.org.jangfire.storage.core-org.jangfire.storage.main" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.core-org.jangfire.storage.test" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.core-org.jangfire.storage.testFixtures" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.main" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.sql.main" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.sql.test" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.sql.testFixtures" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.test" target="1.8" />
+      <module name="JangFire.org.jangfire.storage.testFixtures" target="1.8" />
+      <module name="JangFire.storage-sql.main" target="11" />
+      <module name="JangFire.storage-sql.test" target="11" />
+      <module name="JangFire.storage-sql.testFixtures" target="11" />
+      <module name="JangFire.storage.base.main" target="1.8" />
+      <module name="JangFire.storage.base.test" target="11" />
+      <module name="JangFire.storage.base.testFixtures" target="1.8" />
+      <module name="JangFire.storage.core-storage.main" target="1.8" />
+      <module name="JangFire.storage.core-storage.test" target="1.8" />
+      <module name="JangFire.storage.core-storage.testFixtures" target="1.8" />
+      <module name="JangFire.storage.core.main" target="1.8" />
+      <module name="JangFire.storage.core.test" target="1.8" />
+      <module name="JangFire.storage.core.testFixtures" target="1.8" />
+      <module name="JangFire.storage.main" target="1.8" />
+      <module name="JangFire.storage.sql.main" target="1.8" />
+      <module name="JangFire.storage.sql.test" target="11" />
+      <module name="JangFire.storage.sql.testFixtures" target="1.8" />
+      <module name="JangFire.storage.test" target="11" />
+      <module name="JangFire.storage.testFixtures" target="1.8" />
+      <module name="JangFire.test" target="11" />
+      <module name="JangFire.tests.backgroundjob-server-jackson.main" target="1.8" />
+      <module name="JangFire.tests.backgroundjob-server-jackson.test" target="11" />
+      <module name="JangFire.tests.backgroundjob-server-jackson.testFixtures" target="1.8" />
+      <module name="JangFire.tests.backgroundjob-server.main" target="11" />
+      <module name="JangFire.tests.backgroundjob-server.test" target="11" />
+      <module name="JangFire.tests.backgroundjob-server.testFixtures" target="11" />
+      <module name="JangFire.tests.e2e-base.main" target="1.8" />
+      <module name="JangFire.tests.e2e-base.test" target="11" />
+      <module name="JangFire.tests.e2e-base.testFixtures" target="1.8" />
+      <module name="JangFire.tests.e2e-jackson-postgres.main" target="1.8" />
+      <module name="JangFire.tests.e2e-jackson-postgres.test" target="11" />
+      <module name="JangFire.tests.e2e-jackson-postgres.testFixtures" target="1.8" />
+      <module name="JangFire.tests.e2e-mariadb.main" target="1.8" />
+      <module name="JangFire.tests.e2e-mariadb.test" target="11" />
+      <module name="JangFire.tests.e2e-mariadb.testFixtures" target="1.8" />
+      <module name="JangFire.tests.e2e-postgres.main" target="1.8" />
+      <module name="JangFire.tests.e2e-postgres.test" target="11" />
+      <module name="JangFire.tests.e2e-postgres.testFixtures" target="1.8" />
+      <module name="JangFire.tests.main" target="1.8" />
+      <module name="JangFire.tests.test" target="11" />
+      <module name="JangFire.tests.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-mariadb-jack.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-mariadb-jack.test" target="11" />
+      <module name="JobRunr.tests.e2e-mariadb-jack.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-mariadb.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-mariadb.test" target="11" />
+      <module name="JobRunr.tests.e2e-mariadb.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-postgres-gso.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-postgres-gso.test" target="11" />
+      <module name="JobRunr.tests.e2e-postgres-gso.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-postgres.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-postgres.test" target="11" />
+      <module name="JobRunr.tests.e2e-postgres.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-ui.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-ui.test" target="11" />
+      <module name="JobRunr.tests.e2e-ui.testFixtures" target="1.8" />
+      <module name="org.jangfire.JangFire.storage.core.main" target="1.8" />
+      <module name="org.jangfire.JangFire.storage.core.test" target="1.8" />
+      <module name="org.jangfire.JangFire.storage.core.testFixtures" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

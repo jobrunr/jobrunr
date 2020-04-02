@@ -1,0 +1,341 @@
+{
+  "jobSignature": "System.out.println(String)",
+  "jobName": "failed job",
+  "jobDetails": {
+    "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
+    "className": "java.lang.System",
+    "staticFieldName": "out",
+    "methodName": "println",
+    "jobParameters": [
+      {
+        "className": "java.lang.String",
+        "object": "a test"
+      }
+    ]
+  },
+  "id": "${json-unit.ignore}",
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": null
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 1 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 2 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 3 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 4 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 5 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 6 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 7 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 8 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 9 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}",
+      "reason": "Retry attempt 10 of 10"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "An exception occurred",
+      "exceptionType": "java.lang.IllegalStateException",
+      "exceptionMessage": null,
+      "exceptionCauseType": null,
+      "exceptionCauseMessage": null,
+      "stackTrace": "${json-unit.ignore}"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.HashMap"
+  }
+}

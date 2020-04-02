@@ -1,0 +1,12 @@
+rootProject.name = 'JobRunr'
+include ':core'
+include ':tests:e2e-base'
+include ':tests:e2e-mariadb-gson'
+include ':tests:e2e-mariadb-jackson'
+include ':tests:e2e-oracle-gson'
+include ':tests:e2e-oracle-jackson'
+include ':tests:e2e-postgres-gson'
+include ':tests:e2e-postgres-jackson'
+include ':tests:e2e-ui-gson'
+include ':tests:e2e-ui-jackson'
+

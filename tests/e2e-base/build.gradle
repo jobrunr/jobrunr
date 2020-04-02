@@ -1,0 +1,16 @@
+dependencies {
+
+    implementation project(':core')
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
+
+    testImplementation project(':core')
+    testImplementation testFixtures(project(":core"))
+
+    testFixturesApi project(':core')
+    testFixturesApi testFixtures(project(":core"))
+    testFixturesApi 'org.awaitility:awaitility:4.0.2'
+    testFixturesApi 'org.assertj:assertj-core:3.15.0'
+    testFixturesApi 'org.testcontainers:testcontainers:1.13.0'
+    testFixturesApi 'org.testcontainers:jdbc:1.13.0'
+    testFixturesApi 'org.testcontainers:junit-jupiter:1.13.0'
+}

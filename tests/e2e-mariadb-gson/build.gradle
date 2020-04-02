@@ -1,0 +1,32 @@
+plugins {
+    id 'com.google.cloud.tools.jib' version '2.1.0'
+}
+
+dependencies {
+
+    implementation project(':core')
+    implementation project(':tests:e2e-base')
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.6.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    testImplementation project(':core')
+    testImplementation testFixtures(project(":core"))
+    testImplementation project(':tests:e2e-base')
+    testImplementation testFixtures(project(":tests:e2e-base"))
+    testImplementation 'org.testcontainers:mariadb:1.13.0'
+}
+
+test.dependsOn(jibDockerBuild)
+jib {
+    from {
+        image = "gcr.io/distroless/java:11"
+    }
+    to {
+        image = "jobrunr-${project.name}:${version}"
+    }
+    container {
+        jvmFlags = ["-Duser.timezone=Europe/Brussels"]
+        ports = ["8000"]
+    }
+}

@@ -1,0 +1,27 @@
+{
+  "jobSignature": "System.out.println(String)",
+  "jobName": "an enqueued job",
+  "jobDetails": {
+    "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
+    "className": "java.lang.System",
+    "staticFieldName": "out",
+    "methodName": "println",
+    "jobParameters": [
+      {
+        "className": "java.lang.String",
+        "object": "a test"
+      }
+    ]
+  },
+  "id": null,
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.HashMap"
+  }
+}

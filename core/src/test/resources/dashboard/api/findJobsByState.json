@@ -1,0 +1,38 @@
+{
+  "currentPage": 0,
+  "hasNext": false,
+  "hasPrevious": false,
+  "items": [
+    {
+      "id": "${json-unit.ignore}",
+      "jobDetails": {
+        "className": "java.lang.System",
+        "jobParameters": [
+          {
+            "className": "java.lang.String",
+            "object": "a test"
+          }
+        ],
+        "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
+        "methodName": "println",
+        "staticFieldName": "out"
+      },
+      "jobHistory": [
+        {
+          "@class": "org.jobrunr.jobs.states.EnqueuedState",
+          "createdAt": "${json-unit.ignore}",
+          "state": "ENQUEUED"
+        }
+      ],
+      "jobName": "an enqueued job",
+      "jobSignature": "System.out.println(String)",
+      "metadata": {
+        "@class": "java.util.HashMap"
+      }
+    }
+  ],
+  "limit": 20,
+  "offset": 0,
+  "total": 1,
+  "totalPages": 1
+}

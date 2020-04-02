@@ -1,0 +1,10 @@
+[
+  {
+    "id": "${json-unit.ignore}",
+    "workerPoolSize": 10,
+    "pollIntervalInSeconds": 15,
+    "firstHeartbeat": null,
+    "lastHeartbeat": "${json-unit.ignore}",
+    "running": true
+  }
+]
