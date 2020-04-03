@@ -135,5 +135,29 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/java,gradle,intellij
-
 .drone-secrets
+
+# Frontend
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/core/src/main/resources/org/jobrunr/dashboard/frontend/coverage
+
+# production
+/core/src/main/resources/org/jobrunr/dashboard/frontend/build
+
+# misc
+.DS_Store
+.env.development
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
