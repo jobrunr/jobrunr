@@ -75,21 +75,30 @@
       <module name="JangFire.tests.main" target="1.8" />
       <module name="JangFire.tests.test" target="11" />
       <module name="JangFire.tests.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-mariadb-gson.testFixtures" target="1.8" />
       <module name="JobRunr.tests.e2e-mariadb-jack.main" target="1.8" />
       <module name="JobRunr.tests.e2e-mariadb-jack.test" target="11" />
       <module name="JobRunr.tests.e2e-mariadb-jack.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-mariadb-jackson.testFixtures" target="1.8" />
       <module name="JobRunr.tests.e2e-mariadb.main" target="1.8" />
       <module name="JobRunr.tests.e2e-mariadb.test" target="11" />
       <module name="JobRunr.tests.e2e-mariadb.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-oracle-gson.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-oracle-jackson.testFixtures" target="1.8" />
       <module name="JobRunr.tests.e2e-postgres-gso.main" target="1.8" />
       <module name="JobRunr.tests.e2e-postgres-gso.test" target="11" />
       <module name="JobRunr.tests.e2e-postgres-gso.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-postgres-gson.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-postgres-jackson.testFixtures" target="1.8" />
       <module name="JobRunr.tests.e2e-postgres.main" target="1.8" />
       <module name="JobRunr.tests.e2e-postgres.test" target="11" />
       <module name="JobRunr.tests.e2e-postgres.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-ui-gson.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-ui-jackson.testFixtures" target="1.8" />
       <module name="JobRunr.tests.e2e-ui.main" target="1.8" />
       <module name="JobRunr.tests.e2e-ui.test" target="11" />
       <module name="JobRunr.tests.e2e-ui.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.testFixtures" target="1.8" />
       <module name="org.jangfire.JangFire.storage.core.main" target="1.8" />
       <module name="org.jangfire.JangFire.storage.core.test" target="1.8" />
       <module name="org.jangfire.JangFire.storage.core.testFixtures" target="1.8" />
