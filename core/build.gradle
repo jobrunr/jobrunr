@@ -1,3 +1,9 @@
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+    id 'maven-publish'
+}
+
 sourceSets {
     main {
         resources {
