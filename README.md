@@ -1,5 +1,6 @@
 JobRunr 
 =========
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=security_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![License LGPLv3](https://img.shields.io/badge/license-LGPLv3-green.svg)](http://www.gnu.org/licenses/lgpl-3.0.html)
 
 ## Overview
 
