@@ -95,7 +95,10 @@ public class JobZooKeeper implements Runnable {
             succeededJobsCounter.incrementAndGet();
             job.delete();
         });
-        storageProvider.publishJobStatCounter(SUCCEEDED, succeededJobsCounter.get());
+
+        if (succeededJobsCounter.get() > 0) {
+            storageProvider.publishJobStatCounter(SUCCEEDED, succeededJobsCounter.get());
+        }
     }
 
     private void checkForJobsThatCanBeDeleted() {
@@ -125,10 +128,9 @@ public class JobZooKeeper implements Runnable {
 
     private boolean isNotYetScheduled(RecurringJob recurringJob) {
         if (storageProvider.exists(recurringJob.getJobDetails(), StateName.SCHEDULED)) return false;
-        if (storageProvider.exists(recurringJob.getJobDetails(), StateName.ENQUEUED)) return false;
-        if (storageProvider.exists(recurringJob.getJobDetails(), StateName.PROCESSING)) return false;
-
-        return true;
+        else if (storageProvider.exists(recurringJob.getJobDetails(), StateName.ENQUEUED)) return false;
+        else if (storageProvider.exists(recurringJob.getJobDetails(), StateName.PROCESSING)) return false;
+        else return true;
     }
 
     private void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {

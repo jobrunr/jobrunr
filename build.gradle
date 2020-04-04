@@ -49,6 +49,8 @@ subprojects {
     sonarqube {
         properties {
             property "sonar.sourceEncoding", "UTF-8"
+            property "sonar.projectKey", "jobrunr_jobrunr"
+            property "sonar.organization", "jobrunr"
         }
     }
 

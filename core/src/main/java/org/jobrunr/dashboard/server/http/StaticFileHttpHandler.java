@@ -3,13 +3,16 @@ package org.jobrunr.dashboard.server.http;
 import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.TeenyHttpHandler;
 import org.jobrunr.utils.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class StaticFileHttpHandler implements TeenyHttpHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StaticFileHttpHandler.class);
 
     private final String contextPath;
     private final Path rootDir;
@@ -35,7 +38,7 @@ public class StaticFileHttpHandler implements TeenyHttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
+    public void handle(HttpExchange httpExchange) {
         try {
             String requestUri = httpExchange.getRequestURI().toString();
             requestUri = sanitizeRequestUri(requestUri);
@@ -51,8 +54,8 @@ public class StaticFileHttpHandler implements TeenyHttpHandler {
             } else {
                 httpExchange.sendResponseHeaders(404, -1);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception shouldNotHappen) {
+            LOGGER.error("Error serving static files", shouldNotHappen);
         }
     }
 

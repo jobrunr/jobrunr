@@ -19,20 +19,22 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 class DatabaseCreatorTest {
 
+    public static final String SQLITE_DB = "/tmp/jobrunr-test.db";
+
     @BeforeEach
     public void setupJobStorageProvider() throws IOException {
         JobRunr.configure();
-        Files.deleteIfExists(Paths.get("/tmp/jobrunr.db"));
+        Files.deleteIfExists(Paths.get(SQLITE_DB));
     }
 
     @Test
-    public void testSqlLiteMigrations() throws Exception {
-        final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:/tmp/jobrunr.db"));
-        assertThatCode(() -> databaseCreator.runMigrations()).doesNotThrowAnyException();
+    public void testSqlLiteMigrations() {
+        final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB));
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
     }
 
     @Test
-    public void testDatabaseSpecificMigrations() throws Exception {
+    public void testDatabaseSpecificMigrations() {
         final DataSource dataSourceMock = Mockito.mock(DataSource.class);
         final DatabaseCreator databaseCreator = new DatabaseCreator(dataSourceMock, new MariaDbStorageProviderStub(dataSourceMock));
         final Stream<Path> databaseSpecificMigrations = databaseCreator.getDatabaseSpecificMigrations();

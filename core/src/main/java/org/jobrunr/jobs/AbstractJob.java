@@ -4,6 +4,7 @@ import org.jobrunr.utils.JobUtils;
 
 public abstract class AbstractJob {
 
+    private int version;
     private String jobSignature;
     private String jobName;
     private JobDetails jobDetails;
@@ -15,6 +16,14 @@ public abstract class AbstractJob {
     public AbstractJob(JobDetails jobDetails) {
         this.jobSignature = JobUtils.getJobSignature(jobDetails);
         this.jobDetails = jobDetails;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void increaseVersion() {
+        version++;
     }
 
     public String getJobSignature() {
