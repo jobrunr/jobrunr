@@ -26,7 +26,7 @@ JobRunr provides a unified programming model to handle background tasks in a **r
 - updating elasticsearch/solr after data changes 
 - *…and so on*
 
-You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers. 
+You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is some webservice down? No worries, the job is automatically retried 10-times with a smart back-off policy.
 
 JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Sprint Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
 
@@ -34,6 +34,10 @@ It is also meant to be fast and lean - using it will give you only 3 extra depen
 - JobRunr itself
 - [asm](https://asm.ow2.io/)
 - and you need either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson) on the classpath
+
+Screenshots
+-----------
+<img src="https://user-images.githubusercontent.com/567842/78462184-f80b0100-76cf-11ea-9462-dd76234e3040.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/78462183-f7726a80-76cf-11ea-8720-d63d840ed3a4.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/78462181-f6d9d400-76cf-11ea-891f-c378d5dd180e.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/78462180-f6413d80-76cf-11ea-8869-0e11ae6d854d.png" width="45%"></img> 
 
 Usage
 ------
