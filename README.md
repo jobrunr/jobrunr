@@ -1,12 +1,12 @@
 JobRunr 
 =========
-[![Build Status](https://drone-jobrunr.dehuysser.be/api/badges/jobrunr/jobrunr/status.svg)](https://drone-jobrunr.dehuysser.be/jobrunr/jobrunr) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=security_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![License LGPLv3](https://img.shields.io/badge/license-LGPLv3-green.svg)](http://www.gnu.org/licenses/lgpl-3.0.html)
+[ ![Download](https://api.bintray.com/packages/jobrunr/jobrunr/JobRunr/images/download.svg) ](https://bintray.com/jobrunr/jobrunr/JobRunr/_latestVersion) [![Build Status](https://drone-jobrunr.dehuysser.be/api/badges/jobrunr/jobrunr/status.svg)](https://drone-jobrunr.dehuysser.be/jobrunr/jobrunr) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=security_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![License LGPLv3](https://img.shields.io/badge/license-LGPLv3-green.svg)](http://www.gnu.org/licenses/lgpl-3.0.html)
 
 ## Overview
 
 Incredibly easy way to perform **fire-and-forget**, **delayed** and **recurring jobs** inside **Java applications**. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via Postgres, MariaDB/MySQL and Oracle.
 
-JobRunr provides a unified programming model to handle background tasks in a **reliable way** and run them on shared hosting, dedicated hosting or in the cloud. You can start with a simple setup and grow computational power for background jobs with time for these scenarios:
+JobRunr provides a unified programming model to handle background tasks in a **reliable way** and run them on shared hosting, dedicated hosting or in the cloud within a JVM instance. Some scenario's where it may be a good fit:
 
 - mass notifications/newsletters
 - calculations of wages and the creation of the resulting documents
@@ -20,7 +20,14 @@ JobRunr provides a unified programming model to handle background tasks in a **r
 - updating elasticsearch/solr after data changes 
 - *…and so on*
 
+You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers. 
+
 JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Sprint Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
+
+It is also meant to be fast and lean - using it will give you only 3 extra dependencies:
+- JobRunr itself
+- [asm](https://asm.ow2.io/)
+- and you need either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson) on the classpath
 
 Usage
 ------
@@ -53,15 +60,104 @@ BackgroundJob.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cr
 
 **Process background tasks inside a web application…**
 
-You can process background tasks in any web application and we have thorough support for [Spring](https://spring.io/) - JobRunr is reliable for web applications from scratch, even on shared hosting.
-
-```java
-    JobRunr.configure()
-           .useJobStorageProvider(jobStorageProvider)
-           .useJobActivator(jobActivator)
-           .useDefaultBackgroundJobServer()
-           .useDashboard()
-           .initialize();
-```
+You can process background tasks in any web application and we have thorough support for [Spring](https://spring.io/) - JobRunr is reliable for to process your background jobs.
 
 **… or anywhere else**
+
+Like a Spring Console Application, wrapped in a docker container, that keeps running and polls for new background jobs.
+
+Installation
+------------
+ 
+ #### Using Maven?
+ 
+ Add the following to your `pom.xml` to access dependencies of jcenter:
+ 
+ ```xml
+<repositories>
+    <repository>
+      <id>jcenter</id>
+      <url>https://jcenter.bintray.com/</url>
+    </repository>
+</repositories>
+```
+ 
+ And finally add the dependency to JobRunr itself
+ ```xml
+<dependency>
+    <groupId>org.jobrunr</groupId>
+    <artifactId>jobrunr</artifactId>
+    <version>0.8.0</version>
+</dependency>
+```
+ 
+ #### Using Gradle?
+ 
+Again make sure you depend on jcenter for your dependencies: 
+ ```groovy
+repositories {
+    jcenter()
+}
+```
+ 
+ And add the dependency to JobRunr itself:
+ ```groovy
+implementation 'org.jobrunr:jobrunr:0.8.0'
+```
+
+Configuration
+------------
+#### Do you like to work Spring based?
+
+```java
+@Bean
+public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator) {
+    final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator);
+    backgroundJobServer.start();
+    return backgroundJobServer;
+}
+
+@Bean
+public JobActivator jobActivator(ApplicationContext applicationContext) {
+    return applicationContext::getBean;
+}
+
+@Bean
+public JobScheduler jobScheduler(StorageProvider storageProvider) {
+    return new JobScheduler(storageProvider);
+}
+
+@Bean
+public StorageProvider storageProvider(JobMapper jobMapper) {
+    final SQLiteDataSource dataSource = new SQLiteDataSource();
+    dataSource.setUrl("jdbc:sqlite:" + Paths.get(System.getProperty("java.io.tmpdir"), "jobrunr.db"));
+    final SqLiteStorageProvider sqLiteStorageProvider = new SqLiteStorageProvider(dataSource);
+    sqLiteStorageProvider.setJobMapper(jobMapper);
+    return sqLiteStorageProvider;
+}
+
+@Bean
+public JobMapper jobMapper(JsonMapper jsonMapper) {
+    return new JobMapper(jsonMapper);
+}
+
+@Bean
+public JsonMapper jsonMapper() {
+    return new JacksonJsonMapper(); // or GsonMapper()
+}
+```
+
+#### Or do you prefer a fluent API?
+Define a `javax.sql.DataSource` and put the following code on startup:
+
+```java
+
+ApplicationContext applicationContext = SpringApplication.run(JobServerApplication.class, args);
+
+JobRunr.configure()
+        .useJobStorageProvider(SqlJobStorageProviderFactory.using(applicationContext.getBean(DataSource.class )))
+        .useJobActivator(applicationContext::getBean)
+        .useDefaultBackgroundJobServer()
+        .useDashboard()
+        .initialize();
+```
