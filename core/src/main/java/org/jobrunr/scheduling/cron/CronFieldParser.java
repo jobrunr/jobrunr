@@ -6,6 +6,8 @@ import java.util.TreeMap;
 
 class CronFieldParser {
 
+    private static final String INVALID_FIELD = "invalid %s field: \"%s\".";
+
     private static Map<String, Integer> MONTHS_NAMES;
     private static Map<String, Integer> DAYS_OF_WEEK_NAMES;
 
@@ -106,13 +108,12 @@ class CronFieldParser {
         try {
             String[] tokenParts = token.split("/");
             if (tokenParts.length != 2) {
-                throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\"", this.fieldName, token));
+                throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token));
             }
             String stepSizePart = tokenParts[1];
             int stepSize = this.parseValue(stepSizePart);
             if (stepSize < 1) {
-                throw new InvalidCronExpressionException(
-                        String.format("invalid %s field: \"%s\". minimum allowed step (every) value is \"1\"", this.fieldName, token));
+                throw new InvalidCronExpressionException(String.format(INVALID_FIELD + " minimum allowed step (every) value is \"1\"", this.fieldName, token));
             }
             String numSetPart = tokenParts[0];
             if (!numSetPart.contains("-") && !numSetPart.equals("*") && isInteger(numSetPart)) {
@@ -128,44 +129,44 @@ class CronFieldParser {
             stepsSet.and(numSet);
             return stepsSet;
         } catch (NumberFormatException ex) {
-            throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\"", this.fieldName, token), ex);
+            throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token), ex);
         }
     }
 
     private BitSet parseRange(String token) {
         String[] rangeParts = token.split("-");
         if (rangeParts.length != 2) {
-            throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\"", this.fieldName, token));
+            throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token));
         }
         try {
             int from = this.parseValue(rangeParts[0]);
             if (from < 0) {
-                throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\".", this.fieldName, token));
+                throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token));
             }
             if (from < this.minAllowedValue) {
                 throw new InvalidCronExpressionException(
-                        String.format("invalid %s field: \"%s\". minimum allowed value for %s field is \"%d\"",
+                        String.format(INVALID_FIELD + " minimum allowed value for %s field is \"%d\"",
                                 this.fieldName, token, this.fieldName, this.minAllowedValue));
             }
 
             int to = this.parseValue(rangeParts[1]);
             if (to < 0) {
                 throw new InvalidCronExpressionException(
-                        String.format("invalid %s field: \"%s\".", this.fieldName, token));
+                        String.format(INVALID_FIELD, this.fieldName, token));
             }
             if (to > this.maxAllowedValue) {
                 throw new InvalidCronExpressionException(
-                        String.format("invalid %s field: \"%s\". maximum allowed value for %s field is \"%d\"",
+                        String.format(INVALID_FIELD + " maximum allowed value for %s field is \"%d\"",
                                 this.fieldName, token, this.fieldName, this.maxAllowedValue));
             }
             if (to < from) {
                 throw new InvalidCronExpressionException(String.format(
-                        "invalid %s field: \"%s\". the start of range value must be less than or equal the end value",
+                        INVALID_FIELD + " the start of range value must be less than or equal the end value",
                         this.fieldName, token));
             }
             return fieldType.fillBitSetToIncl(from, to);
         } catch (NumberFormatException ex) {
-            throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\"", this.fieldName, token), ex);
+            throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token), ex);
         }
     }
 
@@ -174,21 +175,21 @@ class CronFieldParser {
         try {
             int number = this.parseValue(token);
             if (number < 0) {
-                throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\".", this.fieldName, token));
+                throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token));
             }
             if (number < this.minAllowedValue) {
                 throw new InvalidCronExpressionException(
-                        String.format("invalid %s field: \"%s\". minimum allowed value for %s field is \"%d\"",
+                        String.format(INVALID_FIELD + " minimum allowed value for %s field is \"%d\"",
                                 this.fieldName, token, this.fieldName, this.minAllowedValue));
             }
             if (number > this.maxAllowedValue) {
                 throw new InvalidCronExpressionException(
-                        String.format("invalid %s field: \"%s\". maximum allowed value for %s field is \"%d\"",
+                        String.format(INVALID_FIELD + " maximum allowed value for %s field is \"%d\"",
                                 this.fieldName, token, this.fieldName, this.maxAllowedValue));
             }
             fieldType.setBitSet(bitSet, number);
         } catch (NumberFormatException ex) {
-            throw new InvalidCronExpressionException(String.format("invalid %s field: \"%s\"", this.fieldName, token), ex);
+            throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token), ex);
         }
         return bitSet;
     }

@@ -30,3 +30,9 @@ jib {
         ports = ["8000"]
     }
 }
+
+project(":tests:e2e-postgres-gson") {
+    sonarqube {
+        skipProject = true
+    }
+}

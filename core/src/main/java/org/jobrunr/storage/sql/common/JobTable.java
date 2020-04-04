@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.common;
 
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -28,7 +29,7 @@ public class JobTable extends Sql<Job> {
         this.jobMapper = jobMapper;
         this
                 .using(dataSource)
-                .withVersion(job -> job.getJobStates().size())
+                .withVersion(AbstractJob::getVersion)
                 .with("jobAsJson", jobMapper::serializeJob)
                 .with("jobSignature", JobUtils::getJobSignature)
                 .with("scheduledAt", job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null);
@@ -60,6 +61,7 @@ public class JobTable extends Sql<Job> {
             jobToSave.setId(UUID.randomUUID());
             insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
         } else {
+            jobToSave.increaseVersion();
             update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
         }
         return jobToSave;
@@ -78,6 +80,7 @@ public class JobTable extends Sql<Job> {
             if (notAllJobsAreExisting(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
+            jobs.forEach(AbstractJob::increaseVersion);
             updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
         }
         return jobs;

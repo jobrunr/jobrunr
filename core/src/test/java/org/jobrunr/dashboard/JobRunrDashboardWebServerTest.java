@@ -2,6 +2,7 @@ package org.jobrunr.dashboard;
 
 import org.jobrunr.dashboard.server.http.client.TeenyHttpClient;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -25,9 +26,11 @@ abstract class JobRunrDashboardWebServerTest {
 
     @BeforeEach
     public void setUpWebServer() {
-        storageProvider = new SimpleStorageProvider();
+        final JsonMapper jsonMapper = getJsonMapper();
 
-        dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, getJsonMapper());
+        storageProvider = new SimpleStorageProvider();
+        storageProvider.setJobMapper(new JobMapper(jsonMapper));
+        dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper);
 
         http = new TeenyHttpClient("http://localhost:8000");
     }

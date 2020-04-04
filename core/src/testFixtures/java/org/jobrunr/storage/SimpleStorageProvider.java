@@ -6,12 +6,14 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJobThatEventuallySucceeded;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -33,6 +41,7 @@ public class SimpleStorageProvider implements StorageProvider {
     private volatile Map<String, RecurringJob> recurringJobs = new ConcurrentHashMap<>();
     private volatile Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private volatile Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
+    private JobMapper jobMapper;
 
     public SimpleStorageProvider() {
         changeListenerNotificationRateLimit = rateLimit()
@@ -47,7 +56,7 @@ public class SimpleStorageProvider implements StorageProvider {
 
     @Override
     public void setJobMapper(JobMapper jobMapper) {
-
+        this.jobMapper = jobMapper;
     }
 
     @Override
@@ -72,11 +81,9 @@ public class SimpleStorageProvider implements StorageProvider {
 
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
-//        final String servers = backgroundJobServers.values().stream().map(serverStatus -> serverStatus.getId().toString() + ": " + serverStatus.getLastHeartbeat()).collect(Collectors.joining("\n\t"));
-//        System.out.println("Evaluating server:\n\t" + servers);
         final List<UUID> serversToRemove = backgroundJobServers.entrySet().stream()
                 .filter(entry -> entry.getValue().getLastHeartbeat().isBefore(heartbeatOlderThan))
-                .map(entry -> entry.getKey())
+                .map(Map.Entry::getKey)
                 .collect(toList());
         backgroundJobServers.keySet().removeAll(serversToRemove);
         return serversToRemove.size();
@@ -86,15 +93,22 @@ public class SimpleStorageProvider implements StorageProvider {
     public Job getJobById(UUID id) {
         if (!jobQueue.containsKey(id)) throw new JobNotFoundException(id);
 
-        return jobQueue.get(id);
+        return deepClone(jobQueue.get(id));
     }
 
     @Override
     public Job save(Job job) {
         if (job.getId() == null) {
             job.setId(UUID.randomUUID());
+        } else {
+            final Job oldJob = jobQueue.get(job.getId());
+            if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
+                throw new ConcurrentModificationException("Unable to save job...");
+            }
         }
-        jobQueue.put(job.getId(), job);
+
+        job.increaseVersion();
+        jobQueue.put(job.getId(), deepClone(job));
         notifyOnChangeListeners();
         return job;
     }
@@ -108,8 +122,8 @@ public class SimpleStorageProvider implements StorageProvider {
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        jobs.stream()
-                .forEach(job -> save(job));
+        jobs
+                .forEach(this::save);
         notifyOnChangeListeners();
         return jobs;
     }
@@ -120,6 +134,7 @@ public class SimpleStorageProvider implements StorageProvider {
                 .filter(job -> job.hasState(state) && job.getUpdatedAt().isBefore(updatedBefore))
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
+                .map(this::deepClone)
                 .collect(toList());
     }
 
@@ -129,6 +144,7 @@ public class SimpleStorageProvider implements StorageProvider {
                 .filter(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isBefore(scheduledBefore))
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
+                .map(this::deepClone)
                 .collect(toList());
     }
 
@@ -142,6 +158,7 @@ public class SimpleStorageProvider implements StorageProvider {
         return getJobs(state)
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
+                .map(this::deepClone)
                 .collect(toList());
     }
 
@@ -208,6 +225,25 @@ public class SimpleStorageProvider implements StorageProvider {
 
     }
 
+    public SimpleStorageProvider withJsonMapper(JsonMapper jsonMapper) {
+        setJobMapper(new JobMapper(jsonMapper));
+        return this;
+    }
+
+    public SimpleStorageProvider withDefaultData() {
+        final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(10, 10);
+        backgroundJobServerStatus.start();
+        announceBackgroundJobServer(backgroundJobServerStatus);
+        for (int i = 0; i < 33; i++) {
+            save(anEnqueuedJob().build());
+        }
+        save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
+        save(aSucceededJob().build());
+        save(aFailedJobWithRetries().build());
+        save(aFailedJobThatEventuallySucceeded().build());
+        return this;
+    }
+
     private Stream<Job> getJobs(StateName state) {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state))
@@ -219,5 +255,9 @@ public class SimpleStorageProvider implements StorageProvider {
 
         JobStats jobStats = getJobStats();
         onChangeListeners.forEach(listener -> listener.onChange(jobStats));
+    }
+
+    private Job deepClone(Job job) {
+        return jobMapper.deserializeJob(jobMapper.serializeJob(job));
     }
 }

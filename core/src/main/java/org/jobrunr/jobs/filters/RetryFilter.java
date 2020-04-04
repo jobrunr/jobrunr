@@ -5,7 +5,7 @@ import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.JobState;
 
 import static java.time.Instant.now;
-import static org.jobrunr.jobs.states.JobState.FAILED_STATES;
+import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
 
 public class RetryFilter implements ElectStateFilter {
 

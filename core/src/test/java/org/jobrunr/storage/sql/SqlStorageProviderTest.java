@@ -45,7 +45,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
             statement.executeUpdate("drop " + name);
             System.out.println("Dropped " + name);
         } catch (SQLException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 }

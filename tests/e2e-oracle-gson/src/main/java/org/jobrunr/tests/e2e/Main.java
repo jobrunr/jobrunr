@@ -1,16 +1,14 @@
 package org.jobrunr.tests.e2e;
 
 import oracle.jdbc.pool.OracleDataSource;
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlJobStorageProviderFactory;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
 
 public class Main extends AbstractMain {
 
-    private static volatile Main main;
-
     public static void main(String[] args) throws Exception {
-        if (main != null) return;
-        main = new Main(args);
+        new Main(args);
     }
 
     public Main(String[] args) throws Exception {
@@ -18,16 +16,12 @@ public class Main extends AbstractMain {
     }
 
     @Override
-    protected StorageProvider initStorageProvider() throws Exception {
-        if (getEnvOrProperty("JOBRUNR_JDBC_URL") == null) {
-            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable JOBRUNR_JDBC_URL is not set");
-        }
-
+    protected DataSource createDataSource(String jdbcUrl, String userName, String password) throws SQLException {
         OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setURL(getEnvOrProperty("JOBRUNR_JDBC_URL").replace(":xe", ":ORCL"));
-        dataSource.setUser(getEnvOrProperty("JOBRUNR_JDBC_USERNAME"));
-        dataSource.setPassword(getEnvOrProperty("JOBRUNR_JDBC_PASSWORD"));
+        dataSource.setURL(jdbcUrl.replace(":xe", ":ORCL"));
+        dataSource.setUser(userName);
+        dataSource.setPassword(password);
         dataSource.setServiceName("ORCL");
-        return SqlJobStorageProviderFactory.using(dataSource);
+        return dataSource;
     }
 }

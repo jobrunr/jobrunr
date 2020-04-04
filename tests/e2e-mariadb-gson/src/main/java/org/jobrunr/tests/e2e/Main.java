@@ -1,16 +1,14 @@
 package org.jobrunr.tests.e2e;
 
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlJobStorageProviderFactory;
 import org.mariadb.jdbc.MariaDbPoolDataSource;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
 
 public class Main extends AbstractMain {
 
-    private static volatile Main main;
-
     public static void main(String[] args) throws Exception {
-        if (main != null) return;
-        main = new Main(args);
+        new Main(args);
     }
 
     public Main(String[] args) throws Exception {
@@ -18,15 +16,11 @@ public class Main extends AbstractMain {
     }
 
     @Override
-    protected StorageProvider initStorageProvider() throws Exception {
-        if (getEnvOrProperty("JOBRUNR_JDBC_URL") == null) {
-            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable JOBRUNR_JDBC_URL is not set");
-        }
-
+    protected DataSource createDataSource(String jdbcUrl, String userName, String password) throws SQLException {
         MariaDbPoolDataSource dataSource = new MariaDbPoolDataSource();
-        dataSource.setUrl(getEnvOrProperty("JOBRUNR_JDBC_URL") + "?rewriteBatchedStatements=true&pool=true");
-        dataSource.setUser(getEnvOrProperty("JOBRUNR_JDBC_USERNAME"));
-        dataSource.setPassword(getEnvOrProperty("JOBRUNR_JDBC_PASSWORD"));
-        return SqlJobStorageProviderFactory.using(dataSource);
+        dataSource.setUrl(jdbcUrl + "?rewriteBatchedStatements=true&pool=true");
+        dataSource.setUser(userName);
+        dataSource.setPassword(password);
+        return dataSource;
     }
 }

@@ -13,12 +13,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.time.LocalDate.now;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
@@ -37,13 +39,9 @@ public class JobDetailsAsmGeneratorTest {
     @Test
     @Disabled
     public void logByteCode() {
-        try {
-            String name = this.getClass().getName();
-            String location = "/home/rdehuyss/Projects/Personal/JangFire/core/build/classes/java/test/" + toFQResource(name.substring(0, name.indexOf("$$"))) + ".class";
-            Textifier.main(new String[]{location});
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        String name = this.getClass().getName();
+        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+        assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 
     @Test
@@ -111,9 +109,7 @@ public class JobDetailsAsmGeneratorTest {
         for (int i = 0; i < 3; i++) {
             int finalI = i;
             Instant now = Instant.now();
-            JobLambda job = () -> {
-                testService.doWork("some string", finalI, now);
-            };
+            JobLambda job = () -> testService.doWork("some string", finalI, now);
 
             JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
             assertThat(jobDetails)
@@ -210,8 +206,8 @@ public class JobDetailsAsmGeneratorTest {
 
     @Test
     public void testJobLambdaWithArgumentThatIsNotUsed() {
-        final Stream<Integer> range = IntStream.range(0, 1).mapToObj(i -> i);
-        jobDetailsGenerator.toJobDetails(range, (i) -> testService.doWork());
+        final Stream<Integer> range = IntStream.range(0, 1).boxed();
+        assertThatCode(() -> jobDetailsGenerator.toJobDetails(range, (i) -> testService.doWork())).doesNotThrowAnyException();
     }
 
     @Test
@@ -268,9 +264,7 @@ public class JobDetailsAsmGeneratorTest {
         for (int i = 0; i < 3; i++) {
             int finalI = i;
             Instant now = Instant.now();
-            IocJobLambda<TestService> iocJobLambda = (x) -> {
-                x.doWork("some string", finalI, now);
-            };
+            IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork("some string", finalI, now);
 
             JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
             assertThat(jobDetails)
@@ -338,7 +332,7 @@ public class JobDetailsAsmGeneratorTest {
     @Test
     public void testIocJobLambdaWithArgumentThatIsNotUsed() {
         IocJobLambdaFromStream<TestService, Integer> iocJobLambdaFromStream = (x, i) -> x.doWork();
-        jobDetailsGenerator.toJobDetails(5, iocJobLambdaFromStream);
+        assertThatCode(() -> jobDetailsGenerator.toJobDetails(5, iocJobLambdaFromStream)).doesNotThrowAnyException();
     }
 
 }

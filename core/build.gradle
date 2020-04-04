@@ -49,3 +49,53 @@ dependencies {
     testFixturesApi 'org.assertj:assertj-core:3.15.0'
     testFixturesApi 'org.junit.jupiter:junit-jupiter:5.6.1'
 }
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr'
+            version = '0.8.0'
+
+            from components.java
+
+            pom {
+                name = 'JobRunr'
+                description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'Multi licensed'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                withXml {
+                    Node pomNode = asNode()
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
