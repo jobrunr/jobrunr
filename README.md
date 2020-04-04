@@ -49,7 +49,7 @@ This is an incomplete list of features. The website with documentation will foll
 Dedicated worker pool threads execute queued background jobs as soon as possible, shortening your request's processing time.
 
 ```java
-BackgroundJob.enqueue(() => System.out.println("Simple!"));
+BackgroundJob.enqueue(() -> System.out.println("Simple!"));
 ```
 
 [**Delayed tasks**]
@@ -57,7 +57,7 @@ BackgroundJob.enqueue(() => System.out.println("Simple!"));
 Scheduled background jobs are executed only after a given amount of time.
 
 ```java
-BackgroundJob.schedule(() => System.out.println("Reliable!"), Instant.now().plusHours(5));
+BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plusHours(5));
 ```
 
 [**Recurring tasks**]
