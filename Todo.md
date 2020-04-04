@@ -54,10 +54,11 @@
 - [x] throw nice exception if multiline lambda is provided
 - [x] Stream of Jobs and parameter is not used => exception. See disabled test at JobSchedulerTest
 - [x] oracle support for view and stats
+- [x] Example project with Spring
+- [x] Publish to jcenter
 - [ ] zookeeper - what to do when an exception is thrown from the db
 - [ ] logging (correct level)
 - [ ] JavaDoc
-- [ ] Example project with Spring
 - [ ] create website
 
 # Todo release 2
