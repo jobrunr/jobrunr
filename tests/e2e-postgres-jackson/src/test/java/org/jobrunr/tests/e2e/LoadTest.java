@@ -48,7 +48,7 @@ public class LoadTest {
         testService.reset();
         jobStorageProvider = new PostgresStorageProvider(getPostgresDataSource());
         JobRunr.configure()
-                .useJobStorageProvider(jobStorageProvider)
+                .useStorageProvider(jobStorageProvider)
                 .initialize();
 
     }

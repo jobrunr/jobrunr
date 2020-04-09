@@ -3,7 +3,7 @@ package org.jobrunr.storage.sql;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
-import org.jobrunr.storage.sql.common.SqlJobStorageProviderFactory;
+import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -23,7 +23,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final StorageProvider storageProvider = SqlJobStorageProviderFactory.using(getDataSource());
+        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         Whitebox.setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;

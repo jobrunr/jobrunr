@@ -3,7 +3,7 @@ package org.jobrunr.tests.e2e;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlJobStorageProviderFactory;
+import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -25,7 +25,7 @@ public abstract class AbstractMain {
                 getEnvOrProperty("JOBRUNR_JDBC_USERNAME"),
                 getEnvOrProperty("JOBRUNR_JDBC_PASSWORD"));
 
-        return SqlJobStorageProviderFactory.using(dataSource);
+        return SqlStorageProviderFactory.using(dataSource);
     }
 
     public AbstractMain(String[] args) throws Exception {
@@ -51,7 +51,7 @@ public abstract class AbstractMain {
         final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider);
         JobRunr
                 .configure()
-                .useJobStorageProvider(storageProvider)
+                .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
                 .useDashboard()
                 .initialize();

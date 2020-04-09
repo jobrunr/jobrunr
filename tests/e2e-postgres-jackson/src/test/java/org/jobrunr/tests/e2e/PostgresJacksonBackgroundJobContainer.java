@@ -1,7 +1,7 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlJobStorageProviderFactory;
+import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
@@ -18,7 +18,7 @@ public class PostgresJacksonBackgroundJobContainer extends AbstractBackgroundJob
         dataSource.setUser(sqlContainer.getUsername());
         dataSource.setPassword(sqlContainer.getPassword());
 
-        return SqlJobStorageProviderFactory.using(dataSource);
+        return SqlStorageProviderFactory.using(dataSource);
     }
 
 }

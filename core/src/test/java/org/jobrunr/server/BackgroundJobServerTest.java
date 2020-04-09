@@ -36,7 +36,7 @@ public class BackgroundJobServerTest {
         storageProvider = new SimpleStorageProvider();
         backgroundJobServer = new BackgroundJobServer(storageProvider);
         JobRunr.configure()
-                .useJobStorageProvider(storageProvider)
+                .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
                 .initialize();
     }

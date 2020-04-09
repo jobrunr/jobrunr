@@ -49,7 +49,7 @@ public class IocBackgroundJobTest {
         SimpleJobActivator jobActivator = new SimpleJobActivator(new TestService());
         backgroundJobServer = new BackgroundJobServer(jobStorageProvider, jobActivator, new BackgroundJobServerStatus(5, 10));
         JobRunr.configure()
-                .useJobStorageProvider(jobStorageProvider)
+                .useStorageProvider(jobStorageProvider)
                 .useJobActivator(jobActivator)
                 .useBackgroundJobServer(backgroundJobServer)
                 .initialize();
@@ -64,6 +64,14 @@ public class IocBackgroundJobTest {
     @Test
     public void testEnqueue() {
         UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork());
+        await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    public void testEnqueueWithCustomObject() {
+        final TestService.Work work = new TestService.Work(2, "some string", UUID.randomUUID());
+        UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork(work));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }

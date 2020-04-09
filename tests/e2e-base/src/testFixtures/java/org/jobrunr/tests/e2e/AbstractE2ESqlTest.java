@@ -35,7 +35,7 @@ public abstract class AbstractE2ESqlTest {
         storageProvider = getStorageProviderForClient();
 
         JobRunr.configure()
-                .useJobStorageProvider(storageProvider)
+                .useStorageProvider(storageProvider)
                 .initialize();
     }
 

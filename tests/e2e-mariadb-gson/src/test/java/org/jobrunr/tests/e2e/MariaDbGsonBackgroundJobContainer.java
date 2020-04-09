@@ -1,7 +1,7 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlJobStorageProviderFactory;
+import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.mariadb.jdbc.MariaDbPoolDataSource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
@@ -17,7 +17,7 @@ public class MariaDbGsonBackgroundJobContainer extends AbstractBackgroundJobSqlC
         dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
         dataSource.setUser(sqlContainer.getUsername());
         dataSource.setPassword(sqlContainer.getPassword());
-        return SqlJobStorageProviderFactory.using(dataSource);
+        return SqlStorageProviderFactory.using(dataSource);
     }
 
 }
