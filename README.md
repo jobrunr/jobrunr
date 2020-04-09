@@ -161,13 +161,23 @@ public JsonMapper jsonMapper() {
 Define a `javax.sql.DataSource` and put the following code on startup:
 
 ```java
+@SpringBootApplication
+@Import(JobRunrStorageConfiguration.class)
+public class WebApplication {
 
-ApplicationContext applicationContext = SpringApplication.run(JobServerApplication.class, args);
+    public static void main(String[] args) {
+        SpringApplication.run(WebApplication.class, args);
+    }
 
-JobRunr.configure()
-        .useJobStorageProvider(SqlJobStorageProviderFactory.using(applicationContext.getBean(DataSource.class )))
-        .useJobActivator(applicationContext::getBean)
-        .useDefaultBackgroundJobServer()
-        .useDashboard()
-        .initialize();
+    @Bean
+    public JobScheduler initJobRunr(ApplicationContext applicationContext) {
+        return JobRunr.configure()
+                .useJobStorageProvider(SqlJobStorageProviderFactory
+                          .using(applicationContext.getBean(DataSource.class)))
+                .useJobActivator(applicationContext::getBean)
+                .useDefaultBackgroundJobServer()
+                .useDashboard()
+                .initialize();
+    }
+}
 ```
