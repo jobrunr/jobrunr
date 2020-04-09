@@ -12,7 +12,7 @@
       <entry name="!?*.clj" />
       <entry name="!?*.aj!?*.sql" />
     </wildcardResourcePatterns>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8">
       <module name="JangFire.backgroundjob-server.main" target="1.8" />
       <module name="JangFire.backgroundjob-server.test" target="1.8" />
       <module name="JangFire.backgroundjob-server.testFixtures" target="1.8" />

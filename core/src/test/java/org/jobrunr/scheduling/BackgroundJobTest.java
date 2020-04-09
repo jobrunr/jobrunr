@@ -54,7 +54,7 @@ public class BackgroundJobTest {
         jobStorageProvider = new SimpleStorageProvider();
         backgroundJobServer = new BackgroundJobServer(jobStorageProvider, null, new BackgroundJobServerStatus(5, 10));
         JobRunr.configure()
-                .useJobStorageProvider(jobStorageProvider)
+                .useStorageProvider(jobStorageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
                 .initialize();
 
@@ -76,6 +76,14 @@ public class BackgroundJobTest {
     @Test
     public void testEnqueue() {
         UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
+        await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    public void testEnqueueWithCustomObject() {
+        final TestService.Work work = new TestService.Work(2, "some string", UUID.randomUUID());
+        UUID jobId = BackgroundJob.enqueue(() -> testService.doWork(work));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }

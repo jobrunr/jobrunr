@@ -35,7 +35,7 @@ public class JobRunrConfiguration {
         this.jobFilters = new ArrayList<>();
     }
 
-    public JobRunrConfiguration useJobStorageProvider(StorageProvider storageProvider) {
+    public JobRunrConfiguration useStorageProvider(StorageProvider storageProvider) {
         this.storageProvider = storageProvider;
         storageProvider.setJobMapper(jobMapper);
         return this;
@@ -69,8 +69,10 @@ public class JobRunrConfiguration {
         return this;
     }
 
-    public void initialize() {
-        BackgroundJob.setJobScheduler(new JobScheduler(storageProvider, jobFilters));
+    public JobScheduler initialize() {
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobFilters);
+        BackgroundJob.setJobScheduler(jobScheduler);
+        return jobScheduler;
     }
 
     private static JsonMapper determineJsonMapper() {

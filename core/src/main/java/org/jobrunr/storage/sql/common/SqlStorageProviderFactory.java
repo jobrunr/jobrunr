@@ -7,9 +7,9 @@ import org.jobrunr.storage.sql.SqlStorageProvider;
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;
 
-public class SqlJobStorageProviderFactory {
+public class SqlStorageProviderFactory {
 
-    private SqlJobStorageProviderFactory() {
+    private SqlStorageProviderFactory() {
     }
 
     public static StorageProvider using(DataSource dataSource) {
