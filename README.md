@@ -42,9 +42,7 @@ Screenshots
 Usage
 ------
 
-This is an incomplete list of features. The website with documentation will follow soon.
-
-[**Fire-and-forget tasks**]
+[**Fire-and-forget tasks**](https://www.jobrunr.io/documentation/enqueueing-methods/)
 
 Dedicated worker pool threads execute queued background jobs as soon as possible, shortening your request's processing time.
 
@@ -52,7 +50,7 @@ Dedicated worker pool threads execute queued background jobs as soon as possible
 BackgroundJob.enqueue(() -> System.out.println("Simple!"));
 ```
 
-[**Delayed tasks**]
+[**Delayed tasks**](https://www.jobrunr.io/documentation/scheduling-methods/)
 
 Scheduled background jobs are executed only after a given amount of time.
 
@@ -60,7 +58,7 @@ Scheduled background jobs are executed only after a given amount of time.
 BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plusHours(5));
 ```
 
-[**Recurring tasks**]
+[**Recurring tasks**](https://www.jobrunr.io/documentation/recurring-methods/)
 
 Recurring jobs have never been simpler; just call the following method to perform any kind of recurring task using the [CRON expressions](http://en.wikipedia.org/wiki/Cron#CRON_expression).
 
@@ -70,11 +68,13 @@ BackgroundJob.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cr
 
 **Process background tasks inside a web application…**
 
-You can process background tasks in any web application and we have thorough support for [Spring](https://spring.io/) - JobRunr is reliable for to process your background jobs.
+You can process background tasks in any web application and we have thorough support for [Spring](https://spring.io/) - JobRunr is reliable to process your background jobs within a web application.
 
 **… or anywhere else**
 
-Like a Spring Console Application, wrapped in a docker container, that keeps running and polls for new background jobs.
+Like a Spring Console Application, wrapped in a docker container, that keeps running forever and polls for new background jobs.
+
+See [https://www.jobrunr.io](https://www.jobrunr.io) for more info.
 
 Installation
 ------------
@@ -161,13 +161,23 @@ public JsonMapper jsonMapper() {
 Define a `javax.sql.DataSource` and put the following code on startup:
 
 ```java
+@SpringBootApplication
+@Import(JobRunrStorageConfiguration.class)
+public class WebApplication {
 
-ApplicationContext applicationContext = SpringApplication.run(JobServerApplication.class, args);
+    public static void main(String[] args) {
+        SpringApplication.run(WebApplication.class, args);
+    }
 
-JobRunr.configure()
-        .useJobStorageProvider(SqlJobStorageProviderFactory.using(applicationContext.getBean(DataSource.class )))
-        .useJobActivator(applicationContext::getBean)
-        .useDefaultBackgroundJobServer()
-        .useDashboard()
-        .initialize();
+    @Bean
+    public JobScheduler initJobRunr(ApplicationContext applicationContext) {
+        return JobRunr.configure()
+                .useJobStorageProvider(SqlJobStorageProviderFactory
+                          .using(applicationContext.getBean(DataSource.class)))
+                .useJobActivator(applicationContext::getBean)
+                .useDefaultBackgroundJobServer()
+                .useDashboard()
+                .initialize();
+    }
+}
 ```
