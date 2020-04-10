@@ -61,7 +61,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr'
-            version = '0.8.1'
+            version = '0.8.2'
             from components.java
 
             pom {
@@ -112,8 +112,8 @@ bintray {
         licenses = ['LGPL-3.0']
         vcsUrl = 'https://github.com/jobrunr/jobrunr'
         version {
-            name = '0.8.0'
-            desc = '0.8.0'
+            name = '0.8.2'
+            desc = '0.8.2'
             released  = new Date()
         }
     }
