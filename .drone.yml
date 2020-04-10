@@ -69,6 +69,43 @@ steps:
     when:
       status: [ success, failure ]
 
+---
+kind: pipeline
+type: docker
+name: release
+
+steps:
+  - name: set-version
+    image: tomologic/bumpversion
+    commands:
+      - cd /drone/src
+      - bumpversion --current-version $(cat VERSION) patch VERSION gradle.properties
+
+  - name: git-push
+    image: docker:git
+    environment:
+      GITHUB_TOKEN:
+        from_secret: GITHUB_TOKEN
+    commands:
+      - git -c user.name="DroneBot" -c user.email="drone-bot@drone-jobrunr.dehuysser.be" commit -am "Update version"
+      - git tag v$(cat VERSION)
+      - git push https://rdehuyss:$${GITHUB_TOKEN}@github.com/jobrunr/jobrunr.git --all
+
+  - name: upload-to-bintray
+    image: jobrunr.io/build-container:1.0
+    secrets: [ BINTRAY_USER, BINTRAY_APIKEY ]
+    commands:
+      - gradle --no-daemon bintrayUpload
+
+  - name: slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: drone
+    when:
+      status: [ success, failure ]
+
 volumes:
   - name: dockersock
     host:

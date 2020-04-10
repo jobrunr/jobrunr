@@ -2,7 +2,8 @@ plugins {
     id 'java-library'
     id 'java-test-fixtures'
     id 'maven-publish'
-    id "com.jfrog.bintray" version "1.8.4"
+    id 'com.jfrog.bintray' version '1.8.4'
+    id 'com.palantir.git-version' version '0.12.3'
 }
 
 sourceSets {
@@ -61,7 +62,6 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr'
-            version = '0.8.1'
             from components.java
 
             pom {
@@ -101,8 +101,8 @@ publishing {
 }
 
 bintray {
-    user = System.getProperty('bintray.user')
-    key = System.getProperty('bintray.key')
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_APIKEY')
     publications = ['mavenJava']
 
     pkg {
@@ -110,11 +110,8 @@ bintray {
         repo = 'jobrunr'
         name = 'JobRunr'
         licenses = ['LGPL-3.0']
+        websiteUrl = 'https://www.jobrunr.io'
         vcsUrl = 'https://github.com/jobrunr/jobrunr'
-        version {
-            name = '0.8.0'
-            desc = '0.8.0'
-            released  = new Date()
-        }
+        issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
     }
 }

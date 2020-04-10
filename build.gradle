@@ -9,7 +9,6 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'jacoco'
     group = 'org.jobrunr'
-    version = '1.0'
 
     //sourceCompatibility = 11
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -17,7 +16,6 @@ subprojects {
 
     repositories {
         mavenLocal()
-        mavenCentral()
         jcenter()
     }
 
