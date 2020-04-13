@@ -2,9 +2,11 @@ plugins {
     id 'java-library'
     id 'java-test-fixtures'
     id 'maven-publish'
+    id 'nebula.nebula-bintray' version '7.3.0'
 }
 
-apply plugin: "nebula.release"
+apply plugin: 'nebula.release'
+apply plugin: 'nebula.nebula-bintray-publishing'
 
 sourceSets {
     main {
@@ -100,21 +102,19 @@ publishing {
     }
 }
 
-//bintray {
-//    user = System.getProperty('bintray.user')
-//    key = System.getProperty('bintray.key')
-//    publications = ['mavenJava']
-//
-//    pkg {
-//        userOrg = 'jobrunr'
-//        repo = 'jobrunr'
-//        name = 'JobRunr'
-//        licenses = ['LGPL-3.0']
-//        vcsUrl = 'https://github.com/jobrunr/jobrunr'
-//        version {
-//            name = '0.8.0'
-//            desc = '0.8.0'
-//            released  = new Date()
-//        }
-//    }
-//}
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    publications = ['mavenJava']
+
+    pkg {
+        userOrg = 'jobrunr'
+        repo = 'jobrunr'
+        name = 'JobRunr'
+        licenses = ['LGPL-3.0']
+        websiteUrl = 'https://www.jobrunr.io'
+        vcsUrl = 'https://github.com/jobrunr/jobrunr'
+        issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
+        labels = ["java", "scheduling", "batch", "distributed"]
+    }
+}
