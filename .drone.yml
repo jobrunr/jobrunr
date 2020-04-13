@@ -103,7 +103,11 @@ steps:
 
   - name: upload-to-bintray
     image: jobrunr.io/build-container:1.0
-    secrets: [ BINTRAY_USER, BINTRAY_APIKEY ]
+    environment:
+      BINTRAY_USER:
+        from_secret: BINTRAY_USER
+      BINTRAY_APIKEY:
+        from_secret: BINTRAY_APIKEY
     commands:
       - gradle --no-daemon bintrayUpload
     volumes:
