@@ -75,14 +75,6 @@ type: docker
 name: release
 
 steps:
-  - name: assemble
-    image: jobrunr.io/build-container:1.0
-    commands:
-      - gradle --no-daemon assemble
-    volumes:
-      - name: maven-local
-        path: /root/.m2
-
   - name: set-version
     image: tomologic/bumpversion
     commands:
@@ -100,20 +92,23 @@ steps:
       - git tag v$(cat VERSION)
       - git push https://rdehuyss:$${GITHUB_TOKEN}@github.com/jobrunr/jobrunr.git v$(cat VERSION)
 
-  - name: upload-to-github
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: GITHUB_TOKEN
-      files: core/build/libs/*
-    when:
-      event: tag
+#  - name: upload-to-github
+#    image: plugins/github-release
+#    settings:
+#      api_key:
+#        from_secret: GITHUB_TOKEN
+#      files: core/build/libs/*
+#    when:
+#      event: tag
 
   - name: upload-to-bintray
     image: jobrunr.io/build-container:1.0
     secrets: [ BINTRAY_USER, BINTRAY_APIKEY ]
     commands:
       - gradle --no-daemon bintrayUpload
+    volumes:
+      - name: maven-local
+        path: /root/.m2
 
   - name: slack
     image: plugins/slack
