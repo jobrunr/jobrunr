@@ -2,11 +2,9 @@ plugins {
     id 'java-library'
     id 'java-test-fixtures'
     id 'maven-publish'
-    id 'nebula.nebula-bintray' version '7.3.0'
+    id 'com.jfrog.bintray' version '1.8.4'
+    id 'com.palantir.git-version' version '0.12.3'
 }
-
-apply plugin: 'nebula.release'
-apply plugin: 'nebula.nebula-bintray-publishing'
 
 sourceSets {
     main {
@@ -62,8 +60,11 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            def details = versionDetails()
+
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr'
+            version = details.lastTag
             from components.java
 
             pom {
@@ -107,6 +108,8 @@ bintray {
     key = System.getProperty('bintray.key')
     publications = ['mavenJava']
 
+    def details = versionDetails()
+
     pkg {
         userOrg = 'jobrunr'
         repo = 'jobrunr'
@@ -115,6 +118,10 @@ bintray {
         websiteUrl = 'https://www.jobrunr.io'
         vcsUrl = 'https://github.com/jobrunr/jobrunr'
         issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
-        labels = ["java", "scheduling", "batch", "distributed"]
+        version {
+            name = details.lastTag
+            desc = details.lastTag
+            released  = new Date()
+        }
     }
 }
