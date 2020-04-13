@@ -69,6 +69,24 @@ steps:
     when:
       status: [ success, failure ]
 
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
+  - name: gradle-cache
+    host:
+      path: /tmp/jobrunr/cache/gradle
+  - name: node-modules-cache
+    host:
+      path: /tmp/jobrunr/cache/node_modules
+  - name: maven-local
+    host:
+      path: /tmp/jobrunr/cache/m2
+  - name: reports
+    host:
+      path: /tmp/jobrunr/reports
+
+
 ---
 kind: pipeline
 type: docker
@@ -124,18 +142,6 @@ steps:
       status: [ success, failure ]
 
 volumes:
-  - name: dockersock
-    host:
-      path: /var/run/docker.sock
-  - name: gradle-cache
-    host:
-      path: /tmp/jobrunr/cache/gradle
-  - name: node-modules-cache
-    host:
-      path: /tmp/jobrunr/cache/node_modules
   - name: maven-local
     host:
       path: /tmp/jobrunr/cache/m2
-  - name: reports
-    host:
-      path: /tmp/jobrunr/reports
