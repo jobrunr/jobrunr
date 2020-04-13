@@ -75,6 +75,11 @@ type: docker
 name: release
 
 steps:
+  - name: upload-to-bintray
+    image: jobrunr.io/build-container:1.0
+    commands:
+      - gradle --no-daemon assemble
+
   - name: set-version
     image: tomologic/bumpversion
     commands:
@@ -89,7 +94,14 @@ steps:
     commands:
       - git -c user.name="DroneBot" -c user.email="drone-bot@drone-jobrunr.dehuysser.be" commit -am "Update version"
       - git tag v$(cat VERSION)
-      - git push https://rdehuyss:$${GITHUB_TOKEN}@github.com/jobrunr/jobrunr.git --all
+      - git push https://rdehuyss:$${GITHUB_TOKEN}@github.com/jobrunr/jobrunr.git v$(cat VERSION)
+
+  - name: upload-to-github
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: GITHUB_TOKEN
+      files: core/build/libs/*
 
   - name: upload-to-bintray
     image: jobrunr.io/build-container:1.0
