@@ -141,6 +141,10 @@ steps:
     when:
       status: [ success, failure ]
 
+trigger:
+  event:
+    - promote
+
 volumes:
   - name: maven-local
     host:
