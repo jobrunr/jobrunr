@@ -62,7 +62,6 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr'
-            version = '0.8.0'
             from components.java
 
             pom {
