@@ -27,8 +27,13 @@ public class RecurringJobTable extends Sql<RecurringJob> {
     }
 
     public RecurringJob save(RecurringJob recurringJob) {
-        withId(recurringJob.getId())
-                .insert(recurringJob, "into jobrunr_recurring_jobs values(:id, 1, :jobAsJson)");
+        withId(recurringJob.getId());
+
+        if (selectExists("from jobrunr_recurring_jobs where id = :id")) {
+            update(recurringJob, "jobrunr_recurring_jobs SET jobAsJson = :jobAsJson WHERE id = :id");
+        } else {
+            insert(recurringJob, "into jobrunr_recurring_jobs values(:id, 1, :jobAsJson)");
+        }
         return recurringJob;
     }
 
