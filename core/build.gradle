@@ -32,6 +32,7 @@ dependencies {
     compileOnly 'com.oracle:ojdbc7:12.1.0.1'
     compileOnly 'org.mariadb.jdbc:mariadb-java-client:2.6.0'
     compileOnly 'mysql:mysql-connector-java:8.0.19'
+    compileOnly 'redis.clients:jedis:3.2.0'
 
     testImplementation 'org.ow2.asm:asm-util:7.3.1'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.10.2'
@@ -47,6 +48,7 @@ dependencies {
     testImplementation 'com.oracle:ojdbc7:12.1.0.1'
     testImplementation 'org.mariadb.jdbc:mariadb-java-client:2.6.0'
     testImplementation 'mysql:mysql-connector-java:8.0.19'
+    testImplementation 'redis.clients:jedis:3.2.0'
 
     testFixturesApi 'org.assertj:assertj-core:3.15.0'
     testFixturesApi 'org.junit.jupiter:junit-jupiter:5.6.1'

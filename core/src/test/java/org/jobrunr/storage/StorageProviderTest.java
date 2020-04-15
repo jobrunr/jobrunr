@@ -99,7 +99,7 @@ public abstract class StorageProviderTest {
         storageProvider.announceBackgroundJobServer(serverStatus1);
         Thread.sleep(100);
 
-        Instant deleteServersWithHeartbeatOlderThanThis = Instant.now();
+        Instant deleteServersWithHeartbeatOlderThanThis = now();
         final BackgroundJobServerStatus serverStatus2 = new BackgroundJobServerStatus(15, 10);
         serverStatus2.start();
         storageProvider.announceBackgroundJobServer(serverStatus2);
@@ -117,18 +117,24 @@ public abstract class StorageProviderTest {
         storageProvider.announceBackgroundJobServer(serverStatus);
         Thread.sleep(100);
 
-        Instant deleteServersWithHeartbeatOlderThanThis = Instant.now();
+        Instant deleteServersWithHeartbeatOlderThanThis = now();
         storageProvider.removeTimedOutBackgroundJobServers(deleteServersWithHeartbeatOlderThanThis);
 
         assertThatThrownBy(() -> storageProvider.signalBackgroundJobServerAlive(serverStatus)).isInstanceOf(ServerTimedOutException.class);
     }
 
     @Test
-    public void testCreateGetAndDeleteJob() {
+    public void testCRUDJob() {
         Job job = anEnqueuedJob().build();
         Job createdJob = storageProvider.save(job);
         Job fetchedJob = storageProvider.getJobById(createdJob.getId());
         assertThat(fetchedJob).usingRecursiveComparison().isEqualTo(createdJob);
+
+        fetchedJob.startProcessingOn(backgroundJobServer);
+        storageProvider.save(fetchedJob);
+
+        Job fetchedUpdatedJob = storageProvider.getJobById(createdJob.getId());
+        assertThat(fetchedUpdatedJob).usingRecursiveComparison().isEqualTo(fetchedJob);
 
         final int deletedJobs = storageProvider.delete(fetchedJob.getId());
         assertThat(deletedJobs).isEqualTo(1);
@@ -189,7 +195,9 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(3);
 
         List<Job> fetchedJobs = storageProvider.getJobs(PROCESSING, PageRequest.of(0, 100));
-        assertThat(fetchedJobs).hasSize(3);
+        assertThat(fetchedJobs)
+                .hasSize(3)
+                .usingRecursiveFieldByFieldElementComparator().containsAll(savedJobs);
     }
 
     @Test
@@ -208,15 +216,20 @@ public abstract class StorageProviderTest {
 
     @Test
     public void testDeleteJobs() {
-        final List<Job> jobs = asList(anEnqueuedJob().build(), anEnqueuedJob().build(), anEnqueuedJob().build());
+        final List<Job> jobs = asList(
+                aJob().withEnqueuedState(now().minus(4, HOURS)).build(),
+                aJob().withEnqueuedState(now().minus(3, HOURS)).build(),
+                aJob().withEnqueuedState(now().minus(2, HOURS)).build(),
+                aJob().withEnqueuedState(now()).build()
+        );
 
         storageProvider.save(jobs);
 
-        storageProvider.deleteJobs(ENQUEUED, now());
+        storageProvider.deleteJobs(ENQUEUED, now().minus(1, HOURS));
 
         List<Job> fetchedJobs = storageProvider.getJobs(ENQUEUED, PageRequest.of(0, 100));
 
-        assertThat(fetchedJobs).hasSize(0);
+        assertThat(fetchedJobs).hasSize(1);
     }
 
     @Test
@@ -249,14 +262,17 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testCreateGetAndDeleteRecurringJob() {
-        RecurringJob recurringJob = new RecurringJob("nightly", defaultJobDetails().build(), CronExpression.create(Cron.daily()), ZoneId.systemDefault());
-
-        storageProvider.saveRecurringJob(recurringJob);
-
+    public void testCRUDRecurringJob() {
+        RecurringJob recurringJobv1 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.daily()), ZoneId.systemDefault());
+        storageProvider.saveRecurringJob(recurringJobv1);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
 
-        storageProvider.deleteRecurringJob(recurringJob.getId());
+        RecurringJob recurringJobv2 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
+        storageProvider.saveRecurringJob(recurringJobv2);
+        assertThat(storageProvider.getRecurringJobs()).hasSize(1);
+        assertThat(storageProvider.getRecurringJobs().get(0).getCronExpression()).isEqualTo(Cron.hourly());
+
+        storageProvider.deleteRecurringJob("my-job");
 
         assertThat(storageProvider.getRecurringJobs()).hasSize(0);
     }
