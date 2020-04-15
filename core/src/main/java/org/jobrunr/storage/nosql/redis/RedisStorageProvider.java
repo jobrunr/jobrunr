@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -76,6 +77,7 @@ public class RedisStorageProvider implements StorageProvider {
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try (Jedis jedis = getJedis()) {
             final Pipeline p = jedis.pipelined();
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "id", serverStatus.getId().toString());
             p.hset("backgroundjobserver:" + serverStatus.getId(), "workerPoolSize", String.valueOf(serverStatus.getWorkerPoolSize()));
             p.hset("backgroundjobserver:" + serverStatus.getId(), "pollIntervalInSeconds", String.valueOf(serverStatus.getPollIntervalInSeconds()));
             p.hset("backgroundjobserver:" + serverStatus.getId(), "firstHeartbeat", String.valueOf(serverStatus.getFirstHeartbeat()));
@@ -102,20 +104,20 @@ public class RedisStorageProvider implements StorageProvider {
 
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
-        return jedis.zrange("backgroundjobservers", 0, Integer.MAX_VALUE)
-                .stream()
-                .map(id -> {
-                    final Map<String, String> fieldMap = jedis.hgetAll("backgroundjobserver:" + id);
-                    return new BackgroundJobServerStatus(
-                            UUID.fromString(id),
+        try (Jedis jedis = getJedis()) {
+            return new RedisPipelinedStream<>(jedis.zrange("backgroundjobservers", 0, Integer.MAX_VALUE), jedis)
+                    .mapUsingPipeline((p, id) -> p.hgetAll("backgroundjobserver:" + id))
+                    .mapAfterSync(Response::get)
+                    .map(fieldMap -> new BackgroundJobServerStatus(
+                            UUID.fromString(fieldMap.get("id")),
                             Integer.parseInt(fieldMap.get("workerPoolSize")),
                             Integer.parseInt(fieldMap.get("pollIntervalInSeconds")),
                             Instant.parse(fieldMap.get("firstHeartbeat")),
                             Instant.parse(fieldMap.get("lastHeartbeat")),
                             Boolean.parseBoolean(fieldMap.get("isRunning"))
-                    );
-                })
-                .collect(Collectors.toList());
+                    ))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -211,24 +213,26 @@ public class RedisStorageProvider implements StorageProvider {
 
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return jedis.zrangeByScore("queue:jobs:" + state, 0, toMicroSeconds(updatedBefore))
-                .stream()
-                .skip(pageRequest.getOffset())
-                .limit(pageRequest.getLimit())
-                .map(id -> jedis.get(jobKey(id)))
-                .map(jobMapper::deserializeJob)
-                .collect(Collectors.toList());
+        try (Jedis jedis = getJedis()) {
+            return new RedisPipelinedStream<>(jedis.zrangeByScore("queue:jobs:" + state, 0, toMicroSeconds(updatedBefore)), jedis)
+                    .skip(pageRequest.getOffset())
+                    .limit(pageRequest.getLimit())
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
     }
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return jedis.zrangeByScore("queue:scheduledjobs", 0, toMicroSeconds(now()))
-                .stream()
+        return new RedisPipelinedStream<>(jedis.zrangeByScore("queue:scheduledjobs", 0, toMicroSeconds(now())), jedis)
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
-                .map(id -> jedis.get(jobKey(id)))
+                .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
+                .mapAfterSync(Response::get)
                 .map(jobMapper::deserializeJob)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -241,11 +245,11 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            return jedis.zrange("queue:jobs:" + state, pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1)
-                    .stream()
-                    .map(id -> jedis.get(jobKey(id)))
+            return new RedisPipelinedStream<>(jedis.zrange("queue:jobs:" + state, pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1), jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
+                    .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
     }
 
@@ -310,7 +314,7 @@ public class RedisStorageProvider implements StorageProvider {
                     .stream()
                     .map(id -> jedis.get("recurringjob:" + id))
                     .map(jobMapper::deserializeRecurringJob)
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
     }
 
