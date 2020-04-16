@@ -55,7 +55,11 @@ public class RedisStorageProvider implements StorageProvider {
     private JobMapper jobMapper;
 
     public RedisStorageProvider() {
-        this(new Jedis(), rateLimit().at2Requests().per(SECOND));
+        this(new Jedis());
+    }
+
+    public RedisStorageProvider(Jedis jedis) {
+        this(jedis, rateLimit().at2Requests().per(SECOND));
     }
 
     public RedisStorageProvider(Jedis jedis, RateLimiter changeListenerNotificationRateLimit) {
