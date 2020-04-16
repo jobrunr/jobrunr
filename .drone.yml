@@ -93,31 +93,28 @@ type: docker
 name: release
 
 steps:
-  - name: set-version
-    image: tomologic/bumpversion
-    commands:
-      - cd /drone/src
-      - bumpversion --current-version $(cat VERSION) patch VERSION gradle.properties
+  - name: build
+      image: jobrunr.io/build-container:1.0
+      commands:
+        - gradle --no-daemon clean build
+      volumes:
+        - name: dockersock
+          path: /var/run/docker.sock
+        - name: gradle-cache
+          path: /home/gradle/.gradle
+        - name: maven-local
+          path: /root/.m2
+        - name: reports
+          path: /tmp/reports
 
-  - name: git-push
-    image: docker:git
-    environment:
-      GITHUB_TOKEN:
+  - name: upload-to-github
+    image: plugins/github-release
+    settings:
+      api_key:
         from_secret: GITHUB_TOKEN
-    commands:
-      - git -c user.name="DroneBot" -c user.email="drone-bot@drone-jobrunr.dehuysser.be" commit -am "Update version"
-      - git push https://rdehuyss:$${GITHUB_TOKEN}@github.com/jobrunr/jobrunr.git --all
-      - git tag v$(cat VERSION)
-      - git push https://rdehuyss:$${GITHUB_TOKEN}@github.com/jobrunr/jobrunr.git v$(cat VERSION)
-
-#  - name: upload-to-github
-#    image: plugins/github-release
-#    settings:
-#      api_key:
-#        from_secret: GITHUB_TOKEN
-#      files: core/build/libs/*
-#    when:
-#      event: tag
+      files: core/build/libs/*
+    when:
+      event: tag
 
   - name: upload-to-bintray
     image: jobrunr.io/build-container:1.0
@@ -143,7 +140,7 @@ steps:
 
 trigger:
   event:
-    - promote
+    - tag
 
 volumes:
   - name: maven-local
