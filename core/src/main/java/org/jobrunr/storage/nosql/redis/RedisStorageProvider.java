@@ -85,8 +85,15 @@ public class RedisStorageProvider implements StorageProvider {
             p.hset("backgroundjobserver:" + serverStatus.getId(), "workerPoolSize", String.valueOf(serverStatus.getWorkerPoolSize()));
             p.hset("backgroundjobserver:" + serverStatus.getId(), "pollIntervalInSeconds", String.valueOf(serverStatus.getPollIntervalInSeconds()));
             p.hset("backgroundjobserver:" + serverStatus.getId(), "firstHeartbeat", String.valueOf(serverStatus.getFirstHeartbeat()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "lastHeartbeat", String.valueOf(Instant.now()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "lastHeartbeat", String.valueOf(serverStatus.getLastHeartbeat()));
             p.hset("backgroundjobserver:" + serverStatus.getId(), "isRunning", String.valueOf(serverStatus.isRunning()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemTotalMemory", String.valueOf(serverStatus.getSystemTotalMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemFreeMemory", String.valueOf(serverStatus.getSystemFreeMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemCpuLoad", String.valueOf(serverStatus.getSystemCpuLoad()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processMaxMemory", String.valueOf(serverStatus.getProcessMaxMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processFreeMemory", String.valueOf(serverStatus.getProcessFreeMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processAllocatedMemory", String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processCpuLoad", String.valueOf(serverStatus.getProcessCpuLoad()));
             p.zadd("backgroundjobservers", toMicroSeconds(now()), serverStatus.getId().toString());
             p.sync();
         }
@@ -99,7 +106,12 @@ public class RedisStorageProvider implements StorageProvider {
             if (valueMap.isEmpty()) throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
             final Pipeline p = jedis.pipelined();
             p.watch("backgroundjobserver:" + serverStatus.getId());
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "lastHeartbeat", String.valueOf(Instant.now()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "lastHeartbeat", String.valueOf(serverStatus.getLastHeartbeat()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemFreeMemory", String.valueOf(serverStatus.getSystemFreeMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemCpuLoad", String.valueOf(serverStatus.getSystemCpuLoad()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processFreeMemory", String.valueOf(serverStatus.getProcessFreeMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processAllocatedMemory", String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            p.hset("backgroundjobserver:" + serverStatus.getId(), "processCpuLoad", String.valueOf(serverStatus.getProcessCpuLoad()));
             final Response<String> isRunningResponse = p.hget("backgroundjobserver:" + serverStatus.getId(), "isRunning");
             p.sync();
             return Boolean.parseBoolean(isRunningResponse.get());
@@ -118,7 +130,14 @@ public class RedisStorageProvider implements StorageProvider {
                             Integer.parseInt(fieldMap.get("pollIntervalInSeconds")),
                             Instant.parse(fieldMap.get("firstHeartbeat")),
                             Instant.parse(fieldMap.get("lastHeartbeat")),
-                            Boolean.parseBoolean(fieldMap.get("isRunning"))
+                            Boolean.parseBoolean(fieldMap.get("isRunning")),
+                            Long.parseLong(fieldMap.get("systemTotalMemory")),
+                            Long.parseLong(fieldMap.get("systemFreeMemory")),
+                            Double.parseDouble(fieldMap.get("systemCpuLoad")),
+                            Long.parseLong(fieldMap.get("processMaxMemory")),
+                            Long.parseLong(fieldMap.get("processFreeMemory")),
+                            Long.parseLong(fieldMap.get("processAllocatedMemory")),
+                            Double.parseDouble(fieldMap.get("processCpuLoad"))
                     ))
                     .collect(Collectors.toList());
         }

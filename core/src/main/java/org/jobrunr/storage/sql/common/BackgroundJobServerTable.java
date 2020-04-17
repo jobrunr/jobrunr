@@ -21,21 +21,33 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .with("workerPoolSize", BackgroundJobServerStatus::getWorkerPoolSize)
                 .with("pollIntervalInSeconds", BackgroundJobServerStatus::getPollIntervalInSeconds)
                 .with("firstHeartbeat", BackgroundJobServerStatus::getFirstHeartbeat)
-                .with("running", BackgroundJobServerStatus::isRunning);
+                .with("lastHeartbeat", BackgroundJobServerStatus::getLastHeartbeat)
+                .with("running", BackgroundJobServerStatus::isRunning)
+                .with("systemTotalMemory", BackgroundJobServerStatus::getSystemTotalMemory)
+                .with("systemFreeMemory", BackgroundJobServerStatus::getSystemFreeMemory)
+                .with("systemCpuLoad", BackgroundJobServerStatus::getSystemCpuLoad)
+                .with("processMaxMemory", BackgroundJobServerStatus::getProcessMaxMemory)
+                .with("processFreeMemory", BackgroundJobServerStatus::getProcessFreeMemory)
+                .with("processAllocatedMemory", BackgroundJobServerStatus::getProcessAllocatedMemory)
+                .with("processCpuLoad", BackgroundJobServerStatus::getProcessCpuLoad);
     }
 
     public void announce(BackgroundJobServerStatus serverStatus) {
         this
-                .with("lastHeartbeat", Instant.now())
-                .insert(serverStatus, "into jobrunr_backgroundjobservers values (:id, :workerPoolSize, :pollIntervalInSeconds, :firstHeartbeat, :lastHeartbeat, :running)");
+                .insert(serverStatus, "into jobrunr_backgroundjobservers values (:id, :workerPoolSize, :pollIntervalInSeconds, :firstHeartbeat, :lastHeartbeat, :running, :systemTotalMemory, :systemFreeMemory, :systemCpuLoad, :processMaxMemory, :processFreeMemory, :processAllocatedMemory, :processCpuLoad)");
     }
 
     public boolean signalServerAlive(BackgroundJobServerStatus serverStatus) {
         try {
             this
                     .with("id", serverStatus.getId())
-                    .with("lastHeartbeat", Instant.now())
-                    .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat where id = :id");
+                    .with("lastHeartbeat", serverStatus.getLastHeartbeat())
+                    .with("systemFreeMemory", serverStatus.getSystemFreeMemory())
+                    .with("systemCpuLoad", serverStatus.getSystemCpuLoad())
+                    .with("processFreeMemory", serverStatus.getProcessFreeMemory())
+                    .with("processAllocatedMemory", serverStatus.getProcessAllocatedMemory())
+                    .with("processCpuLoad", serverStatus.getSystemCpuLoad())
+                    .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad where id = :id");
 
             return select("running from jobrunr_backgroundjobservers where id = :id")
                     .map(sqlResultSet -> sqlResultSet.asBoolean("running"))
@@ -64,7 +76,14 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 resultSet.asInt("pollIntervalInSeconds"),
                 resultSet.asInstant("firstHeartbeat"),
                 resultSet.asInstant("lastHeartbeat"),
-                resultSet.asBoolean("running")
+                resultSet.asBoolean("running"),
+                resultSet.asLong("systemTotalMemory"),
+                resultSet.asLong("systemFreeMemory"),
+                resultSet.asDouble("systemCpuLoad"),
+                resultSet.asLong("processMaxMemory"),
+                resultSet.asLong("processFreeMemory"),
+                resultSet.asLong("processAllocatedMemory"),
+                resultSet.asDouble("processCpuLoad")
         );
     }
 }

@@ -9,6 +9,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +54,7 @@ public abstract class StorageProviderTest {
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
         cleanup();
-        final BackgroundJobServerStatus serverStatus = new BackgroundJobServerStatus(15, 10);
+        final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus.start();
         JobRunr.configure();
         lenient().when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
@@ -67,12 +68,12 @@ public abstract class StorageProviderTest {
 
     @Test
     public void testAnnounceAndListBackgroundJobServers() throws InterruptedException {
-        final BackgroundJobServerStatus serverStatus1 = new BackgroundJobServerStatus(15, 10);
+        final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus1.start();
         storageProvider.announceBackgroundJobServer(serverStatus1);
         Thread.sleep(100);
 
-        final BackgroundJobServerStatus serverStatus2 = new BackgroundJobServerStatus(15, 10);
+        final BackgroundJobServerStatus serverStatus2 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus2.start();
         storageProvider.announceBackgroundJobServer(serverStatus2);
         Thread.sleep(100);
@@ -94,13 +95,13 @@ public abstract class StorageProviderTest {
 
     @Test
     public void testRemoveTimedOutBackgroundJobServers() throws InterruptedException {
-        final BackgroundJobServerStatus serverStatus1 = new BackgroundJobServerStatus(15, 10);
+        final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus1.start();
         storageProvider.announceBackgroundJobServer(serverStatus1);
         Thread.sleep(100);
 
         Instant deleteServersWithHeartbeatOlderThanThis = now();
-        final BackgroundJobServerStatus serverStatus2 = new BackgroundJobServerStatus(15, 10);
+        final BackgroundJobServerStatus serverStatus2 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus2.start();
         storageProvider.announceBackgroundJobServer(serverStatus2);
 
@@ -112,7 +113,7 @@ public abstract class StorageProviderTest {
 
     @Test
     public void ifServerHasTimedOutAndSignalsItsAliveAnExceptionIsThrown() throws InterruptedException {
-        final BackgroundJobServerStatus serverStatus = new BackgroundJobServerStatus(15, 10);
+        final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus.start();
         storageProvider.announceBackgroundJobServer(serverStatus);
         Thread.sleep(100);

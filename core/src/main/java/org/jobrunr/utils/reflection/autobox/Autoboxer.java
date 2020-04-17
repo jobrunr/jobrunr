@@ -12,6 +12,7 @@ public class Autoboxer {
             new InstantTypeAutoboxer(),
             new IntegerTypeAutoboxer(),
             new LongTypeAutoboxer(),
+            new DoubleTypeAutoboxer(),
             new StringTypeAutoboxer(),
             new UUIDTypeAutoboxer()
     );

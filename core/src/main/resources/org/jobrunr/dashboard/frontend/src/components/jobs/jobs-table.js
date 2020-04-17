@@ -30,13 +30,13 @@ const useStyles = makeStyles(theme => ({
     },
     idColumn: {
         maxWidth: 0,
-        width: '15%',
+        width: '20%',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     },
     jobNameColumn: {
-        width: '65%'
+        width: '60%'
     },
     inline: {
         display: 'inline',

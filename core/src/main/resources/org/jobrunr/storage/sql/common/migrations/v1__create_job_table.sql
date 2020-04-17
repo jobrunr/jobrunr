@@ -3,8 +3,8 @@ CREATE TABLE jobrunr_jobs
     id           NCHAR(36) PRIMARY KEY,
     version      int          NOT NULL,
     jobAsJson    text         NOT NULL,
-    jobSignature varchar(512) NOT NULL,
-    state        varchar(36)  NOT NULL,
+    jobSignature VARCHAR(512) NOT NULL,
+    state        VARCHAR(36)  NOT NULL,
     createdAt    TIMESTAMP    NOT NULL,
     updatedAt    TIMESTAMP    NOT NULL,
     scheduledAt  TIMESTAMP

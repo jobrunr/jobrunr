@@ -8,7 +8,6 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.resilience.RateLimiter;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJobThatTakesLong;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -61,16 +61,30 @@ public class SimpleStorageProvider implements StorageProvider {
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        Whitebox.setInternalState(serverStatus, "lastHeartbeat", Instant.now());
-        backgroundJobServers.put(serverStatus.getId(), serverStatus);
+        final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(
+                serverStatus.getId(),
+                serverStatus.getWorkerPoolSize(),
+                serverStatus.getPollIntervalInSeconds(),
+                serverStatus.getFirstHeartbeat(),
+                serverStatus.getLastHeartbeat(),
+                serverStatus.isRunning(),
+                serverStatus.getSystemTotalMemory(),
+                serverStatus.getSystemFreeMemory(),
+                serverStatus.getSystemCpuLoad(),
+                serverStatus.getProcessMaxMemory(),
+                serverStatus.getProcessFreeMemory(),
+                serverStatus.getProcessAllocatedMemory(),
+                serverStatus.getProcessCpuLoad()
+        );
+        backgroundJobServers.put(serverStatus.getId(), backgroundJobServerStatus);
     }
 
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
         if (!backgroundJobServers.containsKey(serverStatus.getId())) throw new ServerTimedOutException(serverStatus, new StorageException("Tha server is not there"));
 
+        announceBackgroundJobServer(serverStatus);
         final BackgroundJobServerStatus backgroundJobServerStatus = backgroundJobServers.get(serverStatus.getId());
-        Whitebox.setInternalState(backgroundJobServerStatus, "lastHeartbeat", Instant.now());
         return backgroundJobServerStatus.isRunning();
     }
 
@@ -236,6 +250,20 @@ public class SimpleStorageProvider implements StorageProvider {
         announceBackgroundJobServer(backgroundJobServerStatus);
         for (int i = 0; i < 33; i++) {
             save(anEnqueuedJob().build());
+        }
+        save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
+        save(aSucceededJob().build());
+        save(aFailedJobWithRetries().build());
+        save(aFailedJobThatEventuallySucceeded().build());
+        return this;
+    }
+
+    public SimpleStorageProvider withALotOfEnqueuedJobsThatTakeSomeTime() {
+//        final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(10, 10);
+//        backgroundJobServerStatus.start();
+//        announceBackgroundJobServer(backgroundJobServerStatus);
+        for (int i = 0; i < 33000; i++) {
+            save(anEnqueuedJobThatTakesLong().build());
         }
         save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
         save(aSucceededJob().build());

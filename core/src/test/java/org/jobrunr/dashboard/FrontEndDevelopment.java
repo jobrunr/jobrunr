@@ -10,11 +10,12 @@ public class FrontEndDevelopment {
     public static void main(String[] args) throws InterruptedException {
         StorageProvider storageProvider = new SimpleStorageProvider()
                 .withJsonMapper(new JacksonJsonMapper())
-                .withDefaultData();
+                .withALotOfEnqueuedJobsThatTakeSomeTime();
         JobRunr
                 .configure()
                 .useStorageProvider(storageProvider)
                 .useDashboard()
+                .useDefaultBackgroundJobServer()
                 .initialize();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));

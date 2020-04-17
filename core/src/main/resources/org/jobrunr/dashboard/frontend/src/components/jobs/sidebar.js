@@ -13,7 +13,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import {makeStyles} from '@material-ui/core/styles';
 import {Schedule} from "@material-ui/icons";
 import {AlertCircleOutline, Check, Cogs, TimerSand, TrayFull} from "mdi-material-ui";
-import {StatsContext} from '../../layouts/Admin'
+import {StatsContext} from '../../layouts/Admin';
 
 const drawerWidth = 320;
 

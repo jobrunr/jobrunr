@@ -59,27 +59,7 @@ public class Sql<T> {
         return this;
     }
 
-    public Sql<T> with(String name, String value) {
-        params.put(name, value);
-        return this;
-    }
-
-    public Sql<T> with(String name, Integer value) {
-        params.put(name, value);
-        return this;
-    }
-
-    public Sql<T> with(String name, Long value) {
-        params.put(name, value);
-        return this;
-    }
-
-    public Sql<T> with(String name, Instant value) {
-        params.put(name, value);
-        return this;
-    }
-
-    public Sql<T> with(String name, UUID value) {
+    public Sql<T> with(String name, Object value) {
         params.put(name, value);
         return this;
     }
@@ -213,6 +193,8 @@ public class Sql<T> {
                 ps.setInt(i, (Integer) o);
             } else if (o instanceof Long) {
                 ps.setLong(i, (Long) o);
+            } else if (o instanceof Double) {
+                ps.setDouble(i, (Double) o);
             } else if (o instanceof Instant) {
                 ps.setTimestamp(i, Timestamp.from((Instant) o));
             } else if (o instanceof Boolean) {
