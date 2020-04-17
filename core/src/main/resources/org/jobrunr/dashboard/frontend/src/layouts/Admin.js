@@ -89,7 +89,7 @@ const AdminUI = function () {
                                     Dashboard
                                 </Button>
                                 <Button id="jobs-btn" color="inherit" component={RouterLink} to="/dashboard/jobs">
-                                    <AppBarButtonBadge badgeContent={stats.enqueued} color="secondary">
+                                    <AppBarButtonBadge badgeContent={stats.enqueued} max={99999} color="secondary">
                                         Jobs
                                     </AppBarButtonBadge>
                                 </Button>
