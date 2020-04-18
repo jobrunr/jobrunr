@@ -58,6 +58,9 @@ const AppBarButtonBadge = withStyles(theme => ({
 const StatsContext = React.createContext({});
 
 const AdminUI = function () {
+    console.log('StatsContext', StatsContext)
+
+
     const theme = createMuiTheme({
         palette: {
             primary: {
@@ -67,19 +70,60 @@ const AdminUI = function () {
     });
     const classes = useStyles();
 
-    const [stats, setStats] = React.useState({enqueued: 0, backgroundJobServers: 0});
+    const [stats, setStats] = React.useState({
+        enqueued: 0,
+        backgroundJobServers: 0,
+        estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}
+    });
+    const oldStatsRef = React.useRef(null);
 
     React.useEffect(() => {
         let eventSource = new EventSource(process.env.REACT_APP_SSE_URL)
         eventSource.onmessage = e => {
-            console.log(e.data);
-            setStats(JSON.parse(e.data));
-        }
+            const newStats = JSON.parse(e.data);
+
+            const oldStats = oldStatsRef.current;
+            if (newStats.succeeded != null && newStats.succeeded > 0) {
+                if ((newStats.enqueued != null && newStats.enqueued < 1) && (newStats.processing != null && newStats.processing < 1)) {
+                    setStats({...newStats, estimation: {processingDone: true}})
+                } else if (oldStats == null) {
+                    oldStatsRef.current = {...newStats, timestamp: new Date()};
+                    setStats({
+                        ...newStats,
+                        estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}
+                    })
+                } else {
+                    const amountSucceeded = newStats.succeeded - oldStats.succeeded;
+                    if (amountSucceeded === 0) {
+                        setStats({
+                            ...newStats,
+                            estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}
+                        })
+                    } else {
+                        const timeDiff = new Date() - oldStats.timestamp;
+                        if (!isNaN(timeDiff)) {
+                            const amountSucceededPerSecond = amountSucceeded * 1000 / timeDiff;
+                            const estimatedProcessingTime = newStats.enqueued / amountSucceededPerSecond
+                            const processingTimeDate = (new Date().getTime() + (estimatedProcessingTime * 1000));
+                            setStats({
+                                ...newStats,
+                                estimation: {
+                                    processingDone: false,
+                                    estimatedProcessingTimeAvailable: true,
+                                    estimatedProcessingTime: processingTimeDate
+                                }
+                            })
+                        }
+                    }
+                }
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (
         <MuiThemeProvider theme={theme}>
-            <StatsContext.Provider value={{stats}}>
+            <StatsContext.Provider value={stats}>
                 <div className={classes.root}>
                     <AppBar position="fixed" className={classes.appBar}>
                         <Toolbar>
@@ -122,4 +166,12 @@ const AdminUI = function () {
     );
 };
 
-export {AdminUI, StatsContext}
+function useStatsContext() {
+    const statsState = React.useContext(StatsContext)
+    if (typeof statsState === undefined) {
+        throw new Error('useStatsContext must be used within a StatsProvider')
+    }
+    return statsState
+}
+
+export {AdminUI, useStatsContext}

@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -13,6 +14,10 @@ import {makeStyles} from '@material-ui/core/styles';
 import {CircularProgress} from "@material-ui/core";
 import {CogClockwise} from "mdi-material-ui";
 import NotInterestedIcon from '@material-ui/icons/NotInterested';
+import Dialog from '@material-ui/core/Dialog';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
+import MuiDialogContent from '@material-ui/core/DialogContent';
+import {humanFileSize} from "../../utils/helper-functions";
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -52,11 +57,24 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const Servers = (props) => {
+const Servers = React.memo((prop) => {
+    console.log('Rerendering?');
     const classes = useStyles();
 
     const [isLoading, setIsLoading] = React.useState(true);
     const [servers, setServers] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const [open, setOpen] = React.useState(false);
+    const serverRef = React.useRef(null);
+
+    const handleOpen = (serverId) => {
+        serverRef.current = servers.find(server => server.id = serverId);
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        serverRef.current = null;
+    };
 
 
     React.useEffect(() => {
@@ -89,6 +107,8 @@ const Servers = (props) => {
                                                 <TableCell>Workers</TableCell>
                                                 <TableCell>Created</TableCell>
                                                 <TableCell>Last heartbeat</TableCell>
+                                                <TableCell>Free memory</TableCell>
+                                                <TableCell>Cpu load</TableCell>
                                                 <TableCell>Running?</TableCell>
                                                 {/*<TableCell>Actions</TableCell>*/}
                                             </TableRow>
@@ -97,7 +117,9 @@ const Servers = (props) => {
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        {server.id}
+                                                        <Link color="inherit" onClick={() => handleOpen(server.id)}>
+                                                            {server.id}
+                                                        </Link>
                                                     </TableCell>
                                                     <TableCell>
                                                         {server.workerPoolSize}
@@ -109,9 +131,15 @@ const Servers = (props) => {
                                                         <TimeAgo date={new Date(server.lastHeartbeat)}/>
                                                     </TableCell>
                                                     <TableCell>
+                                                        {humanFileSize(server.processFreeMemory, true)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {(server.systemCpuLoad * 100).toFixed(2)} %
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {server.running
                                                             ? <CogClockwise className={classes.spin}/>
-                                                            : <NotInterestedIcon />
+                                                            : <NotInterestedIcon/>
                                                         }
                                                     </TableCell>
                                                     {/*<TableCell>*/}
@@ -129,10 +157,104 @@ const Servers = (props) => {
                         }
                     </>
                 }
-
             </Paper>
+            {serverRef.current &&
+            <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
+                    {serverRef.current.id}
+                </MuiDialogTitle>
+                <MuiDialogContent dividers>
+                    <TableContainer>
+                        <Table className={classes.table} aria-label="simple table">
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>
+                                        WorkerPoolSize
+                                    </TableCell>
+                                    <TableCell>
+                                        {serverRef.current.workerPoolSize}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        PollIntervalInSeconds
+                                    </TableCell>
+                                    <TableCell>
+                                        {serverRef.current.pollIntervalInSeconds}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        FirstHeartbeat
+                                    </TableCell>
+                                    <TableCell>
+                                        <TimeAgo date={new Date(serverRef.current.firstHeartbeat)}/>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        LastHeartbeat
+                                    </TableCell>
+                                    <TableCell>
+                                        <TimeAgo date={new Date(serverRef.current.lastHeartbeat)}/>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        SystemTotalMemory
+                                    </TableCell>
+                                    <TableCell>
+                                        {humanFileSize(serverRef.current.systemTotalMemory, true)}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        SystemFreeMemory
+                                    </TableCell>
+                                    <TableCell>
+                                        {humanFileSize(serverRef.current.systemFreeMemory, true)}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        SystemCpuLoad
+                                    </TableCell>
+                                    <TableCell>
+                                        {(serverRef.current.systemCpuLoad * 100).toFixed(2)} %
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        ProcessFreeMemory
+                                    </TableCell>
+                                    <TableCell>
+                                        {humanFileSize(serverRef.current.processFreeMemory, true)}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        ProcessAllocatedMemory
+                                    </TableCell>
+                                    <TableCell>
+                                        {humanFileSize(serverRef.current.processAllocatedMemory, true)}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        ProcessCpuLoad
+                                    </TableCell>
+                                    <TableCell>
+                                        {(serverRef.current.processCpuLoad * 100).toFixed(2)} %
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </MuiDialogContent>
+            </Dialog>
+            }
         </div>
     );
-}
+});
 
 export default Servers;

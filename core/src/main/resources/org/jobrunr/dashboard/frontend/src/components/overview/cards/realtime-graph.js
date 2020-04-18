@@ -1,4 +1,4 @@
-import React, {useContext, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 import Box from "@material-ui/core/Box";
 import Paper from '@material-ui/core/Paper';
@@ -6,14 +6,13 @@ import Typography from '@material-ui/core/Typography';
 import Chart from "react-apexcharts";
 import ApexCharts from "apexcharts";
 
-import {StatsContext} from "../../../layouts/Admin";
+import {useStatsContext} from "../../../layouts/Admin";
 
 const RealtimeGraph = () => {
-    const statsContext = useContext(StatsContext);
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
-    const {stats} = statsContext;
+    const stats = useStatsContext();
 
     const [state] = useState({
         options: {

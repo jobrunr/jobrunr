@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {Link} from "react-router-dom";
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
@@ -13,7 +13,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import {makeStyles} from '@material-ui/core/styles';
 import {Schedule} from "@material-ui/icons";
 import {AlertCircleOutline, Check, Cogs, TimerSand, TrayFull} from "mdi-material-ui";
-import {StatsContext} from '../../layouts/Admin';
+import {useStatsContext} from '../../layouts/Admin';
 
 const drawerWidth = 320;
 
@@ -37,10 +37,9 @@ const useStyles = makeStyles(theme => ({
     toolbar: theme.mixins.toolbar,
 }));
 
-const Sidebar = (props) => {
+const Sidebar = () => {
     const classes = useStyles();
-    const statsContext = useContext(StatsContext);
-    const { stats } = statsContext;
+    const stats = useStatsContext();
 
     const [open, setOpen] = React.useState(true);
 

@@ -45,7 +45,6 @@ const useStyles = makeStyles(theme => ({
 
 const JobsTable = (props) => {
     const classes = useStyles();
-
     const jobState = props.match.params.state;
     const [page, setPage] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -158,8 +157,8 @@ const JobsTable = (props) => {
                         }
                     </>
                 }
-
             </Paper>
+
         </div>
     );
 }

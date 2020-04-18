@@ -259,9 +259,6 @@ public class SimpleStorageProvider implements StorageProvider {
     }
 
     public SimpleStorageProvider withALotOfEnqueuedJobsThatTakeSomeTime() {
-//        final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(10, 10);
-//        backgroundJobServerStatus.start();
-//        announceBackgroundJobServer(backgroundJobServerStatus);
         for (int i = 0; i < 33000; i++) {
             save(anEnqueuedJobThatTakesLong().build());
         }
