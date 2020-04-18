@@ -25,7 +25,6 @@ const useStyles = makeStyles(theme => ({
     },
     root: {
         width: '100%',
-        //maxWidth: 360,
         backgroundColor: theme.palette.background.paper,
     },
     noItemsFound: {
@@ -57,8 +56,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const Servers = React.memo((prop) => {
-    console.log('Rerendering?');
+const Servers = React.memo(() => {
     const classes = useStyles();
 
     const [isLoading, setIsLoading] = React.useState(true);
@@ -100,7 +98,7 @@ const Servers = React.memo((prop) => {
                             ? <Typography variant="body1" className={classes.noItemsFound}>No servers found</Typography>
                             : <>
                                 <TableContainer>
-                                    <Table className={classes.table} aria-label="simple table">
+                                    <Table className={classes.table} aria-label="servers overview">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell className={classes.idColumn}>Id</TableCell>
@@ -117,7 +115,7 @@ const Servers = React.memo((prop) => {
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        <Link color="inherit" onClick={() => handleOpen(server.id)}>
+                                                        <Link color="initial" onClick={() => handleOpen(server.id)}>
                                                             {server.id}
                                                         </Link>
                                                     </TableCell>

@@ -5,8 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import TimeAgo from "react-timeago/lib";
-
-import {useStatsContext} from "../../../layouts/Admin";
+import state from "../../../StateContext";
 
 const useStyles = makeStyles(theme => ({
     metadata: {
@@ -23,10 +22,9 @@ const EstimatedProcessingTimeCard = () => {
     const classes = useStyles();
     const timeAgoFormatter = (a, b, c) => a > 1 ? `${a} ${b}s` : `${a} ${b}`;
 
+    const stats = state.useStatsState(EstimatedProcessingTimeCard);
+
     const processingTimeRef = useRef(<>Calculating...</>);
-    const stats = useStatsContext();
-
-
     React.useEffect(() => {
         if (stats.estimation.processingDone) {
             processingTimeRef.current = <>All done!</>;

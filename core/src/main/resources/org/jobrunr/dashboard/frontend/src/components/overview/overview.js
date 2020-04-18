@@ -3,6 +3,7 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import Box from "@material-ui/core/Box";
 import Typography from '@material-ui/core/Typography';
+import {CircularProgress} from "@material-ui/core";
 import RealtimeGraph from "./cards/realtime-graph";
 import EstimatedProcessingTimeCard from "./cards/estimated-processing-time-card";
 import UptimeCard from "./cards/uptime-card";
@@ -23,7 +24,6 @@ const useStyles = makeStyles(theme => ({
 
 const Overview = () => {
     const classes = useStyles();
-    const timeAgoFormatter = (a, b, c) => a > 1 ? `${a} ${b}s` : `${a} ${b}`;
 
     const [isLoading, setIsLoading] = React.useState(true);
     const [servers, setServers] = React.useState([{firstHeartbeat: undefined}]);
@@ -49,11 +49,16 @@ const Overview = () => {
                 </Box>
             </div>
             <div className={classes.metadata}>
-                <EstimatedProcessingTimeCard/>
-                <UptimeCard servers={servers}/>
-                <AvgProcessCpuLoadCard servers={servers}/>
-                <AvgProcessMemoryUsageCard servers={servers}/>
-                <AvgProcessFreeMemoryCard servers={servers}/>
+                {isLoading
+                    ? <CircularProgress/>
+                    : <>
+                        <EstimatedProcessingTimeCard/>
+                        <UptimeCard servers={servers}/>
+                        <AvgProcessCpuLoadCard servers={servers}/>
+                        <AvgProcessMemoryUsageCard servers={servers}/>
+                        <AvgProcessFreeMemoryCard servers={servers}/>
+                    </>
+                }
             </div>
             <RealtimeGraph/>
         </div>

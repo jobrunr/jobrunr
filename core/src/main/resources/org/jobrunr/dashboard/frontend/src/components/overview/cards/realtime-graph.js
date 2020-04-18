@@ -5,16 +5,15 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Chart from "react-apexcharts";
 import ApexCharts from "apexcharts";
-
-import {useStatsContext} from "../../../layouts/Admin";
+import state from "../../../StateContext";
 
 const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
-    const stats = useStatsContext();
+    const stats = state.useStatsState(RealtimeGraph);
 
-    const [state] = useState({
+    const [graphState] = useState({
         options: {
             chart: {
                 id: "processing-chart",
@@ -81,8 +80,8 @@ const RealtimeGraph = () => {
             </Box>
             <Paper>
                 <Chart
-                    options={state.options}
-                    series={state.series}
+                    options={graphState.options}
+                    series={graphState.series}
                     type="bar"
                     height={500}
                 />

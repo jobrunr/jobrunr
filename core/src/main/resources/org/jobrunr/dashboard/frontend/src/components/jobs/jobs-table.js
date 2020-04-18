@@ -111,7 +111,7 @@ const JobsTable = (props) => {
                             ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No jobs found</Typography>
                             : <>
                                 <TableContainer>
-                                    <Table id="jobs-table" className={classes.table} aria-label="simple table">
+                                    <Table id="jobs-table" className={classes.table} aria-label="jobs table">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell className={classes.idColumn}>Id</TableCell>

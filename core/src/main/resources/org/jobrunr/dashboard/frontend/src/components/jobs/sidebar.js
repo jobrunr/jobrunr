@@ -13,7 +13,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import {makeStyles} from '@material-ui/core/styles';
 import {Schedule} from "@material-ui/icons";
 import {AlertCircleOutline, Check, Cogs, TimerSand, TrayFull} from "mdi-material-ui";
-import {useStatsContext} from '../../layouts/Admin';
+import state from "../../StateContext";
 
 const drawerWidth = 320;
 
@@ -39,7 +39,7 @@ const useStyles = makeStyles(theme => ({
 
 const Sidebar = () => {
     const classes = useStyles();
-    const stats = useStatsContext();
+    const stats = state.useStatsState(Sidebar);
 
     const [open, setOpen] = React.useState(true);
 
