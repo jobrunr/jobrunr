@@ -36,8 +36,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -327,22 +331,28 @@ public abstract class StorageProviderTest {
     public void testJobStats() {
         storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
 
-        final List<Job> jobs = asList(
+        storageProvider.save(asList(
                 anEnqueuedJob().build(),
                 anEnqueuedJob().build(),
-                anEnqueuedJob().withState(new ScheduledState(now())).build());
-
-        storageProvider.save(jobs);
+                anEnqueuedJob().build(),
+                aScheduledJob().withoutId().build(),
+                aFailedJob().withoutId().build(),
+                aFailedJob().withoutId().build(),
+                aSucceededJob().withoutId().build()
+        ));
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id1").build());
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id2").build());
         storageProvider.publishJobStatCounter(SUCCEEDED, 5);
 
         final JobStats jobStats = storageProvider.getJobStats();
-        assertThat(jobStats.getTotal()).isEqualTo(3);
+        assertThat(jobStats.getTotal()).isEqualTo(7);
         assertThat(jobStats.getAwaiting()).isEqualTo(0);
         assertThat(jobStats.getScheduled()).isEqualTo(1);
-        assertThat(jobStats.getEnqueued()).isEqualTo(2);
+        assertThat(jobStats.getEnqueued()).isEqualTo(3);
         assertThat(jobStats.getProcessing()).isEqualTo(0);
-        assertThat(jobStats.getFailed()).isEqualTo(0);
-        assertThat(jobStats.getSucceeded()).isEqualTo(5);
+        assertThat(jobStats.getFailed()).isEqualTo(2);
+        assertThat(jobStats.getSucceeded()).isEqualTo(6);
+        assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);
     }
 

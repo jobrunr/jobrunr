@@ -10,6 +10,7 @@ public class RecurringJobUIModel extends RecurringJob {
 
     public RecurringJobUIModel(RecurringJob recurringJob) {
         super(recurringJob.getId(), recurringJob.getJobDetails(), recurringJob.getCronExpression(), recurringJob.getZoneId());
+        setJobName(recurringJob.getJobName());
         nextRun = super.getNextRun();
     }
 

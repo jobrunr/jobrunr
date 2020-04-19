@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.CronExpression;
 
@@ -39,6 +40,10 @@ public class RecurringJob extends AbstractJob {
     public Job toScheduledJob() {
         Instant nextRun = getNextRun();
         return new Job(getJobDetails(), new ScheduledState(nextRun));
+    }
+
+    public Job toEnqueuedJob() {
+        return new Job(getJobDetails(), new EnqueuedState());
     }
 
     public String getZoneId() {

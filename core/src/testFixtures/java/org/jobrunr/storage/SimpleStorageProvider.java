@@ -231,7 +231,8 @@ public class SimpleStorageProvider implements StorageProvider {
                 getJobs(StateName.PROCESSING).count(),
                 getJobs(StateName.FAILED).count(),
                 getJobs(StateName.SUCCEEDED).count(),
-                backgroundJobServers.size()
+                backgroundJobServers.size(),
+                recurringJobs.size()
         );
     }
 
@@ -271,8 +272,8 @@ public class SimpleStorageProvider implements StorageProvider {
     }
 
     public SimpleStorageProvider withSomeRecurringJobs() {
-        saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").build());
-        saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").build());
+        saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build());
+        saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").withName("Generate sales report at 3am").withCronExpression("0 3 * * *").build());
         return this;
     }
 

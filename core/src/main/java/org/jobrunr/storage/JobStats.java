@@ -12,13 +12,14 @@ public class JobStats {
     private Long processing;
     private Long failed;
     private Long succeeded;
+    private int recurringJobs;
     private int backgroundJobServers;
 
     public static JobStats empty() {
-        return new JobStats(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0);
+        return new JobStats(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
     }
 
-    public JobStats(Long total, Long awaiting, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, int backgroundJobServers) {
+    public JobStats(Long total, Long awaiting, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, int recurringJobs, int backgroundJobServers) {
         this.timeStamp = Instant.now();
         this.total = total;
         this.awaiting = awaiting;
@@ -27,6 +28,7 @@ public class JobStats {
         this.processing = processing;
         this.failed = failed;
         this.succeeded = succeeded;
+        this.recurringJobs = recurringJobs;
         this.backgroundJobServers = backgroundJobServers;
     }
 
@@ -60,6 +62,10 @@ public class JobStats {
 
     public Long getSucceeded() {
         return succeeded;
+    }
+
+    public int getRecurringJobs() {
+        return recurringJobs;
     }
 
     public int getBackgroundJobServers() {

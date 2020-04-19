@@ -29,6 +29,7 @@ select (select count(*) from jobrunr_jobs jobs)                                 
        (select((select count(*) from jobrunr_jobs jobs where jobs.state = 'SUCCEEDED') +
                (select amount from jobrunr_job_counters jc where jc.name = 'SUCCEEDED'))
         from DUAL)                                                              as succeeded,
-       (select count(*) from jobrunr_backgroundjobservers)                      as nbrOfBackgroundJobServers
+       (select count(*) from jobrunr_backgroundjobservers)                      as nbrOfBackgroundJobServers,
+       (select count(*) from jobrunr_recurring_jobs)                            as nbrOfRecurringJobs
 from jobrunr_jobs j
 group by j.id;

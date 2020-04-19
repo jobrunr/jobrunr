@@ -159,7 +159,8 @@ const Servers = React.memo(() => {
             {serverRef.current &&
             <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
                 <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
-                    {serverRef.current.id}
+                    Server info
+                    <Typography variant="body1">{serverRef.current.id}</Typography>
                 </MuiDialogTitle>
                 <MuiDialogContent dividers>
                     <TableContainer>

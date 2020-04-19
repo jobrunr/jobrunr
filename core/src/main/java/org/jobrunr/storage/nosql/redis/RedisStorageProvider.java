@@ -370,6 +370,9 @@ public class RedisStorageProvider implements StorageProvider {
             final Response<String> failedCounterResponse = p.get("counter:jobs:" + FAILED);
             final Response<Long> failedResponse = p.zcount("queue:jobs:" + FAILED, 0, Long.MAX_VALUE);
 
+            final Response<Long> recurringJobsResponse = p.scard("recurringjobs");
+            final Response<Long> backgroundJobServerResponse = p.zcount("backgroundjobservers", 0, Long.MAX_VALUE);
+
             p.sync();
 
             final Long awaitingCount = waitingResponse.get() + Long.parseLong(waitingCounterResponse.get() != null ? waitingCounterResponse.get() : "0");
@@ -378,7 +381,9 @@ public class RedisStorageProvider implements StorageProvider {
             final Long processingCount = processingResponse.get() + Long.parseLong(processingCounterResponse.get() != null ? processingCounterResponse.get() : "0");
             final Long succeededCount = succeededResponse.get() + Long.parseLong(succeededCounterResponse.get() != null ? succeededCounterResponse.get() : "0");
             final Long failedCount = failedResponse.get() + Long.parseLong(failedCounterResponse.get() != null ? failedCounterResponse.get() : "0");
-            final Long total = scheduledCount + enqueuedCount;
+            final Long total = scheduledCount + enqueuedCount + processingCount + succeededResponse.get() + failedCount;
+            final Long recurringJobsCount = recurringJobsResponse.get();
+            final Long backgroundJobServerCount = backgroundJobServerResponse.get();
             return new JobStats(
                     total,
                     awaitingCount,
@@ -387,7 +392,8 @@ public class RedisStorageProvider implements StorageProvider {
                     processingCount,
                     failedCount,
                     succeededCount,
-                    1
+                    recurringJobsCount.intValue(),
+                    backgroundJobServerCount.intValue()
             );
         }
     }

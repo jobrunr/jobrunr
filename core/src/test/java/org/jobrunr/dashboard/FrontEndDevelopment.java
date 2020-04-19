@@ -12,6 +12,7 @@ public class FrontEndDevelopment {
                 .withJsonMapper(new JacksonJsonMapper())
                 .withALotOfEnqueuedJobsThatTakeSomeTime()
                 .withSomeRecurringJobs();
+
         JobRunr
                 .configure()
                 .useStorageProvider(storageProvider)

@@ -51,7 +51,6 @@ const JobsTable = (props) => {
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
     const jobState = props.match.params.state;
 
-    console.log('test rerender', props, page);
     let title, column;
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
     switch (jobState) {

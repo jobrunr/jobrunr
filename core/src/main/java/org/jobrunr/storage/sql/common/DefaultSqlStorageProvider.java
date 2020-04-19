@@ -208,7 +208,9 @@ public class DefaultSqlStorageProvider implements SqlStorageProvider {
                 resultSet.asLong("processing"),
                 resultSet.asLong("failed"),
                 resultSet.asLong("succeeded"),
+                resultSet.asInt("nbrOfRecurringJobs"),
                 resultSet.asInt("nbrOfBackgroundJobServers")
+
         );
     }
 

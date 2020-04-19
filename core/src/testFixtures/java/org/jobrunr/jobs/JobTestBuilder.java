@@ -127,7 +127,7 @@ public class JobTestBuilder {
         return jobTestBuilder;
     }
 
-    private JobTestBuilder withoutId() {
+    public JobTestBuilder withoutId() {
         id = null;
         return this;
     }

@@ -9,17 +9,24 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import Grid from '@material-ui/core/Grid';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@material-ui/core/Box";
-import {CircularProgress} from "@material-ui/core";
+import {CircularProgress, Snackbar} from "@material-ui/core";
+import Alert from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles(theme => ({
     root: {
         display: 'flex',
     },
-    content: {
-        width: '100%',
+    recurringJobActions: {
+        margin: '1rem',
+    },
+    noItemsFound: {
+        padding: '1rem'
     },
 }));
 
@@ -27,16 +34,87 @@ const RecurringJobs = (props) => {
     const classes = useStyles();
 
     const [isLoading, setIsLoading] = React.useState(true);
-    const [recurringJobs, setRecurringJobs] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const [recurringJobs, setRecurringJobs] = React.useState([{}]);
+    const [apiStatus, setApiStatus] = React.useState(null);
+
     React.useEffect(() => {
+        getRecurringJobs();
+    }, []);
+
+    const getRecurringJobs = () => {
         fetch(`/api/recurring-jobs`)
             .then(res => res.json())
             .then(response => {
-                setRecurringJobs(response);
+                setRecurringJobs(response.map(recurringJob => ({...recurringJob, selected: false})));
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
-    }, []);
+    };
+
+    const selectAll = (event) => {
+        if (event.target.checked) {
+            setRecurringJobs(recurringJobs.map(recurringJob => ({...recurringJob, selected: true})));
+        } else {
+            setRecurringJobs(recurringJobs.map(recurringJob => ({...recurringJob, selected: false})));
+        }
+    }
+
+    const selectRecurringJob = (event, updatedRecurringJob) => {
+        setRecurringJobs(recurringJobs.map(recurringJob => {
+            if (recurringJob.id === updatedRecurringJob.id) {
+                return ({...recurringJob, selected: !recurringJob.selected});
+            } else {
+                return recurringJob;
+            }
+        }))
+    };
+
+    const handleCloseAlert = (event, reason) => {
+        setApiStatus(null);
+    };
+
+    const deleteSelectedRecurringJobs = () => {
+        Promise.all(
+            recurringJobs
+                .filter(recurringJob => recurringJob.selected)
+                .map(recurringJob => fetch(`/api/recurring-jobs/${recurringJob.id}`, {method: 'DELETE'}))
+        ).then(responses => {
+            const succeeded = responses.every(response => response.status === 204);
+            if (succeeded) {
+                setApiStatus({type: 'deleted', severity: 'success', message: 'Successfully deleted recurring jobs'});
+                getRecurringJobs();
+            } else {
+                setApiStatus({
+                    type: 'deleted',
+                    severity: 'error',
+                    message: 'Error deleting recurring jobs - please refresh the page'
+                });
+            }
+        })
+    };
+
+    const triggerSelectedRecurringJobs = () => {
+        Promise.all(
+            recurringJobs
+                .filter(recurringJob => recurringJob.selected)
+                .map(recurringJob => fetch(`/api/recurring-jobs/${recurringJob.id}/trigger`, {method: 'POST'}))
+        ).then(responses => {
+            const succeeded = responses.every(response => response.status === 204);
+            if (succeeded) {
+                setApiStatus({
+                    type: 'triggered',
+                    severity: 'success',
+                    message: 'Successfully triggered recurring jobs'
+                });
+            } else {
+                setApiStatus({
+                    type: 'triggered',
+                    severity: 'error',
+                    message: 'Error triggering recurring jobs - please refresh the page'
+                });
+            }
+        })
+    };
 
     return (
         <div>
@@ -51,12 +129,27 @@ const RecurringJobs = (props) => {
                             ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
                                 found</Typography>
                             : <>
+                                <Grid item xs={3} container>
+                                    <ButtonGroup className={classes.recurringJobActions}
+                                                 disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
+                                        <Button variant="outlined" color="primary"
+                                                onClick={triggerSelectedRecurringJobs}>
+                                            Trigger
+                                        </Button>
+                                        <Button variant="outlined" color="primary"
+                                                onClick={deleteSelectedRecurringJobs}>
+                                            Delete
+                                        </Button>
+                                    </ButtonGroup>
+                                </Grid>
                                 <TableContainer>
                                     <Table className={classes.table} aria-label="recurring jobs overview">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell padding="checkbox">
-                                                    <Checkbox/>
+                                                    <Checkbox
+                                                        checked={recurringJobs.every(recurringJob => recurringJob.selected)}
+                                                        onClick={selectAll}/>
                                                 </TableCell>
                                                 <TableCell className={classes.idColumn}>Id</TableCell>
                                                 <TableCell>Job name</TableCell>
@@ -69,7 +162,8 @@ const RecurringJobs = (props) => {
                                             {recurringJobs.map(recurringJob => (
                                                 <TableRow key={recurringJob.id}>
                                                     <TableCell padding="checkbox">
-                                                        <Checkbox/>
+                                                        <Checkbox checked={recurringJob.selected}
+                                                                  onClick={(event) => selectRecurringJob(event, recurringJob)}/>
                                                     </TableCell>
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
                                                         {recurringJob.id}
@@ -97,6 +191,13 @@ const RecurringJobs = (props) => {
                     </>
                 }
             </Paper>
+            {apiStatus &&
+            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
+                <Alert severity={apiStatus.severity}>
+                    {apiStatus.message}
+                </Alert>
+            </Snackbar>
+            }
         </div>
     )
 };

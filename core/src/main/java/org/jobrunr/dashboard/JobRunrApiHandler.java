@@ -4,6 +4,7 @@ import org.jobrunr.dashboard.server.http.RestHttpHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandler;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.PageRequest;
@@ -27,6 +28,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
         get("/recurring-jobs", getRecurringJobs(storageProvider));
         delete("/recurring-jobs/:id", deleteRecurringJob(storageProvider));
+        post("/recurring-jobs/:id/trigger", triggerRecurringJob(storageProvider));
 
         get("/servers", getBackgroundJobServers(storageProvider));
 
@@ -76,6 +78,20 @@ public class JobRunrApiHandler extends RestHttpHandler {
     private HttpRequestHandler deleteRecurringJob(StorageProvider storageProvider) {
         return (request, response) -> {
             storageProvider.deleteRecurringJob(request.param(":id"));
+            response.statusCode(204);
+        };
+    }
+
+    private HttpRequestHandler triggerRecurringJob(StorageProvider storageProvider) {
+        return (request, response) -> {
+            final RecurringJob recurringJob = storageProvider.getRecurringJobs()
+                    .stream()
+                    .filter(rj -> request.param(":id").equals(rj.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new JobNotFoundException(request.param(":id")));
+
+            final Job job = recurringJob.toEnqueuedJob();
+            storageProvider.save(job);
             response.statusCode(204);
         };
     }
