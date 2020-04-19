@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -45,8 +45,9 @@ const useStyles = makeStyles(theme => ({
 
 const JobsTable = (props) => {
     const classes = useStyles();
+    const history = useHistory();
 
-    const [page, setPage] = React.useState(0);
+    const page = props.location.search.indexOf('page=') < 1 ? 0 : props.location.search.substring(props.location.search.indexOf('page=') + 5);
     const [isLoading, setIsLoading] = React.useState(true);
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
     const jobState = props.match.params.state;
@@ -93,7 +94,7 @@ const JobsTable = (props) => {
     }, [page, jobState]);
 
     const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+        history.push(`?page=${newPage}`);
     };
 
     return (
