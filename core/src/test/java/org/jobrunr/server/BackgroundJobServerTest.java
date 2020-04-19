@@ -59,8 +59,7 @@ public class BackgroundJobServerTest {
         backgroundJobServer.start();
 
         // THEN the job should be processed
-        await().atMost(TEN_SECONDS).until(() -> testService.getProcessedJobs() > 0);
-        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
 
         // WHEN we pause the server and enqueue a new job
         backgroundJobServer.pauseProcessing();

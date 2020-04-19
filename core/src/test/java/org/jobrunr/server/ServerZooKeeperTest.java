@@ -146,7 +146,7 @@ class ServerZooKeeperTest {
     }
 
     private BackgroundJobServerStatus anotherServer() {
-        final BackgroundJobServerStatus masterBackgroundJobServerStatus = new BackgroundJobServerStatus(5, 10);
+        final BackgroundJobServerStatus masterBackgroundJobServerStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(5, 10));
         masterBackgroundJobServerStatus.start();
         return masterBackgroundJobServerStatus;
     }

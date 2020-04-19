@@ -3,7 +3,7 @@
     "@class": "${json-unit.ignore-element}",
     "version": 0,
     "jobSignature": "TestService.doWork(Integer)",
-    "jobName": null,
+    "jobName": "Generate sales reports",
     "jobDetails": {
       "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
       "className": "org.jobrunr.stubs.TestService",
@@ -25,7 +25,7 @@
     "@class": "${json-unit.ignore-element}",
     "version": 0,
     "jobSignature": "TestService.doWork(Integer)",
-    "jobName": null,
+    "jobName": "Import sales data",
     "jobDetails": {
       "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
       "className": "org.jobrunr.stubs.TestService",
