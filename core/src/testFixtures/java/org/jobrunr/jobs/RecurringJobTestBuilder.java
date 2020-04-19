@@ -10,6 +10,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 public class RecurringJobTestBuilder {
 
     private String id;
+    private String name;
     private JobDetails jobDetails;
     private CronExpression cronExpression;
     private ZoneId zoneId;
@@ -30,27 +31,36 @@ public class RecurringJobTestBuilder {
                 .withZoneId(ZoneId.systemDefault());
     }
 
-    private RecurringJobTestBuilder withId(String id) {
+    public RecurringJobTestBuilder withId(String id) {
         this.id = id;
         return this;
     }
 
-    private RecurringJobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsBuilder) {
+    public RecurringJobTestBuilder withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public RecurringJobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsBuilder) {
         this.jobDetails = jobDetailsBuilder.build();
         return this;
     }
 
-    private RecurringJobTestBuilder withCronExpression(String cronExpression) {
+    public RecurringJobTestBuilder withCronExpression(String cronExpression) {
         this.cronExpression = CronExpression.create(cronExpression);
         return this;
     }
 
-    private RecurringJobTestBuilder withZoneId(ZoneId zoneId) {
+    public RecurringJobTestBuilder withZoneId(ZoneId zoneId) {
         this.zoneId = zoneId;
         return this;
     }
 
     public RecurringJob build() {
-        return new RecurringJob(id, jobDetails, cronExpression, zoneId);
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
+        recurringJob.setJobName(name);
+        return recurringJob;
     }
+
+
 }

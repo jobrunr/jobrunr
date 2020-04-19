@@ -18,10 +18,14 @@ public class RecurringJob extends AbstractJob {
     }
 
     public RecurringJob(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
+        this(id, jobDetails, cronExpression.getExpression(), zoneId.getId());
+    }
+
+    protected RecurringJob(String id, JobDetails jobDetails, String cronExpression, String zoneId) {
         super(jobDetails);
         this.id = Optional.ofNullable(id).orElse(getJobSignature());
-        this.cronExpression = cronExpression.getExpression();
-        this.zoneId = zoneId.getId();
+        this.cronExpression = cronExpression;
+        this.zoneId = zoneId;
     }
 
     public String getId() {
@@ -35,6 +39,10 @@ public class RecurringJob extends AbstractJob {
     public Job toScheduledJob() {
         Instant nextRun = getNextRun();
         return new Job(getJobDetails(), new ScheduledState(nextRun));
+    }
+
+    public String getZoneId() {
+        return zoneId;
     }
 
     public Instant getNextRun() {

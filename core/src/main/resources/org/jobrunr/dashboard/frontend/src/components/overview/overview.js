@@ -14,12 +14,7 @@ import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 const useStyles = makeStyles(theme => ({
     metadata: {
         display: 'flex',
-    },
-    infocard: {
-        minWidth: '230px',
-        minHeight: '105px',
-        marginRight: '20px'
-    },
+    }
 }));
 
 const Overview = () => {

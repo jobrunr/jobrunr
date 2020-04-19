@@ -45,10 +45,13 @@ const useStyles = makeStyles(theme => ({
 
 const JobsTable = (props) => {
     const classes = useStyles();
-    const jobState = props.match.params.state;
+
     const [page, setPage] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(true);
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const jobState = props.match.params.state;
+
+    console.log('test rerender', props, page);
     let title, column;
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
     switch (jobState) {
@@ -78,6 +81,7 @@ const JobsTable = (props) => {
     }
 
     React.useEffect(() => {
+        setIsLoading(true);
         let offset = (page) * 20;
         let limit = 20;
         fetch(`/api/jobs/default/${jobState}?offset=${offset}&limit=${limit}`)
@@ -103,12 +107,13 @@ const JobsTable = (props) => {
             <Box my={3}>
                 <Typography id="title" variant="h4">{title}</Typography>
             </Box>
-            <Paper className={classes.paper}>
+            <Paper>
                 {isLoading
                     ? <CircularProgress/>
                     : <>
                         {jobPage.items < 1
-                            ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No jobs found</Typography>
+                            ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No
+                                jobs found</Typography>
                             : <>
                                 <TableContainer>
                                     <Table id="jobs-table" className={classes.table} aria-label="jobs table">

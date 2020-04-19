@@ -1,11 +1,12 @@
 import React from 'react';
 import {createMuiTheme, makeStyles, MuiThemeProvider} from '@material-ui/core/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
 import Servers from "../components/servers/servers";
 import Jobs from '../components/jobs/jobs.js';
 import Job from '../components/jobs/job.js';
-import TopAppBar from "./TopAppBar";
+import RecurringJobs from "../components/recurring-jobs/recurring-jobs";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -42,6 +43,7 @@ const AdminUI = function () {
                         <Route path="/dashboard/overview" component={Overview}/>
                         <Route path="/dashboard/jobs/:queue/:state" component={Jobs}/>
                         <Route path="/dashboard/jobs/:id" component={Job}/>
+                        <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
                         <Route path="/dashboard/servers" component={Servers}/>
                         <Redirect from="/dashboard" to="/dashboard/jobs/default/enqueued"/>
                         <Redirect from="/dashboard/jobs" to="/dashboard/jobs/default/enqueued"/>

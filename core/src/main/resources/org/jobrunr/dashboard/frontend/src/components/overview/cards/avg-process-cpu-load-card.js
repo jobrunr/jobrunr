@@ -6,7 +6,7 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 
 const useStyles = makeStyles(theme => ({
-    infocard: {
+    card: {
         minWidth: '230px',
         minHeight: '105px',
         marginRight: '20px'
@@ -25,7 +25,7 @@ const AvgProcessCpuLoadCard = (props) => {
 
 
     return (
-        <Card className={classes.infocard}>
+        <Card className={classes.card}>
             <CardContent>
                 <Typography className={classes.title} color="textSecondary" gutterBottom>
                     Avg Process Cpu Load

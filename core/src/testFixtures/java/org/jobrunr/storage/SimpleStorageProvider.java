@@ -29,6 +29,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJobThatTakesLong;
+import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -266,6 +267,12 @@ public class SimpleStorageProvider implements StorageProvider {
         save(aSucceededJob().build());
         save(aFailedJobWithRetries().build());
         save(aFailedJobThatEventuallySucceeded().build());
+        return this;
+    }
+
+    public SimpleStorageProvider withSomeRecurringJobs() {
+        saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").build());
+        saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").build());
         return this;
     }
 

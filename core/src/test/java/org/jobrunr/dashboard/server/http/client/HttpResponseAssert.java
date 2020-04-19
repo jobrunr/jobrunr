@@ -6,7 +6,6 @@ import org.assertj.core.api.Assertions;
 
 import java.net.http.HttpResponse;
 
-import static net.javacrumbs.jsonunit.core.Option.IGNORING_EXTRA_FIELDS;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
 
 public class HttpResponseAssert extends AbstractAssert<HttpResponseAssert, HttpResponse> {
@@ -31,7 +30,7 @@ public class HttpResponseAssert extends AbstractAssert<HttpResponseAssert, HttpR
 
     public HttpResponseAssert hasJsonBody(String bodyAsString) {
         final String actualResponseAsString = actual.body().toString();
-        JsonAssertions.assertThatJson(actualResponseAsString).when(IGNORING_EXTRA_FIELDS).isEqualTo(bodyAsString);
+        JsonAssertions.assertThatJson(actualResponseAsString).isEqualTo(bodyAsString);
         return this;
     }
 }

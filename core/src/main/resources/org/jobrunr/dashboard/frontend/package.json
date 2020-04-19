@@ -12,6 +12,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "apexcharts": "^3.17.1",
+    "cronstrue": "^1.93.0",
     "mdi-material-ui": "^6.13.0",
     "react": "^16.13.1",
     "react-apexcharts": "^1.3.6",

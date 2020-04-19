@@ -52,4 +52,13 @@ public class TeenyHttpClient {
             throw new RuntimeException(e);
         }
     }
+
+    public HttpResponse<String> post(String url, Object... params) {
+        final HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(baseUri + String.format(url, params)))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
+    }
 }

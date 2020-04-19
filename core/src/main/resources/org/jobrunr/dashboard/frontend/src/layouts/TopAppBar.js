@@ -1,7 +1,7 @@
 import React from 'react';
-import {makeStyles, withStyles} from '@material-ui/core/styles';
-import Badge from '@material-ui/core/Badge';
+import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
+import Chip from '@material-ui/core/Chip';
 import Toolbar from '@material-ui/core/Toolbar';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import IconButton from '@material-ui/core/IconButton';
@@ -28,8 +28,13 @@ const useStyles = makeStyles(theme => ({
         '& > *': {
             margin: theme.spacing(2),
         },
-        '& > Badge': {
-            right: -10
+        '& div.MuiChip-root': {
+            height: 'initial',
+            marginLeft: '6px',
+            fontSize: '0.75rem'
+        },
+        '& div span.MuiChip-label': {
+            padding: '0 8px'
         },
         margin: "0 50px",
         flexGrow: 1,
@@ -46,12 +51,6 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const AppBarButtonBadge = withStyles(theme => ({
-    badge: {
-        right: -10,
-    },
-}))(Badge);
-
 const TopAppBar = () => {
     const classes = useStyles();
 
@@ -66,14 +65,14 @@ const TopAppBar = () => {
                         Dashboard
                     </Button>
                     <Button id="jobs-btn" color="inherit" component={RouterLink} to="/dashboard/jobs">
-                        <AppBarButtonBadge badgeContent={stats.enqueued} max={99999} color="secondary">
-                            Jobs
-                        </AppBarButtonBadge>
+                        Jobs <Chip color="secondary" label={stats.enqueued}/>
+                    </Button>
+                    <Button id="recurring-jobs-btn" color="inherit" component={RouterLink}
+                            to="/dashboard/recurring-jobs">
+                        Recurring Jobs <Chip color="secondary" label="6"/>
                     </Button>
                     <Button id="servers-btn" color="inherit" component={RouterLink} to="/dashboard/servers">
-                        <AppBarButtonBadge badgeContent={stats.backgroundJobServers} showZero color="secondary">
-                            Servers
-                        </AppBarButtonBadge>
+                        Servers <Chip color="secondary" label={stats.backgroundJobServers}/>
                     </Button>
                 </div>
                 <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu"

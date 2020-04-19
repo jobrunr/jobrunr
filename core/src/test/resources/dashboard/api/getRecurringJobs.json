@@ -1,0 +1,46 @@
+[
+  {
+    "@class": "${json-unit.ignore-element}",
+    "version": 0,
+    "jobSignature": "TestService.doWork(Integer)",
+    "jobName": null,
+    "jobDetails": {
+      "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
+      "className": "org.jobrunr.stubs.TestService",
+      "staticFieldName": null,
+      "methodName": "doWork",
+      "jobParameters": [
+        {
+          "className": "java.lang.Integer",
+          "object": 5
+        }
+      ]
+    },
+    "id": "recurring-job-2",
+    "cronExpression": "0 0 * * *",
+    "zoneId": "Europe/Brussels",
+    "nextRun": "${json-unit.ignore}"
+  },
+  {
+    "@class": "${json-unit.ignore-element}",
+    "version": 0,
+    "jobSignature": "TestService.doWork(Integer)",
+    "jobName": null,
+    "jobDetails": {
+      "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
+      "className": "org.jobrunr.stubs.TestService",
+      "staticFieldName": null,
+      "methodName": "doWork",
+      "jobParameters": [
+        {
+          "className": "java.lang.Integer",
+          "object": 5
+        }
+      ]
+    },
+    "id": "recurring-job-1",
+    "cronExpression": "0 0 * * *",
+    "zoneId": "Europe/Brussels",
+    "nextRun": "${json-unit.ignore}"
+  }
+]

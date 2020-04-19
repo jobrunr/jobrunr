@@ -1,10 +1,18 @@
 [
   {
+    "@class": "${json-unit.ignore-element}",
     "id": "${json-unit.ignore}",
     "workerPoolSize": 10,
     "pollIntervalInSeconds": 15,
     "firstHeartbeat": null,
     "lastHeartbeat": "${json-unit.ignore}",
-    "running": true
+    "running": true,
+    "systemTotalMemory": null,
+    "systemFreeMemory": null,
+    "systemCpuLoad": null,
+    "processMaxMemory": null,
+    "processFreeMemory": null,
+    "processAllocatedMemory": null,
+    "processCpuLoad": null
   }
 ]

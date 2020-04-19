@@ -4,6 +4,7 @@
   "hasPrevious": false,
   "items": [
     {
+      "@class": "${json-unit.ignore-element}",
       "id": "${json-unit.ignore}",
       "jobDetails": {
         "className": "java.lang.System",
@@ -28,7 +29,8 @@
       "jobSignature": "System.out.println(String)",
       "metadata": {
         "@class": "java.util.HashMap"
-      }
+      },
+      "version": 1
     }
   ],
   "limit": 20,

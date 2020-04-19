@@ -10,7 +10,8 @@ public class FrontEndDevelopment {
     public static void main(String[] args) throws InterruptedException {
         StorageProvider storageProvider = new SimpleStorageProvider()
                 .withJsonMapper(new JacksonJsonMapper())
-                .withALotOfEnqueuedJobsThatTakeSomeTime();
+                .withALotOfEnqueuedJobsThatTakeSomeTime()
+                .withSomeRecurringJobs();
         JobRunr
                 .configure()
                 .useStorageProvider(storageProvider)

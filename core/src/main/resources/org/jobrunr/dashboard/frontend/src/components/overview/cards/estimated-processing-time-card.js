@@ -11,7 +11,7 @@ const useStyles = makeStyles(theme => ({
     metadata: {
         display: 'flex',
     },
-    infocard: {
+    card: {
         minWidth: '230px',
         minHeight: '105px',
         marginRight: '20px'
@@ -41,7 +41,7 @@ const EstimatedProcessingTimeCard = () => {
     }, [stats]);
 
     return (
-        <Card className={classes.infocard}>
+        <Card className={classes.card}>
             <CardContent>
                 <Typography className={classes.title} color="textSecondary" gutterBottom>
                     Estimated processing time

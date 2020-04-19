@@ -337,5 +337,6 @@
   ],
   "metadata": {
     "@class": "java.util.HashMap"
-  }
+  },
+  "version": 1
 }

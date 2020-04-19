@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.StateName;
 
 import java.util.List;
@@ -17,8 +18,13 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return new JobAssert(job);
     }
 
+    public JobAssert hasState(StateName state) {
+        Assertions.assertThat(actual.getState()).isEqualTo(state);
+        return this;
+    }
+
     public JobAssert hasStates(StateName... state) {
-        List<StateName> jobStates = actual.getJobStates().stream().map(jobState -> jobState.getName()).collect(Collectors.toList());
+        List<StateName> jobStates = actual.getJobStates().stream().map(JobState::getName).collect(Collectors.toList());
         Assertions.assertThat(jobStates).containsExactly(state);
         return this;
     }
