@@ -231,8 +231,8 @@ public class SimpleStorageProvider implements StorageProvider {
                 getJobs(StateName.PROCESSING).count(),
                 getJobs(StateName.FAILED).count(),
                 getJobs(StateName.SUCCEEDED).count(),
-                backgroundJobServers.size(),
-                recurringJobs.size()
+                recurringJobs.size(),
+                backgroundJobServers.size()
         );
     }
 

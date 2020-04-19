@@ -69,7 +69,7 @@ const TopAppBar = () => {
                     </Button>
                     <Button id="recurring-jobs-btn" color="inherit" component={RouterLink}
                             to="/dashboard/recurring-jobs">
-                        Recurring Jobs <Chip color="secondary" label="6"/>
+                        Recurring Jobs <Chip color="secondary" label={stats.recurringJobs}/>
                     </Button>
                     <Button id="servers-btn" color="inherit" component={RouterLink} to="/dashboard/servers">
                         Servers <Chip color="secondary" label={stats.backgroundJobServers}/>
