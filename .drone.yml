@@ -94,18 +94,18 @@ name: release
 
 steps:
   - name: build
-      image: jobrunr.io/build-container:1.0
-      commands:
-        - gradle --no-daemon clean build
-      volumes:
-        - name: dockersock
-          path: /var/run/docker.sock
-        - name: gradle-cache
-          path: /home/gradle/.gradle
-        - name: maven-local
-          path: /root/.m2
-        - name: reports
-          path: /tmp/reports
+    image: jobrunr.io/build-container:1.0
+    commands:
+      - gradle --no-daemon clean build
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+      - name: gradle-cache
+        path: /home/gradle/.gradle
+      - name: maven-local
+        path: /root/.m2
+      - name: reports
+        path: /tmp/reports
 
   - name: upload-to-github
     image: plugins/github-release
