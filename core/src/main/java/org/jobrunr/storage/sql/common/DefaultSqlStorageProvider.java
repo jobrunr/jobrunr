@@ -5,10 +5,10 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.AbstractStorageProvider;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.JobStorageChangeListener;
 import org.jobrunr.storage.Page;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.sql.SqlStorageProvider;
@@ -19,18 +19,13 @@ import org.jobrunr.utils.resilience.RateLimiter;
 import javax.sql.DataSource;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-public class DefaultSqlStorageProvider implements SqlStorageProvider {
-
-    private final Set<JobStorageChangeListener> onChangeListeners = new HashSet<>();
-    private final RateLimiter changeListenerNotificationRateLimit;
+public class DefaultSqlStorageProvider extends AbstractStorageProvider implements SqlStorageProvider {
 
     private final DataSource dataSource;
 
@@ -41,8 +36,8 @@ public class DefaultSqlStorageProvider implements SqlStorageProvider {
     }
 
     DefaultSqlStorageProvider(DataSource dataSource, RateLimiter changeListenerNotificationRateLimit) {
+        super(changeListenerNotificationRateLimit);
         this.dataSource = dataSource;
-        this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         createDBIfNecessary();
     }
 
@@ -53,11 +48,6 @@ public class DefaultSqlStorageProvider implements SqlStorageProvider {
 
     protected DatabaseCreator getDatabaseCreator() {
         return new DatabaseCreator(dataSource, this);
-    }
-
-    @Override
-    public void addJobStorageOnChangeListener(JobStorageChangeListener listener) {
-        onChangeListeners.add(listener);
     }
 
     @Override
@@ -226,17 +216,4 @@ public class DefaultSqlStorageProvider implements SqlStorageProvider {
         return new BackgroundJobServerTable(dataSource);
     }
 
-    private void notifyOnChangeListenersIf(boolean mustNotify) {
-        if (mustNotify) {
-            notifyOnChangeListeners();
-        }
-    }
-
-    private void notifyOnChangeListeners() {
-        if (onChangeListeners.isEmpty()) return;
-        if (changeListenerNotificationRateLimit.isRateLimited()) return;
-
-        JobStats jobStats = getJobStats();
-        onChangeListeners.forEach(listener -> listener.onChange(jobStats));
-    }
 }

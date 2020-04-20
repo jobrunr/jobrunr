@@ -14,22 +14,36 @@ import static java.util.stream.Collectors.toList;
 
 public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
+    public static final String COLUMN_ID = "id";
+    public static final String COLUMN_WORKER_POOL_SIZE = "workerPoolSize";
+    public static final String COLUMN_POLL_INTERVAL_IN_SECONDS = "pollIntervalInSeconds";
+    public static final String COLUMN_FIRST_HEARTBEAT = "firstHeartbeat";
+    public static final String COLUMN_LAST_HEARTBEAT = "lastHeartbeat";
+    public static final String COLUMN_RUNNING = "running";
+    public static final String COLUMN_SYSTEM_TOTAL_MEMORY = "systemTotalMemory";
+    public static final String COLUMN_SYSTEM_FREE_MEMORY = "systemFreeMemory";
+    public static final String COLUMN_SYSTEM_CPU_LOAD = "systemCpuLoad";
+    public static final String COLUMN_PROCESS_MAX_MEMORY = "processMaxMemory";
+    public static final String COLUMN_PROCESS_FREE_MEMORY = "processFreeMemory";
+    public static final String COLUMN_PROCESS_ALLOCATED_MEMORY = "processAllocatedMemory";
+    public static final String COLUMN_PROCESS_CPU_LOAD = "processCpuLoad";
+
     public BackgroundJobServerTable(DataSource dataSource) {
         this
                 .using(dataSource)
-                .with("id", BackgroundJobServerStatus::getId)
-                .with("workerPoolSize", BackgroundJobServerStatus::getWorkerPoolSize)
-                .with("pollIntervalInSeconds", BackgroundJobServerStatus::getPollIntervalInSeconds)
-                .with("firstHeartbeat", BackgroundJobServerStatus::getFirstHeartbeat)
-                .with("lastHeartbeat", BackgroundJobServerStatus::getLastHeartbeat)
-                .with("running", BackgroundJobServerStatus::isRunning)
-                .with("systemTotalMemory", BackgroundJobServerStatus::getSystemTotalMemory)
-                .with("systemFreeMemory", BackgroundJobServerStatus::getSystemFreeMemory)
-                .with("systemCpuLoad", BackgroundJobServerStatus::getSystemCpuLoad)
-                .with("processMaxMemory", BackgroundJobServerStatus::getProcessMaxMemory)
-                .with("processFreeMemory", BackgroundJobServerStatus::getProcessFreeMemory)
-                .with("processAllocatedMemory", BackgroundJobServerStatus::getProcessAllocatedMemory)
-                .with("processCpuLoad", BackgroundJobServerStatus::getProcessCpuLoad);
+                .with(COLUMN_ID, BackgroundJobServerStatus::getId)
+                .with(COLUMN_WORKER_POOL_SIZE, BackgroundJobServerStatus::getWorkerPoolSize)
+                .with(COLUMN_POLL_INTERVAL_IN_SECONDS, BackgroundJobServerStatus::getPollIntervalInSeconds)
+                .with(COLUMN_FIRST_HEARTBEAT, BackgroundJobServerStatus::getFirstHeartbeat)
+                .with(COLUMN_LAST_HEARTBEAT, BackgroundJobServerStatus::getLastHeartbeat)
+                .with(COLUMN_RUNNING, BackgroundJobServerStatus::isRunning)
+                .with(COLUMN_SYSTEM_TOTAL_MEMORY, BackgroundJobServerStatus::getSystemTotalMemory)
+                .with(COLUMN_SYSTEM_FREE_MEMORY, BackgroundJobServerStatus::getSystemFreeMemory)
+                .with(COLUMN_SYSTEM_CPU_LOAD, BackgroundJobServerStatus::getSystemCpuLoad)
+                .with(COLUMN_PROCESS_MAX_MEMORY, BackgroundJobServerStatus::getProcessMaxMemory)
+                .with(COLUMN_PROCESS_FREE_MEMORY, BackgroundJobServerStatus::getProcessFreeMemory)
+                .with(COLUMN_PROCESS_ALLOCATED_MEMORY, BackgroundJobServerStatus::getProcessAllocatedMemory)
+                .with(COLUMN_PROCESS_CPU_LOAD, BackgroundJobServerStatus::getProcessCpuLoad);
     }
 
     public void announce(BackgroundJobServerStatus serverStatus) {
@@ -40,17 +54,17 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
     public boolean signalServerAlive(BackgroundJobServerStatus serverStatus) {
         try {
             this
-                    .with("id", serverStatus.getId())
-                    .with("lastHeartbeat", serverStatus.getLastHeartbeat())
-                    .with("systemFreeMemory", serverStatus.getSystemFreeMemory())
-                    .with("systemCpuLoad", serverStatus.getSystemCpuLoad())
-                    .with("processFreeMemory", serverStatus.getProcessFreeMemory())
-                    .with("processAllocatedMemory", serverStatus.getProcessAllocatedMemory())
-                    .with("processCpuLoad", serverStatus.getSystemCpuLoad())
+                    .with(COLUMN_ID, serverStatus.getId())
+                    .with(COLUMN_LAST_HEARTBEAT, serverStatus.getLastHeartbeat())
+                    .with(COLUMN_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory())
+                    .with(COLUMN_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad())
+                    .with(COLUMN_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory())
+                    .with(COLUMN_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory())
+                    .with(COLUMN_PROCESS_CPU_LOAD, serverStatus.getSystemCpuLoad())
                     .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad where id = :id");
 
             return select("running from jobrunr_backgroundjobservers where id = :id")
-                    .map(sqlResultSet -> sqlResultSet.asBoolean("running"))
+                    .map(sqlResultSet -> sqlResultSet.asBoolean(COLUMN_RUNNING))
                     .findFirst()
                     .orElseThrow(() -> new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found"));
         } catch (StorageException e) {
@@ -71,19 +85,19 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
     private BackgroundJobServerStatus toBackgroundJobServerStatus(SqlResultSet resultSet) {
         return new BackgroundJobServerStatus(
-                resultSet.asUUID("id"),
-                resultSet.asInt("workerPoolSize"),
-                resultSet.asInt("pollIntervalInSeconds"),
-                resultSet.asInstant("firstHeartbeat"),
-                resultSet.asInstant("lastHeartbeat"),
-                resultSet.asBoolean("running"),
-                resultSet.asLong("systemTotalMemory"),
-                resultSet.asLong("systemFreeMemory"),
-                resultSet.asDouble("systemCpuLoad"),
-                resultSet.asLong("processMaxMemory"),
-                resultSet.asLong("processFreeMemory"),
-                resultSet.asLong("processAllocatedMemory"),
-                resultSet.asDouble("processCpuLoad")
+                resultSet.asUUID(COLUMN_ID),
+                resultSet.asInt(COLUMN_WORKER_POOL_SIZE),
+                resultSet.asInt(COLUMN_POLL_INTERVAL_IN_SECONDS),
+                resultSet.asInstant(COLUMN_FIRST_HEARTBEAT),
+                resultSet.asInstant(COLUMN_LAST_HEARTBEAT),
+                resultSet.asBoolean(COLUMN_RUNNING),
+                resultSet.asLong(COLUMN_SYSTEM_TOTAL_MEMORY),
+                resultSet.asLong(COLUMN_SYSTEM_FREE_MEMORY),
+                resultSet.asDouble(COLUMN_SYSTEM_CPU_LOAD),
+                resultSet.asLong(COLUMN_PROCESS_MAX_MEMORY),
+                resultSet.asLong(COLUMN_PROCESS_FREE_MEMORY),
+                resultSet.asLong(COLUMN_PROCESS_ALLOCATED_MEMORY),
+                resultSet.asDouble(COLUMN_PROCESS_CPU_LOAD)
         );
     }
 }

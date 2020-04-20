@@ -6,16 +6,16 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.AbstractStorageProvider;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.JobStorageChangeListener;
 import org.jobrunr.storage.Page;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageException;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -26,7 +26,6 @@ import redis.clients.jedis.commands.RedisPipeline;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,12 +45,27 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-public class RedisStorageProvider implements StorageProvider {
+@Beta
+public class RedisStorageProvider extends AbstractStorageProvider {
 
-    private final Set<JobStorageChangeListener> onChangeListeners = new HashSet<>();
-    private final RateLimiter changeListenerNotificationRateLimit;
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_WORKER_POOL_SIZE = "workerPoolSize";
+    public static final String FIELD_POLL_INTERVAL_IN_SECONDS = "pollIntervalInSeconds";
+    public static final String FIELD_FIRST_HEARTBEAT = "firstHeartbeat";
+    public static final String FIELD_LAST_HEARTBEAT = "lastHeartbeat";
+    public static final String FIELD_IS_RUNNING = "isRunning";
+    public static final String FIELD_SYSTEM_TOTAL_MEMORY = "systemTotalMemory";
+    public static final String FIELD_SYSTEM_FREE_MEMORY = "systemFreeMemory";
+    public static final String FIELD_SYSTEM_CPU_LOAD = "systemCpuLoad";
+    public static final String FIELD_PROCESS_MAX_MEMORY = "processMaxMemory";
+    public static final String FIELD_PROCESS_FREE_MEMORY = "processFreeMemory";
+    public static final String FIELD_PROCESS_ALLOCATED_MEMORY = "processAllocatedMemory";
+    public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
+    public static final String RECURRING_JOBS_KEY = "recurringjobs";
+    public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
+    public static final String QUEUE_SCHEDULEDJOBS_KEY = "queue:scheduledjobs";
 
-    private Jedis jedis;
+    private Jedis jedisConnector;
     private JobMapper jobMapper;
 
     public RedisStorageProvider() {
@@ -63,13 +77,8 @@ public class RedisStorageProvider implements StorageProvider {
     }
 
     public RedisStorageProvider(Jedis jedis, RateLimiter changeListenerNotificationRateLimit) {
-        this.jedis = jedis;
-        this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
-    }
-
-    @Override
-    public void addJobStorageOnChangeListener(JobStorageChangeListener listener) {
-        onChangeListeners.add(listener);
+        super(changeListenerNotificationRateLimit);
+        this.jedisConnector = jedis;
     }
 
     @Override
@@ -81,20 +90,20 @@ public class RedisStorageProvider implements StorageProvider {
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try (Jedis jedis = getJedis()) {
             final Pipeline p = jedis.pipelined();
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "id", serverStatus.getId().toString());
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "workerPoolSize", String.valueOf(serverStatus.getWorkerPoolSize()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "pollIntervalInSeconds", String.valueOf(serverStatus.getPollIntervalInSeconds()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "firstHeartbeat", String.valueOf(serverStatus.getFirstHeartbeat()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "lastHeartbeat", String.valueOf(serverStatus.getLastHeartbeat()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "isRunning", String.valueOf(serverStatus.isRunning()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemTotalMemory", String.valueOf(serverStatus.getSystemTotalMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemFreeMemory", String.valueOf(serverStatus.getSystemFreeMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemCpuLoad", String.valueOf(serverStatus.getSystemCpuLoad()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processMaxMemory", String.valueOf(serverStatus.getProcessMaxMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processFreeMemory", String.valueOf(serverStatus.getProcessFreeMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processAllocatedMemory", String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processCpuLoad", String.valueOf(serverStatus.getProcessCpuLoad()));
-            p.zadd("backgroundjobservers", toMicroSeconds(now()), serverStatus.getId().toString());
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_ID, serverStatus.getId().toString());
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
             p.sync();
         }
     }
@@ -102,17 +111,17 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
         try (Jedis jedis = getJedis()) {
-            final Map<String, String> valueMap = jedis.hgetAll("backgroundjobserver:" + serverStatus.getId());
+            final Map<String, String> valueMap = jedis.hgetAll(backgroundJobServerKey(serverStatus));
             if (valueMap.isEmpty()) throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
             final Pipeline p = jedis.pipelined();
-            p.watch("backgroundjobserver:" + serverStatus.getId());
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "lastHeartbeat", String.valueOf(serverStatus.getLastHeartbeat()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemFreeMemory", String.valueOf(serverStatus.getSystemFreeMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "systemCpuLoad", String.valueOf(serverStatus.getSystemCpuLoad()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processFreeMemory", String.valueOf(serverStatus.getProcessFreeMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processAllocatedMemory", String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            p.hset("backgroundjobserver:" + serverStatus.getId(), "processCpuLoad", String.valueOf(serverStatus.getProcessCpuLoad()));
-            final Response<String> isRunningResponse = p.hget("backgroundjobserver:" + serverStatus.getId(), "isRunning");
+            p.watch(backgroundJobServerKey(serverStatus));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), FIELD_IS_RUNNING);
             p.sync();
             return Boolean.parseBoolean(isRunningResponse.get());
         }
@@ -121,23 +130,23 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try (Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrange("backgroundjobservers", 0, Integer.MAX_VALUE), jedis)
-                    .mapUsingPipeline((p, id) -> p.hgetAll("backgroundjobserver:" + id))
+            return new RedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE), jedis)
+                    .mapUsingPipeline((p, id) -> p.hgetAll(backgroundJobServerKey(id)))
                     .mapAfterSync(Response::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
-                            UUID.fromString(fieldMap.get("id")),
-                            Integer.parseInt(fieldMap.get("workerPoolSize")),
-                            Integer.parseInt(fieldMap.get("pollIntervalInSeconds")),
-                            Instant.parse(fieldMap.get("firstHeartbeat")),
-                            Instant.parse(fieldMap.get("lastHeartbeat")),
-                            Boolean.parseBoolean(fieldMap.get("isRunning")),
-                            Long.parseLong(fieldMap.get("systemTotalMemory")),
-                            Long.parseLong(fieldMap.get("systemFreeMemory")),
-                            Double.parseDouble(fieldMap.get("systemCpuLoad")),
-                            Long.parseLong(fieldMap.get("processMaxMemory")),
-                            Long.parseLong(fieldMap.get("processFreeMemory")),
-                            Long.parseLong(fieldMap.get("processAllocatedMemory")),
-                            Double.parseDouble(fieldMap.get("processCpuLoad"))
+                            UUID.fromString(fieldMap.get(FIELD_ID)),
+                            Integer.parseInt(fieldMap.get(FIELD_WORKER_POOL_SIZE)),
+                            Integer.parseInt(fieldMap.get(FIELD_POLL_INTERVAL_IN_SECONDS)),
+                            Instant.parse(fieldMap.get(FIELD_FIRST_HEARTBEAT)),
+                            Instant.parse(fieldMap.get(FIELD_LAST_HEARTBEAT)),
+                            Boolean.parseBoolean(fieldMap.get(FIELD_IS_RUNNING)),
+                            Long.parseLong(fieldMap.get(FIELD_SYSTEM_TOTAL_MEMORY)),
+                            Long.parseLong(fieldMap.get(FIELD_SYSTEM_FREE_MEMORY)),
+                            Double.parseDouble(fieldMap.get(FIELD_SYSTEM_CPU_LOAD)),
+                            Long.parseLong(fieldMap.get(FIELD_PROCESS_MAX_MEMORY)),
+                            Long.parseLong(fieldMap.get(FIELD_PROCESS_FREE_MEMORY)),
+                            Long.parseLong(fieldMap.get(FIELD_PROCESS_ALLOCATED_MEMORY)),
+                            Double.parseDouble(fieldMap.get(FIELD_PROCESS_CPU_LOAD))
                     ))
                     .collect(Collectors.toList());
         }
@@ -146,12 +155,12 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         try (Jedis jedis = getJedis()) {
-            final Set<String> backgroundjobservers = jedis.zrangeByScore("backgroundjobservers", 0, toMicroSeconds(heartbeatOlderThan));
+            final Set<String> backgroundjobservers = jedis.zrangeByScore(BACKGROUND_JOB_SERVERS_KEY, 0, toMicroSeconds(heartbeatOlderThan));
             final Pipeline p = jedis.pipelined();
 
             backgroundjobservers.forEach(backgroundJobServerId -> {
-                p.del("backgroundjobserver:" + backgroundJobServerId);
-                p.zrem("backgroundjobservers", backgroundJobServerId);
+                p.del(backgroundJobServerKey(backgroundJobServerId));
+                p.zrem(BACKGROUND_JOB_SERVERS_KEY, backgroundJobServerId);
             });
             p.sync();
             return backgroundjobservers.size();
@@ -237,7 +246,7 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrangeByScore("queue:jobs:" + state, 0, toMicroSeconds(updatedBefore)), jedis)
+            return new RedisPipelinedStream<>(jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore)), jedis)
                     .skip(pageRequest.getOffset())
                     .limit(pageRequest.getLimit())
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
@@ -249,7 +258,7 @@ public class RedisStorageProvider implements StorageProvider {
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return new RedisPipelinedStream<>(jedis.zrangeByScore("queue:scheduledjobs", 0, toMicroSeconds(now())), jedis)
+        return new RedisPipelinedStream<>(jedisConnector.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now())), jedisConnector)
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
                 .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
@@ -261,14 +270,14 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public Long countJobs(StateName state) {
         try (Jedis jedis = getJedis()) {
-            return jedis.zcount("queue:jobs:" + state, 0, Long.MAX_VALUE);
+            return jedis.zcount(jobQueueForStateKey(state), 0, Long.MAX_VALUE);
         }
     }
 
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrange("queue:jobs:" + state, pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1), jedis)
+            return new RedisPipelinedStream<>(jedis.zrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1), jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)
@@ -290,7 +299,7 @@ public class RedisStorageProvider implements StorageProvider {
     public int deleteJobs(StateName state, Instant updatedBefore) {
         int amount = 0;
         try (Jedis jedis = getJedis()) {
-            Set<String> zrangeToInspect = jedis.zrange("queue:jobs:" + state, 0, 1000);
+            Set<String> zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
             outerloop:
             while (!zrangeToInspect.isEmpty()) {
                 for (String id : zrangeToInspect) {
@@ -305,7 +314,7 @@ public class RedisStorageProvider implements StorageProvider {
                     final List<Object> exec = transaction.exec();
                     if (exec != null && exec.size() > 0) amount++;
                 }
-                zrangeToInspect = jedis.zrange("queue:jobs:" + state, 0, 1000);
+                zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
             }
         }
         notifyOnChangeListenersIf(amount > 0);
@@ -315,7 +324,7 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public boolean exists(JobDetails jobDetails, StateName state) {
         try (Jedis jedis = getJedis()) {
-            return jedis.sismember("job:jobdetails:" + state, getJobSignature(jobDetails));
+            return jedis.sismember(jobDetailsKey(state), getJobSignature(jobDetails));
         }
     }
 
@@ -323,8 +332,8 @@ public class RedisStorageProvider implements StorageProvider {
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (Jedis jedis = getJedis()) {
             final Pipeline p = jedis.pipelined();
-            p.set("recurringjob:" + recurringJob.getId(), jobMapper.serializeRecurringJob(recurringJob));
-            p.sadd("recurringjobs", recurringJob.getId());
+            p.set(recurringJobKey(recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
+            p.sadd(RECURRING_JOBS_KEY, recurringJob.getId());
             p.sync();
         }
         return recurringJob;
@@ -333,7 +342,7 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public List<RecurringJob> getRecurringJobs() {
         try (Jedis jedis = getJedis()) {
-            return jedis.smembers("recurringjobs")
+            return jedis.smembers(RECURRING_JOBS_KEY)
                     .stream()
                     .map(id -> jedis.get("recurringjob:" + id))
                     .map(jobMapper::deserializeRecurringJob)
@@ -346,7 +355,7 @@ public class RedisStorageProvider implements StorageProvider {
         try (Jedis jedis = getJedis()) {
             final Transaction transaction = jedis.multi();
             transaction.del("recurringjob:" + id);
-            transaction.srem("recurringjobs", id);
+            transaction.srem(RECURRING_JOBS_KEY, id);
 
             final List<Object> exec = transaction.exec();
             return (exec != null && exec.size() > 0) ? 1 : 0;
@@ -357,30 +366,30 @@ public class RedisStorageProvider implements StorageProvider {
     public JobStats getJobStats() {
         try (Jedis jedis = getJedis()) {
             final Pipeline p = jedis.pipelined();
-            final Response<String> waitingCounterResponse = p.get("counter:jobs:" + AWAITING);
-            final Response<Long> waitingResponse = p.zcount("queue:jobs:" + AWAITING, 0, Long.MAX_VALUE);
-            final Response<String> scheduledCounterResponse = p.get("counter:jobs:" + SCHEDULED);
-            final Response<Long> scheduledResponse = p.zcount("queue:jobs:" + SCHEDULED, 0, Long.MAX_VALUE);
-            final Response<String> enqueuedCounterResponse = p.get("counter:jobs:" + ENQUEUED);
-            final Response<Long> enqueuedResponse = p.zcount("queue:jobs:" + ENQUEUED, 0, Long.MAX_VALUE);
-            final Response<String> processingCounterResponse = p.get("counter:jobs:" + PROCESSING);
-            final Response<Long> processingResponse = p.zcount("queue:jobs:" + PROCESSING, 0, Long.MAX_VALUE);
-            final Response<String> succeededCounterResponse = p.get("counter:jobs:" + SUCCEEDED);
-            final Response<Long> succeededResponse = p.zcount("queue:jobs:" + SUCCEEDED, 0, Long.MAX_VALUE);
-            final Response<String> failedCounterResponse = p.get("counter:jobs:" + FAILED);
-            final Response<Long> failedResponse = p.zcount("queue:jobs:" + FAILED, 0, Long.MAX_VALUE);
+            final Response<String> waitingCounterResponse = p.get(jobCounterKey(AWAITING));
+            final Response<Long> waitingResponse = p.zcount(jobQueueForStateKey(AWAITING), 0, Long.MAX_VALUE);
+            final Response<String> scheduledCounterResponse = p.get(jobCounterKey(SCHEDULED));
+            final Response<Long> scheduledResponse = p.zcount(jobQueueForStateKey(SCHEDULED), 0, Long.MAX_VALUE);
+            final Response<String> enqueuedCounterResponse = p.get(jobCounterKey(ENQUEUED));
+            final Response<Long> enqueuedResponse = p.zcount(jobQueueForStateKey(ENQUEUED), 0, Long.MAX_VALUE);
+            final Response<String> processingCounterResponse = p.get(jobCounterKey(PROCESSING));
+            final Response<Long> processingResponse = p.zcount(jobQueueForStateKey(PROCESSING), 0, Long.MAX_VALUE);
+            final Response<String> succeededCounterResponse = p.get(jobCounterKey(SUCCEEDED));
+            final Response<Long> succeededResponse = p.zcount(jobQueueForStateKey(SUCCEEDED), 0, Long.MAX_VALUE);
+            final Response<String> failedCounterResponse = p.get(jobCounterKey(FAILED));
+            final Response<Long> failedResponse = p.zcount(jobQueueForStateKey(FAILED), 0, Long.MAX_VALUE);
 
-            final Response<Long> recurringJobsResponse = p.scard("recurringjobs");
-            final Response<Long> backgroundJobServerResponse = p.zcount("backgroundjobservers", 0, Long.MAX_VALUE);
+            final Response<Long> recurringJobsResponse = p.scard(RECURRING_JOBS_KEY);
+            final Response<Long> backgroundJobServerResponse = p.zcount(BACKGROUND_JOB_SERVERS_KEY, 0, Long.MAX_VALUE);
 
             p.sync();
 
-            final Long awaitingCount = waitingResponse.get() + Long.parseLong(waitingCounterResponse.get() != null ? waitingCounterResponse.get() : "0");
-            final Long scheduledCount = scheduledResponse.get() + Long.parseLong(scheduledCounterResponse.get() != null ? scheduledCounterResponse.get() : "0");
-            final Long enqueuedCount = enqueuedResponse.get() + Long.parseLong(enqueuedCounterResponse.get() != null ? enqueuedCounterResponse.get() : "0");
-            final Long processingCount = processingResponse.get() + Long.parseLong(processingCounterResponse.get() != null ? processingCounterResponse.get() : "0");
-            final Long succeededCount = succeededResponse.get() + Long.parseLong(succeededCounterResponse.get() != null ? succeededCounterResponse.get() : "0");
-            final Long failedCount = failedResponse.get() + Long.parseLong(failedCounterResponse.get() != null ? failedCounterResponse.get() : "0");
+            final Long awaitingCount = getCounterValue(waitingCounterResponse, waitingResponse);
+            final Long scheduledCount = getCounterValue(scheduledCounterResponse, scheduledResponse);
+            final Long enqueuedCount = getCounterValue(enqueuedCounterResponse, enqueuedResponse);
+            final Long processingCount = getCounterValue(processingCounterResponse, processingResponse);
+            final Long succeededCount = getCounterValue(succeededCounterResponse, succeededResponse);
+            final Long failedCount = getCounterValue(failedCounterResponse, failedResponse);
             final Long total = scheduledCount + enqueuedCount + processingCount + succeededResponse.get() + failedCount;
             final Long recurringJobsCount = recurringJobsResponse.get();
             final Long backgroundJobServerCount = backgroundJobServerResponse.get();
@@ -401,12 +410,12 @@ public class RedisStorageProvider implements StorageProvider {
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
         try (Jedis jedis = getJedis()) {
-            jedis.incrBy("counter:jobs:" + state, amount);
+            jedis.incrBy(jobCounterKey(state), amount);
         }
     }
 
     protected Jedis getJedis() {
-        return jedis;
+        return jedisConnector;
     }
 
     private boolean notAllJobsAreNew(List<Job> jobs) {
@@ -421,49 +430,63 @@ public class RedisStorageProvider implements StorageProvider {
         return jobs.get(0).getId() == null;
     }
 
-    private void notifyOnChangeListenersIf(boolean mustNotify) {
-        if (mustNotify) {
-            notifyOnChangeListeners();
-        }
-    }
-
-    private void notifyOnChangeListeners() {
-        if (onChangeListeners.isEmpty()) return;
-        if (changeListenerNotificationRateLimit.isRateLimited()) return;
-
-        JobStats jobStats = getJobStats();
-        onChangeListeners.forEach(listener -> listener.onChange(jobStats));
-    }
-
     private void saveJob(RedisPipeline p, Job jobToSave) {
         deleteJobMetadata(p, jobToSave);
         p.set(jobVersionKey(jobToSave), String.valueOf(jobToSave.getVersion()));
         p.set(jobKey(jobToSave), jobMapper.serializeJob(jobToSave));
-        p.zadd("queue:jobs:" + jobToSave.getState(), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
-        p.sadd("job:jobdetails:" + jobToSave.getState(), getJobSignature(jobToSave.getJobDetails()));
+        p.zadd(jobQueueForStateKey(jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
+        p.sadd(jobDetailsKey(jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));
         if (SCHEDULED.equals(jobToSave.getState())) {
-            p.zadd("queue:scheduledjobs", toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
+            p.zadd(QUEUE_SCHEDULEDJOBS_KEY, toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
     }
 
     private void deleteJobMetadata(RedisPipeline p, Job job) {
         String id = job.getId().toString();
-        p.zrem("queue:jobs:" + AWAITING, id);
-        p.zrem("queue:jobs:" + SCHEDULED, id);
-        p.zrem("queue:jobs:" + ENQUEUED, id);
-        p.zrem("queue:jobs:" + PROCESSING, id);
-        p.zrem("queue:jobs:" + FAILED, id);
-        p.zrem("queue:jobs:" + SUCCEEDED, id);
-        p.zrem("queue:jobs:" + DELETED, id);
-        p.zrem("queue:scheduledjobs", id);
+        p.zrem(jobQueueForStateKey(AWAITING), id);
+        p.zrem(jobQueueForStateKey(SCHEDULED), id);
+        p.zrem(jobQueueForStateKey(ENQUEUED), id);
+        p.zrem(jobQueueForStateKey(PROCESSING), id);
+        p.zrem(jobQueueForStateKey(FAILED), id);
+        p.zrem(jobQueueForStateKey(SUCCEEDED), id);
+        p.zrem(jobQueueForStateKey(DELETED), id);
+        p.zrem(QUEUE_SCHEDULEDJOBS_KEY, id);
 
-        p.srem("job:jobdetails:" + AWAITING, getJobSignature(job.getJobDetails()));
-        p.srem("job:jobdetails:" + SCHEDULED, getJobSignature(job.getJobDetails()));
-        p.srem("job:jobdetails:" + ENQUEUED, getJobSignature(job.getJobDetails()));
-        p.srem("job:jobdetails:" + PROCESSING, getJobSignature(job.getJobDetails()));
-        p.srem("job:jobdetails:" + FAILED, getJobSignature(job.getJobDetails()));
-        p.srem("job:jobdetails:" + SUCCEEDED, getJobSignature(job.getJobDetails()));
-        p.srem("job:jobdetails:" + DELETED, getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(AWAITING), getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(ENQUEUED), getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(PROCESSING), getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(FAILED), getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(SUCCEEDED), getJobSignature(job.getJobDetails()));
+        p.srem(jobDetailsKey(DELETED), getJobSignature(job.getJobDetails()));
+    }
+
+    private long getCounterValue(Response<String> waitingCounterResponse, Response<Long> waitingResponse) {
+        return waitingResponse.get() + Long.parseLong(waitingCounterResponse.get() != null ? waitingCounterResponse.get() : "0");
+    }
+
+    private String jobCounterKey(StateName stateName) {
+        return "counter:jobs:" + stateName;
+    }
+
+    private String backgroundJobServerKey(BackgroundJobServerStatus serverStatus) {
+        return backgroundJobServerKey(serverStatus.getId());
+    }
+
+    private String backgroundJobServerKey(UUID serverId) {
+        return "backgroundjobserver:" + serverId.toString();
+    }
+
+    private String backgroundJobServerKey(String serverId) {
+        return "backgroundjobserver:" + serverId;
+    }
+
+    private String jobQueueForStateKey(StateName stateName) {
+        return "queue:jobs:" + stateName;
+    }
+
+    private String recurringJobKey(String id) {
+        return "recurringjob:" + id;
     }
 
     private String jobKey(Job job) {
@@ -478,15 +501,15 @@ public class RedisStorageProvider implements StorageProvider {
         return "job:" + id;
     }
 
+    private String jobDetailsKey(StateName stateName) {
+        return "job:jobdetails:" + stateName;
+    }
+
     private String jobVersionKey(Job job) {
         return jobVersionKey(job.getId());
     }
 
     private String jobVersionKey(UUID id) {
-        return jobKey(id) + ":version";
-    }
-
-    private String jobVersionKey(String id) {
         return jobKey(id) + ":version";
     }
 

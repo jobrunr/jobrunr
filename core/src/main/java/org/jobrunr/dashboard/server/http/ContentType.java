@@ -35,6 +35,6 @@ public class ContentType {
         } else if (path.toString().toLowerCase().endsWith(".map")) {
             return APPLICATION_OCTET_STREAM;
         }
-        throw new IllegalStateException("Unsupported mimetype");
+        throw new IllegalArgumentException("Unsupported mimetype");
     }
 }
