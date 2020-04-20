@@ -54,6 +54,8 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
+      - rm -rf /home/gradle/.gradle/caches/$GRADLE_VERSION/
+      - find /home/gradle/.gradle/caches/ -name "*.lock" -type f -delete
       - gradle --no-daemon clean build
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
@@ -139,6 +141,8 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
+      - rm -rf /home/gradle/.gradle/caches/$GRADLE_VERSION/
+      - find /home/gradle/.gradle/caches/ -name "*.lock" -type f -delete
       - gradle --no-daemon clean build
     volumes:
       - name: dockersock
