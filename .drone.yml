@@ -142,6 +142,7 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
+      - rm -rf /tmp/reports/*
       - rm -rf /home/gradle/.gradle/caches/$GRADLE_VERSION/
       - find /home/gradle/.gradle/caches/ -name "*.lock" -type f -delete
       - gradle --no-daemon -i clean build
