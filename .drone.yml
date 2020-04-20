@@ -54,7 +54,7 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
-      - gradle clean build
+      - gradle --no-daemon clean build
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
@@ -139,7 +139,7 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
-      - gradle clean build
+      - gradle --no-daemon clean build
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
@@ -167,7 +167,7 @@ steps:
       BINTRAY_APIKEY:
         from_secret: BINTRAY_APIKEY
     commands:
-      - gradle bintrayUpload
+      - gradle --no-daemon bintrayUpload
     volumes:
       - name: maven-local
         path: /root/.m2
