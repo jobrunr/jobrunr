@@ -18,7 +18,7 @@
     },
     "id": "recurring-job-2",
     "cronExpression": "0 0 * * *",
-    "zoneId": "Europe/Brussels",
+    "zoneId": "${json-unit.ignore}",
     "nextRun": "${json-unit.ignore}"
   },
   {
@@ -40,7 +40,7 @@
     },
     "id": "recurring-job-1",
     "cronExpression": "0 0 * * *",
-    "zoneId": "Europe/Brussels",
+    "zoneId": "${json-unit.ignore}",
     "nextRun": "${json-unit.ignore}"
   }
 ]
