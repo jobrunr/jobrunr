@@ -138,7 +138,7 @@ context('Actions', () => {
     }
 
     const waitForSSE = function () {
-        jobsTabBtn().get('span.MuiBadge-badge', {timeout: 20000}).should(($badge) => {
+        jobsTabBtn().get('span.MuiChip-label', {timeout: 20000}).should(($badge) => {
             expect($badge.text()).contains('33');
         });
     }
