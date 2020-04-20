@@ -3,6 +3,12 @@ kind: pipeline
 type: docker
 name: default
 
+trigger:
+  branch:
+    - master
+  event:
+    - push
+
 steps:
   - name: prepare
     image: plugins/docker
@@ -48,7 +54,7 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
-      - gradle --no-daemon clean build
+      - gradle clean build
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
@@ -92,11 +98,48 @@ kind: pipeline
 type: docker
 name: release
 
+trigger:
+  event:
+    - tag
+
 steps:
+  - name: restore-node-modules-cache
+    image: meltwater/drone-cache
+    settings:
+      backend: "filesystem"
+      restore: true
+      cache_key: "node_modules"
+      archive_format: "gzip"
+      mount:
+        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
+    volumes:
+      - name: node-modules-cache
+        path: /tmp/cache
+
+  - name: build-frontend
+    image: node:12
+    commands:
+      - cd core/src/main/resources/org/jobrunr/dashboard/frontend
+      - npm install
+      - npm run build
+
+  - name: save-node-modules-cache
+    image: meltwater/drone-cache
+    settings:
+      backend: "filesystem"
+      rebuild: true
+      cache_key: "node_modules"
+      archive_format: "gzip"
+      mount:
+        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
+    volumes:
+      - name: node-modules-cache
+        path: /tmp/cache
+
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
-      - gradle --no-daemon clean build
+      - gradle clean build
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
@@ -124,7 +167,7 @@ steps:
       BINTRAY_APIKEY:
         from_secret: BINTRAY_APIKEY
     commands:
-      - gradle --no-daemon bintrayUpload
+      - gradle bintrayUpload
     volumes:
       - name: maven-local
         path: /root/.m2
@@ -138,9 +181,6 @@ steps:
     when:
       status: [ success, failure ]
 
-trigger:
-  event:
-    - tag
 
 volumes:
   - name: maven-local
