@@ -23,7 +23,7 @@ jib {
         image = "gcr.io/distroless/java:11"
     }
     to {
-        image = "jobrunr-${project.name}:${version}"
+        image = "jobrunr-${project.name}:1.0"
     }
     container {
         jvmFlags = ["-Duser.timezone=Europe/Brussels"]

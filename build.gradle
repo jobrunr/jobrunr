@@ -9,6 +9,7 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'jacoco'
     group = 'org.jobrunr'
+    version = "v0.1.0-DEV"
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
