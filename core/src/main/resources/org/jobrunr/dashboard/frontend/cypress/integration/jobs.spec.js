@@ -1,6 +1,6 @@
 context('Actions', () => {
     beforeEach(() => {
-        cy.visit('http://localhost:8000/dashboard');
+        cy.visit('http://localhost:8000/dashboard/jobs');
         waitForSSE();
     });
 
@@ -11,6 +11,8 @@ context('Actions', () => {
     const failedMenuBtn = () => cy.get('#failed-menu-btn');
 
     const jobsTabBtn = () => cy.get('#jobs-btn');
+    const recurringJobsTabBtn = () => cy.get('#recurring-jobs-btn');
+    const serversTabBtn = () => cy.get('#servers-btn');
     const breadcrumb = () => cy.get('#breadcrumb');
     const title = () => cy.get('#title');
 
@@ -23,11 +25,11 @@ context('Actions', () => {
 
     const jobHistoryPanel = () => cy.get('#job-history-panel');
     const jobHistoryPanelItems = () => jobHistoryPanel().find('div.MuiExpansionPanel-root');
-    const jobHistorySortAscBtn =  () => cy.get('#jobhistory-sort-asc-btn');
-    const jobHistorySortDescBtn =  () => cy.get('#jobhistory-sort-desc-btn');
+    const jobHistorySortAscBtn = () => cy.get('#jobhistory-sort-asc-btn');
+    const jobHistorySortDescBtn = () => cy.get('#jobhistory-sort-desc-btn');
 
-    it('It opens the jobs overview page', () => {
-        jobsTabBtn().get('span.MuiBadge-badge').should('contain', '33');
+    it('It opens the jobs dashboard page', () => {
+        jobsTabBtn().get('span.MuiChip-label').should('contain', '33');
         breadcrumb().should('contain', 'Enqueued jobs');
         title().should('contain', 'Enqueued jobs');
 
@@ -42,7 +44,6 @@ context('Actions', () => {
     it('It can navigate to the scheduled jobs', () => {
         scheduledMenuBtn().should('contain', '1');
         scheduledMenuBtn().click();
-        jobsTabBtn().get('span.MuiBadge-badge').should('contain', '33');
         breadcrumb().should('contain', 'Scheduled jobs');
         title().should('contain', 'Scheduled jobs');
 
@@ -121,7 +122,15 @@ context('Actions', () => {
         jobHistoryPanelItems().eq(0).should('contain', 'Job processing failed');
     });
 
+    it('It can navigate to the recurring jobs page', () => {
+        recurringJobsTabBtn().click();
+        recurringJobsTabBtn().get('span.MuiChip-label').should('contain', '2');
+    });
 
+    it('It can navigate to the servers page', () => {
+        serversTabBtn().click();
+        serversTabBtn().get('span.MuiChip-label').should('contain', '1');
+    });
 
 
     const jobTablePagination = function () {
@@ -138,8 +147,8 @@ context('Actions', () => {
     }
 
     const waitForSSE = function () {
-        jobsTabBtn().get('span.MuiChip-label', {timeout: 20000}).should(($badge) => {
-            expect($badge.text()).contains('33');
+        jobsTabBtn().get('span.MuiChip-label', {timeout: 20000}).should(($chip) => {
+            expect($chip.text()).contains('33');
         });
     }
 });

@@ -20,7 +20,8 @@ public class Main extends AbstractMain {
     protected StorageProvider initStorageProvider() {
         return new SimpleStorageProvider()
                 .withJsonMapper(new GsonJsonMapper())
-                .withDefaultData();
+                .withDefaultData()
+                .withSomeRecurringJobs();
     }
 
     @Override

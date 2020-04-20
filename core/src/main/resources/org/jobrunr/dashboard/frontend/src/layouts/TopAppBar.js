@@ -61,7 +61,7 @@ const TopAppBar = () => {
             <Toolbar>
                 <img className={classes.logo} src={logo} alt="JobRunr"/>
                 <div className={classes.buttons}>
-                    <Button color="inherit" component={RouterLink} to="/dashboard/overview">
+                    <Button id="dashboard-btn" color="inherit" component={RouterLink} to="/dashboard/overview">
                         Dashboard
                     </Button>
                     <Button id="jobs-btn" color="inherit" component={RouterLink} to="/dashboard/jobs">
