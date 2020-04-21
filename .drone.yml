@@ -106,46 +106,50 @@ trigger:
     - tag
 
 steps:
-  - name: restore-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      restore: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
-  - name: build-frontend
-    image: node:12
-    commands:
-      - cd core/src/main/resources/org/jobrunr/dashboard/frontend
-      - npm install
-      - npm run build
-
-  - name: save-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      rebuild: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
+#  - name: restore-node-modules-cache
+#    image: meltwater/drone-cache
+#    settings:
+#      backend: "filesystem"
+#      restore: true
+#      cache_key: "node_modules"
+#      archive_format: "gzip"
+#      mount:
+#        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
+#    volumes:
+#      - name: node-modules-cache
+#        path: /tmp/cache
+#
+#  - name: build-frontend
+#    image: node:12
+#    commands:
+#      - cd core/src/main/resources/org/jobrunr/dashboard/frontend
+#      - npm install
+#      - npm run build
+#
+#  - name: save-node-modules-cache
+#    image: meltwater/drone-cache
+#    settings:
+#      backend: "filesystem"
+#      rebuild: true
+#      cache_key: "node_modules"
+#      archive_format: "gzip"
+#      mount:
+#        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
+#    volumes:
+#      - name: node-modules-cache
+#        path: /tmp/cache
 
   - name: build
     image: jobrunr.io/build-container:1.0
     commands:
+      - cat .gitignore
+      - rm -f *.hprof
+      - sed -i "s@<version>.*</version>@<version>0.9.0</version>@g" README.md # replace version in README
+      - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:0.9.0'@g" README.md # replace version in README
       - rm -rf /tmp/reports/*
       - rm -rf /home/gradle/.gradle/caches/$GRADLE_VERSION/
       - find /home/gradle/.gradle/caches/ -name "*.lock" -type f -delete
-      - gradle --no-daemon -i clean build
+      # - gradle --no-daemon -i clean build
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
@@ -156,27 +160,40 @@ steps:
       - name: reports
         path: /tmp/reports
 
-  - name: upload-to-github
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: GITHUB_TOKEN
-      files: core/build/libs/*
-    when:
-      event: tag
+#  - name: upload-to-github
+#    image: plugins/github-release
+#    settings:
+#      api_key:
+#        from_secret: GITHUB_TOKEN
+#      files: core/build/libs/*
+#    when:
+#      event: tag
+#
+#  - name: upload-to-bintray
+#    image: jobrunr.io/build-container:1.0
+#    environment:
+#      BINTRAY_USER:
+#        from_secret: BINTRAY_USER
+#      BINTRAY_APIKEY:
+#        from_secret: BINTRAY_APIKEY
+#    commands:
+#      - gradle --no-daemon bintrayUpload
+#    volumes:
+#      - name: maven-local
+#        path: /root/.m2
 
-  - name: upload-to-bintray
-    image: jobrunr.io/build-container:1.0
-    environment:
-      BINTRAY_USER:
-        from_secret: BINTRAY_USER
-      BINTRAY_APIKEY:
-        from_secret: BINTRAY_APIKEY
-    commands:
-      - gradle --no-daemon bintrayUpload
-    volumes:
-      - name: maven-local
-        path: /root/.m2
+  - name: push updated readme
+    image: appleboy/drone-git-push
+    settings:
+      branch: master
+      remote_name: origin
+      ssh_key:
+        from_secret: SSH_KEY
+      force: false
+      commit: true
+      commit_message: Update readme to new version
+      author_name: drone-bot
+      author_email: drone-bot@jobrunr.io
 
   - name: slack
     image: plugins/slack
