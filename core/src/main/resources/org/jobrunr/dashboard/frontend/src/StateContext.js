@@ -44,34 +44,32 @@ Object.freeze(state);
 const eventSource = new EventSource(process.env.REACT_APP_SSE_URL)
 eventSource.onmessage = e => {
     const newStats = JSON.parse(e.data);
-    if (newStats.succeeded != null && newStats.succeeded > 0) {
-        if ((newStats.enqueued != null && newStats.enqueued < 1) && (newStats.processing != null && newStats.processing < 1)) {
-            state.setStats({...newStats, estimation: {processingDone: true}});
-        } else if (oldStats == null) {
-            oldStats = {...newStats, timestamp: new Date()};
-            state.setStats({...newStats, estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}});
+    if ((newStats.enqueued != null && newStats.enqueued < 1) && (newStats.processing != null && newStats.processing < 1)) {
+        state.setStats({...newStats, estimation: {processingDone: true}});
+    } else if (oldStats == null) {
+        oldStats = {...newStats, timestamp: new Date()};
+        state.setStats({...newStats, estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}});
+    } else {
+        const amountSucceeded = newStats.succeeded - oldStats.succeeded;
+        if (amountSucceeded < 1) {
+            state.setStats({
+                ...newStats,
+                estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}
+            });
         } else {
-            const amountSucceeded = newStats.succeeded - oldStats.succeeded;
-            if (amountSucceeded === 0) {
+            const timeDiff = new Date() - oldStats.timestamp;
+            if (!isNaN(timeDiff)) {
+                const amountSucceededPerSecond = amountSucceeded * 1000 / timeDiff;
+                const estimatedProcessingTime = newStats.enqueued / amountSucceededPerSecond
+                const processingTimeDate = (new Date().getTime() + (estimatedProcessingTime * 1000));
                 state.setStats({
                     ...newStats,
-                    estimation: {processingDone: false, estimatedProcessingTimeAvailable: false}
+                    estimation: {
+                        processingDone: false,
+                        estimatedProcessingTimeAvailable: true,
+                        estimatedProcessingTime: processingTimeDate
+                    }
                 });
-            } else {
-                const timeDiff = new Date() - oldStats.timestamp;
-                if (!isNaN(timeDiff)) {
-                    const amountSucceededPerSecond = amountSucceeded * 1000 / timeDiff;
-                    const estimatedProcessingTime = newStats.enqueued / amountSucceededPerSecond
-                    const processingTimeDate = (new Date().getTime() + (estimatedProcessingTime * 1000));
-                    state.setStats({
-                        ...newStats,
-                        estimation: {
-                            processingDone: false,
-                            estimatedProcessingTimeAvailable: true,
-                            estimatedProcessingTime: processingTimeDate
-                        }
-                    });
-                }
             }
         }
     }
