@@ -69,15 +69,15 @@ public class Cron {
     }
 
     public static String weekly(DayOfWeek dayOfWeek) {
-        return String.format("0 0 * * %d", dayOfWeek.getValue());
+        return String.format("0 0 * * %d", dayOfWeek.getValue() == 7 ? 0 : dayOfWeek.getValue());
     }
 
     public static String weekly(DayOfWeek dayOfWeek, int hour) {
-        return String.format("0 %d * * %d", hour, dayOfWeek.getValue());
+        return String.format("0 %d * * %d", hour, dayOfWeek.getValue() == 7 ? 0 : dayOfWeek.getValue());
     }
 
     public static String weekly(DayOfWeek dayOfWeek, int hour, int minute) {
-        return String.format("%d %d * * %d", minute, hour, dayOfWeek.getValue());
+        return String.format("%d %d * * %d", minute, hour, dayOfWeek.getValue() == 7 ? 0 : dayOfWeek.getValue());
     }
 
     public static String yearly() {
