@@ -15,6 +15,8 @@ public class SqlStorageProviderFactory {
     public static StorageProvider using(DataSource dataSource) {
         if (dataSource.getClass().getName().contains("sqlite")) {
             return getJobStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".sqlite.SqLiteStorageProvider", dataSource);
+        } else if (dataSource.getClass().getName().contains("h2")) {
+            return getJobStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".h2.H2StorageProvider", dataSource);
         } else if (dataSource.getClass().getName().contains("postgres")) {
             return getJobStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".postgres.PostgresStorageProvider", dataSource);
         } else if (dataSource.getClass().getName().contains("oracle")) {
