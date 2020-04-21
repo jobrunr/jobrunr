@@ -160,7 +160,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
                             Class[] paramTypes = findParamTypesForDescriptorAsArray(descriptor);
                             params.add(createObjectViaConstructor(fqClassName, paramTypes, getParameters(paramTypes)));
                         } else if (Opcodes.INVOKEDYNAMIC == opcode) {
-                            System.out.println("look here");
+                            //System.out.println("look here");
                         }
                         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                     }
@@ -209,6 +209,9 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
         }
 
         public JobDetails getJobDetails() {
+            if (className == null) { // method being called is a method reference
+                return new JobDetails(lambdaType, toFQClassName(serializedLambda.getImplClass()), null, serializedLambda.getImplMethodName(), new ArrayList<>());
+            }
             return new JobDetails(lambdaType, className, staticFieldName, methodName, getJobParameters());
         }
 

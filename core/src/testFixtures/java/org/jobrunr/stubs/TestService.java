@@ -1,4 +1,4 @@
-    package org.jobrunr.stubs;
+package org.jobrunr.stubs;
 
 import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.annotations.Job;

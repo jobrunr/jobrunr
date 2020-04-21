@@ -69,6 +69,13 @@ public class IocBackgroundJobTest {
     }
 
     @Test
+    public void testEnqueueWithMethodReference() {
+        UUID jobId = BackgroundJob.<TestService>enqueue(TestService::doWork);
+        await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     public void testEnqueueWithCustomObject() {
         final TestService.Work work = new TestService.Work(2, "some string", UUID.randomUUID());
         UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork(work));
