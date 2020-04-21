@@ -187,7 +187,7 @@ steps:
       branch: master
       remote_name: origin
       ssh_key:
-        from_secret: SSH_KEY
+        from_secret: GITHUB_SSH_KEY
       force: false
       commit: true
       commit_message: "Update readme to new version [CI SKIP]"
