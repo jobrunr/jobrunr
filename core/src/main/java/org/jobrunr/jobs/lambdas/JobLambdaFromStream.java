@@ -1,8 +1,7 @@
 package org.jobrunr.jobs.lambdas;
 
-import java.util.function.Consumer;
-
 @FunctionalInterface
-public interface JobLambdaFromStream<T> extends Consumer<T>, JobWithoutIoc {
+public interface JobLambdaFromStream<T> extends JobWithoutIoc {
     // marker interface to make it serializable
+    void accept(T var1) throws Exception;
 }

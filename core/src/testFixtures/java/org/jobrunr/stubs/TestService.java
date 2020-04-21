@@ -24,7 +24,7 @@ public class TestService {
         return processedJobs;
     }
 
-    public void doWork(Work work) {
+    public void doWork(Work work) throws Exception {
         processedJobs += work.workCount;
         System.out.println("Doing some work... " + work.workCount + "; " + work.someString);
     }

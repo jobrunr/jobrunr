@@ -1,8 +1,7 @@
 package org.jobrunr.jobs.lambdas;
 
-import java.util.function.BiConsumer;
-
 @FunctionalInterface
-public interface IocJobLambdaFromStream<TService, TItem> extends BiConsumer<TService, TItem>, JobWithIoc {
+public interface IocJobLambdaFromStream<TService, TItem> extends JobWithIoc {
     // marker interface to make it serializable
+    void accept(TService var1, TItem var2) throws Exception;
 }
