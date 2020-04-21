@@ -64,7 +64,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr'
-            version = System.getenv('DRONE_TAG').replace("v", "")
+            version = project.version
             from components.java
 
             pom {
@@ -118,9 +118,9 @@ bintray {
         vcsUrl = 'https://github.com/jobrunr/jobrunr.git'
         issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
         version {
-            name = System.getenv('DRONE_TAG').replace("v", "")
+            name = project.version.replace("v", "")
             released  = new Date()
-            vcsTag = System.getenv('DRONE_TAG')
+            vcsTag = project.version
         }
     }
 }
