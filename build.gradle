@@ -9,7 +9,7 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'jacoco'
     group = 'org.jobrunr'
-    version = System.getenv('DRONE_TAG') ?: "v1.0.0-DEV"
+    version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
