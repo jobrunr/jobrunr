@@ -18,6 +18,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return new JobAssert(job);
     }
 
+    public JobAssert hasJobName(String name) {
+        Assertions.assertThat(actual.getJobName()).isEqualTo(name);
+        return this;
+    }
+
     public JobAssert hasState(StateName state) {
         Assertions.assertThat(actual.getState()).isEqualTo(state);
         return this;

@@ -39,11 +39,15 @@ public class RecurringJob extends AbstractJob {
 
     public Job toScheduledJob() {
         Instant nextRun = getNextRun();
-        return new Job(getJobDetails(), new ScheduledState(nextRun));
+        final Job job = new Job(getJobDetails(), new ScheduledState(nextRun));
+        job.setJobName(getJobName());
+        return job;
     }
 
     public Job toEnqueuedJob() {
-        return new Job(getJobDetails(), new EnqueuedState());
+        final Job job = new Job(getJobDetails(), new EnqueuedState());
+        job.setJobName(getJobName());
+        return job;
     }
 
     public String getZoneId() {
