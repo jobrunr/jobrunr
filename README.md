@@ -97,7 +97,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
 </dependency>
 ```
  
@@ -112,7 +112,7 @@ repositories {
  
  And add the dependency to JobRunr itself:
  ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.0'
+implementation 'org.jobrunr:jobrunr:0.9.1'
 ```
 
 Configuration
@@ -172,7 +172,7 @@ public class WebApplication {
     @Bean
     public JobScheduler initJobRunr(ApplicationContext applicationContext) {
         return JobRunr.configure()
-                .useJobStorageProvider(SqlJobStorageProviderFactory
+                .useStorageProvider(SqlStorageProviderFactory
                           .using(applicationContext.getBean(DataSource.class)))
                 .useJobActivator(applicationContext::getBean)
                 .useDefaultBackgroundJobServer()
