@@ -93,7 +93,7 @@ const JobsTable = (props) => {
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
-    }, [page, jobState, history.location.key]);
+    }, [page, jobState, sortOrder, history.location.key]);
 
     const handleChangePage = (event, newPage) => {
         history.push(`?page=${newPage}`);
