@@ -4,5 +4,5 @@ public interface TypeAutoboxer<T> {
 
     boolean supports(Class<?> type);
 
-    T autobox(Object value);
+    T autobox(Object value, Class<T> type);
 }

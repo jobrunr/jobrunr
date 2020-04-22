@@ -246,7 +246,13 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore)), jedis)
+            Set<String> jobsByState = null;
+            if (PageRequest.Order.ASC == pageRequest.getOrder()) {
+                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore));
+            } else {
+                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore));
+            }
+            return new RedisPipelinedStream<>(jobsByState, jedis)
                     .skip(pageRequest.getOffset())
                     .limit(pageRequest.getLimit())
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
@@ -277,7 +283,13 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1), jedis)
+            Set<String> jobsByState = null;
+            if (PageRequest.Order.ASC == pageRequest.getOrder()) {
+                jobsByState = jedis.zrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
+            } else {
+                jobsByState = jedis.zrevrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
+            }
+            return new RedisPipelinedStream<>(jobsByState, jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)

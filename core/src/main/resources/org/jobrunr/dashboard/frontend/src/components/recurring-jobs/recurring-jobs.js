@@ -15,8 +15,9 @@ import Grid from '@material-ui/core/Grid';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@material-ui/core/Box";
-import {CircularProgress, Snackbar} from "@material-ui/core";
+import {Snackbar} from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert'
+import LoadingIndicator from "../LoadingIndicator";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -121,76 +122,75 @@ const RecurringJobs = (props) => {
             <Box my={3}>
                 <Typography variant="h4">Recurring Jobs</Typography>
             </Box>
-            <Paper className={classes.paper}>
-                {isLoading
-                    ? <CircularProgress/>
-                    : <>
-                        {recurringJobs.length < 1
-                            ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
-                                found</Typography>
-                            : <>
-                                <Grid item xs={3} container>
-                                    <ButtonGroup className={classes.recurringJobActions}
-                                                 disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
-                                        <Button variant="outlined" color="primary"
-                                                onClick={triggerSelectedRecurringJobs}>
-                                            Trigger
-                                        </Button>
-                                        <Button variant="outlined" color="primary"
-                                                onClick={deleteSelectedRecurringJobs}>
-                                            Delete
-                                        </Button>
-                                    </ButtonGroup>
-                                </Grid>
-                                <TableContainer>
-                                    <Table className={classes.table} aria-label="recurring jobs overview">
-                                        <TableHead>
-                                            <TableRow>
+
+            {isLoading
+                ? <LoadingIndicator/>
+                : <Paper className={classes.paper}>
+                    {recurringJobs.length < 1
+                        ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
+                            found</Typography>
+                        : <>
+                            <Grid item xs={3} container>
+                                <ButtonGroup className={classes.recurringJobActions}
+                                             disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
+                                    <Button variant="outlined" color="primary"
+                                            onClick={triggerSelectedRecurringJobs}>
+                                        Trigger
+                                    </Button>
+                                    <Button variant="outlined" color="primary"
+                                            onClick={deleteSelectedRecurringJobs}>
+                                        Delete
+                                    </Button>
+                                </ButtonGroup>
+                            </Grid>
+                            <TableContainer>
+                                <Table className={classes.table} aria-label="recurring jobs overview">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell padding="checkbox">
+                                                <Checkbox
+                                                    checked={recurringJobs.every(recurringJob => recurringJob.selected)}
+                                                    onClick={selectAll}/>
+                                            </TableCell>
+                                            <TableCell className={classes.idColumn}>Id</TableCell>
+                                            <TableCell>Job name</TableCell>
+                                            <TableCell>Cron</TableCell>
+                                            <TableCell>Time zone</TableCell>
+                                            <TableCell>Next run</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {recurringJobs.map(recurringJob => (
+                                            <TableRow key={recurringJob.id}>
                                                 <TableCell padding="checkbox">
-                                                    <Checkbox
-                                                        checked={recurringJobs.every(recurringJob => recurringJob.selected)}
-                                                        onClick={selectAll}/>
+                                                    <Checkbox checked={recurringJob.selected}
+                                                              onClick={(event) => selectRecurringJob(event, recurringJob)}/>
                                                 </TableCell>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
-                                                <TableCell>Job name</TableCell>
-                                                <TableCell>Cron</TableCell>
-                                                <TableCell>Time zone</TableCell>
-                                                <TableCell>Next run</TableCell>
+                                                <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                    {recurringJob.id}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {recurringJob.jobName}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {cronstrue.toString(recurringJob.cronExpression)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {recurringJob.zoneId}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <TimeAgo date={new Date(recurringJob.nextRun)}
+                                                             title={new Date(recurringJob.nextRun)}/>
+                                                </TableCell>
                                             </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {recurringJobs.map(recurringJob => (
-                                                <TableRow key={recurringJob.id}>
-                                                    <TableCell padding="checkbox">
-                                                        <Checkbox checked={recurringJob.selected}
-                                                                  onClick={(event) => selectRecurringJob(event, recurringJob)}/>
-                                                    </TableCell>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        {recurringJob.id}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {recurringJob.jobName}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {cronstrue.toString(recurringJob.cronExpression)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {recurringJob.zoneId}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TimeAgo date={new Date(recurringJob.nextRun)}
-                                                                 title={new Date(recurringJob.nextRun)}/>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </>
-                        }
-                    </>
-                }
-            </Paper>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </>
+                    }
+                </Paper>
+            }
             {apiStatus &&
             <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
                 <Alert severity={apiStatus.severity}>

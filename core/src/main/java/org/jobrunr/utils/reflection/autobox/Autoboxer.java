@@ -14,7 +14,8 @@ public class Autoboxer {
             new LongTypeAutoboxer(),
             new DoubleTypeAutoboxer(),
             new StringTypeAutoboxer(),
-            new UUIDTypeAutoboxer()
+            new UUIDTypeAutoboxer(),
+            new EnumAutoboxer()
     );
 
     private Autoboxer() {
@@ -29,7 +30,7 @@ public class Autoboxer {
         return cast(autoboxers.stream()
                 .filter(autoboxer -> autoboxer.supports(type))
                 .findFirst()
-                .map(autoboxer -> autoboxer.autobox(value))
+                .map(autoboxer -> autoboxer.autobox(value, type))
                 .orElseThrow(() -> new UnsupportedOperationException(String.format("Cannot autobox %s of type %s to %s", value, value.getClass().getName(), type.getName()))));
 
     }

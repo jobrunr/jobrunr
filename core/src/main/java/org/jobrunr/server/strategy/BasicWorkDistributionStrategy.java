@@ -32,6 +32,6 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
         final long offset = 0;
         final int limit = workerPoolSize - workQueueSize;
-        return PageRequest.of(offset, limit);
+        return PageRequest.asc(offset, limit);
     }
 }

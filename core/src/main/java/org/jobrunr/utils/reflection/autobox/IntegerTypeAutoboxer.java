@@ -11,7 +11,7 @@ public class IntegerTypeAutoboxer implements TypeAutoboxer<Integer> {
     }
 
     @Override
-    public Integer autobox(Object value) {
+    public Integer autobox(Object value, Class<Integer> type) {
         if (value instanceof Integer) {
             return cast(value);
         } else if (value instanceof BigDecimal) {

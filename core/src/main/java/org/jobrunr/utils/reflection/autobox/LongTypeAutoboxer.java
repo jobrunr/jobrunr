@@ -11,7 +11,7 @@ public class LongTypeAutoboxer implements TypeAutoboxer<Long> {
     }
 
     @Override
-    public Long autobox(Object value) {
+    public Long autobox(Object value, Class<Long> type) {
         if (value instanceof Long) {
             return cast(value);
         } else if (value instanceof BigDecimal) {

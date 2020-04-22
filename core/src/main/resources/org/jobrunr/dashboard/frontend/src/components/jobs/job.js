@@ -18,12 +18,13 @@ import Sidebar from "./sidebar";
 import Failed from "./states/failed-state";
 import Succeeded from "./states/succeeded-state";
 import JobCode from "./job-code";
-import {CircularProgress, Snackbar} from "@material-ui/core";
+import {Snackbar} from "@material-ui/core";
 import {SortAscending, SortDescending} from "mdi-material-ui";
 import IconButton from "@material-ui/core/IconButton";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Box from "@material-ui/core/Box";
+import LoadingIndicator from "../LoadingIndicator";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -142,7 +143,7 @@ const Job = (props) => {
             <Sidebar/>
             <main className={classes.content}>
                 {isLoading
-                    ? <CircularProgress/>
+                    ? <LoadingIndicator/>
                     : <>{job === null
                         ?
                         <Paper><Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>Job

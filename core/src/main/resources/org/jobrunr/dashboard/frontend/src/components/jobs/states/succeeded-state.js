@@ -54,10 +54,14 @@ const Succeeded = (props) => {
                         Job processing succeeded
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}><TimeAgo date={new Date(jobState.createdAt)}/></Typography>
+                <Typography className={classes.secondaryHeading}><TimeAgo
+                    date={new Date(jobState.createdAt)}/></Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanel}>
-                Job is processing on server {jobState.serverId}
+                <ul>
+                    <li>Latency duration: {jobState.latencyDuration.toFixed(2)} s</li>
+                    <li>Process duration: {jobState.processDuration.toFixed(2)} s</li>
+                </ul>
             </ExpansionPanelDetails>
         </ExpansionPanel>
     )

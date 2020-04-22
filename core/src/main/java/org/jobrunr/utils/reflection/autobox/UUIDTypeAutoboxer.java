@@ -11,7 +11,7 @@ public class UUIDTypeAutoboxer implements TypeAutoboxer<UUID> {
     }
 
     @Override
-    public UUID autobox(Object value) {
+    public UUID autobox(Object value, Class<UUID> type) {
         if (value instanceof String) {
             return cast(UUID.fromString((String) value));
         }

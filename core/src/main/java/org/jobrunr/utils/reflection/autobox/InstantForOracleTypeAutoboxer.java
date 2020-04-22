@@ -9,7 +9,7 @@ import java.time.Instant;
 public class InstantForOracleTypeAutoboxer extends InstantTypeAutoboxer {
 
     @Override
-    public Instant autobox(Object value) {
+    public Instant autobox(Object value, Class<Instant> type) {
         try {
             return ((TIMESTAMP) value).timestampValue().toInstant();
         } catch (SQLException e) {

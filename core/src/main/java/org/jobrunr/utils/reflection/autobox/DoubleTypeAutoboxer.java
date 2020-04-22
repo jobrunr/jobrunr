@@ -11,7 +11,7 @@ public class DoubleTypeAutoboxer implements TypeAutoboxer<Double> {
     }
 
     @Override
-    public Double autobox(Object value) {
+    public Double autobox(Object value, Class<Double> type) {
         if (value instanceof BigDecimal) {
             return cast(((BigDecimal) value).doubleValue());
         } else if (value instanceof Integer) {

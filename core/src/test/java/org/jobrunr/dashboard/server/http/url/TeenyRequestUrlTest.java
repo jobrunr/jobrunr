@@ -56,10 +56,11 @@ class TeenyRequestUrlTest {
 
     @Test
     public void testToRequestUrlWithQueryParams() {
-        TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs/enqueued?offset=2&limit=2").toRequestUrl("/api/jobs/:state");
+        TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs/enqueued?offset=2&limit=2&order=DESC").toRequestUrl("/api/jobs/:state");
         PageRequest pageRequest = teenyRequestUrl.fromQueryParams(PageRequest.class);
         assertThat(pageRequest.getOffset()).isEqualTo(2);
         assertThat(pageRequest.getLimit()).isEqualTo(2);
+        assertThat(pageRequest.getOrder()).isEqualTo(PageRequest.Order.DESC);
     }
 
 }

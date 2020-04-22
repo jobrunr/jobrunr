@@ -100,7 +100,7 @@ public class JobTable extends Sql<Job> {
     public List<Job> selectJobsByState(StateName state, PageRequest pageRequest) {
         return withState(state)
                 .withLimitAndOffset(pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state ORDER BY createdAt")
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state ORDER BY createdAt " + pageRequest.getOrder())
                 .collect(toList());
     }
 
@@ -108,7 +108,7 @@ public class JobTable extends Sql<Job> {
         return withState(state)
                 .withUpdatedBefore(updatedBefore)
                 .withLimitAndOffset(pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore ORDER BY createdAt")
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore ORDER BY createdAt " + pageRequest.getOrder())
                 .collect(toList());
     }
 

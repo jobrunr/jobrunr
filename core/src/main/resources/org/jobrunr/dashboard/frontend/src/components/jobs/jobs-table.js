@@ -14,7 +14,7 @@ import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import TimeAgo from "react-timeago/lib";
 import Box from "@material-ui/core/Box";
 import {makeStyles} from '@material-ui/core/styles';
-import {CircularProgress} from "@material-ui/core";
+import LoadingIndicator from "../LoadingIndicator";
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -52,7 +52,7 @@ const JobsTable = (props) => {
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
     const jobState = props.match.params.state;
 
-    let title, column;
+    let title, column, sortOrder = 'ASC';
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
     switch (jobState) {
         case 'scheduled':
@@ -71,10 +71,12 @@ const JobsTable = (props) => {
         case 'succeeded':
             title = "Succeeded jobs";
             column = "Succeeded";
+            sortOrder = 'DESC';
             break;
         case 'failed':
             title = "Failed jobs";
             column = "Failed";
+            sortOrder = 'DESC';
             break;
         default:
         // code block
@@ -84,14 +86,14 @@ const JobsTable = (props) => {
         setIsLoading(true);
         let offset = (page) * 20;
         let limit = 20;
-        fetch(`/api/jobs/default/${jobState}?offset=${offset}&limit=${limit}`)
+        fetch(`/api/jobs/default/${jobState}?offset=${offset}&limit=${limit}&order=${sortOrder}`)
             .then(res => res.json())
             .then(response => {
                 setJobPage(response);
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
-    }, [page, jobState]);
+    }, [page, jobState, history.location.key]);
 
     const handleChangePage = (event, newPage) => {
         history.push(`?page=${newPage}`);
@@ -107,63 +109,60 @@ const JobsTable = (props) => {
             <Box my={3}>
                 <Typography id="title" variant="h4">{title}</Typography>
             </Box>
-            <Paper>
-                {isLoading
-                    ? <CircularProgress/>
-                    : <>
-                        {jobPage.items < 1
-                            ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No
-                                jobs found</Typography>
-                            : <>
-                                <TableContainer>
-                                    <Table id="jobs-table" className={classes.table} aria-label="jobs table">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
-                                                <TableCell className={classes.jobNameColumn}>Job details</TableCell>
-                                                <TableCell>{column}</TableCell>
+            {isLoading
+                ? <LoadingIndicator/>
+                : <Paper>
+                    {jobPage.items < 1
+                        ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No
+                            jobs found</Typography>
+                        : <>
+                            <TableContainer>
+                                <Table id="jobs-table" className={classes.table} aria-label="jobs table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell className={classes.idColumn}>Id</TableCell>
+                                            <TableCell className={classes.jobNameColumn}>Job details</TableCell>
+                                            <TableCell>{column}</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {jobPage.items.map(job => (
+                                            <TableRow key={job.id}>
+                                                <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                    <Link to={{
+                                                        pathname: `/dashboard/jobs/${job.id}`,
+                                                        job: job
+                                                    }}>{job.id}</Link>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Link to={{
+                                                        pathname: `/dashboard/jobs/${job.id}`,
+                                                        job: job
+                                                    }}>{job.jobName}</Link>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Link to={{pathname: `/dashboard/jobs/${job.id}`, job: job}}>
+                                                        <TimeAgo date={new Date(columnFunction(job))}/>
+                                                    </Link>
+                                                </TableCell>
                                             </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {jobPage.items.map(job => (
-                                                <TableRow key={job.id}>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        <Link to={{
-                                                            pathname: `/dashboard/jobs/${job.id}`,
-                                                            job: job
-                                                        }}>{job.id}</Link>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Link to={{
-                                                            pathname: `/dashboard/jobs/${job.id}`,
-                                                            job: job
-                                                        }}>{job.jobName}</Link>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Link to={{pathname: `/dashboard/jobs/${job.id}`, job: job}}>
-                                                            <TimeAgo date={new Date(columnFunction(job))}/>
-                                                        </Link>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                <TablePagination
-                                    id="jobs-table-pagination"
-                                    component="div"
-                                    rowsPerPageOptions={[]}
-                                    count={jobPage.total}
-                                    rowsPerPage={jobPage.limit}
-                                    page={jobPage.currentPage}
-                                    onChangePage={handleChangePage}
-                                />
-                            </>
-                        }
-                    </>
-                }
-            </Paper>
-
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                            <TablePagination
+                                id="jobs-table-pagination"
+                                component="div"
+                                rowsPerPageOptions={[]}
+                                count={jobPage.total}
+                                rowsPerPage={jobPage.limit}
+                                page={jobPage.currentPage}
+                                onChangePage={handleChangePage}
+                            />
+                        </>
+                    }
+                </Paper>
+            }
         </div>
     );
 }

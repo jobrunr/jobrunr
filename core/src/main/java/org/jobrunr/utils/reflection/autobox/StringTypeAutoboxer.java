@@ -13,7 +13,7 @@ public class StringTypeAutoboxer implements TypeAutoboxer<String> {
     }
 
     @Override
-    public String autobox(Object value) {
+    public String autobox(Object value, Class<String> type) {
         if (value instanceof Clob) {
             try {
                 Clob clob = (Clob) value;

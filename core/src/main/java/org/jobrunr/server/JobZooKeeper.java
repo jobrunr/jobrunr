@@ -56,16 +56,20 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    private boolean isNotInitialized() {
-        return isMaster == null;
-    }
-
     public void setIsMaster(boolean isMaster) {
         this.isMaster = isMaster;
     }
 
     public boolean isMaster() {
         return isMaster;
+    }
+
+    public void notifyQueueEmpty() {
+        checkForEnqueuedJobs();
+    }
+
+    private boolean isNotInitialized() {
+        return isMaster == null;
     }
 
     private boolean canOnboardNewWork() {
@@ -81,7 +85,7 @@ public class JobZooKeeper implements Runnable {
     private void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
 
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), PageRequest.of(0, 1000));
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), PageRequest.asc(0, 1000));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
@@ -90,7 +94,7 @@ public class JobZooKeeper implements Runnable {
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
         final Instant updatedBefore = now().minus(36, ChronoUnit.HOURS);
-        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, PageRequest.of(0, 1000));
+        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, PageRequest.asc(0, 1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
             job.delete();
@@ -147,4 +151,5 @@ public class JobZooKeeper implements Runnable {
     private BackgroundJobServerStatus backgroundJobServerStatus() {
         return backgroundJobServer.getServerStatus();
     }
+
 }

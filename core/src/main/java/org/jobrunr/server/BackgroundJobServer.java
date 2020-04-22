@@ -136,6 +136,7 @@ public class BackgroundJobServer {
                 .collect(Collectors.toList());
         try {
             workThreadPool.invokeAll(work);
+            jobZooKeeper.notifyQueueEmpty();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

@@ -180,7 +180,7 @@ public class IocBackgroundJobTest {
         BackgroundJob.<TestService>scheduleRecurringly(x -> x.doWork(5), Cron.minutely());
         await().atMost(ofSeconds(65)).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.of(0, 1)).get(0);
+        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.asc(0, 1)).get(0);
         assertThat(jobStorageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -189,7 +189,7 @@ public class IocBackgroundJobTest {
         BackgroundJob.<TestService>scheduleRecurringly("theId", x -> x.doWork(5), Cron.minutely());
         await().atMost(ofSeconds(65)).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.of(0, 1)).get(0);
+        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.asc(0, 1)).get(0);
         assertThat(jobStorageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -198,7 +198,7 @@ public class IocBackgroundJobTest {
         BackgroundJob.<TestService>scheduleRecurringly("theId", x -> x.doWork(5), Cron.minutely(), systemDefault());
         await().atMost(ofSeconds(65)).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.of(0, 1)).get(0);
+        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.asc(0, 1)).get(0);
         assertThat(jobStorageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 

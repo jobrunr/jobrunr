@@ -3,13 +3,13 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import Box from "@material-ui/core/Box";
 import Typography from '@material-ui/core/Typography';
-import {CircularProgress} from "@material-ui/core";
 import RealtimeGraph from "./cards/realtime-graph";
 import EstimatedProcessingTimeCard from "./cards/estimated-processing-time-card";
 import UptimeCard from "./cards/uptime-card";
 import AvgProcessCpuLoadCard from "./cards/avg-process-cpu-load-card";
 import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
+import LoadingIndicator from "../LoadingIndicator";
 
 const useStyles = makeStyles(theme => ({
     metadata: {
@@ -45,7 +45,7 @@ const Overview = () => {
             </div>
             <div className={classes.metadata}>
                 {isLoading
-                    ? <CircularProgress/>
+                    ? <LoadingIndicator/>
                     : <>
                         <EstimatedProcessingTimeCard/>
                         <UptimeCard servers={servers}/>

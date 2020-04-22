@@ -132,7 +132,7 @@ class JobZooKeeperTest {
         final List<Job> jobs = asList(enqueuedJob);
 
         when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.of(0, 10)))).thenReturn(jobs);
+        when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(jobs);
 
         jobZooKeeper.run();
 
@@ -146,7 +146,7 @@ class JobZooKeeperTest {
                 .collect(toList());
 
         when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.of(0, 10)))).thenReturn(enqueuedJobs);
+        when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(enqueuedJobs);
 
         jobZooKeeper.run();
 
@@ -161,7 +161,7 @@ class JobZooKeeperTest {
 
         jobZooKeeper.run();
 
-        verify(storageProvider, never()).getJobs(eq(ENQUEUED), refEq(PageRequest.of(0, 1)));
+        verify(storageProvider, never()).getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 1)));
         verify(backgroundJobServer, never()).processJob(enqueuedJob);
     }
 
@@ -169,7 +169,7 @@ class JobZooKeeperTest {
     public void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = aScheduledJob().build();
 
-        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.of(0, 1000))))
+        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
                         asList(job),
                         emptyList()
@@ -184,7 +184,7 @@ class JobZooKeeperTest {
 
     @Test
     public void checkForSucceededJobsThanCanGoToDeletedState() {
-        when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.of(0, 1000))))
+        when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
                         asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
                         emptyList()

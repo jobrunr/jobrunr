@@ -8,7 +8,7 @@ class PageRequestTest {
 
     @Test
     public void testPageRequest() {
-        PageRequest pageRequest = PageRequest.of(20, 20);
+        PageRequest pageRequest = PageRequest.asc(20, 20);
 
         assertThat(pageRequest.getOffset()).isEqualTo(20);
         assertThat(pageRequest.getLimit()).isEqualTo(20);
