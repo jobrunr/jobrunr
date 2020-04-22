@@ -172,7 +172,7 @@ public class WebApplication {
     @Bean
     public JobScheduler initJobRunr(ApplicationContext applicationContext) {
         return JobRunr.configure()
-                .useJobStorageProvider(SqlJobStorageProviderFactory
+                .useStorageProvider(SqlStorageProviderFactory
                           .using(applicationContext.getBean(DataSource.class)))
                 .useJobActivator(applicationContext::getBean)
                 .useDefaultBackgroundJobServer()
