@@ -11,8 +11,8 @@ Open and free for commercial use.
 
 
 <p align="center">
-    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fwww.jobrunr.io" /></a>
-    <img alt="Star us!" src="https://img.shields.io/github/stars/jobrunr/jobrunr?label=Star%20us%21&style=social" /><br />
+    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/assets/image/tweet-btn.svg" /></a>
+    <img alt="Star us!" src="https://www.jobrunr.io/assets/image/github-btn.svg" /><br />
     <a href="https://bintray.com/jobrunr/jobrunr/JobRunr/_latestVersion"><img src="https://api.bintray.com/packages/jobrunr/jobrunr/JobRunr/images/download.svg"></a>
     <img alt="Drone Build" src="https://drone-jobrunr.dehuysser.be/api/badges/jobrunr/jobrunr/status.svg" />
     <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
