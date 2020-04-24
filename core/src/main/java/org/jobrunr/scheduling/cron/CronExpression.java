@@ -19,8 +19,11 @@ import java.util.concurrent.TimeUnit;
  * The schedule class cannot be instantiated using a constructor, a Schedule
  * object can be obtain by using the static {@link create} method, which parses
  * a crontab expression and creates a Schedule object.
+ * <p>
+ * Original version <a href="https://github.com/asahaf/javacron">https://github.com/asahaf/javacron</a>
  *
  * @author Ahmed AlSahaf
+ * @author Ronald Dehuysser (minor modifications)
  */
 public class CronExpression implements Comparable<CronExpression> {
 
