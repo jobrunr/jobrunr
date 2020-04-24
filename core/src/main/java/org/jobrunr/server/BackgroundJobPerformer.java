@@ -39,7 +39,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
         try {
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.info("Job {} processing started", job.getId());
+            LOGGER.info("Job {} - {} - processing started", job.getId(), job.getJobName());
             return true;
         } catch (ConcurrentJobModificationException e) {
             LOGGER.info("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), atomicInteger.incrementAndGet(), e);
@@ -49,7 +49,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
     }
 
     private void runActualJob() throws Exception {
-        LOGGER.info("Job {} is running", job.getId());
+        LOGGER.trace("Job {} is running", job.getId());
         jobFilters.runOnJobProcessingFilters(job);
         BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
         backgroundJobRunner.run(job);
@@ -59,13 +59,13 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
     private void updateJobStateToSucceededAndRunJobFilters() {
         job.succeeded();
         saveAndRunStateRelatedJobFilters(job);
-        LOGGER.info("Job {} processing succeeded", job.getId());
+        LOGGER.info("Job {} - {} - processing succeeded", job.getId(), job.getJobName());
     }
 
     private void updateJobStateToFailedAndRunJobFilters(String message, Exception e) {
         job.failed(message, e);
         saveAndRunStateRelatedJobFilters(job);
-        LOGGER.warn("Job {} processing failed", job.getId(), e);
+        LOGGER.warn("Job {} - {} - processing failed", job.getId(), job.getJobName(), e);
     }
 
 }
