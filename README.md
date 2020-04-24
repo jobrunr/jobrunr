@@ -26,6 +26,8 @@ Open and free for commercial use.
 
 ## Overview
 
+[![Join the chat at https://gitter.im/jobrunr/general](https://badges.gitter.im/jobrunr/general.svg)](https://gitter.im/jobrunr/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Incredibly easy way to perform **fire-and-forget**, **delayed** and **recurring jobs** inside **Java applications**. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via Postgres, MariaDB/MySQL and Oracle.
 
 JobRunr provides a unified programming model to handle background tasks in a **reliable way** and run them on shared hosting, dedicated hosting or in the cloud within a JVM instance. Some scenario's where it may be a good fit:
