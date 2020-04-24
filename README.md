@@ -47,14 +47,17 @@ You can start small and process jobs within your webapp or scale horizontally an
 
 JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Sprint Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
 
-It is also meant to be fast and lean - using it will give you only 3 extra dependencies:
-- JobRunr itself
-- [asm](https://asm.ow2.io/)
-- and you need either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson) on the classpath
+## Features
+- Distributed & cluster-friendly: guarantees execution by single scheduler instance using optimistic locking.
+- Persistent jobs: using either a RDMBS (four tables and a view) or a noSQL data store.
+- Embeddable: built to be embedded in existing applications.
+- Simple: just use Java 8 lambda's to create a background job
+- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson))
+
 
 Screenshots
 -----------
-<img src="https://user-images.githubusercontent.com/567842/78462184-f80b0100-76cf-11ea-9462-dd76234e3040.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/78462183-f7726a80-76cf-11ea-8720-d63d840ed3a4.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/78462181-f6d9d400-76cf-11ea-891f-c378d5dd180e.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/78462180-f6413d80-76cf-11ea-8869-0e11ae6d854d.png" width="45%"></img> 
+<img src="https://user-images.githubusercontent.com/567842/80217070-60019700-863f-11ea-9f02-d62c77e97a1c.png" width="45%" style="margin-right: 20px;"></img> <img src="https://user-images.githubusercontent.com/567842/80217075-609a2d80-863f-11ea-8994-cd0ca16b31c4.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/80217067-5f690080-863f-11ea-9d41-3e2878ae7ac8.png" width="45%" style="margin-right: 20px;"></img> <img src="https://user-images.githubusercontent.com/567842/80217063-5ed06a00-863f-11ea-847b-3ed829fd5503.png" width="45%"></img> <img src="https://user-images.githubusercontent.com/567842/80217079-6132c400-863f-11ea-9789-8633897ef317.png" width="45%" style="margin-right: 20px;"></img> <img src="https://user-images.githubusercontent.com/567842/80217078-609a2d80-863f-11ea-9b49-c891985de924.png" width="45%"></img> 
 
 Usage
 ------
