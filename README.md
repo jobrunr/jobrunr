@@ -1,12 +1,28 @@
-JobRunr 
-=========
-<div align="center">
+<p align="center">
+ <img src="https://user-images.githubusercontent.com/567842/80095933-1181c900-8569-11ea-85e7-14129b3f8142.png" alt="JobRunr logo"></img>
+</p>  
+<p align="center">
+The ultimate library to perform background processing on the JVM.<br/>
+Dead simple API. Extensible. Reliable. <br/>
+Distributed and backed by persistent storage. <br/>
+Open and free for commercial use.
+</p>  
+<br/>
 
-[![Download](https://api.bintray.com/packages/jobrunr/jobrunr/JobRunr/images/download.svg)](https://bintray.com/jobrunr/jobrunr/JobRunr/_latestVersion) [![Build Status](https://drone-jobrunr.dehuysser.be/api/badges/jobrunr/jobrunr/status.svg)](https://drone-jobrunr.dehuysser.be/jobrunr/jobrunr) [![License LGPLv3](https://img.shields.io/badge/license-LGPLv3-green.svg)](http://www.gnu.org/licenses/lgpl-3.0.html)  
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=security_rating)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr)  
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=jobrunr_jobrunr)
 
-</div>
+<p align="center">
+    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/assets/image/tweet-btn.svg" /></a>
+    <img alt="Star us!" src="https://www.jobrunr.io/assets/image/github-btn.svg" /><br />
+    <a href="https://bintray.com/jobrunr/jobrunr/JobRunr/_latestVersion"><img src="https://api.bintray.com/packages/jobrunr/jobrunr/JobRunr/images/download.svg"></a>
+    <img alt="Drone Build" src="https://drone-jobrunr.dehuysser.be/api/badges/jobrunr/jobrunr/status.svg" />
+    <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
+    <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Quality Scale" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating" /></a>
+    <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Reliability Rating" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating" /></a>
+    <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Security Rating" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=security_rating" /></a><br/>
+    <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage" /></a>
+    <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Vulnerabilities" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities" /></a>
+    <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Bugs" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs" /></a>
+</p>
 
 ## Overview
 
@@ -97,7 +113,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
 </dependency>
 ```
  
@@ -112,7 +128,7 @@ repositories {
  
  And add the dependency to JobRunr itself:
  ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.1'
+implementation 'org.jobrunr:jobrunr:0.9.2'
 ```
 
 Configuration
