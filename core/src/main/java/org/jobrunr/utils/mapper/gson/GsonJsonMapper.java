@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JsonMapper;
 
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 
@@ -24,7 +26,9 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobState.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(Map.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobContext.Metadata.class))
+                .registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe())
                 .registerTypeAdapter(Instant.class, new InstantAdapter().nullSafe())
+                .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
                 .create();
     }
 

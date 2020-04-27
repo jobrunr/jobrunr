@@ -18,13 +18,14 @@ import org.objectweb.asm.Opcodes;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
-import static org.jobrunr.jobs.JobParameter.JobContext;
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaConstructor;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaMethod;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaStaticMethod;
@@ -112,7 +113,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
                         String fqClassName = toFQClassName(owner);
                         if (Opcodes.GETSTATIC == opcode) {
                             if (JobContext.class.getName().equals(fqClassName)) {
-                                params.add(JobContext);
+                                params.add(org.jobrunr.jobs.JobContext.Null);
                             } else {
                                 className = fqClassName;
                                 staticFieldName = name;
@@ -218,13 +219,13 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
         private List<JobParameter> getJobParameters() {
             if (paramTypes.size() > params.size()) throw JobRunrException.shouldNotHappenException("The number of parameterTypes and parameters does not match.");
 
-            return IntStream.range(0, paramTypes.size()).mapToObj(i -> toJobParameter(paramTypes.get(i), params.get(i))).collect(Collectors.toList());
+            params.removeIf(param -> paramTypes.stream().noneMatch(paramType -> isClassAssignableToObject(paramType, param)));
+
+            return IntStream.range(0, paramTypes.size()).mapToObj(i -> toJobParameter(paramTypes.get(i), params.get(i))).collect(toList());
         }
 
         private JobParameter toJobParameter(Class paramType, Object param) {
-            if (paramType.equals(JobContext.class) && param.equals(JobContext)) {
-                return JobContext;
-            } else if (isClassAssignableToObject(paramType, param)) {
+            if (isClassAssignableToObject(paramType, param)) {
                 if (boolean.class.equals(paramType) && Integer.class.equals(param.getClass())) return new JobParameter(paramType, ((Integer) param) > 0);
                 return new JobParameter(paramType, param);
             } else {
@@ -259,19 +260,44 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
         private List<Object> getParametersBasedOnParameterType(Class[] paramTypes) {
             List<Object> result = new ArrayList<>();
             for (Class clazz : paramTypes) {
-                for (Object param : params) {
-                    if (isClassAssignableToObject(clazz, param)) {
-                        result.add(param);
-                        break;
+                if (clazz.isArray()) {
+                    List<Object> subResult = new ArrayList<>();
+                    final List<Object> arrayParams = params.subList(params.indexOf(Integer.valueOf(0)), params.size());
+                    Integer counter = 0;
+                    for (Object param : arrayParams) {
+                        if (counter.equals(param) && arrayParams.size() > (counter * 2 + 1) && isClassAssignableToObject(clazz.getComponentType(), arrayParams.get(counter * 2 + 1))) {
+                            subResult.add(arrayParams.get(counter * 2 + 1));
+                            counter++;
+                        }
+                    }
+                    result.add(toCastedArray(clazz.getComponentType(), subResult));
+                } else {
+                    for (Object param : params) {
+                        if (isClassAssignableToObject(clazz, param)) {
+                            result.add(param);
+                            break;
+                        }
                     }
                 }
+
             }
             return result;
         }
 
         private void removeUsedParametersFromJobParameters(List<Object> result) {
             for (Object o : result) {
-                params.remove(o);
+                if (o.getClass().isArray()) {
+                    List<Object> arrayAsListToRemove = new ArrayList<>();
+                    int length = Array.getLength(o);
+                    for (int i = 0; i < length; i++) {
+                        Object arrayElement = Array.get(o, i);
+                        arrayAsListToRemove.add(i);
+                        arrayAsListToRemove.add(arrayElement);
+                    }
+                    params.removeAll(arrayAsListToRemove);
+                } else {
+                    params.remove(o);
+                }
             }
         }
 
@@ -281,6 +307,10 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         private boolean isBiConsumerJob() {
             return lambda instanceof IocJobLambdaFromStream;
+        }
+
+        private static <T> T[] toCastedArray(Class<T> classToCastTo, Collection c) {
+            return (T[]) c.toArray((T[]) Array.newInstance(classToCastTo, 0));
         }
     }
 }

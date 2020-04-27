@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -148,6 +150,59 @@ public class JobDetailsAsmGeneratorTest {
         assertThat(jobParameter.getObject())
                 .isInstanceOf(File.class)
                 .isEqualTo(new File("/tmp/file.txt"));
+    }
+
+    @Test
+    public void testJobLambdaWithPath() {
+        Path path = Paths.get("/tmp/file.txt");
+        JobLambda job = () -> testService.doWorkWithPath(path);
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(Path.class)
+                .isEqualTo(path);
+    }
+
+    @Test
+    public void testJobLambdaWithPathsGetInLambda() {
+        JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp/file.txt"));
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(Path.class)
+                .isEqualTo(Paths.get("/tmp/file.txt"));
+    }
+
+    @Test
+    public void testJobLambdaWithPathsGetMultiplePartsInLambda() {
+        JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp", "folder", "subfolder", "file.txt"));
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(Path.class)
+                .isEqualTo(Paths.get("/tmp/folder/subfolder/file.txt"));
+    }
+
+    @Test
+    public void testJobLambdaWithPathOfInLambda() {
+        JobLambda job = () -> testService.doWorkWithPath(Path.of("/tmp/file.txt"));
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(Path.class)
+                .isEqualTo(Paths.get("/tmp/file.txt"));
     }
 
     @Test
@@ -316,6 +371,20 @@ public class JobDetailsAsmGeneratorTest {
         assertThat(jobParameter.getObject())
                 .isInstanceOf(File.class)
                 .isEqualTo(new File("/tmp/file.txt"));
+    }
+
+    @Test
+    public void testIoCJobLambdaWithPath() {
+        Path path = Paths.get("/tmp/file.txt");
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkWithPath(path);
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(Path.class)
+                .isEqualTo(path);
     }
 
     @Test

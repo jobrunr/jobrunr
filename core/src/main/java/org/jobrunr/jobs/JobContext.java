@@ -12,6 +12,10 @@ public class JobContext {
 
     private Job job;
 
+    private JobContext() {
+        this.job = null;
+    }
+
     protected JobContext(Job job) {
         this.job = job;
     }
