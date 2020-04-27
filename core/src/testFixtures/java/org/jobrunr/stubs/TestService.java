@@ -9,6 +9,8 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +24,14 @@ public class TestService {
 
     public int getProcessedJobs() {
         return processedJobs;
+    }
+
+    public void doWorkWithFile(File file) throws Exception {
+        System.out.println("Doing some work... " + file.getAbsolutePath());
+    }
+
+    public void doWorkWithPath(Path path) throws Exception {
+        System.out.println("Doing some work... " + path.toFile().getAbsolutePath());
     }
 
     public void doWork(Work work) throws Exception {

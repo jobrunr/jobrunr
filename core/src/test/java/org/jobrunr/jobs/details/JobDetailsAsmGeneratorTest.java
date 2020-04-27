@@ -138,6 +138,19 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    public void testJobLambdaWithFile() {
+        JobLambda job = () -> testService.doWorkWithFile(new File("/tmp/file.txt"));
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithFile");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(File.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(File.class)
+                .isEqualTo(new File("/tmp/file.txt"));
+    }
+
+    @Test
     public void testJobLambdaWithObjectCreatedOutsideOfLambda() {
         for (int i = 0; i < 3; i++) {
             TestService.Work work = new TestService.Work(i, "a String", UUID.randomUUID());
@@ -290,6 +303,19 @@ public class JobDetailsAsmGeneratorTest {
                     .hasFieldOrPropertyWithValue("someString", "a String")
                     .hasFieldOrProperty("uuid");
         }
+    }
+
+    @Test
+    public void testIoCJobLambdaWithFile() {
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkWithFile(new File("/tmp/file.txt"));
+
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithFile");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(File.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(File.class)
+                .isEqualTo(new File("/tmp/file.txt"));
     }
 
     @Test
