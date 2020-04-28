@@ -3,6 +3,7 @@ package org.jobrunr.storage.sql.oracle;
 import oracle.jdbc.pool.OracleDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.executioncondition.RunTestBetween;
+import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -10,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
+@RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 @RunTestBetween(from = "03:00", to = "07:00")
 @Testcontainers
 class OracleStorageProviderTest extends SqlStorageProviderTest {

@@ -7,7 +7,7 @@ dependencies {
     implementation project(':core')
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple:1.7.30'
-    implementation 'com.oracle:ojdbc7:12.1.0.1'
+    implementation 'com.oracle.ojdbc:ojdbc8_g:19.3.0.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.2'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.2'
 

@@ -2,10 +2,12 @@ package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.executioncondition.RunTestBetween;
+import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+@RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 @RunTestBetween(from = "03:00", to = "07:00")
 @Testcontainers
 public class OracleJacksonE2ETest extends AbstractE2EJacksonSqlTest {
