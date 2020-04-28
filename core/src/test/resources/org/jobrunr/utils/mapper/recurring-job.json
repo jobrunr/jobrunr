@@ -16,5 +16,5 @@
   },
   "id": "anId",
   "cronExpression": "0 0 * * *",
-  "zoneId": "Europe/Brussels"
+  "zoneId": "${json-unit.ignore}"
 }
