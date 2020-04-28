@@ -11,8 +11,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-@RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 @RunTestBetween(from = "03:00", to = "07:00")
+@RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 @Testcontainers
 class OracleStorageProviderTest extends SqlStorageProviderTest {
 
