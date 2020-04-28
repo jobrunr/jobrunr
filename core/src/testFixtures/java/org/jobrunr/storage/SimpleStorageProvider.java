@@ -291,6 +291,7 @@ public class SimpleStorageProvider implements StorageProvider {
     }
 
     private Job deepClone(Job job) {
-        return jobMapper.deserializeJob(jobMapper.serializeJob(job));
+        final String serializedJobAsString = jobMapper.serializeJob(job);
+        return jobMapper.deserializeJob(serializedJobAsString);
     }
 }

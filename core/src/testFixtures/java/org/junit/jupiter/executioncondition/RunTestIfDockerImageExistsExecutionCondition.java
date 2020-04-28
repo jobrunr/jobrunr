@@ -1,18 +1,22 @@
 package org.junit.jupiter.executioncondition;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.Image;
-import com.github.dockerjava.core.DockerClientBuilder;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.lang.reflect.AnnotatedElement;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.platform.commons.support.AnnotationSupport.findAnnotation;
 
+/**
+ * Class which determines if the given docker image is present.
+ * <p>
+ * We cannot use com.github.docker-java:docker-java as that project pulls in Jackson as
+ * dependency and we then cannot test anymore whether the project works with only Gson.
+ */
 public class RunTestIfDockerImageExistsExecutionCondition implements ExecutionCondition {
 
     @Override
@@ -21,13 +25,30 @@ public class RunTestIfDockerImageExistsExecutionCondition implements ExecutionCo
         Optional<RunTestIfDockerImageExists> runTestIfDockerImageExistsOptional = findAnnotation(element, RunTestIfDockerImageExists.class);
         if (runTestIfDockerImageExistsOptional.isPresent()) {
             final RunTestIfDockerImageExists runTestIfDockerImageExists = runTestIfDockerImageExistsOptional.get();
-            final DockerClient dockerClient = DockerClientBuilder.getInstance().build();
-            final String imageId = runTestIfDockerImageExists.value();
-            final List<Image> images = dockerClient.listImagesCmd().withImageNameFilter(imageId).exec();
-            if (images.isEmpty()) {
-                return ConditionEvaluationResult.disabled(String.format("Test disabled as docker image %s is not found in local docker image registry", imageId));
+            final String imageTag = runTestIfDockerImageExists.value();
+
+            boolean foundDockerImage = false;
+            try {
+                final Process process = Runtime.getRuntime().exec(String.format("docker images %s", imageTag));
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.contains(imageTag.split(":")[0])) {
+                            foundDockerImage = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
             }
-            return ConditionEvaluationResult.enabled(String.format("Test enabled as docker image %s is available.", imageId));
+
+            if (foundDockerImage) {
+                return ConditionEvaluationResult.enabled(String.format("Test enabled as docker image %s is available.", imageTag));
+            } else {
+                String reason = String.format("Could not determine whether docker image %s is available.", imageTag);
+                System.err.println("Test disabled because of @RunTestIfDockerImageExists - " + reason);
+                return ConditionEvaluationResult.disabled(reason);
+            }
         }
         return ConditionEvaluationResult.enabled("@RunTestIfDockerImageExists is not present.");
     }

@@ -83,7 +83,7 @@ public class JobTestBuilder {
                 .withName("a succeeded job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ProcessingState(UUID.randomUUID()))
-                .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.of(10, ChronoUnit.SECONDS)));
+                .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.ofSeconds(10L, 7345L)));
     }
 
     public static JobTestBuilder aFailedJobThatEventuallySucceeded() {

@@ -5,18 +5,21 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Map;
+
+import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceOrElse;
 
 public class JacksonJsonMapper implements JsonMapper {
 
@@ -27,7 +30,7 @@ public class JacksonJsonMapper implements JsonMapper {
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .registerModule(new JavaTimeModule())
+                .registerModule(getModule())
                 .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
                 .activateDefaultTypingAsProperty(BasicPolymorphicTypeValidator.builder()
                                 .allowIfBaseType(JobState.class)
@@ -69,8 +72,14 @@ public class JacksonJsonMapper implements JsonMapper {
     public <T> T deserialize(String serializedObjectAsString, Class<T> clazz) {
         try {
             return objectMapper.readValue(serializedObjectAsString, clazz);
+        } catch (InvalidDefinitionException e) {
+            throw JobRunrException.configurationException("Did you register all necessary Jackson Modules?", e);
         } catch (IOException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
+    }
+
+    protected com.fasterxml.jackson.databind.Module getModule() {
+        return newInstanceOrElse("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", new JobRunrTimeModule());
     }
 }

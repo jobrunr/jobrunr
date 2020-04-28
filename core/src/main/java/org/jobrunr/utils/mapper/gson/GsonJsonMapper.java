@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobContext.Metadata.class))
                 .registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe())
                 .registerTypeAdapter(Instant.class, new InstantAdapter().nullSafe())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
                 .create();
     }

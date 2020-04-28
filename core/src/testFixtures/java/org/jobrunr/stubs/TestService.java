@@ -12,6 +12,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -81,6 +82,10 @@ public class TestService {
     public void doWork(String aString, int count, Instant instant) {
         processedJobs += count;
         System.out.println("Doing some work... " + processedJobs + " " + aString + " " + instant);
+    }
+
+    public void doWork(LocalDateTime localDateTime) {
+        System.out.println("Doing some work... " + processedJobs + " " + localDateTime.toString());
     }
 
     public void doWork(boolean bool, int i, long l, float f, double d) {

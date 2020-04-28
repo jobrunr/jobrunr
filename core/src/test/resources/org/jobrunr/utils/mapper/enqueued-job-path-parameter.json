@@ -1,0 +1,28 @@
+{
+  "version": 0,
+  "jobSignature": "TestService.doWorkWithPath(UnixPath)",
+  "jobName": "an enqueued job",
+  "jobDetails": {
+    "lambdaType": "org.jobrunr.jobs.lambdas.JobWithoutIoc",
+    "className": "org.jobrunr.stubs.TestService",
+    "staticFieldName": null,
+    "methodName": "doWorkWithPath",
+    "jobParameters": [
+      {
+        "className": "java.nio.file.Path",
+        "object": "${json-unit.ignore}"
+      }
+    ]
+  },
+  "id": null,
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.HashMap"
+  }
+}

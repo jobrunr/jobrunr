@@ -1,0 +1,20 @@
+{
+  "version": 0,
+  "jobSignature": "TestService.doWork(Integer)",
+  "jobName": null,
+  "jobDetails": {
+    "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
+    "className": "org.jobrunr.stubs.TestService",
+    "staticFieldName": null,
+    "methodName": "doWork",
+    "jobParameters": [
+      {
+        "className": "java.lang.Integer",
+        "object": 5
+      }
+    ]
+  },
+  "id": "anId",
+  "cronExpression": "0 0 * * *",
+  "zoneId": "Europe/Brussels"
+}

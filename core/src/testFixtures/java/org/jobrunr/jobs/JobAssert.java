@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.StateName;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,10 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     }
 
     public JobAssert isEqualTo(Job otherJob) {
-        Assertions.assertThat(actual).usingRecursiveComparison().isEqualTo(otherJob);
+        Assertions.assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFieldsOfTypes(Path.class)
+                .isEqualTo(otherJob);
         return this;
     }
 }

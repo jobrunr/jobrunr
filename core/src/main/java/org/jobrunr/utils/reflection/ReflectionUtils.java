@@ -59,6 +59,14 @@ public class ReflectionUtils {
         }
     }
 
+    public static <T> T newInstanceOrElse(String className, T orElse) {
+        try {
+            return newInstanceCE(toClass(className));
+        } catch (Exception e) {
+            return orElse;
+        }
+    }
+
     public static <T> T newInstance(Class<T> clazz, Map<String, String> fieldValues) {
         T t = newInstance(clazz);
         Field[] declaredFields = clazz.getDeclaredFields();

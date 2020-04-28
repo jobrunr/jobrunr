@@ -54,7 +54,6 @@ dependencies {
 
     testFixturesApi 'org.assertj:assertj-core:3.15.0'
     testFixturesApi 'org.junit.jupiter:junit-jupiter:5.6.1'
-    testFixturesApi 'com.github.docker-java:docker-java:3.2.1'
 }
 
 java {

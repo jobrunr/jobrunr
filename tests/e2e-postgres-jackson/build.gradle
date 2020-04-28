@@ -9,7 +9,6 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:1.7.30'
     implementation 'org.postgresql:postgresql:42.2.11'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.2'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.2'
 
 
     testImplementation project(':core')
