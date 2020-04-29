@@ -28,7 +28,7 @@ This is a rough outline of what a contributor's workflow looks like:
 * Push changes in a topic branch to your forked repository.
 * Before you send out the pull request, please sync your forked repository with remote repository, this will make your pull request simple and clear. See guide below:
 ```
-git remote add upstream git@github.com:apache/dubbo.git
+git remote add upstream git@github.com:jobrunr/jobrunr.git
 git fetch upstream
 git rebase upstream/master
 git checkout -b your_awesome_patch
