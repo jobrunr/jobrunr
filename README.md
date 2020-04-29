@@ -201,3 +201,12 @@ public class WebApplication {
     }
 }
 ```
+## Contributing
+
+See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.md) for details on submitting patches and the contribution workflow.
+
+### How can I contribute?
+* Take a look at issues with tag called [`Good first issue`](https://github.com/jobrunr/jobrunr/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+* Join the discussion on [gitter](https://gitter.im/jobrunr/community).
+* Answer questions on [issues](https://github.com/jobrunr/jobrunr/issues).
+* Fix bugs reported on [issues](https://github.com/jobrunr/jobrunr/issues), and send us pull request.
