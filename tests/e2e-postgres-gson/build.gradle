@@ -1,5 +1,5 @@
 plugins {
-    id 'com.google.cloud.tools.jib' version '2.1.0'
+    id 'com.google.cloud.tools.jib' version '2.2.0'
 }
 
 dependencies {
@@ -7,14 +7,14 @@ dependencies {
     implementation project(':core')
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple:1.7.30'
-    implementation 'org.postgresql:postgresql:42.2.11'
+    implementation 'org.postgresql:postgresql:42.2.12'
     implementation 'com.google.code.gson:gson:2.8.6'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":core"))
     testImplementation project(':tests:e2e-base')
     testImplementation testFixtures(project(":tests:e2e-base"))
-    testImplementation 'org.testcontainers:postgresql:1.13.0'
+    testImplementation 'org.testcontainers:postgresql:1.14.1'
 }
 
 test.dependsOn(jibDockerBuild)
