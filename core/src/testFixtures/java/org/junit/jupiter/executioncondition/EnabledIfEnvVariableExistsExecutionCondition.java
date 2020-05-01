@@ -20,10 +20,11 @@ public class EnabledIfEnvVariableExistsExecutionCondition implements ExecutionCo
         if (enabledIfOptional.isPresent()) {
             final EnabledIfEnvVariableExists envVariableExists = enabledIfOptional.get();
             final String envVariableName = envVariableExists.value();
-            if (StringUtils.isNotNullOrEmpty(envVariableName)) {
+            final String envVariableValue = System.getenv(envVariableName);
+            if (StringUtils.isNotNullOrEmpty(envVariableValue)) {
                 return ConditionEvaluationResult.enabled(String.format("Test enabled as env variable %s exists", envVariableName));
             }
-            final String reason = String.format("Test disabled as env variable %s does not exist", envVariableName);
+            final String reason = String.format("Test disabled as env variable %s is not set.", envVariableName);
             System.err.println(reason);
             return ConditionEvaluationResult.disabled(reason);
 

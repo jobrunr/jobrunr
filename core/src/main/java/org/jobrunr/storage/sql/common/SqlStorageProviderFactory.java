@@ -7,6 +7,8 @@ import org.jobrunr.storage.sql.SqlStorageProvider;
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Optional;
 
 public class SqlStorageProviderFactory {
 
@@ -14,26 +16,17 @@ public class SqlStorageProviderFactory {
     }
 
     public static StorageProvider using(DataSource dataSource) {
-        if (dataSource.getClass().getName().contains("sqlite")) {
-            return getSqliteStorageProvider(dataSource);
-        } else if (dataSource.getClass().getName().contains("h2")) {
-            return getH2StorageProvider(dataSource);
-        } else if (dataSource.getClass().getName().contains("postgres")) {
-            return getPostgresStorageProvider(dataSource);
-        } else if (dataSource.getClass().getName().contains("oracle")) {
-            return getOracleStorageProvider(dataSource);
-        } else if (dataSource.getClass().getName().contains("mariadb")) {
-            return getMariaDbStorageProvider(dataSource);
-        } else if (dataSource.getClass().getName().contains("hikari")) {
-            return getStorageProviderUsingJdbcUrl(dataSource);
-        } else if (dataSource.getClass().getName().contains("c3p0")) {
-            return getStorageProviderUsingJdbcUrl(dataSource);
-        } else if (dataSource.getClass().getName().contains("dbcp2")) {
-            return getStorageProviderUsingUrl(dataSource);
-        } else if (dataSource.getClass().getName().contains("tomcat")) {
-            return getStorageProviderUsingUrl(dataSource);
+        try {
+            final Optional<Method> getJdbcUrlMethod = Arrays.asList(dataSource.getClass().getMethods())
+                    .stream()
+                    .filter(m -> m.getName().equals("getUrl") || m.getName().equals("getJdbcUrl"))
+                    .findFirst();
+            final Method method = getJdbcUrlMethod.orElseThrow(() -> unsupportedDataSourceException(dataSource));
+            final String jdbcUrl = method.invoke(dataSource).toString();
+            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
+        } catch (ReflectiveOperationException e) {
+            throw JobRunrException.shouldNotHappenException(e);
         }
-        throw unsupportedDataSourceException(dataSource);
     }
 
     private static StorageProvider getSqliteStorageProvider(DataSource dataSource) {
@@ -54,28 +47,6 @@ public class SqlStorageProviderFactory {
 
     private static StorageProvider getMariaDbStorageProvider(DataSource dataSource) {
         return getStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".mariadb.MariaDbStorageProvider", dataSource);
-    }
-
-    private static StorageProvider getStorageProviderUsingJdbcUrl(DataSource dataSource) {
-        try {
-            Class clazz = dataSource.getClass();
-            Method method = clazz.getMethod("getJdbcUrl");
-            final String jdbcUrl = method.invoke(dataSource).toString();
-            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
-        } catch (ReflectiveOperationException e) {
-            throw JobRunrException.shouldNotHappenException(e);
-        }
-    }
-
-    private static StorageProvider getStorageProviderUsingUrl(DataSource dataSource) {
-        try {
-            Class clazz = dataSource.getClass();
-            Method method = clazz.getMethod("getUrl");
-            final String jdbcUrl = method.invoke(dataSource).toString();
-            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
-        } catch (ReflectiveOperationException e) {
-            throw JobRunrException.shouldNotHappenException(e);
-        }
     }
 
     private static StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource) {
