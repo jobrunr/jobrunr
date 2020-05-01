@@ -9,13 +9,8 @@ class SqLiteStorageProviderTest extends SqlStorageProviderTest {
 
     @Override
     protected DataSource getDataSource() {
-        return createDataSource("jdbc:sqlite:/tmp/jobrunr-test.db");
-    }
-
-    private static SQLiteDataSource createDataSource(String url) {
         SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
-        sqLiteDataSource.setUrl(url);
+        sqLiteDataSource.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
         return sqLiteDataSource;
     }
-
 }

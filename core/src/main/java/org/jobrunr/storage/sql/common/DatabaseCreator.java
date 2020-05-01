@@ -68,6 +68,7 @@ public class DatabaseCreator {
     protected void runMigration(Path path) {
         LOGGER.info("Running migration {}", path);
         try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(true);
             runMigrationStatement(conn, path);
             updateMigrationsTable(conn, path);
         } catch (Exception e) {
@@ -99,14 +100,17 @@ public class DatabaseCreator {
     }
 
     protected boolean isMigrationApplied(Path path) {
-        try (Connection conn = dataSource.getConnection(); PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
-            pSt.setString(1, path.getFileName().toString());
-            try (ResultSet rs = pSt.executeQuery()) {
-                if (rs.next()) {
-                    int count = rs.getInt(1);
-                    return count == 1;
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(true);
+            try (PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
+                pSt.setString(1, path.getFileName().toString());
+                try (ResultSet rs = pSt.executeQuery()) {
+                    if (rs.next()) {
+                        int count = rs.getInt(1);
+                        return count == 1;
+                    }
+                    return false;
                 }
-                return false;
             }
         } catch (Exception becauseTableDoesNotExist) {
             return false;
