@@ -4,7 +4,6 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 
-
 @RunTestBetween(from = "03:00", to = "07:00")
 @RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 class TomcatJdbcPoolOracleStorageProviderTest extends AbstractOracleStorageProviderTest {

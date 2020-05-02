@@ -7,8 +7,8 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -19,21 +19,48 @@ public class SqlStorageProviderFactory {
 
     public static StorageProvider using(DataSource dataSource) {
         try {
-            final ArrayList<Method> methods = new ArrayList<>();
-            methods.addAll(Arrays.asList(dataSource.getClass().getMethods()));
-            methods.addAll(Arrays.asList(dataSource.getClass().getDeclaredMethods()));
+            final Optional<String> jdbcUrlViaMethod = getUrlViaMethod(dataSource);
+            if (jdbcUrlViaMethod.isPresent()) {
+                return getStorageProviderByJdbcUrl(jdbcUrlViaMethod.get(), dataSource);
+            }
 
-            final Optional<Method> getJdbcUrlMethod = methods
-                    .stream()
-                    .filter(m -> "getUrl".equals(m.getName()) || "getJdbcUrl".equals(m.getName()) || "getUrlParser".equals(m.getName()))
-                    .findFirst();
-            final Method method = getJdbcUrlMethod.orElseThrow(() -> unsupportedDataSourceException(dataSource));
-            ReflectionUtils.makeAccessible(method);
-            final String jdbcUrl = method.invoke(dataSource).toString();
-            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
+            final Optional<String> jdbcUrlViaField = getUrlViaField(dataSource);
+            if (jdbcUrlViaField.isPresent()) {
+                return getStorageProviderByJdbcUrl(jdbcUrlViaField.get(), dataSource);
+            }
+
+            throw unsupportedDataSourceException(dataSource);
         } catch (ReflectiveOperationException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
+    }
+
+    private static Optional<String> getUrlViaMethod(DataSource dataSource) throws ReflectiveOperationException {
+        final Optional<Method> urlMethod = Arrays.asList(dataSource.getClass().getMethods())
+                .stream()
+                .filter(m -> "getUrl".equals(m.getName()) || "getJdbcUrl".equals(m.getName()))
+                .findFirst();
+
+        if (urlMethod.isPresent()) {
+            return Optional.of(urlMethod.get().invoke(dataSource).toString());
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<String> getUrlViaField(DataSource dataSource) throws ReflectiveOperationException {
+        final Optional<Field> urlField = Arrays.asList(dataSource.getClass().getDeclaredFields())
+                .stream()
+                .filter(f -> "url".equals(f.getName()))
+                .findFirst();
+        if (urlField.isPresent()) {
+            final Field field = urlField.get();
+            ReflectionUtils.makeAccessible(field);
+            final Object urlAsObject = field.get(dataSource);
+            if (urlAsObject != null) {
+                return Optional.of(urlAsObject.toString());
+            }
+        }
+        return Optional.empty();
     }
 
     private static StorageProvider getSqliteStorageProvider(DataSource dataSource) {
