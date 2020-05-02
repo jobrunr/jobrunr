@@ -3,7 +3,6 @@ package org.jobrunr.storage.sql.sqlite;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
-import org.sqlite.SQLiteDataSource;
 
 import javax.sql.DataSource;
 

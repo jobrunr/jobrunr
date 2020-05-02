@@ -1,7 +1,6 @@
 package org.jobrunr.storage.sql.h2;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
 
 import javax.sql.DataSource;

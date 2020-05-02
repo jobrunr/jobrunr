@@ -2,7 +2,6 @@ package org.jobrunr.storage.sql.mariadb;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.commons.dbcp2.BasicDataSource;
 
 import javax.sql.DataSource;
 

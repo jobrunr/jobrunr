@@ -3,6 +3,7 @@ package org.jobrunr.storage.sql.h2;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
 
+
 public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest {
 
     private static DataSource dataSource;
