@@ -45,7 +45,10 @@ public class Stopwatch implements AutoCloseable {
     }
 
     public Duration duration() {
-        return Duration.between(started, stopped);
+        if (stopped != null) {
+            return Duration.between(started, stopped);
+        }
+        return Duration.between(started, Instant.now());
     }
 
     @Override
