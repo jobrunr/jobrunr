@@ -2,18 +2,24 @@ package org.jobrunr.storage.sql.mariadb;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import javax.sql.DataSource;
 
 class HikariMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
+    private static HikariDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        HikariConfig config = new HikariConfig();
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
-        config.setUsername(sqlContainer.getUsername());
-        config.setPassword(sqlContainer.getPassword());
-        return new HikariDataSource(config);
+            config.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            config.setUsername(sqlContainer.getUsername());
+            config.setPassword(sqlContainer.getPassword());
+            dataSource = new HikariDataSource(config);
+        }
+        return dataSource;
     }
 }

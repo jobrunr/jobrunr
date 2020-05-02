@@ -6,12 +6,16 @@ import javax.sql.DataSource;
 
 class PostgresStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
+    private static PGSimpleDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        PGSimpleDataSource dataSource = new PGSimpleDataSource();
-        dataSource.setURL(sqlContainer.getJdbcUrl());
-        dataSource.setUser(sqlContainer.getUsername());
-        dataSource.setPassword(sqlContainer.getPassword());
+        if (dataSource == null) {
+            dataSource = new PGSimpleDataSource();
+            dataSource.setURL(sqlContainer.getJdbcUrl());
+            dataSource.setUser(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
         return dataSource;
     }
 }

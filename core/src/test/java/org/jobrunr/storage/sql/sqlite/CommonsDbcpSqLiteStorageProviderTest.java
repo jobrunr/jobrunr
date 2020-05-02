@@ -7,10 +7,14 @@ import javax.sql.DataSource;
 
 class CommonsDbcpSqLiteStorageProviderTest extends SqlStorageProviderTest {
 
+    private static BasicDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        BasicDataSource ds = new BasicDataSource();
-        ds.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
-        return ds;
+        if (dataSource == null) {
+            dataSource = new BasicDataSource();
+            dataSource.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
+        }
+        return dataSource;
     }
 }

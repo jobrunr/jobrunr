@@ -1,16 +1,20 @@
 package org.jobrunr.storage.sql.postgres;
 
-import javax.sql.DataSource;
+import org.apache.tomcat.jdbc.pool.DataSource;
 
 class TomcatJdbcPoolPostgresStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
+    private static DataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
-        ds.setDriverClassName("org.postgresql.Driver");
-        ds.setUrl(sqlContainer.getJdbcUrl());
-        ds.setUsername(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+        if (dataSource == null) {
+            dataSource = new DataSource();
+            dataSource.setDriverClassName("org.postgresql.Driver");
+            dataSource.setUrl(sqlContainer.getJdbcUrl());
+            dataSource.setUsername(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
+        return dataSource;
     }
 }

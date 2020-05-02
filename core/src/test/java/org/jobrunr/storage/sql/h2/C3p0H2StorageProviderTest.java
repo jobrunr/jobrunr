@@ -8,12 +8,16 @@ import javax.sql.DataSource;
 
 public class C3p0H2StorageProviderTest extends SqlStorageProviderTest {
 
+    private static ComboPooledDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        ComboPooledDataSource ds = new ComboPooledDataSource();
-        ds.setJdbcUrl("jdbc:h2:/tmp/test");
-        ds.setUser("sa");
-        ds.setPassword("sa");
-        return ds;
+        if (dataSource == null) {
+            dataSource = new ComboPooledDataSource();
+            dataSource.setJdbcUrl("jdbc:h2:/tmp/test");
+            dataSource.setUser("sa");
+            dataSource.setPassword("sa");
+        }
+        return dataSource;
     }
 }

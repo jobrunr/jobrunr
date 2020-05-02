@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProviderTest {
 
-    private static AtomicInteger testSubClassCounter = new AtomicInteger(5);
     protected static MariaDBContainer sqlContainer = (MariaDBContainer) new MariaDBContainer().withEnv("TZ", "UTC");
 
     @BeforeAllSubclasses

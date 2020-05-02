@@ -16,17 +16,22 @@ class C3p0OracleStorageProviderTest extends AbstractOracleStorageProviderTest {
 //        return createDataSource("jdbc:oracle:thin:@localhost:1527:xe", "system", "oracle", "ORCL");
 //    }
 
+    private static ComboPooledDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        System.out.println("==========================================================================================");
-        System.out.println(sqlContainer.getLogs());
-        System.out.println("==========================================================================================");
+        if (dataSource == null) {
+            System.out.println("==========================================================================================");
+            System.out.println(sqlContainer.getLogs());
+            System.out.println("==========================================================================================");
 
-        ComboPooledDataSource ds = new ComboPooledDataSource();
+            dataSource = new ComboPooledDataSource();
 
-        ds.setJdbcUrl(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
-        ds.setUser(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+            dataSource.setJdbcUrl(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
+            dataSource.setUser(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
+
+        return dataSource;
     }
 }

@@ -9,10 +9,15 @@ import javax.sql.DataSource;
 
 class HikariSqLiteStorageProviderTest extends SqlStorageProviderTest {
 
+    private static HikariDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
-        return new HikariDataSource(config);
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
+            dataSource = new HikariDataSource(config);
+        }
+        return dataSource;
     }
 }

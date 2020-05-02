@@ -6,12 +6,16 @@ import javax.sql.DataSource;
 
 class CommonsDbcpMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
+    private static BasicDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        BasicDataSource ds = new BasicDataSource();
-        ds.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
-        ds.setUsername(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+        if (dataSource == null) {
+            dataSource = new BasicDataSource();
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUsername(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
+        return dataSource;
     }
 }

@@ -7,16 +7,20 @@ import java.sql.SQLException;
 
 class MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
+    private static MariaDbPoolDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        try {
-            MariaDbPoolDataSource dataSource = new MariaDbPoolDataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
-            return dataSource;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (dataSource == null) {
+            try {
+                dataSource = new MariaDbPoolDataSource();
+                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
+                dataSource.setUser(sqlContainer.getUsername());
+                dataSource.setPassword(sqlContainer.getPassword());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
+        return dataSource;
     }
 }

@@ -1,17 +1,20 @@
 package org.jobrunr.storage.sql.h2;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
-
-import javax.sql.DataSource;
 
 public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest {
 
+    private static DataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
-        ds.setUrl("jdbc:h2:/tmp/test");
-        ds.setUsername("sa");
-        ds.setPassword("sa");
-        return ds;
+        if (dataSource == null) {
+            dataSource = new DataSource();
+            dataSource.setUrl("jdbc:h2:/tmp/test");
+            dataSource.setUsername("sa");
+            dataSource.setPassword("sa");
+        }
+        return dataSource;
     }
 }

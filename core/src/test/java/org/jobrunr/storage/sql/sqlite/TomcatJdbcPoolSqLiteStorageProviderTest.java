@@ -1,15 +1,18 @@
 package org.jobrunr.storage.sql.sqlite;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
-
-import javax.sql.DataSource;
 
 class TomcatJdbcPoolSqLiteStorageProviderTest extends SqlStorageProviderTest {
 
+    private static DataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
-        ds.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
-        return ds;
+        if (dataSource == null) {
+            dataSource = new DataSource();
+            dataSource.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
+        }
+        return dataSource;
     }
 }

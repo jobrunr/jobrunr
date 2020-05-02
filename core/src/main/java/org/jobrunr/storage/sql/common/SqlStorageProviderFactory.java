@@ -3,10 +3,12 @@ package org.jobrunr.storage.sql.common;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -17,11 +19,16 @@ public class SqlStorageProviderFactory {
 
     public static StorageProvider using(DataSource dataSource) {
         try {
-            final Optional<Method> getJdbcUrlMethod = Arrays.asList(dataSource.getClass().getMethods())
+            final ArrayList<Method> methods = new ArrayList<>();
+            methods.addAll(Arrays.asList(dataSource.getClass().getMethods()));
+            methods.addAll(Arrays.asList(dataSource.getClass().getDeclaredMethods()));
+
+            final Optional<Method> getJdbcUrlMethod = methods
                     .stream()
-                    .filter(m -> m.getName().equals("getUrl") || m.getName().equals("getJdbcUrl"))
+                    .filter(m -> "getUrl".equals(m.getName()) || "getJdbcUrl".equals(m.getName()) || "getUrlParser".equals(m.getName()))
                     .findFirst();
             final Method method = getJdbcUrlMethod.orElseThrow(() -> unsupportedDataSourceException(dataSource));
+            ReflectionUtils.makeAccessible(method);
             final String jdbcUrl = method.invoke(dataSource).toString();
             return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
         } catch (ReflectiveOperationException e) {

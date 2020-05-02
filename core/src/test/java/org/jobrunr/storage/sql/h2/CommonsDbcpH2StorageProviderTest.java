@@ -7,12 +7,16 @@ import javax.sql.DataSource;
 
 public class CommonsDbcpH2StorageProviderTest extends SqlStorageProviderTest {
 
+    private static BasicDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        BasicDataSource ds = new BasicDataSource();
-        ds.setUrl("jdbc:h2:/tmp/test");
-        ds.setUsername("sa");
-        ds.setPassword("sa");
-        return ds;
+        if (dataSource == null) {
+            dataSource = new BasicDataSource();
+            dataSource.setUrl("jdbc:h2:/tmp/test");
+            dataSource.setUsername("sa");
+            dataSource.setPassword("sa");
+        }
+        return dataSource;
     }
 }

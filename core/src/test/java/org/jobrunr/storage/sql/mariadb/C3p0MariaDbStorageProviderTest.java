@@ -6,13 +6,17 @@ import javax.sql.DataSource;
 
 class C3p0MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
+    private static ComboPooledDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        ComboPooledDataSource ds = new ComboPooledDataSource();
+        if (dataSource == null) {
+            dataSource = new ComboPooledDataSource();
 
-        ds.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
-        ds.setUser(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+            dataSource.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUser(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
+        return dataSource;
     }
 }

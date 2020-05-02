@@ -3,7 +3,6 @@ package org.jobrunr.storage.sql.postgres;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.executioncondition.EnabledIfEnvVariableExists;
 
 import javax.sql.DataSource;
@@ -19,21 +18,21 @@ import javax.sql.DataSource;
 @EnabledIfEnvVariableExists("GOOGLE_APPLICATION_CREDENTIALS")
 class CloudSqlPostgresStorageProviderTest extends SqlStorageProviderTest {
 
+    private static HikariDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        return createDataSource();
-    }
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(String.format("jdbc:postgresql:///%s", System.getenv("DB_NAME")));
+            config.setUsername(System.getenv("DB_USER"));
+            config.setPassword(System.getenv("DB_PASS"));
+            config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.postgres.SocketFactory");
+            config.addDataSourceProperty("cloudSqlInstance", System.getenv("CLOUD_SQL_INSTANCE"));
+            dataSource = new HikariDataSource(config);
+        }
 
-    private static DataSource createDataSource() {
-        HikariConfig config = new HikariConfig();
-
-        config.setJdbcUrl(String.format("jdbc:postgresql:///%s", System.getenv("DB_NAME")));
-        config.setUsername(System.getenv("DB_USER"));
-        config.setPassword(System.getenv("DB_PASS"));
-        config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.postgres.SocketFactory");
-        config.addDataSourceProperty("cloudSqlInstance", System.getenv("CLOUD_SQL_INSTANCE"));
-
-        return new HikariDataSource(config);
+        return dataSource;
     }
 
 }

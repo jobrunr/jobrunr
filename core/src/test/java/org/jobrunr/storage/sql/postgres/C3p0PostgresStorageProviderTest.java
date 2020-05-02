@@ -6,13 +6,17 @@ import javax.sql.DataSource;
 
 class C3p0PostgresStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
+    private static ComboPooledDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        ComboPooledDataSource ds = new ComboPooledDataSource();
+        if (dataSource == null) {
+            dataSource = new ComboPooledDataSource();
+            dataSource.setJdbcUrl(sqlContainer.getJdbcUrl());
+            dataSource.setUser(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
 
-        ds.setJdbcUrl(sqlContainer.getJdbcUrl());
-        ds.setUser(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+        return dataSource;
     }
 }

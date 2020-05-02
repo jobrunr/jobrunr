@@ -1,15 +1,19 @@
 package org.jobrunr.storage.sql.mariadb;
 
-import javax.sql.DataSource;
+import org.apache.tomcat.jdbc.pool.DataSource;
 
 class TomcatJdbcPoolMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
+    private static DataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        org.apache.tomcat.jdbc.pool.DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource();
-        ds.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
-        ds.setUsername(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+        if (dataSource == null) {
+            dataSource = new DataSource();
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUsername(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
+        return dataSource;
     }
 }

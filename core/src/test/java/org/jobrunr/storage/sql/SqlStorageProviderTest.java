@@ -16,29 +16,17 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
-    private static Object dataSourceLock = new Object();
-    private static DataSource dataSource;
-
     @Override
     public void cleanup() {
-        cleanupDatabase(getOrCreateDataSource());
+        cleanupDatabase(getDataSource());
     }
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getOrCreateDataSource());
+        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         Whitebox.setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
-    }
-
-    private DataSource getOrCreateDataSource() {
-        synchronized (dataSourceLock) {
-            if (dataSource == null) {
-                dataSource = getDataSource();
-            }
-            return dataSource;
-        }
     }
 
     protected abstract DataSource getDataSource();

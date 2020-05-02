@@ -6,12 +6,16 @@ import javax.sql.DataSource;
 
 class CommonsDbcpPostgresStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
+    private static BasicDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        BasicDataSource ds = new BasicDataSource();
-        ds.setUrl(sqlContainer.getJdbcUrl());
-        ds.setUsername(sqlContainer.getUsername());
-        ds.setPassword(sqlContainer.getPassword());
-        return ds;
+        if (dataSource == null) {
+            dataSource = new BasicDataSource();
+            dataSource.setUrl(sqlContainer.getJdbcUrl());
+            dataSource.setUsername(sqlContainer.getUsername());
+            dataSource.setPassword(sqlContainer.getPassword());
+        }
+        return dataSource;
     }
 }

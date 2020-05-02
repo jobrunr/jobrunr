@@ -7,13 +7,17 @@ import javax.sql.DataSource;
 
 class HikariPostgresStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
+    private static HikariDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        HikariConfig config = new HikariConfig();
-
-        config.setJdbcUrl(sqlContainer.getJdbcUrl());
-        config.setUsername(sqlContainer.getUsername());
-        config.setPassword(sqlContainer.getPassword());
-        return new HikariDataSource(config);
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(sqlContainer.getJdbcUrl());
+            config.setUsername(sqlContainer.getUsername());
+            config.setPassword(sqlContainer.getPassword());
+            dataSource = new HikariDataSource(config);
+        }
+        return dataSource;
     }
 }

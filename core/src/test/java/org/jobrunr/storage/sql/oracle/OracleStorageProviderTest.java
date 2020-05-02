@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.oracle;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import oracle.jdbc.pool.OracleDataSource;
 import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
@@ -18,18 +19,24 @@ class OracleStorageProviderTest extends AbstractOracleStorageProviderTest {
 //        return createDataSource("jdbc:oracle:thin:@localhost:1527:xe", "system", "oracle", "ORCL");
 //    }
 
+    private static OracleDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        System.out.println("==========================================================================================");
-        System.out.println(sqlContainer.getLogs());
-        System.out.println("==========================================================================================");
-
         try {
-            OracleDataSource dataSource = new OracleDataSource();
-            dataSource.setURL(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
-            dataSource.setServiceName("ORCL");
+            if (dataSource == null) {
+                System.out.println("==========================================================================================");
+                System.out.println(sqlContainer.getLogs());
+                System.out.println("==========================================================================================");
+
+                dataSource = new OracleDataSource();
+
+                dataSource.setURL(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
+                dataSource.setUser(sqlContainer.getUsername());
+                dataSource.setPassword(sqlContainer.getPassword());
+                dataSource.setServiceName("ORCL");
+            }
+
             return dataSource;
         } catch (SQLException e) {
             throw new RuntimeException(e);

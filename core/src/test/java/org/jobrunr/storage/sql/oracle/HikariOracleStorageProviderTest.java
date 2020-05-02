@@ -17,17 +17,23 @@ class HikariOracleStorageProviderTest extends AbstractOracleStorageProviderTest 
 //        return createDataSource("jdbc:oracle:thin:@localhost:1527:xe", "system", "oracle", "ORCL");
 //    }
 
+    private static HikariDataSource dataSource;
+
     @Override
     protected DataSource getDataSource() {
-        System.out.println("==========================================================================================");
-        System.out.println(sqlContainer.getLogs());
-        System.out.println("==========================================================================================");
+        if (dataSource == null) {
+            System.out.println("==========================================================================================");
+            System.out.println(sqlContainer.getLogs());
+            System.out.println("==========================================================================================");
 
-        HikariConfig config = new HikariConfig();
+            HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
-        config.setUsername(sqlContainer.getUsername());
-        config.setPassword(sqlContainer.getPassword());
-        return new HikariDataSource(config);
+            config.setJdbcUrl(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
+            config.setUsername(sqlContainer.getUsername());
+            config.setPassword(sqlContainer.getPassword());
+            dataSource = new HikariDataSource(config);
+        }
+
+        return dataSource;
     }
 }
