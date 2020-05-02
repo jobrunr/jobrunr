@@ -143,8 +143,6 @@ steps:
     image: jobrunr.io/build-container:1.0
     commands:
       - rm -f *.hprof
-      - sed -i "s@<version>.*</version>@<version>${DRONE_TAG}</version>@g" README.md # replace version in README
-      - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:${DRONE_TAG}'@g" README.md # replace version in README
       - rm -rf /tmp/reports/*
       - rm -rf /home/gradle/.gradle/caches/$GRADLE_VERSION/
       - find /home/gradle/.gradle/caches/ -name "*.lock" -type f -delete
@@ -180,6 +178,14 @@ steps:
     volumes:
       - name: maven-local
         path: /root/.m2
+
+  - name: update readme
+    image: jobrunr.io/build-container:1.0
+    commands:
+      - rm -f *.hprof
+      - sed -i "s@<version>.*</version>@<version>${DRONE_TAG}</version>@g" README.md # replace version in README
+      - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:${DRONE_TAG}'@g" README.md # replace version in README
+      - git config --global --add url."git@github.com:".insteadOf "https://github.com/"
 
   - name: push updated readme
     image: appleboy/drone-git-push
