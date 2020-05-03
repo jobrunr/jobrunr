@@ -2,9 +2,11 @@ package org.jobrunr.storage.sql.sqlite;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
+import org.junit.jupiter.api.Disabled;
 
 import javax.sql.DataSource;
 
+@Disabled("https://github.com/swaldman/c3p0/issues/147")
 class C3p0SqLiteStorageProviderTest extends SqlStorageProviderTest {
 
     private static ComboPooledDataSource dataSource;
