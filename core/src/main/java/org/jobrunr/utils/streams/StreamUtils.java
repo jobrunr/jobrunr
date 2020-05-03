@@ -3,6 +3,7 @@ package org.jobrunr.utils.streams;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class StreamUtils {
@@ -30,6 +31,18 @@ public final class StreamUtils {
         return stream
                 .filter(clazz::isInstance)
                 .map(clazz::cast);
+    }
+
+    public static <T> Collector<T, ?, T> single() {
+        return Collectors.collectingAndThen(
+                Collectors.toList(),
+                list -> {
+                    if (list.size() != 1) {
+                        throw new IllegalStateException();
+                    }
+                    return list.get(0);
+                }
+        );
     }
 
 }

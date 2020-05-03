@@ -13,7 +13,7 @@ public class C3p0H2StorageProviderTest extends SqlStorageProviderTest {
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new ComboPooledDataSource();
-            dataSource.setJdbcUrl("jdbc:h2:/tmp/test");
+            dataSource.setJdbcUrl("jdbc:h2:/tmp/test-c3p0");
             dataSource.setUser("sa");
             dataSource.setPassword("sa");
         }

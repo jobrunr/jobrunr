@@ -11,7 +11,7 @@ public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest 
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new DataSource();
-            dataSource.setUrl("jdbc:h2:/tmp/test");
+            dataSource.setUrl("jdbc:h2:/tmp/test-tomcatjdbcpool");
             dataSource.setUsername("sa");
             dataSource.setPassword("sa");
         }

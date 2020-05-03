@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
-import static org.jobrunr.utils.PathUtils.listItems;
+import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class DatabaseCreator {
 
@@ -49,7 +49,7 @@ public class DatabaseCreator {
     }
 
     protected Stream<Path> getMigrations() {
-        final Map<String, Path> commonMigrations = listItems(DatabaseCreator.class, "migrations").collect(toMap(p -> p.getFileName().toString(), p -> p));
+        final Map<String, Path> commonMigrations = listAllChildrenOnClasspath(DatabaseCreator.class, "migrations").collect(toMap(p -> p.getFileName().toString(), p -> p));
         final Map<String, Path> databaseSpecificMigrations = getDatabaseSpecificMigrations().collect(toMap(p -> p.getFileName().toString(), p -> p));
 
         final HashMap<String, Path> actualMigrations = new HashMap<>(commonMigrations);
@@ -60,7 +60,7 @@ public class DatabaseCreator {
 
     protected Stream<Path> getDatabaseSpecificMigrations() {
         if (sqlStorageProvider != null) {
-            return listItems(sqlStorageProvider.getClass(), "migrations");
+            return listAllChildrenOnClasspath(sqlStorageProvider.getClass(), "migrations");
         }
         return Stream.empty();
     }

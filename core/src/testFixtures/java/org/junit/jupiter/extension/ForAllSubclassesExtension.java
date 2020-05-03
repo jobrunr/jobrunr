@@ -1,6 +1,5 @@
 package org.junit.jupiter.extension;
 
-import org.jobrunr.utils.PathUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -13,7 +12,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCallback {
 
@@ -30,20 +31,17 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         setUpMethod = findMethodWithAnnotation(annotatedTestClass, BeforeAllSubclasses.class);
         tearDownMethod = findMethodWithAnnotation(annotatedTestClass, AfterAllSubclasses.class);
 
-        String classFile = annotatedTestClass.getName().replace(".", "/") + ".class";
-        final List<Path> paths = PathUtils.listItems(annotatedTestClass).collect(Collectors.toList());
-        final Path abstractClass = paths.stream().filter(path -> path.endsWith(classFile)).findFirst().orElseThrow(() -> new IllegalStateException());
-        final String root = abstractClass.toString().replace(classFile, "");
-
+        final List<Path> paths = listAllChildrenOnClasspath(annotatedTestClass).collect(toList());
         final int count = (int) paths.stream()
-                .map(path -> path.toString().replace(root, "").replace(".class", "").replace("/", "."))
-                .map(className -> ReflectionUtils.toClass(className))
+                .filter(path -> path.toString().endsWith(".class"))
+                .map(ReflectionUtils::toClassFromPath)
                 .filter(clazz -> annotatedTestClass.isAssignableFrom(clazz))
                 .count();
 
         atomicInteger = new AtomicInteger(count - 1);
 
         setUpMethod.invoke(context.getRequiredTestClass());
+        System.err.println("Invoking setup method for " + annotatedTestClass.getName());
     }
 
     @Override
@@ -51,6 +49,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         final int currentCount = atomicInteger.decrementAndGet();
         if (currentCount == 0) {
             tearDownMethod.invoke(context.getRequiredTestClass());
+            System.err.println("Invoking teardown method for " + annotatedTestClass.getName());
 
             atomicInteger = null;
             annotatedTestClass = null;

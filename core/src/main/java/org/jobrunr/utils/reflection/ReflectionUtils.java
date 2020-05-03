@@ -8,6 +8,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -16,6 +17,8 @@ import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class ReflectionUtils {
+
+    private static final String rootPackageName = "org/jobrunr/";
 
     private ReflectionUtils() {
 
@@ -28,6 +31,12 @@ public class ReflectionUtils {
         } catch (ClassNotFoundException e) {
             return false;
         }
+    }
+
+    public static <T> Class<T> toClassFromPath(Path path) {
+        final String classFile = path.toString().substring(path.toString().indexOf(rootPackageName));
+        final String className = classFile.replace(".class", "").replace("/", ".");
+        return toClass(className);
     }
 
     public static <T> Class<T> toClass(String className) {

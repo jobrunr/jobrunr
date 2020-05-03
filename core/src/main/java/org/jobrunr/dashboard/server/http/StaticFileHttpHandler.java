@@ -2,13 +2,15 @@ package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.TeenyHttpHandler;
-import org.jobrunr.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static org.jobrunr.utils.ClassPathUtils.toPathsOnClasspath;
+import static org.jobrunr.utils.streams.StreamUtils.single;
 
 public class StaticFileHttpHandler implements TeenyHttpHandler {
 
@@ -23,7 +25,7 @@ public class StaticFileHttpHandler implements TeenyHttpHandler {
     }
 
     public StaticFileHttpHandler(String contextPath, String rootDir, boolean singlePageApp) {
-        this(contextPath, PathUtils.getResourcesPath(rootDir), singlePageApp);
+        this(contextPath, toPathsOnClasspath(rootDir).collect(single()), singlePageApp);
     }
 
     public StaticFileHttpHandler(String contextPath, Path rootDir, boolean singlePageApp) {

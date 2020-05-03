@@ -7,8 +7,6 @@ import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.MariaDBContainer;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProviderTest {
 
@@ -17,6 +15,9 @@ public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProvi
     @BeforeAllSubclasses
     public static void startSqlContainer() {
         sqlContainer.start();
+        System.out.println("=========================================================");
+        System.out.println(sqlContainer.getJdbcUrl());
+        System.out.println("=========================================================");
     }
 
     @AfterAllSubclasses

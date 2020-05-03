@@ -17,11 +17,11 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.time.LocalDate.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -247,7 +247,7 @@ public class JobDetailsAsmGeneratorTest {
         JobLambda job = () -> {
             UUID testId = UUID.randomUUID();
             int count = 6;
-            Instant now = Instant.now();
+            LocalDateTime now = LocalDateTime.now();
             System.out.println("This is a test: " + testId + "; " + count + "; " + now);
         };
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -257,7 +257,7 @@ public class JobDetailsAsmGeneratorTest {
                 .hasMethodName("println")
                 .hasArg(obj -> obj.toString().startsWith("This is a test: ")
                         && obj.toString().contains(" 6;")
-                        && obj.toString().contains(now().toString()));
+                        && obj.toString().contains(LocalDateTime.now().withNano(0).toString()));
     }
 
     @Test
