@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import RealtimeGraph from "./cards/realtime-graph";
 import EstimatedProcessingTimeCard from "./cards/estimated-processing-time-card";
 import UptimeCard from "./cards/uptime-card";
-import AvgProcessCpuLoadCard from "./cards/avg-process-cpu-load-card";
+import AvgSystemCpuLoadCard from "./cards/avg-system-cpu-load-card";
 import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import LoadingIndicator from "../LoadingIndicator";
@@ -49,7 +49,7 @@ const Overview = () => {
                     : <>
                         <EstimatedProcessingTimeCard/>
                         <UptimeCard servers={servers}/>
-                        <AvgProcessCpuLoadCard servers={servers}/>
+                        <AvgSystemCpuLoadCard servers={servers}/>
                         <AvgProcessMemoryUsageCard servers={servers}/>
                         <AvgProcessFreeMemoryCard servers={servers}/>
                     </>

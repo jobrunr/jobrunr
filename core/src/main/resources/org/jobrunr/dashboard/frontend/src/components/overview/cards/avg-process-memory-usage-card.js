@@ -20,10 +20,9 @@ const AvgProcessMemoryUsageCard = (props) => {
 
     let averageProcessMemoryUsage = servers[0].processAllocatedMemory;
     if (servers.length > 1) {
-        const average = (array) => array.reduce((a, b) => a.processAllocatedMemory + b.processAllocatedMemory) / array.length;
+        const average = (array) => array.reduce((a, b) => a + b.processAllocatedMemory, 0) / array.length;
         averageProcessMemoryUsage = average(servers);
     }
-
 
     return (
         <Card className={classes.card}>

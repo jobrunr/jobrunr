@@ -13,29 +13,28 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const AvgProcessCpuLoadCard = (props) => {
+const AvgSystemCpuLoadCard = (props) => {
     const classes = useStyles();
     const servers = props.servers;
 
-    let averageProcessCpuLoad = servers[0].processCpuLoad;
+    let averageSystemCpuLoad = servers[0].systemCpuLoad;
     if (servers.length > 1) {
-        const average = (array) => array.reduce((a, b) => a.processCpuLoad + b.processCpuLoad) / array.length;
-        averageProcessCpuLoad = average(servers);
+        const average = (array) => array.reduce((a, b) => a + b.systemCpuLoad, 0) / array.length;
+        averageSystemCpuLoad = average(servers);
     }
-
 
     return (
         <Card className={classes.card}>
             <CardContent>
                 <Typography className={classes.title} color="textSecondary" gutterBottom>
-                    Avg Process Cpu Load
+                    Avg System Cpu Load
                 </Typography>
                 <Typography variant="h5" component="h2">
-                    {parseFloat(averageProcessCpuLoad * 100).toFixed(2)} %
+                    {parseFloat(averageSystemCpuLoad * 100).toFixed(2)} %
                 </Typography>
             </CardContent>
         </Card>
     );
 };
 
-export default AvgProcessCpuLoadCard;
+export default AvgSystemCpuLoadCard;

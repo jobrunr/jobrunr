@@ -20,10 +20,9 @@ const AvgProcessFreeMemoryCard = (props) => {
 
     let averageProcessFreeMemory = servers[0].processFreeMemory;
     if (servers.length > 1) {
-        const average = (array) => array.reduce((a, b) => a.processFreeMemory + b.processFreeMemory) / array.length;
+        const average = (array) => array.reduce((a, b) => a + b.processFreeMemory, 0) / array.length;
         averageProcessFreeMemory = average(servers);
     }
-
 
     return (
         <Card className={classes.card}>
