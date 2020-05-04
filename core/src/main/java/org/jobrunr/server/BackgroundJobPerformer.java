@@ -42,7 +42,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
             LOGGER.info("Job {} - {} - processing started", job.getId(), job.getJobName());
             return true;
         } catch (ConcurrentJobModificationException e) {
-            LOGGER.info("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), atomicInteger.incrementAndGet(), e);
+            LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), atomicInteger.incrementAndGet(), e);
             // processing already started on other server
             return false;
         }
