@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends JsonMapperTest {
+public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMapperTest {
 
     @Override
     public JsonMapper newJsonMapper() {
@@ -23,7 +23,7 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends JsonMapperTest 
 
     @Test
     void testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter() {
-        assertThatThrownBy(() -> super.testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter())
+        assertThatThrownBy(super::testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter)
                 .isInstanceOf(JobRunrException.class)
                 .hasCauseInstanceOf(InvalidDefinitionException.class);
     }

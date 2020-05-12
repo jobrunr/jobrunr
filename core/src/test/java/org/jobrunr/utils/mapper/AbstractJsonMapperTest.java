@@ -19,7 +19,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
-public abstract class JsonMapperTest {
+public abstract class AbstractJsonMapperTest {
 
     private JsonMapper jsonMapper;
     private TestService testService;
