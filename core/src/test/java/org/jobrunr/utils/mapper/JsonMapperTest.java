@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJson;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
@@ -92,8 +91,8 @@ public abstract class JsonMapperTest {
         final String jobAsString = jsonMapper.serialize(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-path-parameter.json"));
 
-        assertThatCode(() -> jsonMapper.deserialize(jobAsString, Job.class)).doesNotThrowAnyException();
-        //assertThat(actualJob).isEqualTo(job); see https://github.com/joel-costigliola/assertj-core/issues/1855
+        Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     @Test

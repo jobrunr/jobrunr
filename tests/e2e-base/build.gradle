@@ -13,7 +13,7 @@ dependencies {
     testFixturesApi project(':core')
     testFixturesApi testFixtures(project(":core"))
     testFixturesApi 'org.awaitility:awaitility:4.0.2'
-    testFixturesApi 'org.assertj:assertj-core:3.15.0'
+    testFixturesApi 'org.assertj:assertj-core:3.16.1'
     testFixturesApi 'org.testcontainers:testcontainers:1.14.1'
     testFixturesApi 'org.testcontainers:jdbc:1.14.1'
     testFixturesApi 'org.testcontainers:junit-jupiter:1.14.1'
