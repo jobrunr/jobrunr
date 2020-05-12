@@ -126,6 +126,7 @@ public class Job extends AbstractJob {
                 "id=" + id +
                 ", jobSignature='" + getJobSignature() + '\'' +
                 ", jobName='" + getJobName() + '\'' +
+                ", updatedAt='" + getUpdatedAt() + '\'' +
                 '}';
     }
 }

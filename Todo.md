@@ -56,10 +56,10 @@
 - [x] oracle support for view and stats
 - [x] Example project with Spring
 - [x] Publish to jcenter
-- [ ] zookeeper - what to do when an exception is thrown from the db
-- [ ] logging (correct level)
-- [ ] JavaDoc
-- [ ] create website
+- [x] zookeeper - what to do when an exception is thrown from the db
+- [x] logging (correct level)
+- [x] JavaDoc
+- [x] create website
 
 # Todo release 2
 - smarter distributed processing

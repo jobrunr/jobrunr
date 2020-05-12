@@ -74,7 +74,7 @@ public class JobTable extends Sql<Job> {
             if (notAllJobsAreNew(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            jobs.forEach(this::setId);
+            jobs.forEach(JobTable::setId);
             insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
         } else {
             if (notAllJobsAreExisting(jobs)) {
@@ -151,21 +151,21 @@ public class JobTable extends Sql<Job> {
         return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
     }
 
-    private void setId(Job job) {
+    private static void setId(Job job) {
         if (job.getId() == null) {
             job.setId(UUID.randomUUID());
         }
     }
 
-    private boolean notAllJobsAreNew(List<Job> jobs) {
+    private static boolean notAllJobsAreNew(List<Job> jobs) {
         return jobs.stream().anyMatch(job -> job.getId() != null);
     }
 
-    private boolean notAllJobsAreExisting(List<Job> jobs) {
+    private static boolean notAllJobsAreExisting(List<Job> jobs) {
         return jobs.stream().anyMatch(job -> job.getId() == null);
     }
 
-    private boolean areNewJobs(List<Job> jobs) {
+    private static boolean areNewJobs(List<Job> jobs) {
         return jobs.get(0).getId() == null;
     }
 

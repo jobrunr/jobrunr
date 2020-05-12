@@ -22,8 +22,13 @@ public abstract class AbstractJob {
         return version;
     }
 
-    public void increaseVersion() {
-        version++;
+    /**
+     * Increases the version of this Job instance
+     *
+     * @return the version before it was increased
+     */
+    public int increaseVersion() {
+        return version++;
     }
 
     public String getJobSignature() {

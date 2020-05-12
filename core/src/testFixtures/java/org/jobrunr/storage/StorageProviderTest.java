@@ -10,21 +10,18 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.ServerZooKeeper;
+import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -45,14 +42,11 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.mockito.Mockito.lenient;
 
-@ExtendWith(MockitoExtension.class)
 public abstract class StorageProviderTest {
 
     private StorageProvider storageProvider;
 
-    @Mock
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
@@ -61,9 +55,8 @@ public abstract class StorageProviderTest {
         final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus.start();
         JobRunr.configure();
-        lenient().when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
-        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(serverStatus);
         this.storageProvider = getStorageProvider();
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider, serverStatus);
     }
 
     protected abstract void cleanup();
@@ -102,9 +95,10 @@ public abstract class StorageProviderTest {
         final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus1.start();
         storageProvider.announceBackgroundJobServer(serverStatus1);
-        Thread.sleep(100);
-
+        Thread.sleep(50);
         Instant deleteServersWithHeartbeatOlderThanThis = now();
+        Thread.sleep(50);
+
         final BackgroundJobServerStatus serverStatus2 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus2.start();
         storageProvider.announceBackgroundJobServer(serverStatus2);
@@ -320,9 +314,13 @@ public abstract class StorageProviderTest {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
-        storageProvider.save(asList(anEnqueuedJob().build(), anEnqueuedJob().build()));
-
+        final List<Job> jobs = asList(anEnqueuedJob().build(), anEnqueuedJob().build());
+        storageProvider.save(jobs);
         assertThat(onChangeListener.changes).hasSize(1);
+
+        jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
+        storageProvider.save(jobs);
+        assertThat(onChangeListener.changes).hasSize(2);
     }
 
     @Test

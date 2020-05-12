@@ -172,21 +172,9 @@ public class RedisStorageProvider extends AbstractStorageProvider {
         try (Jedis jedis = getJedis()) {
             boolean isNewJob = jobToSave.getId() == null;
             if (isNewJob) {
-                jobToSave.setId(UUID.randomUUID());
-                Pipeline p = jedis.pipelined();
-                saveJob(p, jobToSave);
-                p.publish("job-queue-channel", jobToSave.getId().toString());
-                p.sync();
+                insertJob(jobToSave, jedis);
             } else {
-                jedis.watch(jobVersionKey(jobToSave));
-                final int version = Integer.parseInt(jedis.get(jobVersionKey(jobToSave)));
-                if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave.getId());
-                jobToSave.increaseVersion();
-                Transaction transaction = jedis.multi();
-                saveJob(transaction, jobToSave);
-                List<Object> result = transaction.exec();
-                jedis.unwatch();
-                if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave.getId());
+                updateJob(jobToSave, jedis);
             }
             notifyOnChangeListeners();
         }
@@ -237,7 +225,9 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             if (notAllJobsAreExisting(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            jobs.forEach(this::save);
+            try (Jedis jedis = getJedis()) {
+                jobs.forEach(job -> updateJob(job, jedis));
+            }
         }
         notifyOnChangeListenersIf(jobs.size() > 0);
         return jobs;
@@ -246,7 +236,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            Set<String> jobsByState = null;
+            Set<String> jobsByState;
             if (PageRequest.Order.ASC == pageRequest.getOrder()) {
                 jobsByState = jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore));
             } else {
@@ -440,6 +430,26 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     private boolean areNewJobs(List<Job> jobs) {
         return jobs.get(0).getId() == null;
+    }
+
+    private void insertJob(Job jobToSave, Jedis jedis) {
+        jobToSave.setId(UUID.randomUUID());
+        Pipeline p = jedis.pipelined();
+        saveJob(p, jobToSave);
+        p.publish("job-queue-channel", jobToSave.getId().toString());
+        p.sync();
+    }
+
+    private void updateJob(Job jobToSave, Jedis jedis) {
+        jedis.watch(jobVersionKey(jobToSave));
+        final int version = Integer.parseInt(jedis.get(jobVersionKey(jobToSave)));
+        if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave.getId());
+        jobToSave.increaseVersion();
+        Transaction transaction = jedis.multi();
+        saveJob(transaction, jobToSave);
+        List<Object> result = transaction.exec();
+        jedis.unwatch();
+        if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave.getId());
     }
 
     private void saveJob(RedisPipeline p, Job jobToSave) {

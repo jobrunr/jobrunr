@@ -9,6 +9,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import redis.clients.jedis.Jedis;
 
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
+
 @Testcontainers
 public class RedisStorageProviderTest extends StorageProviderTest {
 
@@ -24,7 +26,7 @@ public class RedisStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final RedisStorageProvider redisStorageProvider = new RedisStorageProvider(getJedis());
+        final RedisStorageProvider redisStorageProvider = new RedisStorageProvider(getJedis(), rateLimit().withoutLimits());
         redisStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         return redisStorageProvider;
     }
