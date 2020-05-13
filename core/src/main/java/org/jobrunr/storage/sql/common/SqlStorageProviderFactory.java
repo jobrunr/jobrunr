@@ -12,6 +12,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+
 public class SqlStorageProviderFactory {
 
     private SqlStorageProviderFactory() {
@@ -36,8 +38,7 @@ public class SqlStorageProviderFactory {
     }
 
     private static Optional<String> getUrlViaMethod(DataSource dataSource) throws ReflectiveOperationException {
-        final Optional<Method> urlMethod = Arrays.asList(dataSource.getClass().getMethods())
-                .stream()
+        final Optional<Method> urlMethod = Arrays.stream(dataSource.getClass().getMethods())
                 .filter(m -> "getUrl".equals(m.getName()) || "getJdbcUrl".equals(m.getName()))
                 .findFirst();
 
@@ -48,8 +49,7 @@ public class SqlStorageProviderFactory {
     }
 
     private static Optional<String> getUrlViaField(DataSource dataSource) throws ReflectiveOperationException {
-        final Optional<Field> urlField = Arrays.asList(dataSource.getClass().getDeclaredFields())
-                .stream()
+        final Optional<Field> urlField = Arrays.stream(dataSource.getClass().getDeclaredFields())
                 .filter(f -> "url".equals(f.getName()))
                 .findFirst();
         if (urlField.isPresent()) {
@@ -63,46 +63,38 @@ public class SqlStorageProviderFactory {
         return Optional.empty();
     }
 
-    private static StorageProvider getSqliteStorageProvider(DataSource dataSource) {
-        return getStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".sqlite.SqLiteStorageProvider", dataSource);
-    }
-
-    private static StorageProvider getH2StorageProvider(DataSource dataSource) {
-        return getStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".h2.H2StorageProvider", dataSource);
-    }
-
-    private static StorageProvider getPostgresStorageProvider(DataSource dataSource) {
-        return getStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".postgres.PostgresStorageProvider", dataSource);
-    }
-
-    private static StorageProvider getOracleStorageProvider(DataSource dataSource) {
-        return getStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".oracle.OracleStorageProvider", dataSource);
-    }
-
-    private static StorageProvider getMariaDbStorageProvider(DataSource dataSource) {
-        return getStorageProvider(SqlStorageProvider.class.getPackage().getName() + ".mariadb.MariaDbStorageProvider", dataSource);
-    }
-
     private static StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource) {
-        if (jdbcUrl.startsWith("jdbc:sqlite")) {
-            return getSqliteStorageProvider(dataSource);
-        } else if (jdbcUrl.startsWith("jdbc:h2")) {
-            return getH2StorageProvider(dataSource);
-        } else if (jdbcUrl.startsWith("jdbc:postgres")) {
-            return getPostgresStorageProvider(dataSource);
-        } else if (jdbcUrl.startsWith("jdbc:mysql") || jdbcUrl.startsWith("jdbc:mariadb")) {
-            return getMariaDbStorageProvider(dataSource);
-        } else if (jdbcUrl.startsWith("jdbc:oracle")) {
-            return getOracleStorageProvider(dataSource);
-        }
-        throw unsupportedDataSourceException(dataSource);
+        final Class<SqlStorageProvider> storageProviderClassByJdbcUrl = getStorageProviderClassByJdbcUrl(jdbcUrl);
+        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource);
     }
 
-    private static StorageProvider getStorageProvider(String className, DataSource dataSource) {
+    static Class<SqlStorageProvider> getStorageProviderClassByJdbcUrl(String jdbcUrl) {
+        if (jdbcUrl.startsWith("jdbc:sqlite")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".sqlite.SqLiteStorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:h2")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".h2.H2StorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:postgres")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".postgres.PostgresStorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:mysql") || jdbcUrl.startsWith("jdbc:mariadb")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".mariadb.MariaDbStorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:oracle")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".oracle.OracleStorageProvider");
+        }
+        throw unsupportedDataSourceException(jdbcUrl);
+    }
+
+    private static StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource) {
         try {
-            final Class<?> jobStorageProvider = Class.forName(className);
-            final Constructor<?> declaredConstructor = jobStorageProvider.getDeclaredConstructor(DataSource.class);
+            final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class);
             return (StorageProvider) declaredConstructor.newInstance(dataSource);
+        } catch (ReflectiveOperationException e) {
+            throw JobRunrException.shouldNotHappenException(e);
+        }
+    }
+
+    private static Class<SqlStorageProvider> getStorageProviderClass(String className) {
+        try {
+            return cast(Class.forName(className));
         } catch (ReflectiveOperationException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
@@ -110,5 +102,9 @@ public class SqlStorageProviderFactory {
 
     private static JobRunrException unsupportedDataSourceException(DataSource dataSource) {
         return new JobRunrException("Are you running an unsupported DataSource or Database? Please check the documentation. If you think this is wrong, please open an issue using the following url: https://github.com/jobrunr/jobrunr/issues/new?template=bug_report.md&title=%5BBUG%5D5%20-%20missing%20DataSource%20" + dataSource.getClass().getName());
+    }
+
+    private static JobRunrException unsupportedDataSourceException(String jdbcUrl) {
+        return new JobRunrException("Are you running an unsupported DataSource or Database? Please check the documentation. If you think this is wrong, please open an issue using the following url: https://github.com/jobrunr/jobrunr/issues/new?template=bug_report.md&title=%5BBUG%5D5%20-%20missing%20DataSource%20" + jdbcUrl);
     }
 }

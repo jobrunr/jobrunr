@@ -64,7 +64,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     protected DatabaseCreator getDatabaseCreator() {
-        return new DatabaseCreator(dataSource, this);
+        return new DatabaseCreator(dataSource, getClass());
     }
 
     @Override

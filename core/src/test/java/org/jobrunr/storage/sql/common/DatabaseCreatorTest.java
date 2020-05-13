@@ -31,6 +31,11 @@ class DatabaseCreatorTest {
     }
 
     @Test
+    public void testSqlLiteMigrationsUsingMainMethod() {
+        assertThatCode(() -> DatabaseCreator.main(new String[]{"jdbc:sqlite:" + SQLITE_DB1, "", ""})).doesNotThrowAnyException();
+    }
+
+    @Test
     public void testSqlLiteMigrations() {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB1));
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
@@ -46,7 +51,7 @@ class DatabaseCreatorTest {
     @Test
     public void testDatabaseSpecificMigrations() {
         final DataSource dataSourceMock = Mockito.mock(DataSource.class);
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSourceMock, new MariaDbStorageProviderStub(dataSourceMock));
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSourceMock, MariaDbStorageProviderStub.class);
         final Stream<Path> databaseSpecificMigrations = databaseCreator.getDatabaseSpecificMigrations();
         assertThat(databaseSpecificMigrations).anyMatch(path -> path.toString().contains("mariadb"));
     }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,22 +23,35 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
+import static org.jobrunr.storage.sql.common.SqlStorageProviderFactory.getStorageProviderClassByJdbcUrl;
 import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class DatabaseCreator {
 
     private static Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
 
-    private final DataSource dataSource;
-    private SqlStorageProvider sqlStorageProvider;
+    private final ConnectionProvider connectionProvider;
+    private Class<? extends SqlStorageProvider> sqlStorageProviderClass;
 
-    protected DatabaseCreator(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public static void main(String[] args) {
+        String url = args[0];
+        String userName = args[1];
+        String password = args[2];
+
+        new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), getStorageProviderClassByJdbcUrl(url)).runMigrations();
     }
 
-    public DatabaseCreator(DataSource dataSource, SqlStorageProvider sqlStorageProvider) {
-        this.dataSource = dataSource;
-        this.sqlStorageProvider = sqlStorageProvider;
+    protected DatabaseCreator(DataSource dataSource) {
+        this(dataSource, null);
+    }
+
+    public DatabaseCreator(DataSource dataSource, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        this(dataSource::getConnection, sqlStorageProviderClass);
+    }
+
+    public DatabaseCreator(ConnectionProvider connectionProvider, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        this.connectionProvider = connectionProvider;
+        this.sqlStorageProviderClass = sqlStorageProviderClass;
     }
 
     public void runMigrations() {
@@ -50,7 +64,7 @@ public class DatabaseCreator {
 
     public void validateTables() {
         String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_jobs_stats"};
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             try (Statement pSt = conn.createStatement()) {
                 for (String table : tables) {
@@ -77,15 +91,15 @@ public class DatabaseCreator {
     }
 
     protected Stream<Path> getDatabaseSpecificMigrations() {
-        if (sqlStorageProvider != null) {
-            return listAllChildrenOnClasspath(sqlStorageProvider.getClass(), "migrations");
+        if (sqlStorageProviderClass != null) {
+            return listAllChildrenOnClasspath(sqlStorageProviderClass, "migrations");
         }
         return Stream.empty();
     }
 
     protected void runMigration(Path path) {
         LOGGER.info("Running migration {}", path);
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             runMigrationStatement(conn, path);
             updateMigrationsTable(conn, path);
@@ -118,7 +132,7 @@ public class DatabaseCreator {
     }
 
     protected boolean isMigrationApplied(Path path) {
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             try (PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
                 pSt.setString(1, path.getFileName().toString());
@@ -133,5 +147,20 @@ public class DatabaseCreator {
         } catch (Exception becauseTableDoesNotExist) {
             return false;
         }
+    }
+
+    private Connection getConnection() {
+        try {
+            return connectionProvider.getConnection();
+        } catch (SQLException exception) {
+            throw JobRunrException.shouldNotHappenException(exception);
+        }
+    }
+
+    @FunctionalInterface
+    private interface ConnectionProvider {
+
+        Connection getConnection() throws SQLException;
+
     }
 }
