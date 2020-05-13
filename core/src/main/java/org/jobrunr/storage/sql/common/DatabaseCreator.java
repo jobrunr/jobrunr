@@ -48,6 +48,24 @@ public class DatabaseCreator {
                 .forEach(this::runMigration);
     }
 
+    public void validateTables() {
+        String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_jobs_stats"};
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(true);
+            try (Statement pSt = conn.createStatement()) {
+                for (String table : tables) {
+                    try (ResultSet rs = pSt.executeQuery("select count(*) from " + table)) {
+                        if (rs.next()) {
+                            int count = rs.getInt(1);
+                        }
+                    }
+                }
+            }
+        } catch (Exception becauseTableDoesNotExist) {
+            throw new JobRunrException("Not all required tables are available by JobRunr!");
+        }
+    }
+
     protected Stream<Path> getMigrations() {
         final Map<String, Path> commonMigrations = listAllChildrenOnClasspath(DatabaseCreator.class, "migrations").collect(toMap(p -> p.getFileName().toString(), p -> p));
         final Map<String, Path> databaseSpecificMigrations = getDatabaseSpecificMigrations().collect(toMap(p -> p.getFileName().toString(), p -> p));

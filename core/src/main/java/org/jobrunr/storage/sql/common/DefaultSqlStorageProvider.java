@@ -22,28 +22,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class DefaultSqlStorageProvider extends AbstractStorageProvider implements SqlStorageProvider {
 
+    public enum DatabaseOptions {
+        CREATE,
+        SKIP_CREATE
+    }
+
     private final DataSource dataSource;
+    private final DatabaseOptions databaseOptions;
 
     private JobMapper jobMapper;
 
     public DefaultSqlStorageProvider(DataSource dataSource) {
-        this(dataSource, rateLimit().at2Requests().per(SECOND));
+        this(dataSource, CREATE, rateLimit().at2Requests().per(SECOND));
     }
 
-    DefaultSqlStorageProvider(DataSource dataSource, RateLimiter changeListenerNotificationRateLimit) {
+    public DefaultSqlStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
+        this(dataSource, databaseOptions, rateLimit().at2Requests().per(SECOND));
+    }
+
+    DefaultSqlStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.dataSource = dataSource;
+        this.databaseOptions = databaseOptions;
         createDBIfNecessary();
     }
 
     protected void createDBIfNecessary() {
-        getDatabaseCreator()
-                .runMigrations();
+        if (databaseOptions == CREATE) {
+            getDatabaseCreator()
+                    .runMigrations();
+        } else {
+            getDatabaseCreator()
+                    .validateTables();
+        }
     }
 
     protected DatabaseCreator getDatabaseCreator() {
