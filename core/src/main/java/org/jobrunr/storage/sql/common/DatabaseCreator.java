@@ -38,7 +38,16 @@ public class DatabaseCreator {
         String userName = args[1];
         String password = args[2];
 
-        new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), getStorageProviderClassByJdbcUrl(url)).runMigrations();
+        try {
+            System.out.println("==========================================================");
+            System.out.println("================== JobRunr Table Creator =================");
+            System.out.println("==========================================================");
+            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), getStorageProviderClassByJdbcUrl(url)).runMigrations();
+            System.out.println("Successfully created all tables!");
+        } catch (Exception e) {
+            System.out.println("An error occurred: ");
+            e.printStackTrace();
+        }
     }
 
     protected DatabaseCreator(DataSource dataSource) {
