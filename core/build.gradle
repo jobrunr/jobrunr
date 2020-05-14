@@ -39,6 +39,8 @@ dependencies {
     compileOnly 'com.mchange:c3p0:0.9.5.5'
     compileOnly 'org.apache.tomcat:tomcat-jdbc:9.0.34'
     compileOnly 'redis.clients:jedis:3.3.0'
+    compileOnly 'org.mongodb:mongo-java-driver:3.12.4'
+
 
 
     testImplementation 'org.ow2.asm:asm-util:7.3.1'
@@ -62,6 +64,7 @@ dependencies {
     testImplementation 'com.mchange:c3p0:0.9.5.5'
     testImplementation 'org.apache.tomcat:tomcat-jdbc:9.0.34'
     testImplementation 'redis.clients:jedis:3.3.0'
+    testImplementation 'org.mongodb:mongo-java-driver:3.12.4'
 
     testFixturesApi 'org.assertj:assertj-core:3.16.1'
     testFixturesApi 'org.junit.jupiter:junit-jupiter:5.6.1'

@@ -21,7 +21,7 @@ public interface StorageProvider {
 
     void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus);
 
-    boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus backgroundJobServerStatus);
+    boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus);
 
     List<BackgroundJobServerStatus> getBackgroundJobServers();
 

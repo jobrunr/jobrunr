@@ -29,6 +29,7 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
@@ -339,6 +340,8 @@ public abstract class StorageProviderTest {
     public void testJobStats() {
         storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
 
+        assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();
+
         storageProvider.save(asList(
                 anEnqueuedJob().build(),
                 anEnqueuedJob().build(),
@@ -353,7 +356,6 @@ public abstract class StorageProviderTest {
         storageProvider.publishJobStatCounter(SUCCEEDED, 5);
 
         final JobStats jobStats = storageProvider.getJobStats();
-        assertThat(jobStats.getTotal()).isEqualTo(7);
         assertThat(jobStats.getAwaiting()).isEqualTo(0);
         assertThat(jobStats.getScheduled()).isEqualTo(1);
         assertThat(jobStats.getEnqueued()).isEqualTo(3);
