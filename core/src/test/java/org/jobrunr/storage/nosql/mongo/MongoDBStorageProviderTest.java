@@ -39,7 +39,7 @@ public class MongoDBStorageProviderTest extends StorageProviderTest {
     private MongoClient mongoClient() {
         return MongoClients.create(
                 MongoClientSettings.builder()
-                        .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress("localhost", mongoContainer.getMappedPort(27017)))))
+                        .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoContainer.getContainerIpAddress(), mongoContainer.getMappedPort(27017)))))
                         .build());
     }
 }
