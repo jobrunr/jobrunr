@@ -31,7 +31,7 @@ jib {
     }
 }
 
-project(":tests:e2e-mariadb-gson") {
+project(":tests:${project.name}") {
     sonarqube {
         skipProject = true
     }

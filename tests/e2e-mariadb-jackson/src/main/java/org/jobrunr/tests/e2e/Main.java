@@ -5,7 +5,7 @@ import org.mariadb.jdbc.MariaDbPoolDataSource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-public class Main extends AbstractMain {
+public class Main extends AbstractSqlMain {
 
     public static void main(String[] args) throws Exception {
         new Main(args);

@@ -6,7 +6,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class MariaDbJacksonE2ETest extends AbstractE2EJacksonSqlTest {
+public class MariaDbJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
     private static MariaDBContainer sqlContainer = new MariaDBContainer();

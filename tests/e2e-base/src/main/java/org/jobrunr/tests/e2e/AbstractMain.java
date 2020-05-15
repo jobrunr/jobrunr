@@ -13,21 +13,6 @@ import static java.util.Arrays.asList;
 
 public abstract class AbstractMain {
 
-    protected abstract DataSource createDataSource(String jdbcUrl, String userName, String password) throws SQLException;
-
-    protected StorageProvider initStorageProvider() throws Exception {
-        if (getEnvOrProperty("JOBRUNR_JDBC_URL") == null) {
-            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable JOBRUNR_JDBC_URL is not set");
-        }
-
-        DataSource dataSource = createDataSource(
-                getEnvOrProperty("JOBRUNR_JDBC_URL"),
-                getEnvOrProperty("JOBRUNR_JDBC_USERNAME"),
-                getEnvOrProperty("JOBRUNR_JDBC_PASSWORD"));
-
-        return SqlStorageProviderFactory.using(dataSource);
-    }
-
     public AbstractMain(String[] args) throws Exception {
         if (args.length < 1) {
             startBackgroundJobServerInRunningState();
@@ -37,6 +22,8 @@ public abstract class AbstractMain {
             System.out.println("Did not start server");
         }
     }
+
+    protected abstract StorageProvider initStorageProvider() throws Exception;
 
     protected void startBackgroundJobServerInRunningState() throws Exception {
         startBackgroundJobServer(true);
@@ -55,7 +42,7 @@ public abstract class AbstractMain {
                 .useBackgroundJobServer(backgroundJobServer)
                 .useDashboard()
                 .initialize();
-        if(startRunning) {
+        if (startRunning) {
             backgroundJobServer.start();
         }
 

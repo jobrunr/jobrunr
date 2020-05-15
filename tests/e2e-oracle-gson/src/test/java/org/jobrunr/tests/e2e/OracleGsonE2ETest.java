@@ -10,7 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @RunTestBetween(from = "03:00", to = "07:00")
 @RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 @Testcontainers
-public class OracleGsonE2ETest extends AbstractE2EGsonSqlTest {
+public class OracleGsonE2ETest extends AbstractE2EGsonTest {
 
     @Container
     private static OracleContainer sqlContainer = new OracleContainer("container-registry.oracle.com/database/standard:12.1.0.2")

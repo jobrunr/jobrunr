@@ -22,13 +22,13 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
-public abstract class AbstractE2ESqlTest {
+public abstract class AbstractE2ETest {
 
     private StorageProvider storageProvider;
 
     protected abstract StorageProvider getStorageProviderForClient();
 
-    protected abstract AbstractBackgroundJobSqlContainer backgroundJobServer();
+    protected abstract AbstractBackgroundJobContainer backgroundJobServer();
 
     @BeforeEach
     public void setUpJobRunr() {
@@ -45,7 +45,7 @@ public abstract class AbstractE2ESqlTest {
         UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         with()
-                //.conditionEvaluationListener(condition -> System.out.printf("Processing not done. Server logs:\n %s", backgroundJobServer.getLogs()))
+                //.conditionEvaluationListener(condition -> System.out.printf("Processing not done. Server logs:\n %s", backgroundJobServer().getLogs()))
                 .pollInterval(FIVE_SECONDS)
                 .await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
 

@@ -32,7 +32,7 @@ jib {
     }
 }
 
-project(":tests:e2e-postgres-jackson") {
+project(":tests:${project.name}") {
     sonarqube {
         skipProject = true
     }

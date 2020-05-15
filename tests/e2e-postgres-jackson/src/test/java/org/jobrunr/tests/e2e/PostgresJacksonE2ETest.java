@@ -6,7 +6,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class PostgresJacksonE2ETest extends AbstractE2EJacksonSqlTest {
+public class PostgresJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
     private static PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>();

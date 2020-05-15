@@ -4,7 +4,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 
-public class Main extends AbstractMain {
+public class Main extends AbstractSqlMain {
 
     public static void main(String[] args) throws Exception {
         new Main(args);

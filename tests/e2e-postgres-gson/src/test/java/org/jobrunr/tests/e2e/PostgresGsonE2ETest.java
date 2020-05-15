@@ -6,7 +6,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class PostgresGsonE2ETest extends AbstractE2EGsonSqlTest {
+public class PostgresGsonE2ETest extends AbstractE2EGsonTest {
 
     @Container
     private static PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>();

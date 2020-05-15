@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
-public abstract class AbstractE2EGsonSqlTest extends AbstractE2ESqlTest {
+public abstract class AbstractE2EGsonTest extends AbstractE2ETest {
 
     @Test
     public void onlyGsonIsOnClasspath() {

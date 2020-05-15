@@ -31,7 +31,7 @@ jib {
     }
 }
 
-project(":tests:e2e-oracle-jackson") {
+project(":tests:${project.name}") {
     sonarqube {
         skipProject = true
     }

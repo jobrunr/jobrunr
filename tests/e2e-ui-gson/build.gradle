@@ -30,7 +30,7 @@ jib {
     }
 }
 
-project(":tests:e2e-ui-gson") {
+project(":tests:${project.name}") {
     sonarqube {
         skipProject = true
     }

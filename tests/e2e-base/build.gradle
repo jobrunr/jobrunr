@@ -19,7 +19,7 @@ dependencies {
     testFixturesApi 'org.testcontainers:junit-jupiter:1.14.1'
 }
 
-project(":tests:e2e-base") {
+project(":tests:${project.name}") {
     sonarqube {
         skipProject = true
     }
