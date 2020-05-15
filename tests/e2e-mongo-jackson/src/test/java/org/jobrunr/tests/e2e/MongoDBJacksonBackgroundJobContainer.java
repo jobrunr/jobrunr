@@ -20,7 +20,7 @@ public class MongoDBJacksonBackgroundJobContainer extends AbstractBackgroundJobC
         this
                 .dependsOn(mongoContainer)
                 .withEnv("MONGO_HOST", "host.testcontainers.internal")
-                .withEnv("MONGO_PORT", String.valueOf(mongoContainer.getFirstMappedPort()));
+                .withEnv("MONGO_PORT", String.valueOf(mongoContainer.getMappedPort(27017)));
 
         super.start();
     }

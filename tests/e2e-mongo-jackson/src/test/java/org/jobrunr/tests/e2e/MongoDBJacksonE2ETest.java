@@ -6,7 +6,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class PostgresJacksonE2ETest extends AbstractE2EJacksonTest {
+public class MongoDBJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
     private static GenericContainer mongoContainer = new GenericContainer("mongo").withExposedPorts(27017);
