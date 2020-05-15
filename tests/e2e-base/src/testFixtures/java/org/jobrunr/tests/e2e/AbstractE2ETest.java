@@ -1,5 +1,6 @@
 package org.jobrunr.tests.e2e;
 
+import org.awaitility.core.ConditionTimeoutException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.storage.StorageProvider;
@@ -41,15 +42,18 @@ public abstract class AbstractE2ETest {
 
     @Test
     public void testProcessInBackgroundJobServer() {
-        TestService testService = new TestService();
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
+        try {
+            TestService testService = new TestService();
+            UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
 
-        with()
-                //.conditionEvaluationListener(condition -> System.out.printf("Processing not done. Server logs:\n %s", backgroundJobServer().getLogs()))
-                .pollInterval(FIVE_SECONDS)
-                .await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+            with()
+                    //.conditionEvaluationListener(condition -> System.out.printf("Processing not done. Server logs:\n %s", backgroundJobServer().getLogs()))
+                    .pollInterval(FIVE_SECONDS)
+                    .await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
 
-        System.out.println(backgroundJobServer().getLogs());
+        } catch (ConditionTimeoutException e) {
+            System.out.println(backgroundJobServer().getLogs());
+        }
     }
 
     @Disabled
