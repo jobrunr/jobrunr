@@ -6,7 +6,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
 import javax.sql.DataSource;
 
-public class Main extends AbstractMain {
+public class Main extends AbstractSqlMain {
 
     public static void main(String[] args) throws Exception {
         new Main(args);
