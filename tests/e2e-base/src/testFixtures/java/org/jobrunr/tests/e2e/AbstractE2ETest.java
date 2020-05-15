@@ -53,6 +53,7 @@ public abstract class AbstractE2ETest {
 
         } catch (ConditionTimeoutException e) {
             System.out.println(backgroundJobServer().getLogs());
+            throw e;
         }
     }
 
