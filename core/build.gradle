@@ -51,6 +51,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.14.1'
     testImplementation 'org.testcontainers:postgresql:1.14.1'
     testImplementation 'org.testcontainers:oracle-xe:1.14.1'
+    testImplementation 'org.testcontainers:mysql:1.14.1'
     testImplementation 'org.testcontainers:mariadb:1.14.1'
     testImplementation 'org.xerial:sqlite-jdbc:3.31.1'
     testImplementation 'com.h2database:h2:1.4.200'

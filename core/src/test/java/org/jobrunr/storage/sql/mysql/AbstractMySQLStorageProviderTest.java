@@ -1,16 +1,16 @@
-package org.jobrunr.storage.sql.mariadb;
+package org.jobrunr.storage.sql.mysql;
 
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.extension.AfterAllSubclasses;
 import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
-import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.containers.MySQLContainer;
 
 @ExtendWith(ForAllSubclassesExtension.class)
-public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProviderTest {
+public abstract class AbstractMySQLStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static MariaDBContainer sqlContainer = new MariaDBContainer<>().withEnv("TZ", "UTC");
+    protected static MySQLContainer sqlContainer = new MySQLContainer<>().withEnv("TZ", "UTC");
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {
