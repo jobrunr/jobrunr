@@ -41,6 +41,8 @@ public class SqlStorageProviderFactory {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".mariadb.MariaDbStorageProvider");
         } else if (jdbcUrl.startsWith("jdbc:oracle")) {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".oracle.OracleStorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:sqlserver")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".sqlserver.SQLServerStorageProvider");
         }
         throw unsupportedDataSourceException(jdbcUrl);
     }

@@ -17,7 +17,7 @@ public class DialectFactory {
     public static Dialect forDataSource(DataSource dataSource) {
         try (Connection connection = dataSource.getConnection()) {
             final String url = connection.getMetaData().getURL();
-            if (url.contains("oracle")) {
+            if (url.contains("oracle") || url.contains("sqlserver")) {
                 return oracleDialect;
             }
             return ansiDialect;

@@ -192,7 +192,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         return Sql.forType(JobStats.class)
                 .using(dataSource)
                 .withLimitAndOffset(1, 0)
-                .select("* from jobrunr_jobs_stats")
+                .select("* from jobrunr_jobs_stats order by total")
                 .map(this::toJobStats)
                 .findFirst()
                 .orElse(JobStats.empty()); //why: because oracle returns nothing
