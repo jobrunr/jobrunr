@@ -13,6 +13,8 @@ include ':tests:e2e-postgres-gson'
 include ':tests:e2e-postgres-jackson'
 include ':tests:e2e-redis-gson'
 include ':tests:e2e-redis-jackson'
+include ':tests:e2e-sqlserver-gson'
+include ':tests:e2e-sqlserver-jackson'
 include ':tests:e2e-ui-gson'
 include ':tests:e2e-ui-jackson'
 
