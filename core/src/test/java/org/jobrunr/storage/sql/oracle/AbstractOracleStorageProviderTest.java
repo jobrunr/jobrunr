@@ -7,6 +7,8 @@ import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.OracleContainer;
 
+import java.sql.SQLException;
+
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractOracleStorageProviderTest extends SqlStorageProviderTest {
 
@@ -25,5 +27,10 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
     @AfterAllSubclasses
     public static void stopSqlContainer() {
         sqlContainer.stop();
+    }
+
+    @Override
+    protected boolean canIgnoreException(SQLException e) {
+        return e.getMessage().contains("ORA-00942");
     }
 }

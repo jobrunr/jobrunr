@@ -191,6 +191,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public JobStats getJobStats() {
         return Sql.forType(JobStats.class)
                 .using(dataSource)
+                .withLimitAndOffset(1, 0)
                 .select("* from jobrunr_jobs_stats")
                 .map(this::toJobStats)
                 .findFirst()

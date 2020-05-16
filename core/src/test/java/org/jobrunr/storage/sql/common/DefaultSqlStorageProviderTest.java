@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,8 @@ class DefaultSqlStorageProviderTest {
     @Mock
     private Connection connection;
     @Mock
+    private DatabaseMetaData databaseMetadata;
+    @Mock
     private Statement statement;
     @Mock
     private PreparedStatement preparedStatement;
@@ -47,6 +50,8 @@ class DefaultSqlStorageProviderTest {
 
     @BeforeEach
     public void setUp() throws SQLException {
+        when(connection.getMetaData()).thenReturn(databaseMetadata);
+        when(databaseMetadata.getURL()).thenReturn("postgres://");
         when(connection.createStatement()).thenReturn(statement);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);

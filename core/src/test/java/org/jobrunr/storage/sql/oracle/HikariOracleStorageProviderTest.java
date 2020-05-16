@@ -12,16 +12,18 @@ import javax.sql.DataSource;
 class HikariOracleStorageProviderTest extends AbstractOracleStorageProviderTest {
 
     //    docker run -d --env DB_PASSWD=oracle -p 1527:1521 -p 5507:5500 -it --shm-size="8g" container-registry.oracle.com/database/standard:12.1.0.2
-//    @Override
-//    protected DataSource getDataSource() {
-//        return createDataSource("jdbc:oracle:thin:@localhost:1527:xe", "system", "oracle", "ORCL");
-//    }
 
     private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
+//            HikariConfig config = new HikariConfig();
+//            config.setJdbcUrl("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"));
+//            config.setUsername("system");
+//            config.setPassword("oracle");
+//            dataSource = new HikariDataSource(config);
+
             System.out.println("==========================================================================================");
             System.out.println(sqlContainer.getLogs());
             System.out.println("==========================================================================================");

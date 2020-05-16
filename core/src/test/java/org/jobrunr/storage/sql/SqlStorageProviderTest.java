@@ -48,7 +48,18 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
                 System.out.println("Dropped " + name);
             }
         } catch (SQLException e) {
-            //e.printStackTrace();
+            if (canNotIgnoreException(e)) {
+                System.out.println("Error dropping " + name);
+                e.printStackTrace();
+            }
         }
+    }
+
+    private boolean canNotIgnoreException(SQLException e) {
+        return !canIgnoreException(e);
+    }
+
+    protected boolean canIgnoreException(SQLException e) {
+        return true;
     }
 }
