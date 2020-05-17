@@ -121,7 +121,7 @@ public class BackgroundJobServer {
         return backgroundJobRunners.stream()
                 .filter(jobRunner -> jobRunner.supports(job))
                 .findFirst()
-                .orElseThrow(() -> problematicConfigurationException("Could not find a BackgroundJobRunner: either no JobActivator is registered, your Background Job Service is not registered within the IoC container or your Job does not have a default no-arg constructor."));
+                .orElseThrow(() -> problematicConfigurationException("Could not find a BackgroundJobRunner: either no JobActivator is registered, your Background Job Class is not registered within the IoC container or your Job does not have a default no-arg constructor."));
     }
 
     void processJob(Job job) {

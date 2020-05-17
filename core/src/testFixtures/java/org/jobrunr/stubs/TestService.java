@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-public class TestService {
+public class TestService implements TestServiceInterface {
 
     private static int processedJobs = 0;
 

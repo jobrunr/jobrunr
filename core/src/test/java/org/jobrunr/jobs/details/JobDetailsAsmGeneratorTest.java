@@ -8,8 +8,8 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -30,16 +30,17 @@ import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 public class JobDetailsAsmGeneratorTest {
 
     private TestService testService;
-    private JobDetailsGenerator jobDetailsGenerator;
+    private TestServiceInterface testServiceInterface;
+    private JobDetailsAsmGenerator jobDetailsGenerator;
 
     @BeforeEach
     public void setUp() {
         jobDetailsGenerator = new JobDetailsAsmGenerator();
         testService = new TestService();
+        testServiceInterface = testService;
     }
 
     @Test
-    @Disabled
     public void logByteCode() {
         String name = this.getClass().getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
@@ -58,12 +59,13 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testInlineJobLambdaCallInstanceMethod() {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testService.doWork());
+    public void testJobLambdaCallingInlineStaticMethod() {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> System.out.println("This is a test!"));
         assertThat(jobDetails)
-                .hasClass(TestService.class)
-                .hasMethodName("doWork")
-                .hasNoArgs();
+                .hasClass(System.class)
+                .hasStaticFieldName("out")
+                .hasMethodName("println")
+                .hasArgs("This is a test!");
     }
 
     @Test
@@ -74,6 +76,15 @@ public class JobDetailsAsmGeneratorTest {
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
                 .hasArgs(5);
+    }
+
+    @Test
+    public void testInlineJobLambdaCallInstanceMethod() {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testService.doWork());
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWork")
+                .hasNoArgs();
     }
 
     @Test
@@ -428,6 +439,24 @@ public class JobDetailsAsmGeneratorTest {
     public void testIocJobLambdaWithArgumentThatIsNotUsed() {
         IocJobLambdaFromStream<TestService, Integer> iocJobLambdaFromStream = (x, i) -> x.doWork();
         assertThatCode(() -> jobDetailsGenerator.toJobDetails(5, iocJobLambdaFromStream)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testInlineJobLambdaFromInterface() {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testServiceInterface.doWork());
+        assertThat(jobDetails)
+                .hasClass(TestServiceInterface.class)
+                .hasMethodName("doWork")
+                .hasNoArgs();
+    }
+
+    @Test
+    public void testMethodReferenceJobLambdaFromInterface() {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) testServiceInterface::doWork);
+        assertThat(jobDetails)
+                .hasClass(TestServiceInterface.class)
+                .hasMethodName("doWork")
+                .hasNoArgs();
     }
 
 }

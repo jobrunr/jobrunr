@@ -3,12 +3,11 @@ package org.jobrunr.jobs.details;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
-
-import java.io.Serializable;
+import org.jobrunr.jobs.lambdas.JobRunrJob;
 
 public interface JobDetailsGenerator {
 
-    <T extends Serializable> JobDetails toJobDetails(T lambda);
+    <T extends JobRunrJob> JobDetails toJobDetails(T lambda);
 
     <TItem> JobDetails toJobDetails(TItem x, JobLambdaFromStream<TItem> consumer);
 

@@ -7,6 +7,7 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -14,7 +15,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     }
 
     @Override
-    public <T extends Serializable> JobDetails toJobDetails(T lambda) {
+    public <T extends JobRunrJob> JobDetails toJobDetails(T lambda) {
         SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
         JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(lambda, serializedLambda);
         return findJobDetailsInByteCode(lambda, jobDetailsFinder);
@@ -136,7 +136,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
                     @Override
                     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                         String fqClassName = toFQClassName(owner);
-                        if (Opcodes.INVOKEVIRTUAL == opcode) {
+                        if (Opcodes.INVOKEVIRTUAL == opcode || Opcodes.INVOKEINTERFACE == opcode) {
                             if (paramsContainObjectOfType(fqClassName)) {
                                 Class[] paramTypes = findParamTypesForDescriptorAsArray(descriptor);
                                 params.add(createObjectViaMethod(getObject(fqClassName), name, paramTypes, getParameters(paramTypes)));
@@ -156,20 +156,14 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
                         } else if (Opcodes.INVOKESPECIAL == opcode) {
                             Class[] paramTypes = findParamTypesForDescriptorAsArray(descriptor);
                             params.add(createObjectViaConstructor(fqClassName, paramTypes, getParameters(paramTypes)));
-                        } else if (Opcodes.INVOKEDYNAMIC == opcode) {
-                            //System.out.println("look here");
                         }
                         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                     }
 
                     @Override
                     public void visitInsn(int opcode) {
-                        if (Opcodes.ICONST_0 == opcode) params.add(0);
-                        else if (Opcodes.ICONST_1 == opcode) params.add(1);
-                        else if (Opcodes.ICONST_2 == opcode) params.add(2);
-                        else if (Opcodes.ICONST_3 == opcode) params.add(3);
-                        else if (Opcodes.ICONST_4 == opcode) params.add(4);
-                        else if (Opcodes.ICONST_5 == opcode) params.add(5);
+                        if (Opcodes.ICONST_0 <= opcode && opcode <= Opcodes.ICONST_5)
+                            params.add(opcode - Opcodes.ICONST_0);
                         super.visitInsn(opcode);
                     }
 
@@ -305,8 +299,8 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
             return lambda instanceof IocJobLambdaFromStream;
         }
 
-        private static <T> T[] toCastedArray(Class<T> classToCastTo, Collection c) {
-            return (T[]) c.toArray((T[]) Array.newInstance(classToCastTo, 0));
+        private static <T> T[] toCastedArray(Class<T> classToCastTo, Collection<T> c) {
+            return c.toArray((T[]) Array.newInstance(classToCastTo, 0));
         }
     }
 }

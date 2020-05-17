@@ -19,6 +19,13 @@ public class SimpleJobActivator implements JobActivator {
 
     @Override
     public <T> T activateJob(Class<T> type) {
-        return cast(allServices.get(type));
+        Object anObject = allServices.get(type);
+        if (anObject == null) {
+            anObject = allServices.get(allServices.keySet().stream()
+                    .filter(clazz -> type.isAssignableFrom(clazz))
+                    .findFirst()
+                    .get());
+        }
+        return cast(anObject);
     }
 }
