@@ -21,10 +21,10 @@ public class SimpleJobActivator implements JobActivator {
     public <T> T activateJob(Class<T> type) {
         Object anObject = allServices.get(type);
         if (anObject == null) {
-            return (T) allServices.keySet().stream()
+            return allServices.keySet().stream()
                     .filter(clazz -> type.isAssignableFrom(clazz))
                     .findFirst()
-                    .map(key -> allServices.get(key))
+                    .map(key -> (T) allServices.get(key))
                     .orElse(null);
         }
         return cast(anObject);
