@@ -11,8 +11,10 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
@@ -76,6 +78,16 @@ public class ReflectionUtils {
         }
     }
 
+    public static boolean hasDefaultNoArgConstructor(String clazzName) {
+        return Stream.of(toClass(clazzName).getConstructors())
+                .anyMatch((c) -> c.getParameterCount() == 0);
+    }
+
+    public static boolean hasDefaultNoArgConstructor(Class<?> clazz) {
+        return Stream.of(clazz.getConstructors())
+                .anyMatch((c) -> c.getParameterCount() == 0);
+    }
+
     public static <T> T newInstance(Class<T> clazz, Map<String, String> fieldValues) {
         T t = newInstance(clazz);
         Field[] declaredFields = clazz.getDeclaredFields();
@@ -107,6 +119,12 @@ public class ReflectionUtils {
         } catch (ReflectiveOperationException e) {
             throw shouldNotHappenException(e);
         }
+    }
+
+    public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class[] parameterTypes) {
+        return stream(clazz.getMethods())
+                .filter(m -> methodName.equals(m.getName()) && Arrays.equals(m.getParameterTypes(), parameterTypes))
+                .findFirst();
     }
 
     public static boolean objectContainsFieldOrProperty(Object object, String fieldName) {
@@ -163,6 +181,10 @@ public class ReflectionUtils {
         accessibleObject.setAccessible(true);
     }
 
+    public static NoSuchMethodException noSuchMethodException(String clazz, String methodName, Class[] parameterTypes) {
+        return new NoSuchMethodException(clazz + "." + methodName + "(" + Stream.of(parameterTypes).map(Class::getName).collect(joining(",")) + ")");
+    }
+
     private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class[] args) throws NoSuchMethodException {
         Constructor<?>[] constructors = clazz.getConstructors();
 
@@ -177,10 +199,10 @@ public class ReflectionUtils {
                     }
                 }
 
-                if (argumentsMatch) return (Constructor<T>) constructor;
+                if (argumentsMatch) return cast(constructor);
             }
         }
-        throw new NoSuchMethodException(clazz.getName() + ".<init>(" + Stream.of(args).map(Class::getName).collect(joining(",")) + ")");
+        throw noSuchMethodException(clazz.getName(), "<init>", args);
     }
 
     private static <T> Class<T> cast(Class<?> aClass) {
@@ -192,11 +214,10 @@ public class ReflectionUtils {
     }
 
     private static boolean objectContainsField(Object object, String fieldName) {
-        return Arrays.stream(object.getClass().getDeclaredFields()).anyMatch(f -> f.getName().equals(fieldName));
+        return stream(object.getClass().getDeclaredFields()).anyMatch(f -> f.getName().equals(fieldName));
     }
 
     private static boolean objectContainsProperty(Object object, String fieldName) {
-        return Arrays.stream(object.getClass().getDeclaredMethods()).anyMatch(m -> m.getName().equalsIgnoreCase("get" + fieldName));
+        return stream(object.getClass().getDeclaredMethods()).anyMatch(m -> m.getName().equalsIgnoreCase("get" + fieldName));
     }
-
 }

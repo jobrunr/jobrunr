@@ -3,7 +3,6 @@ package org.jobrunr.server.runner;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.lambdas.JobWithoutIoc;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -14,7 +13,7 @@ public class BackgroundStaticJobWithoutIocRunner extends AbstractBackgroundJobRu
     @Override
     public boolean supports(Job job) {
         JobDetails jobDetails = job.getJobDetails();
-        return JobWithoutIoc.class.getName().equals(jobDetails.getLambdaType()) && jobDetails.getStaticFieldName().isPresent();
+        return jobDetails.getStaticFieldName().isPresent();
     }
 
     @Override

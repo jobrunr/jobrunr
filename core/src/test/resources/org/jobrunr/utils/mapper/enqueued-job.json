@@ -2,7 +2,6 @@
   "jobSignature": "System.out.println(String)",
   "jobName": "an enqueued job",
   "jobDetails": {
-    "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
     "className": "java.lang.System",
     "staticFieldName": "out",
     "methodName": "println",

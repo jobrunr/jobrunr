@@ -1,6 +1,5 @@
 package org.jobrunr.jobs;
 
-import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
@@ -12,13 +11,11 @@ class JobDetailsTest {
     @Test
     public void testJobDetails() {
         JobDetails jobDetails = jobDetails()
-                .withLambdaType(JobLambda.class)
                 .withClassName(TestService.class)
                 .withMethodName("doWork")
                 .withJobParameter(5)
                 .build();
 
-        assertThat(jobDetails.getLambdaType()).isEqualTo(JobLambda.class.getName());
         assertThat(jobDetails.getClassName()).isEqualTo(TestService.class.getName());
         assertThat(jobDetails.getMethodName()).isEqualTo("doWork");
         assertThat(jobDetails.getStaticFieldName()).isEmpty();

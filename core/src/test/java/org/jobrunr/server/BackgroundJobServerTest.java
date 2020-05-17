@@ -1,10 +1,18 @@
 package org.jobrunr.server;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.lambdas.IocJobLambda;
+import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
+import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestServiceForIoC;
+import org.jobrunr.stubs.TestServiceThatCannotBeRun;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,10 +23,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -28,13 +38,16 @@ public class BackgroundJobServerTest {
     private TestService testService;
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
+    private TestServiceForIoC testServiceForIoC;
 
     @BeforeEach
     public void setUpTestService() {
         testService = new TestService();
+        testServiceForIoC = new TestServiceForIoC("an argument");
         testService.reset();
+        testServiceForIoC.reset();
         storageProvider = new SimpleStorageProvider();
-        backgroundJobServer = new BackgroundJobServer(storageProvider);
+        backgroundJobServer = new BackgroundJobServer(storageProvider, new SimpleJobActivator(testServiceForIoC));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
@@ -103,6 +116,55 @@ public class BackgroundJobServerTest {
         await().atMost(TEN_SECONDS)
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+    }
+
+    @Test
+    public void getBackgroundJobRunnerForIoCJobWithoutInstance() {
+        final Job job = anEnqueuedJob()
+                .withJobDetails((IocJobLambda<TestServiceForIoC>) (x) -> x.doWork())
+                .build();
+        assertThat(backgroundJobServer.getBackgroundJobRunner(job))
+                .isNotNull()
+                .isInstanceOf(BackgroundJobWithIocRunner.class);
+    }
+
+    @Test
+    public void getBackgroundJobRunnerForIoCJobWithInstance() {
+        final Job job = anEnqueuedJob()
+                .withJobDetails(() -> testServiceForIoC.doWork())
+                .build();
+        assertThat(backgroundJobServer.getBackgroundJobRunner(job))
+                .isNotNull()
+                .isInstanceOf(BackgroundJobWithIocRunner.class);
+    }
+
+    @Test
+    public void getBackgroundJobRunnerForNonIoCJobWithoutInstance() {
+        final Job job = anEnqueuedJob()
+                .withJobDetails((IocJobLambda<TestService>) (x) -> x.doWork())
+                .build();
+        assertThat(backgroundJobServer.getBackgroundJobRunner(job))
+                .isNotNull()
+                .isInstanceOf(BackgroundJobWithoutIocRunner.class);
+    }
+
+    @Test
+    public void getBackgroundJobRunnerForNonIoCJobWithInstance() {
+        final Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWork())
+                .build();
+        assertThat(backgroundJobServer.getBackgroundJobRunner(job))
+                .isNotNull()
+                .isInstanceOf(BackgroundJobWithoutIocRunner.class);
+    }
+
+    @Test
+    public void getBackgroundJobRunnerForJobThatCannotBeRun() {
+        final Job job = anEnqueuedJob()
+                .withJobDetails((IocJobLambda<TestServiceThatCannotBeRun>) (x) -> x.doWork())
+                .build();
+        assertThatThrownBy(() -> backgroundJobServer.getBackgroundJobRunner(job))
+                .isInstanceOf(JobRunrException.class);
     }
 
     private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {

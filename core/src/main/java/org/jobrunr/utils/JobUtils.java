@@ -1,6 +1,5 @@
 package org.jobrunr.utils;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
@@ -12,6 +11,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
+import static org.jobrunr.JobRunrException.problematicException;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
+import static org.jobrunr.utils.reflection.ReflectionUtils.noSuchMethodException;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobUtils {
@@ -24,16 +27,16 @@ public class JobUtils {
     }
 
     public static Method getJobMethod(JobDetails jobDetails) {
-        try {
-            Class jobClass = getJobClass(jobDetails);
-            return jobClass.getDeclaredMethod(jobDetails.getMethodName(), jobDetails.getJobParameterTypes());
-        } catch (Exception e) {
-            throw JobRunrException.shouldNotHappenException(e);
-        }
+        return getJobMethod(getJobClass(jobDetails), jobDetails);
+    }
+
+    public static Method getJobMethod(Class<?> jobClass, JobDetails jobDetails) {
+        return findMethod(jobClass, jobDetails.getMethodName(), jobDetails.getJobParameterTypes())
+                .orElseThrow(() -> problematicException("JobRunr doesn't find the job method to perform", noSuchMethodException(jobClass.getName(), jobDetails.getMethodName(), jobDetails.getJobParameterTypes())));
     }
 
     public static <T extends Annotation> Optional<T> getJobAnnotation(JobDetails jobDetails) {
-        return (Optional<T>) getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Job.class)).findFirst();
+        return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Job.class)).findFirst());
     }
 
     private static Stream<Annotation> getJobAnnotations(JobDetails jobDetails) {

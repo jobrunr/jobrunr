@@ -1,13 +1,11 @@
 package org.jobrunr.jobs;
 
-import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.stubs.TestService;
 
 import java.util.ArrayList;
 
 public class JobDetailsTestBuilder {
 
-    private String lambdaType;
     private String className;
     private String staticFieldName;
     private String methodName;
@@ -22,7 +20,6 @@ public class JobDetailsTestBuilder {
 
     public static JobDetailsTestBuilder defaultJobDetails() {
         return jobDetails()
-                .withLambdaType(JobLambda.class)
                 .withClassName(TestService.class)
                 .withMethodName("doWork")
                 .withJobParameter(5);
@@ -30,21 +27,10 @@ public class JobDetailsTestBuilder {
 
     public static JobDetailsTestBuilder systemOutPrintLnJobDetails(String message) {
         return jobDetails()
-                .withLambdaType(JobLambda.class)
                 .withClassName(System.class)
                 .withStaticFieldName("out")
                 .withMethodName("println")
                 .withJobParameter(message);
-    }
-
-    public JobDetailsTestBuilder withLambdaType(Class lambdaType) {
-        this.lambdaType = lambdaType.getName();
-        return this;
-    }
-
-    public JobDetailsTestBuilder withLambdaType(String lambdaType) {
-        this.lambdaType = lambdaType;
-        return this;
     }
 
     public JobDetailsTestBuilder withClassName(Class clazz) {
@@ -83,7 +69,7 @@ public class JobDetailsTestBuilder {
     }
 
     public JobDetails build() {
-        return new JobDetails(lambdaType, className, staticFieldName, methodName, jobParameters);
+        return new JobDetails(className, staticFieldName, methodName, jobParameters);
     }
 
 }

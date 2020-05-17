@@ -10,7 +10,6 @@ import static java.util.Collections.unmodifiableList;
 
 public class JobDetails {
 
-    private String lambdaType;
     private String className;
     private String staticFieldName;
     private String methodName;
@@ -20,16 +19,11 @@ public class JobDetails {
         // used for deserialization
     }
 
-    public JobDetails(String lambdaType, String className, String staticFieldName, String methodName, List<JobParameter> jobParameters) {
-        this.lambdaType = lambdaType;
+    public JobDetails(String className, String staticFieldName, String methodName, List<JobParameter> jobParameters) {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
         this.jobParameters = new ArrayList<>(jobParameters);
-    }
-
-    public String getLambdaType() {
-        return lambdaType;
     }
 
     public String getClassName() {

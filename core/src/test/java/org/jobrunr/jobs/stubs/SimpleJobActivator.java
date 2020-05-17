@@ -5,6 +5,8 @@ import org.jobrunr.server.JobActivator;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+
 public class SimpleJobActivator implements JobActivator {
 
     private Map<Class<?>, Object> allServices = new HashMap<>();
@@ -17,6 +19,6 @@ public class SimpleJobActivator implements JobActivator {
 
     @Override
     public <T> T activateJob(Class<T> type) {
-        return (T) allServices.get(type);
+        return cast(allServices.get(type));
     }
 }

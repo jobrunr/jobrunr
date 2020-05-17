@@ -1,8 +1,8 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
+import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
-import org.jobrunr.jobs.lambdas.JobWithoutIoc;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.JobState;
@@ -56,7 +56,6 @@ public class JobTestBuilder {
                 .withName("an enqueued job that takes long")
                 .withState(new EnqueuedState())
                 .withJobDetails(jobDetails()
-                        .withLambdaType(JobWithoutIoc.class)
                         .withClassName(TestService.class)
                         .withMethodName("doWorkThatTakesLong"));
     }
@@ -157,6 +156,11 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withJobDetails(IocJobLambda jobLambda) {
+        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
+        return this;
+    }
+
     public JobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsTestBuilder) {
         this.jobDetails = jobDetailsTestBuilder.build();
         return this;
@@ -186,9 +190,7 @@ public class JobTestBuilder {
         job.getMetadata().putAll(metadata);
 
         ArrayList<JobState> jobHistory = Whitebox.getInternalState(job, "jobHistory");
-        for (JobState jobstate : states) {
-            jobHistory.add(jobstate);
-        }
+        jobHistory.addAll(states);
         return job;
     }
 }

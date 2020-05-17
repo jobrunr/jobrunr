@@ -2,7 +2,6 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.DisplayNameFilter;
-import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
@@ -12,10 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -72,9 +68,5 @@ class BackgroundJobPerformerTest {
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
     }
 
-    private List<JobFilter> getJobFilters(Job job) {
-        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
-        return Whitebox.getInternalState(backgroundJobPerformer, "jobFilters");
-    }
 
 }

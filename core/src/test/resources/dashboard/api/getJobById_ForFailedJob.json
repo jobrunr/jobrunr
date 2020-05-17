@@ -2,7 +2,6 @@
   "jobSignature": "System.out.println(String)",
   "jobName": "failed job",
   "jobDetails": {
-    "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
     "className": "java.lang.System",
     "staticFieldName": "out",
     "methodName": "println",
@@ -42,7 +41,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -71,7 +71,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -100,7 +101,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -129,7 +131,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -158,7 +161,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -187,7 +191,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -216,7 +221,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -245,7 +251,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -274,7 +281,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -303,7 +311,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",
@@ -332,7 +341,8 @@
       "exceptionMessage": null,
       "exceptionCauseType": null,
       "exceptionCauseMessage": null,
-      "stackTrace": "${json-unit.ignore}"
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
     }
   ],
   "metadata": {

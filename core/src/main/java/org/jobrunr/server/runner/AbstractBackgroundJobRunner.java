@@ -3,6 +3,7 @@ package org.jobrunr.server.runner;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.utils.JobUtils;
 
 import java.lang.reflect.Method;
 import java.util.OptionalInt;
@@ -35,16 +36,16 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
             invokeJobMethod(jobToPerform, jobMethodToPerform);
         }
 
-        protected Class<?> getJobToPerformClass() throws ClassNotFoundException {
-            return Class.forName(jobDetails.getClassName());
+        protected Class<?> getJobToPerformClass() {
+            return JobUtils.getJobClass(jobDetails);
         }
 
         protected Object getJobToPerform(Class<?> jobToPerformClass) {
             return newInstance(jobToPerformClass);
         }
 
-        protected Method getJobMethodToPerform(Class<?> jobToPerformClass) throws NoSuchMethodException {
-            return jobToPerformClass.getDeclaredMethod(jobDetails.getMethodName(), jobDetails.getJobParameterTypes());
+        protected Method getJobMethodToPerform(Class<?> jobToPerformClass) {
+            return JobUtils.getJobMethod(jobToPerformClass, jobDetails);
         }
 
         protected void invokeJobMethod(Object jobToPerform, Method jobMethodToPerform) throws Exception {

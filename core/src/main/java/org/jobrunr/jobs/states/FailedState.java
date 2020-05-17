@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.states;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import static org.jobrunr.utils.exceptions.Exceptions.getStackTraceAsString;
@@ -12,6 +13,7 @@ public class FailedState extends AbstractJobState {
     private final String exceptionCauseType;
     private final String exceptionCauseMessage;
     private final String stackTrace;
+    private final boolean doNotRetry;
 
     private FailedState() { // for jackson deserialization
         super(StateName.FAILED);
@@ -21,6 +23,7 @@ public class FailedState extends AbstractJobState {
         this.exceptionCauseType = null;
         this.exceptionCauseMessage = null;
         this.stackTrace = null;
+        this.doNotRetry = false;
     }
 
     public FailedState(String message, Exception exception) {
@@ -31,6 +34,7 @@ public class FailedState extends AbstractJobState {
         this.exceptionCauseType = hasCause(exception) ? exception.getCause().getClass().getName() : null;
         this.exceptionCauseMessage = hasCause(exception) ? exception.getCause().getMessage() : null;
         this.stackTrace = getStackTraceAsString(exception);
+        this.doNotRetry = isProblematicAndDoNotRetry(exception);
     }
 
     public String getMessage() {
@@ -57,6 +61,10 @@ public class FailedState extends AbstractJobState {
         return stackTrace;
     }
 
+    public boolean mustNotRetry() {
+        return doNotRetry;
+    }
+
     public Exception getException() {
         try {
             final Class<? extends Exception> exceptionClass = ReflectionUtils.toClass(getExceptionType());
@@ -75,6 +83,10 @@ public class FailedState extends AbstractJobState {
 
     private static boolean hasCause(Exception exception) {
         return exception.getCause() != null && exception.getCause() != exception;
+    }
+
+    private static boolean isProblematicAndDoNotRetry(Exception exception) {
+        return exception instanceof JobRunrException && ((JobRunrException) exception).isProblematicAndDoNotRetry();
     }
 
 }

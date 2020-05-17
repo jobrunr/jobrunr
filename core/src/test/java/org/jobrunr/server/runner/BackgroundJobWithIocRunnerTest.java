@@ -1,11 +1,13 @@
 package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.JobActivator;
+import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestServiceForIoC;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobParameter.JobContext;
@@ -17,12 +19,36 @@ class BackgroundJobWithIocRunnerTest {
 
     @BeforeEach
     public void setup() {
-        backgroundIoCJobWithIocRunner = new BackgroundJobWithIocRunner(new JobActivator() {
-            @Override
-            public <T> T activateJob(Class<T> type) {
-                return (T) new TestService();
-            }
-        });
+        backgroundIoCJobWithIocRunner = new BackgroundJobWithIocRunner(new SimpleJobActivator(new TestService()));
+    }
+
+    @Test
+    public void supportsJobIfJobClassIsKnownInIoC() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(defaultJobDetails())
+                .build();
+
+        assertThat(backgroundIoCJobWithIocRunner.supports(job)).isTrue();
+    }
+
+    @Test
+    public void doesNotSupportJobIfNoJobActivatorIsRegistered() {
+        backgroundIoCJobWithIocRunner = new BackgroundJobWithIocRunner(null);
+
+        Job job = anEnqueuedJob()
+                .withJobDetails(defaultJobDetails())
+                .build();
+
+        assertThat(backgroundIoCJobWithIocRunner.supports(job)).isFalse();
+    }
+
+    @Test
+    public void doesNotSupportJobIfJobClassIsNotKnownInIoC() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(defaultJobDetails().withClassName(TestServiceForIoC.class))
+                .build();
+
+        assertThat(backgroundIoCJobWithIocRunner.supports(job)).isFalse();
     }
 
     @Test

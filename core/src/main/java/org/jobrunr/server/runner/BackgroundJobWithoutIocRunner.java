@@ -2,14 +2,15 @@ package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.lambdas.JobWithoutIoc;
+
+import static org.jobrunr.utils.reflection.ReflectionUtils.hasDefaultNoArgConstructor;
 
 public class BackgroundJobWithoutIocRunner extends AbstractBackgroundJobRunner {
 
     @Override
     public boolean supports(Job job) {
         JobDetails jobDetails = job.getJobDetails();
-        return JobWithoutIoc.class.getName().equals(jobDetails.getLambdaType()) && !jobDetails.getStaticFieldName().isPresent();
+        return !jobDetails.getStaticFieldName().isPresent() && hasDefaultNoArgConstructor(jobDetails.getClassName());
     }
 
     @Override

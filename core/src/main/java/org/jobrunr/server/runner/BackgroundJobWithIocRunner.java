@@ -1,10 +1,9 @@
 package org.jobrunr.server.runner;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.lambdas.JobWithIoc;
 import org.jobrunr.server.JobActivator;
+
+import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
 
@@ -16,10 +15,8 @@ public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
 
     @Override
     public boolean supports(Job job) {
-        JobDetails jobDetails = job.getJobDetails();
-        boolean supportsJob = JobWithIoc.class.getName().equals(jobDetails.getLambdaType());
-        if (supportsJob && jobActivator == null) throw new JobRunrException("A Job is enqueued without registering a proper JobActivator. Please register a JobActivator (See the documentation for more info.)");
-        return supportsJob;
+        if (jobActivator == null) return false;
+        return jobActivator.activateJob(toClass(job.getJobDetails().getClassName())) != null;
     }
 
     @Override

@@ -16,7 +16,6 @@ class FailedStateTest {
         assertThat(failedState.getException())
                 .isInstanceOf(CustomException.class)
                 .hasMessage(null);
-
     }
 
     @Test
@@ -26,7 +25,6 @@ class FailedStateTest {
         assertThat(failedState.getException())
                 .isInstanceOf(CustomException.class)
                 .hasMessage("custom exception message");
-
     }
 
     @Test
@@ -36,7 +34,6 @@ class FailedStateTest {
         assertThat(failedState.getException())
                 .isInstanceOf(CustomException.class)
                 .hasCauseInstanceOf(CustomException.class);
-
     }
 
     @Test
@@ -47,7 +44,6 @@ class FailedStateTest {
                 .isInstanceOf(CustomException.class)
                 .hasMessage("custom exception message")
                 .hasCauseInstanceOf(CustomException.class);
-
     }
 
     @Test
@@ -59,14 +55,13 @@ class FailedStateTest {
                 .hasMessage("custom exception message")
                 .hasCauseInstanceOf(CustomException.class)
                 .hasRootCauseMessage("other exception");
-
     }
 
     @Test
     void getExceptionThatCannotReconstruct() {
         final FailedState failedState = new FailedState("JobRunr message", new CustomExceptionThatCannotReconstruct(UUID.randomUUID()));
 
-        assertThatThrownBy(() -> failedState.getException())
+        assertThatThrownBy(failedState::getException)
                 .isInstanceOf(IllegalStateException.class)
                 .hasCauseInstanceOf(NoSuchMethodException.class);
     }

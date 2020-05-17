@@ -3,7 +3,6 @@
   "jobSignature": "TestService.doWorkWithPath(UnixPath)",
   "jobName": "an enqueued job",
   "jobDetails": {
-    "lambdaType": "org.jobrunr.jobs.lambdas.JobWithoutIoc",
     "className": "org.jobrunr.stubs.TestService",
     "staticFieldName": null,
     "methodName": "doWorkWithPath",

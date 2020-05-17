@@ -21,7 +21,7 @@ public class RetryFilter implements ElectStateFilter {
 
     @Override
     public void onStateElection(Job job, JobState newState) {
-        if (isNotFailed(newState) || maxAmountOfRetriesReached(job)) return;
+        if (isNotFailed(newState) || isProblematicExceptionAndMustNotRetry(newState) || maxAmountOfRetriesReached(job)) return;
 
         job.scheduleAt(now().plusSeconds(getSecondsToAdd(job)), String.format("Retry %d of %d", getFailureCount(job), numberOfRetries));
     }
@@ -40,6 +40,13 @@ public class RetryFilter implements ElectStateFilter {
 
     private long getFailureCount(Job job) {
         return job.getJobStates().stream().filter(FAILED_STATES).count();
+    }
+
+    private boolean isProblematicExceptionAndMustNotRetry(JobState newState) {
+        if (newState instanceof FailedState) {
+            return ((FailedState) newState).mustNotRetry();
+        }
+        return false;
     }
 
     private boolean isNotFailed(JobState newState) {

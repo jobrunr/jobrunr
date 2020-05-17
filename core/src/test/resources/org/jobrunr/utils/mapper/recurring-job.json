@@ -3,7 +3,6 @@
   "jobSignature": "TestService.doWork(Integer)",
   "jobName": null,
   "jobDetails": {
-    "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
     "className": "org.jobrunr.stubs.TestService",
     "staticFieldName": null,
     "methodName": "doWork",

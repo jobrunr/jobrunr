@@ -2,7 +2,6 @@ package org.jobrunr.jobs.mappers;
 
 import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -49,7 +48,6 @@ public class JobMapperUsingJacksonMapperTest {
     public void canSerializeAndDeserializeWithJobContext() {
         org.jobrunr.jobs.Job job = anEnqueuedJob()
                 .withJobDetails(jobDetails()
-                        .withLambdaType(JobLambda.class)
                         .withClassName(TestService.class)
                         .withMethodName("doWork")
                         .withJobParameter(5)

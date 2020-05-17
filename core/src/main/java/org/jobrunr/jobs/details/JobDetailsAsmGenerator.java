@@ -7,8 +7,6 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
-import org.jobrunr.jobs.lambdas.JobWithIoc;
-import org.jobrunr.jobs.lambdas.JobWithoutIoc;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -77,7 +75,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         private final Object lambda;
         private final SerializedLambda serializedLambda;
-        private final String lambdaType;
         private final boolean streaming;
 
         private String className;
@@ -98,7 +95,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
             super(Opcodes.ASM7);
             this.lambda = lambda;
             this.serializedLambda = serializedLambda;
-            this.lambdaType = toFQClassName((lambda instanceof JobWithIoc) ? JobWithIoc.class.getName() : JobWithoutIoc.class.getName());
             this.params = params;
             this.streaming = !params.isEmpty();
         }
@@ -211,9 +207,9 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         public JobDetails getJobDetails() {
             if (className == null) { // method being called is a method reference
-                return new JobDetails(lambdaType, toFQClassName(serializedLambda.getImplClass()), null, serializedLambda.getImplMethodName(), new ArrayList<>());
+                return new JobDetails(toFQClassName(serializedLambda.getImplClass()), null, serializedLambda.getImplMethodName(), new ArrayList<>());
             }
-            return new JobDetails(lambdaType, className, staticFieldName, methodName, getJobParameters());
+            return new JobDetails(className, staticFieldName, methodName, getJobParameters());
         }
 
         private List<JobParameter> getJobParameters() {

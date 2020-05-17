@@ -5,7 +5,6 @@
     "jobSignature": "TestService.doWork(Integer)",
     "jobName": "Generate sales reports",
     "jobDetails": {
-      "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
       "className": "org.jobrunr.stubs.TestService",
       "staticFieldName": null,
       "methodName": "doWork",
@@ -27,7 +26,6 @@
     "jobSignature": "TestService.doWork(Integer)",
     "jobName": "Import sales data",
     "jobDetails": {
-      "lambdaType": "org.jobrunr.jobs.lambdas.JobLambda",
       "className": "org.jobrunr.stubs.TestService",
       "staticFieldName": null,
       "methodName": "doWork",

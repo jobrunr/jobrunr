@@ -11,6 +11,7 @@ import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Work;
+import org.jobrunr.stubs.TestServiceForIoC;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,11 +44,13 @@ public class IocBackgroundJobTest {
 
     private SimpleStorageProvider jobStorageProvider;
     private BackgroundJobServer backgroundJobServer;
+    private TestServiceForIoC testServiceForIoC;
 
     @BeforeEach
     public void setUpTests() {
         jobStorageProvider = new SimpleStorageProvider();
-        SimpleJobActivator jobActivator = new SimpleJobActivator(new TestService());
+        testServiceForIoC = new TestServiceForIoC("a constructor arg");
+        SimpleJobActivator jobActivator = new SimpleJobActivator(testServiceForIoC, new TestService());
         backgroundJobServer = new BackgroundJobServer(jobStorageProvider, jobActivator, new BackgroundJobServerStatus(5, 10));
         JobRunr.configure()
                 .useStorageProvider(jobStorageProvider)
@@ -72,6 +75,13 @@ public class IocBackgroundJobTest {
     @Test
     public void testEnqueueWithMethodReference() {
         UUID jobId = BackgroundJob.<TestService>enqueue(TestService::doWork);
+        await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    public void testEnqueueUsingServiceInstance() {
+        UUID jobId = BackgroundJob.enqueue(() -> testServiceForIoC.doWork());
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }

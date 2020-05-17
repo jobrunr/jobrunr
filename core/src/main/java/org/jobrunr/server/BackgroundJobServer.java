@@ -1,6 +1,5 @@
 package org.jobrunr.server;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilter;
@@ -23,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static org.jobrunr.JobRunrException.problematicConfigurationException;
 
 public class BackgroundJobServer {
 
@@ -121,7 +121,7 @@ public class BackgroundJobServer {
         return backgroundJobRunners.stream()
                 .filter(jobRunner -> jobRunner.supports(job))
                 .findFirst()
-                .orElseThrow(() -> JobRunrException.shouldNotHappenException("Could not find a BackgroundJobRunner"));
+                .orElseThrow(() -> problematicConfigurationException("Could not find a BackgroundJobRunner: either no JobActivator is registered, your Background Job Service is not registered within the IoC container or your Job does not have a default no-arg constructor."));
     }
 
     void processJob(Job job) {
