@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static java.util.Comparator.comparing;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class ServerZooKeeper implements Runnable {
 
@@ -29,7 +30,7 @@ public class ServerZooKeeper implements Runnable {
 
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
-        this.backgroundJobServerStatus = new BackgroundJobServerStatusWriteModel(backgroundJobServer.getServerStatus());
+        this.backgroundJobServerStatus = getBackgroundJobServerStatusWriteModel(backgroundJobServer);
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.timeoutDuration = Duration.ofSeconds(backgroundJobServerStatus.getPollIntervalInSeconds()).multipliedBy(4);
     }
@@ -46,6 +47,10 @@ public class ServerZooKeeper implements Runnable {
             LOGGER.error("An unrecoverable error occurred. Shutting server down...", shouldNotHappen);
             new Thread(this::stopServer).start();
         }
+    }
+
+    protected BackgroundJobServerStatusWriteModel getBackgroundJobServerStatusWriteModel(BackgroundJobServer backgroundJobServer) {
+        return new BackgroundJobServerStatusWriteModel(backgroundJobServer.getServerStatus());
     }
 
     private boolean isUnannounced() {
@@ -117,6 +122,8 @@ public class ServerZooKeeper implements Runnable {
 
         private final BackgroundJobServerStatus serverStatusDelegate;
         private final OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+        private Double cachedSystemCpuLoad;
+        private Double cachedProcessCpuLoad;
 
         public BackgroundJobServerStatusWriteModel(BackgroundJobServerStatus serverStatusDelegate) {
             super(serverStatusDelegate.getPollIntervalInSeconds(), serverStatusDelegate.getWorkerPoolSize());
@@ -185,7 +192,15 @@ public class ServerZooKeeper implements Runnable {
 
         @Override
         public Double getSystemCpuLoad() {
-            return getMXBeanValue("SystemCpuLoad");
+            final Double systemCpuLoad = getMXBeanValue("SystemCpuLoad");
+            if (Double.isNaN(systemCpuLoad)) {
+                if (cachedSystemCpuLoad == null) {
+                    return (double) -1;
+                }
+            } else {
+                cachedSystemCpuLoad = systemCpuLoad;
+            }
+            return cachedSystemCpuLoad;
         }
 
         @Override
@@ -205,15 +220,25 @@ public class ServerZooKeeper implements Runnable {
 
         @Override
         public Double getProcessCpuLoad() {
-            return getMXBeanValue("ProcessCpuLoad");
+            final Double processCpuLoad = getMXBeanValue("ProcessCpuLoad");
+            if (Double.isNaN(processCpuLoad)) {
+                if (cachedProcessCpuLoad == null) {
+                    return (double) -1;
+                }
+            } else {
+                cachedProcessCpuLoad = processCpuLoad;
+            }
+            return cachedProcessCpuLoad;
         }
 
-        private <O> O getMXBeanValue(String name) {
+        // visible for testing
+        // see bug JDK-8193878
+        <O> O getMXBeanValue(String name) {
             try {
                 final Object attribute = ManagementFactory.getPlatformMBeanServer().getAttribute(operatingSystemMXBean.getObjectName(), name);
-                return (O) attribute;
+                return cast(attribute);
             } catch (JMException ex) {
-                return (O) Integer.valueOf(-1);
+                return cast(-1);
             }
         }
     }
