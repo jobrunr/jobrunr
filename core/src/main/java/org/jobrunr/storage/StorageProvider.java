@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * The StorageProvider allows to store, retrieve and delete background jobs.
  */
-public interface StorageProvider {
+public interface StorageProvider extends AutoCloseable {
 
     void addJobStorageOnChangeListener(JobStorageChangeListener listener);
 

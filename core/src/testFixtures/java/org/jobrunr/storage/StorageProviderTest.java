@@ -13,6 +13,7 @@ import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.streams.StreamUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,11 @@ public abstract class StorageProviderTest {
         JobRunr.configure();
         this.storageProvider = getStorageProvider();
         backgroundJobServer = new BackgroundJobServerStub(storageProvider, serverStatus);
+    }
+
+    @AfterEach
+    public void cleanupStorageProvider() throws Exception {
+        this.storageProvider.close();
     }
 
     protected abstract void cleanup();

@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public abstract class AbstractStorageProvider implements StorageProvider {
+public abstract class AbstractStorageProvider implements StorageProvider, AutoCloseable {
 
     private final Set<JobStorageChangeListener> onChangeListeners = new HashSet<>();
     private final RateLimiter changeListenerNotificationRateLimit;
@@ -36,6 +36,14 @@ public abstract class AbstractStorageProvider implements StorageProvider {
                 timer.cancel();
                 timer = null;
             }
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
         }
     }
 
