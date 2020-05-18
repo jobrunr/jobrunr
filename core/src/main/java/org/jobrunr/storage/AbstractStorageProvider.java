@@ -4,11 +4,14 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public abstract class AbstractStorageProvider implements StorageProvider {
 
     private final Set<JobStorageChangeListener> onChangeListeners = new HashSet<>();
     private final RateLimiter changeListenerNotificationRateLimit;
+    private Timer timer;
 
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
@@ -17,6 +20,23 @@ public abstract class AbstractStorageProvider implements StorageProvider {
     @Override
     public void addJobStorageOnChangeListener(JobStorageChangeListener listener) {
         onChangeListeners.add(listener);
+        if (timer == null) {
+            synchronized (onChangeListeners) {
+                timer = new Timer(true);
+                timer.schedule(new SendJobStatsUpdate(), 5000, 5000);
+            }
+        }
+    }
+
+    @Override
+    public void removeJobStorageOnChangeListener(JobStorageChangeListener listener) {
+        onChangeListeners.remove(listener);
+        if (onChangeListeners.size() == 0) {
+            synchronized (onChangeListeners) {
+                timer.cancel();
+                timer = null;
+            }
+        }
     }
 
     protected void notifyOnChangeListenersIf(boolean mustNotify) {
@@ -31,5 +51,12 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
         JobStats jobStats = getJobStats();
         onChangeListeners.forEach(listener -> listener.onChange(jobStats));
+    }
+
+    class SendJobStatsUpdate extends TimerTask {
+
+        public void run() {
+            AbstractStorageProvider.this.notifyOnChangeListeners();
+        }
     }
 }

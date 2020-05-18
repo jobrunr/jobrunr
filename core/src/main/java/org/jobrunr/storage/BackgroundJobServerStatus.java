@@ -1,9 +1,11 @@
 package org.jobrunr.storage;
 
+import org.jobrunr.server.jmx.BackgroundJobServerStatusMBean;
+
 import java.time.Instant;
 import java.util.UUID;
 
-public class BackgroundJobServerStatus {
+public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean {
 
     private final UUID id;
     private final int workerPoolSize;
@@ -39,72 +41,89 @@ public class BackgroundJobServerStatus {
         this.processCpuLoad = processCpuLoad;
     }
 
+    @Override
     public UUID getId() {
         return id;
     }
 
+    @Override
     public int getWorkerPoolSize() {
         return workerPoolSize;
     }
 
+    @Override
     public Instant getFirstHeartbeat() {
         return firstHeartbeat;
     }
 
+    @Override
     public Instant getLastHeartbeat() {
         return lastHeartbeat;
     }
 
+    @Override
     public int getPollIntervalInSeconds() {
         return pollIntervalInSeconds;
     }
 
+    @Override
     public boolean isRunning() {
         return running;
     }
 
+    @Override
     public void start() {
         firstHeartbeat = Instant.now();
         running = true;
     }
 
+    @Override
     public void pause() {
         running = false;
     }
 
+    @Override
     public void resume() {
         running = true;
     }
 
+    @Override
     public void stop() {
         running = false;
         firstHeartbeat = null;
     }
 
+    @Override
     public Long getSystemTotalMemory() {
         return systemTotalMemory;
     }
 
+    @Override
     public Long getSystemFreeMemory() {
         return systemFreeMemory;
     }
 
+    @Override
     public Double getSystemCpuLoad() {
         return systemCpuLoad;
     }
 
+    @Override
     public Long getProcessMaxMemory() {
         return processMaxMemory;
     }
 
+    @Override
     public Long getProcessFreeMemory() {
         return processFreeMemory;
     }
 
+    @Override
     public Long getProcessAllocatedMemory() {
         return processAllocatedMemory;
     }
 
+    @Override
     public Double getProcessCpuLoad() {
         return processCpuLoad;
     }

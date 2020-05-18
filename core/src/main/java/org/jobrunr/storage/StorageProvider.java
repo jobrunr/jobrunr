@@ -17,6 +17,8 @@ public interface StorageProvider {
 
     void addJobStorageOnChangeListener(JobStorageChangeListener listener);
 
+    void removeJobStorageOnChangeListener(JobStorageChangeListener listener);
+
     void setJobMapper(JobMapper jobMapper);
 
     void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus);

@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.JobFilters;
+import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
@@ -14,19 +15,26 @@ import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.AttributeChangeNotification;
+import javax.management.MBeanNotificationInfo;
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 
-public class BackgroundJobServer {
+public class BackgroundJobServer extends NotificationBroadcasterSupport implements BackgroundJobServerMBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
+
+    private final AtomicLong jmxNotificationSequence = new AtomicLong();
 
     private final BackgroundJobServerStatus serverStatus;
     private final StorageProvider storageProvider;
@@ -41,7 +49,6 @@ public class BackgroundJobServer {
     public BackgroundJobServer(StorageProvider storageProvider) {
         this(storageProvider, null);
     }
-
 
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator) {
         this(storageProvider, jobActivator, 15, defaultThreadPoolSize());
@@ -71,22 +78,35 @@ public class BackgroundJobServer {
         return jobFilters;
     }
 
+    public boolean isRunning() {
+        return serverStatus.isRunning();
+    }
+
     public void start() {
         if (isStarted()) return;
         serverStatus.start();
         startZooKeepers();
         startWorkers();
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers started successfully");
+        publishStatusChangeToJMX();
     }
 
     public void pauseProcessing() {
+        if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
+        if (isPaused()) return;
         serverStatus.pause();
         stopWorkers();
+        LOGGER.info("Paused job processing");
+        publishStatusChangeToJMX();
     }
 
     public void resumeProcessing() {
+        if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
+        if (isProcessing()) return;
         startWorkers();
         serverStatus.resume();
+        LOGGER.info("Resumed job processing");
+        publishStatusChangeToJMX();
     }
 
     public void stop() {
@@ -95,6 +115,7 @@ public class BackgroundJobServer {
         stopZooKeepers();
         serverStatus.stop();
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers stopped");
+        publishStatusChangeToJMX();
     }
 
     public BackgroundJobServerStatus getServerStatus() {
@@ -155,6 +176,14 @@ public class BackgroundJobServer {
         return zookeeperThreadPool == null;
     }
 
+    boolean isPaused() {
+        return !isProcessing();
+    }
+
+    boolean isProcessing() {
+        return serverStatus.isRunning();
+    }
+
     private void startZooKeepers() {
         zookeeperThreadPool = new ScheduledThreadPool(2, "backgroundjob-zookeeper-pool");
         zookeeperThreadPool.scheduleAtFixedRate(serverZooKeeper, 0, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
@@ -201,4 +230,18 @@ public class BackgroundJobServer {
         return Runtime.getRuntime().availableProcessors() * 8;
     }
 
+    private void publishStatusChangeToJMX() {
+        Notification notification = new AttributeChangeNotification(this, jmxNotificationSequence.incrementAndGet(), System.currentTimeMillis(), "Status changed", "Running", "Boolean", serverStatus.isRunning(), !serverStatus.isRunning());
+        sendNotification(notification);
+    }
+
+    public MBeanNotificationInfo[] getNotificationInfo() {
+
+        String[] types = new String[]{AttributeChangeNotification.ATTRIBUTE_CHANGE};
+        String name = AttributeChangeNotification.class.getName();
+        String description = "BackgroundJobServer Status change notifications";
+        MBeanNotificationInfo info = new MBeanNotificationInfo(types, name, description);
+
+        return (new MBeanNotificationInfo[]{info});
+    }
 }

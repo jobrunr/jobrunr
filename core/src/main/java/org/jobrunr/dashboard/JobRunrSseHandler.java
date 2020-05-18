@@ -6,11 +6,9 @@ import org.jobrunr.storage.JobStorageChangeListener;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class JobRunrSseHandler extends ServerSentEventHandler implements JobStorageChangeListener {
 
+    private final StorageProvider storageProvider;
     private final JsonMapper jsonMapper;
 
     public JobRunrSseHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
@@ -19,17 +17,17 @@ public class JobRunrSseHandler extends ServerSentEventHandler implements JobStor
 
     public JobRunrSseHandler(String contextPath, StorageProvider storageProvider, JsonMapper jsonMapper) {
         super(contextPath);
+        this.storageProvider = storageProvider;
         this.jsonMapper = jsonMapper;
-
-        storageProvider.addJobStorageOnChangeListener(this);
-
-        Timer timer = new Timer(true);
-        timer.schedule(new SendJobStatsUpdate(this, storageProvider), 0, 5000);
     }
 
-    public void emitObject(Object object) {
-        if (jsonMapper == null) throw new IllegalStateException("You are trying to serialize an object but have not set a JsonMapper");
-        emitMessage(jsonMapper.serialize(object));
+    @Override
+    protected void subscribersChanged(int amount) {
+        if (amount > 0) {
+            storageProvider.addJobStorageOnChangeListener(this);
+        } else {
+            storageProvider.removeJobStorageOnChangeListener(this);
+        }
     }
 
     @Override
@@ -37,20 +35,8 @@ public class JobRunrSseHandler extends ServerSentEventHandler implements JobStor
         emitObject(jobStats);
     }
 
-    static class SendJobStatsUpdate extends TimerTask {
-        private final JobRunrSseHandler sseServer;
-        private final StorageProvider storageProvider;
-
-        public SendJobStatsUpdate(JobRunrSseHandler sseServer, StorageProvider storageProvider) {
-            this.sseServer = sseServer;
-            this.storageProvider = storageProvider;
-        }
-
-        public void run() {
-            if (sseServer.hasNoSubscribers()) return;
-
-            final JobStats jobStats = storageProvider.getJobStats();
-            sseServer.emitObject(jobStats);
-        }
+    public void emitObject(Object object) {
+        if (jsonMapper == null) throw new IllegalStateException("You are trying to serialize an object but have not set a JsonMapper");
+        emitMessage(jsonMapper.serialize(object));
     }
 }

@@ -111,7 +111,7 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void checkForEnqueuedJobs() {
-        LOGGER.info("Looking for enqueued jobs... ");
+        LOGGER.debug("Looking for enqueued jobs... ");
         final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
         if (workPageRequest.getLimit() > 0) {
             final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest);
@@ -124,7 +124,7 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void processRecurringJobs(List<RecurringJob> recurringJobs) {
-        LOGGER.info("Found {} recurring jobs", recurringJobs.size());
+        LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
         recurringJobs.stream()
                 .filter(this::isNotYetScheduled)
                 .forEach(backgroundJobServer::scheduleJob);

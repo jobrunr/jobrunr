@@ -41,6 +41,11 @@ public class ServerSentEventHandler implements TeenyHttpHandler {
         SseExchange e = new SseExchange(httpExchange);
         sseExchanges.add(e);
         e.sendMessage(lastSentMessage);
+        subscribersChanged(sseExchanges.size());
+    }
+
+    protected void subscribersChanged(int amount) {
+
     }
 
     public boolean hasSubscribers() {
@@ -57,7 +62,8 @@ public class ServerSentEventHandler implements TeenyHttpHandler {
         if (rateLimiter.isRateLimited()) return;
 
         sseExchanges.forEach(sseExchange -> sseExchange.sendMessage(message));
-        sseExchanges.removeIf(SseExchange::isStale);
+        final boolean hasRemovedSubscribers = sseExchanges.removeIf(SseExchange::isStale);
+        if (hasRemovedSubscribers) subscribersChanged(sseExchanges.size());
         this.lastSentMessage = message;
     }
 

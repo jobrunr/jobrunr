@@ -7,6 +7,7 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.JsonMapperException;
@@ -28,6 +29,7 @@ public class JobRunrConfiguration {
     private JobRunrDashboardWebServer dashboardWebServer;
     private JobActivator jobActivator;
     private List<JobFilter> jobFilters;
+    private JobRunrJMXExtensions jmxExtension;
 
     JobRunrConfiguration() {
         this.jsonMapper = determineJsonMapper();
@@ -66,6 +68,13 @@ public class JobRunrConfiguration {
 
     public JobRunrConfiguration useJobActivator(JobActivator jobActivator) {
         this.jobActivator = jobActivator;
+        return this;
+    }
+
+    public JobRunrConfiguration useJmxExtensions() {
+        if (backgroundJobServer == null) throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
+        if (storageProvider == null) throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
+        this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider);
         return this;
     }
 

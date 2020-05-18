@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
@@ -116,6 +117,59 @@ public class BackgroundJobServerTest {
         await().atMost(TEN_SECONDS)
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+    }
+
+    @Test
+    public void testServerStatusStateMachine() {
+        // INIT -> START
+        assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isTrue();
+
+        // START -> PAUSE
+        assertThatCode(() -> backgroundJobServer.pauseProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isFalse();
+
+        // PAUSE -> PAUSE
+        assertThatCode(() -> backgroundJobServer.pauseProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isFalse();
+
+        // PAUSE -> STOP
+        assertThatCode(() -> backgroundJobServer.stop()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isFalse();
+        assertThat(backgroundJobServer.isRunning()).isFalse();
+
+        // STOP -> RESUME
+        assertThatThrownBy(() -> backgroundJobServer.resumeProcessing()).isInstanceOf(IllegalStateException.class);
+        assertThat(backgroundJobServer.isStarted()).isFalse();
+        assertThat(backgroundJobServer.isRunning()).isFalse();
+
+        // STOP -> PAUSE
+        assertThatThrownBy(() -> backgroundJobServer.pauseProcessing()).isInstanceOf(IllegalStateException.class);
+        assertThat(backgroundJobServer.isStarted()).isFalse();
+        assertThat(backgroundJobServer.isRunning()).isFalse();
+
+        // STOP -> START
+        assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isTrue();
+
+        // START -> START
+        assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isTrue();
+
+        // START -> RESUME
+        assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isTrue();
+
+        // RESUME -> RESUME
+        assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isTrue();
     }
 
     @Test

@@ -7,16 +7,13 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -34,25 +31,15 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-public class SimpleStorageProvider implements StorageProvider {
+public class SimpleStorageProvider extends AbstractStorageProvider {
 
-    private final Set<JobStorageChangeListener> onChangeListeners = new HashSet<>();
-
-    private final RateLimiter changeListenerNotificationRateLimit;
     private volatile Map<String, RecurringJob> recurringJobs = new ConcurrentHashMap<>();
     private volatile Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private volatile Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private JobMapper jobMapper;
 
     public SimpleStorageProvider() {
-        changeListenerNotificationRateLimit = rateLimit()
-                .at2Requests()
-                .per(SECOND);
-    }
-
-    @Override
-    public void addJobStorageOnChangeListener(JobStorageChangeListener listener) {
-        onChangeListeners.add(listener);
+        super(rateLimit().at2Requests().per(SECOND));
     }
 
     @Override
@@ -281,13 +268,6 @@ public class SimpleStorageProvider implements StorageProvider {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state))
                 .sorted(Comparator.comparing(Job::getCreatedAt));
-    }
-
-    private void notifyOnChangeListeners() {
-        if (changeListenerNotificationRateLimit.isRateLimited()) return;
-
-        JobStats jobStats = getJobStats();
-        onChangeListeners.forEach(listener -> listener.onChange(jobStats));
     }
 
     private Job deepClone(Job job) {
