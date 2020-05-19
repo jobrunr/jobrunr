@@ -15,26 +15,19 @@ import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MBeanNotificationInfo;
-import javax.management.Notification;
-import javax.management.NotificationBroadcasterSupport;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 
-public class BackgroundJobServer extends NotificationBroadcasterSupport implements BackgroundJobServerMBean {
+public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
-
-    private final AtomicLong jmxNotificationSequence = new AtomicLong();
 
     private final BackgroundJobServerStatus serverStatus;
     private final StorageProvider storageProvider;
@@ -88,7 +81,6 @@ public class BackgroundJobServer extends NotificationBroadcasterSupport implemen
         startZooKeepers();
         startWorkers();
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers started successfully");
-        publishStatusChangeToJMX();
     }
 
     public void pauseProcessing() {
@@ -97,7 +89,6 @@ public class BackgroundJobServer extends NotificationBroadcasterSupport implemen
         serverStatus.pause();
         stopWorkers();
         LOGGER.info("Paused job processing");
-        publishStatusChangeToJMX();
     }
 
     public void resumeProcessing() {
@@ -106,7 +97,6 @@ public class BackgroundJobServer extends NotificationBroadcasterSupport implemen
         startWorkers();
         serverStatus.resume();
         LOGGER.info("Resumed job processing");
-        publishStatusChangeToJMX();
     }
 
     public void stop() {
@@ -115,7 +105,6 @@ public class BackgroundJobServer extends NotificationBroadcasterSupport implemen
         stopZooKeepers();
         serverStatus.stop();
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers stopped");
-        publishStatusChangeToJMX();
     }
 
     public BackgroundJobServerStatus getServerStatus() {
@@ -228,20 +217,5 @@ public class BackgroundJobServer extends NotificationBroadcasterSupport implemen
     // see https://jobs.zalando.com/en/tech/blog/how-to-set-an-ideal-thread-pool-size
     private static int defaultThreadPoolSize() {
         return Runtime.getRuntime().availableProcessors() * 8;
-    }
-
-    private void publishStatusChangeToJMX() {
-        Notification notification = new AttributeChangeNotification(this, jmxNotificationSequence.incrementAndGet(), System.currentTimeMillis(), "Status changed", "Running", "Boolean", serverStatus.isRunning(), !serverStatus.isRunning());
-        sendNotification(notification);
-    }
-
-    public MBeanNotificationInfo[] getNotificationInfo() {
-
-        String[] types = new String[]{AttributeChangeNotification.ATTRIBUTE_CHANGE};
-        String name = AttributeChangeNotification.class.getName();
-        String description = "BackgroundJobServer Status change notifications";
-        MBeanNotificationInfo info = new MBeanNotificationInfo(types, name, description);
-
-        return (new MBeanNotificationInfo[]{info});
     }
 }
