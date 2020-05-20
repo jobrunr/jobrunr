@@ -33,7 +33,12 @@ class ServerZooKeeperTest {
 
     @AfterEach
     public void tearDown() {
-        backgroundJobServer.stop();
+        try {
+            backgroundJobServer.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // not that important
+        }
     }
 
     @Test
@@ -99,7 +104,8 @@ class ServerZooKeeperTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue();
+        await().atMost(FIVE_SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
     }
 
     @Test
