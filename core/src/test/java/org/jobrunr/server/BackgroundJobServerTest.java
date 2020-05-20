@@ -61,6 +61,12 @@ public class BackgroundJobServerTest {
     }
 
     @Test
+    public void bla() {
+        BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(500));
+
+    }
+
+    @Test
     public void testStartAndStop() {
         // GIVEN server stopped and we enqueue a job
         UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());

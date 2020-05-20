@@ -4,6 +4,7 @@ import org.jobrunr.JobRunrException;
 
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,18 +77,29 @@ public class JobDetailsGeneratorUtils {
         }
     }
 
+    public static Object getObjectViaStaticField(String fqClassName, String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(fqClassName);
+            Field field = clazz.getDeclaredField(fieldName);
+            return field.get(null);
+        } catch (Exception e) {
+            throw JobRunrException.shouldNotHappenException(e);
+        }
+    }
+
     public static boolean isClassAssignableToObject(Class clazz, Object object) {
+        if (object == null) throw new NullPointerException("You are passing null to your background job - JobRunr prevents this to fail fast.");
         return clazz.equals(object.getClass())
                 || clazz.isAssignableFrom(object.getClass())
                 || (clazz.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.get(clazz).equals(object.getClass()))
                 || (clazz.isPrimitive() && Boolean.TYPE.equals(clazz) && Integer.class.equals(object.getClass()));
     }
 
-    public static Class[] findParamTypesForDescriptorAsArray(String desc) {
-        return findParamTypesForDescriptor(desc).stream().toArray(Class[]::new);
+    public static Class[] findParamTypesFromDescriptorAsArray(String desc) {
+        return findParamTypesFromDescriptor(desc).stream().toArray(Class[]::new);
     }
 
-    public static List<Class> findParamTypesForDescriptor(String desc) {
+    public static List<Class> findParamTypesFromDescriptor(String desc) {
         int beginIndex = desc.indexOf('(');
         int endIndex = desc.lastIndexOf(')');
 

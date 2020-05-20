@@ -7,9 +7,11 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -18,10 +20,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.time.Instant.now;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -41,6 +47,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    @Disabled
     public void logByteCode() {
         String name = this.getClass().getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
@@ -69,13 +76,52 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallInstanceMethod() {
+    public void testJobLambdaCallMethodReference() {
+        JobLambda job = testService::doWork;
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWork")
+                .hasNoArgs();
+    }
+
+    @Test
+    public void testJobLambdaCallInstanceMethod_Null() {
+        TestService.Work work = null;
+        JobLambda job = () -> testService.doWork(work);
+        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("You are passing null to your background job - JobRunr prevents this to fail fast.");
+    }
+
+    @Test
+    public void testJobLambdaCallInstanceMethod_BIPUSH() {
         JobLambda job = () -> testService.doWork(5);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
                 .hasArgs(5);
+    }
+
+    @Test
+    public void testJobLambdaCallInstanceMethod_SIPUSH() {
+        JobLambda job = () -> testService.doWorkThatTakesLong(500);
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkThatTakesLong")
+                .hasArgs(500);
+    }
+
+    @Test
+    public void testJobLambdaCallInstanceMethod_LCONST() {
+        JobLambda job = () -> testService.doWorkThatTakesLong(1L);
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkThatTakesLong")
+                .hasArgs(1L);
     }
 
     @Test
@@ -280,13 +326,28 @@ public class JobDetailsAsmGeneratorTest {
 
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
                 .isInstanceOf(JobRunrException.class)
-                .hasMessage("Are you trying to enqueue a multiline lambda? This is not yet supported. If not, please create a bug report (if possible, provide the code to reproduce this and the stacktrace)");
+                .hasMessage("Are you trying to enqueue a multiline lambda? Performance-wise this is probaly not a good idea and it is not yet supported. If you do think this must be possible, please create a bug report why and provide the code to reproduce this and the stacktrace");
     }
 
     @Test
     public void testJobLambdaWithArgumentThatIsNotUsed() {
         final Stream<Integer> range = IntStream.range(0, 1).boxed();
         assertThatCode(() -> jobDetailsGenerator.toJobDetails(range, (i) -> testService.doWork())).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testJobLambdaWithStream() {
+        Stream<UUID> workStream = getWorkStream();
+        AtomicInteger atomicInteger = new AtomicInteger();
+        final JobLambdaFromStream<UUID> lambda = (uuid) -> testService.doWork(uuid.toString(), atomicInteger.incrementAndGet(), now());
+        final List<JobDetails> allJobDetails = workStream
+                .map(x -> jobDetailsGenerator.toJobDetails(x, lambda))
+                .collect(toList());
+
+        assertThat(allJobDetails).hasSize(5);
+        assertThat(allJobDetails.get(0)).hasClass(TestService.class).hasMethodName("doWork");
+        assertThat(allJobDetails.get(0).getJobParameters().get(1).getObject()).isEqualTo(1);
+        assertThat(allJobDetails.get(4).getJobParameters().get(1).getObject()).isEqualTo(5);
     }
 
     @Test
@@ -427,6 +488,23 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    public void testIocJobLambdaWithSupportedPrimitiveTypes_LOAD() {
+        for (int i = 0; i < 3; i++) {
+            final boolean finalB = i % 2 == 0;
+            final int finalI = i;
+            final long finalL = 5L + i;
+            final float finalF = 3.3F + i;
+            final double finalD = 2.3D + i;
+            IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(finalB, finalI, finalL, finalF, finalD);
+            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            assertThat(jobDetails)
+                    .hasClass(TestService.class)
+                    .hasMethodName("doWork")
+                    .hasArgs(i % 2 == 0, finalI, 5L + i, 3.3F + i, 2.3D + i);
+        }
+    }
+
+    @Test
     public void testIocJobLambdaWithUnsupportedPrimitiveTypes() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork((byte) 0x3, (short) 2, 'c');
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(iocJobLambda))
@@ -439,6 +517,21 @@ public class JobDetailsAsmGeneratorTest {
     public void testIocJobLambdaWithArgumentThatIsNotUsed() {
         IocJobLambdaFromStream<TestService, Integer> iocJobLambdaFromStream = (x, i) -> x.doWork();
         assertThatCode(() -> jobDetailsGenerator.toJobDetails(5, iocJobLambdaFromStream)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testIoCJobLambdaWithStream() {
+        Stream<UUID> workStream = getWorkStream();
+        AtomicInteger atomicInteger = new AtomicInteger();
+        IocJobLambdaFromStream<TestService, UUID> lambda = (service, uuid) -> service.doWork(uuid.toString(), atomicInteger.incrementAndGet(), now());
+        final List<JobDetails> allJobDetails = workStream
+                .map(x -> jobDetailsGenerator.toJobDetails(x, lambda))
+                .collect(toList());
+
+        assertThat(allJobDetails).hasSize(5);
+        assertThat(allJobDetails.get(0)).hasClass(TestService.class).hasMethodName("doWork");
+        assertThat(allJobDetails.get(0).getJobParameters().get(1).getObject()).isEqualTo(1);
+        assertThat(allJobDetails.get(4).getJobParameters().get(1).getObject()).isEqualTo(5);
     }
 
     @Test
@@ -459,4 +552,8 @@ public class JobDetailsAsmGeneratorTest {
                 .hasNoArgs();
     }
 
+    private Stream<UUID> getWorkStream() {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> UUID.randomUUID());
+    }
 }

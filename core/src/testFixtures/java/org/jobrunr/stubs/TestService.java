@@ -114,8 +114,20 @@ public class TestService implements TestServiceInterface {
     }
 
     public void doWorkThatTakesLong() {
+        doWorkThatTakesLong(25 + ThreadLocalRandom.current().nextInt(0, 5));
+    }
+
+    public void doWorkThatTakesLong(int seconds) {
         try {
-            TimeUnit.SECONDS.sleep(25 + ThreadLocalRandom.current().nextInt(0, 5));
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void doWorkThatTakesLong(long seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
