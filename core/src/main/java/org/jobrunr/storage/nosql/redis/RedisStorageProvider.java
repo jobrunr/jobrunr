@@ -15,6 +15,7 @@ import org.jobrunr.storage.Page;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 import redis.clients.jedis.Jedis;
@@ -48,19 +49,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 @Beta
 public class RedisStorageProvider extends AbstractStorageProvider {
 
-    public static final String FIELD_ID = "id";
-    public static final String FIELD_WORKER_POOL_SIZE = "workerPoolSize";
-    public static final String FIELD_POLL_INTERVAL_IN_SECONDS = "pollIntervalInSeconds";
-    public static final String FIELD_FIRST_HEARTBEAT = "firstHeartbeat";
-    public static final String FIELD_LAST_HEARTBEAT = "lastHeartbeat";
-    public static final String FIELD_IS_RUNNING = "isRunning";
-    public static final String FIELD_SYSTEM_TOTAL_MEMORY = "systemTotalMemory";
-    public static final String FIELD_SYSTEM_FREE_MEMORY = "systemFreeMemory";
-    public static final String FIELD_SYSTEM_CPU_LOAD = "systemCpuLoad";
-    public static final String FIELD_PROCESS_MAX_MEMORY = "processMaxMemory";
-    public static final String FIELD_PROCESS_FREE_MEMORY = "processFreeMemory";
-    public static final String FIELD_PROCESS_ALLOCATED_MEMORY = "processAllocatedMemory";
-    public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
     public static final String RECURRING_JOBS_KEY = "recurringjobs";
     public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
     public static final String QUEUE_SCHEDULEDJOBS_KEY = "queue:scheduledjobs";
@@ -90,19 +78,19 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try (Jedis jedis = getJedis()) {
             final Pipeline p = jedis.pipelined();
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_ID, serverStatus.getId().toString());
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
             p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
             p.sync();
         }
@@ -115,13 +103,13 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             if (valueMap.isEmpty()) throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
             final Pipeline p = jedis.pipelined();
             p.watch(backgroundJobServerKey(serverStatus));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-            final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), FIELD_IS_RUNNING);
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
             p.sync();
             return Boolean.parseBoolean(isRunningResponse.get());
         }
@@ -134,19 +122,19 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                     .mapUsingPipeline((p, id) -> p.hgetAll(backgroundJobServerKey(id)))
                     .mapAfterSync(Response::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
-                            UUID.fromString(fieldMap.get(FIELD_ID)),
-                            Integer.parseInt(fieldMap.get(FIELD_WORKER_POOL_SIZE)),
-                            Integer.parseInt(fieldMap.get(FIELD_POLL_INTERVAL_IN_SECONDS)),
-                            Instant.parse(fieldMap.get(FIELD_FIRST_HEARTBEAT)),
-                            Instant.parse(fieldMap.get(FIELD_LAST_HEARTBEAT)),
-                            Boolean.parseBoolean(fieldMap.get(FIELD_IS_RUNNING)),
-                            Long.parseLong(fieldMap.get(FIELD_SYSTEM_TOTAL_MEMORY)),
-                            Long.parseLong(fieldMap.get(FIELD_SYSTEM_FREE_MEMORY)),
-                            Double.parseDouble(fieldMap.get(FIELD_SYSTEM_CPU_LOAD)),
-                            Long.parseLong(fieldMap.get(FIELD_PROCESS_MAX_MEMORY)),
-                            Long.parseLong(fieldMap.get(FIELD_PROCESS_FREE_MEMORY)),
-                            Long.parseLong(fieldMap.get(FIELD_PROCESS_ALLOCATED_MEMORY)),
-                            Double.parseDouble(fieldMap.get(FIELD_PROCESS_CPU_LOAD))
+                            UUID.fromString(fieldMap.get(BackgroundJobServers.FIELD_ID)),
+                            Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
+                            Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
+                            Instant.parse(fieldMap.get(BackgroundJobServers.FIELD_FIRST_HEARTBEAT)),
+                            Instant.parse(fieldMap.get(BackgroundJobServers.FIELD_LAST_HEARTBEAT)),
+                            Boolean.parseBoolean(fieldMap.get(BackgroundJobServers.FIELD_IS_RUNNING)),
+                            Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY)),
+                            Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY)),
+                            Double.parseDouble(fieldMap.get(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD)),
+                            Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY)),
+                            Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY)),
+                            Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
+                            Double.parseDouble(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
                     .collect(Collectors.toList());
         }
@@ -273,7 +261,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (Jedis jedis = getJedis()) {
-            Set<String> jobsByState = null;
+            Set<String> jobsByState;
             if (PageRequest.Order.ASC == pageRequest.getOrder()) {
                 jobsByState = jedis.zrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
             } else {

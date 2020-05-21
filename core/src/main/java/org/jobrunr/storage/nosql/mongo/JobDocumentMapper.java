@@ -8,9 +8,13 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.StorageProviderConstants.Jobs;
+import org.jobrunr.storage.StorageProviderConstants.RecurringJobs;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 
 public class JobDocumentMapper {
     private final JobMapper jobMapper;
@@ -21,34 +25,34 @@ public class JobDocumentMapper {
 
     public Document toInsertDocument(Job job) {
         final Document document = new Document();
-        document.put("_id", job.getId());
-        document.put("version", job.getVersion());
-        document.put("jobAsJson", jobMapper.serializeJob(job));
-        document.put("jobSignature", job.getJobSignature());
-        document.put("state", job.getState().name());
-        document.put("createdAt", toMicroSeconds(job.getCreatedAt()));
-        document.put("updatedAt", toMicroSeconds(job.getUpdatedAt()));
+        document.put(toMongoId(Jobs.FIELD_ID), job.getId());
+        document.put(Jobs.FIELD_VERSION, job.getVersion());
+        document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
+        document.put(Jobs.FIELD_JOB_SIGNATURE, job.getJobSignature());
+        document.put(Jobs.FIELD_STATE, job.getState().name());
+        document.put(Jobs.FIELD_CREATED_AT, toMicroSeconds(job.getCreatedAt()));
+        document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
         if (job.hasState(StateName.SCHEDULED)) {
-            document.put("scheduledAt", toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
+            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
         }
         return document;
     }
 
     public Document toUpdateDocument(Job job) {
         final Document document = new Document();
-        document.put("version", job.getVersion());
-        document.put("jobAsJson", jobMapper.serializeJob(job));
-        document.put("state", job.getState().name());
-        document.put("updatedAt", toMicroSeconds(job.getUpdatedAt()));
+        document.put(Jobs.FIELD_VERSION, job.getVersion());
+        document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
+        document.put(Jobs.FIELD_STATE, job.getState().name());
+        document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
         if (job.hasState(StateName.SCHEDULED)) {
-            document.put("scheduledAt", toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
+            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
         }
         return new Document("$set", document);
     }
 
     public UpdateOneModel<Document> toUpdateOneModel(Job job) {
         Document filterDocument = new Document();
-        filterDocument.append("_id", job.getId());
+        filterDocument.append(toMongoId(Jobs.FIELD_ID), job.getId());
 
         //Update doc
         Document updateDocument = toUpdateDocument(job);
@@ -61,26 +65,26 @@ public class JobDocumentMapper {
     }
 
     public Job toJob(Document document) {
-        return jobMapper.deserializeJob(document.get("jobAsJson").toString());
+        return jobMapper.deserializeJob(document.get(Jobs.FIELD_JOB_AS_JSON).toString());
     }
 
     public Document toInsertDocument(RecurringJob recurringJob) {
         final Document document = new Document();
-        document.put("_id", recurringJob.getId());
-        document.put("version", recurringJob.getVersion());
-        document.put("jobAsJson", jobMapper.serializeRecurringJob(recurringJob));
+        document.put(toMongoId(RecurringJobs.FIELD_ID), recurringJob.getId());
+        document.put(RecurringJobs.FIELD_VERSION, recurringJob.getVersion());
+        document.put(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(recurringJob));
         return document;
     }
 
     public Document toUpdateDocument(RecurringJob recurringJob) {
         final Document document = new Document();
-        document.put("version", recurringJob.getVersion());
-        document.put("jobAsJson", jobMapper.serializeRecurringJob(recurringJob));
+        document.put(RecurringJobs.FIELD_VERSION, recurringJob.getVersion());
+        document.put(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(recurringJob));
         return document;
     }
 
     public RecurringJob toRecurringJob(Document document) {
-        return jobMapper.deserializeRecurringJob(document.get("jobAsJson").toString());
+        return jobMapper.deserializeRecurringJob(document.get(RecurringJobs.FIELD_JOB_AS_JSON).toString());
     }
 
     private long toMicroSeconds(Instant instant) {

@@ -2,6 +2,7 @@ package org.jobrunr.storage.nosql.mongo;
 
 import org.bson.Document;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
 
 import java.util.Date;
 import java.util.UUID;
@@ -11,29 +12,29 @@ public class BackgroundJobServerStatusDocumentMapper {
     public Document toInsertDocument(BackgroundJobServerStatus serverStatus) {
         final Document document = new Document();
         document.put("_id", serverStatus.getId());
-        document.put("workerPoolSize", serverStatus.getWorkerPoolSize());
-        document.put("pollIntervalInSeconds", serverStatus.getPollIntervalInSeconds());
-        document.put("firstHeartbeat", serverStatus.getFirstHeartbeat());
-        document.put("lastHeartbeat", serverStatus.getLastHeartbeat());
-        document.put("running", serverStatus.isRunning());
-        document.put("systemTotalMemory", serverStatus.getSystemTotalMemory());
-        document.put("systemFreeMemory", serverStatus.getSystemFreeMemory());
-        document.put("systemCpuLoad", serverStatus.getSystemCpuLoad());
-        document.put("processMaxMemory", serverStatus.getProcessMaxMemory());
-        document.put("processFreeMemory", serverStatus.getProcessFreeMemory());
-        document.put("processAllocatedMemory", serverStatus.getProcessAllocatedMemory());
-        document.put("processCpuLoad", serverStatus.getProcessCpuLoad());
+        document.put(BackgroundJobServers.FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
+        document.put(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
+        document.put(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, serverStatus.getFirstHeartbeat());
+        document.put(BackgroundJobServers.FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
+        document.put(BackgroundJobServers.FIELD_IS_RUNNING, serverStatus.isRunning());
+        document.put(BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, serverStatus.getSystemTotalMemory());
+        document.put(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
+        document.put(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
+        document.put(BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, serverStatus.getProcessMaxMemory());
+        document.put(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
+        document.put(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory());
+        document.put(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad());
         return document;
     }
 
     public Document toUpdateDocument(BackgroundJobServerStatus serverStatus) {
         final Document document = new Document();
-        document.put("lastHeartbeat", serverStatus.getLastHeartbeat());
-        document.put("systemFreeMemory", serverStatus.getSystemFreeMemory());
-        document.put("systemCpuLoad", serverStatus.getSystemCpuLoad());
-        document.put("processFreeMemory", serverStatus.getProcessFreeMemory());
-        document.put("processAllocatedMemory", serverStatus.getProcessAllocatedMemory());
-        document.put("processCpuLoad", serverStatus.getProcessCpuLoad());
+        document.put(BackgroundJobServers.FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
+        document.put(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
+        document.put(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
+        document.put(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
+        document.put(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory());
+        document.put(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad());
 
         return new Document("$set", document);
     }
@@ -41,18 +42,18 @@ public class BackgroundJobServerStatusDocumentMapper {
     public BackgroundJobServerStatus toBackgroundJobServerStatus(Document document) {
         return new BackgroundJobServerStatus(
                 document.get("_id", UUID.class),
-                document.getInteger("workerPoolSize"),
-                document.getInteger("pollIntervalInSeconds"),
-                document.get("firstHeartbeat", Date.class).toInstant(),
-                document.get("lastHeartbeat", Date.class).toInstant(),
-                document.getBoolean("running"),
-                document.getLong("systemTotalMemory"),
-                document.getLong("systemFreeMemory"),
-                document.getDouble("systemCpuLoad"),
-                document.getLong("processMaxMemory"),
-                document.getLong("processFreeMemory"),
-                document.getLong("processAllocatedMemory"),
-                document.getDouble("processCpuLoad")
+                document.getInteger(BackgroundJobServers.FIELD_WORKER_POOL_SIZE),
+                document.getInteger(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS),
+                document.get(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, Date.class).toInstant(),
+                document.get(BackgroundJobServers.FIELD_LAST_HEARTBEAT, Date.class).toInstant(),
+                document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING),
+                document.getLong(BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY),
+                document.getLong(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY),
+                document.getDouble(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD),
+                document.getLong(BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY),
+                document.getLong(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY),
+                document.getLong(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY),
+                document.getDouble(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD)
         );
     }
 }

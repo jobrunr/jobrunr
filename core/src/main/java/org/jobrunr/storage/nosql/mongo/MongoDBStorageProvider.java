@@ -30,6 +30,10 @@ import org.jobrunr.storage.Page;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.StorageProviderConstants;
+import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
+import org.jobrunr.storage.StorageProviderConstants.Jobs;
+import org.jobrunr.storage.StorageProviderConstants.RecurringJobs;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
@@ -95,15 +99,15 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     public MongoDBStorageProvider(MongoDatabase mongoDatabase, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
-        jobCollection = mongoDatabase.getCollection("jobs", Document.class);
-        jobCollection.createIndex(Indexes.ascending("state"));
-        jobCollection.createIndex(Indexes.ascending("jobSignature"));
-        jobCollection.createIndex(Indexes.ascending("updatedAt"));
-        jobCollection.createIndex(Indexes.descending("updatedAt"));
+        jobCollection = mongoDatabase.getCollection(Jobs.NAME, Document.class);
+        jobCollection.createIndex(Indexes.ascending(Jobs.FIELD_STATE));
+        jobCollection.createIndex(Indexes.ascending(Jobs.FIELD_JOB_SIGNATURE));
+        jobCollection.createIndex(Indexes.ascending(Jobs.FIELD_UPDATED_AT));
+        jobCollection.createIndex(Indexes.descending(Jobs.FIELD_UPDATED_AT));
 
-        recurringJobCollection = mongoDatabase.getCollection("recurring_jobs", Document.class);
-        backgroundJobServerCollection = mongoDatabase.getCollection("background_job_servers", Document.class);
-        jobStatsCollection = mongoDatabase.getCollection("job_stats", Document.class);
+        recurringJobCollection = mongoDatabase.getCollection(RecurringJobs.NAME, Document.class);
+        backgroundJobServerCollection = mongoDatabase.getCollection(BackgroundJobServers.NAME, Document.class);
+        jobStatsCollection = mongoDatabase.getCollection(StorageProviderConstants.JobStats.NAME, Document.class);
     }
 
     @Override
@@ -119,12 +123,12 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
-        final UpdateResult updateResult = this.backgroundJobServerCollection.updateOne(eq("_id", serverStatus.getId()), backgroundJobServerStatusDocumentMapper.toUpdateDocument(serverStatus));
+        final UpdateResult updateResult = this.backgroundJobServerCollection.updateOne(eq(toMongoId(Jobs.FIELD_ID), serverStatus.getId()), backgroundJobServerStatusDocumentMapper.toUpdateDocument(serverStatus));
         if (updateResult.getModifiedCount() < 1) {
             throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
         }
-        final Document document = this.backgroundJobServerCollection.find(eq("_id", serverStatus.getId())).projection(include("running")).first();
-        return document.getBoolean("running");
+        final Document document = this.backgroundJobServerCollection.find(eq(toMongoId(Jobs.FIELD_ID), serverStatus.getId())).projection(include(BackgroundJobServers.FIELD_IS_RUNNING)).first();
+        return document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING);
     }
 
     @Override
@@ -134,7 +138,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
-        final DeleteResult deleteResult = this.backgroundJobServerCollection.deleteMany(lt("lastHeartbeat", heartbeatOlderThan));
+        final DeleteResult deleteResult = this.backgroundJobServerCollection.deleteMany(lt(BackgroundJobServers.FIELD_LAST_HEARTBEAT, heartbeatOlderThan));
         return (int) deleteResult.getDeletedCount();
     }
 
@@ -144,7 +148,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
             job.setId(UUID.randomUUID());
             jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
         } else {
-            final UpdateResult updateResult = jobCollection.updateOne(and(eq("_id", job.getId()), eq("version", job.increaseVersion())), jobDocumentMapper.toUpdateDocument(job));
+            final UpdateResult updateResult = jobCollection.updateOne(and(eq(toMongoId(Jobs.FIELD_ID), job.getId()), eq(Jobs.FIELD_VERSION, job.increaseVersion())), jobDocumentMapper.toUpdateDocument(job));
             if (updateResult.getModifiedCount() < 1) {
                 throw new ConcurrentJobModificationException(job.getId());
             }
@@ -155,7 +159,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int delete(UUID id) {
-        final DeleteResult result = jobCollection.deleteOne(eq("_id", id));
+        final DeleteResult result = jobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
         final int deletedCount = (int) result.getDeletedCount();
         notifyOnChangeListenersIf(deletedCount > 0);
         return deletedCount;
@@ -163,7 +167,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public Job getJobById(UUID id) {
-        final Document document = jobCollection.find(eq("_id", id)).projection(include("jobAsJson")).first();
+        final Document document = jobCollection.find(eq(toMongoId(Jobs.FIELD_ID), id)).projection(include(Jobs.FIELD_JOB_AS_JSON)).first();
         if (document != null) {
             return jobDocumentMapper.toJob(document);
         }
@@ -196,44 +200,44 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        final Bson sortOrder = pageRequest.getOrder() == PageRequest.Order.ASC ? ascending("updatedAt") : descending("updatedAt");
+        final Bson sortOrder = pageRequest.getOrder() == PageRequest.Order.ASC ? ascending(Jobs.FIELD_UPDATED_AT) : descending(Jobs.FIELD_UPDATED_AT);
         return jobCollection
-                .find(and(eq("state", state.name()), lt("updatedAt", toMicroSeconds(updatedBefore))))
+                .find(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))))
                 .sort(orderBy(sortOrder))
                 .skip((int) pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
-                .projection(include("jobAsJson"))
+                .projection(include(Jobs.FIELD_JOB_AS_JSON))
                 .map(jobDocumentMapper::toJob)
                 .into(new ArrayList<>());
     }
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        final Bson sortOrder = pageRequest.getOrder() == PageRequest.Order.ASC ? ascending("updatedAt") : descending("updatedAt");
+        final Bson sortOrder = pageRequest.getOrder() == PageRequest.Order.ASC ? ascending(Jobs.FIELD_UPDATED_AT) : descending(Jobs.FIELD_UPDATED_AT);
         return jobCollection
-                .find(and(eq("state", SCHEDULED.name()), lt("scheduledAt", toMicroSeconds(scheduledBefore))))
+                .find(and(eq(Jobs.FIELD_STATE, SCHEDULED.name()), lt(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(scheduledBefore))))
                 .sort(orderBy(sortOrder))
                 .skip((int) pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
-                .projection(include("jobAsJson"))
+                .projection(include(Jobs.FIELD_JOB_AS_JSON))
                 .map(jobDocumentMapper::toJob)
                 .into(new ArrayList<>());
     }
 
     @Override
     public Long countJobs(StateName state) {
-        return jobCollection.countDocuments(eq("state", state.name()));
+        return jobCollection.countDocuments(eq(Jobs.FIELD_STATE, state.name()));
     }
 
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        final Bson sortOrder = pageRequest.getOrder() == PageRequest.Order.ASC ? ascending("updatedAt") : descending("updatedAt");
+        final Bson sortOrder = pageRequest.getOrder() == PageRequest.Order.ASC ? ascending(Jobs.FIELD_UPDATED_AT) : descending(Jobs.FIELD_UPDATED_AT);
         return jobCollection
-                .find(eq("state", state.name()))
+                .find(eq(Jobs.FIELD_STATE, state.name()))
                 .sort(orderBy(sortOrder))
                 .skip((int) pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
-                .projection(include("jobAsJson"))
+                .projection(include(Jobs.FIELD_JOB_AS_JSON))
                 .map(jobDocumentMapper::toJob)
                 .into(new ArrayList<>());
     }
@@ -250,7 +254,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int deleteJobs(StateName state, Instant updatedBefore) {
-        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq("state", state.name()), lt("updatedAt", toMicroSeconds(updatedBefore))));
+        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))));
         final long deletedCount = deleteResult.getDeletedCount();
         notifyOnChangeListenersIf(deletedCount > 0);
         return (int) deletedCount;
@@ -258,12 +262,12 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean exists(JobDetails jobDetails, StateName state) {
-        return jobCollection.countDocuments(and(eq("state", state.name()), eq("jobSignature", getJobSignature(jobDetails)))) > 0;
+        return jobCollection.countDocuments(and(eq(Jobs.FIELD_STATE, state.name()), eq("jobSignature", getJobSignature(jobDetails)))) > 0;
     }
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
-        recurringJobCollection.replaceOne(eq("_id", recurringJob.getId()), jobDocumentMapper.toInsertDocument(recurringJob), new ReplaceOptions().upsert(true));
+        recurringJobCollection.replaceOne(eq(toMongoId(Jobs.FIELD_ID), recurringJob.getId()), jobDocumentMapper.toInsertDocument(recurringJob), new ReplaceOptions().upsert(true));
         return recurringJob;
     }
 
@@ -274,14 +278,14 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int deleteRecurringJob(String id) {
-        final DeleteResult deleteResult = recurringJobCollection.deleteOne(eq("_id", id));
+        final DeleteResult deleteResult = recurringJobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
         return (int) deleteResult.getDeletedCount();
     }
 
     @Override
     public JobStats getJobStats() {
-        final Document jobStats = jobStatsCollection.find(eq("_id", "stats")).first();
-        final List<Document> aggregates = jobCollection.aggregate(asList(facet(new Facet("state", sortByCount("$state"), limit(7))))).first().get("state", List.class);
+        final Document jobStats = jobStatsCollection.find(eq(toMongoId(Jobs.FIELD_ID), StorageProviderConstants.JobStats.FIELD_STATS)).first();
+        final List<Document> aggregates = jobCollection.aggregate(asList(facet(new Facet(Jobs.FIELD_STATE, sortByCount("$state"), limit(7))))).first().get(Jobs.FIELD_STATE, List.class);
 
         Long awaiting = getCount(AWAITING, jobStats, aggregates);
         Long scheduled = getCount(SCHEDULED, jobStats, aggregates);
@@ -308,7 +312,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
-        jobStatsCollection.updateOne(eq("_id", "stats"), Updates.inc(state.name(), amount), new UpdateOptions().upsert(true));
+        jobStatsCollection.updateOne(eq(toMongoId(StorageProviderConstants.JobStats.FIELD_ID), StorageProviderConstants.JobStats.FIELD_STATS), Updates.inc(state.name(), amount), new UpdateOptions().upsert(true));
     }
 
     private boolean notAllJobsAreNew(List<Job> jobs) {
@@ -328,11 +332,15 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     private Long getCount(StateName stateName, Document jobStats, List<Document> aggregates) {
-        Predicate<Document> statePredicate = document -> stateName.name().equals(document.get("_id"));
+        Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
         BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger("count")).orElse(defaultValue);
 
         long jobstatsCount = (jobStats != null ? (long) ofNullable(jobStats.getInteger(stateName.name())).orElse(0) : 0L);
         int aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
         return jobstatsCount + aggregateCount;
+    }
+
+    public static String toMongoId(String id) {
+        return "_" + id;
     }
 }
