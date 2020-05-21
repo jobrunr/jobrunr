@@ -21,13 +21,9 @@ import org.objectweb.asm.Opcodes;
 
 import java.io.IOException;
 import java.lang.invoke.SerializedLambda;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
-// this is not the most beautiful code but it is thoroughly tested. Are there better ways to capture the actual lambda? Serialized lambda does not work as the deployed server code must then contain the scheduling code.
 public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     private final SerializedLambdaConverter serializedLambdaConverter;
 
@@ -38,21 +34,21 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public <T extends JobRunrJob> JobDetails toJobDetails(T lambda) {
         SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, new ArrayList<>());
+        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda);
         return findJobDetailsInByteCode(lambda, jobDetailsFinder);
     }
 
     @Override
     public <TItem> JobDetails toJobDetails(TItem input, JobLambdaFromStream<TItem> lambda) {
         SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, Arrays.asList(input));
+        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, input);
         return findJobDetailsInByteCode(lambda, jobDetailsFinder);
     }
 
     @Override
     public <TService, TItem> JobDetails toJobDetails(TItem input, IocJobLambdaFromStream<TService, TItem> lambda) {
         SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, Arrays.asList(null, input));
+        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, null, input);
         return findJobDetailsInByteCode(lambda, jobDetailsFinder);
     }
 
@@ -71,7 +67,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
         private final SerializedLambda serializedLambda;
         private final JobDetailsFinderContext jobDetailsFinderContext;
 
-        private JobDetailsFinder(SerializedLambda serializedLambda, List<Object> params) {
+        private JobDetailsFinder(SerializedLambda serializedLambda, Object... params) {
             super(Opcodes.ASM7);
             this.serializedLambda = serializedLambda;
             this.jobDetailsFinderContext = new JobDetailsFinderContext(serializedLambda, params);

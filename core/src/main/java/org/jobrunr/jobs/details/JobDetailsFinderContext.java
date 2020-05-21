@@ -20,10 +20,6 @@ public class JobDetailsFinderContext {
     private final LinkedList<AbstractJVMInstruction> instructions;
     private final List<Object> localVariables;
 
-    public JobDetailsFinderContext(SerializedLambda serializedLambda, List<Object> params) {
-        this(serializedLambda, params.toArray());
-    }
-
     public JobDetailsFinderContext(SerializedLambda serializedLambda, Object... params) {
         this.serializedLambda = serializedLambda;
         this.instructions = new LinkedList<>();
