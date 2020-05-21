@@ -19,7 +19,7 @@ public class CypressGsonUIE2ETest {
     public CypressTestContainer cypressContainer = new CypressTestContainer(backgroundJobContainer);
 
     @Test
-    public void runUITests() throws IOException {
+    void runUITests() throws IOException {
         assertThat(cypressContainer.getLogs())
                 .describedAs("UI Tests failed: \n\n" + cypressContainer.getLogs())
                 .contains("All specs passed!");

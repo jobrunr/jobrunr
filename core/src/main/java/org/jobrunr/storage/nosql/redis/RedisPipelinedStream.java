@@ -34,7 +34,6 @@ public class RedisPipelinedStream<T> implements Stream<T> {
     private final Stream<T> initialStream;
     private final Jedis jedis;
     private final Pipeline pipeline;
-    private boolean synced;
 
     public RedisPipelinedStream(Collection<T> initial, Jedis jedis) {
         this(initial.stream(), jedis);

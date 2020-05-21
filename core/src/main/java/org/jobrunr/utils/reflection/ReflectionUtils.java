@@ -20,7 +20,7 @@ import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class ReflectionUtils {
 
-    private static final String rootPackageName = "org/jobrunr/";
+    private static final String ROOT_PACKAGE_NAME = "org/jobrunr/";
 
     private ReflectionUtils() {
 
@@ -36,7 +36,7 @@ public class ReflectionUtils {
     }
 
     public static <T> Class<T> toClassFromPath(Path path) {
-        final String classFile = path.toString().substring(path.toString().indexOf(rootPackageName));
+        final String classFile = path.toString().substring(path.toString().indexOf(ROOT_PACKAGE_NAME));
         final String className = classFile.replace(".class", "").replace("/", ".");
         return toClass(className);
     }
@@ -80,12 +80,12 @@ public class ReflectionUtils {
 
     public static boolean hasDefaultNoArgConstructor(String clazzName) {
         return Stream.of(toClass(clazzName).getConstructors())
-                .anyMatch((c) -> c.getParameterCount() == 0);
+                .anyMatch(c -> c.getParameterCount() == 0);
     }
 
     public static boolean hasDefaultNoArgConstructor(Class<?> clazz) {
         return Stream.of(clazz.getConstructors())
-                .anyMatch((c) -> c.getParameterCount() == 0);
+                .anyMatch(c -> c.getParameterCount() == 0);
     }
 
     public static <T> T newInstance(Class<T> clazz, Map<String, String> fieldValues) {
@@ -121,7 +121,7 @@ public class ReflectionUtils {
         }
     }
 
-    public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class[] parameterTypes) {
+    public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
         return stream(clazz.getMethods())
                 .filter(m -> methodName.equals(m.getName()) && Arrays.equals(m.getParameterTypes(), parameterTypes))
                 .findFirst();
@@ -149,7 +149,7 @@ public class ReflectionUtils {
         }
     }
 
-    public static void autobox(Field field, Object object, ThrowingFunction<Class, Object> objectFunction) {
+    public static void autobox(Field field, Object object, ThrowingFunction<Class<?>, Object> objectFunction) {
         final Class<?> type = field.getType();
         try {
             final Object value = objectFunction.apply(type);
@@ -181,11 +181,11 @@ public class ReflectionUtils {
         accessibleObject.setAccessible(true);
     }
 
-    public static NoSuchMethodException noSuchMethodException(String clazz, String methodName, Class[] parameterTypes) {
+    public static NoSuchMethodException noSuchMethodException(String clazz, String methodName, Class<?>[] parameterTypes) {
         return new NoSuchMethodException(clazz + "." + methodName + "(" + Stream.of(parameterTypes).map(Class::getName).collect(joining(",")) + ")");
     }
 
-    private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class[] args) throws NoSuchMethodException {
+    private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) throws NoSuchMethodException {
         Constructor<?>[] constructors = clazz.getConstructors();
 
         for (Constructor<?> constructor : constructors) {
@@ -205,10 +205,12 @@ public class ReflectionUtils {
         throw noSuchMethodException(clazz.getName(), "<init>", args);
     }
 
+    @SuppressWarnings("unchecked")
     private static <T> Class<T> cast(Class<?> aClass) {
         return (Class<T>) aClass;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T cast(Object anObject) {
         return (T) anObject;
     }

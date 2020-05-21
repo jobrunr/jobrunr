@@ -2,9 +2,15 @@ package org.jobrunr.storage;
 
 public class StorageProviderConstants {
 
+    private StorageProviderConstants() {
+    }
+
     private static final String FIELD_ID = "id";
 
     public static final class Jobs {
+        private Jobs() {
+        }
+
         public static final String NAME = "jobs";
         public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
         public static final String FIELD_VERSION = "version";
@@ -17,6 +23,9 @@ public class StorageProviderConstants {
     }
 
     public static class RecurringJobs {
+        private RecurringJobs() {
+        }
+
         public static final String NAME = "recurring_jobs";
         public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
         public static final String FIELD_VERSION = "version";
@@ -24,6 +33,9 @@ public class StorageProviderConstants {
     }
 
     public static final class BackgroundJobServers {
+        private BackgroundJobServers() {
+        }
+
         public static final String NAME = "background_job_servers";
         public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
         public static final String FIELD_WORKER_POOL_SIZE = "workerPoolSize";
@@ -41,6 +53,9 @@ public class StorageProviderConstants {
     }
 
     public static final class JobStats {
+        private JobStats() {
+        }
+
         public static final String NAME = "job_stats";
         public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
         public static final String FIELD_STATS = "stats";

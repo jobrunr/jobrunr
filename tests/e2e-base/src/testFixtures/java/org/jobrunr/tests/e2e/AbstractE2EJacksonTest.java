@@ -8,7 +8,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 public abstract class AbstractE2EJacksonTest extends AbstractE2ETest {
 
     @Test
-    public void onlyJacksonIsOnClasspath() {
+    void onlyJacksonIsOnClasspath() {
         assertThat(classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
         assertThat(classExists("com.google.gson.Gson")).isFalse();
     }

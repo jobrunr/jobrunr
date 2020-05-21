@@ -26,13 +26,13 @@ class ServerZooKeeperTest {
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         storageProvider = new SimpleStorageProvider();
         backgroundJobServer = new BackgroundJobServer(storageProvider, null, 5, 10);
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         try {
             backgroundJobServer.stop();
         } catch (Exception e) {
@@ -42,7 +42,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void onStartServerAnnouncesItselfAndBecomesMasterIfItIsTheFirstToBeOnline() {
+    void onStartServerAnnouncesItselfAndBecomesMasterIfItIsTheFirstToBeOnline() {
         backgroundJobServer.start();
 
         await().untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
@@ -51,7 +51,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void onStartServerAnnouncesItselfAndDoesNotBecomeMasterIfItIsNotTheFirstToBeOnline() {
+    void onStartServerAnnouncesItselfAndDoesNotBecomeMasterIfItIsNotTheFirstToBeOnline() {
         final BackgroundJobServerStatus master = anotherServer();
         storageProvider.announceBackgroundJobServer(master);
 
@@ -63,7 +63,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void serverKeepsSignalingItsAlive() throws InterruptedException {
+    void serverKeepsSignalingItsAlive() throws InterruptedException {
         backgroundJobServer.start();
 
         Thread.sleep(1000);
@@ -74,7 +74,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void masterDoesZookeepingAndKeepsHisMasterStatus() throws InterruptedException {
+    void masterDoesZookeepingAndKeepsHisMasterStatus() throws InterruptedException {
         backgroundJobServer.start();
 
         storageProvider.announceBackgroundJobServer(anotherServer());
@@ -88,7 +88,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void otherServersDoZookeepingAndBecomeMasterIfMasterIsGone() throws InterruptedException {
+    void otherServersDoZookeepingAndBecomeMasterIfMasterIsGone() throws InterruptedException {
         final BackgroundJobServerStatus master = anotherServer();
         storageProvider.announceBackgroundJobServer(master);
 
@@ -109,7 +109,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void aServerThatSignalsItsAliveAlthoughItTimedOutRestartsCompletely3TimesAndThenShutsDown() throws InterruptedException {
+    void aServerThatSignalsItsAliveAlthoughItTimedOutRestartsCompletely3TimesAndThenShutsDown() throws InterruptedException {
         backgroundJobServer.start();
         Thread.sleep(100);
 
@@ -140,7 +140,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void serverIsShutdownIfServerZooKeeperCrashes() {
+    void serverIsShutdownIfServerZooKeeperCrashes() {
         final StorageProvider storageProviderMock = Mockito.mock(StorageProvider.class);
         Mockito.doThrow(new IllegalStateException()).when(storageProviderMock).announceBackgroundJobServer(any());
 

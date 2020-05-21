@@ -31,7 +31,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     @Override
     public void removeJobStorageOnChangeListener(JobStorageChangeListener listener) {
         onChangeListeners.remove(listener);
-        if (onChangeListeners.size() == 0) {
+        if (onChangeListeners.isEmpty()) {
             synchronized (onChangeListeners) {
                 timer.cancel();
                 timer = null;

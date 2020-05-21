@@ -31,7 +31,7 @@ class JobFiltersTest {
     }
 
     @Test
-    public void ifNoElectStateFilterIsProvidedTheDefaultRetryFilterIsUsed() {
+    void ifNoElectStateFilterIsProvidedTheDefaultRetryFilterIsUsed() {
         Job aJobWithoutJobFilters = aFailedJob().build();
         jobFilters.runOnStateElectionFilter(aJobWithoutJobFilters);
         assertThat(aJobWithoutJobFilters.getJobStates())
@@ -40,7 +40,7 @@ class JobFiltersTest {
     }
 
     @Test
-    public void ifElectStateFilterIsProvidedItIsUsed() {
+    void ifElectStateFilterIsProvidedItIsUsed() {
         Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
         jobFilters.runOnStateElectionFilter(aJobWithACustomElectStateJobFilter);
         assertThat(aJobWithACustomElectStateJobFilter.getJobStates())
@@ -49,7 +49,7 @@ class JobFiltersTest {
     }
 
     @Test
-    public void ifADefaultElectStateFilterIsProvidedItIsUsed() {
+    void ifADefaultElectStateFilterIsProvidedItIsUsed() {
         jobFilters = new JobFilters(new TestService.TheSunIsAlwaysShiningElectStateFilter());
         Job aJobWithoutJobFilters = aFailedJob().build();
         jobFilters.runOnStateElectionFilter(aJobWithoutJobFilters);
@@ -59,7 +59,7 @@ class JobFiltersTest {
     }
 
     @Test
-    public void ifOtherFilterIsProvidedItIsUsed() {
+    void ifOtherFilterIsProvidedItIsUsed() {
         Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
         jobFilters.runOnStateAppliedFilters(aJobWithACustomElectStateJobFilter);
         jobFilters.runOnJobProcessingFilters(aJobWithACustomElectStateJobFilter);
@@ -73,7 +73,7 @@ class JobFiltersTest {
     }
 
     @Test
-    public void exceptionsAreCatched() {
+    void exceptionsAreCatched() {
         jobFilters = new JobFilters(new JobFilterThatThrowsAnException());
 
         Job aJobWithoutJobFilters = aFailedJob().build();

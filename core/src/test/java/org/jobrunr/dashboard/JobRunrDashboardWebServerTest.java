@@ -27,7 +27,7 @@ abstract class JobRunrDashboardWebServerTest {
     private TeenyHttpClient http;
 
     @BeforeEach
-    public void setUpWebServer() {
+    void setUpWebServer() {
         final JsonMapper jsonMapper = getJsonMapper();
 
         storageProvider = new SimpleStorageProvider();
@@ -37,15 +37,15 @@ abstract class JobRunrDashboardWebServerTest {
         http = new TeenyHttpClient("http://localhost:8000");
     }
 
-    public abstract JsonMapper getJsonMapper();
+    abstract JsonMapper getJsonMapper();
 
     @AfterEach
-    public void stopWebServer() {
+    void stopWebServer() {
         dashboardWebServer.stop();
     }
 
     @Test
-    public void testGetJobById_ForEnqueuedJob() {
+    void testGetJobById_ForEnqueuedJob() {
         final Job job = anEnqueuedJob().build();
         final Job savedJob = storageProvider.save(job);
 
@@ -54,7 +54,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testGetJobById_ForFailedJob() {
+    void testGetJobById_ForFailedJob() {
         final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
@@ -65,7 +65,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testRequeueJob() {
+    void testRequeueJob() {
         final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
@@ -76,7 +76,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testDeleteJob() {
+    void testDeleteJob() {
         final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
@@ -88,13 +88,13 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testGetJobById_JobNotFoundReturns404() {
+    void testGetJobById_JobNotFoundReturns404() {
         HttpResponse<String> getResponse = http.get("/api/jobs/%s", randomUUID());
         assertThat(getResponse).hasStatusCode(404);
     }
 
     @Test
-    public void testFindJobsByState() {
+    void testFindJobsByState() {
         storageProvider.save(anEnqueuedJob().build());
 
         HttpResponse<String> getResponse = http.get("/api/jobs/default/ENQUEUED");
@@ -104,7 +104,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testGetRecurringJobs() {
+    void testGetRecurringJobs() {
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-1").withName("Import sales data").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-2").withName("Generate sales reports").build());
 
@@ -115,7 +115,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testDeleteRecurringJob() {
+    void testDeleteRecurringJob() {
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-1").withName("Import sales data").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-2").withName("Generate sales reports").build());
 
@@ -125,7 +125,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    public void testGetBackgroundJobServers() {
+    void testGetBackgroundJobServers() {
         storageProvider.announceBackgroundJobServer(new BackgroundJobServerStatus(15, 10));
 
         HttpResponse<String> getResponse = http.get("/api/servers");

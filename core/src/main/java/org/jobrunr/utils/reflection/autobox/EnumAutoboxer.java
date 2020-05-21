@@ -1,5 +1,6 @@
 package org.jobrunr.utils.reflection.autobox;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class EnumAutoboxer implements TypeAutoboxer<Enum> {
     @Override
     public boolean supports(Class<?> type) {

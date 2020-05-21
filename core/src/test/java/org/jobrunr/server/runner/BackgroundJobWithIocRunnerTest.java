@@ -18,12 +18,12 @@ class BackgroundJobWithIocRunnerTest {
     private BackgroundJobWithIocRunner backgroundIoCJobWithIocRunner;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         backgroundIoCJobWithIocRunner = new BackgroundJobWithIocRunner(new SimpleJobActivator(new TestService()));
     }
 
     @Test
-    public void supportsJobIfJobClassIsKnownInIoC() {
+    void supportsJobIfJobClassIsKnownInIoC() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails())
                 .build();
@@ -32,7 +32,7 @@ class BackgroundJobWithIocRunnerTest {
     }
 
     @Test
-    public void doesNotSupportJobIfNoJobActivatorIsRegistered() {
+    void doesNotSupportJobIfNoJobActivatorIsRegistered() {
         backgroundIoCJobWithIocRunner = new BackgroundJobWithIocRunner(null);
 
         Job job = anEnqueuedJob()
@@ -43,7 +43,7 @@ class BackgroundJobWithIocRunnerTest {
     }
 
     @Test
-    public void doesNotSupportJobIfJobClassIsNotKnownInIoC() {
+    void doesNotSupportJobIfJobClassIsNotKnownInIoC() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails().withClassName(TestServiceForIoC.class))
                 .build();
@@ -52,7 +52,7 @@ class BackgroundJobWithIocRunnerTest {
     }
 
     @Test
-    public void runSimpleMethod() {
+    void runSimpleMethod() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails())
                 .build();
@@ -61,7 +61,7 @@ class BackgroundJobWithIocRunnerTest {
     }
 
     @Test
-    public void runMethodWithJobContext() {
+    void runMethodWithJobContext() {
         Job job = anEnqueuedJob()
                 .withId()
                 .withJobDetails(defaultJobDetails()

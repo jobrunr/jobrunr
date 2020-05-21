@@ -34,7 +34,7 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
-public class BackgroundJobServerTest {
+class BackgroundJobServerTest {
 
     private TestService testService;
     private StorageProvider storageProvider;
@@ -42,7 +42,7 @@ public class BackgroundJobServerTest {
     private TestServiceForIoC testServiceForIoC;
 
     @BeforeEach
-    public void setUpTestService() {
+    void setUpTestService() {
         testService = new TestService();
         testServiceForIoC = new TestServiceForIoC("an argument");
         testService.reset();
@@ -56,18 +56,12 @@ public class BackgroundJobServerTest {
     }
 
     @AfterEach
-    public void stopBackgroundJobServer() {
+    void stopBackgroundJobServer() {
         backgroundJobServer.stop();
     }
 
     @Test
-    public void bla() {
-        BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(500));
-
-    }
-
-    @Test
-    public void testStartAndStop() {
+    void testStartAndStop() {
         // GIVEN server stopped and we enqueue a job
         UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
 
@@ -106,7 +100,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void testOnServerExitCleansUpAllThreads() {
+    void testOnServerExitCleansUpAllThreads() {
         final int amountOfJobs = 10;
 
         Map<Thread, StackTraceElement[]> stackTracesBeforeStart = Thread.getAllStackTraces();
@@ -126,7 +120,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void testServerStatusStateMachine() {
+    void testServerStatusStateMachine() {
         // INIT -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
         assertThat(backgroundJobServer.isStarted()).isTrue();
@@ -179,7 +173,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void getBackgroundJobRunnerForIoCJobWithoutInstance() {
+    void getBackgroundJobRunnerForIoCJobWithoutInstance() {
         final Job job = anEnqueuedJob()
                 .withJobDetails((IocJobLambda<TestServiceForIoC>) (x) -> x.doWork())
                 .build();
@@ -189,7 +183,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void getBackgroundJobRunnerForIoCJobWithInstance() {
+    void getBackgroundJobRunnerForIoCJobWithInstance() {
         final Job job = anEnqueuedJob()
                 .withJobDetails(() -> testServiceForIoC.doWork())
                 .build();
@@ -199,7 +193,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void getBackgroundJobRunnerForNonIoCJobWithoutInstance() {
+    void getBackgroundJobRunnerForNonIoCJobWithoutInstance() {
         final Job job = anEnqueuedJob()
                 .withJobDetails((IocJobLambda<TestService>) (x) -> x.doWork())
                 .build();
@@ -209,7 +203,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void getBackgroundJobRunnerForNonIoCJobWithInstance() {
+    void getBackgroundJobRunnerForNonIoCJobWithInstance() {
         final Job job = anEnqueuedJob()
                 .withJobDetails(() -> testService.doWork())
                 .build();
@@ -219,7 +213,7 @@ public class BackgroundJobServerTest {
     }
 
     @Test
-    public void getBackgroundJobRunnerForJobThatCannotBeRun() {
+    void getBackgroundJobRunnerForJobThatCannotBeRun() {
         final Job job = anEnqueuedJob()
                 .withJobDetails((IocJobLambda<TestServiceThatCannotBeRun>) (x) -> x.doWork())
                 .build();

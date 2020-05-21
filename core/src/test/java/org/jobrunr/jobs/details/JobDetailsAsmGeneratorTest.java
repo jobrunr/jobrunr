@@ -33,14 +33,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 
-public class JobDetailsAsmGeneratorTest {
+class JobDetailsAsmGeneratorTest {
 
     private TestService testService;
     private TestServiceInterface testServiceInterface;
     private JobDetailsAsmGenerator jobDetailsGenerator;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         jobDetailsGenerator = new JobDetailsAsmGenerator();
         testService = new TestService();
         testServiceInterface = testService;
@@ -48,14 +48,14 @@ public class JobDetailsAsmGeneratorTest {
 
     @Test
     @Disabled
-    public void logByteCode() {
+    void logByteCode() {
         String name = this.getClass().getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 
     @Test
-    public void testJobLambdaCallingStaticMethod() {
+    void testJobLambdaCallingStaticMethod() {
         JobLambda job = () -> System.out.println("This is a test!");
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -66,7 +66,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallingInlineStaticMethod() {
+    void testJobLambdaCallingInlineStaticMethod() {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> System.out.println("This is a test!"));
         assertThat(jobDetails)
                 .hasClass(System.class)
@@ -76,7 +76,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallMethodReference() {
+    void testJobLambdaCallMethodReference() {
         JobLambda job = testService::doWork;
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -86,7 +86,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallInstanceMethod_Null() {
+    void testJobLambdaCallInstanceMethod_Null() {
         TestService.Work work = null;
         JobLambda job = () -> testService.doWork(work);
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
@@ -95,7 +95,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallInstanceMethod_BIPUSH() {
+    void testJobLambdaCallInstanceMethod_BIPUSH() {
         JobLambda job = () -> testService.doWork(5);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -105,7 +105,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallInstanceMethod_SIPUSH() {
+    void testJobLambdaCallInstanceMethod_SIPUSH() {
         JobLambda job = () -> testService.doWorkThatTakesLong(500);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -115,7 +115,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallInstanceMethod_LCONST() {
+    void testJobLambdaCallInstanceMethod_LCONST() {
         JobLambda job = () -> testService.doWorkThatTakesLong(1L);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -125,7 +125,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testInlineJobLambdaCallInstanceMethod() {
+    void testInlineJobLambdaCallInstanceMethod() {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testService.doWork());
         assertThat(jobDetails)
                 .hasClass(TestService.class)
@@ -134,7 +134,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithIntegerAndJobContext() {
+    void testJobLambdaWithIntegerAndJobContext() {
         JobLambda job = () -> testService.doWork(3, JobContext.Null);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -144,7 +144,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithDouble() {
+    void testJobLambdaWithDouble() {
         JobLambda job = () -> testService.doWork(3.3);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -154,7 +154,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithMultipleInts() {
+    void testJobLambdaWithMultipleInts() {
         JobLambda job = () -> testService.doWork(3, 97693);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -164,7 +164,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithMultipleParameters() {
+    void testJobLambdaWithMultipleParameters() {
         for (int i = 0; i < 3; i++) {
             int finalI = i;
             Instant now = Instant.now();
@@ -179,7 +179,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithObject() {
+    void testJobLambdaWithObject() {
         for (int i = 0; i < 3; i++) {
             int finalI = i;
             JobLambda job = () -> testService.doWork(new TestService.Work(finalI, "a String", UUID.randomUUID()));
@@ -197,7 +197,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithFile() {
+    void testJobLambdaWithFile() {
         JobLambda job = () -> testService.doWorkWithFile(new File("/tmp/file.txt"));
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -210,7 +210,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithPath() {
+    void testJobLambdaWithPath() {
         Path path = Paths.get("/tmp/file.txt");
         JobLambda job = () -> testService.doWorkWithPath(path);
 
@@ -224,7 +224,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithPathsGetInLambda() {
+    void testJobLambdaWithPathsGetInLambda() {
         JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp/file.txt"));
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -237,7 +237,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithPathsGetMultiplePartsInLambda() {
+    void testJobLambdaWithPathsGetMultiplePartsInLambda() {
         JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp", "folder", "subfolder", "file.txt"));
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -250,7 +250,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithPathOfInLambda() {
+    void testJobLambdaWithPathOfInLambda() {
         JobLambda job = () -> testService.doWorkWithPath(Path.of("/tmp/file.txt"));
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -263,7 +263,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithObjectCreatedOutsideOfLambda() {
+    void testJobLambdaWithObjectCreatedOutsideOfLambda() {
         for (int i = 0; i < 3; i++) {
             TestService.Work work = new TestService.Work(i, "a String", UUID.randomUUID());
             JobLambda job = () -> testService.doWork(work);
@@ -281,7 +281,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithSupportedPrimitiveTypes() {
+    void testJobLambdaWithSupportedPrimitiveTypes() {
         JobLambda job = () -> testService.doWork(true, 3, 5L, 3.3F, 2.3D);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -291,7 +291,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithUnsupportedPrimitiveTypes() {
+    void testJobLambdaWithUnsupportedPrimitiveTypes() {
         JobLambda job = () -> testService.doWork((byte) 0x3, (short) 2, 'c');
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
                 .isInstanceOf(JobRunrException.class)
@@ -300,7 +300,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallingMultiLineStatement() {
+    void testJobLambdaCallingMultiLineStatement() {
         JobLambda job = () -> {
             UUID testId = UUID.randomUUID();
             int count = 6;
@@ -318,7 +318,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaCallingMultiLineStatementThatLoadsFromAService() {
+    void testJobLambdaCallingMultiLineStatementThatLoadsFromAService() {
         JobLambda job = () -> {
             UUID testId = testService.getAnUUID();
             testService.doWork(testId);
@@ -330,13 +330,13 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testJobLambdaWithArgumentThatIsNotUsed() {
+    void testJobLambdaWithArgumentThatIsNotUsed() {
         final Stream<Integer> range = IntStream.range(0, 1).boxed();
         assertThatCode(() -> jobDetailsGenerator.toJobDetails(range, (i) -> testService.doWork())).doesNotThrowAnyException();
     }
 
     @Test
-    public void testJobLambdaWithStream() {
+    void testJobLambdaWithStream() {
         Stream<UUID> workStream = getWorkStream();
         AtomicInteger atomicInteger = new AtomicInteger();
         final JobLambdaFromStream<UUID> lambda = (uuid) -> testService.doWork(uuid.toString(), atomicInteger.incrementAndGet(), now());
@@ -351,7 +351,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambda() {
+    void testIocJobLambda() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork();
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
         assertThat(jobDetails)
@@ -361,7 +361,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testInlineIocJobLambda() {
+    void testInlineIocJobLambda() {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((IocJobLambda<TestService>) (x) -> x.doWork(5));
         assertThat(jobDetails)
                 .hasClass(TestService.class)
@@ -370,7 +370,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithIntegerAndJobContext() {
+    void testIocJobLambdaWithIntegerAndJobContext() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, JobContext.Null);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
         assertThat(jobDetails)
@@ -380,7 +380,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithDouble() {
+    void testIocJobLambdaWithDouble() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3.3);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
         assertThat(jobDetails)
@@ -390,7 +390,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithMultipleInts() {
+    void testIocJobLambdaWithMultipleInts() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, 97693);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
         assertThat(jobDetails)
@@ -400,7 +400,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithMultipleParameters() {
+    void testIocJobLambdaWithMultipleParameters() {
         for (int i = 0; i < 3; i++) {
             int finalI = i;
             Instant now = Instant.now();
@@ -415,7 +415,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithObject() {
+    void testIocJobLambdaWithObject() {
         for (int i = 0; i < 3; i++) {
             int finalI = i;
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(new TestService.Work(finalI, "a String", UUID.randomUUID()));
@@ -433,7 +433,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIoCJobLambdaWithFile() {
+    void testIoCJobLambdaWithFile() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkWithFile(new File("/tmp/file.txt"));
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
@@ -446,7 +446,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIoCJobLambdaWithPath() {
+    void testIoCJobLambdaWithPath() {
         Path path = Paths.get("/tmp/file.txt");
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkWithPath(path);
 
@@ -460,7 +460,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithObjectCreatedOutsideOfLambda() {
+    void testIocJobLambdaWithObjectCreatedOutsideOfLambda() {
         for (int i = 0; i < 3; i++) {
             TestService.Work work = new TestService.Work(i, "a String", UUID.randomUUID());
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(work);
@@ -478,7 +478,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithSupportedPrimitiveTypes() {
+    void testIocJobLambdaWithSupportedPrimitiveTypes() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(true, 3, 5L, 3.3F, 2.3D);
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
         assertThat(jobDetails)
@@ -488,7 +488,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithSupportedPrimitiveTypes_LOAD() {
+    void testIocJobLambdaWithSupportedPrimitiveTypes_LOAD() {
         for (int i = 0; i < 3; i++) {
             final boolean finalB = i % 2 == 0;
             final int finalI = i;
@@ -505,7 +505,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithUnsupportedPrimitiveTypes() {
+    void testIocJobLambdaWithUnsupportedPrimitiveTypes() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork((byte) 0x3, (short) 2, 'c');
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(iocJobLambda))
                 .isInstanceOf(JobRunrException.class)
@@ -514,13 +514,13 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testIocJobLambdaWithArgumentThatIsNotUsed() {
+    void testIocJobLambdaWithArgumentThatIsNotUsed() {
         IocJobLambdaFromStream<TestService, Integer> iocJobLambdaFromStream = (x, i) -> x.doWork();
         assertThatCode(() -> jobDetailsGenerator.toJobDetails(5, iocJobLambdaFromStream)).doesNotThrowAnyException();
     }
 
     @Test
-    public void testIoCJobLambdaWithStream() {
+    void testIoCJobLambdaWithStream() {
         Stream<UUID> workStream = getWorkStream();
         AtomicInteger atomicInteger = new AtomicInteger();
         IocJobLambdaFromStream<TestService, UUID> lambda = (service, uuid) -> service.doWork(uuid.toString(), atomicInteger.incrementAndGet(), now());
@@ -535,7 +535,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testInlineJobLambdaFromInterface() {
+    void testInlineJobLambdaFromInterface() {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testServiceInterface.doWork());
         assertThat(jobDetails)
                 .hasClass(TestServiceInterface.class)
@@ -544,7 +544,7 @@ public class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    public void testMethodReferenceJobLambdaFromInterface() {
+    void testMethodReferenceJobLambdaFromInterface() {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) testServiceInterface::doWork);
         assertThat(jobDetails)
                 .hasClass(TestServiceInterface.class)

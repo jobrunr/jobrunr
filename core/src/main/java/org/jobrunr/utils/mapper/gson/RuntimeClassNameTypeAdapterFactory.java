@@ -112,8 +112,8 @@ import java.util.Map;
 public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterFactory {
     private final Class<?> baseType;
     private final String typeFieldName;
-    private final Map<String, Class<?>> labelToSubtype = new LinkedHashMap<String, Class<?>>();
-    private final Map<Class<?>, String> subtypeToLabel = new LinkedHashMap<Class<?>, String>();
+    private final Map<String, Class<?>> labelToSubtype = new LinkedHashMap<>();
+    private final Map<Class<?>, String> subtypeToLabel = new LinkedHashMap<>();
 
     private RuntimeClassNameTypeAdapterFactory(Class<?> baseType, String typeFieldName) {
         if (typeFieldName == null || baseType == null) {
@@ -128,7 +128,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
      * typeFieldName} as the type field name. Type field names are case sensitive.
      */
     public static <T> RuntimeClassNameTypeAdapterFactory<T> of(Class<T> baseType, String typeFieldName) {
-        return new RuntimeClassNameTypeAdapterFactory<T>(baseType, typeFieldName);
+        return new RuntimeClassNameTypeAdapterFactory<>(baseType, typeFieldName);
     }
 
     /**
@@ -136,7 +136,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
      * the type field name.
      */
     public static <T> RuntimeClassNameTypeAdapterFactory<T> of(Class<T> baseType) {
-        return new RuntimeClassNameTypeAdapterFactory<T>(baseType, "@class");
+        return new RuntimeClassNameTypeAdapterFactory<>(baseType, "@class");
     }
 
     /**
@@ -171,8 +171,8 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
 
     public <R> TypeAdapter<R> create(Gson gson, TypeToken<R> type) {
 
-        final Map<String, TypeAdapter<?>> labelToDelegate = new LinkedHashMap<String, TypeAdapter<?>>();
-        final Map<Class<?>, TypeAdapter<?>> subtypeToDelegate = new LinkedHashMap<Class<?>, TypeAdapter<?>>();
+        final Map<String, TypeAdapter<?>> labelToDelegate = new LinkedHashMap<>();
+        final Map<Class<?>, TypeAdapter<?>> subtypeToDelegate = new LinkedHashMap<>();
 
         if (Object.class.isAssignableFrom(type.getRawType())) {
             TypeAdapter<?> delegate = gson.getDelegateAdapter(this, type);
@@ -183,7 +183,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
         return new TypeAdapter<R>() {
             @SuppressWarnings("unchecked")
             @Override
-            public R read(JsonReader in) throws IOException {
+            public R read(JsonReader in) {
                 JsonElement jsonElement = Streams.parse(in);
                 if (jsonElement.isJsonObject() && ((JsonObject) jsonElement).has(typeFieldName)) {
                     JsonElement labelJsonElement = jsonElement.getAsJsonObject().remove(typeFieldName);

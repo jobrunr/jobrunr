@@ -147,8 +147,7 @@ public class DatabaseCreator {
                 pSt.setString(1, path.getFileName().toString());
                 try (ResultSet rs = pSt.executeQuery()) {
                     if (rs.next()) {
-                        int count = rs.getInt(1);
-                        return count == 1;
+                        return rs.getInt(1) == 1;
                     }
                     return false;
                 }

@@ -8,14 +8,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PageTest {
 
-    private int getBucket(int nbr) {
-        int bucket = nbr % 3;
-        if (bucket == 0) bucket = 3;
-        return bucket;
-    }
-
     @Test
-    public void testPaging1() {
+    void testPaging1() {
         Page<String> page = new Page<>(50, new ArrayList<>(), 15, 5);
         assertThat(page.getTotal()).isEqualTo(50);
         assertThat(page.getOffset()).isEqualTo(15);
@@ -27,7 +21,7 @@ class PageTest {
     }
 
     @Test
-    public void testPaging2() {
+    void testPaging2() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 2, 2);
         assertThat(page.getTotal()).isEqualTo(5);
         assertThat(page.getOffset()).isEqualTo(2);
@@ -39,7 +33,7 @@ class PageTest {
     }
 
     @Test
-    public void testPaging3() {
+    void testPaging3() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 0, 20);
         assertThat(page.getTotal()).isEqualTo(5);
         assertThat(page.getOffset()).isEqualTo(0);
@@ -51,7 +45,7 @@ class PageTest {
     }
 
     @Test
-    public void testPagingStrangeValues1() {
+    void testPagingStrangeValues1() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 1, 4);
         assertThat(page.getTotal()).isEqualTo(5);
         assertThat(page.getOffset()).isEqualTo(1);
@@ -63,7 +57,7 @@ class PageTest {
     }
 
     @Test
-    public void testPagingStrangeValues2() {
+    void testPagingStrangeValues2() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 1, 3);
         assertThat(page.getTotal()).isEqualTo(5);
         assertThat(page.getOffset()).isEqualTo(1);

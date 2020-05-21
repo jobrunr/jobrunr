@@ -55,7 +55,7 @@ public class LoadTest {
 
     @Disabled
     @Test
-    public void testLoadTest() throws InterruptedException {
+    void testLoadTest() throws InterruptedException {
         int amountOfWork = 1000;
         int amountOfServers = 10;
 

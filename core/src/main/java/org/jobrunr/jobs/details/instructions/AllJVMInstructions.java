@@ -46,6 +46,10 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.SIPUSH, SingleIntOperandInstruction::new);
     }
 
+    private AllJVMInstructions() {
+
+    }
+
     public static <T extends AbstractJVMInstruction> T get(int opcode, JobDetailsFinderContext jobDetailsBuilder) {
         final Function<JobDetailsFinderContext, AbstractJVMInstruction> instructionBuilder = instructions.get(opcode);
         if (instructionBuilder == null) {

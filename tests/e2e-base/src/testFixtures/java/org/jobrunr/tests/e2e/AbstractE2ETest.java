@@ -41,7 +41,7 @@ public abstract class AbstractE2ETest {
     }
 
     @Test
-    public void testProcessInBackgroundJobServer() {
+    void testProcessInBackgroundJobServer() {
         try {
             TestService testService = new TestService();
             UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
@@ -59,7 +59,7 @@ public abstract class AbstractE2ETest {
 
     @Disabled
     @Test
-    public void performanceTest() {
+    void performanceTest() {
         TestService testService = new TestService();
 
         Stream<UUID> workStream = IntStream

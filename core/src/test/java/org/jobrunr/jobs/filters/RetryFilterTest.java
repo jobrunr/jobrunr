@@ -19,12 +19,12 @@ class RetryFilterTest {
     private RetryFilter retryFilter;
 
     @BeforeEach
-    public void setupRetryFilter() {
+    void setupRetryFilter() {
         retryFilter = new RetryFilter();
     }
 
     @Test
-    public void skipsIfTestIsNotFailed() {
+    void skipsIfTestIsNotFailed() {
         final Job job = anEnqueuedJob().build();
         int beforeVersion = job.getJobStates().size();
 
@@ -36,7 +36,7 @@ class RetryFilterTest {
     }
 
     @Test
-    public void enqueuesJobAgainIfItIsFailed() {
+    void enqueuesJobAgainIfItIsFailed() {
         final Job job = aFailedJob().build();
         int beforeVersion = job.getJobStates().size();
 
@@ -48,7 +48,7 @@ class RetryFilterTest {
     }
 
     @Test
-    public void doesNotEnqueuesJobAgainIfItExceptionIsProblematic() {
+    void doesNotEnqueuesJobAgainIfItExceptionIsProblematic() {
         final Job job = aFailedJob().withState(new FailedState("a message", problematicConfigurationException("big problem"))).build();
         int beforeVersion = job.getJobStates().size();
 
@@ -60,7 +60,7 @@ class RetryFilterTest {
     }
 
     @Test
-    public void doesNotEnqueueJobAgainIfItHasFailed10Times() {
+    void doesNotEnqueueJobAgainIfItHasFailed10Times() {
         final Job job = aFailedJobWithRetries().build();
         int beforeVersion = job.getJobStates().size();
 

@@ -23,6 +23,22 @@ public class InvokeDynamicInstruction extends AbstractJVMInstruction {
         this.bootstrapMethodArguments = bootstrapMethodArguments;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDescriptor() {
+        return descriptor;
+    }
+
+    public Handle getBootstrapMethodHandle() {
+        return bootstrapMethodHandle;
+    }
+
+    public Object[] getBootstrapMethodArguments() {
+        return bootstrapMethodArguments;
+    }
+
     @Override
     public Object invokeInstruction() {
         if ("makeConcatWithConstants".equals(name)) {

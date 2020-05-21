@@ -13,7 +13,7 @@ import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 class StreamUtilsTest {
 
     @Test
-    public void canBatch() {
+    void canBatch() {
         List<Integer> input = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         List<Integer> output = new ArrayList<>();
 

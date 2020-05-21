@@ -14,7 +14,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 class RateLimiterTest {
 
     @Test
-    public void testRateLimit() {
+    void testRateLimit() {
         final RateLimiter rateLimit = rateLimit().at1Request().per(SECOND);
         await()
                 .pollInterval(ofMillis(20))
@@ -30,7 +30,7 @@ class RateLimiterTest {
     }
 
     @Test
-    public void testRateLimit8PerSecond() {
+    void testRateLimit8PerSecond() {
         final RateLimiter rateLimit = rateLimit().atRequests(8).per(SECOND);
 
         List<Boolean> allowed = new ArrayList<>();
@@ -41,7 +41,7 @@ class RateLimiterTest {
                 .untilAsserted(() -> {
                     allowed.add(rateLimit.isAllowed());
                     assertThat(allowed.stream().filter(x -> x)).hasSize(8);
-        });
+                });
     }
 
 }

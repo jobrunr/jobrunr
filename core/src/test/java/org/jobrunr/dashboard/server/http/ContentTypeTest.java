@@ -18,47 +18,47 @@ import static org.jobrunr.dashboard.server.http.ContentType.TEXT_PLAIN;
 class ContentTypeTest {
 
     @Test
-    public void testHtmlContentType() {
+    void testHtmlContentType() {
         assertThat(ContentType.from(Path.of("index.html"))).isEqualTo(TEXT_HTML);
     }
 
     @Test
-    public void testTextContentType() {
+    void testTextContentType() {
         assertThat(ContentType.from(Path.of("index.txt"))).isEqualTo(TEXT_PLAIN);
     }
 
     @Test
-    public void testJsonContentType() {
+    void testJsonContentType() {
         assertThat(ContentType.from(Path.of("products.json"))).isEqualTo(APPLICATION_JSON);
     }
 
     @Test
-    public void testJavascriptContentType() {
+    void testJavascriptContentType() {
         assertThat(ContentType.from(Path.of("javascript.js"))).isEqualTo(TEXT_JAVASCRIPT);
     }
 
     @Test
-    public void testCssContentType() {
+    void testCssContentType() {
         assertThat(ContentType.from(Path.of("stylesheet.css"))).isEqualTo(TEXT_CSS);
     }
 
     @Test
-    public void testPngContentType() {
+    void testPngContentType() {
         assertThat(ContentType.from(Path.of("image.png"))).isEqualTo(IMAGE_PNG);
     }
 
     @Test
-    public void testIcoContentType() {
+    void testIcoContentType() {
         assertThat(ContentType.from(Path.of("image.ico"))).isEqualTo(IMAGE_X_ICON);
     }
 
     @Test
-    public void testJavascriptDebugMapsContentType() {
+    void testJavascriptDebugMapsContentType() {
         assertThat(ContentType.from(Path.of("debug.map"))).isEqualTo(APPLICATION_OCTET_STREAM);
     }
 
     @Test
-    public void testUnknownContentType() {
+    void testUnknownContentType() {
         assertThatThrownBy(() -> ContentType.from(Path.of("un.known"))).isInstanceOf(IllegalArgumentException.class);
     }
 

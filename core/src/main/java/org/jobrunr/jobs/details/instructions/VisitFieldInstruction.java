@@ -5,9 +5,9 @@ import org.jobrunr.jobs.details.JobDetailsFinderContext;
 
 public class VisitFieldInstruction extends AbstractJVMInstruction {
 
-    public String owner;
-    public String name;
-    public String descriptor;
+    protected String owner;
+    protected String name;
+    protected String descriptor;
 
     public VisitFieldInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);

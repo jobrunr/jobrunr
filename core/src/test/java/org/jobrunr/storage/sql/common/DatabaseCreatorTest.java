@@ -21,35 +21,35 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DatabaseCreatorTest {
 
-    public static final String SQLITE_DB1 = "/tmp/jobrunr-test.db";
-    public static final String SQLITE_DB2 = "/tmp/jobrunr-failing-test.db";
+    static final String SQLITE_DB1 = "/tmp/jobrunr-test.db";
+    static final String SQLITE_DB2 = "/tmp/jobrunr-failing-test.db";
 
     @BeforeEach
-    public void setupJobStorageProvider() throws IOException {
+    void setupJobStorageProvider() throws IOException {
         JobRunr.configure();
         Files.deleteIfExists(Paths.get(SQLITE_DB1));
     }
 
     @Test
-    public void testSqlLiteMigrationsUsingMainMethod() {
+    void testSqlLiteMigrationsUsingMainMethod() {
         assertThatCode(() -> DatabaseCreator.main(new String[]{"jdbc:sqlite:" + SQLITE_DB1, "", ""})).doesNotThrowAnyException();
     }
 
     @Test
-    public void testSqlLiteMigrations() {
+    void testSqlLiteMigrations() {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB1));
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
         assertThatCode(databaseCreator::validateTables).doesNotThrowAnyException();
     }
 
     @Test
-    public void testValidateWithoutTables() {
+    void testValidateWithoutTables() {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB2));
         assertThatThrownBy(databaseCreator::validateTables).isInstanceOf(JobRunrException.class);
     }
 
     @Test
-    public void testDatabaseSpecificMigrations() {
+    void testDatabaseSpecificMigrations() {
         final DataSource dataSourceMock = Mockito.mock(DataSource.class);
         final DatabaseCreator databaseCreator = new DatabaseCreator(dataSourceMock, MariaDbStorageProviderStub.class);
         final Stream<Path> databaseSpecificMigrations = databaseCreator.getDatabaseSpecificMigrations();

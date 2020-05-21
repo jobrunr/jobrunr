@@ -20,7 +20,7 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
-public class JobMapperUsingJacksonMapperTest {
+class JobMapperUsingJacksonMapperTest {
 
     private JobMapper jobMapper;
 
@@ -28,14 +28,14 @@ public class JobMapperUsingJacksonMapperTest {
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         jobMapper = new JobMapper(new JacksonJsonMapper());
 
         lenient().when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
     }
 
     @Test
-    public void canSerializeAndDeserialize() {
+    void canSerializeAndDeserialize() {
         org.jobrunr.jobs.Job job = anEnqueuedJob().build();
 
         String jobAsJson = jobMapper.serializeJob(job);
@@ -45,7 +45,7 @@ public class JobMapperUsingJacksonMapperTest {
     }
 
     @Test
-    public void canSerializeAndDeserializeWithJobContext() {
+    void canSerializeAndDeserializeWithJobContext() {
         org.jobrunr.jobs.Job job = anEnqueuedJob()
                 .withJobDetails(jobDetails()
                         .withClassName(TestService.class)
@@ -62,7 +62,7 @@ public class JobMapperUsingJacksonMapperTest {
     }
 
     @Test
-    public void canSerializeAndDeserializeJobWithAllStatesAndMetadata() {
+    void canSerializeAndDeserializeJobWithAllStatesAndMetadata() {
         org.jobrunr.jobs.Job job = anEnqueuedJob()
                 .withMetadata("metadata1", new TestMetadata("input"))
                 .withMetadata("metadata2", "a string")

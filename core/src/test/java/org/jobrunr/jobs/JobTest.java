@@ -19,14 +19,14 @@ class JobTest {
     private BackgroundJobServer backgroundJobServer;
 
     @Test
-    public void getJobIdentifier() {
+    void getJobIdentifier() {
         Job job = anEnqueuedJob().withJobDetails(systemOutPrintLnJobDetails("some message")).build();
 
         assertThat(job.getJobSignature()).isEqualTo("System.out.println(String)");
     }
 
     @Test
-    public void jobCannotGoToProcessingTwice() {
+    void jobCannotGoToProcessingTwice() {
         Job job = anEnqueuedJob().withId().build();
 
         job.startProcessingOn(backgroundJobServer);
@@ -34,7 +34,7 @@ class JobTest {
     }
 
     @Test
-    public void increaseVersion() {
+    void increaseVersion() {
         Job job = anEnqueuedJob().withId().build();
 
         assertThat(job.increaseVersion()).isEqualTo(0);

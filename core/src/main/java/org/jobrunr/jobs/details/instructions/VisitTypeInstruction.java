@@ -4,7 +4,7 @@ import org.jobrunr.jobs.details.JobDetailsFinderContext;
 
 public class VisitTypeInstruction extends AbstractJVMInstruction {
 
-    private String type;
+    protected String type;
 
     public VisitTypeInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
@@ -18,9 +18,5 @@ public class VisitTypeInstruction extends AbstractJVMInstruction {
     @Override
     public Object invokeInstruction() {
         return null;
-    }
-
-    public String getType() {
-        return type;
     }
 }

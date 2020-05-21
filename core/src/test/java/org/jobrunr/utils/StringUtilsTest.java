@@ -9,21 +9,21 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 class StringUtilsTest {
 
     @Test
-    public void testIsNullOrEmpty() {
+    void testIsNullOrEmpty() {
         assertThat(isNullOrEmpty(null)).isTrue();
         assertThat(isNullOrEmpty("")).isTrue();
         assertThat(isNullOrEmpty("bla")).isFalse();
     }
 
     @Test
-    public void testIsNotNullOrEmpty() {
+    void testIsNotNullOrEmpty() {
         assertThat(isNotNullOrEmpty(null)).isFalse();
         assertThat(isNotNullOrEmpty("")).isFalse();
         assertThat(isNotNullOrEmpty("bla")).isTrue();
     }
 
     @Test
-    public void testCapitalize() {
+    void testCapitalize() {
         assertThat(StringUtils.capitalize("testMethod")).isEqualTo("TestMethod");
     }
 

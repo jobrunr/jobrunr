@@ -44,8 +44,8 @@ public class Sql<T> {
         return new Sql<>();
     }
 
-    public static Sql withoutType() {
-        return new Sql();
+    public static Sql<?> withoutType() {
+        return new Sql<>();
     }
 
     public Sql<T> using(DataSource dataSource) {
@@ -54,7 +54,7 @@ public class Sql<T> {
         return this;
     }
 
-    public Sql<T> with(String name, Enum value) {
+    public Sql<T> with(String name, Enum<?> value) {
         params.put(name, value.name());
         return this;
     }
@@ -200,7 +200,7 @@ public class Sql<T> {
             } else if (o instanceof Boolean) {
                 ps.setInt(i, (boolean) o ? 1 : 0);
             } else if (o instanceof Enum) {
-                ps.setString(i, ((Enum) o).name());
+                ps.setString(i, ((Enum<?>) o).name());
             } else if (o instanceof UUID || o instanceof String) {
                 ps.setString(i, o.toString());
             } else if (o == null) {

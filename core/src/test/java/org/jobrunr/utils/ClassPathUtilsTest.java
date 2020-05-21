@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ClassPathUtilsTest {
 
     @Test
-    public void canGetPathsOnClasspath() {
+    void canGetPathsOnClasspath() {
         final List<String> paths = ClassPathUtils
                 .toPathsOnClasspath("/org/jobrunr/utils/somefolder")
                 .map(Path::toString)
@@ -23,7 +23,7 @@ class ClassPathUtilsTest {
     }
 
     @Test
-    public void canListChildren() {
+    void canListChildren() {
         final Stream<String> folderItems = ClassPathUtils
                 .listAllChildrenOnClasspath(ClassPathUtilsTest.class, "somefolder")
                 .map(path -> path.getFileName().toString());
@@ -32,7 +32,7 @@ class ClassPathUtilsTest {
     }
 
     @Test
-    public void canListChildrenInJar() {
+    void canListChildrenInJar() {
         final Stream<String> folderItems = ClassPathUtils
                 .listAllChildrenOnClasspath(Test.class)
                 .map(path -> path.getFileName().toString());

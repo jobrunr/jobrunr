@@ -8,7 +8,7 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 class RecurringJobTest {
 
     @Test
-    public void testToScheduledJob() {
+    void testToScheduledJob() {
         final RecurringJob recurringJob = aDefaultRecurringJob().withName("the recurring job").build();
 
         final Job job = recurringJob.toScheduledJob();
@@ -17,7 +17,7 @@ class RecurringJobTest {
     }
 
     @Test
-    public void testToEnqueuedJob() {
+    void testToEnqueuedJob() {
         final RecurringJob recurringJob = aDefaultRecurringJob().withName("the recurring job").build();
 
         final Job job = recurringJob.toEnqueuedJob();

@@ -15,12 +15,12 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     private BackgroundStaticJobWithoutIocRunner backgroundStaticJobWithoutIocRunner;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         backgroundStaticJobWithoutIocRunner = new BackgroundStaticJobWithoutIocRunner();
     }
 
     @Test
-    public void supportsJobIfJobIsStaticMethodCall() {
+    void supportsJobIfJobIsStaticMethodCall() {
         Job job = anEnqueuedJob()
                 .withJobDetails(systemOutPrintLnJobDetails("This is a test"))
                 .build();
@@ -29,7 +29,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     }
 
     @Test
-    public void doesNotSupportJobIfJobIsNotAStaticMethodCall() {
+    void doesNotSupportJobIfJobIsNotAStaticMethodCall() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails())
                 .build();
@@ -38,7 +38,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     }
 
     @Test
-    public void runSimpleMethod() {
+    void runSimpleMethod() {
         Job job = anEnqueuedJob()
                 .withJobDetails(systemOutPrintLnJobDetails("This is a test"))
                 .build();

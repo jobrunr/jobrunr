@@ -71,7 +71,7 @@ public abstract class StorageProviderTest {
     protected abstract StorageProvider getStorageProvider();
 
     @Test
-    public void testAnnounceAndListBackgroundJobServers() throws InterruptedException {
+    void testAnnounceAndListBackgroundJobServers() throws InterruptedException {
         final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus1.start();
         storageProvider.announceBackgroundJobServer(serverStatus1);
@@ -98,7 +98,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testRemoveTimedOutBackgroundJobServers() throws InterruptedException {
+    void testRemoveTimedOutBackgroundJobServers() throws InterruptedException {
         final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus1.start();
         storageProvider.announceBackgroundJobServer(serverStatus1);
@@ -117,7 +117,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void ifServerHasTimedOutAndSignalsItsAliveAnExceptionIsThrown() throws InterruptedException {
+    void ifServerHasTimedOutAndSignalsItsAliveAnExceptionIsThrown() throws InterruptedException {
         final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
         serverStatus.start();
         storageProvider.announceBackgroundJobServer(serverStatus);
@@ -130,7 +130,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testCRUDJob() {
+    void testCRUDJob() {
         Job job = anEnqueuedJob().build();
         Job createdJob = storageProvider.save(job);
         Job fetchedJob = storageProvider.getJobById(createdJob.getId());
@@ -148,7 +148,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testOptimisticLocking() {
+    void testOptimisticLocking() {
         Job job = anEnqueuedJob().build();
         Job createdJob = storageProvider.save(job);
         Job fetchedJob = storageProvider.getJobById(createdJob.getId());
@@ -165,7 +165,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testUpdateAndGet() {
+    void testUpdateAndGet() {
         Job job = anEnqueuedJob().build();
         Job createdJob = storageProvider.save(job);
         createdJob.startProcessingOn(backgroundJobServer);
@@ -178,7 +178,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testExists() {
+    void testExists() {
         JobDetails jobDetails = defaultJobDetails().build();
         Job job = anEnqueuedJob()
                 .withJobDetails(jobDetails)
@@ -190,7 +190,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testSaveListUpdateListAndGetListOfJobs() {
+    void testSaveListUpdateListAndGetListOfJobs() {
         final List<Job> jobs = asList(
                 aJob().withName("1").withEnqueuedState(now().minusSeconds(30)).build(),
                 aJob().withName("2").withEnqueuedState(now().minusSeconds(20)).build(),
@@ -217,7 +217,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testGetListOfJobsUpdatedBefore() {
+    void testGetListOfJobsUpdatedBefore() {
         final List<Job> jobs = asList(
                 aJob().withEnqueuedState(now().minus(24, HOURS)).build(),
                 aJob().withEnqueuedState(now().minus(12, HOURS)).build(),
@@ -231,7 +231,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testDeleteJobs() {
+    void testDeleteJobs() {
         final List<Job> jobs = asList(
                 aJob().withEnqueuedState(now().minus(4, HOURS)).build(),
                 aJob().withEnqueuedState(now().minus(3, HOURS)).build(),
@@ -249,7 +249,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testSaveListAndPageWithOffsetAndLimit() {
+    void testSaveListAndPageWithOffsetAndLimit() {
         Job job1 = aJob().withEnqueuedState(now().minusSeconds(10)).build();
         Job job2 = aJob().withEnqueuedState(now().minusSeconds(8)).build();
         Job job3 = aJob().withEnqueuedState(now().minusSeconds(6)).build();
@@ -267,7 +267,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testScheduledJobs() {
+    void testScheduledJobs() {
         Job job1 = anEnqueuedJob().withState(new ScheduledState(now())).build();
         Job job2 = anEnqueuedJob().withState(new ScheduledState(now().plus(20, HOURS))).build();
         final List<Job> jobs = asList(job1, job2);
@@ -278,7 +278,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testCRUDRecurringJob() {
+    void testCRUDRecurringJob() {
         RecurringJob recurringJobv1 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.daily()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv1);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
@@ -294,7 +294,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testOnChangeListenerForSaveJob() {
+    void testOnChangeListenerForSaveJob() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
@@ -304,7 +304,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testOnChangeListenerForDeleteJob() {
+    void testOnChangeListenerForDeleteJob() {
         final Job job = anEnqueuedJob().build();
         storageProvider.save(job);
 
@@ -317,7 +317,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testOnChangeListenerForSaveJobList() {
+    void testOnChangeListenerForSaveJobList() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
@@ -331,7 +331,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testOnChangeListenerForDeleteJobsByState() {
+    void testOnChangeListenerForDeleteJobsByState() {
         storageProvider.save(asList(anEnqueuedJob().build(), anEnqueuedJob().build()));
 
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
@@ -343,7 +343,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    public void testJobStats() {
+    void testJobStats() {
         storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
 
         assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();
@@ -374,7 +374,7 @@ public abstract class StorageProviderTest {
 
     @Test
     @Disabled
-    public void testPerformance() {
+    void testPerformance() {
         int amount = 1000000;
         IntStream.range(0, amount)
                 .peek(i -> {

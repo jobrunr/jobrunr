@@ -50,7 +50,7 @@ class JobZooKeeperTest {
     private BackgroundJobTestFilter logAllStateChangesFilter;
 
     @BeforeEach
-    public void setUpBackgroundJobZooKeeper() {
+    void setUpBackgroundJobZooKeeper() {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
 
         backgroundJobServerStatus = new BackgroundJobServerStatus(15, 10);
@@ -62,7 +62,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void jobZooKeeperDoesNothingIfItIsNotInitialized() {
+    void jobZooKeeperDoesNothingIfItIsNotInitialized() {
         jobZooKeeper = new JobZooKeeper(backgroundJobServer);
 
         jobZooKeeper.run();
@@ -74,10 +74,10 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForRecurringJobs() {
+    void checkForRecurringJobs() {
         RecurringJob recurringJob = aDefaultRecurringJob().build();
 
-        when(storageProvider.getRecurringJobs()).thenReturn(asList(recurringJob));
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
 
         jobZooKeeper.run();
 
@@ -85,10 +85,10 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduled() {
+    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduled() {
         RecurringJob recurringJob = aDefaultRecurringJob().build();
 
-        when(storageProvider.getRecurringJobs()).thenReturn(asList(recurringJob));
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
         when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED)).thenReturn(true);
 
         jobZooKeeper.run();
@@ -99,10 +99,10 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyEnqueued() {
+    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyEnqueued() {
         RecurringJob recurringJob = aDefaultRecurringJob().build();
 
-        when(storageProvider.getRecurringJobs()).thenReturn(asList(recurringJob));
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
         when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED)).thenReturn(false);
         when(storageProvider.exists(recurringJob.getJobDetails(), ENQUEUED)).thenReturn(true);
 
@@ -113,10 +113,10 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyProcessing() {
+    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyProcessing() {
         RecurringJob recurringJob = aDefaultRecurringJob().build();
 
-        when(storageProvider.getRecurringJobs()).thenReturn(asList(recurringJob));
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
         when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED)).thenReturn(false);
         when(storageProvider.exists(recurringJob.getJobDetails(), ENQUEUED)).thenReturn(false);
         when(storageProvider.exists(recurringJob.getJobDetails(), PROCESSING)).thenReturn(true);
@@ -127,9 +127,9 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForEnqueuedJobsIfLessJobsThanWorkerPoolSizeTheyAreSubmittedNonBlocking() {
+    void checkForEnqueuedJobsIfLessJobsThanWorkerPoolSizeTheyAreSubmittedNonBlocking() {
         final Job enqueuedJob = anEnqueuedJob().build();
-        final List<Job> jobs = asList(enqueuedJob);
+        final List<Job> jobs = List.of(enqueuedJob);
 
         when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
         when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(jobs);
@@ -140,7 +140,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForEnqueuedJobsIfMoreJobsThanWorkerPoolSizeTheyAreSubmittedBlockingAsItResultsInLessConcurrentJobModifications() {
+    void checkForEnqueuedJobsIfMoreJobsThanWorkerPoolSizeTheyAreSubmittedBlockingAsItResultsInLessConcurrentJobModifications() {
         final List<Job> enqueuedJobs = IntStream.range(0, 11)
                 .mapToObj(x -> anEnqueuedJob().build())
                 .collect(toList());
@@ -154,7 +154,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForEnqueuedJobsNotDoneIfRequestedStateIsStopped() {
+    void checkForEnqueuedJobsNotDoneIfRequestedStateIsStopped() {
         Job enqueuedJob = anEnqueuedJob().build();
 
         backgroundJobServerStatus.pause();
@@ -166,7 +166,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
+    void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = aScheduledJob().build();
 
         when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
@@ -183,7 +183,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForSucceededJobsThanCanGoToDeletedState() {
+    void checkForSucceededJobsThanCanGoToDeletedState() {
         when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
                         asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
@@ -201,7 +201,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    public void checkForJobsThatCanBeDeleted() {
+    void checkForJobsThatCanBeDeleted() {
         when(storageProvider.deleteJobs(eq(DELETED), any())).thenReturn(5);
 
         jobZooKeeper.run();

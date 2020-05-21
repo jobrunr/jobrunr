@@ -25,7 +25,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
 
     @Override
     public Object invokeInstruction() {
-        Class[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
+        Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         Object object = jobDetailsBuilder.pollLastInstruction().invokeInstruction();
         return createObjectViaMethod(object, name, paramTypes, getParametersUsingParamTypes(paramTypes).toArray());
     }
@@ -51,7 +51,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     }
 
     private List<JobParameter> getJobParameters() {
-        final LinkedList<Class> paramTypes = new LinkedList<>(findParamTypesFromDescriptor(descriptor));
+        final LinkedList<Class<?>> paramTypes = new LinkedList<>(findParamTypesFromDescriptor(descriptor));
 
         List<JobParameter> result = new ArrayList<>();
         while (!paramTypes.isEmpty()) {
@@ -60,7 +60,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         return result;
     }
 
-    private JobParameter toJobParameter(Class paramType, Object param) {
+    private JobParameter toJobParameter(Class<?> paramType, Object param) {
         if (isClassAssignableToObject(paramType, param)) {
             if (boolean.class.equals(paramType) && Integer.class.equals(param.getClass())) return new JobParameter(paramType, ((Integer) param) > 0);
             return new JobParameter(paramType, param);

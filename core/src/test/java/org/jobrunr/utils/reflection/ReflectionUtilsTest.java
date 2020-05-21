@@ -18,7 +18,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOr
 class ReflectionUtilsTest {
 
     @Test
-    public void testToClass() {
+    void testToClass() {
         assertThat(ReflectionUtils.toClass("boolean")).isEqualTo(boolean.class);
         assertThat(ReflectionUtils.toClass("byte")).isEqualTo(byte.class);
         assertThat(ReflectionUtils.toClass("short")).isEqualTo(short.class);
@@ -34,7 +34,7 @@ class ReflectionUtilsTest {
     }
 
     @Test
-    public void testObjectContainsFieldOrProperty() {
+    void testObjectContainsFieldOrProperty() {
         final TestObject test = new TestObject("test");
 
         assertThat(objectContainsFieldOrProperty(test, "field")).isTrue();
@@ -43,7 +43,7 @@ class ReflectionUtilsTest {
     }
 
     @Test
-    public void testGetValueFromFieldOrProperty() {
+    void testGetValueFromFieldOrProperty() {
         final TestObject test = new TestObject("test");
 
         assertThat(getValueFromFieldOrProperty(test, "field")).isEqualTo("test");
@@ -52,7 +52,7 @@ class ReflectionUtilsTest {
     }
 
     @Test
-    public void testAutobox() {
+    void testAutobox() {
         assertThat(ReflectionUtils.autobox("string", String.class)).isEqualTo("string");
         assertThat(ReflectionUtils.autobox(1, int.class)).isEqualTo(1);
         assertThat(ReflectionUtils.autobox(1, Integer.class)).isEqualTo(1);
@@ -67,7 +67,7 @@ class ReflectionUtilsTest {
     }
 
     @Test
-    public void testAutoboxClob() throws SQLException {
+    void testAutoboxClob() throws SQLException {
         Clob clob = Mockito.mock(Clob.class);
         String result = "the result";
 

@@ -29,11 +29,11 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
         jobDetailsBuilder.pushInstructionOnStack(this);
     }
 
-    protected List<Object> getParametersUsingParamTypes(Class[] paramTypesAsArray) {
-        LinkedList<Class> paramTypes = new LinkedList<>(Arrays.asList(paramTypesAsArray));
+    protected List<Object> getParametersUsingParamTypes(Class<?>[] paramTypesAsArray) {
+        LinkedList<Class<?>> paramTypes = new LinkedList<>(Arrays.asList(paramTypesAsArray));
         List<Object> result = new ArrayList<>();
         while (!paramTypes.isEmpty()) {
-            final Class aClass = paramTypes.pollLast();
+            final Class<?> aClass = paramTypes.pollLast();
             if (aClass.isArray()) {
                 result.add(0, getArrayParameter(aClass));
             } else {

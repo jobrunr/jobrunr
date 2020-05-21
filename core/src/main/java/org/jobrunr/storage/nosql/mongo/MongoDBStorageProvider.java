@@ -194,7 +194,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                     .collect(toList());
             jobCollection.bulkWrite(jobsToUpdate);
         }
-        notifyOnChangeListenersIf(jobs.size() > 0);
+        notifyOnChangeListenersIf(!jobs.isEmpty());
         return jobs;
     }
 

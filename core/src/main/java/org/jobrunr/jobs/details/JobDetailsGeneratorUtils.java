@@ -47,17 +47,17 @@ public class JobDetailsGeneratorUtils {
         return lambda.getClass().getResourceAsStream(location);
     }
 
-    public static Object createObjectViaConstructor(String fqClassName, Class[] paramTypes, Object[] parameters) {
+    public static Object createObjectViaConstructor(String fqClassName, Class<?>[] paramTypes, Object[] parameters) {
         try {
-            Class clazz = Class.forName(fqClassName);
-            Constructor constructor = clazz.getDeclaredConstructor(paramTypes);
+            Class<?> clazz = Class.forName(fqClassName);
+            Constructor<?> constructor = clazz.getDeclaredConstructor(paramTypes);
             return constructor.newInstance(parameters);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
     }
 
-    public static Object createObjectViaMethod(Object objectWithMethodToInvoke, String methodName, Class[] paramTypes, Object[] parameters) {
+    public static Object createObjectViaMethod(Object objectWithMethodToInvoke, String methodName, Class<?>[] paramTypes, Object[] parameters) {
         try {
             Class<?> clazz = objectWithMethodToInvoke.getClass();
             Method method = clazz.getDeclaredMethod(methodName, paramTypes);
@@ -67,7 +67,7 @@ public class JobDetailsGeneratorUtils {
         }
     }
 
-    public static Object createObjectViaStaticMethod(String fqClassName, String methodName, Class[] paramTypes, Object[] parameters) {
+    public static Object createObjectViaStaticMethod(String fqClassName, String methodName, Class<?>[] paramTypes, Object[] parameters) {
         try {
             Class<?> clazz = Class.forName(fqClassName);
             Method method = clazz.getDeclaredMethod(methodName, paramTypes);
@@ -87,7 +87,7 @@ public class JobDetailsGeneratorUtils {
         }
     }
 
-    public static boolean isClassAssignableToObject(Class clazz, Object object) {
+    public static boolean isClassAssignableToObject(Class<?> clazz, Object object) {
         if (object == null) throw new NullPointerException("You are passing null to your background job - JobRunr prevents this to fail fast.");
         return clazz.equals(object.getClass())
                 || clazz.isAssignableFrom(object.getClass())
@@ -95,11 +95,11 @@ public class JobDetailsGeneratorUtils {
                 || (clazz.isPrimitive() && Boolean.TYPE.equals(clazz) && Integer.class.equals(object.getClass()));
     }
 
-    public static Class[] findParamTypesFromDescriptorAsArray(String desc) {
-        return findParamTypesFromDescriptor(desc).stream().toArray(Class[]::new);
+    public static Class<?>[] findParamTypesFromDescriptorAsArray(String desc) {
+        return findParamTypesFromDescriptor(desc).toArray(new Class[0]);
     }
 
-    public static List<Class> findParamTypesFromDescriptor(String desc) {
+    public static List<Class<?>> findParamTypesFromDescriptor(String desc) {
         int beginIndex = desc.indexOf('(');
         int endIndex = desc.lastIndexOf(')');
 
@@ -114,16 +114,16 @@ public class JobDetailsGeneratorUtils {
         }
         Pattern pattern = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]"); //Regex for desc \[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
         Matcher matcher = pattern.matcher(x0);
-        List<Class> paramTypes = new ArrayList<>();
+        List<Class<?>> paramTypes = new ArrayList<>();
         while (matcher.find()) {
             String paramType = matcher.group();
-            Class clazzToAdd = getClassToAdd(paramType);
+            Class<?> clazzToAdd = getClassToAdd(paramType);
             paramTypes.add(clazzToAdd);
         }
         return paramTypes;
     }
 
-    private static Class getClassToAdd(String paramType) {
+    private static Class<?> getClassToAdd(String paramType) {
         if ("Z".equals(paramType)) return boolean.class;
         else if ("I".equals(paramType)) return int.class;
         else if ("J".equals(paramType)) return long.class;

@@ -49,7 +49,7 @@ class DefaultSqlStorageProviderTest {
     private DefaultSqlStorageProvider jobStorageProvider;
 
     @BeforeEach
-    public void setUp() throws SQLException {
+    void setUp() throws SQLException {
         when(connection.getMetaData()).thenReturn(databaseMetadata);
         when(databaseMetadata.getURL()).thenReturn("postgres://");
         when(connection.createStatement()).thenReturn(statement);
@@ -63,63 +63,63 @@ class DefaultSqlStorageProviderTest {
     }
 
     @Test
-    public void testGetJobById() throws SQLException {
+    void testGetJobById() throws SQLException {
         when(resultSet.next()).thenReturn(false);
 
         assertThatThrownBy(() -> jobStorageProvider.getJobById(randomUUID())).isInstanceOf(JobNotFoundException.class);
     }
 
     @Test
-    public void testGetJobById_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
+    void testGetJobById_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(resultSet).next();
 
         assertThatThrownBy(() -> jobStorageProvider.getJobById(randomUUID())).isInstanceOf(StorageException.class);
     }
 
     @Test
-    public void saveJob_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
+    void saveJob_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(preparedStatement).executeUpdate();
 
         assertThatThrownBy(() -> jobStorageProvider.save(anEnqueuedJob().build())).isInstanceOf(StorageException.class);
     }
 
     @Test
-    public void saveJob() throws SQLException {
+    void saveJob() throws SQLException {
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         assertThatCode(() -> jobStorageProvider.save(anEnqueuedJob().build())).doesNotThrowAnyException();
     }
 
     @Test
-    public void saveJob_WhenJobIsNotSavedDueToOtherConcurrentModificationThenThrowConcurrentJobModificationException() throws SQLException {
+    void saveJob_WhenJobIsNotSavedDueToOtherConcurrentModificationThenThrowConcurrentJobModificationException() throws SQLException {
         when(preparedStatement.executeUpdate()).thenReturn(0);
 
         assertThatThrownBy(() -> jobStorageProvider.save(anEnqueuedJob().build())).isInstanceOf(ConcurrentJobModificationException.class);
     }
 
     @Test
-    public void saveJobs() throws SQLException {
+    void saveJobs() throws SQLException {
         when(preparedStatement.executeBatch()).thenReturn(new int[]{1});
 
         assertThatCode(() -> jobStorageProvider.save(asList(anEnqueuedJob().build()))).doesNotThrowAnyException();
     }
 
     @Test
-    public void saveJobs_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
+    void saveJobs_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(preparedStatement).executeBatch();
 
         assertThatThrownBy(() -> jobStorageProvider.save(asList(anEnqueuedJob().build()))).isInstanceOf(StorageException.class);
     }
 
     @Test
-    public void saveJobs_NotAllJobsAreSavedThenThrowConcurrentJobModificationException() throws SQLException {
+    void saveJobs_NotAllJobsAreSavedThenThrowConcurrentJobModificationException() throws SQLException {
         when(preparedStatement.executeBatch()).thenReturn(new int[]{});
 
         assertThatThrownBy(() -> jobStorageProvider.save(asList(anEnqueuedJob().build()))).isInstanceOf(ConcurrentJobModificationException.class);
     }
 
     @Test
-    public void delete_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
+    void delete_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(preparedStatement).executeUpdate();
 
         assertThatThrownBy(() -> jobStorageProvider.delete(randomUUID())).isInstanceOf(StorageException.class);

@@ -34,14 +34,14 @@ class HttpResponseTest {
     private HttpResponse httpResponse;
 
     @BeforeEach
-    public void setUpHttpResponse() {
+    void setUpHttpResponse() {
         lenient().when(httpExchange.getResponseHeaders()).thenReturn(headers);
         lenient().when(httpExchange.getResponseBody()).thenReturn(outputStream);
         httpResponse = new HttpResponse(httpExchange, jsonMapper);
     }
 
     @Test
-    public void testError() throws IOException {
+    void testError() throws IOException {
         httpResponse.error(new Exception());
 
         verify(httpExchange).sendResponseHeaders(500, 0);

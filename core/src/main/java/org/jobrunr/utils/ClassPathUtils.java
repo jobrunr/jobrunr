@@ -24,13 +24,13 @@ public class ClassPathUtils {
     private ClassPathUtils() {
     }
 
-    private static Map<String, FileSystem> openFileSystems = new HashMap<>();
+    private static final Map<String, FileSystem> openFileSystems = new HashMap<>();
 
     public static Stream<Path> listAllChildrenOnClasspath(String... subFolder) {
         return listAllChildrenOnClasspath(ClassPathUtils.class, subFolder);
     }
 
-    public static Stream<Path> listAllChildrenOnClasspath(Class clazz, String... subFolder) {
+    public static Stream<Path> listAllChildrenOnClasspath(Class<?> clazz, String... subFolder) {
         try {
             return toPathsOnClasspath(clazz, subFolder)
                     .flatMap(ClassPathUtils::listAllChildrenOnClasspath);
@@ -44,7 +44,7 @@ public class ClassPathUtils {
         return collect.stream();
     }
 
-    public static Stream<Path> toPathsOnClasspath(Class clazz, String... subFolders) {
+    public static Stream<Path> toPathsOnClasspath(Class<?> clazz, String... subFolders) {
         return toPathsOnClasspath(clazz.getPackage(), subFolders);
     }
 

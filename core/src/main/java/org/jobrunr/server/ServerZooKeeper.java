@@ -19,7 +19,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class ServerZooKeeper implements Runnable {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
 
     private final BackgroundJobServer backgroundJobServer;
     private final BackgroundJobServerStatusWriteModel backgroundJobServerStatus;

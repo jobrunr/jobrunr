@@ -29,13 +29,13 @@ class BackgroundJobPerformerTest {
     private StorageProvider storageProvider;
 
     @BeforeEach
-    public void setUpTestService() {
+    void setUpTestService() {
         testService = new TestService();
         lenient().when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(new DisplayNameFilter(), new RetryFilter()));
     }
 
     @Test
-    public void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
+    void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         BackgroundJobTestFilter logAllStateChangesFilter = new BackgroundJobTestFilter();
         Job job = anEnqueuedJob().build();
 
@@ -52,7 +52,7 @@ class BackgroundJobPerformerTest {
     }
 
     @Test
-    public void allStateChangesArePassingViaTheApplyStateFilterOnFailure() {
+    void allStateChangesArePassingViaTheApplyStateFilterOnFailure() {
         BackgroundJobTestFilter logAllStateChangesFilter = new BackgroundJobTestFilter();
         Job job = anEnqueuedJob().build();
 
@@ -67,6 +67,5 @@ class BackgroundJobPerformerTest {
         assertThat(logAllStateChangesFilter.processingPassed).isTrue();
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
     }
-
 
 }

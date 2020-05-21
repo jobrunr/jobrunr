@@ -44,7 +44,7 @@ public class JobDetailsFinderContext {
         throw JobRunrException.shouldNotHappenException("Can not find variable " + nbrInStack + " in stack");
     }
 
-    public LinkedList<AbstractJVMInstruction> getInstructions() {
+    public List<AbstractJVMInstruction> getInstructions() {
         return instructions;
     }
 

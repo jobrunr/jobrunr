@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 // see https://bugs.openjdk.java.net/browse/JDK-8193878
 @ExtendWith(MockitoExtension.class)
-public class ServerZooKeeperJDK8193878BugTest {
+class ServerZooKeeperJDK8193878BugTest {
 
     @Mock
     private BackgroundJobServer backgroundJobServer;
@@ -37,7 +37,7 @@ public class ServerZooKeeperJDK8193878BugTest {
     private ServerZooKeeper serverZooKeeper;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
 
         backgroundJobServerStatusWriteModelSpy = Mockito.spy(new ServerZooKeeper.BackgroundJobServerStatusWriteModel(backgroundJobServerStatus));
@@ -50,7 +50,7 @@ public class ServerZooKeeperJDK8193878BugTest {
     }
 
     @Test
-    public void ifOperatingSystemMXBeanReturnsNaNForSystemCpuLoadOnFirstCall_NegativeIsReturned() {
+    void ifOperatingSystemMXBeanReturnsNaNForSystemCpuLoadOnFirstCall_NegativeIsReturned() {
         when(backgroundJobServerStatusWriteModelSpy.getMXBeanValue("SystemCpuLoad")).thenReturn(Double.NaN);
 
         serverZooKeeper.run();
@@ -61,7 +61,7 @@ public class ServerZooKeeperJDK8193878BugTest {
     }
 
     @Test
-    public void ifOperatingSystemMXBeanReturnsNaNForSystemCpuLoadOnLaterCalls_CachedValueIsReturned() {
+    void ifOperatingSystemMXBeanReturnsNaNForSystemCpuLoadOnLaterCalls_CachedValueIsReturned() {
         when(backgroundJobServerStatusWriteModelSpy.getMXBeanValue("SystemCpuLoad")).thenReturn(0.7, Double.NaN, 0.5);
 
         serverZooKeeper.run();
@@ -78,7 +78,7 @@ public class ServerZooKeeperJDK8193878BugTest {
     }
 
     @Test
-    public void ifOperatingSystemMXBeanReturnsNaNForProcessCpuLoadOnFirstCall_NegativeIsReturned() {
+    void ifOperatingSystemMXBeanReturnsNaNForProcessCpuLoadOnFirstCall_NegativeIsReturned() {
         when(backgroundJobServerStatusWriteModelSpy.getMXBeanValue("ProcessCpuLoad")).thenReturn(Double.NaN);
 
         serverZooKeeper.run();
@@ -89,7 +89,7 @@ public class ServerZooKeeperJDK8193878BugTest {
     }
 
     @Test
-    public void ifOperatingSystemMXBeanReturnsNaNForProcessCpuLoadOnLaterCalls_CachedValueIsReturned() {
+    void ifOperatingSystemMXBeanReturnsNaNForProcessCpuLoadOnLaterCalls_CachedValueIsReturned() {
         when(backgroundJobServerStatusWriteModelSpy.getMXBeanValue("ProcessCpuLoad")).thenReturn(0.7, Double.NaN, 0.5);
 
         serverZooKeeper.run();

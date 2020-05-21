@@ -43,7 +43,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void cronExpressionsAreScheduledInUTC() {
+    void cronExpressionsAreScheduledInUTC() {
         // always use next hour
         int hour = now().getHour() + 1;
         hour = hour >= 24 ? 0 : hour;
@@ -56,7 +56,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void cronExpressionsCanBeMappedToOtherZone() {
+    void cronExpressionsCanBeMappedToOtherZone() {
         // always use next hour
         int hour = now().getHour() + 1;
         hour = hour >= 24 ? 0 : hour;
@@ -76,7 +76,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void cronExpressionsCanBeMappedToOtherZonePart2() {
+    void cronExpressionsCanBeMappedToOtherZonePart2() {
         Instant actualNextInstant = CronExpression.create(Cron.hourly()).next(systemDefault());
 
         Instant expectedNextInstant = now().plusHours(1).withMinute(0).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
@@ -85,7 +85,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void cronExpressionsCanBeMappedToOtherZonePart3() {
+    void cronExpressionsCanBeMappedToOtherZonePart3() {
         Instant actualNextInstant = CronExpression.create(Cron.minutely()).next();
 
         Instant expectedNextInstant = now().plusMinutes(1).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
@@ -94,7 +94,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void cronExpressionsAreEqual() {
+    void cronExpressionsAreEqual() {
         CronExpression cronExpression1 = CronExpression.create(Cron.minutely());
         CronExpression cronExpression2 = CronExpression.create(Cron.minutely());
 
@@ -104,7 +104,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void cronExpressionCanBeCompared() {
+    void cronExpressionCanBeCompared() {
         LocalDateTime now = LocalDateTime.now();
 
         CronExpression cronExpression1 = CronExpression.create(Cron.daily(23, 58));
@@ -116,7 +116,7 @@ class CronExpressionTest {
     }
 
     @Test
-    public void invalidCronExpressionThrowsException() {
+    void invalidCronExpressionThrowsException() {
         assertThatThrownBy(() -> CronExpression.create("invalid")).isInstanceOf(InvalidCronExpressionException.class);
     }
 

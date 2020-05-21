@@ -9,7 +9,7 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 class RecurringJobUIModelTest {
 
     @Test
-    public void RecurringJobUIModelHasAllFieldsOfRecurringJob() {
+    void RecurringJobUIModelHasAllFieldsOfRecurringJob() {
         final RecurringJob recurringJob = aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build();
         final RecurringJobUIModel recurringJobUIModel = new RecurringJobUIModel(recurringJob);
 

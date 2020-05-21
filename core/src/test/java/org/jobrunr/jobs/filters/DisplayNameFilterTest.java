@@ -15,12 +15,12 @@ class DisplayNameFilterTest {
     private DisplayNameFilter displayNameFilter;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         displayNameFilter = new DisplayNameFilter();
     }
 
     @Test
-    public void testDisplayNameWithAnnotation() {
+    void testDisplayNameWithAnnotation() {
         Job job = anEnqueuedJob()
                 .withJobDetails(jobDetails()
                         .withClassName(TestService.class)
@@ -35,7 +35,7 @@ class DisplayNameFilterTest {
     }
 
     @Test
-    public void testDisplayNameFromJobDetailsNormalMethod() {
+    void testDisplayNameFromJobDetailsNormalMethod() {
         Job job = anEnqueuedJob()
                 .withJobDetails(jobDetails()
                         .withClassName(TestService.class)
@@ -49,7 +49,7 @@ class DisplayNameFilterTest {
     }
 
     @Test
-    public void testDisplayNameFromJobDetailsStaticMethod() {
+    void testDisplayNameFromJobDetailsStaticMethod() {
         Job job = anEnqueuedJob()
                 .withJobDetails(systemOutPrintLnJobDetails("some message"))
                 .build();

@@ -42,7 +42,7 @@ class JobSchedulerTest {
     }
 
     @Test
-    public void onJobCreatingAndCreatedAreCalled() {
+    void onJobCreatingAndCreatedAreCalled() {
         when(storageProvider.save(any(Job.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         jobScheduler.enqueue(() -> testService.doWork());
@@ -52,7 +52,7 @@ class JobSchedulerTest {
     }
 
     @Test
-    public void onStreamOfJobsCreatingAndCreatedAreCalled() {
+    void onStreamOfJobsCreatingAndCreatedAreCalled() {
         when(storageProvider.save(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
         final Stream<Integer> range = IntStream.range(0, 1).mapToObj(i -> i);
@@ -63,7 +63,7 @@ class JobSchedulerTest {
     }
 
     @Test
-    public void onRecurringJobCreatingAndCreatedAreCalled() {
+    void onRecurringJobCreatingAndCreatedAreCalled() {
         when(storageProvider.saveRecurringJob(any(RecurringJob.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         jobScheduler.scheduleRecurringly(null, () -> testService.doWork(), Cron.daily(), ZoneId.systemDefault());

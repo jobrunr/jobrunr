@@ -1,7 +1,6 @@
 package org.jobrunr.utils.mapper.jackson.modules;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
@@ -16,7 +15,7 @@ public class DurationDeserializer extends StdDeserializer<Duration> {
     }
 
     @Override
-    public Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    public Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         final BigDecimal durationAsSecAndNanoSec = jsonParser.getDecimalValue();
         return Duration.ofSeconds(
                 durationAsSecAndNanoSec.longValue(),

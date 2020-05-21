@@ -16,12 +16,12 @@ class BackgroundJobWithoutIocRunnerTest {
     private BackgroundJobWithoutIocRunner backgroundJobWithoutIocRunner;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         backgroundJobWithoutIocRunner = new BackgroundJobWithoutIocRunner();
     }
 
     @Test
-    public void supportsJobIfJobClassHasDefaultConstructor() {
+    void supportsJobIfJobClassHasDefaultConstructor() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails())
                 .build();
@@ -30,7 +30,7 @@ class BackgroundJobWithoutIocRunnerTest {
     }
 
     @Test
-    public void doesNotSupportJobIfClassHasNoDefaultConstructor() {
+    void doesNotSupportJobIfClassHasNoDefaultConstructor() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails().withClassName(TestServiceForIoC.class))
                 .build();
@@ -39,7 +39,7 @@ class BackgroundJobWithoutIocRunnerTest {
     }
 
     @Test
-    public void runSimpleMethod() {
+    void runSimpleMethod() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails())
                 .build();
@@ -48,7 +48,7 @@ class BackgroundJobWithoutIocRunnerTest {
     }
 
     @Test
-    public void runMethodWithJobContext() {
+    void runMethodWithJobContext() {
         Job job = anEnqueuedJob()
                 .withId()
                 .withJobDetails(defaultJobDetails()

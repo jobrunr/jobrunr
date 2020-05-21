@@ -9,7 +9,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 class JobDetailsTest {
 
     @Test
-    public void testJobDetails() {
+    void testJobDetails() {
         JobDetails jobDetails = jobDetails()
                 .withClassName(TestService.class)
                 .withMethodName("doWork")

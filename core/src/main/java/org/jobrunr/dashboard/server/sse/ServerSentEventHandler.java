@@ -45,7 +45,7 @@ public class ServerSentEventHandler implements TeenyHttpHandler {
     }
 
     protected void subscribersChanged(int amount) {
-
+        // method that can be overridden to be notified about the amount of SSE subscribed clients
     }
 
     public boolean hasSubscribers() {
