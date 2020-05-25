@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.states;
 
+import org.jobrunr.scheduling.exceptions.MethodNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -62,8 +63,7 @@ class FailedStateTest {
         final FailedState failedState = new FailedState("JobRunr message", new CustomExceptionThatCannotReconstruct(UUID.randomUUID()));
 
         assertThatThrownBy(failedState::getException)
-                .isInstanceOf(IllegalStateException.class)
-                .hasCauseInstanceOf(NoSuchMethodException.class);
+                .isInstanceOf(MethodNotFoundException.class);
     }
 
     public static class CustomException extends Exception {
