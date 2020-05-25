@@ -1,5 +1,7 @@
 package org.jobrunr.utils.reflection;
 
+import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
+import org.jobrunr.scheduling.exceptions.MethodNotFoundException;
 import org.jobrunr.utils.StringUtils;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingFunction;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
@@ -12,10 +14,10 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class ReflectionUtils {
@@ -121,10 +123,48 @@ public class ReflectionUtils {
         }
     }
 
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
+        return findMethod(clazz, methodName, parameterTypes)
+                .orElseThrow(() -> new MethodNotFoundException(clazz, methodName, parameterTypes));
+    }
+
     public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
-        return stream(clazz.getMethods())
-                .filter(m -> methodName.equals(m.getName()) && Arrays.equals(m.getParameterTypes(), parameterTypes))
+        return findMethod(clazz, m -> methodName.equals(m.getName()) && Arrays.equals(m.getParameterTypes(), parameterTypes));
+    }
+
+    private static Optional<Method> findMethod(Class<?> clazz, Predicate<Method> predicate) {
+        final Optional<Method> optionalMethod = stream(clazz.getDeclaredMethods())
+                .filter(predicate)
                 .findFirst();
+        if (optionalMethod.isPresent()) {
+            return optionalMethod;
+        } else if (!Object.class.equals(clazz.getSuperclass())) {
+            return findMethod(clazz.getSuperclass(), predicate);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public static Field getField(Class<?> clazz, String fieldName) {
+        return findField(clazz, fieldName)
+                .orElseThrow(() -> new FieldNotFoundException(clazz, fieldName));
+    }
+
+    public static Optional<Field> findField(Class<?> clazz, String fieldName) {
+        return findField(clazz, f -> fieldName.equals(f.getName()));
+    }
+
+    private static Optional<Field> findField(Class<?> clazz, Predicate<Field> predicate) {
+        final Optional<Field> optionalField = stream(clazz.getDeclaredFields())
+                .filter(predicate)
+                .findFirst();
+        if (optionalField.isPresent()) {
+            return optionalField;
+        } else if (!Object.class.equals(clazz.getSuperclass())) {
+            return findField(clazz.getSuperclass(), predicate);
+        } else {
+            return Optional.empty();
+        }
     }
 
     public static boolean objectContainsFieldOrProperty(Object object, String fieldName) {
@@ -181,11 +221,7 @@ public class ReflectionUtils {
         accessibleObject.setAccessible(true);
     }
 
-    public static NoSuchMethodException noSuchMethodException(String clazz, String methodName, Class<?>[] parameterTypes) {
-        return new NoSuchMethodException(clazz + "." + methodName + "(" + Stream.of(parameterTypes).map(Class::getName).collect(joining(",")) + ")");
-    }
-
-    private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) throws NoSuchMethodException {
+    private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) {
         Constructor<?>[] constructors = clazz.getConstructors();
 
         for (Constructor<?> constructor : constructors) {
@@ -202,7 +238,7 @@ public class ReflectionUtils {
                 if (argumentsMatch) return cast(constructor);
             }
         }
-        throw noSuchMethodException(clazz.getName(), "<init>", args);
+        throw new MethodNotFoundException(clazz, "<init>", args);
     }
 
     @SuppressWarnings("unchecked")

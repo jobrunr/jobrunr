@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.jobrunr.utils.reflection.ReflectionUtils.getField;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getMethod;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsGeneratorUtils {
@@ -61,7 +63,7 @@ public class JobDetailsGeneratorUtils {
     public static Object createObjectViaMethod(Object objectWithMethodToInvoke, String methodName, Class<?>[] paramTypes, Object[] parameters) {
         try {
             Class<?> clazz = objectWithMethodToInvoke.getClass();
-            Method method = clazz.getDeclaredMethod(methodName, paramTypes);
+            Method method = getMethod(clazz, methodName, paramTypes);
             return method.invoke(objectWithMethodToInvoke, parameters);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
@@ -71,7 +73,7 @@ public class JobDetailsGeneratorUtils {
     public static Object createObjectViaStaticMethod(String fqClassName, String methodName, Class<?>[] paramTypes, Object[] parameters) {
         try {
             Class<?> clazz = Class.forName(fqClassName);
-            Method method = clazz.getDeclaredMethod(methodName, paramTypes);
+            Method method = getMethod(clazz, methodName, paramTypes);
             return method.invoke(null, parameters);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
@@ -81,7 +83,7 @@ public class JobDetailsGeneratorUtils {
     public static Object getObjectViaStaticField(String fqClassName, String fieldName) {
         try {
             Class<?> clazz = Class.forName(fqClassName);
-            Field field = clazz.getDeclaredField(fieldName);
+            Field field = getField(clazz, fieldName);
             ReflectionUtils.makeAccessible(field);
             return field.get(null);
         } catch (Exception e) {
@@ -92,7 +94,7 @@ public class JobDetailsGeneratorUtils {
     public static Object getObjectViaField(Object object, String fieldName) {
         try {
             Class<?> clazz = object.getClass();
-            Field field = clazz.getDeclaredField(fieldName);
+            Field field = getField(clazz, fieldName);
             ReflectionUtils.makeAccessible(field);
             return field.get(object);
         } catch (Exception e) {
