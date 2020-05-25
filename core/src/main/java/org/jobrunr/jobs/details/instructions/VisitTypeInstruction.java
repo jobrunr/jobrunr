@@ -2,7 +2,7 @@ package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.details.JobDetailsFinderContext;
 
-public class VisitTypeInstruction extends AbstractJVMInstruction {
+public abstract class VisitTypeInstruction extends AbstractJVMInstruction {
 
     protected String type;
 
@@ -15,8 +15,4 @@ public class VisitTypeInstruction extends AbstractJVMInstruction {
         jobDetailsBuilder.pushInstructionOnStack(this);
     }
 
-    @Override
-    public Object invokeInstruction() {
-        return null;
-    }
 }

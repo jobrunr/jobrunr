@@ -6,15 +6,14 @@ public abstract class AbstractJVMInstruction {
 
     protected final JobDetailsFinderContext jobDetailsBuilder;
 
-    protected int nbrInStack;
-
     public AbstractJVMInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         this.jobDetailsBuilder = jobDetailsBuilder;
     }
 
     public abstract Object invokeInstruction();
 
-    public void setNbrInStack(int nbrInStack) {
-        this.nbrInStack = nbrInStack;
+    public void invokeInstructionAndPushOnStack() {
+        Object result = invokeInstruction();
+        jobDetailsBuilder.getStack().add(result);
     }
 }

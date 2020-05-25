@@ -13,8 +13,13 @@ public class StoreVariableInstruction extends VisitLocalVariableInstruction {
     }
 
     @Override
+    public void invokeInstructionAndPushOnStack() {
+        invokeInstruction(); // nothing to put on the stack
+    }
+
+    @Override
     public Object invokeInstruction() {
-        final AbstractJVMInstruction jvmInstruction = jobDetailsBuilder.getInstructions().remove(nbrInStack - 1);
-        return jvmInstruction.invokeInstruction();
+        jobDetailsBuilder.addLocalVariable(jobDetailsBuilder.getStack().pollLast());
+        return null;
     }
 }

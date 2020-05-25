@@ -45,7 +45,7 @@ public class InvokeDynamicInstruction extends AbstractJVMInstruction {
             String result = bootstrapMethodArguments[0].toString();
 
             while (result.contains("\u0001")) {
-                result = replaceLast(result, "\u0001", jobDetailsBuilder.pollLastInstruction().invokeInstruction().toString());
+                result = replaceLast(result, "\u0001", jobDetailsBuilder.getStack().pollLast().toString());
             }
             return result;
         }

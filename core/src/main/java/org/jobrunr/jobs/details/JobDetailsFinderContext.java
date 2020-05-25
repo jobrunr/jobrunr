@@ -2,9 +2,9 @@ package org.jobrunr.jobs.details;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.details.instructions.AbstractJVMInstruction;
-import org.jobrunr.jobs.details.instructions.StoreVariableInstruction;
-import org.jobrunr.utils.streams.StreamUtils;
+import org.jobrunr.jobs.lambdas.IocJobLambda;
 
 import java.lang.invoke.SerializedLambda;
 import java.util.ArrayList;
@@ -18,71 +18,100 @@ public class JobDetailsFinderContext {
 
     private final SerializedLambda serializedLambda;
     private final LinkedList<AbstractJVMInstruction> instructions;
+    private final LinkedList<Object> stack;
     private final List<Object> localVariables;
+    private String jobDetailsClassName;
+    private String jobDetailsStaticFieldName;
+    private String jobDetailsMethodName;
+    private List<JobParameter> jobDetailsJobParameters;
 
     public JobDetailsFinderContext(SerializedLambda serializedLambda, Object... params) {
         this.serializedLambda = serializedLambda;
         this.instructions = new LinkedList<>();
+        this.stack = new LinkedList<>();
         this.localVariables = initLocalVariables(params);
+
+        init();
+    }
+
+    protected void init() {
+        setClassName(toFQClassName(serializedLambda.getImplClass()));
+        setMethodName(serializedLambda.getImplMethodName());
+        setJobParameters(new ArrayList<>());
     }
 
     public void pushInstructionOnStack(AbstractJVMInstruction jvmInstruction) {
-        jvmInstruction.setNbrInStack(instructions.size());
         instructions.add(jvmInstruction);
     }
 
     public Object getLocalVariable(int nbrInStack) {
         if (nbrInStack < localVariables.size()) {
             return localVariables.get(nbrInStack);
-        } else if (hasVariableStoredInInstruction(nbrInStack)) {
-            return variableStoredInInstruction(nbrInStack);
         }
         throw JobRunrException.shouldNotHappenException("Can not find variable " + nbrInStack + " in stack");
+    }
+
+    public void addLocalVariable(Object o) {
+        this.localVariables.add(o);
     }
 
     public List<AbstractJVMInstruction> getInstructions() {
         return instructions;
     }
 
-    public AbstractJVMInstruction pollLastInstruction() {
-        return instructions.pollLast();
+    public AbstractJVMInstruction pollFirstInstruction() {
+        return instructions.pollFirst();
+    }
+
+    public LinkedList<Object> getStack() {
+        return stack;
     }
 
     public JobDetails getJobDetails() {
-        if (jobIsCalledViaMethodReference()) {
-            return new JobDetails(toFQClassName(serializedLambda.getImplClass()), null, serializedLambda.getImplMethodName(), new ArrayList<>());
-        }
-        return (JobDetails) pollLastInstruction().invokeInstruction();
+        invokeInstructions();
+        return new JobDetails(jobDetailsClassName, jobDetailsStaticFieldName, jobDetailsMethodName, jobDetailsJobParameters);
     }
 
-    private List<Object> initLocalVariables(Object[] params) {
+    private void invokeInstructions() {
+        AbstractJVMInstruction instruction = pollFirstInstruction();
+        while (instruction != null) {
+            instruction.invokeInstructionAndPushOnStack();
+            instruction = pollFirstInstruction();
+        }
+    }
+
+    protected List<Object> initLocalVariables(Object[] params) {
         List<Object> result = new ArrayList<>();
         for (int i = 0; i < serializedLambda.getCapturedArgCount(); i++) {
             final Object capturedArg = serializedLambda.getCapturedArg(i);
             result.add(capturedArg);
-            if (capturedArg instanceof Long || capturedArg instanceof Double) { //why: If the local variable at index is of type double or long, it occupies both index and index + 1. See https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
+            //why: If the local variable at index is of type double or long, it occupies both index and index + 1. See https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
+            if (capturedArg instanceof Long || capturedArg instanceof Double) {
                 result.add(null);
             }
         }
         result.addAll(Arrays.asList(params));
+        if (IocJobLambda.class.getName().equals(toFQClassName(serializedLambda.getFunctionalInterfaceClass()))) {
+            result.add(null); // will be injected by IoC
+        }
         return result;
     }
 
-    private boolean hasVariableStoredInInstruction(int nbrInStack) {
-        return StreamUtils.ofType(instructions, StoreVariableInstruction.class)
-                .anyMatch(instruction -> nbrInStack == instruction.getVariable());
+    public void setClassName(String className) {
+        if (jobDetailsStaticFieldName == null) {
+            jobDetailsClassName = className;
+        }
     }
 
-    private Object variableStoredInInstruction(int nbrInStack) {
-        final StoreVariableInstruction storeVariableInstruction = StreamUtils.ofType(instructions, StoreVariableInstruction.class)
-                .filter(instruction -> nbrInStack == instruction.getVariable())
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Cannot happen"));
-        instructions.remove(storeVariableInstruction);
-        return storeVariableInstruction.invokeInstruction();
+    public void setStaticFieldName(String name) {
+        jobDetailsStaticFieldName = name;
     }
 
-    private boolean jobIsCalledViaMethodReference() {
-        return instructions.isEmpty();
+    public void setMethodName(String name) {
+        jobDetailsMethodName = name;
+    }
+
+    public void setJobParameters(List<JobParameter> jobParameters) {
+        jobDetailsJobParameters = jobParameters;
     }
 }

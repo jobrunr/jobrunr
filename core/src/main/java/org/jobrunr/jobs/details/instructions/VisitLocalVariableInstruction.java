@@ -19,4 +19,5 @@ public abstract class VisitLocalVariableInstruction extends AbstractJVMInstructi
     public Object invokeInstruction() {
         return jobDetailsBuilder.getLocalVariable(variable);
     }
+
 }

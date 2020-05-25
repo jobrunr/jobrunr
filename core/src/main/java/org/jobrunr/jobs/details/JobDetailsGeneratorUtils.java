@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.details;
 
 import org.jobrunr.JobRunrException;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -81,7 +82,19 @@ public class JobDetailsGeneratorUtils {
         try {
             Class<?> clazz = Class.forName(fqClassName);
             Field field = clazz.getDeclaredField(fieldName);
+            ReflectionUtils.makeAccessible(field);
             return field.get(null);
+        } catch (Exception e) {
+            throw JobRunrException.shouldNotHappenException(e);
+        }
+    }
+
+    public static Object getObjectViaField(Object object, String fieldName) {
+        try {
+            Class<?> clazz = object.getClass();
+            Field field = clazz.getDeclaredField(fieldName);
+            ReflectionUtils.makeAccessible(field);
+            return field.get(object);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
         }

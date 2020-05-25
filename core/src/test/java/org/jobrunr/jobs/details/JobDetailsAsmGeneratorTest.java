@@ -324,9 +324,11 @@ class JobDetailsAsmGeneratorTest {
             testService.doWork(testId);
         };
 
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
-                .isInstanceOf(JobRunrException.class)
-                .hasMessage("Are you trying to enqueue a multiline lambda? Performance-wise this is probaly not a good idea and it is not yet supported. If you do think this must be possible, please create a bug report why and provide the code to reproduce this and the stacktrace");
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWork")
+                .hasArg(obj -> obj instanceof UUID);
     }
 
     @Test
