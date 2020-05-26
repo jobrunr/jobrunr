@@ -1,4 +1,4 @@
-FROM gradle:6.3-jdk11
+FROM adoptopenjdk:11-jdk-hotspot
 
 RUN apt update
 RUN apt install -y software-properties-common
@@ -6,4 +6,9 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
 RUN apt update
 RUN apt install -y docker-ce-cli
-ENV GRADLE_USER_HOME=/home/gradle/.gradle
+
+RUN ls -alrt /root/
+COPY gradle /home/gradle/gradle
+COPY gradlew /home/gradle/gradlew
+RUN /home/gradle/gradlew -version
+RUN ls -alrt /root/.gradle/wrapper
