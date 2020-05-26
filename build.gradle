@@ -14,15 +14,16 @@ subprojects {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 
+    compileTestJava {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     repositories {
         mavenLocal()
         jcenter()
     }
 
-    compileTestJava {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
 
     dependencies {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.6.1'

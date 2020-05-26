@@ -3,7 +3,6 @@ plugins {
     id 'java-test-fixtures'
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.8.5'
-    id 'com.palantir.git-version' version '0.12.3'
 }
 
 sourceSets {

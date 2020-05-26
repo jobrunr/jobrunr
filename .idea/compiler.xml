@@ -75,6 +75,11 @@
       <module name="JangFire.tests.main" target="1.8" />
       <module name="JangFire.tests.test" target="11" />
       <module name="JangFire.tests.testFixtures" target="1.8" />
+      <module name="JobRunr.tests.e2e-jdk-8-graalvm.test" target="11" />
+      <module name="JobRunr.tests.e2e-jdk-8-openj9.test" target="11" />
+      <module name="JobRunr.tests.e2e-jdk-8-openjdk.test" target="11" />
+      <module name="JobRunr.tests.e2e-jdk-openjdk8.test" target="11" />
+      <module name="JobRunr.tests.e2e-jdk.e2e-jdk-openjdk.test" target="11" />
       <module name="JobRunr.tests.e2e-mariadb-gson.testFixtures" target="1.8" />
       <module name="JobRunr.tests.e2e-mariadb-jack.main" target="1.8" />
       <module name="JobRunr.tests.e2e-mariadb-jack.test" target="11" />

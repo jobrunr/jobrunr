@@ -1,0 +1,52 @@
+plugins {
+    id 'java-test-fixtures'
+}
+
+apply plugin: 'java'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileTestFixturesJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation 'org.jobrunr:jobrunr:[0.+,1.+]'
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
+
+    testImplementation 'org.jobrunr:jobrunr:[0.+,1.+]:test-fixtures'
+    testImplementation 'com.google.code.gson:gson:2.8.6'
+
+    testImplementation 'com.github.docker-java:docker-java:3.2.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.6.1'
+
+    testFixturesApi 'org.jobrunr:jobrunr:[0.+,1.+]'
+    testFixturesApi 'org.jobrunr:jobrunr:[0.+,1.+]:test-fixtures'
+    testFixturesApi 'org.awaitility:awaitility:4.0.2'
+    testFixturesApi 'org.assertj:assertj-core:3.16.1'
+    testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj:2.17.0'
+}
+
+test {
+    reports.junitXml.destination = file("/tmp/reports/$project.name")
+    reports.html.destination = file("/tmp/reports/$project.name")
+
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

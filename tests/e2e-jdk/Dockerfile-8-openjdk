@@ -1,0 +1,7 @@
+FROM adoptopenjdk:8-jdk-hotspot AS build-env
+ADD . /app/jobrunr
+WORKDIR /app/jobrunr
+RUN ls -alrt
+ENV JDK_TEST "true"
+RUN ./gradlew -version
+RUN ./gradlew build
