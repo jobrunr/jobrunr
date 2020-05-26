@@ -3,6 +3,7 @@ package org.jobrunr.scheduling;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.BackgroundJobServerStatus;

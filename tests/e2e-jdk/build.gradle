@@ -31,8 +31,9 @@ dependencies {
     testImplementation 'org.jobrunr:jobrunr:[0.+,1.+]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.8.6'
 
-    testImplementation 'com.github.docker-java:docker-java:3.2.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.1'
+    testImplementation 'org.testcontainers:testcontainers:1.14.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.14.1'
 
     testFixturesApi 'org.jobrunr:jobrunr:[0.+,1.+]'
     testFixturesApi 'org.jobrunr:jobrunr:[0.+,1.+]:test-fixtures'

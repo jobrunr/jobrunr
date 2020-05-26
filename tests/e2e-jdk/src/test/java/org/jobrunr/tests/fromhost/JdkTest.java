@@ -1,13 +1,10 @@
 package org.jobrunr.tests.fromhost;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.BuildImageResultCallback;
-import com.github.dockerjava.core.DockerClientBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
-import java.io.File;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,29 +20,37 @@ public class JdkTest {
 
     @BeforeAll
     public static void initDockerClient() throws IOException {
-        dockerClient = DockerClientBuilder.getInstance().build();
+        //dockerClient = DockerClientBuilder.getInstance().build();
     }
 
     @Test
     public void jdk8OpenJdk() {
-        assertThat(buildImage("./Dockerfile-8-openjdk")).isNotEmpty();
+        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
     public void jdk8OpenJ9() {
-        assertThat(buildImage("./Dockerfile-8-openj9")).isNotEmpty();
+        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-openj9")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
     public void jdk8GraalVM() {
-        assertThat(buildImage("./Dockerfile-8-graalvm")).isNotEmpty();
+        assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java8")).contains("BUILD SUCCESSFUL");
     }
 
-    private String buildImage(String dockerfile) {
-        return dockerClient.buildImageCmd()
-                .withDockerfile(new File(dockerfile))
-                .withPull(true)
-                .exec(new BuildImageResultCallback())
-                .awaitImageId();
+    @Test
+    public void jdk11OpenJdk() {
+        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-hotspot")).contains("BUILD SUCCESSFUL");
+    }
+
+    @Test
+    public void jdk11OpenJ9() {
+        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-openj9")).contains("BUILD SUCCESSFUL");
+    }
+
+    private String buildAndTestOnImage(String dockerfile) {
+        final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
+        buildAndTestContainer.start();
+        return buildAndTestContainer.getLogs();
     }
 }

@@ -22,14 +22,14 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public class JobRunrConfiguration {
 
-    private StorageProvider storageProvider;
-    private JsonMapper jsonMapper;
-    private JobMapper jobMapper;
-    private BackgroundJobServer backgroundJobServer;
-    private JobRunrDashboardWebServer dashboardWebServer;
-    private JobActivator jobActivator;
-    private List<JobFilter> jobFilters;
-    private JobRunrJMXExtensions jmxExtension;
+    StorageProvider storageProvider;
+    JsonMapper jsonMapper;
+    JobMapper jobMapper;
+    BackgroundJobServer backgroundJobServer;
+    JobRunrDashboardWebServer dashboardWebServer;
+    JobActivator jobActivator;
+    List<JobFilter> jobFilters;
+    JobRunrJMXExtensions jmxExtension;
 
     JobRunrConfiguration() {
         this.jsonMapper = determineJsonMapper();

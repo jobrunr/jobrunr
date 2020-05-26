@@ -11,16 +11,26 @@ package org.jobrunr.configuration;
  *                 .useJobStorageProvider(jobStorageProvider)
  *                 .useJobActivator(jobActivator)
  *                 .useDefaultBackgroundJobServer()
+ *                 .useJmxExtensions()
  *                 .useDashboard()
  *                 .initialize();
  * </pre>
  */
 public class JobRunr {
 
+    private static JobRunrConfiguration jobRunrConfiguration;
+
     private JobRunr() {
     }
 
     public static JobRunrConfiguration configure() {
-        return new JobRunrConfiguration();
+        jobRunrConfiguration = new JobRunrConfiguration();
+        return jobRunrConfiguration;
+    }
+
+    public static JobRunrConfiguration destroy() {
+        jobRunrConfiguration.backgroundJobServer.stop();
+        jobRunrConfiguration.dashboardWebServer.stop();
+        return jobRunrConfiguration;
     }
 }
