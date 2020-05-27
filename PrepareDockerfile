@@ -7,8 +7,7 @@ RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubunt
 RUN apt update
 RUN apt install -y docker-ce-cli
 
-RUN ls -alrt /root/
+ENV GRADLE_VERSION 6.3
 COPY gradle /home/gradle/gradle
 COPY gradlew /home/gradle/gradlew
 RUN /home/gradle/gradlew -version
-RUN ls -alrt /root/.gradle/wrapper
