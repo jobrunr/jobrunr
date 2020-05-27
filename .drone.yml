@@ -76,7 +76,7 @@ steps:
     settings:
       webhook:
         from_secret: SLACK_WEBHOOK
-      channel: drone
+      channel: drone            Files
     when:
       status: [ success, failure ]
 

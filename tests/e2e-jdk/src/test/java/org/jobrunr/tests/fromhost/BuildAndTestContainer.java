@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import static java.nio.file.Files.exists;
+
 public class BuildAndTestContainer extends GenericContainer<BuildAndTestContainer> {
 
     public BuildAndTestContainer(String fromDockerImage) {
@@ -21,10 +23,15 @@ public class BuildAndTestContainer extends GenericContainer<BuildAndTestContaine
                                 .workDir("/app/jobrunr")
                                 .env("JDK_TEST", "true")
                 ));
-        final Path gradleDistPath = Paths.get(System.getProperty("user.home"), ".gradle", "wrapper", "dists");
-        listFiles(gradleDistPath);
+        if (exists(Paths.get("/drone"))) {
+            this
+                    .withFileSystemBind(Paths.get("/tmp/jobrunr/cache/gradle-wrapper").toString(), "/root/.gradle/wrapper/dists");
+        } else {
+            this
+                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".gradle", "wrapper", "dists").toString(), "/root/.gradle/wrapper/dists");
+        }
+
         this
-                .withFileSystemBind(gradleDistPath.toString(), "/root/.gradle/wrapper/dists")
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
                 .withCommand("./gradlew", "build")
                 .waitingFor(Wait.forLogMessage(".*BUILD SUCCESSFUL.*", 1));
