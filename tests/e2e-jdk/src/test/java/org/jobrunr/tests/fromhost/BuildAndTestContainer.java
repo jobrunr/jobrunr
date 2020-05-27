@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import static java.nio.file.Files.exists;
@@ -34,6 +35,7 @@ public class BuildAndTestContainer extends GenericContainer<BuildAndTestContaine
         this
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
                 .withCommand("./gradlew", "build")
+                .withStartupTimeout(Duration.ofMinutes(3))
                 .waitingFor(Wait.forLogMessage(".*BUILD SUCCESSFUL.*", 1));
     }
 
