@@ -56,8 +56,8 @@ steps:
     commands:
       - ./gradlew -version
       - rm -rf /tmp/reports/*
-      - rm -rf /root/.gradle/caches/6.3/
-      - find /root/.gradle/caches/ -name "*.lock" -type f -delete
+      - rm -rf /home/gradle/.gradle/caches/$GRADLE_VERSION/
+      - find /home/gradle/.gradle/caches/ -name "*.lock" -type f -delete
       - ./gradlew --no-daemon -i clean build
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
