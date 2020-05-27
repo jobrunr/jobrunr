@@ -6,7 +6,7 @@ import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 
 import javax.sql.DataSource;
 
-@RunTestBetween(from = "03:00", to = "07:00")
+@RunTestBetween(from = "00:00", to = "03:00")
 @RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 class CommonsDbcpOracleStorageProviderTest extends AbstractOracleStorageProviderTest {
 

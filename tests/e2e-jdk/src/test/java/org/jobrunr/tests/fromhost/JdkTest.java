@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 // this is done via the different Dockerfiles and we do not want to start these tests recursively.
 // once inside the docker build, the ENV variable JDK_TEST is set
 // the end result is that only the tests inside org.jobrunr.tests.e2e must run (on the correct JDK)
-@RunTestBetween(from = "03:00", to = "07:00")
+@RunTestBetween(from = "00:00", to = "03:00")
 @DisabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
 public class JdkTest {
 
