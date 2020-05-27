@@ -174,7 +174,7 @@ steps:
       BINTRAY_APIKEY:
         from_secret: BINTRAY_APIKEY
     commands:
-      - gradle --no-daemon bintrayUpload
+      - ./gradlew --no-daemon bintrayUpload
     volumes:
       - name: maven-local
         path: /root/.m2
