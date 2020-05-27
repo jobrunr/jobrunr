@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import java.io.IOException;
-import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,9 +50,7 @@ public class JdkTest {
 
     private String buildAndTestOnImage(String dockerfile) {
         final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
-        buildAndTestContainer
-                .withStartupTimeout(Duration.ofMinutes(10))
-                .start();
+        buildAndTestContainer.start();
         return buildAndTestContainer.getLogs();
     }
 }

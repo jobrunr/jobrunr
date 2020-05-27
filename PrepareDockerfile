@@ -5,7 +5,7 @@ RUN apt install -y software-properties-common
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
 RUN apt update
-RUN apt install -y docker-ce-cli
+RUN apt install -y docker-ce-cli=5:19.03.8~3-0~ubuntu-$(lsb_release -cs)
 
 ENV GRADLE_VERSION 6.3
 COPY gradle /home/gradle/gradle
