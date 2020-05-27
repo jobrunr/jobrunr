@@ -104,38 +104,21 @@ Installation
  
  #### Using Maven?
  
- Add the following to your `pom.xml` to access dependencies of jcenter:
+ JobRunr is available in Maven Central - all you need to do is add the following dependency:
  
- ```xml
-<repositories>
-    <repository>
-      <id>jcenter</id>
-      <url>https://jcenter.bintray.com/</url>
-    </repository>
-</repositories>
-```
- 
- And finally add the dependency to JobRunr itself
  ```xml
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.6</version>
+    <version>0.9.7</version>
 </dependency>
 ```
  
  #### Using Gradle?
  
-Again make sure you depend on jcenter for your dependencies: 
+Just add the dependency to JobRunr:
  ```groovy
-repositories {
-    jcenter()
-}
-```
- 
- And add the dependency to JobRunr itself:
- ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.6'
+implementation 'org.jobrunr:jobrunr:0.9.7'
 ```
 
 Configuration
