@@ -26,11 +26,21 @@ Open and free for commercial use.
 </p>
 
 ## Overview
+Incredibly easy way to perform **fire-and-forget**, **delayed** and **recurring jobs** inside **Java applications** using only *Java 8 lambda's*. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via either RDBMS (e.g. Postgres, MariaDB/MySQL and Oracle) or NoSQL (MongoDB and Redis).
 
-Incredibly easy way to perform **fire-and-forget**, **delayed** and **recurring jobs** inside **Java applications**. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via Postgres, MariaDB/MySQL and Oracle.
+JobRunr provides a unified programming model to handle background tasks in a **reliable way** and runs them on shared hosting, dedicated hosting or in the cloud (hello Kubernetes) within a JVM instance.
 
-JobRunr provides a unified programming model to handle background tasks in a **reliable way** and run them on shared hosting, dedicated hosting or in the cloud within a JVM instance. Some scenario's where it may be a good fit:
 
+## Features
+- Simple: just use Java 8 lambda's to create a background job
+- Distributed & cluster-friendly: guarantees execution by single scheduler instance using optimistic locking.
+- Persistent jobs: using either a RDMBS (four tables and a view) or a noSQL data store.
+- Embeddable: built to be embedded in existing applications.
+- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson))
+
+## Usage scenario's
+Some scenario's where it may be a good fit:
+- within a REST api return response to client immediately and perform long-running job in the background
 - mass notifications/newsletters
 - calculations of wages and the creation of the resulting documents
 - batch import from xml, csv or json
@@ -43,16 +53,9 @@ JobRunr provides a unified programming model to handle background tasks in a **r
 - updating elasticsearch/solr after data changes 
 - *…and so on*
 
-You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is some webservice down? No worries, the job is automatically retried 10-times with a smart back-off policy.
+You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is an external webservice down? No worries, the job is automatically retried 10-times with a smart back-off policy.
 
 JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Spring Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
-
-## Features
-- Distributed & cluster-friendly: guarantees execution by single scheduler instance using optimistic locking.
-- Persistent jobs: using either a RDMBS (four tables and a view) or a noSQL data store.
-- Embeddable: built to be embedded in existing applications.
-- Simple: just use Java 8 lambda's to create a background job
-- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson))
 
 
 Screenshots
