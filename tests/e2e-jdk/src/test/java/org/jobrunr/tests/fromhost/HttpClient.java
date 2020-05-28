@@ -1,4 +1,4 @@
-package org.jobrunr.tests.e2e;
+package org.jobrunr.tests.fromhost;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

@@ -1,4 +1,5 @@
 rootProject.name = 'JobRunr'
+include ':platform'
 include ':core'
 include ':tests:e2e-base'
 include ':tests:e2e-jdk'

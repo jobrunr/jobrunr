@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'java-test-fixtures'
     id 'maven-publish'
+    id 'jacoco'
     id 'com.jfrog.bintray' version '1.8.5'
 }
 
@@ -20,62 +21,69 @@ task myJavadocs(type: Javadoc) {
 }
 
 dependencies {
-    api 'org.slf4j:slf4j-api:1.7.30'
-    api 'org.ow2.asm:asm:7.3.1'
+    api platform(project(':platform'))
 
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
-    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.0'
-    compileOnly 'com.google.code.gson:gson:2.8.6'
-    compileOnly 'org.xerial:sqlite-jdbc:3.31.1'
-    compileOnly 'com.h2database:h2:1.4.200'
-    compileOnly 'org.postgresql:postgresql:42.2.12'
-    compileOnly 'com.google.cloud.sql:postgres-socket-factory:1.0.16'
-    compileOnly 'com.oracle.ojdbc:ojdbc8_g:19.3.0.0'
-    compileOnly 'org.mariadb.jdbc:mariadb-java-client:2.6.0'
-    compileOnly 'mysql:mysql-connector-java:8.0.20'
-    compileOnly 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
-    compileOnly 'com.zaxxer:HikariCP:3.4.5'
-    compileOnly 'org.apache.commons:commons-dbcp2:2.7.0'
-    compileOnly 'com.mchange:c3p0:0.9.5.5'
-    compileOnly 'org.apache.tomcat:tomcat-jdbc:9.0.34'
-    compileOnly 'redis.clients:jedis:3.3.0'
-    compileOnly 'org.mongodb:mongo-java-driver:3.12.4'
+    api 'org.slf4j:slf4j-api'
+    api 'org.ow2.asm:asm'
+
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    compileOnly 'com.google.code.gson:gson'
+    compileOnly 'org.xerial:sqlite-jdbc'
+    compileOnly 'com.h2database:h2'
+    compileOnly 'org.postgresql:postgresql'
+    compileOnly 'com.google.cloud.sql:postgres-socket-factory'
+    compileOnly 'com.oracle.ojdbc:ojdbc8_g'
+    compileOnly 'org.mariadb.jdbc:mariadb-java-client'
+    compileOnly 'mysql:mysql-connector-java'
+    compileOnly 'com.microsoft.sqlserver:mssql-jdbc'
+    compileOnly 'com.zaxxer:HikariCP'
+    compileOnly 'org.apache.commons:commons-dbcp2'
+    compileOnly 'com.mchange:c3p0'
+    compileOnly 'org.apache.tomcat:tomcat-jdbc'
+    compileOnly 'redis.clients:jedis'
+    compileOnly 'org.mongodb:mongo-java-driver'
 
 
+    testImplementation 'org.ow2.asm:asm-util'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mariadb'
+    testImplementation 'org.testcontainers:mssqlserver'
+    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.testcontainers:oracle-xe'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.xerial:sqlite-jdbc'
+    testImplementation 'com.h2database:h2'
+    testImplementation 'org.postgresql:postgresql'
+    testImplementation 'com.google.cloud.sql:postgres-socket-factory'
+    testImplementation 'com.microsoft.sqlserver:mssql-jdbc'
+    testImplementation 'com.oracle.ojdbc:ojdbc8_g'
+    testImplementation 'org.mariadb.jdbc:mariadb-java-client'
+    testImplementation 'mysql:mysql-connector-java'
+    testImplementation 'com.zaxxer:HikariCP'
+    testImplementation 'org.apache.commons:commons-dbcp2'
+    testImplementation 'com.mchange:c3p0'
+    testImplementation 'org.apache.tomcat:tomcat-jdbc'
+    testImplementation 'redis.clients:jedis'
+    testImplementation 'org.mongodb:mongo-java-driver'
 
-    testImplementation 'org.ow2.asm:asm-util:7.3.1'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.0'
-    testImplementation 'com.google.code.gson:gson:2.8.6'
-    testImplementation 'org.testcontainers:testcontainers:1.14.1'
-    testImplementation 'org.testcontainers:junit-jupiter:1.14.1'
-    testImplementation 'org.testcontainers:mariadb:1.14.1'
-    testImplementation 'org.testcontainers:mssqlserver:1.14.1'
-    testImplementation 'org.testcontainers:mysql:1.14.1'
-    testImplementation 'org.testcontainers:oracle-xe:1.14.1'
-    testImplementation 'org.testcontainers:postgresql:1.14.1'
-    testImplementation 'org.xerial:sqlite-jdbc:3.31.1'
-    testImplementation 'com.h2database:h2:1.4.200'
-    testImplementation 'org.postgresql:postgresql:42.2.12'
-    testImplementation 'com.google.cloud.sql:postgres-socket-factory:1.0.16'
-    testImplementation 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
-    testImplementation 'com.oracle.ojdbc:ojdbc8_g:19.3.0.0'
-    testImplementation 'org.mariadb.jdbc:mariadb-java-client:2.6.0'
-    testImplementation 'mysql:mysql-connector-java:8.0.20'
-    testImplementation 'com.zaxxer:HikariCP:3.4.5'
-    testImplementation 'org.apache.commons:commons-dbcp2:2.7.0'
-    testImplementation 'com.mchange:c3p0:0.9.5.5'
-    testImplementation 'org.apache.tomcat:tomcat-jdbc:9.0.34'
-    testImplementation 'redis.clients:jedis:3.3.0'
-    testImplementation 'org.mongodb:mongo-java-driver:3.12.4'
-
-    testFixturesApi 'org.assertj:assertj-core:3.16.1'
-    testFixturesApi 'org.junit.jupiter:junit-jupiter:5.6.1'
+    testFixturesApi 'org.assertj:assertj-core'
+    testFixturesApi 'org.junit.jupiter:junit-jupiter'
 }
 
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
 }
 
 publishing {

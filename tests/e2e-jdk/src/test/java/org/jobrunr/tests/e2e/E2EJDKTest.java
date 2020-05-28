@@ -3,9 +3,7 @@ package org.jobrunr.tests.e2e;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.SimpleStorageProvider;
-import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -18,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.awaitility.Awaitility.await;
-import static org.jobrunr.tests.e2e.HttpClient.getJson;
+import static org.jobrunr.tests.fromhost.HttpClient.getJson;
 
 public class E2EJDKTest {
 
