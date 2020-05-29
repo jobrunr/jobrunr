@@ -22,7 +22,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.time.ZoneId.systemDefault;
@@ -73,7 +72,7 @@ public class JobScheduler {
      * @param job the lambda which defines the fire-and-forget job
      * @return the id of the job
      */
-    public UUID enqueue(JobLambda job) {
+    public JobId enqueue(JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return enqueue(jobDetails);
     }
@@ -107,7 +106,7 @@ public class JobScheduler {
      * @param iocJob the lambda which defines the fire-and-forget job
      * @return the id of the job
      */
-    public <T> UUID enqueue(IocJobLambda<T> iocJob) {
+    public <T> JobId enqueue(IocJobLambda<T> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return enqueue(jobDetails);
     }
@@ -140,8 +139,9 @@ public class JobScheduler {
      *
      * @param job           the lambda which defines the fire-and-forget job
      * @param zonedDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public UUID schedule(JobLambda job, ZonedDateTime zonedDateTime) {
+    public JobId schedule(JobLambda job, ZonedDateTime zonedDateTime) {
         return schedule(job, zonedDateTime.toInstant());
     }
 
@@ -154,8 +154,9 @@ public class JobScheduler {
      *
      * @param iocJob        the lambda which defines the fire-and-forget job
      * @param zonedDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public <T> UUID schedule(IocJobLambda<T> iocJob, ZonedDateTime zonedDateTime) {
+    public <T> JobId schedule(IocJobLambda<T> iocJob, ZonedDateTime zonedDateTime) {
         return schedule(iocJob, zonedDateTime.toInstant());
     }
 
@@ -169,8 +170,9 @@ public class JobScheduler {
      *
      * @param job            the lambda which defines the fire-and-forget job
      * @param offsetDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public UUID schedule(JobLambda job, OffsetDateTime offsetDateTime) {
+    public JobId schedule(JobLambda job, OffsetDateTime offsetDateTime) {
         return schedule(job, offsetDateTime.toInstant());
     }
 
@@ -183,8 +185,9 @@ public class JobScheduler {
      *
      * @param iocJob         the lambda which defines the fire-and-forget job
      * @param offsetDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public <T> UUID schedule(IocJobLambda<T> iocJob, OffsetDateTime offsetDateTime) {
+    public <T> JobId schedule(IocJobLambda<T> iocJob, OffsetDateTime offsetDateTime) {
         return schedule(iocJob, offsetDateTime.toInstant());
     }
 
@@ -198,8 +201,9 @@ public class JobScheduler {
      *
      * @param job           the lambda which defines the fire-and-forget job
      * @param localDateTime The moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @return the id of the Job
      */
-    public UUID schedule(JobLambda job, LocalDateTime localDateTime) {
+    public JobId schedule(JobLambda job, LocalDateTime localDateTime) {
         return schedule(job, localDateTime.atZone(systemDefault()).toInstant());
     }
 
@@ -212,8 +216,9 @@ public class JobScheduler {
      *
      * @param iocJob        the lambda which defines the fire-and-forget job
      * @param localDateTime The moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @return the id of the Job
      */
-    public <T> UUID schedule(IocJobLambda<T> iocJob, LocalDateTime localDateTime) {
+    public <T> JobId schedule(IocJobLambda<T> iocJob, LocalDateTime localDateTime) {
         return schedule(iocJob, localDateTime.atZone(systemDefault()).toInstant());
     }
 
@@ -227,8 +232,9 @@ public class JobScheduler {
      *
      * @param job     the lambda which defines the fire-and-forget job
      * @param instant The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public UUID schedule(JobLambda job, Instant instant) {
+    public JobId schedule(JobLambda job, Instant instant) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return schedule(jobDetails, instant);
     }
@@ -242,8 +248,9 @@ public class JobScheduler {
      *
      * @param iocJob  the lambda which defines the fire-and-forget job
      * @param instant The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public <T> UUID schedule(IocJobLambda<T> iocJob, Instant instant) {
+    public <T> JobId schedule(IocJobLambda<T> iocJob, Instant instant) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return schedule(jobDetails, instant);
     }
@@ -368,22 +375,22 @@ public class JobScheduler {
         this.storageProvider.deleteRecurringJob(id);
     }
 
-    private UUID enqueue(JobDetails jobDetails) {
+    private JobId enqueue(JobDetails jobDetails) {
         return saveJob(new Job(jobDetails));
     }
 
-    private UUID schedule(JobDetails jobDetails, Instant scheduleAt) {
+    private JobId schedule(JobDetails jobDetails, Instant scheduleAt) {
         return saveJob(new Job(jobDetails, new ScheduledState(scheduleAt)));
     }
 
-    private UUID saveJob(Job job) {
+    private JobId saveJob(Job job) {
         jobFilters.runOnCreatingFilter(job);
         Job savedJob = this.storageProvider.save(job);
         jobFilters.runOnCreatedFilter(savedJob);
-        return savedJob.getId();
+        return new JobId(savedJob.getId());
     }
 
-    private List saveJobs(List<Job> jobs) {
+    private List<Job> saveJobs(List<Job> jobs) {
         jobFilters.runOnCreatingFilter(jobs);
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilters.runOnCreatedFilter(savedJobs);

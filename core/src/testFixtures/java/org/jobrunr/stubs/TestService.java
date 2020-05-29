@@ -207,6 +207,10 @@ public class TestService implements TestServiceInterface {
             result = 31 * result + (uuid != null ? uuid.hashCode() : 0);
             return result;
         }
+
+        public static Work from(int workCount, String someString, UUID uuid) {
+            return new Work(workCount, someString, uuid);
+        }
     }
 
     public static class TheSunIsAlwaysShiningElectStateFilter implements ElectStateFilter {

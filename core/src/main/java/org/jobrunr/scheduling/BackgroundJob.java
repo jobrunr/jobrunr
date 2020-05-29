@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -36,7 +35,7 @@ public class BackgroundJob {
      * @param job the lambda which defines the fire-and-forget job
      * @return the id of the job
      */
-    public static UUID enqueue(JobLambda job) {
+    public static JobId enqueue(JobLambda job) {
         verifyJobScheduler();
         return jobScheduler.enqueue(job);
     }
@@ -68,7 +67,7 @@ public class BackgroundJob {
      * @param iocJob the lambda which defines the fire-and-forget job
      * @return the id of the job
      */
-    public static <TService> UUID enqueue(IocJobLambda<TService> iocJob) {
+    public static <TService> JobId enqueue(IocJobLambda<TService> iocJob) {
         verifyJobScheduler();
         return jobScheduler.enqueue(iocJob);
     }
@@ -99,8 +98,9 @@ public class BackgroundJob {
      *
      * @param job           the lambda which defines the fire-and-forget job
      * @param zonedDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public static UUID schedule(JobLambda job, ZonedDateTime zonedDateTime) {
+    public static JobId schedule(JobLambda job, ZonedDateTime zonedDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(job, zonedDateTime);
     }
@@ -114,8 +114,9 @@ public class BackgroundJob {
      *
      * @param iocJob        the lambda which defines the fire-and-forget job
      * @param zonedDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public static <TService> UUID schedule(IocJobLambda<TService> iocJob, ZonedDateTime zonedDateTime) {
+    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, ZonedDateTime zonedDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, zonedDateTime);
     }
@@ -130,8 +131,9 @@ public class BackgroundJob {
      *
      * @param job            the lambda which defines the fire-and-forget job
      * @param offsetDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public static UUID schedule(JobLambda job, OffsetDateTime offsetDateTime) {
+    public static JobId schedule(JobLambda job, OffsetDateTime offsetDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(job, offsetDateTime);
     }
@@ -145,8 +147,9 @@ public class BackgroundJob {
      *
      * @param iocJob         the lambda which defines the fire-and-forget job
      * @param offsetDateTime The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public static <TService> UUID schedule(IocJobLambda<TService> iocJob, OffsetDateTime offsetDateTime) {
+    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, OffsetDateTime offsetDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, offsetDateTime);
     }
@@ -161,8 +164,9 @@ public class BackgroundJob {
      *
      * @param job           the lambda which defines the fire-and-forget job
      * @param localDateTime The moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @return the id of the Job
      */
-    public static UUID schedule(JobLambda job, LocalDateTime localDateTime) {
+    public static JobId schedule(JobLambda job, LocalDateTime localDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(job, localDateTime);
     }
@@ -176,8 +180,9 @@ public class BackgroundJob {
      *
      * @param iocJob        the lambda which defines the fire-and-forget job
      * @param localDateTime The moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @return the id of the Job
      */
-    public static <TService> UUID schedule(IocJobLambda<TService> iocJob, LocalDateTime localDateTime) {
+    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, LocalDateTime localDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, localDateTime);
     }
@@ -192,8 +197,9 @@ public class BackgroundJob {
      *
      * @param job     the lambda which defines the fire-and-forget job
      * @param instant The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public static UUID schedule(JobLambda job, Instant instant) {
+    public static JobId schedule(JobLambda job, Instant instant) {
         verifyJobScheduler();
         return jobScheduler.schedule(job, instant);
     }
@@ -207,8 +213,9 @@ public class BackgroundJob {
      *
      * @param iocJob  the lambda which defines the fire-and-forget job
      * @param instant The moment in time at which the job will be enqueued.
+     * @return the id of the Job
      */
-    public static <TService> UUID schedule(IocJobLambda<TService> iocJob, Instant instant) {
+    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, Instant instant) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, instant);
     }

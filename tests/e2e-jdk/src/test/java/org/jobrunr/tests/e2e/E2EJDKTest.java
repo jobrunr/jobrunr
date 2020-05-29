@@ -8,7 +8,6 @@ import org.jobrunr.tests.e2e.services.TestService;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -37,7 +36,8 @@ public class E2EJDKTest {
 
     @AfterEach
     public void stopJobRunr() {
-        //todo: stop
+        JobRunr
+                .destroy();
     }
 
     @Test
@@ -50,7 +50,6 @@ public class E2EJDKTest {
     }
 
     @Test
-    @Disabled
     void usingLambdaWithIoCLookupWithoutInstance() {
         BackgroundJob.<TestService>enqueue(x -> x.doWork(UUID.randomUUID()));
 
@@ -60,7 +59,6 @@ public class E2EJDKTest {
     }
 
     @Test
-    @Disabled
     void usingMethodReference() {
         BackgroundJob.enqueue((JobLambda)testService::doWork);
 
@@ -70,7 +68,6 @@ public class E2EJDKTest {
     }
 
     @Test
-    @Disabled
     void usingMethodReferenceWithoutInstance() {
         BackgroundJob.<TestService>enqueue(TestService::doWork);
 
@@ -80,8 +77,7 @@ public class E2EJDKTest {
     }
 
     private String getSucceededJobs() {
-        final String json = getJson("http://localhost:8000/api/jobs/default/succeeded");
-        return json;
+        return getJson("http://localhost:8000/api/jobs/default/succeeded");
     }
 
     private <T> T jobActivator(Class<T> clazz) {

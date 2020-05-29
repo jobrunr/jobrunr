@@ -70,28 +70,28 @@ public class IocBackgroundJobTest {
 
     @Test
     void testEnqueue() {
-        UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork());
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueWithMethodReference() {
-        UUID jobId = BackgroundJob.<TestService>enqueue(TestService::doWork);
+        JobId jobId = BackgroundJob.<TestService>enqueue(TestService::doWork);
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueUsingServiceInstance() {
-        UUID jobId = BackgroundJob.enqueue(() -> testServiceForIoC.doWork());
+        JobId jobId = BackgroundJob.enqueue(() -> testServiceForIoC.doWork());
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueUsingServiceInterfaceInstance() {
-        UUID jobId = BackgroundJob.enqueue(() -> testServiceInterface.doWork());
+        JobId jobId = BackgroundJob.enqueue(() -> testServiceInterface.doWork());
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
@@ -99,21 +99,21 @@ public class IocBackgroundJobTest {
     @Test
     void testEnqueueWithCustomObject() {
         final TestService.Work work = new TestService.Work(2, "some string", UUID.randomUUID());
-        UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork(work));
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork(work));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueWithPath() {
-        UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkWithPath(Path.of("/tmp/jobrunr/example.log")));
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkWithPath(Path.of("/tmp/jobrunr/example.log")));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueWithJobContextAndMetadata() {
-        UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork(5, JobContext.Null));
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWork(5, JobContext.Null));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         Job jobById = jobStorageProvider.getJobById(jobId);
         assertThat(jobById)
@@ -152,13 +152,13 @@ public class IocBackgroundJobTest {
 
     @Test
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
-        UUID jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkThatFails());
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkThatFails());
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
     }
 
     @Test
     void testScheduleWithZonedDateTime() {
-        UUID jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), ZonedDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), ZonedDateTime.now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -166,7 +166,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testScheduleWithOffsetDateTime() {
-        UUID jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), OffsetDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), OffsetDateTime.now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -174,7 +174,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testScheduleWithLocalDateTime() {
-        UUID jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), LocalDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), LocalDateTime.now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -182,7 +182,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testScheduleWithInstant() {
-        UUID jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), now().plusSeconds(7));
+        JobId jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -190,7 +190,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testScheduleUsingDateTimeInTheFutureIsNotEnqueued() {
-        UUID jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), now().plus(100, ChronoUnit.DAYS));
+        JobId jobId = BackgroundJob.<TestService>schedule(x -> x.doWork(), now().plus(100, ChronoUnit.DAYS));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED);
@@ -198,7 +198,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testScheduleThatSchedulesOtherJobs() {
-        UUID jobId = BackgroundJob.<TestService>schedule(x -> x.scheduleNewWork(5), now().plusSeconds(1));
+        JobId jobId = BackgroundJob.<TestService>schedule(x -> x.scheduleNewWork(5), now().plusSeconds(1));
         await().atMost(ONE_MINUTE).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == (5 + 1));
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }

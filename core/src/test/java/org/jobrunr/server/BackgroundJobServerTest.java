@@ -6,6 +6,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.JobId;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.storage.SimpleStorageProvider;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -63,7 +63,7 @@ class BackgroundJobServerTest {
     @Test
     void testStartAndStop() {
         // GIVEN server stopped and we enqueue a job
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         // THEN the job should stay in state ENQUEUED
         await().during(FIVE_SECONDS).atMost(TEN_SECONDS).until(() -> testService.getProcessedJobs() == 0);
@@ -77,7 +77,7 @@ class BackgroundJobServerTest {
 
         // WHEN we pause the server and enqueue a new job
         backgroundJobServer.pauseProcessing();
-        UUID anotherJobId = BackgroundJob.enqueue(() -> testService.doWork());
+        JobId anotherJobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         // THEN the job should stay in state ENQUEUED
         await().during(FIVE_SECONDS).atMost(TEN_SECONDS).until(() -> testService.getProcessedJobs() == 1);

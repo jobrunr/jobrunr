@@ -3,6 +3,7 @@ package org.jobrunr.tests.e2e;
 import org.awaitility.core.ConditionTimeoutException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.JobId;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
 import org.jobrunr.utils.Stopwatch;
@@ -44,7 +45,7 @@ public abstract class AbstractE2ETest {
     void testProcessInBackgroundJobServer() {
         try {
             TestService testService = new TestService();
-            UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
+            JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
 
             with()
                     //.conditionEvaluationListener(condition -> System.out.printf("Processing not done. Server logs:\n %s", backgroundJobServer().getLogs()))

@@ -3,7 +3,6 @@ package org.jobrunr.scheduling;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
-import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -70,14 +69,14 @@ public class BackgroundJobTest {
 
     @Test
     void testEnqueueSystemOut() {
-        UUID jobId = BackgroundJob.enqueue(() -> System.out.println("this is a test"));
+        JobId jobId = BackgroundJob.enqueue(() -> System.out.println("this is a test"));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueue() {
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWork());
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
@@ -85,21 +84,21 @@ public class BackgroundJobTest {
     @Test
     void testEnqueueWithCustomObject() {
         final TestService.Work work = new TestService.Work(2, "some string", UUID.randomUUID());
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWork(work));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(work));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueWithPath() {
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWorkWithPath(Path.of("/tmp/jobrunr/example.log")));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithPath(Path.of("/tmp/jobrunr/example.log")));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testEnqueueWithJobContextAndMetadata() {
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWork(5, JobContext.Null));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(5, JobContext.Null));
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         Job jobById = jobStorageProvider.getJobById(jobId);
         assertThat(jobById)
@@ -138,13 +137,13 @@ public class BackgroundJobTest {
 
     @Test
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
-        UUID jobId = BackgroundJob.enqueue(() -> testService.doWorkThatFails());
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatFails());
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(jobStorageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
     }
 
     @Test
     void testScheduleWithZonedDateTime() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.doWork(), ZonedDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), ZonedDateTime.now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -152,7 +151,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleWithOffsetDateTime() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.doWork(), OffsetDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), OffsetDateTime.now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -160,7 +159,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleWithLocalDateTime() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.doWork(), LocalDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), LocalDateTime.now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -168,7 +167,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleWithInstant() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.doWork(), now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), now().plusSeconds(7));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -176,7 +175,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleUsingDateTimeInTheFutureIsNotEnqueued() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.doWork(), now().plus(100, ChronoUnit.DAYS));
+        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), now().plus(100, ChronoUnit.DAYS));
         await().during(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> jobStorageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED);
@@ -184,14 +183,14 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleThatSchedulesOtherJobs() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.scheduleNewWork(5), now().plusSeconds(1));
+        JobId jobId = BackgroundJob.schedule(() -> testService.scheduleNewWork(5), now().plusSeconds(1));
         await().atMost(ONE_MINUTE).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == (5 + 1));
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testScheduleThatSchedulesOtherJobsSlowlyDoesNotBlockOtherWorkers() {
-        UUID jobId = BackgroundJob.schedule(() -> testService.scheduleNewWorkSlowly(5), now().plusSeconds(1));
+        JobId jobId = BackgroundJob.schedule(() -> testService.scheduleNewWorkSlowly(5), now().plusSeconds(1));
         await().atMost(ofSeconds(12)).until(() -> (jobStorageProvider.countJobs(PROCESSING) + jobStorageProvider.countJobs(SUCCEEDED)) > 1);
         assertThat(jobStorageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING);
     }

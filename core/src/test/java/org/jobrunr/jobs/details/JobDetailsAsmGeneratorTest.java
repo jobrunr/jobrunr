@@ -338,6 +338,21 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    void testJobLambdaWithStaticMethodInLambda() {
+        JobLambda jobLambda = () -> testService.doWork(TestService.Work.from(2, "a String", UUID.randomUUID()));
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(TestService.Work.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(TestService.Work.class)
+                .hasFieldOrPropertyWithValue("workCount", 2)
+                .hasFieldOrPropertyWithValue("someString", "a String")
+                .hasFieldOrProperty("uuid");
+    }
+
+    @Test
     void testJobLambdaWithStream() {
         Stream<UUID> workStream = getWorkStream();
         AtomicInteger atomicInteger = new AtomicInteger();
@@ -534,6 +549,21 @@ class JobDetailsAsmGeneratorTest {
         assertThat(allJobDetails.get(0)).hasClass(TestService.class).hasMethodName("doWork");
         assertThat(allJobDetails.get(0).getJobParameters().get(1).getObject()).isEqualTo(1);
         assertThat(allJobDetails.get(4).getJobParameters().get(1).getObject()).isEqualTo(5);
+    }
+
+    @Test
+    void testIoCJobLambdaWithStaticMethodInLambda() {
+        IocJobLambda<TestService> jobLambda = x -> x.doWork(TestService.Work.from(2, "a String", UUID.randomUUID()));
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+
+        assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
+        JobParameter jobParameter = jobDetails.getJobParameters().get(0);
+        assertThat(jobParameter.getClassName()).isEqualTo(TestService.Work.class.getName());
+        assertThat(jobParameter.getObject())
+                .isInstanceOf(TestService.Work.class)
+                .hasFieldOrPropertyWithValue("workCount", 2)
+                .hasFieldOrPropertyWithValue("someString", "a String")
+                .hasFieldOrProperty("uuid");
     }
 
     @Test

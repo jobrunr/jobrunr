@@ -5,6 +5,7 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.scheduling.JobId;
 
 import java.time.Instant;
 import java.util.List;
@@ -60,4 +61,8 @@ public interface StorageProvider extends AutoCloseable {
     JobStats getJobStats();
 
     void publishJobStatCounter(StateName state, int amount);
+
+    default Job getJobById(JobId jobId) {
+        return getJobById(jobId.asUUID());
+    }
 }
