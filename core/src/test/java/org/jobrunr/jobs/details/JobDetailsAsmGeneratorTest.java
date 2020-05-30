@@ -11,7 +11,6 @@ import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -47,7 +46,6 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    @Disabled
     void logByteCode() {
         String name = this.getClass().getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
@@ -353,6 +351,16 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    void testJobLambdaWhichReturnsSomething() {
+        JobLambda jobLambda = () -> testService.doWorkAndReturnResult("someString");
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkAndReturnResult")
+                .hasArgs("someString");
+    }
+
+    @Test
     void testJobLambdaWithStream() {
         Stream<UUID> workStream = getWorkStream();
         AtomicInteger atomicInteger = new AtomicInteger();
@@ -534,6 +542,16 @@ class JobDetailsAsmGeneratorTest {
     void testIocJobLambdaWithArgumentThatIsNotUsed() {
         IocJobLambdaFromStream<TestService, Integer> iocJobLambdaFromStream = (x, i) -> x.doWork();
         assertThatCode(() -> jobDetailsGenerator.toJobDetails(5, iocJobLambdaFromStream)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testIocJobLambdaWhichReturnsSomething() {
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkAndReturnResult("someString");
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkAndReturnResult")
+                .hasArgs("someString");
     }
 
     @Test

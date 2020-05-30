@@ -107,6 +107,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("I will always succeed thanks to my SunIsAlwaysShiningElectStateFilter... ");
     }
 
+    public String doWorkAndReturnResult(String someString) {
+        return "Hello to you to " + someString;
+    }
+
     public void doWorkThatFails() {
         processedJobs++;
         System.out.println("Whoopsie, an error will occur " + processedJobs);

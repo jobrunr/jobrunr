@@ -40,6 +40,7 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.LDC, LdcInstruction::new);
         instructions.put(Opcodes.LLOAD, LLoadOperandInstruction::new);
         instructions.put(Opcodes.NEW, NewOperandInstruction::new);
+        instructions.put(Opcodes.POP, PopOperandInstruction::new);
         instructions.put(Opcodes.GETFIELD, GetFieldInstruction::new);
         instructions.put(Opcodes.GETSTATIC, GetStaticInstruction::new);
         instructions.put(Opcodes.RETURN, ReturnOperandInstruction::new);

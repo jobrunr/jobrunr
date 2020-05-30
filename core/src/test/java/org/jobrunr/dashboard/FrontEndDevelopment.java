@@ -5,6 +5,9 @@ import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
+/**
+ * Main Class to run for FrontEndDevelopment
+ */
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws InterruptedException {
