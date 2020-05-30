@@ -1,6 +1,7 @@
 package org.jobrunr.dashboard;
 
 import org.jobrunr.dashboard.server.TeenyWebServer;
+import org.jobrunr.dashboard.server.http.RedirectHttpHandler;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -18,11 +19,13 @@ public class JobRunrDashboardWebServer {
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
+        RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", "/dashboard");
         JobRunrStaticFileHandler staticFileHandler = new JobRunrStaticFileHandler();
         JobRunrApiHandler dashboardHandler = new JobRunrApiHandler(storageProvider, jsonMapper);
         JobRunrSseHandler sseHandler = new JobRunrSseHandler(storageProvider, jsonMapper);
 
         teenyWebServer = new TeenyWebServer(port);
+        teenyWebServer.createContext(redirectHttpHandler);
         teenyWebServer.createContext(staticFileHandler);
         teenyWebServer.createContext(dashboardHandler);
         teenyWebServer.createContext(sseHandler);
