@@ -46,11 +46,12 @@ class CronExpressionTest {
     void cronExpressionsAreScheduledInUTC() {
         // always use next hour
         int hour = now().getHour() + 1;
+        int daysToAdd = hour >= 24 ? 1 : 0;
         hour = hour >= 24 ? 0 : hour;
 
         Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next();
 
-        Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now(), LocalTime.of(hour, 0), UTC).toInstant();
+        Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
