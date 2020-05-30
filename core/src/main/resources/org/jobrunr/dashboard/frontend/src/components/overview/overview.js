@@ -2,6 +2,7 @@ import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import Box from "@material-ui/core/Box";
+import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import RealtimeGraph from "./cards/realtime-graph";
 import EstimatedProcessingTimeCard from "./cards/estimated-processing-time-card";
@@ -14,7 +15,12 @@ import LoadingIndicator from "../LoadingIndicator";
 const useStyles = makeStyles(theme => ({
     metadata: {
         display: 'flex',
-    }
+    },
+    noServersFound: {
+        marginTop: '1rem',
+        padding: '1rem',
+        width: '100%'
+    },
 }));
 
 const Overview = () => {
@@ -46,12 +52,20 @@ const Overview = () => {
             <div className={classes.metadata}>
                 {isLoading
                     ? <LoadingIndicator/>
-                    : <>
-                        <EstimatedProcessingTimeCard/>
-                        <UptimeCard servers={servers}/>
-                        <AvgSystemCpuLoadCard servers={servers}/>
-                        <AvgProcessMemoryUsageCard servers={servers}/>
-                        <AvgProcessFreeMemoryCard servers={servers}/>
+                    : <> {servers.length > 0
+                        ? <>
+                            <EstimatedProcessingTimeCard/>
+                            <UptimeCard servers={servers}/>
+                            <AvgSystemCpuLoadCard servers={servers}/>
+                            <AvgProcessMemoryUsageCard servers={servers}/>
+                            <AvgProcessFreeMemoryCard servers={servers}/>
+                        </>
+                        : <Paper className={classes.noServersFound}>
+                            <Typography id="no-servers-found-message" variant="body1">
+                                No background job server available - jobs will not be processed.
+                            </Typography>
+                        </Paper>
+                    }
                     </>
                 }
             </div>

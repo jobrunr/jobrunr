@@ -17,7 +17,7 @@ const AvgSystemCpuLoadCard = (props) => {
     const classes = useStyles();
     const servers = props.servers;
 
-    let averageSystemCpuLoad = servers[0]?.systemCpuLoad || 0;
+    let averageSystemCpuLoad = servers[0].systemCpuLoad;
     if (servers.length > 1) {
         const average = (array) => array.reduce((a, b) => a + b.systemCpuLoad, 0) / array.length;
         averageSystemCpuLoad = average(servers);

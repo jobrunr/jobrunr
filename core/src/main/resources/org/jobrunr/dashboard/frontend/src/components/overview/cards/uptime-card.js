@@ -26,11 +26,8 @@ const UptimeCard = (props) => {
                     Uptime
                 </Typography>
                 <Typography variant="h5" component="h2">
-                    {servers.length() < 1
-                        ? <TimeAgo date={new Date(servers[0].firstHeartbeat)}
-                                   title={new Date(servers[0].firstHeartbeat).toString()} formatter={timeAgoFormatter}/>
-                        : <>Unknown</>
-                    }
+                    <TimeAgo date={new Date(servers[0].firstHeartbeat)}
+                             title={new Date(servers[0].firstHeartbeat).toString()} formatter={timeAgoFormatter}/>
                 </Typography>
             </CardContent>
         </Card>
