@@ -21,7 +21,7 @@ public class BackgroundStaticJobWithoutIocRunner extends AbstractBackgroundJobRu
         return new StaticFieldBackgroundJobWorker(job);
     }
 
-    protected class StaticFieldBackgroundJobWorker extends BackgroundJobWorker {
+    protected static class StaticFieldBackgroundJobWorker extends BackgroundJobWorker {
 
         public StaticFieldBackgroundJobWorker(Job job) {
             super(job);

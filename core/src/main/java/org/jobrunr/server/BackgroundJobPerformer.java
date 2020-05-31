@@ -16,7 +16,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
         super(backgroundJobServer, job);
     }
 
-    private static AtomicInteger atomicInteger = new AtomicInteger();
+    private static final AtomicInteger atomicInteger = new AtomicInteger();
 
     @Override
     public Job call() {

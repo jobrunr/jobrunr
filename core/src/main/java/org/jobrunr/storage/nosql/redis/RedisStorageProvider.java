@@ -53,7 +53,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
     public static final String QUEUE_SCHEDULEDJOBS_KEY = "queue:scheduledjobs";
 
-    private Jedis jedisConnector;
+    private final Jedis jedisConnector;
     private JobMapper jobMapper;
 
     public RedisStorageProvider() {

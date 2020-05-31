@@ -7,7 +7,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class Autoboxer {
 
-    private static List<TypeAutoboxer> autoboxers = Arrays.asList(
+    private static final List<TypeAutoboxer> autoboxers = Arrays.asList(
             new BooleanTypeAutoboxer(),
             new InstantTypeAutoboxer(),
             new IntegerTypeAutoboxer(),

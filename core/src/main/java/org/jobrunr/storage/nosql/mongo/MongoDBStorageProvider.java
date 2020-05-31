@@ -56,6 +56,7 @@ import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Sorts.orderBy;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
@@ -81,7 +82,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     public MongoDBStorageProvider(String hostName, int port) {
         this(MongoClients.create(
                 MongoClientSettings.builder()
-                        .applyToClusterSettings(builder -> builder.hosts(asList(new ServerAddress(hostName, port))))
+                        .applyToClusterSettings(builder -> builder.hosts(singletonList(new ServerAddress(hostName, port))))
                         .build()));
     }
 

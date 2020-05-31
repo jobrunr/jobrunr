@@ -10,7 +10,7 @@ public class JobContext {
 
     public static final JobContext Null = new JobContext(null);
 
-    private Job job;
+    private final Job job;
 
     private JobContext() {
         this.job = null;

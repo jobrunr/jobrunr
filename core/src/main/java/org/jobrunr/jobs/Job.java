@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 
 /**
@@ -40,7 +40,7 @@ public class Job extends AbstractJob {
     }
 
     public Job(JobDetails jobDetails, JobState jobState) {
-        this(jobDetails, asList(jobState));
+        this(jobDetails, singletonList(jobState));
     }
 
     public Job(JobDetails jobDetails, List<JobState> jobHistory) {

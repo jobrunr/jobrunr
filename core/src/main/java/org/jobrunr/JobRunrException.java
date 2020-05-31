@@ -2,7 +2,7 @@ package org.jobrunr;
 
 public class JobRunrException extends RuntimeException {
 
-    public static final String SHOULD_NOT_HAPPEN_MESSAGE = "JobRunr encounterd a problematic exception. Please create a bug report (if possible, provide the code to reproduce this and the stacktrace)";
+    public static final String SHOULD_NOT_HAPPEN_MESSAGE = "JobRunr encountered a problematic exception. Please create a bug report (if possible, provide the code to reproduce this and the stacktrace)";
 
     private final boolean doNotRetry;
 

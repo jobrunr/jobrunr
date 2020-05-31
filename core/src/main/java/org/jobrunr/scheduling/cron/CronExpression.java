@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class CronExpression implements Comparable<CronExpression> {
 
     private enum DaysAndDaysOfWeekRelation {
-        INTERSECT, UNION;
+        INTERSECT, UNION
 
     }
 
@@ -129,9 +129,7 @@ public class CronExpression implements Comparable<CronExpression> {
 
         token = fields[index++];
         cronExpression.hours = CronExpression.HOURS_FIELD_PARSER.parse(token);
-        cronExpression.hourIsWildcard = false;
-        if (token.equals("*"))
-            cronExpression.hourIsWildcard = true;
+        cronExpression.hourIsWildcard = token.equals("*");
 
         token = fields[index++];
         cronExpression.days = CronExpression.DAYS_FIELD_PARSER.parse(token);

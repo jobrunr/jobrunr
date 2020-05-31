@@ -19,7 +19,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class ServerZooKeeper implements Runnable {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
 
     private final BackgroundJobServer backgroundJobServer;
     private final BackgroundJobServerStatusWriteModel backgroundJobServerStatus;
@@ -91,8 +91,7 @@ public class ServerZooKeeper implements Runnable {
         final BackgroundJobServerStatus oldestServer = storageProvider
                 .getBackgroundJobServers()
                 .stream()
-                .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
-                .findFirst()
+                .min(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
                 .orElseThrow(() -> JobRunrException.shouldNotHappenException("No servers available?!"));
         final boolean isMaster = oldestServer.getId().equals(backgroundJobServerStatus.getId());
         if (isMaster) {

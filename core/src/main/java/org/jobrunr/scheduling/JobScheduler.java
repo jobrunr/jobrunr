@@ -20,11 +20,11 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static java.time.ZoneId.systemDefault;
+import static java.util.Collections.emptyList;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 /**
@@ -37,7 +37,7 @@ public class JobScheduler {
     private final StorageProvider storageProvider;
     private final JobDetailsGenerator jobDetailsGenerator;
     private final JobFilters jobFilters;
-    private int batchSize = 5000;
+    private final int batchSize = 5000;
 
     /**
      * Creates a new JobScheduler using the provided storageProvider
@@ -45,7 +45,7 @@ public class JobScheduler {
      * @param storageProvider the storageProvider to use
      */
     public JobScheduler(StorageProvider storageProvider) {
-        this(storageProvider, Arrays.asList());
+        this(storageProvider, emptyList());
     }
 
     /**

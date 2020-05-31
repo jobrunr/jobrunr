@@ -28,10 +28,10 @@ import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class DatabaseCreator {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
 
     private final ConnectionProvider connectionProvider;
-    private Class<? extends SqlStorageProvider> sqlStorageProviderClass;
+    private final Class<? extends SqlStorageProvider> sqlStorageProviderClass;
 
     public static void main(String[] args) {
         String url = args[0];

@@ -54,11 +54,11 @@ class CronFieldParser {
         CronFieldParser.DAYS_OF_WEEK_NAMES.put("sat", 6);
     }
 
-    private CronFieldType fieldType;
-    private int length;
-    private int maxAllowedValue;
-    private int minAllowedValue;
-    private String fieldName;
+    private final CronFieldType fieldType;
+    private final int length;
+    private final int maxAllowedValue;
+    private final int minAllowedValue;
+    private final String fieldName;
 
     CronFieldParser(CronFieldType fieldType) {
         this.fieldType = fieldType;
