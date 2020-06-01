@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.details.JobDetailsFinderContext;
 import org.objectweb.asm.Opcodes;
 
@@ -54,7 +55,7 @@ public class AllJVMInstructions {
     public static <T extends AbstractJVMInstruction> T get(int opcode, JobDetailsFinderContext jobDetailsBuilder) {
         final Function<JobDetailsFinderContext, AbstractJVMInstruction> instructionBuilder = instructions.get(opcode);
         if (instructionBuilder == null) {
-            throw new IllegalArgumentException("Instruction " + opcode + " not found");
+            throw JobRunrException.shouldNotHappenException(new IllegalArgumentException("Instruction " + opcode + " not found"));
         }
         return cast(instructionBuilder.apply(jobDetailsBuilder));
     }
