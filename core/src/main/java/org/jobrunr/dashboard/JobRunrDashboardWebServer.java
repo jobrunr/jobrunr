@@ -5,8 +5,14 @@ import org.jobrunr.dashboard.server.http.RedirectHttpHandler;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static java.lang.String.format;
 
 public class JobRunrDashboardWebServer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrDashboardWebServer.class);
 
     private final TeenyWebServer teenyWebServer;
 
@@ -31,12 +37,15 @@ public class JobRunrDashboardWebServer {
         teenyWebServer.createContext(sseHandler);
         teenyWebServer.start();
 
+        LOGGER.info(format("JobRunr dashboard started at http://%s:%d%s",
+                teenyWebServer.getWebServerHostAddress(),
+                teenyWebServer.getWebServerHostPort(),
+                staticFileHandler.getContextPath()));
+
     }
 
     public void stop() {
         teenyWebServer.stop();
     }
-
-
 
 }

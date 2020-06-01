@@ -36,4 +36,15 @@ public class TeenyWebServer {
         executorService.shutdownNow();
         httpServer.stop(0);
     }
+
+    public String getWebServerHostAddress() {
+        if (httpServer.getAddress().getAddress().isAnyLocalAddress()) {
+            return "localhost";
+        }
+        return httpServer.getAddress().getAddress().getHostAddress();
+    }
+
+    public int getWebServerHostPort() {
+        return httpServer.getAddress().getPort();
+    }
 }

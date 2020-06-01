@@ -25,7 +25,7 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public class JobZooKeeper implements Runnable {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
