@@ -6,7 +6,6 @@ import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.stubs.TestService;
@@ -40,6 +39,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
 
 public class IocBackgroundJobTest {
 
@@ -54,7 +54,7 @@ public class IocBackgroundJobTest {
         testServiceForIoC = new TestServiceForIoC("a constructor arg");
         testServiceInterface = testServiceForIoC;
         SimpleJobActivator jobActivator = new SimpleJobActivator(testServiceForIoC, new TestService());
-        backgroundJobServer = new BackgroundJobServer(jobStorageProvider, jobActivator, new BackgroundJobServerStatus(5, 10));
+        backgroundJobServer = new BackgroundJobServer(jobStorageProvider, jobActivator, usingStandardConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(jobStorageProvider)
                 .useJobActivator(jobActivator)

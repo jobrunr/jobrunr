@@ -54,11 +54,9 @@ public abstract class StorageProviderTest {
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
         cleanup();
-        final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(15, 10));
-        serverStatus.start();
         JobRunr.configure();
         this.storageProvider = getStorageProvider();
-        backgroundJobServer = new BackgroundJobServerStub(storageProvider, serverStatus);
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider);
     }
 
     @AfterEach

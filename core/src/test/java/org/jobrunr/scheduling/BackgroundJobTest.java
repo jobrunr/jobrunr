@@ -5,7 +5,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.stubs.TestService;
@@ -39,6 +38,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
 
 public class BackgroundJobTest {
 
@@ -53,7 +53,7 @@ public class BackgroundJobTest {
         testService = new TestService();
         testService.reset();
         jobStorageProvider = new SimpleStorageProvider();
-        backgroundJobServer = new BackgroundJobServer(jobStorageProvider, null, new BackgroundJobServerStatus(5, 10));
+        backgroundJobServer = new BackgroundJobServer(jobStorageProvider, null, usingStandardConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(jobStorageProvider)
                 .useBackgroundJobServer(backgroundJobServer)

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -44,17 +45,21 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator) {
-        this(storageProvider, jobActivator, 15, defaultThreadPoolSize());
+        this(storageProvider, jobActivator, usingStandardConfiguration());
     }
 
+    @Deprecated
+    /**
+     * Use BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration)
+     */
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, int pollIntervalInSeconds, int workerCount) {
-        this(storageProvider, jobActivator, new BackgroundJobServerStatus(pollIntervalInSeconds, workerCount));
+        this(storageProvider, jobActivator, usingStandardConfiguration().andPollIntervalInSeconds(pollIntervalInSeconds).andWorkerCount(workerCount));
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerStatus serverStatus) {
+    public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
 
-        this.serverStatus = serverStatus;
+        this.serverStatus = new BackgroundJobServerStatus(configuration.pollIntervalInSeconds, configuration.backgroundJobServerWorkerPolicy.getWorkerCount());
         this.storageProvider = storageProvider;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobFilters = new JobFilters();
@@ -214,8 +219,4 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    // see https://jobs.zalando.com/en/tech/blog/how-to-set-an-ideal-thread-pool-size
-    private static int defaultThreadPoolSize() {
-        return Runtime.getRuntime().availableProcessors() * 8;
-    }
 }

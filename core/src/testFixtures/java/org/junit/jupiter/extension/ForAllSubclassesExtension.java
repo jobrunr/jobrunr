@@ -27,7 +27,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
     public void beforeAll(ExtensionContext context) throws Exception {
         if (atomicInteger != null) return;
 
-        annotatedTestClass = findClassWithCleanupAnnotation(context);
+        annotatedTestClass = findClassWithForAllSubclassesAnnotation(context);
         setUpMethod = findMethodWithAnnotation(annotatedTestClass, BeforeAllSubclasses.class);
         tearDownMethod = findMethodWithAnnotation(annotatedTestClass, AfterAllSubclasses.class);
 
@@ -58,11 +58,11 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         }
     }
 
-    private static Class findClassWithCleanupAnnotation(ExtensionContext extensionContext) {
-        return findClassWithCleanupAnnotation(extensionContext.getRequiredTestClass());
+    private static Class findClassWithForAllSubclassesAnnotation(ExtensionContext extensionContext) {
+        return findClassWithForAllSubclassesAnnotation(extensionContext.getRequiredTestClass());
     }
 
-    private static Class findClassWithCleanupAnnotation(Class clazz) {
+    private static Class findClassWithForAllSubclassesAnnotation(Class clazz) {
         if (clazz == null) {
             throw new IllegalStateException("Could not find class with CleanupAfterSubclassesExtension");
         }
@@ -71,7 +71,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         if (declaredAnnotation != null && Arrays.asList(declaredAnnotation.value()).contains(ForAllSubclassesExtension.class)) {
             return clazz;
         }
-        return findClassWithCleanupAnnotation(clazz.getSuperclass());
+        return findClassWithForAllSubclassesAnnotation(clazz.getSuperclass());
     }
 
     private static Method findMethodWithAnnotation(Class clazz, Class<? extends Annotation> annotation) {
