@@ -26,7 +26,7 @@ public class CypressTestContainer extends GenericContainer {
                     .withNetworkMode("host")
                     .withSharedMemorySize(536870912L)
                     .withWorkingDirectory("/e2e")
-                    .withStartupTimeout(Duration.ofMinutes(5))
+                    .withStartupTimeout(Duration.ofMinutes(10))
                     .waitingFor(Wait.forLogMessage(".*(Run Finished).*", 1));
 
             if (Files.exists(Paths.get("/drone"))) {
