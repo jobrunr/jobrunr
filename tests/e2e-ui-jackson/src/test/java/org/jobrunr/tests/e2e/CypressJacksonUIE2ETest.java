@@ -5,9 +5,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
-import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @Testcontainers
 public class CypressJacksonUIE2ETest {
@@ -17,11 +18,11 @@ public class CypressJacksonUIE2ETest {
             .withCommand("--pause");
 
     @Container
-    public CypressTestContainer cypressContainer = new CypressTestContainer(backgroundJobContainer)
-            .withStartupTimeout(Duration.ofMinutes(10));
+    public CypressTestContainer cypressContainer = new CypressTestContainer(backgroundJobContainer);
 
     @Test
     void runUITests() throws IOException {
+        await().atMost(5, TimeUnit.MINUTES).until(() -> cypressContainer.getLogs().contains("(Run Finished)"));
         assertThat(cypressContainer.getLogs())
                 .describedAs("UI Tests failed: \n\n" + cypressContainer.getLogs())
                 .contains("All specs passed!");

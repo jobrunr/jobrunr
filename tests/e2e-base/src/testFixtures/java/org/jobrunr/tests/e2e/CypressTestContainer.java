@@ -2,7 +2,6 @@ package org.jobrunr.tests.e2e;
 
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import java.nio.file.Files;
@@ -26,8 +25,8 @@ public class CypressTestContainer extends GenericContainer<CypressTestContainer>
                     .withNetworkMode("host")
                     .withSharedMemorySize(536870912L)
                     .withWorkingDirectory("/e2e")
-                    .withStartupTimeout(Duration.ofMinutes(10))
-                    .waitingFor(Wait.forLogMessage(".*(Run Finished).*", 1));
+                    .withStartupTimeout(Duration.ofMinutes(5));
+            //.waitingFor(Wait.forLogMessage(".*(Run Finished).*", 1));
 
             if (Files.exists(Paths.get("/drone"))) {
                 this
