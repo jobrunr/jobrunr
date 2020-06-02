@@ -22,7 +22,9 @@ public class CypressGsonUIE2ETest {
 
     @Test
     void runUITests() throws IOException {
-        await().atMost(5, TimeUnit.MINUTES).until(() -> cypressContainer.getLogs().contains("(Run Finished)"));
+        await()
+                .atMost(6, TimeUnit.MINUTES).untilAsserted(() -> assertThat(cypressContainer.getLogs()).contains("(Run Finished)"));
+
         assertThat(cypressContainer.getLogs())
                 .describedAs("UI Tests failed: \n\n" + cypressContainer.getLogs())
                 .contains("All specs passed!");
