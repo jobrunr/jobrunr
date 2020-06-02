@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-public class CypressTestContainer extends GenericContainer {
+public class CypressTestContainer extends GenericContainer<CypressTestContainer> {
 
     private final GenericContainer backgroundJobContainer;
 

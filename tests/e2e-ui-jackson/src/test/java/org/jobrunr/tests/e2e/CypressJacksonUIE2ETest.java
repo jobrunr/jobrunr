@@ -5,6 +5,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +17,8 @@ public class CypressJacksonUIE2ETest {
             .withCommand("--pause");
 
     @Container
-    public CypressTestContainer cypressContainer = new CypressTestContainer(backgroundJobContainer);
+    public CypressTestContainer cypressContainer = new CypressTestContainer(backgroundJobContainer)
+            .withStartupTimeout(Duration.ofMinutes(10));
 
     @Test
     void runUITests() throws IOException {
