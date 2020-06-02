@@ -23,6 +23,7 @@ public class CypressGsonUIE2ETest {
     @Test
     void runUITests() throws IOException {
         await()
+                .pollInterval(5, TimeUnit.SECONDS)
                 .atMost(6, TimeUnit.MINUTES).untilAsserted(() -> assertThat(cypressContainer.getLogs()).contains("(Run Finished)"));
 
         assertThat(cypressContainer.getLogs())
