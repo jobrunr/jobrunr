@@ -2,10 +2,13 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.data.TemporalOffset;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.StateName;
 
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasJobName(String name) {
         Assertions.assertThat(actual.getJobName()).isEqualTo(name);
+        return this;
+    }
+
+    public JobAssert hasUpdatedAtCloseTo(Instant instant, TemporalOffset<Temporal> temporalOffset) {
+        Assertions.assertThat(actual.getUpdatedAt()).isCloseTo(instant, temporalOffset);
         return this;
     }
 

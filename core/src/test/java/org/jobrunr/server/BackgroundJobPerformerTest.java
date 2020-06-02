@@ -1,9 +1,7 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.filters.DisplayNameFilter;
 import org.jobrunr.jobs.filters.JobFilters;
-import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
@@ -15,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,21 +24,26 @@ class BackgroundJobPerformerTest {
     private BackgroundJobServer backgroundJobServer;
     @Mock
     private StorageProvider storageProvider;
+    @Mock
+    private JobZooKeeper jobZooKeeper;
+
+    private BackgroundJobTestFilter logAllStateChangesFilter;
 
     @BeforeEach
     void setUpTestService() {
+        logAllStateChangesFilter = new BackgroundJobTestFilter();
+
         testService = new TestService();
-        lenient().when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(new DisplayNameFilter(), new RetryFilter()));
+        when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
+        when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
+        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
     }
 
     @Test
     void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
-        BackgroundJobTestFilter logAllStateChangesFilter = new BackgroundJobTestFilter();
         Job job = anEnqueuedJob().build();
 
-        when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(new BackgroundStaticJobWithoutIocRunner());
-        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         backgroundJobPerformer.call();
@@ -53,12 +55,9 @@ class BackgroundJobPerformerTest {
 
     @Test
     void allStateChangesArePassingViaTheApplyStateFilterOnFailure() {
-        BackgroundJobTestFilter logAllStateChangesFilter = new BackgroundJobTestFilter();
         Job job = anEnqueuedJob().build();
 
-        when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
-        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         backgroundJobPerformer.call();

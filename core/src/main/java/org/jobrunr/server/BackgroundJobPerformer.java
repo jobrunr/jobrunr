@@ -12,16 +12,17 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobPerformer.class);
 
+    private static final AtomicInteger atomicInteger = new AtomicInteger();
+
     public BackgroundJobPerformer(BackgroundJobServer backgroundJobServer, Job job) {
         super(backgroundJobServer, job);
     }
-
-    private static final AtomicInteger atomicInteger = new AtomicInteger();
 
     @Override
     public Job call() {
         boolean canProcess = updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart();
         if (canProcess) {
+            backgroundJobServer.getJobZooKeeper().startProcessing(job);
             try {
                 runActualJob();
                 updateJobStateToSucceededAndRunJobFilters();
@@ -31,6 +32,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
             } catch (Exception e) {
                 updateJobStateToFailedAndRunJobFilters("An exception occurred during the performance of the job", e);
             }
+            backgroundJobServer.getJobZooKeeper().stopProcessing(job);
         }
         return job;
     }

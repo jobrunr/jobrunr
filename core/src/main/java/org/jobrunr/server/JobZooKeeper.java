@@ -15,12 +15,15 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static java.lang.Boolean.TRUE;
+import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public class JobZooKeeper implements Runnable {
@@ -31,6 +34,7 @@ public class JobZooKeeper implements Runnable {
     private final StorageProvider storageProvider;
     private final JobFilters jobFilters;
     private final WorkDistributionStrategy workDistributionStrategy;
+    private final List<Job> currentlyProcessedJobs;
     private volatile Boolean isMaster;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
@@ -38,6 +42,7 @@ public class JobZooKeeper implements Runnable {
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.jobFilters = backgroundJobServer.getJobFilters();
         this.workDistributionStrategy = new BasicWorkDistributionStrategy(backgroundJobServer);
+        this.currentlyProcessedJobs = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -48,10 +53,12 @@ public class JobZooKeeper implements Runnable {
             if (TRUE.equals(isMaster)) {
                 checkForRecurringJobs();
                 checkForScheduledJobs();
+                checkForOrphanedJobs();
                 checkForSucceededJobsThanCanGoToDeletedState();
                 checkForJobsThatCanBeDeleted();
             }
 
+            updateJobsThatAreBeingProcessed();
             checkForEnqueuedJobs();
         }
     }
@@ -89,6 +96,13 @@ public class JobZooKeeper implements Runnable {
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
+    private void checkForOrphanedJobs() {
+        LOGGER.debug("Looking for orphan jobs... ");
+        final Instant updatedBefore = now().minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
+        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, PageRequest.asc(0, 1000));
+        processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
+    }
+
     private void checkForSucceededJobsThanCanGoToDeletedState() {
         LOGGER.debug("Looking for succeeded jobs that can be deleted... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
@@ -108,6 +122,11 @@ public class JobZooKeeper implements Runnable {
     private void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for succeeded jobs that can be deleted... ");
         storageProvider.deleteJobs(StateName.DELETED, now().minus(72, ChronoUnit.HOURS));
+    }
+
+    private void updateJobsThatAreBeingProcessed() {
+        LOGGER.debug("Updating currently processed jobs... ");
+        processJobList(currentlyProcessedJobs, Job::updateProcessing);
     }
 
     private void checkForEnqueuedJobs() {
@@ -139,12 +158,18 @@ public class JobZooKeeper implements Runnable {
 
     private void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
         List<Job> jobs = jobListSupplier.get();
-        while (jobs.size() > 0) {
+        while (!jobs.isEmpty()) {
+            processJobList(jobs, jobConsumer);
+            jobs = jobListSupplier.get();
+        }
+    }
+
+    private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
+        if (!jobs.isEmpty()) {
             jobs.forEach(jobConsumer);
             jobFilters.runOnStateElectionFilter(jobs);
             storageProvider.save(jobs);
             jobFilters.runOnStateAppliedFilters(jobs);
-            jobs = jobListSupplier.get();
         }
     }
 
@@ -152,4 +177,11 @@ public class JobZooKeeper implements Runnable {
         return backgroundJobServer.getServerStatus();
     }
 
+    public void startProcessing(Job job) {
+        currentlyProcessedJobs.add(job);
+    }
+
+    public void stopProcessing(Job job) {
+        currentlyProcessedJobs.remove(job);
+    }
 }

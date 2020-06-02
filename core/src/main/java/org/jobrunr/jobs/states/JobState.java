@@ -8,4 +8,6 @@ public interface JobState {
 
     Instant getCreatedAt();
 
+    Instant getUpdatedAt();
+
 }

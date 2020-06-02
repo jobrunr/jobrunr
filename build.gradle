@@ -41,7 +41,8 @@ configure(subprojects.findAll {it.name != 'platform'}) {
 
         useJUnitPlatform()
         testLogging {
-            events "passed", "skipped", "failed"
+            minGranularity = 3
+            events "passed", "skipped", "failed", "standard_out", "standard_error"
         }
     }
 

@@ -29,7 +29,7 @@ public class Job extends AbstractJob {
 
     private UUID id;
     private ArrayList<JobState> jobHistory;
-    private Map<String, Object> metadata;
+    private volatile Map<String, Object> metadata;
 
     private Job() {
         // used for deserialization
@@ -87,7 +87,7 @@ public class Job extends AbstractJob {
     }
 
     public Instant getUpdatedAt() {
-        return getJobState().getCreatedAt();
+        return getJobState().getUpdatedAt();
     }
 
     Map<String, Object> getMetadata() {
@@ -106,6 +106,11 @@ public class Job extends AbstractJob {
     public void startProcessingOn(BackgroundJobServer backgroundJobServer) {
         if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(id);
         this.jobHistory.add(new ProcessingState(backgroundJobServer.getId()));
+    }
+
+    public void updateProcessing() {
+        ProcessingState processingState = getJobState();
+        processingState.setUpdatedAt(Instant.now());
     }
 
     public void succeeded() {

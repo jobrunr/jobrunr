@@ -3,12 +3,15 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilters;
+import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,20 +22,24 @@ import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +51,8 @@ class JobZooKeeperTest {
     private StorageProvider storageProvider;
     @Mock
     private BackgroundJobServer backgroundJobServer;
+    @Captor
+    private ArgumentCaptor<List<Job>> jobsToSaveArgumentCaptor;
 
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
@@ -131,8 +140,8 @@ class JobZooKeeperTest {
         final Job enqueuedJob = anEnqueuedJob().build();
         final List<Job> jobs = List.of(enqueuedJob);
 
-        when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(jobs);
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(jobs);
 
         jobZooKeeper.run();
 
@@ -145,8 +154,8 @@ class JobZooKeeperTest {
                 .mapToObj(x -> anEnqueuedJob().build())
                 .collect(toList());
 
-        when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(enqueuedJobs);
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(enqueuedJobs);
 
         jobZooKeeper.run();
 
@@ -171,7 +180,7 @@ class JobZooKeeperTest {
 
         when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
-                        asList(job),
+                        singletonList(job),
                         emptyList()
                 );
 
@@ -184,7 +193,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForSucceededJobsThanCanGoToDeletedState() {
-        when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
                         asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
                         emptyList()
@@ -198,6 +207,21 @@ class JobZooKeeperTest {
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
         assertThat(logAllStateChangesFilter.processingPassed).isFalse();
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+    }
+
+    @Test
+    void checkForOrphanedJobs() {
+        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
+        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
+                .thenReturn(
+                        singletonList(orphanedJob),
+                        emptyList()
+                );
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
     }
 
     @Test

@@ -171,10 +171,15 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withEnqueuedState(Instant instant) {
-        EnqueuedState enqueuedState = new EnqueuedState();
-        setInternalState(enqueuedState, "createdAt", instant);
-        this.states.add(enqueuedState);
+    public JobTestBuilder withState(JobState state, Instant createdAt) {
+        setInternalState(state, "createdAt", createdAt);
+        if (state instanceof ProcessingState) setInternalState(state, "updatedAt", createdAt);
+        this.states.add(state);
+        return this;
+    }
+
+    public JobTestBuilder withEnqueuedState(Instant createdAt) {
+        withState(new EnqueuedState(), createdAt);
         return this;
     }
 
