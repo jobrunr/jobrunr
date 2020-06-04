@@ -30,7 +30,7 @@ configure(subprojects.findAll {it.name != 'platform'}) {
         testImplementation 'org.awaitility:awaitility'
         testImplementation 'org.assertj:assertj-core'
         testImplementation 'net.javacrumbs.json-unit:json-unit-assertj'
-        testImplementation 'org.slf4j:slf4j-simple'
+        testImplementation 'ch.qos.logback:logback-classic'
         testImplementation 'org.mockito:mockito-core'
         testImplementation 'org.mockito:mockito-junit-jupiter'
     }

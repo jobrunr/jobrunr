@@ -20,7 +20,6 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
@@ -177,6 +176,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void stopZooKeepers() {
+        jobZooKeeper.stop();
+        serverZooKeeper.stop();
         stop(zookeeperThreadPool);
         this.zookeeperThreadPool = null;
     }

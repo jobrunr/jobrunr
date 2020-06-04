@@ -2,6 +2,11 @@ plugins {
     id 'com.google.cloud.tools.jib' version '2.3.0'
 }
 
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 dependencies {
     implementation project(':core')
     implementation testFixtures(project(":core"))

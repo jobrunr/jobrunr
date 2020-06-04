@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,6 +31,14 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.reentrantLock = new ReentrantLock();
+    }
+
+    @Override
+    public int delete(UUID id) {
+        final Job jobToDelete = getJobById(id);
+        jobToDelete.delete();
+        save(jobToDelete);
+        return 1;
     }
 
     @Override

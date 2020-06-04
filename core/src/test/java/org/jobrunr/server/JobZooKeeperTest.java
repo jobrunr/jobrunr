@@ -1,13 +1,18 @@
 package org.jobrunr.server;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,12 +23,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
@@ -39,6 +42,7 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,12 +61,14 @@ class JobZooKeeperTest {
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
     private BackgroundJobTestFilter logAllStateChangesFilter;
+    private ListAppender<ILoggingEvent> logger;
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
         backgroundJobServerStatus = new BackgroundJobServerStatus(15, 10);
         jobZooKeeper = initializeJobZooKeeper();
+        logger = LoggerAssert.initFor(jobZooKeeper);
     }
 
     @Test
@@ -131,7 +137,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void checkForEnqueuedJobsIfLessJobsThanWorkerPoolSizeTheyAreSubmittedNonBlocking() {
+    void checkForEnqueuedJobsIfJobsPresentSubmitsThemToTheBackgroundJobServer() {
         final Job enqueuedJob = anEnqueuedJob().build();
         final List<Job> jobs = List.of(enqueuedJob);
 
@@ -141,21 +147,6 @@ class JobZooKeeperTest {
         jobZooKeeper.run();
 
         verify(backgroundJobServer).processJob(enqueuedJob);
-    }
-
-    @Test
-    void checkForEnqueuedJobsIfMoreJobsThanWorkerPoolSizeTheyAreSubmittedBlockingAsItResultsInLessConcurrentJobModifications() {
-//        final List<Job> enqueuedJobs = IntStream.range(0, 11)
-//                .mapToObj(x -> anEnqueuedJob().build())
-//                .collect(toList());
-//
-//        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-//        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(enqueuedJobs);
-//
-//        jobZooKeeper.run();
-//
-//        verify(backgroundJobServer).processJobs(enqueuedJobs);
-        throw new UnsupportedOperationException();
     }
 
     @Test
@@ -220,6 +211,24 @@ class JobZooKeeperTest {
         job.startProcessingOn(backgroundJobServer);
         jobZooKeeper.startProcessing(job);
         jobZooKeeper.run();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
+    @Disabled
+    void jobsThatAreBeingProcessedButHasBeenDeletedViaDashboardWillStopProcess() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+        doThrow(new ConcurrentJobModificationException(job.getId())).when(storageProvider).save(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job);
+        jobZooKeeper.run();
+
+        assertThat(logger).hasNoWarnLogMessages();
 
         verify(storageProvider).save(singletonList(job));
         ProcessingState processingState = job.getJobState();

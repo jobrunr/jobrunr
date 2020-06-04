@@ -35,6 +35,8 @@ public interface StorageProvider extends AutoCloseable {
 
     int delete(UUID id);
 
+    int deletePermanently(UUID id);
+
     Job getJobById(UUID id);
 
     List<Job> save(List<Job> jobs);
@@ -66,4 +68,5 @@ public interface StorageProvider extends AutoCloseable {
     default Job getJobById(JobId jobId) {
         return getJobById(jobId.asUUID());
     }
+
 }

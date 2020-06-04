@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilters;
@@ -7,6 +8,7 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -24,6 +27,7 @@ import java.util.function.Supplier;
 import static java.lang.Boolean.TRUE;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
@@ -36,6 +40,7 @@ public class JobZooKeeper implements Runnable {
     private final JobFilters jobFilters;
     private final WorkDistributionStrategy workDistributionStrategy;
     private final List<Job> currentlyProcessedJobs;
+    private final AtomicInteger exceptionCount;
     private volatile Boolean isMaster;
     private final ReentrantLock reentrantLock;
 
@@ -46,27 +51,40 @@ public class JobZooKeeper implements Runnable {
         this.workDistributionStrategy = new BasicWorkDistributionStrategy(backgroundJobServer, this);
         this.currentlyProcessedJobs = new CopyOnWriteArrayList<>();
         this.reentrantLock = new ReentrantLock();
+        this.exceptionCount = new AtomicInteger();
     }
 
     @Override
     public void run() {
-        if (isNotInitialized()) return;
+        try {
+            if (isNotInitialized()) return;
 
-        if (canOnboardNewWork()) {
-            if (TRUE.equals(isMaster)) {
-                checkForRecurringJobs();
-                checkForScheduledJobs();
-                checkForOrphanedJobs();
-                checkForSucceededJobsThanCanGoToDeletedState();
-                checkForJobsThatCanBeDeleted();
+            if (canOnboardNewWork()) {
+                if (TRUE.equals(isMaster)) {
+                    checkForRecurringJobs();
+                    checkForScheduledJobs();
+                    checkForOrphanedJobs();
+                    checkForSucceededJobsThanCanGoToDeletedState();
+                    checkForJobsThatCanBeDeleted();
+                }
+
+                updateJobsThatAreBeingProcessed();
+                checkForEnqueuedJobs();
+            } else {
+                updateJobsThatAreBeingProcessed();
             }
-
-            updateJobsThatAreBeingProcessed();
-            checkForEnqueuedJobs();
-        } else {
-            updateJobsThatAreBeingProcessed();
+        } catch (Exception e) {
+            if (exceptionCount.getAndIncrement() < 5) {
+                LOGGER.warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);
+            } else {
+                LOGGER.error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
+                backgroundJobServer.stop();
+            }
         }
+    }
 
+    public void stop() {
+        this.isMaster = false;
     }
 
     public void setIsMaster(boolean isMaster) {
@@ -110,7 +128,7 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void checkForSucceededJobsThanCanGoToDeletedState() {
-        LOGGER.debug("Looking for succeeded jobs that can be deleted... ");
+        LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
         final Instant updatedBefore = now().minus(36, ChronoUnit.HOURS);
@@ -126,12 +144,12 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void checkForJobsThatCanBeDeleted() {
-        LOGGER.debug("Looking for succeeded jobs that can be deleted... ");
+        LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
         storageProvider.deleteJobs(StateName.DELETED, now().minus(72, ChronoUnit.HOURS));
     }
 
     private void updateJobsThatAreBeingProcessed() {
-        LOGGER.warn("Updating currently processed jobs... ");
+        LOGGER.debug("Updating currently processed jobs... ");
         processJobList(currentlyProcessedJobs, Job::updateProcessing);
     }
 
@@ -181,6 +199,23 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
+    private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer, Optional<ExceptionHandler> exceptionHandler) {
+        if (!jobs.isEmpty()) {
+            try {
+                jobs.forEach(jobConsumer);
+                jobFilters.runOnStateElectionFilter(jobs);
+                storageProvider.save(jobs);
+                jobFilters.runOnStateAppliedFilters(jobs);
+            } catch (ConcurrentJobModificationException e) {
+                if (exceptionHandler.isPresent()) {
+                    exceptionHandler.get().handle(e, jobs);
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
     private BackgroundJobServerStatus backgroundJobServerStatus() {
         return backgroundJobServer.getServerStatus();
     }
@@ -192,10 +227,15 @@ public class JobZooKeeper implements Runnable {
 
     public void stopProcessing(Job job) {
         currentlyProcessedJobs.remove(job);
-        if(workDistributionStrategy.canOnboardNewWork()) notifyQueueEmpty();
+        if (workDistributionStrategy.canOnboardNewWork()) notifyQueueEmpty();
     }
 
     public int getWorkQueueSize() {
         return currentlyProcessedJobs.size();
+    }
+
+    private interface ExceptionHandler {
+
+        void handle(ConcurrentJobModificationException e, List<Job> jobs);
     }
 }

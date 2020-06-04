@@ -6,7 +6,7 @@ public class DefaultBackgroundJobServerWorkerPolicy implements BackgroundJobServ
 
     public DefaultBackgroundJobServerWorkerPolicy() {
         // see https://jobs.zalando.com/en/tech/blog/how-to-set-an-ideal-thread-pool-size
-        workerCount = (Runtime.getRuntime().availableProcessors() * 8) - 2;
+        workerCount = (Runtime.getRuntime().availableProcessors() * 8);
     }
 
     @Override

@@ -1,5 +1,8 @@
 package org.jobrunr;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import net.javacrumbs.jsonunit.assertj.JsonAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
@@ -31,6 +34,10 @@ public class JobRunrAssertions extends Assertions {
         return JsonAssertions.assertThatJson(json);
     }
 
+    public static LoggerAssert assertThat(ListAppender<ILoggingEvent> listAppender) {
+        return LoggerAssert.assertThat(listAppender);
+    }
+
     public static String contentOfResource(String resourceName) {
         try {
             return Files.readString(Paths.get(JobRunrAssertions.class.getResource(resourceName).toURI()));
@@ -38,4 +45,5 @@ public class JobRunrAssertions extends Assertions {
             throw new AssertionError(e);
         }
     }
+
 }

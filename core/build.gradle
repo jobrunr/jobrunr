@@ -14,6 +14,11 @@ sourceSets {
     }
 }
 
+compileTestFixturesJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 task myJavadocs(type: Javadoc) {
     source = sourceSets.main.allJava
     classpath = project.sourceSets.main.compileClasspath
@@ -73,6 +78,8 @@ dependencies {
 
     testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
+    testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
+    testFixturesApi 'ch.qos.logback:logback-classic'
 }
 
 java {

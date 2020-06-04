@@ -116,7 +116,7 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int delete(UUID id) {
+    public int deletePermanently(UUID id) {
         int amountDeleted = jobQueue.remove(id) != null ? 1 : 0;
         if (amountDeleted > 0) notifyOnChangeListeners();
         return amountDeleted;
