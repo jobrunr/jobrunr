@@ -2,8 +2,8 @@ package org.jobrunr.server.jmx;
 
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.JobStorageChangeListener;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.listeners.JobStatsChangeListener;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -12,7 +12,7 @@ import javax.management.StandardMBean;
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
 
-public class JobRunrJMXExtensions implements JobStorageChangeListener, JobStatsMBean {
+public class JobRunrJMXExtensions implements JobStatsChangeListener, JobStatsMBean {
 
     private JobStats jobStats;
 

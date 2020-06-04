@@ -1,5 +1,6 @@
 package org.jobrunr.utils.streams;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collector;
@@ -23,7 +24,7 @@ public final class StreamUtils {
         return new BatchCollector<>(batchSize, batchProcessor);
     }
 
-    public static <X, Y> Stream<Y> ofType(List<X> items, Class<Y> clazz) {
+    public static <X, Y> Stream<Y> ofType(Collection<X> items, Class<Y> clazz) {
         return ofType(items.stream(), clazz);
     }
 

@@ -110,6 +110,7 @@ import java.util.Map;
  * }</pre>
  */
 public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterFactory {
+    public static final String TYPE_FIELD_NAME = "@class";
     private final Class<?> baseType;
     private final String typeFieldName;
     private final Map<String, Class<?>> labelToSubtype = new LinkedHashMap<>();
@@ -136,7 +137,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
      * the type field name.
      */
     public static <T> RuntimeClassNameTypeAdapterFactory<T> of(Class<T> baseType) {
-        return new RuntimeClassNameTypeAdapterFactory<>(baseType, "@class");
+        return new RuntimeClassNameTypeAdapterFactory<>(baseType, TYPE_FIELD_NAME);
     }
 
     /**

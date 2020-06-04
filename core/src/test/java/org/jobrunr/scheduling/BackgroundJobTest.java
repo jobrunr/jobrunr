@@ -3,7 +3,6 @@ package org.jobrunr.scheduling;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
-import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.PageRequest;
@@ -29,15 +28,12 @@ import java.util.stream.Stream;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -233,31 +229,6 @@ public class BackgroundJobTest {
         BackgroundJob.deleteRecurringly(jobId);
         await().atMost(61, SECONDS).until(() -> jobStorageProvider.countJobs(ENQUEUED) == 0 && jobStorageProvider.countJobs(SUCCEEDED) == 0);
         assertThat(jobStorageProvider.getRecurringJobs()).isEmpty();
-    }
-
-    @Test
-    void testStopBackgroundJobServerWhileProcessing() {
-        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(15));
-        await().atMost(6, SECONDS).until(() -> jobStorageProvider.getJobById(jobId).hasState(PROCESSING));
-        backgroundJobServer.stop();
-        await().atMost(5, SECONDS).until(() -> jobStorageProvider.getJobById(jobId).hasState(FAILED) || jobStorageProvider.getJobById(jobId).hasState(SCHEDULED));
-        backgroundJobServer.start();
-        await().atMost(21, SECONDS).until(() -> jobStorageProvider.getJobById(jobId).hasState(SUCCEEDED));
-    }
-
-    @Test
-    void testBackgroundJobServerWasKilledWhileProcessing() {
-        final Job jobThatWasProcessedButBackgroundJobServerWasKilled = jobStorageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId()), now().minus(2, ChronoUnit.MINUTES)).build());
-        await().atMost(7, SECONDS).untilAsserted(() -> assertThat(jobStorageProvider.getJobById(jobThatWasProcessedButBackgroundJobServerWasKilled.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
-        await().atMost(7, SECONDS).until(() -> jobStorageProvider.getJobById(jobThatWasProcessedButBackgroundJobServerWasKilled.getId()).hasState(SUCCEEDED));
-    }
-
-    @Test
-    void testHearbeatsAreSentForJobsInProcessingState() {
-        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(16));
-        await().pollInterval(150, MILLISECONDS).pollDelay(3, SECONDS).atMost(7, SECONDS).untilAsserted(() -> assertThat(jobStorageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
-        await().pollInterval(150, MILLISECONDS).pollDelay(3, SECONDS).atMost(7, SECONDS).untilAsserted(() -> assertThat(jobStorageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
-        await().pollInterval(150, MILLISECONDS).pollDelay(3, SECONDS).atMost(7, SECONDS).untilAsserted(() -> assertThat(jobStorageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
     }
 
     private Stream<UUID> getWorkStream() {

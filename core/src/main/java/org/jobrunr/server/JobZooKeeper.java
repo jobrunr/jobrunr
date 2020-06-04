@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -36,13 +37,15 @@ public class JobZooKeeper implements Runnable {
     private final WorkDistributionStrategy workDistributionStrategy;
     private final List<Job> currentlyProcessedJobs;
     private volatile Boolean isMaster;
+    private final ReentrantLock reentrantLock;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.jobFilters = backgroundJobServer.getJobFilters();
-        this.workDistributionStrategy = new BasicWorkDistributionStrategy(backgroundJobServer);
+        this.workDistributionStrategy = new BasicWorkDistributionStrategy(backgroundJobServer, this);
         this.currentlyProcessedJobs = new CopyOnWriteArrayList<>();
+        this.reentrantLock = new ReentrantLock();
     }
 
     @Override
@@ -60,7 +63,10 @@ public class JobZooKeeper implements Runnable {
 
             updateJobsThatAreBeingProcessed();
             checkForEnqueuedJobs();
+        } else {
+            updateJobsThatAreBeingProcessed();
         }
+
     }
 
     public void setIsMaster(boolean isMaster) {
@@ -125,20 +131,22 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void updateJobsThatAreBeingProcessed() {
-        LOGGER.debug("Updating currently processed jobs... ");
+        LOGGER.warn("Updating currently processed jobs... ");
         processJobList(currentlyProcessedJobs, Job::updateProcessing);
     }
 
     private void checkForEnqueuedJobs() {
-        LOGGER.debug("Looking for enqueued jobs... ");
-        final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
-        if (workPageRequest.getLimit() > 0) {
-            final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest);
-            if (enqueuedJobs.size() < workPageRequest.getLimit()) {
-                enqueuedJobs.forEach(backgroundJobServer::processJob);
-            } else {
-                backgroundJobServer.processJobs(enqueuedJobs);
+        try {
+            if (reentrantLock.tryLock()) {
+                LOGGER.warn("Looking for enqueued jobs... ");
+                final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
+                if (workPageRequest.getLimit() > 0) {
+                    final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest);
+                    enqueuedJobs.forEach(backgroundJobServer::processJob);
+                }
             }
+        } finally {
+            reentrantLock.unlock();
         }
     }
 
@@ -179,9 +187,15 @@ public class JobZooKeeper implements Runnable {
 
     public void startProcessing(Job job) {
         currentlyProcessedJobs.add(job);
+        LOGGER.info("Size workQueueSize: " + currentlyProcessedJobs.size());
     }
 
     public void stopProcessing(Job job) {
         currentlyProcessedJobs.remove(job);
+        if(workDistributionStrategy.canOnboardNewWork()) notifyQueueEmpty();
+    }
+
+    public int getWorkQueueSize() {
+        return currentlyProcessedJobs.size();
     }
 }

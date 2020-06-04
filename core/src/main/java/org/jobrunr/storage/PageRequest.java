@@ -39,4 +39,13 @@ public class PageRequest {
     public Order getOrder() {
         return order;
     }
+
+    @Override
+    public String toString() {
+        return "PageRequest{" +
+                "order=" + order +
+                ", offset=" + offset +
+                ", limit=" + limit +
+                '}';
+    }
 }

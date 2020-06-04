@@ -6,6 +6,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.JobId;
+import org.jobrunr.storage.listeners.JobStorageChangeListener;
 
 import java.time.Instant;
 import java.util.List;

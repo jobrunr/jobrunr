@@ -3,6 +3,7 @@ package org.jobrunr.utils.resilience;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static java.time.Duration.ofMinutes;
 import static java.time.Duration.ofSeconds;
@@ -13,10 +14,12 @@ public class RateLimiter {
     public static final Duration SECOND = ofSeconds(1);
     public static final Duration MINUTE = ofMinutes(1);
 
-    private Duration perDuration;
+    private final ReentrantLock lock;
+    private final Duration perDuration;
     private volatile Instant lastAllowed;
 
     private RateLimiter(Duration perDuration, Instant lastAllowed) {
+        this.lock = new ReentrantLock();
         this.perDuration = perDuration;
         this.lastAllowed = lastAllowed;
     }
@@ -26,11 +29,19 @@ public class RateLimiter {
     }
 
     public boolean isAllowed() {
-        if (lastAllowed.plus(perDuration).isBefore(now())) {
-            lastAllowed = now();
-            return true;
+        if (lock.tryLock()) {
+            try {
+                if (lastAllowed.plus(perDuration).isBefore(now())) {
+                    lastAllowed = now();
+                    return true;
+                }
+                return false;
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            return false;
         }
-        return false;
     }
 
     public static class Builder {

@@ -1,12 +1,16 @@
 package org.jobrunr.dashboard;
 
+import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.sse.ServerSentEventHandler;
-import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.JobStorageChangeListener;
+import org.jobrunr.dashboard.server.sse.SseExchange;
+import org.jobrunr.dashboard.sse.JobSseExchange;
+import org.jobrunr.dashboard.sse.JobStatsSseExchange;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
-public class JobRunrSseHandler extends ServerSentEventHandler implements JobStorageChangeListener {
+import java.io.IOException;
+
+public class JobRunrSseHandler extends ServerSentEventHandler {
 
     private final StorageProvider storageProvider;
     private final JsonMapper jsonMapper;
@@ -22,21 +26,15 @@ public class JobRunrSseHandler extends ServerSentEventHandler implements JobStor
     }
 
     @Override
-    protected void subscribersChanged(int amount) {
-        if (amount > 0) {
-            storageProvider.addJobStorageOnChangeListener(this);
-        } else {
-            storageProvider.removeJobStorageOnChangeListener(this);
+    protected SseExchange createSseExchange(HttpExchange httpExchange) throws IOException {
+        final String requestUri = httpExchange.getRequestURI().toString();
+        if (requestUri.startsWith("/sse/jobstats")) {
+            return new JobStatsSseExchange(httpExchange, storageProvider, jsonMapper);
+        } else if (requestUri.startsWith("/sse/jobs/")) {
+            return new JobSseExchange(httpExchange, jsonMapper, storageProvider);
         }
+        throw new IllegalStateException("Unsupported httpExchange");
     }
 
-    @Override
-    public void onChange(JobStats jobStats) {
-        emitObject(jobStats);
-    }
 
-    public void emitObject(Object object) {
-        if (jsonMapper == null) throw new IllegalStateException("You are trying to serialize an object but have not set a JsonMapper");
-        emitMessage(jsonMapper.serialize(object));
-    }
 }

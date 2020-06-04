@@ -59,10 +59,19 @@ const Job = (props) => {
     const [order, setOrder] = React.useState(true);
 
     React.useEffect(() => {
+        let eventSource;
         if (props.location.job) {
             onJob(props.location.job);
+            eventSource = new EventSource("http://localhost:8000/sse/jobs/" + props.location.job.id);
         } else {
             getJob(props.match.params.id);
+            eventSource = new EventSource("http://localhost:8000/sse/jobs/" + props.match.params.id)
+        }
+
+        eventSource.addEventListener('message', e => {console.log(JSON.parse(e.data)); onJob(JSON.parse(e.data))});
+        eventSource.addEventListener('close', e => eventSource.close());
+        return function cleanUp() {
+            eventSource.close();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.location.job, props.match.params.id]);

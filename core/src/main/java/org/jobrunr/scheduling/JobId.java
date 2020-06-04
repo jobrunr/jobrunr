@@ -24,11 +24,18 @@ public class JobId {
 
     @Override
     public boolean equals(Object obj) {
-        return uuid.equals(obj);
+        if (obj instanceof JobId) {
+            return uuid.equals(((JobId) obj).uuid);
+        }
+        return false;
     }
 
     @Override
     public String toString() {
         return uuid.toString();
+    }
+
+    public static JobId parse(String uuidAsString) {
+        return new JobId(UUID.fromString(uuidAsString));
     }
 }

@@ -15,7 +15,7 @@ public class TeenyWebServer {
     public TeenyWebServer(int port) {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-            executorService = Executors.newFixedThreadPool(10);
+            executorService = Executors.newFixedThreadPool(100);
             httpServer.setExecutor(executorService);
         } catch (IOException e) {
             throw new RuntimeException(e);

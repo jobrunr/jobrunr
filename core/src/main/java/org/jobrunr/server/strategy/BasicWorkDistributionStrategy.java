@@ -1,6 +1,7 @@
 package org.jobrunr.server.strategy;
 
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.PageRequest;
 import org.slf4j.Logger;
@@ -10,28 +11,29 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicWorkDistributionStrategy.class);
 
-    private final BackgroundJobServer backgroundJobServer;
     private final BackgroundJobServerStatus backgroundJobServerStatus;
+    private final JobZooKeeper jobZooKeeper;
 
-    public BasicWorkDistributionStrategy(BackgroundJobServer backgroundJobServer) {
-        this.backgroundJobServer = backgroundJobServer;
+    public BasicWorkDistributionStrategy(BackgroundJobServer backgroundJobServer, JobZooKeeper jobZooKeeper) {
         this.backgroundJobServerStatus = backgroundJobServer.getServerStatus();
+        this.jobZooKeeper = jobZooKeeper;
     }
 
     @Override
     public boolean canOnboardNewWork() {
-        final int workQueueSize = backgroundJobServer.getWorkQueueSize();
-        final int workQueueSizeBuffer = backgroundJobServerStatus.getWorkerPoolSize();
-        return workQueueSize < workQueueSizeBuffer;
+        final double workQueueSize = jobZooKeeper.getWorkQueueSize();
+        final double workerPoolSize = backgroundJobServerStatus.getWorkerPoolSize();
+        return (workQueueSize / workerPoolSize) < 0.7;
     }
 
     @Override
     public PageRequest getWorkPageRequest() {
-        final int workQueueSize = backgroundJobServer.getWorkQueueSize();
+        final int workQueueSize = jobZooKeeper.getWorkQueueSize();
         final int workerPoolSize = backgroundJobServerStatus.getWorkerPoolSize();
 
         final long offset = 0;
         final int limit = workerPoolSize - workQueueSize;
+        LOGGER.info("Can onboard " + limit + " new work");
         return PageRequest.asc(offset, limit);
     }
 }

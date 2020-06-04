@@ -61,13 +61,8 @@ class JobZooKeeperTest {
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
-
         backgroundJobServerStatus = new BackgroundJobServerStatus(15, 10);
-        when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
-        when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
-        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
-        jobZooKeeper = new JobZooKeeper(backgroundJobServer);
-        jobZooKeeper.setIsMaster(true);
+        jobZooKeeper = initializeJobZooKeeper();
     }
 
     @Test
@@ -150,16 +145,17 @@ class JobZooKeeperTest {
 
     @Test
     void checkForEnqueuedJobsIfMoreJobsThanWorkerPoolSizeTheyAreSubmittedBlockingAsItResultsInLessConcurrentJobModifications() {
-        final List<Job> enqueuedJobs = IntStream.range(0, 11)
-                .mapToObj(x -> anEnqueuedJob().build())
-                .collect(toList());
-
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(enqueuedJobs);
-
-        jobZooKeeper.run();
-
-        verify(backgroundJobServer).processJobs(enqueuedJobs);
+//        final List<Job> enqueuedJobs = IntStream.range(0, 11)
+//                .mapToObj(x -> anEnqueuedJob().build())
+//                .collect(toList());
+//
+//        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
+//        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(enqueuedJobs);
+//
+//        jobZooKeeper.run();
+//
+//        verify(backgroundJobServer).processJobs(enqueuedJobs);
+        throw new UnsupportedOperationException();
     }
 
     @Test
@@ -175,20 +171,18 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
-        Job job = aScheduledJob().build();
-
-        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
+    void checkForOrphanedJobs() {
+        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
+        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
-                        singletonList(job),
+                        singletonList(orphanedJob),
                         emptyList()
                 );
 
         jobZooKeeper.run();
 
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
-        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
-        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
     }
 
     @Test
@@ -210,21 +204,6 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void checkForOrphanedJobs() {
-        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
-        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
-                .thenReturn(
-                        singletonList(orphanedJob),
-                        emptyList()
-                );
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
-    }
-
-    @Test
     void checkForJobsThatCanBeDeleted() {
         when(storageProvider.deleteJobs(eq(DELETED), any())).thenReturn(5);
 
@@ -233,4 +212,60 @@ class JobZooKeeperTest {
         verify(storageProvider).deleteJobs(eq(DELETED), any());
     }
 
+    @Test
+    void jobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job);
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
+    void evenWhenNoWorkCanBeOnboardedJobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
+        backgroundJobServerStatus = new BackgroundJobServerStatus(15, 0);
+        jobZooKeeper = initializeJobZooKeeper();
+
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job);
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
+    void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
+        Job job = aScheduledJob().build();
+
+        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
+                .thenReturn(
+                        singletonList(job),
+                        emptyList()
+                );
+
+        jobZooKeeper.run();
+
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
+        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
+        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+    }
+
+    private JobZooKeeper initializeJobZooKeeper() {
+        when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
+        when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
+        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
+        final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer);
+        jobZooKeeper.setIsMaster(true);
+        return jobZooKeeper;
+    }
 }

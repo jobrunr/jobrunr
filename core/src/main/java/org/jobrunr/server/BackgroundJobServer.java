@@ -124,10 +124,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return serverStatus.getId();
     }
 
-    public int getWorkQueueSize() {
-        return workThreadPool.getQueue().size();
-    }
-
     public StorageProvider getStorageProvider() {
         return storageProvider;
     }
@@ -140,21 +136,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     void processJob(Job job) {
+        if(!workThreadPool.getQueue().isEmpty()) {
+            LOGGER.error("Will have trouble with optimistic locking: queue size {}, actual size {}, active threads {}", workThreadPool.getQueue().size(), workThreadPool.getCorePoolSize(), workThreadPool.getActiveCount());
+        }
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(this, job);
         workThreadPool.submit(backgroundJobPerformer);
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
-    }
-
-    void processJobs(List<Job> jobs) {
-        final List<BackgroundJobPerformer> work = jobs.stream()
-                .map(job -> new BackgroundJobPerformer(this, job))
-                .collect(Collectors.toList());
-        try {
-            workThreadPool.invokeAll(work);
-            jobZooKeeper.notifyQueueEmpty();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     void scheduleJob(RecurringJob recurringJob) {
@@ -186,6 +173,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void startWorkers() {
         workThreadPool = new ScheduledThreadPool(serverStatus.getWorkerPoolSize(), "backgroundjob-worker-pool");
+        workThreadPool.prestartAllCoreThreads();
     }
 
     private void stopZooKeepers() {

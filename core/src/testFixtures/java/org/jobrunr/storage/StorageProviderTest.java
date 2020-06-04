@@ -10,6 +10,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.ServerZooKeeper;
+import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.streams.StreamUtils;
@@ -397,7 +398,7 @@ public abstract class StorageProviderTest {
         assertThat(atomicInteger).hasValue(amount);
     }
 
-    private static class SimpleJobStorageOnChangeListener implements JobStorageChangeListener {
+    private static class SimpleJobStorageOnChangeListener implements JobStatsChangeListener {
 
         private List<JobStats> changes = new ArrayList<>();
 
