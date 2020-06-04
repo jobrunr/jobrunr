@@ -13,6 +13,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Comparator.comparing;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -26,13 +27,14 @@ public class ServerZooKeeper implements Runnable {
     private final StorageProvider storageProvider;
     private final Duration timeoutDuration;
     private boolean isAnnounced;
-    private int restartAttempts = 0;
+    private final AtomicInteger restartAttempts;
 
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.backgroundJobServerStatus = getBackgroundJobServerStatusWriteModel(backgroundJobServer);
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.timeoutDuration = Duration.ofSeconds(backgroundJobServerStatus.getPollIntervalInSeconds()).multipliedBy(4);
+        this.restartAttempts = new AtomicInteger();
     }
 
     @Override
@@ -47,6 +49,10 @@ public class ServerZooKeeper implements Runnable {
             LOGGER.error("An unrecoverable error occurred. Shutting server down...", shouldNotHappen);
             new Thread(this::stopServer).start();
         }
+    }
+
+    public void stop() {
+        isAnnounced = false;
     }
 
     protected BackgroundJobServerStatusWriteModel getBackgroundJobServerStatusWriteModel(BackgroundJobServer backgroundJobServer) {
@@ -77,7 +83,7 @@ public class ServerZooKeeper implements Runnable {
             }
             // TODO: stop server if requested?
         } catch (ServerTimedOutException e) {
-            if (restartAttempts++ < 3) {
+            if (restartAttempts.incrementAndGet() < 3) {
                 LOGGER.error("SEVERE ERROR - Server timed out while it's still alive. Are all servers using NTP and in the same timezone? Restart attempt {} out of 3", restartAttempts);
                 new Thread(this::resetServer).start();
             } else {
@@ -101,15 +107,11 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private void resetServer() {
-        isAnnounced = false;
-        jobZooKeeper().setIsMaster(false);
         backgroundJobServer.stop();
         backgroundJobServer.start();
     }
 
     private void stopServer() {
-        jobZooKeeper().setIsMaster(false);
-        isAnnounced = false;
         backgroundJobServer.stop();
     }
 

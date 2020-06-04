@@ -189,6 +189,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void stopZooKeepers() {
+        jobZooKeeper.stop();
+        serverZooKeeper.stop();
         stop(zookeeperThreadPool);
         this.zookeeperThreadPool = null;
     }

@@ -1,10 +1,13 @@
 package org.jobrunr.server;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +42,7 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,6 +61,7 @@ class JobZooKeeperTest {
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
     private BackgroundJobTestFilter logAllStateChangesFilter;
+    private ListAppender logger;
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
@@ -68,6 +73,7 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
         jobZooKeeper = new JobZooKeeper(backgroundJobServer);
         jobZooKeeper.setIsMaster(true);
+        logger = LoggerAssert.initFor(jobZooKeeper);
     }
 
     @Test
@@ -136,6 +142,79 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void checkForSucceededJobsThanCanGoToDeletedState() {
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
+                .thenReturn(
+                        asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
+                        emptyList()
+                );
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(Mockito.any(List.class));
+        verify(storageProvider).publishJobStatCounter(SUCCEEDED, 5);
+
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
+        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
+        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+    }
+
+    @Test
+    void checkForOrphanedJobs() {
+        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
+        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
+                .thenReturn(
+                        singletonList(orphanedJob),
+                        emptyList()
+                );
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
+    }
+
+    @Test
+    void checkForJobsThatCanBeDeleted() {
+        when(storageProvider.deleteJobs(eq(DELETED), any())).thenReturn(5);
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).deleteJobs(eq(DELETED), any());
+    }
+
+    @Test
+    void jobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job);
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
+    void jobsThatAreBeingProcessedButHasBeenDeletedViaDashboardWillStopProcess() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+        doThrow(new ConcurrentJobModificationException(job.getId())).when(storageProvider).save(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job);
+        jobZooKeeper.run();
+
+        assertThat(logger).hasNoWarnLogMessages();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
     void checkForEnqueuedJobsIfLessJobsThanWorkerPoolSizeTheyAreSubmittedNonBlocking() {
         final Job enqueuedJob = anEnqueuedJob().build();
         final List<Job> jobs = List.of(enqueuedJob);
@@ -189,48 +268,6 @@ class JobZooKeeperTest {
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
         assertThat(logAllStateChangesFilter.processingPassed).isFalse();
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
-    }
-
-    @Test
-    void checkForSucceededJobsThanCanGoToDeletedState() {
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
-                .thenReturn(
-                        asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
-                        emptyList()
-                );
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(Mockito.any(List.class));
-        verify(storageProvider).publishJobStatCounter(SUCCEEDED, 5);
-
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
-        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
-        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
-    }
-
-    @Test
-    void checkForOrphanedJobs() {
-        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
-        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
-                .thenReturn(
-                        singletonList(orphanedJob),
-                        emptyList()
-                );
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
-    }
-
-    @Test
-    void checkForJobsThatCanBeDeleted() {
-        when(storageProvider.deleteJobs(eq(DELETED), any())).thenReturn(5);
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).deleteJobs(eq(DELETED), any());
     }
 
 }
