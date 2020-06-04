@@ -55,7 +55,6 @@ import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Sorts.orderBy;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -129,7 +128,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
             throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
         }
         final Document document = this.backgroundJobServerCollection.find(eq(toMongoId(Jobs.FIELD_ID), serverStatus.getId())).projection(include(BackgroundJobServers.FIELD_IS_RUNNING)).first();
-        return document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING);
+        return document != null && document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING);
     }
 
     @Override
@@ -159,7 +158,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int delete(UUID id) {
+    public int deletePermanently(UUID id) {
         final DeleteResult result = jobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
         final int deletedCount = (int) result.getDeletedCount();
         notifyOnChangeListenersIf(deletedCount > 0);
@@ -286,7 +285,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     @Override
     public JobStats getJobStats() {
         final Document jobStats = jobStatsCollection.find(eq(toMongoId(Jobs.FIELD_ID), StorageProviderConstants.JobStats.FIELD_STATS)).first();
-        final List<Document> aggregates = jobCollection.aggregate(asList(facet(new Facet(Jobs.FIELD_STATE, sortByCount("$state"), limit(7))))).first().get(Jobs.FIELD_STATE, List.class);
+        final List<Document> aggregates = jobCollection.aggregate(singletonList(facet(new Facet(Jobs.FIELD_STATE, sortByCount("$state"), limit(7))))).first().get(Jobs.FIELD_STATE, List.class);
 
         Long awaiting = getCount(AWAITING, jobStats, aggregates);
         Long scheduled = getCount(SCHEDULED, jobStats, aggregates);

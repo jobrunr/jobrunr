@@ -1,11 +1,13 @@
 package org.jobrunr.storage;
 
+import org.jobrunr.jobs.Job;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 public abstract class AbstractStorageProvider implements StorageProvider, AutoCloseable {
 
@@ -15,6 +17,14 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
+    }
+
+    @Override
+    public int delete(UUID id) {
+        final Job jobToDelete = getJobById(id);
+        jobToDelete.delete();
+        save(jobToDelete);
+        return 1;
     }
 
     @Override
@@ -40,7 +50,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (timer != null) {
             timer.cancel();
             timer = null;

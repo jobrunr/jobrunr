@@ -6,7 +6,6 @@ import org.assertj.core.data.TemporalOffset;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.StateName;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.List;
@@ -51,7 +50,6 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     public JobAssert isEqualTo(Job otherJob) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
-                .ignoringFieldsOfTypes(Path.class)
                 .isEqualTo(otherJob);
         return this;
     }

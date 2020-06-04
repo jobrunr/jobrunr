@@ -29,10 +29,10 @@ import java.util.stream.IntStream;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
+import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatCode;
+import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
@@ -41,6 +41,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -132,16 +133,21 @@ public abstract class StorageProviderTest {
         Job job = anEnqueuedJob().build();
         Job createdJob = storageProvider.save(job);
         Job fetchedJob = storageProvider.getJobById(createdJob.getId());
-        assertThat(fetchedJob).usingRecursiveComparison().isEqualTo(createdJob);
+        assertThat(fetchedJob).isEqualTo(createdJob);
 
         fetchedJob.startProcessingOn(backgroundJobServer);
         storageProvider.save(fetchedJob);
 
         Job fetchedUpdatedJob = storageProvider.getJobById(createdJob.getId());
-        assertThat(fetchedUpdatedJob).usingRecursiveComparison().isEqualTo(fetchedJob);
+        assertThat(fetchedUpdatedJob).isEqualTo(fetchedJob);
 
-        final int deletedJobs = storageProvider.delete(fetchedJob.getId());
+        final int deletedJobs = storageProvider.delete(createdJob.getId());
         assertThat(deletedJobs).isEqualTo(1);
+        Job fetchedDeletedJob = storageProvider.getJobById(createdJob.getId());
+        assertThat(fetchedDeletedJob).hasState(DELETED);
+
+        final int permanentlyDeletedJobs = storageProvider.deletePermanently(createdJob.getId());
+        assertThat(permanentlyDeletedJobs).isEqualTo(1);
         assertThatThrownBy(() -> storageProvider.getJobById(fetchedJob.getId())).isInstanceOf(JobNotFoundException.class);
     }
 
@@ -172,7 +178,7 @@ public abstract class StorageProviderTest {
         Job succeededJob = storageProvider.save(processingJob);
 
         Job fetchedJob = storageProvider.getJobById(createdJob.getId());
-        assertThat(fetchedJob).usingRecursiveComparison().isEqualTo(succeededJob);
+        assertThat(fetchedJob).isEqualTo(succeededJob);
     }
 
     @Test

@@ -170,7 +170,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int delete(UUID id) {
+    public int deletePermanently(UUID id) {
         Job job = getJobById(id);
         try (Jedis jedis = getJedis()) {
             Transaction transaction = jedis.multi();

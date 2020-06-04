@@ -109,7 +109,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public int delete(UUID id) {
+    public int deletePermanently(UUID id) {
         final int amountDeleted = jobTable().deleteById(id);
         notifyOnChangeListenersIf(amountDeleted > 0);
         return amountDeleted;

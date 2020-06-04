@@ -19,7 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -101,28 +101,33 @@ class DefaultSqlStorageProviderTest {
     void saveJobs() throws SQLException {
         when(preparedStatement.executeBatch()).thenReturn(new int[]{1});
 
-        assertThatCode(() -> jobStorageProvider.save(asList(anEnqueuedJob().build()))).doesNotThrowAnyException();
+        assertThatCode(() -> jobStorageProvider.save(singletonList(anEnqueuedJob().build()))).doesNotThrowAnyException();
     }
 
     @Test
     void saveJobs_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(preparedStatement).executeBatch();
 
-        assertThatThrownBy(() -> jobStorageProvider.save(asList(anEnqueuedJob().build()))).isInstanceOf(StorageException.class);
+        assertThatThrownBy(() -> jobStorageProvider.save(singletonList(anEnqueuedJob().build()))).isInstanceOf(StorageException.class);
     }
 
     @Test
     void saveJobs_NotAllJobsAreSavedThenThrowConcurrentJobModificationException() throws SQLException {
         when(preparedStatement.executeBatch()).thenReturn(new int[]{});
 
-        assertThatThrownBy(() -> jobStorageProvider.save(asList(anEnqueuedJob().build()))).isInstanceOf(ConcurrentJobModificationException.class);
+        assertThatThrownBy(() -> jobStorageProvider.save(singletonList(anEnqueuedJob().build()))).isInstanceOf(ConcurrentJobModificationException.class);
     }
 
     @Test
-    void delete_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
+    void delete_WhenJobNotFoundAJobNotFoundExceptionIsThrown() {
+        assertThatThrownBy(() -> jobStorageProvider.delete(randomUUID())).isInstanceOf(JobNotFoundException.class);
+    }
+
+    @Test
+    void deletePermanently_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(preparedStatement).executeUpdate();
 
-        assertThatThrownBy(() -> jobStorageProvider.delete(randomUUID())).isInstanceOf(StorageException.class);
+        assertThatThrownBy(() -> jobStorageProvider.deletePermanently(randomUUID())).isInstanceOf(StorageException.class);
     }
 
 }
