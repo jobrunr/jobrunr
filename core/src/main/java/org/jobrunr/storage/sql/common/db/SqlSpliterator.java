@@ -1,6 +1,8 @@
 package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.StorageException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -11,6 +13,8 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqlSpliterator.class);
 
     private final DataSource dataSource;
     private final String sqlStatement;
@@ -75,6 +79,9 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
             closeable.close();
         } catch (Exception e) {
             //nothing we can do here
+            if(closeable instanceof Connection) {
+                LOGGER.error("Could not close connection", e);
+            }
         }
     }
 
