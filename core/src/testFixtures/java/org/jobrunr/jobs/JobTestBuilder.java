@@ -29,6 +29,7 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 public class JobTestBuilder {
 
     private UUID id;
+    private Integer version;
     private String name;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
@@ -136,6 +137,11 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withVersion(int version) {
+        this.version = version;
+        return this;
+    }
+
     public JobTestBuilder withName(String name) {
         this.name = name;
         return this;
@@ -190,6 +196,9 @@ public class JobTestBuilder {
 
     public Job build() {
         Job job = new Job(jobDetails, states.remove(0));
+        if (version != null) {
+            Whitebox.setInternalState(job, "version", version);
+        }
         job.setId(id);
         job.setJobName(name);
         job.getMetadata().putAll(metadata);

@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -152,12 +153,16 @@ public class Sql<T> {
         try (final Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
+                int collectionSize = batchCollection.size();
                 for (T object : batchCollection) {
                     setParams(ps, object);
                     ps.addBatch();
                 }
-                if (ps.executeBatch().length != batchCollection.size()) {
-                    throw new ConcurrentJobModificationException("Could not insert or update all objects... ");
+                final int[] updates = ps.executeBatch();
+                if (updates.length != batchCollection.size()) {
+                    throw new ConcurrentJobModificationException("Could not insert or update all objects - different result size: originalCollectionSize=" + collectionSize + "; " + Arrays.toString(updates));
+                } else if (Arrays.stream(updates).anyMatch(i -> i < 0)) {
+                    throw new ConcurrentJobModificationException("Could not insert or update all objects - not all updates succeeded: " + Arrays.toString(updates));
                 }
             }
             conn.commit();

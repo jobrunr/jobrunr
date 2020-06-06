@@ -83,7 +83,7 @@ public class Job extends AbstractJob {
     }
 
     public Instant getCreatedAt() {
-        return jobHistory.get(0).getCreatedAt();
+        return getJobState(0).getCreatedAt();
     }
 
     public Instant getUpdatedAt() {
@@ -109,8 +109,8 @@ public class Job extends AbstractJob {
     }
 
     public void updateProcessing() {
-        ProcessingState processingState = getJobState();
-        processingState.setUpdatedAt(Instant.now());
+        ProcessingState jobState = getJobState();
+        jobState.setUpdatedAt(Instant.now());
     }
 
     public void succeeded() {

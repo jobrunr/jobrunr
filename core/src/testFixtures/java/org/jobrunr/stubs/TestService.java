@@ -124,6 +124,7 @@ public class TestService implements TestServiceInterface {
     public void doWorkThatTakesLong(int seconds) {
         try {
             TimeUnit.SECONDS.sleep(seconds);
+            System.out.println("WORK IS DONE!!!!!!!!");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

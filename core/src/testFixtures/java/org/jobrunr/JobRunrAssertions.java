@@ -11,6 +11,8 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobAssert;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobDetailsAssert;
+import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.RecurringJobAssert;
 
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
@@ -20,6 +22,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static JobAssert assertThat(Job job) {
         return JobAssert.assertThat(job);
+    }
+
+    public static RecurringJobAssert assertThat(RecurringJob recurringJob) {
+        return RecurringJobAssert.assertThat(recurringJob);
     }
 
     public static JobDetailsAssert assertThat(JobDetails jobDetails) {

@@ -19,8 +19,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -48,12 +48,14 @@ abstract class JobMapperTest {
 
     @Test
     void testSerializeAndDeserializeJob() {
-        Job job = anEnqueuedJob().build();
+        Job job = anEnqueuedJob()
+                .withVersion(2)
+                .build();
 
         String jobAsString = jobMapper.serializeJob(job);
         final Job actualJob = jobMapper.deserializeJob(jobAsString);
 
-        assertThat(actualJob).usingRecursiveComparison().isEqualTo(job);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     @Test
@@ -67,7 +69,7 @@ abstract class JobMapperTest {
         System.out.println(jobAsString);
         final Job actualJob = jobMapper.deserializeJob(jobAsString);
 
-        assertThat(actualJob).usingRecursiveComparison().isEqualTo(job);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     @Test
@@ -86,7 +88,7 @@ abstract class JobMapperTest {
         String jobAsString = jobMapper.serializeRecurringJob(recurringJob);
         final RecurringJob actualRecurringJob = jobMapper.deserializeRecurringJob(jobAsString);
 
-        assertThat(actualRecurringJob).usingRecursiveComparison().isEqualTo(recurringJob);
+        assertThat(actualRecurringJob).isEqualTo(recurringJob);
     }
 
     @Test
@@ -103,7 +105,7 @@ abstract class JobMapperTest {
         String jobAsJson = jobMapper.serializeJob(job);
         Job actualJob = jobMapper.deserializeJob(jobAsJson);
 
-        assertThat(actualJob).usingRecursiveComparison().isEqualTo(job);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     @Test
@@ -120,7 +122,7 @@ abstract class JobMapperTest {
         String jobAsJson = jobMapper.serializeJob(job);
         Job actualJob = jobMapper.deserializeJob(jobAsJson);
 
-        assertThat(actualJob).usingRecursiveComparison().isEqualTo(job);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     public static class TestMetadata implements JobContext.Metadata {

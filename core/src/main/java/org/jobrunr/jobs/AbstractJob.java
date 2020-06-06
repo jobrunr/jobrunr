@@ -4,6 +4,7 @@ import org.jobrunr.utils.JobUtils;
 
 public abstract class AbstractJob {
 
+    //private transient final Lock lock;
     private int version;
     private String jobSignature;
     private String jobName;
@@ -11,9 +12,11 @@ public abstract class AbstractJob {
 
     protected AbstractJob() {
         // used for deserialization
+        //this.lock = new Lock();
     }
 
     public AbstractJob(JobDetails jobDetails) {
+        this();
         this.jobSignature = JobUtils.getJobSignature(jobDetails);
         this.jobDetails = jobDetails;
     }
@@ -24,10 +27,12 @@ public abstract class AbstractJob {
 
     /**
      * Increases the version of this Job instance
+     * <p>
+     * This must be thread safe.
      *
      * @return the version before it was increased
      */
-    public int increaseVersion() {
+    public synchronized int increaseVersion() {
         return version++;
     }
 
@@ -46,4 +51,9 @@ public abstract class AbstractJob {
     public JobDetails getJobDetails() {
         return jobDetails;
     }
+
+//    @Override
+//    public Lock lock() {
+//        return lock.lock();
+//    }
 }

@@ -84,7 +84,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         serverStatus.start();
         startZooKeepers();
         startWorkers();
-        LOGGER.info("BackgroundJobServer and BackgroundJobPerformers started successfully");
+        LOGGER.info("BackgroundJobServer ({}) and BackgroundJobPerformers started successfully", getId());
     }
 
     public void pauseProcessing() {
@@ -135,9 +135,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     void processJob(Job job) {
-        if(!workThreadPool.getQueue().isEmpty()) {
-            LOGGER.error("Will have trouble with optimistic locking: queue size {}, actual size {}, active threads {}", workThreadPool.getQueue().size(), workThreadPool.getCorePoolSize(), workThreadPool.getActiveCount());
-        }
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(this, job);
         workThreadPool.submit(backgroundJobPerformer);
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());

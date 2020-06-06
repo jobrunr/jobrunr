@@ -12,7 +12,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobPerformer.class);
 
-    private static final AtomicInteger atomicInteger = new AtomicInteger();
+    private static final AtomicInteger concurrentModificationExceptionCounter = new AtomicInteger();
 
     public BackgroundJobPerformer(BackgroundJobServer backgroundJobServer, Job job) {
         super(backgroundJobServer, job);
@@ -22,7 +22,6 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
     public Job call() {
         boolean canProcess = updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart();
         if (canProcess) {
-            backgroundJobServer.getJobZooKeeper().startProcessing(job);
             try {
                 runActualJob();
                 updateJobStateToSucceededAndRunJobFilters();
@@ -32,7 +31,6 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
             } catch (Exception e) {
                 updateJobStateToFailedAndRunJobFilters("An exception occurred during the performance of the job", e);
             }
-            backgroundJobServer.getJobZooKeeper().stopProcessing(job);
         }
         return job;
     }
@@ -41,33 +39,45 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
         try {
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.debug("Job {} - {} - processing started", job.getId(), job.getJobName());
+            LOGGER.info("Job {} - {} - processing started", job.getId(), job.getJobName());
             return true;
         } catch (ConcurrentJobModificationException e) {
-            LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), atomicInteger.incrementAndGet(), e);
             // processing already started on other server
+            LOGGER.info("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet());
             return false;
         }
     }
 
     private void runActualJob() throws Exception {
-        LOGGER.trace("Job {} is running", job.getId());
-        jobFilters.runOnJobProcessingFilters(job);
-        BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
-        backgroundJobRunner.run(job);
-        jobFilters.runOnJobProcessedFilters(job);
+        try {
+            backgroundJobServer.getJobZooKeeper().startProcessing(job);
+            LOGGER.trace("Job {} is running", job.getId());
+            jobFilters.runOnJobProcessingFilters(job);
+            BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
+            backgroundJobRunner.run(job);
+            jobFilters.runOnJobProcessedFilters(job);
+        } finally {
+            backgroundJobServer.getJobZooKeeper().stopProcessing(job);
+        }
     }
 
     private void updateJobStateToSucceededAndRunJobFilters() {
-        job.succeeded();
-        saveAndRunStateRelatedJobFilters(job);
-        LOGGER.debug("Job {} - {} - processing succeeded", job.getId(), job.getJobName());
+        try {
+            job.succeeded();
+            saveAndRunStateRelatedJobFilters(job);
+            LOGGER.debug("Job {} - {} - processing succeeded", job.getId(), job.getJobName());
+        } catch (Exception badException) {
+            LOGGER.error("FATAL - could not update job {} to SUCCEEDED state", job.getId(), badException);
+        }
     }
 
     private void updateJobStateToFailedAndRunJobFilters(String message, Exception e) {
-        job.failed(message, e);
-        saveAndRunStateRelatedJobFilters(job);
-        LOGGER.warn("Job {} - {} - processing failed", job.getId(), job.getJobName(), e);
+        try {
+            job.failed(message, e);
+            saveAndRunStateRelatedJobFilters(job);
+            LOGGER.warn("Job {} - {} - processing failed", job.getId(), job.getJobName(), e);
+        } catch (Exception badException) {
+            LOGGER.error("FATAL - could not update job {} to FAILED state", job.getId(), badException);
+        }
     }
-
 }

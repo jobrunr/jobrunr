@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.junit.jupiter.api.Test;
@@ -8,8 +9,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,14 +38,28 @@ class JobTest {
     }
 
     @Test
-    void increaseVersion() {
+    void updateProcessingOnlyHasEffectIfJobIsInProcessingState() {
         Job job = anEnqueuedJob().withId().build();
+        job.startProcessingOn(backgroundJobServer);
 
-        assertThat(job.increaseVersion()).isEqualTo(0);
-        assertThat(job.getVersion()).isEqualTo(1);
+        job.updateProcessing();
 
-        assertThat(job.increaseVersion()).isEqualTo(1);
-        assertThat(job.getVersion()).isEqualTo(2);
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
+    void updateProcessingDoesNotThrowExceptionIfJobHasScheduledState() {
+        Job job = aScheduledJob().withId().build();
+
+        assertThatCode(job::updateProcessing).doesNotThrowAnyException();
+    }
+
+    @Test
+    void updateProcessingDoesNotThrowExceptionIfJobHasSucceededState() {
+        Job job = aSucceededJob().withId().build();
+
+        assertThatCode(job::updateProcessing).doesNotThrowAnyException();
     }
 
 }

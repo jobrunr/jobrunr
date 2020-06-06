@@ -8,7 +8,6 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import static java.lang.Boolean.TRUE;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -149,14 +150,14 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void updateJobsThatAreBeingProcessed() {
-        LOGGER.debug("Updating currently processed jobs... ");
-        processJobList(currentlyProcessedJobs, Job::updateProcessing);
+        LOGGER.info("Updating currently processed jobs... ");
+        processJobList(new ArrayList<>(currentlyProcessedJobs), Job::updateProcessing, Optional.of(new LogExceptionHandler()));
     }
 
     private void checkForEnqueuedJobs() {
         try {
             if (reentrantLock.tryLock()) {
-                LOGGER.warn("Looking for enqueued jobs... ");
+                LOGGER.debug("Looking for enqueued jobs... ");
                 final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
                 if (workPageRequest.getLimit() > 0) {
                     final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest);
@@ -164,7 +165,9 @@ public class JobZooKeeper implements Runnable {
                 }
             }
         } finally {
-            reentrantLock.unlock();
+            if (reentrantLock.isHeldByCurrentThread()) {
+                reentrantLock.unlock();
+            }
         }
     }
 
@@ -191,12 +194,7 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
-        if (!jobs.isEmpty()) {
-            jobs.forEach(jobConsumer);
-            jobFilters.runOnStateElectionFilter(jobs);
-            storageProvider.save(jobs);
-            jobFilters.runOnStateAppliedFilters(jobs);
-        }
+        processJobList(jobs, jobConsumer, Optional.empty());
     }
 
     private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer, Optional<ExceptionHandler> exceptionHandler) {
@@ -206,7 +204,7 @@ public class JobZooKeeper implements Runnable {
                 jobFilters.runOnStateElectionFilter(jobs);
                 storageProvider.save(jobs);
                 jobFilters.runOnStateAppliedFilters(jobs);
-            } catch (ConcurrentJobModificationException e) {
+            } catch (Exception e) {
                 if (exceptionHandler.isPresent()) {
                     exceptionHandler.get().handle(e, jobs);
                 } else {
@@ -222,7 +220,6 @@ public class JobZooKeeper implements Runnable {
 
     public void startProcessing(Job job) {
         currentlyProcessedJobs.add(job);
-        LOGGER.info("Size workQueueSize: " + currentlyProcessedJobs.size());
     }
 
     public void stopProcessing(Job job) {
@@ -234,8 +231,16 @@ public class JobZooKeeper implements Runnable {
         return currentlyProcessedJobs.size();
     }
 
+    private static class LogExceptionHandler implements ExceptionHandler {
+
+        @Override
+        public void handle(Exception e, List<Job> jobs) {
+            LOGGER.error("ProcessJobList FAILED", new JobRunrException("Exception processing one of these jobs: " + jobs.stream().map(n -> n.getId().toString()).collect(joining(",")), e));
+        }
+    }
+
     private interface ExceptionHandler {
 
-        void handle(ConcurrentJobModificationException e, List<Job> jobs);
+        void handle(Exception e, List<Job> jobs);
     }
 }
