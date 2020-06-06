@@ -32,6 +32,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
                 updateJobStateToFailedAndRunJobFilters("An exception occurred during the performance of the job", e);
             }
         }
+        backgroundJobServer.getJobZooKeeper().notifyThreadIdle();
         return job;
     }
 
@@ -39,11 +40,11 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
         try {
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.info("Job {} - {} - processing started", job.getId(), job.getJobName());
+            LOGGER.debug("Job {} - {} - processing started", job.getId(), job.getJobName());
             return true;
         } catch (ConcurrentJobModificationException e) {
             // processing already started on other server
-            LOGGER.info("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet());
+            LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet());
             return false;
         }
     }

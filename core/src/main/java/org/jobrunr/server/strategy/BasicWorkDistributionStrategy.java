@@ -24,7 +24,6 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
         final double workQueueSize = jobZooKeeper.getWorkQueueSize();
         final double workerPoolSize = backgroundJobServerStatus.getWorkerPoolSize();
         final boolean canOnboardWork = (workQueueSize / workerPoolSize) < 0.7;
-        LOGGER.info(canOnboardWork ? String.format("Can onboard new work (workQueueSize = %d; workerPoolSize = %d).", (int) workQueueSize, (int) workerPoolSize) : String.format("Can NOT onboard new work (workQueueSize = %d; workerPoolSize = %d).", (int) workQueueSize, (int) workerPoolSize));
         return canOnboardWork;
     }
 
@@ -35,7 +34,7 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
         final long offset = 0;
         final int limit = workerPoolSize - workQueueSize;
-        //LOGGER.info(String.format("Can onboard " + limit + " new work (workQueueSize = %f; workerPoolSize = %f).", workQueueSize, workerPoolSize);
+        LOGGER.debug("Can onboard {} new work (workQueueSize = {}; workerPoolSize = {}).", limit, workQueueSize, workerPoolSize);
         return PageRequest.asc(offset, limit);
     }
 }

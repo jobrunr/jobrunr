@@ -7,6 +7,8 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.JobId;
 import org.jobrunr.storage.listeners.JobStorageChangeListener;
+import org.jobrunr.utils.resilience.Lock;
+import org.jobrunr.utils.resilience.MultiLock;
 
 import java.time.Instant;
 import java.util.List;
@@ -57,16 +59,16 @@ public class ThreadSafeStorageProvider implements StorageProvider {
 
     @Override
     public Job save(Job job) {
-        //try(Lock lock = job.lock()) {
-        return storageProvider.save(job);
-        //}
+        try (Lock lock = job.lock()) {
+            return storageProvider.save(job);
+        }
     }
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        //try(MultiLock lock = new MultiLock(jobs)) {
-        return storageProvider.save(jobs);
-        //}
+        try (MultiLock lock = new MultiLock(jobs)) {
+            return storageProvider.save(jobs);
+        }
     }
 
     @Override

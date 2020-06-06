@@ -1,10 +1,13 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.utils.JobUtils;
+import org.jobrunr.utils.resilience.Lock;
+import org.jobrunr.utils.resilience.Lockable;
 
-public abstract class AbstractJob {
+public abstract class AbstractJob implements Lockable {
 
-    //private transient final Lock lock;
+    private transient final Lock lock;
+
     private int version;
     private String jobSignature;
     private String jobName;
@@ -12,7 +15,7 @@ public abstract class AbstractJob {
 
     protected AbstractJob() {
         // used for deserialization
-        //this.lock = new Lock();
+        this.lock = new Lock();
     }
 
     public AbstractJob(JobDetails jobDetails) {
@@ -27,12 +30,10 @@ public abstract class AbstractJob {
 
     /**
      * Increases the version of this Job instance
-     * <p>
-     * This must be thread safe.
      *
      * @return the version before it was increased
      */
-    public synchronized int increaseVersion() {
+    public int increaseVersion() {
         return version++;
     }
 
@@ -52,8 +53,8 @@ public abstract class AbstractJob {
         return jobDetails;
     }
 
-//    @Override
-//    public Lock lock() {
-//        return lock.lock();
-//    }
+    @Override
+    public Lock lock() {
+        return lock.lock();
+    }
 }

@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,8 +41,8 @@ public class JobZooKeeper implements Runnable {
     private final WorkDistributionStrategy workDistributionStrategy;
     private final List<Job> currentlyProcessedJobs;
     private final AtomicInteger exceptionCount;
-    private volatile Boolean isMaster;
     private final ReentrantLock reentrantLock;
+    private volatile Boolean isMaster;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
@@ -96,10 +95,6 @@ public class JobZooKeeper implements Runnable {
         return isMaster;
     }
 
-    public void notifyQueueEmpty() {
-        checkForEnqueuedJobs();
-    }
-
     private boolean isNotInitialized() {
         return isMaster == null;
     }
@@ -150,8 +145,8 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void updateJobsThatAreBeingProcessed() {
-        LOGGER.info("Updating currently processed jobs... ");
-        processJobList(new ArrayList<>(currentlyProcessedJobs), Job::updateProcessing, Optional.of(new LogExceptionHandler()));
+        LOGGER.debug("Updating currently processed jobs... ");
+        processJobList(new ArrayList<>(currentlyProcessedJobs), Job::updateProcessing, new LogExceptionHandler());
     }
 
     private void checkForEnqueuedJobs() {
@@ -194,10 +189,10 @@ public class JobZooKeeper implements Runnable {
     }
 
     private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
-        processJobList(jobs, jobConsumer, Optional.empty());
+        processJobList(jobs, jobConsumer, null);
     }
 
-    private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer, Optional<ExceptionHandler> exceptionHandler) {
+    private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer, ExceptionHandler exceptionHandler) {
         if (!jobs.isEmpty()) {
             try {
                 jobs.forEach(jobConsumer);
@@ -205,8 +200,8 @@ public class JobZooKeeper implements Runnable {
                 storageProvider.save(jobs);
                 jobFilters.runOnStateAppliedFilters(jobs);
             } catch (Exception e) {
-                if (exceptionHandler.isPresent()) {
-                    exceptionHandler.get().handle(e, jobs);
+                if (exceptionHandler != null) {
+                    exceptionHandler.handle(e, jobs);
                 } else {
                     throw e;
                 }
@@ -224,7 +219,12 @@ public class JobZooKeeper implements Runnable {
 
     public void stopProcessing(Job job) {
         currentlyProcessedJobs.remove(job);
-        if (workDistributionStrategy.canOnboardNewWork()) notifyQueueEmpty();
+    }
+
+    public void notifyThreadIdle() {
+        if (workDistributionStrategy.canOnboardNewWork()) {
+            checkForEnqueuedJobs();
+        }
     }
 
     public int getWorkQueueSize() {
