@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.UUID;
 
@@ -39,6 +41,20 @@ class AbstractStorageProviderTest {
         storageProvider.addJobStorageOnChangeListener(changeListener);
         await()
                 .untilAsserted(() -> assertThat(changeListener.jobStats).isNotNull());
+    }
+
+    @Test
+    public void updatingOnChangeListenersIsThreadSafe() {
+        List<JobStatsChangeListenerForTest> changeListeners = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            final JobStatsChangeListenerForTest changeListener = new SlowJobChangeListenerForTest();
+            storageProvider.addJobStorageOnChangeListener(changeListener);
+            changeListeners.add(changeListener);
+        }
+
+        await().untilAsserted(() -> assertThat(changeListeners).anyMatch(jobStatsChangeListenerForTest -> jobStatsChangeListenerForTest.jobStats != null));
+        storageProvider.removeJobStorageOnChangeListener(changeListeners.get(9));
+        await().untilAsserted(() -> assertThat(changeListeners).allMatch(jobStatsChangeListenerForTest -> jobStatsChangeListenerForTest.jobStats != null));
     }
 
     @Test
@@ -122,6 +138,19 @@ class AbstractStorageProviderTest {
         @Override
         public void close() throws Exception {
             this.closeIsCalled = true;
+        }
+    }
+
+    private static class SlowJobChangeListenerForTest extends JobStatsChangeListenerForTest {
+
+        @Override
+        public void onChange(JobStats jobStats) {
+            try {
+                Thread.sleep(100);
+                super.onChange(jobStats);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
