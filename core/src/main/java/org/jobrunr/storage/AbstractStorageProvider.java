@@ -106,7 +106,6 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
             final Map<JobId, List<JobChangeListener>> listenerByJob = StreamUtils
                     .ofType(onChangeListeners, JobChangeListener.class)
                     .collect(groupingBy(JobChangeListener::getJobId));
-            System.out.println("Found " + listenerByJob.size() + " listeners");
             if (!listenerByJob.isEmpty()) {
                 listenerByJob.forEach((jobId, listeners) -> {
                     try {
