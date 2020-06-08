@@ -117,8 +117,11 @@ public class TestService implements TestServiceInterface {
         throw new RuntimeException("Whoopsie, an error occcured");
     }
 
-    public void doWorkThatTakesLong() {
-        doWorkThatTakesLong(25 + ThreadLocalRandom.current().nextInt(0, 5));
+    public void doWorkThatTakesLong(JobContext jobContext) {
+        for (int i = 0; i < 60000; i++) {
+            jobContext.dashboardConsolePrintln("This is a test " + i);
+            doWorkThatTakesLong(5 + ThreadLocalRandom.current().nextInt(0, 5));
+        }
     }
 
     public void doWorkThatTakesLong(int seconds) {

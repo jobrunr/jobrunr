@@ -62,13 +62,13 @@ const Job = (props) => {
         let eventSource;
         if (props.location.job) {
             onJob(props.location.job);
-            eventSource = new EventSource("http://localhost:8000/sse/jobs/" + props.location.job.id);
+            eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/jobs/" + props.location.job.id);
         } else {
             getJob(props.match.params.id);
-            eventSource = new EventSource("http://localhost:8000/sse/jobs/" + props.match.params.id)
+            eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/jobs/" + props.match.params.id)
         }
 
-        eventSource.addEventListener('message', e => {console.log(JSON.parse(e.data)); onJob(JSON.parse(e.data))});
+        eventSource.addEventListener('message', e => onJob(JSON.parse(e.data)));
         eventSource.addEventListener('close', e => eventSource.close());
         return function cleanUp() {
             eventSource.close();
@@ -218,7 +218,8 @@ const Job = (props) => {
                                                 case 'ENQUEUED':
                                                     return <Enqueued key={index} jobState={jobState}/>;
                                                 case 'PROCESSING':
-                                                    return <Processing key={index} jobState={jobState}/>;
+                                                    return <Processing key={index} index={index} job={job}
+                                                                       jobState={jobState}/>;
                                                 case 'FAILED':
                                                     return <Failed key={index} jobState={jobState}/>;
                                                 case 'SUCCEEDED':

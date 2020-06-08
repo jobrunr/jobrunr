@@ -41,7 +41,7 @@ class State {
 const state = new State();
 Object.freeze(state);
 
-const eventSource = new EventSource(process.env.REACT_APP_SSE_URL)
+const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/jobstats")
 eventSource.onmessage = e => {
     const newStats = JSON.parse(e.data);
     if ((newStats.enqueued != null && newStats.enqueued < 1) && (newStats.processing != null && newStats.processing < 1)) {

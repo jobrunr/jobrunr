@@ -9,7 +9,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import TimeAgo from "react-timeago/lib";
 import {Cogs} from "mdi-material-ui";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
     primaryHeading: {
         textTransform: "none",
         lineHeight: "inherit"
@@ -19,6 +19,10 @@ const useStyles = makeStyles(theme => ({
         marginLeft: 'auto'
     },
     alert: {
+        padding: 0
+    },
+    expansionPanel: {
+        flexDirection: 'column',
         padding: 0
     },
     processing: {
@@ -32,17 +36,53 @@ const useStyles = makeStyles(theme => ({
             margin: 0,
             minHeight: 56,
         },
+    },
+    details: {
+        padding: '24px 0 24px 24px'
+    },
+    console: {
+        boxSizing: 'border-box',
+        width: '100%',
+        color: '#fff',
+        backgroundColor: '#113462',
+        padding: '24px 0 24px 24px',
+        '& > dl': {
+            fontFamily: "'Courier New', Courier, monospace",
+            fontSize: '85%',
+            margin: '0',
+        },
+        '& > dl dt': {
+            float: 'left',
+            clear: 'left',
+            width: '200px',
+            textAlign: 'right',
+            color: '#3885b7',
+            margin: '-0.1em 0',
+        },
+        '& > dl dd': {
+            margin: '-0.2em 0 -0.2em 220px'
+        }
     }
 }));
 
+const getLogs = (job, index) => {
+    if (job.metadata && job.metadata['jobRunrLog-' + (index + 1)]) {
+        return job.metadata['jobRunrLog-' + (index + 1)][1];
+    }
+    return [];
+}
 
 const Processing = (props) => {
     const classes = useStyles();
+    const index = props.index;
+    const job = props.job;
     const jobState = props.jobState;
-    const processingIcon = <Cogs />
+    const defaultExpanded = job.jobHistory.length === (index + 1);
+    const logs = getLogs(job, index);
+    const processingIcon = <Cogs/>
 
     return (
-        <ExpansionPanel>
+        <ExpansionPanel defaultExpanded={defaultExpanded}>
             <ExpansionPanelSummary
                 className={classes.processing}
                 id="processing-panel-header"
@@ -54,13 +94,28 @@ const Processing = (props) => {
                         Processing job
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}><TimeAgo date={new Date(jobState.createdAt)}/></Typography>
+                <Typography className={classes.secondaryHeading}><TimeAgo
+                    date={new Date(jobState.createdAt)}/></Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanel}>
-                Job is processing on server {jobState.serverId}
+                <div className={classes.details}>Job is processing on server {jobState.serverId}</div>
+                {logs.length > 0 &&
+                <div className={classes.console}>
+                    {logs.map((log) => (
+                        <dl key={log.logInstant}>
+                            <dt><TimeAgo date={new Date(log.logInstant)} now={() => new Date(jobState.createdAt)}
+                                         live="false" formatter={(a, b, c) => a > 1 ? `+${a} ${b}s` : `+${a} ${b}`}/>
+                            </dt>
+                            <dd>{log.logMessage}</dd>
+                        </dl>
+                    ))}
+                </div>
+                }
             </ExpansionPanelDetails>
         </ExpansionPanel>
     )
+
+
 };
 
 export default Processing;
