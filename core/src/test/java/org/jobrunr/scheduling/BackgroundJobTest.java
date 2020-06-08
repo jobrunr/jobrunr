@@ -3,6 +3,7 @@ package org.jobrunr.scheduling;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.PageRequest;
@@ -232,13 +233,16 @@ public class BackgroundJobTest {
     }
 
     @Test
-    void bla() {
+    void jobCanBeUpdatedInTheBackgroundAndThenGoToSucceededState() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(10));
-        await().atMost(6, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
-        final Job jobThatIsBeingProcessed = storageProvider.getJobById(jobId);
-        jobThatIsBeingProcessed.updateProcessing();
-        storageProvider.save(jobThatIsBeingProcessed);
-        await().atMost(12, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            final Job job = storageProvider.getJobById(jobId);
+            ProcessingState processingState = job.getJobState();
+            assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+            storageProvider.getJobById(jobId).hasState(PROCESSING);
+        });
+        await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
     }
 
     private Stream<UUID> getWorkStream() {

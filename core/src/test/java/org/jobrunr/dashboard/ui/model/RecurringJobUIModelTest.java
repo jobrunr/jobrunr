@@ -13,7 +13,8 @@ class RecurringJobUIModelTest {
         final RecurringJob recurringJob = aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build();
         final RecurringJobUIModel recurringJobUIModel = new RecurringJobUIModel(recurringJob);
 
-        assertThat(recurringJobUIModel).isEqualToComparingFieldByField(recurringJob);
+        assertThat(recurringJobUIModel)
+                .isEqualToIgnoringGivenFields(recurringJob, "lock");
     }
 
 }

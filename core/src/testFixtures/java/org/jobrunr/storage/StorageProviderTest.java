@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
+import static org.jobrunr.JobRunrAssertions.withoutLocks;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
@@ -209,15 +210,17 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(3);
 
         List<Job> fetchedJobsAsc = storageProvider.getJobs(PROCESSING, PageRequest.asc(0, 100));
-        assertThat(fetchedJobsAsc)
+        assertThat(withoutLocks(fetchedJobsAsc))
                 .hasSize(3)
-                .usingRecursiveFieldByFieldElementComparator().containsAll(savedJobs);
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsAll(withoutLocks(savedJobs));
         assertThat(fetchedJobsAsc).extracting("jobName").containsExactly("1", "2", "3");
 
         List<Job> fetchedJobsDesc = storageProvider.getJobs(PROCESSING, PageRequest.desc(0, 100));
-        assertThat(fetchedJobsDesc)
+        assertThat(withoutLocks(fetchedJobsDesc))
                 .hasSize(3)
-                .usingRecursiveFieldByFieldElementComparator().containsAll(savedJobs);
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsAll(withoutLocks(savedJobs));
         assertThat(fetchedJobsDesc).extracting("jobName").containsExactly("3", "2", "1");
     }
 
@@ -266,9 +269,10 @@ public abstract class StorageProviderTest {
 
         Page<Job> fetchedJobs = storageProvider.getJobPage(ENQUEUED, PageRequest.asc(2, 2));
 
-        assertThat(fetchedJobs.getItems())
+        assertThat(withoutLocks(fetchedJobs.getItems()))
                 .hasSize(2)
-                .usingRecursiveFieldByFieldElementComparator().containsExactly(job3, job4);
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(withoutLocks(job3, job4));
     }
 
     @Test

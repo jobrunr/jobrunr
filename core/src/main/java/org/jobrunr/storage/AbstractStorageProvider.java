@@ -17,7 +17,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.time.Instant.now;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -133,7 +132,6 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     class SendJobStatsUpdate extends TimerTask {
 
         public void run() {
-            System.out.println(now().toString() + " - Send update from TimerTask");
             notifyOnChangeListeners();
             notifyJobChangeListeners();
         }

@@ -84,7 +84,8 @@ abstract class JobRunrDashboardWebServerTest {
         assertThat(deleteResponse).hasStatusCode(204);
 
         HttpResponse<String> getResponse = http.get("/api/jobs/%s", savedJob.getId());
-        assertThat(getResponse).hasStatusCode(404);
+        assertThat(getResponse).hasStatusCode(200);
+        assertThat(storageProvider.getJobById(savedJob.getId())).hasState(StateName.DELETED);
     }
 
     @Test

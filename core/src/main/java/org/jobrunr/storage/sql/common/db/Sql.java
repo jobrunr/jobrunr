@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static java.sql.Statement.SUCCESS_NO_INFO;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
 
@@ -161,7 +162,7 @@ public class Sql<T> {
                 final int[] updates = ps.executeBatch();
                 if (updates.length != batchCollection.size()) {
                     throw new ConcurrentJobModificationException("Could not insert or update all objects - different result size: originalCollectionSize=" + collectionSize + "; " + Arrays.toString(updates));
-                } else if (Arrays.stream(updates).anyMatch(i -> i < 0)) {
+                } else if (Arrays.stream(updates).anyMatch(i -> i < SUCCESS_NO_INFO)) {
                     throw new ConcurrentJobModificationException("Could not insert or update all objects - not all updates succeeded: " + Arrays.toString(updates));
                 }
             }

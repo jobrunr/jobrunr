@@ -7,6 +7,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -107,9 +108,10 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
             if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
                 throw new ConcurrentModificationException("Unable to save job...");
             }
+            job.increaseVersion();
         }
 
-        job.increaseVersion();
+        // here problem with deepclone as locking then does not work
         jobQueue.put(job.getId(), deepClone(job));
         notifyOnChangeListeners();
         return job;
@@ -272,6 +274,8 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
 
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
-        return jobMapper.deserializeJob(serializedJobAsString);
+        final Job result = jobMapper.deserializeJob(serializedJobAsString);
+        Whitebox.setInternalState(result, "lock", Whitebox.getInternalState(job, "lock"));
+        return result;
     }
 }

@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
@@ -49,17 +48,17 @@ class JobTest {
     }
 
     @Test
-    void updateProcessingDoesNotThrowExceptionIfJobHasScheduledState() {
+    void updateProcessingThrowsExceptionIfJobHasScheduledState() {
         Job job = aScheduledJob().withId().build();
 
-        assertThatCode(job::updateProcessing).doesNotThrowAnyException();
+        assertThatThrownBy(job::updateProcessing).isInstanceOf(ClassCastException.class);
     }
 
     @Test
-    void updateProcessingDoesNotThrowExceptionIfJobHasSucceededState() {
+    void updateProcessingThrowsExceptionIfJobHasSucceededState() {
         Job job = aSucceededJob().withId().build();
 
-        assertThatCode(job::updateProcessing).doesNotThrowAnyException();
+        assertThatThrownBy(job::updateProcessing).isInstanceOf(ClassCastException.class);
     }
 
 }
