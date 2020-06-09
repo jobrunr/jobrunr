@@ -35,6 +35,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -227,7 +228,7 @@ public class BackgroundJobTest {
     @Test
     void testDeleteOfRecurringJob() {
         String jobId = BackgroundJob.scheduleRecurringly(() -> testService.doWork(5), Cron.minutely());
-        BackgroundJob.deleteRecurringly(jobId);
+        BackgroundJob.delete(jobId);
         await().atMost(61, SECONDS).until(() -> storageProvider.countJobs(ENQUEUED) == 0 && storageProvider.countJobs(SUCCEEDED) == 0);
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
     }
@@ -246,16 +247,37 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void jobCanBeDeletedWhenEnqueued() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
+        BackgroundJob.delete(jobId);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
+        });
+    }
+
+    @Test
+    void jobCanBeDeletedWhenScheduled() {
+        JobId jobId = BackgroundJob.schedule(() -> testService.doWorkThatTakesLong(12), now().plusSeconds(10));
+        BackgroundJob.delete(jobId);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, DELETED);
+        });
+    }
+
+    @Test
     void jobCanBeDeletedDuringProcessingState() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
-        final Job job = storageProvider.getJobById(jobId);
-        job.delete();
-        storageProvider.save(job);
+        BackgroundJob.delete(jobId);
 
         await().atMost(6, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
     }
 

@@ -233,7 +233,7 @@ public class IocBackgroundJobTest {
     @Test
     void testDeleteOfRecurringJob() {
         String jobId = BackgroundJob.<TestService>scheduleRecurringly(x -> x.doWork(5), Cron.minutely());
-        BackgroundJob.deleteRecurringly(jobId);
+        BackgroundJob.delete(jobId);
         await().atMost(ofSeconds(61)).until(() -> jobStorageProvider.countJobs(ENQUEUED) == 0 && jobStorageProvider.countJobs(SUCCEEDED) == 0);
         assertThat(jobStorageProvider.getRecurringJobs()).isEmpty();
     }

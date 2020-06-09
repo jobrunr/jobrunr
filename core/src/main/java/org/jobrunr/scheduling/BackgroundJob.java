@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -221,6 +222,24 @@ public class BackgroundJob {
     }
 
     /**
+     * Deletes a job and sets it's state to DELETED. If the job is being processed, it will be interrupted.
+     *
+     * @param id the id of the job
+     */
+    public static void delete(UUID id) {
+        verifyJobScheduler();
+        jobScheduler.delete(id);
+    }
+
+    /**
+     * @see #delete(UUID)
+     */
+    public static void delete(JobId jobId) {
+        verifyJobScheduler();
+        jobScheduler.delete(jobId.asUUID());
+    }
+
+    /**
      * Creates a new recurring job based on the given lambda and the given cron expression. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -335,12 +354,12 @@ public class BackgroundJob {
      * Deletes the recurring job based on the given id.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.deleteRecurringly("my-recurring-job"));
+     *      BackgroundJob.delete("my-recurring-job"));
      * }</pre>
      *
      * @param id the id of the recurring job to delete
      */
-    public static void deleteRecurringly(String id) {
+    public static void delete(String id) {
         verifyJobScheduler();
         jobScheduler.deleteRecurringly(id);
     }

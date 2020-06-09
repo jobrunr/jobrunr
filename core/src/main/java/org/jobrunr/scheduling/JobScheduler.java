@@ -21,6 +21,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.time.ZoneId.systemDefault;
@@ -253,6 +254,22 @@ public class JobScheduler {
     public <T> JobId schedule(IocJobLambda<T> iocJob, Instant instant) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return schedule(jobDetails, instant);
+    }
+
+    /**
+     * Deletes a job and sets it's state to DELETED. If the job is being processed, it will be interrupted.
+     *
+     * @param id the id of the job
+     */
+    public void delete(UUID id) {
+        storageProvider.delete(id);
+    }
+
+    /**
+     * @see #delete(UUID)
+     */
+    public void delete(JobId jobId) {
+        storageProvider.delete(jobId.asUUID());
     }
 
     /**
