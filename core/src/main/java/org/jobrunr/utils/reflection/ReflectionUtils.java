@@ -1,7 +1,7 @@
 package org.jobrunr.utils.reflection;
 
 import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
-import org.jobrunr.scheduling.exceptions.MethodNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.utils.StringUtils;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingFunction;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
@@ -125,7 +125,7 @@ public class ReflectionUtils {
 
     public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
         return findMethod(clazz, methodName, parameterTypes)
-                .orElseThrow(() -> new MethodNotFoundException(clazz, methodName, parameterTypes));
+                .orElseThrow(() -> new JobNotFoundException(clazz, methodName, parameterTypes));
     }
 
     public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
@@ -238,7 +238,7 @@ public class ReflectionUtils {
                 if (argumentsMatch) return cast(constructor);
             }
         }
-        throw new MethodNotFoundException(clazz, "<init>", args);
+        throw new JobNotFoundException(clazz, "<init>", args);
     }
 
     @SuppressWarnings("unchecked")

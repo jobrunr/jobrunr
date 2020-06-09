@@ -33,6 +33,20 @@ public class JobDetailsTestBuilder {
                 .withJobParameter(message);
     }
 
+    public static JobDetailsTestBuilder classThatDoesNotExistJobDetails() {
+        return jobDetails()
+                .withClassName("i.dont.exist.Class")
+                .withMethodName("notImportant")
+                .withJobParameter(5);
+    }
+
+    public static JobDetailsTestBuilder methodThatDoesNotExistJobDetails() {
+        return jobDetails()
+                .withClassName(TestService.class)
+                .withMethodName("doWorkThatDoesNotExist")
+                .withJobParameter(5);
+    }
+
     public JobDetailsTestBuilder withClassName(Class clazz) {
         this.className = clazz.getName();
         return this;

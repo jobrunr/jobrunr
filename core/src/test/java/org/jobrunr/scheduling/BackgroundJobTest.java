@@ -3,8 +3,11 @@ package org.jobrunr.scheduling;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
+import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.SimpleStorageProvider;
@@ -35,6 +38,9 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -279,6 +285,22 @@ public class BackgroundJobTest {
             assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
+    }
+
+    @Test
+    void jobToClassThatDoesNotExistGoesToFailedState() {
+        Job job = storageProvider.save(anEnqueuedJob().withJobDetails(classThatDoesNotExistJobDetails()).build());
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
+        FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
+        assertThat(failedState.getException()).isInstanceOf(JobClassNotFoundException.class);
+    }
+
+    @Test
+    void jobToMethodThatDoesNotExistGoesToFailedState() {
+        Job job = storageProvider.save(anEnqueuedJob().withJobDetails(methodThatDoesNotExistJobDetails()).build());
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
+        FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
+        assertThat(failedState.getException()).isInstanceOf(JobMethodNotFoundException.class);
     }
 
     private Stream<UUID> getWorkStream() {

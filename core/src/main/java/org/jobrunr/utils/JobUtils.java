@@ -4,7 +4,8 @@ import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
-import org.jobrunr.scheduling.exceptions.MethodNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -12,7 +13,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static org.jobrunr.JobRunrException.problematicException;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
@@ -23,7 +23,11 @@ public class JobUtils {
     }
 
     public static Class<?> getJobClass(JobDetails jobDetails) {
-        return toClass(jobDetails.getClassName());
+        try {
+            return toClass(jobDetails.getClassName());
+        } catch (IllegalArgumentException e) {
+            throw new JobClassNotFoundException(jobDetails);
+        }
     }
 
     public static Method getJobMethod(JobDetails jobDetails) {
@@ -32,7 +36,7 @@ public class JobUtils {
 
     public static Method getJobMethod(Class<?> jobClass, JobDetails jobDetails) {
         return findMethod(jobClass, jobDetails.getMethodName(), jobDetails.getJobParameterTypes())
-                .orElseThrow(() -> problematicException("JobRunr doesn't find the job method to perform", new MethodNotFoundException(jobClass, jobDetails.getMethodName(), jobDetails.getJobParameterTypes())));
+                .orElseThrow(() -> new JobMethodNotFoundException(jobDetails));
     }
 
     public static <T extends Annotation> Optional<T> getJobAnnotation(JobDetails jobDetails) {
