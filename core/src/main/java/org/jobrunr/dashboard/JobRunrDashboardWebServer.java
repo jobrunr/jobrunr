@@ -26,9 +26,9 @@ public class JobRunrDashboardWebServer {
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
         RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", "/dashboard");
-        JobRunrStaticFileHandler staticFileHandler = new JobRunrStaticFileHandler();
-        JobRunrApiHandler dashboardHandler = new JobRunrApiHandler(storageProvider, jsonMapper);
-        JobRunrSseHandler sseHandler = new JobRunrSseHandler(storageProvider, jsonMapper);
+        JobRunrStaticFileHandler staticFileHandler = getStaticFileHandler();
+        JobRunrApiHandler dashboardHandler = getApiHandler(storageProvider, jsonMapper);
+        JobRunrSseHandler sseHandler = getSSeHandler(storageProvider, jsonMapper);
 
         teenyWebServer = new TeenyWebServer(port);
         teenyWebServer.createContext(redirectHttpHandler);
@@ -42,6 +42,18 @@ public class JobRunrDashboardWebServer {
                 teenyWebServer.getWebServerHostPort(),
                 staticFileHandler.getContextPath()));
 
+    }
+
+    JobRunrStaticFileHandler getStaticFileHandler() {
+        return new JobRunrStaticFileHandler();
+    }
+
+    JobRunrApiHandler getApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
+        return new JobRunrApiHandler(storageProvider, jsonMapper);
+    }
+
+    JobRunrSseHandler getSSeHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
+        return new JobRunrSseHandler(storageProvider, jsonMapper);
     }
 
     public void stop() {
