@@ -1,6 +1,5 @@
 package org.jobrunr.storage.sql.common.db;
 
-import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import org.jobrunr.storage.sql.common.db.dialect.DialectFactory;
@@ -10,11 +9,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static java.sql.Statement.SUCCESS_NO_INFO;
+import static java.util.Arrays.stream;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
 
@@ -134,39 +135,45 @@ public class Sql<T> {
             setParams(ps, item);
             final int updated = ps.executeUpdate();
             if (updated != 1) {
-                throw new ConcurrentJobModificationException("Could not execute insert statement: " + parsedStatement);
+                throw concurrentDatabaseModificationException(item, updated);
             }
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
-    public void insertAll(Collection<T> batchCollection, String statement) {
-        insertOrUpdateAll(batchCollection, "insert " + statement);
+    public void insertAll(List<T> batchCollection, String statement) {
+        int[] result = insertOrUpdateAll(batchCollection, "insert " + statement);
+        if (result.length != batchCollection.size()) {
+            throw shouldNotHappenException("Could not insert or update all objects - different result size: originalCollectionSize=" + batchCollection.size() + "; " + Arrays.toString(result));
+        } else if (stream(result).anyMatch(i -> i < Statement.SUCCESS_NO_INFO || i == 0)) {
+            throw concurrentDatabaseModificationException(batchCollection, result);
+        }
     }
 
-    public void updateAll(Collection<T> batchCollection, String statement) {
-        insertOrUpdateAll(batchCollection, "update " + statement);
+    public void updateAll(List<T> batchCollection, String statement) {
+        int[] result = insertOrUpdateAll(batchCollection, "update " + statement);
+        if (result.length != batchCollection.size()) {
+            throw shouldNotHappenException("Could not insert or update all objects - different result size: originalCollectionSize=" + batchCollection.size() + "; " + Arrays.toString(result));
+        } else if (stream(result).anyMatch(i -> i < 1)) {
+            throw concurrentDatabaseModificationException(batchCollection, result);
+        }
     }
 
-    private void insertOrUpdateAll(Collection<T> batchCollection, String statement) {
+    private int[] insertOrUpdateAll(List<T> batchCollection, String statement) {
         String parsedStatement = parse(statement);
         try (final Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
-                int collectionSize = batchCollection.size();
                 for (T object : batchCollection) {
                     setParams(ps, object);
                     ps.addBatch();
                 }
-                final int[] updates = ps.executeBatch();
-                if (updates.length != batchCollection.size()) {
-                    throw new ConcurrentJobModificationException("Could not insert or update all objects - different result size: originalCollectionSize=" + collectionSize + "; " + Arrays.toString(updates));
-                } else if (Arrays.stream(updates).anyMatch(i -> i < SUCCESS_NO_INFO)) {
-                    throw new ConcurrentJobModificationException("Could not insert or update all objects - not all updates succeeded: " + Arrays.toString(updates));
-                }
+                return ps.executeBatch();
+            } finally {
+                conn.commit();
+                conn.setAutoCommit(true);
             }
-            conn.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
         }

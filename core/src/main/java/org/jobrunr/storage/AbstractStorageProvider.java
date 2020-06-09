@@ -7,6 +7,8 @@ import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.JobStorageChangeListener;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -22,9 +24,11 @@ import static java.util.stream.Collectors.toList;
 
 public abstract class AbstractStorageProvider implements StorageProvider, AutoCloseable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageProvider.class);
+
     private final Set<JobStorageChangeListener> onChangeListeners = ConcurrentHashMap.newKeySet();
     private final RateLimiter changeListenerNotificationRateLimit;
-    private ReentrantLock reentrantLock;
+    private final ReentrantLock reentrantLock;
     private Timer timer;
 
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
@@ -97,7 +101,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 jobStatsChangeListeners.forEach(listener -> listener.onChange(jobStats));
             }
         } catch (Exception e) {
-            // TODO what to do
+            LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
         }
     }
 
@@ -124,7 +128,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 });
             }
         } catch (Exception e) {
-            // TODO what to do
+            LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
         }
     }
 

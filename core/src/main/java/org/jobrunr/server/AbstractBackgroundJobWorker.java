@@ -4,9 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.jobs.states.StateName;
 
-import java.util.concurrent.Callable;
-
-public abstract class AbstractBackgroundJobWorker implements Callable<Job> {
+public abstract class AbstractBackgroundJobWorker implements Runnable {
 
     protected final BackgroundJobServer backgroundJobServer;
     protected final Job job;
@@ -27,6 +25,5 @@ public abstract class AbstractBackgroundJobWorker implements Callable<Job> {
         if (beforeStateElection != afterStateElection) {
             jobFilters.runOnStateAppliedFilters(job);
         }
-
     }
 }

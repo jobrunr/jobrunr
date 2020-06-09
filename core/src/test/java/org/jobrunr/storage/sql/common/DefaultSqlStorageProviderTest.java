@@ -1,9 +1,10 @@
 package org.jobrunr.storage.sql.common;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,10 +92,10 @@ class DefaultSqlStorageProviderTest {
     }
 
     @Test
-    void saveJob_WhenJobIsNotSavedDueToOtherConcurrentModificationThenThrowConcurrentJobModificationException() throws SQLException {
+    void saveJob_WhenJobIsNotSavedDueToOtherConcurrentModificationThenThrowConcurrentSqlModificationException() throws SQLException {
         when(preparedStatement.executeUpdate()).thenReturn(0);
 
-        assertThatThrownBy(() -> jobStorageProvider.save(anEnqueuedJob().build())).isInstanceOf(ConcurrentJobModificationException.class);
+        assertThatThrownBy(() -> jobStorageProvider.save(anEnqueuedJob().build())).isInstanceOf(ConcurrentSqlModificationException.class);
     }
 
     @Test
@@ -112,10 +113,10 @@ class DefaultSqlStorageProviderTest {
     }
 
     @Test
-    void saveJobs_NotAllJobsAreSavedThenThrowConcurrentJobModificationException() throws SQLException {
+    void saveJobs_NotAllJobsAreSavedThenThrowConcurrentSqlModificationException() throws SQLException {
         when(preparedStatement.executeBatch()).thenReturn(new int[]{});
 
-        assertThatThrownBy(() -> jobStorageProvider.save(singletonList(anEnqueuedJob().build()))).isInstanceOf(ConcurrentJobModificationException.class);
+        assertThatThrownBy(() -> jobStorageProvider.save(singletonList(anEnqueuedJob().build()))).isInstanceOf(JobRunrException.class);
     }
 
     @Test

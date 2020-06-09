@@ -117,28 +117,25 @@ public class TestService implements TestServiceInterface {
         throw new RuntimeException("Whoopsie, an error occcured");
     }
 
-    public void doWorkThatTakesLong(JobContext jobContext) {
+    public void doWorkThatTakesLong(JobContext jobContext) throws InterruptedException {
         for (int i = 0; i < 60000; i++) {
             jobContext.dashboardConsolePrintln("This is a test " + i);
             doWorkThatTakesLong(5 + ThreadLocalRandom.current().nextInt(0, 5));
         }
     }
 
-    public void doWorkThatTakesLong(int seconds) {
+    public void doWorkThatTakesLong(int seconds) throws InterruptedException {
         try {
             TimeUnit.SECONDS.sleep(seconds);
             System.out.println("WORK IS DONE!!!!!!!!");
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            System.out.println("Thread has been interrupted");
+            throw e;
         }
     }
 
-    public void doWorkThatTakesLong(long seconds) {
-        try {
-            TimeUnit.SECONDS.sleep(seconds);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public void doWorkThatTakesLong(long seconds) throws InterruptedException {
+        doWorkThatTakesLong((int) seconds);
     }
 
     public void scheduleNewWork(int amount) {

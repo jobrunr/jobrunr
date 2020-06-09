@@ -2,6 +2,7 @@ package org.jobrunr.storage.nosql.mongo;
 
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -39,10 +40,13 @@ import org.jobrunr.utils.resilience.RateLimiter;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.mongodb.client.model.Aggregates.facet;
@@ -50,6 +54,7 @@ import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.sortByCount;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
@@ -150,7 +155,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
         } else {
             final UpdateResult updateResult = jobCollection.updateOne(and(eq(toMongoId(Jobs.FIELD_ID), job.getId()), eq(Jobs.FIELD_VERSION, job.increaseVersion())), jobDocumentMapper.toUpdateDocument(job));
             if (updateResult.getModifiedCount() < 1) {
-                throw new ConcurrentJobModificationException(job.getId());
+                throw new ConcurrentJobModificationException(job);
             }
         }
         notifyOnChangeListeners();
@@ -192,7 +197,22 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
             final List<WriteModel<Document>> jobsToUpdate = jobs.stream()
                     .map(job -> jobDocumentMapper.toUpdateOneModel(job))
                     .collect(toList());
-            jobCollection.bulkWrite(jobsToUpdate);
+            final BulkWriteResult bulkWriteResult = jobCollection.bulkWrite(jobsToUpdate);
+            if (bulkWriteResult.getModifiedCount() != jobs.size()) {
+                //ugly workaround as we do not know which document did not update due to concurrent modification exception. So, we download them all and compare the lastUpdated
+                final Map<UUID, Job> mongoDbDocuments = new HashMap<>();
+                jobCollection
+                        .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
+                        .projection(include(Jobs.FIELD_JOB_AS_JSON))
+                        .map(jobDocumentMapper::toJob)
+                        .forEach((Consumer<? super Job>) job -> mongoDbDocuments.put(job.getId(), job));
+
+                final List<Job> concurrentModifiedJobs = jobs.stream()
+                        .filter(job -> !job.getUpdatedAt().equals(mongoDbDocuments.get(job.getId()).getUpdatedAt()))
+                        .collect(toList());
+                throw new ConcurrentJobModificationException(concurrentModifiedJobs);
+
+            }
         }
         notifyOnChangeListenersIf(!jobs.isEmpty());
         return jobs;

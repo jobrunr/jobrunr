@@ -2,6 +2,7 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 
 public abstract class AbstractAllowedConcurrentStateChange implements AllowedConcurrentStateChange {
 
@@ -17,6 +18,10 @@ public abstract class AbstractAllowedConcurrentStateChange implements AllowedCon
         return this.localState == localState && this.storageProviderState == storageProviderState;
     }
 
-    public abstract void resolve(Job localJob, Job storageProviderJob);
+    @Override
+    public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
+        //nothing more we can do
+        return ConcurrentJobModificationResolveResult.succeeded(localJob);
+    }
 
 }

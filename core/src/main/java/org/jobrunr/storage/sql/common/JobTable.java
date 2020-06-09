@@ -6,7 +6,9 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
 import org.jobrunr.utils.JobUtils;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobTable extends Sql<Job> {
 
@@ -62,7 +65,11 @@ public class JobTable extends Sql<Job> {
             insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
         } else {
             jobToSave.increaseVersion();
-            update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+            try {
+                update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+            } catch (ConcurrentSqlModificationException e) {
+                throw new ConcurrentJobModificationException(jobToSave);
+            }
         }
         return jobToSave;
     }
@@ -77,11 +84,16 @@ public class JobTable extends Sql<Job> {
             jobs.forEach(JobTable::setId);
             insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
         } else {
-            if (notAllJobsAreExisting(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
+            try {
+                if (notAllJobsAreExisting(jobs)) {
+                    throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
+                }
+                jobs.forEach(AbstractJob::increaseVersion);
+                updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+            } catch (ConcurrentSqlModificationException e) {
+                List<Job> concurrentUpdatedJobs = cast(e.getFailedItems());
+                throw new ConcurrentJobModificationException(concurrentUpdatedJobs);
             }
-            jobs.forEach(AbstractJob::increaseVersion);
-            updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
         }
         return jobs;
     }

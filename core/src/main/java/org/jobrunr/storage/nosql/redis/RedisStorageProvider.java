@@ -431,13 +431,13 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     private void updateJob(Job jobToSave, Jedis jedis) {
         jedis.watch(jobVersionKey(jobToSave));
         final int version = Integer.parseInt(jedis.get(jobVersionKey(jobToSave)));
-        if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave.getId());
+        if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave);
         jobToSave.increaseVersion();
         Transaction transaction = jedis.multi();
         saveJob(transaction, jobToSave);
         List<Object> result = transaction.exec();
         jedis.unwatch();
-        if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave.getId());
+        if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave);
     }
 
     private void saveJob(RedisPipeline p, Job jobToSave) {

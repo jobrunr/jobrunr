@@ -6,6 +6,7 @@ import ch.qos.logback.core.read.ListAppender;
 import net.javacrumbs.jsonunit.assertj.JsonAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
 import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobAssert;
@@ -13,6 +14,7 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobDetailsAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.net.http.HttpResponse;
@@ -24,6 +26,10 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 public class JobRunrAssertions extends Assertions {
+
+    public static Condition<Throwable> failedJob(Job job) {
+        return new Condition<>(x -> x instanceof ConcurrentJobModificationException && ((ConcurrentJobModificationException) x).getConcurrentUpdatedJobs().contains(job), "Should contain job");
+    }
 
     public static JobAssert assertThat(Job job) {
         return JobAssert.assertThat(job);

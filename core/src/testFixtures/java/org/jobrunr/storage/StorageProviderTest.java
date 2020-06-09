@@ -34,11 +34,14 @@ import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
+import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.JobRunrAssertions.withoutLocks;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -51,15 +54,16 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 public abstract class StorageProviderTest {
 
     private StorageProvider storageProvider;
-
     private BackgroundJobServer backgroundJobServer;
+    private JobMapper jobMapper;
 
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
         cleanup();
         JobRunr.configure();
-        this.storageProvider = getStorageProvider();
+        storageProvider = getStorageProvider();
         backgroundJobServer = new BackgroundJobServerStub(storageProvider);
+        jobMapper = new JobMapper(new JacksonJsonMapper());
     }
 
     @AfterEach
@@ -154,12 +158,11 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testOptimisticLocking() {
+    void testOptimisticLockingOnSaveJob() {
         Job job = anEnqueuedJob().build();
         Job createdJob = storageProvider.save(job);
         Job fetchedJob = storageProvider.getJobById(createdJob.getId());
 
-        JobMapper jobMapper = new JobMapper(new JacksonJsonMapper());
         Job job1 = jobMapper.deserializeJob(jobMapper.serializeJob(fetchedJob));
         Job job2 = jobMapper.deserializeJob(jobMapper.serializeJob(fetchedJob));
 
@@ -168,6 +171,26 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(job1);
         assertThatThrownBy(() -> storageProvider.save(job2)).isInstanceOf(ConcurrentJobModificationException.class);
+    }
+
+    @Test
+    void testOptimisticLockingOnSaveJobs() {
+        Job job = aJobInProgress().withoutId().build();
+        Job createdJob1 = storageProvider.save(aCopyOf(job).build());
+        Job createdJob2 = storageProvider.save(aCopyOf(job).build());
+        Job createdJob3 = storageProvider.save(aCopyOf(job).build());
+        Job createdJob4 = storageProvider.save(aCopyOf(job).build());
+
+        storageProvider.save(aCopyOf(createdJob2).withSucceededState().build());
+
+        createdJob1.updateProcessing();
+        createdJob2.updateProcessing();
+        createdJob3.updateProcessing();
+        createdJob4.updateProcessing();
+
+        assertThatThrownBy(() -> storageProvider.save(asList(createdJob1, createdJob2, createdJob3, createdJob4)))
+                .isInstanceOf(ConcurrentJobModificationException.class)
+                .has(failedJob(createdJob2));
     }
 
     @Test

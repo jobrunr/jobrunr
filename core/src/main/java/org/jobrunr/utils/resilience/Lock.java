@@ -15,6 +15,10 @@ public class Lock implements AutoCloseable {
         return this;
     }
 
+    public boolean isLocked() {
+        return this.semaphore.availablePermits() < 1;
+    }
+
     public void close() {
         unlock();
     }

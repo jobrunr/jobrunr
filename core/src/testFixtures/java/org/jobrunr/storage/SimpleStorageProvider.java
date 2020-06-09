@@ -12,7 +12,6 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -106,12 +105,11 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
         } else {
             final Job oldJob = jobQueue.get(job.getId());
             if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
-                throw new ConcurrentModificationException("Unable to save job...");
+                throw new ConcurrentJobModificationException(job);
             }
             job.increaseVersion();
         }
 
-        // here problem with deepclone as locking then does not work
         jobQueue.put(job.getId(), deepClone(job));
         notifyOnChangeListeners();
         return job;

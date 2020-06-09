@@ -189,7 +189,7 @@ class BackgroundJobServerTest {
         final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(15));
         await().atMost(6, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
         backgroundJobServer.stop();
-        await().atMost(5, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(FAILED) || storageProvider.getJobById(jobId).hasState(SCHEDULED));
+        await().atMost(60, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(FAILED) || storageProvider.getJobById(jobId).hasState(SCHEDULED));
         backgroundJobServer.start();
         await().atMost(21, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }

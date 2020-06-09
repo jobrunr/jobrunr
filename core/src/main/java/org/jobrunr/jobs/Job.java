@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
  * Defines the job with it's JobDetails, History and Job Metadata
@@ -62,7 +63,7 @@ public class Job extends AbstractJob {
     }
 
     public <T extends JobState> T getJobState() {
-        return (T) getJobState(-1);
+        return cast(getJobState(-1));
     }
 
     public JobState getJobState(int element) {
@@ -104,7 +105,7 @@ public class Job extends AbstractJob {
     }
 
     public void startProcessingOn(BackgroundJobServer backgroundJobServer) {
-        if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(id);
+        if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
         this.jobHistory.add(new ProcessingState(backgroundJobServer.getId()));
     }
 

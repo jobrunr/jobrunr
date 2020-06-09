@@ -1,8 +1,10 @@
 package org.jobrunr.storage.nosql.mongo;
 
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -13,6 +15,8 @@ import org.jobrunr.storage.StorageProviderConstants.RecurringJobs;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 
@@ -53,6 +57,7 @@ public class JobDocumentMapper {
     public UpdateOneModel<Document> toUpdateOneModel(Job job) {
         Document filterDocument = new Document();
         filterDocument.append(toMongoId(Jobs.FIELD_ID), job.getId());
+        filterDocument.append(Jobs.FIELD_VERSION, job.increaseVersion());
 
         //Update doc
         Document updateDocument = toUpdateDocument(job);
@@ -76,11 +81,8 @@ public class JobDocumentMapper {
         return document;
     }
 
-    public Document toUpdateDocument(RecurringJob recurringJob) {
-        final Document document = new Document();
-        document.put(RecurringJobs.FIELD_VERSION, recurringJob.getVersion());
-        document.put(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(recurringJob));
-        return document;
+    public Bson byId(List<UUID> ids) {
+        return Filters.in(toMongoId(Jobs.FIELD_ID), ids);
     }
 
     public RecurringJob toRecurringJob(Document document) {

@@ -245,6 +245,20 @@ public class BackgroundJobTest {
         await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
     }
 
+    @Test
+    void jobCanBeDeletedDuringProcessingState() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+
+        final Job job = storageProvider.getJobById(jobId);
+        job.delete();
+        storageProvider.save(job);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+        });
+    }
+
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());

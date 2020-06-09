@@ -5,6 +5,14 @@ import java.io.StringWriter;
 
 public class Exceptions {
 
+    public static boolean hasCause(Throwable t, Class<? extends Throwable> exceptionClass) {
+        if (t.getClass().isAssignableFrom(exceptionClass)) return true;
+        while (t.getCause() != null) {
+            return hasCause(t.getCause(), exceptionClass);
+        }
+        return false;
+    }
+
     public static String getStackTraceAsString(Throwable exception) {
         StringWriter sw = new StringWriter();
         exception.printStackTrace(new PrintWriter(sw));

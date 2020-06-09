@@ -1,21 +1,26 @@
 package org.jobrunr.storage;
 
-import java.util.UUID;
+import org.jobrunr.jobs.Job;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
 
 public class ConcurrentJobModificationException extends StorageException {
 
-    private UUID jobId;
+    private final List<Job> concurrentUpdatedJobs;
 
-    public ConcurrentJobModificationException(UUID jobId) {
-        super(jobId.toString());
-        this.jobId = jobId;
+    public ConcurrentJobModificationException(Job concurrentUpdatedJob) {
+        this(singletonList(concurrentUpdatedJob));
     }
 
-    public ConcurrentJobModificationException(String message) {
-        super(message);
+    public ConcurrentJobModificationException(List<Job> concurrentUpdatedJobs) {
+        super("The following jobs where concurrently updated: " + concurrentUpdatedJobs.stream().map(job -> job.getId().toString()).collect(Collectors.joining(", ")));
+        this.concurrentUpdatedJobs = concurrentUpdatedJobs;
     }
 
-    public UUID getJobId() {
-        return jobId;
+    public List<Job> getConcurrentUpdatedJobs() {
+        return concurrentUpdatedJobs;
     }
 }

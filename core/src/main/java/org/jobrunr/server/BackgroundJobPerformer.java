@@ -1,12 +1,15 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
 public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
 
@@ -18,23 +21,26 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
         super(backgroundJobServer, job);
     }
 
-    @Override
-    public Job call() {
+    public void run() {
         boolean canProcess = updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart();
         if (canProcess) {
             try {
                 runActualJob();
                 updateJobStateToSucceededAndRunJobFilters();
-            } catch (InterruptedException e) {
-                updateJobStateToFailedAndRunJobFilters("Job processing was stopped externally", e);
-                Thread.currentThread().interrupt();
             } catch (Exception e) {
-                updateJobStateToFailedAndRunJobFilters("An exception occurred during the performance of the job", e);
+                if (isJobDeletedWhileProcessing(e)) {
+                    return;
+                } else if (isJobServerStopped(e)) {
+                    updateJobStateToFailedAndRunJobFilters("Job processing was stopped as background job server has stopped", e);
+                    Thread.currentThread().interrupt();
+                } else {
+                    updateJobStateToFailedAndRunJobFilters("An exception occurred during the performance of the job", e);
+                }
             }
         }
         backgroundJobServer.getJobZooKeeper().notifyThreadIdle();
-        return job;
     }
+
 
     private boolean updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart() {
         try {
@@ -51,7 +57,7 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
 
     private void runActualJob() throws Exception {
         try {
-            backgroundJobServer.getJobZooKeeper().startProcessing(job);
+            backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
             LOGGER.trace("Job {} is running", job.getId());
             jobFilters.runOnJobProcessingFilters(job);
             BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
@@ -80,5 +86,13 @@ public class BackgroundJobPerformer extends AbstractBackgroundJobWorker {
         } catch (Exception badException) {
             LOGGER.error("FATAL - could not update job {} to FAILED state", job.getId(), badException);
         }
+    }
+
+    private boolean isJobDeletedWhileProcessing(Exception e) {
+        return hasCause(e, InterruptedException.class) && job.hasState(StateName.DELETED);
+    }
+
+    private boolean isJobServerStopped(Exception e) {
+        return hasCause(e, InterruptedException.class) && !job.hasState(StateName.DELETED);
     }
 }

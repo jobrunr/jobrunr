@@ -46,7 +46,7 @@ class BackgroundJobPerformerTest {
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(new BackgroundStaticJobWithoutIocRunner());
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
-        backgroundJobPerformer.call();
+        backgroundJobPerformer.run();
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
         assertThat(logAllStateChangesFilter.processingPassed).isTrue();
@@ -60,7 +60,7 @@ class BackgroundJobPerformerTest {
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
-        backgroundJobPerformer.call();
+        backgroundJobPerformer.run();
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED", "FAILED->SCHEDULED");
         assertThat(logAllStateChangesFilter.processingPassed).isTrue();
