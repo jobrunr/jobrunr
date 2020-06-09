@@ -277,8 +277,7 @@ class JobZooKeeperTest {
 
         assertThat(logger).hasNoWarnLogMessages();
 
-        ProcessingState processingState = job.getJobState();
-        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+        assertThat(job).hasState(DELETED);
         verify(storageProvider).save(singletonList(job));
         verify(threadMock).interrupt();
     }
