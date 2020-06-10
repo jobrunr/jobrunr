@@ -312,7 +312,7 @@ class JobZooKeeperTest {
 
     private List<Job>[] emptyJobList() {
         List<Job>[] result = cast(new ArrayList[1]);
-        result[0] = emptyList();
+        result[0] = new ArrayList<>();
         return result;
     }
 }
