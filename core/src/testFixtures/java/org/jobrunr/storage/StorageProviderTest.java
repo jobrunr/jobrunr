@@ -39,6 +39,7 @@ import static org.jobrunr.JobRunrAssertions.withoutLocks;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
@@ -381,13 +382,15 @@ public abstract class StorageProviderTest {
         assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();
 
         storageProvider.save(asList(
-                anEnqueuedJob().build(),
-                anEnqueuedJob().build(),
-                anEnqueuedJob().build(),
+                anEnqueuedJob().withoutId().build(),
+                anEnqueuedJob().withoutId().build(),
+                anEnqueuedJob().withoutId().build(),
+                aJobInProgress().withoutId().build(),
                 aScheduledJob().withoutId().build(),
                 aFailedJob().withoutId().build(),
                 aFailedJob().withoutId().build(),
-                aSucceededJob().withoutId().build()
+                aSucceededJob().withoutId().build(),
+                aDeletedJob().withoutId().build()
         ));
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id1").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id2").build());
@@ -397,9 +400,10 @@ public abstract class StorageProviderTest {
         assertThat(jobStats.getAwaiting()).isEqualTo(0);
         assertThat(jobStats.getScheduled()).isEqualTo(1);
         assertThat(jobStats.getEnqueued()).isEqualTo(3);
-        assertThat(jobStats.getProcessing()).isEqualTo(0);
+        assertThat(jobStats.getProcessing()).isEqualTo(1);
         assertThat(jobStats.getFailed()).isEqualTo(2);
         assertThat(jobStats.getSucceeded()).isEqualTo(6);
+        assertThat(jobStats.getDeleted()).isEqualTo(1);
         assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);
     }

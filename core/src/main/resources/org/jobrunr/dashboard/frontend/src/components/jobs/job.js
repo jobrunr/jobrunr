@@ -13,10 +13,11 @@ import Paper from '@material-ui/core/Paper';
 import Scheduled from "./states/scheduled-state";
 import Enqueued from "./states/enqueued-state";
 import Processing from "./states/processing-state";
+import Succeeded from "./states/succeeded-state";
+import Failed from "./states/failed-state";
+import Deleted from "./states/deleted-state";
 
 import Sidebar from "./sidebar";
-import Failed from "./states/failed-state";
-import Succeeded from "./states/succeeded-state";
 import JobCode from "./job-code";
 import {Snackbar} from "@material-ui/core";
 import {SortAscending, SortDescending} from "mdi-material-ui";
@@ -26,7 +27,7 @@ import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Box from "@material-ui/core/Box";
 import LoadingIndicator from "../LoadingIndicator";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
     root: {
         display: 'flex',
     },
@@ -224,6 +225,8 @@ const Job = (props) => {
                                                     return <Failed key={index} jobState={jobState}/>;
                                                 case 'SUCCEEDED':
                                                     return <Succeeded key={index} jobState={jobState}/>;
+                                                case 'DELETED':
+                                                    return <Deleted key={index} jobState={jobState}/>;
                                                 default:
                                                     return <>Unknown state</>
                                             }

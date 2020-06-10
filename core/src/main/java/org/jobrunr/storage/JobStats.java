@@ -4,22 +4,23 @@ import java.time.Instant;
 
 public class JobStats {
 
-    private Instant timeStamp;
-    private Long total;
-    private Long awaiting;
-    private Long scheduled;
-    private Long enqueued;
-    private Long processing;
-    private Long failed;
-    private Long succeeded;
-    private int recurringJobs;
-    private int backgroundJobServers;
+    private final Instant timeStamp;
+    private final Long total;
+    private final Long awaiting;
+    private final Long scheduled;
+    private final Long enqueued;
+    private final Long processing;
+    private final Long failed;
+    private final Long succeeded;
+    private final Long deleted;
+    private final int recurringJobs;
+    private final int backgroundJobServers;
 
     public static JobStats empty() {
-        return new JobStats(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
+        return new JobStats(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
     }
 
-    public JobStats(Long total, Long awaiting, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, int recurringJobs, int backgroundJobServers) {
+    public JobStats(Long total, Long awaiting, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, Long deleted, int recurringJobs, int backgroundJobServers) {
         this.timeStamp = Instant.now();
         this.total = total;
         this.awaiting = awaiting;
@@ -28,6 +29,7 @@ public class JobStats {
         this.processing = processing;
         this.failed = failed;
         this.succeeded = succeeded;
+        this.deleted = deleted;
         this.recurringJobs = recurringJobs;
         this.backgroundJobServers = backgroundJobServers;
     }
@@ -62,6 +64,10 @@ public class JobStats {
 
     public Long getSucceeded() {
         return succeeded;
+    }
+
+    public Long getDeleted() {
+        return deleted;
     }
 
     public int getRecurringJobs() {

@@ -7,6 +7,11 @@ import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.time.Duration;
+import java.time.Instant;
+
+import static java.time.Instant.now;
+
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractPostgresStorageProviderTest extends SqlStorageProviderTest {
 
@@ -14,7 +19,9 @@ public abstract class AbstractPostgresStorageProviderTest extends SqlStorageProv
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {
+        Instant before = now();
         sqlContainer.start();
+        printSqlContainerDetails(sqlContainer, Duration.between(before, now()));
     }
 
     @AfterAllSubclasses

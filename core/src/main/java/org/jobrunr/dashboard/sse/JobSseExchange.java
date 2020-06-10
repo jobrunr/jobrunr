@@ -9,6 +9,8 @@ import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.io.IOException;
 
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public class JobSseExchange extends AbstractObjectSseExchange implements JobChangeListener {
@@ -31,7 +33,7 @@ public class JobSseExchange extends AbstractObjectSseExchange implements JobChan
     @Override
     public void onChange(Job job) {
         sendObject(job);
-        if (job.hasState(SUCCEEDED)) {
+        if (job.hasState(SUCCEEDED) || job.hasState(FAILED) || job.hasState(DELETED)) {
             close();
         }
     }

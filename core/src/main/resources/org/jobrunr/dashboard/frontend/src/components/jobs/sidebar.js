@@ -12,7 +12,7 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import {makeStyles} from '@material-ui/core/styles';
 import {Schedule} from "@material-ui/icons";
-import {AlertCircleOutline, Check, Cogs, TimerSand, TrayFull} from "mdi-material-ui";
+import {AlertCircleOutline, Check, Cogs, Delete, TimerSand, TrayFull} from "mdi-material-ui";
 import state from "../../StateContext";
 
 const drawerWidth = 320;
@@ -70,21 +70,30 @@ const Sidebar = () => {
                             <ListItemIcon><Schedule/></ListItemIcon>
                             <ListItemText primary="Scheduled"/><Chip label={stats.scheduled}/>
                         </ListItem>
-                        <ListItem id="enqueued-menu-btn" button key="Enqueued" className={classes.nested} component={Link} to="/dashboard/jobs/default/enqueued">
+                        <ListItem id="enqueued-menu-btn" button key="Enqueued" className={classes.nested}
+                                  component={Link} to="/dashboard/jobs/default/enqueued">
                             <ListItemIcon><TimerSand/></ListItemIcon>
                             <ListItemText primary="Enqueued"/><Chip label={stats.enqueued}/>
                         </ListItem>
-                        <ListItem id="processing-menu-btn" button key="Processing" className={classes.nested} component={Link} to="/dashboard/jobs/default/processing">
+                        <ListItem id="processing-menu-btn" button key="Processing" className={classes.nested}
+                                  component={Link} to="/dashboard/jobs/default/processing">
                             <ListItemIcon><Cogs/></ListItemIcon>
                             <ListItemText primary="Processing"/><Chip label={stats.processing}/>
                         </ListItem>
-                        <ListItem id="succeeded-menu-btn" button key="Succeeded" className={classes.nested} component={Link} to="/dashboard/jobs/default/succeeded">
+                        <ListItem id="succeeded-menu-btn" button key="Succeeded" className={classes.nested}
+                                  component={Link} to="/dashboard/jobs/default/succeeded">
                             <ListItemIcon><Check/></ListItemIcon>
                             <ListItemText primary="Succeeded"/><Chip label={stats.succeeded}/>
                         </ListItem>
-                        <ListItem id="failed-menu-btn" button key="Failed" className={classes.nested} component={Link} to="/dashboard/jobs/default/failed">
+                        <ListItem id="failed-menu-btn" button key="Failed" className={classes.nested} component={Link}
+                                  to="/dashboard/jobs/default/failed">
                             <ListItemIcon><AlertCircleOutline/></ListItemIcon>
                             <ListItemText primary="Failed"/><Chip label={stats.failed}/>
+                        </ListItem>
+                        <ListItem id="deleted-menu-btn" button key="Deleted" className={classes.nested} component={Link}
+                                  to="/dashboard/jobs/default/deleted">
+                            <ListItemIcon><Delete/></ListItemIcon>
+                            <ListItemText primary="Deleted"/><Chip label={stats.deleted}/>
                         </ListItem>
                     </List>
                 </Collapse>

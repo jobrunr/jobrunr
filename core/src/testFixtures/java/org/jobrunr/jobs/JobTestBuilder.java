@@ -79,7 +79,8 @@ public class JobTestBuilder {
                 .withState(new EnqueuedState())
                 .withJobDetails(jobDetails()
                         .withClassName(TestService.class)
-                        .withMethodName("doWorkThatTakesLong"));
+                        .withMethodName("doWorkThatTakesLong")
+                        .withJobParameter(JobContext.Null));
     }
 
     public static JobTestBuilder aJobInProgress() {
@@ -109,6 +110,14 @@ public class JobTestBuilder {
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ProcessingState(UUID.randomUUID()))
                 .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.ofSeconds(10L, 7345L)));
+    }
+
+    public static JobTestBuilder aDeletedJob() {
+        return anEnqueuedJob()
+                .withId()
+                .withName("a deleted job")
+                .withJobDetails(systemOutPrintLnJobDetails("a test"))
+                .withState(new DeletedState());
     }
 
     public static JobTestBuilder aFailedJobThatEventuallySucceeded() {

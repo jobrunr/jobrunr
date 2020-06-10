@@ -118,12 +118,11 @@ public class DatabaseCreator {
     }
 
     protected void runMigrationStatement(Connection connection, Path path) throws IOException, SQLException {
-        try (final Statement stmt = connection.createStatement()) {
-            final String sql = new String(Files.readAllBytes(path));
-            for (String statement : sql.split(";")) {
-                stmt.addBatch(statement);
+        final String sql = new String(Files.readAllBytes(path));
+        for (String statement : sql.split(";")) {
+            try (final Statement stmt = connection.createStatement()) {
+                stmt.execute(statement);
             }
-            stmt.executeBatch();
         }
     }
 

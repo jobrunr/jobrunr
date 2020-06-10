@@ -368,6 +368,8 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             final Response<Long> succeededResponse = p.zcount(jobQueueForStateKey(SUCCEEDED), 0, Long.MAX_VALUE);
             final Response<String> failedCounterResponse = p.get(jobCounterKey(FAILED));
             final Response<Long> failedResponse = p.zcount(jobQueueForStateKey(FAILED), 0, Long.MAX_VALUE);
+            final Response<String> deletedCounterResponse = p.get(jobCounterKey(DELETED));
+            final Response<Long> deletedResponse = p.zcount(jobQueueForStateKey(DELETED), 0, Long.MAX_VALUE);
 
             final Response<Long> recurringJobsResponse = p.scard(RECURRING_JOBS_KEY);
             final Response<Long> backgroundJobServerResponse = p.zcount(BACKGROUND_JOB_SERVERS_KEY, 0, Long.MAX_VALUE);
@@ -380,6 +382,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             final Long processingCount = getCounterValue(processingCounterResponse, processingResponse);
             final Long succeededCount = getCounterValue(succeededCounterResponse, succeededResponse);
             final Long failedCount = getCounterValue(failedCounterResponse, failedResponse);
+            final Long deletedCount = getCounterValue(deletedCounterResponse, deletedResponse);
             final Long total = scheduledCount + enqueuedCount + processingCount + succeededResponse.get() + failedCount;
             final Long recurringJobsCount = recurringJobsResponse.get();
             final Long backgroundJobServerCount = backgroundJobServerResponse.get();
@@ -391,6 +394,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                     processingCount,
                     failedCount,
                     succeededCount,
+                    deletedCount,
                     recurringJobsCount.intValue(),
                     backgroundJobServerCount.intValue()
             );
@@ -471,8 +475,8 @@ public class RedisStorageProvider extends AbstractStorageProvider {
         p.srem(jobDetailsKey(DELETED), getJobSignature(job.getJobDetails()));
     }
 
-    private long getCounterValue(Response<String> waitingCounterResponse, Response<Long> waitingResponse) {
-        return waitingResponse.get() + Long.parseLong(waitingCounterResponse.get() != null ? waitingCounterResponse.get() : "0");
+    private long getCounterValue(Response<String> counterResponse, Response<Long> countResponse) {
+        return countResponse.get() + Long.parseLong(counterResponse.get() != null ? counterResponse.get() : "0");
     }
 
     private String jobCounterKey(StateName stateName) {

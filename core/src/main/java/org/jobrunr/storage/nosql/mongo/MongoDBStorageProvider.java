@@ -64,6 +64,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -313,6 +314,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
         Long processing = getCount(PROCESSING, jobStats, aggregates);
         Long failed = getCount(FAILED, jobStats, aggregates);
         Long succeeded = getCount(SUCCEEDED, jobStats, aggregates);
+        Long deleted = getCount(DELETED, jobStats, aggregates);
 
         final int recurringJobCount = (int) recurringJobCollection.countDocuments();
         final int backgroundJobServerCount = (int) backgroundJobServerCollection.countDocuments();
@@ -325,6 +327,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 processing,
                 failed,
                 succeeded,
+                deleted,
                 recurringJobCount,
                 backgroundJobServerCount
         );

@@ -4,7 +4,7 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.sql.DataSource;
 
-class MySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
+class NativePoolMySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
 
     private static MysqlDataSource dataSource;
 
@@ -12,7 +12,7 @@ class MySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new MysqlDataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
             dataSource.setUser(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
         }

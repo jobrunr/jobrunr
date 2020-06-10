@@ -7,6 +7,11 @@ import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.MariaDBContainer;
 
+import java.time.Duration;
+import java.time.Instant;
+
+import static java.time.Instant.now;
+
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProviderTest {
 
@@ -14,10 +19,9 @@ public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProvi
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {
+        Instant before = now();
         sqlContainer.start();
-        System.out.println("=========================================================");
-        System.out.println(sqlContainer.getJdbcUrl());
-        System.out.println("=========================================================");
+        printSqlContainerDetails(sqlContainer, Duration.between(before, now()));
     }
 
     @AfterAllSubclasses

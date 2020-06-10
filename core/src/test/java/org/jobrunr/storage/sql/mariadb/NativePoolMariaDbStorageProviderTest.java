@@ -5,7 +5,7 @@ import org.mariadb.jdbc.MariaDbPoolDataSource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-class MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
+class NativePoolMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
     private static MariaDbPoolDataSource dataSource;
 
@@ -14,7 +14,7 @@ class MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
         if (dataSource == null) {
             try {
                 dataSource = new MariaDbPoolDataSource();
-                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
                 dataSource.setUser(sqlContainer.getUsername());
                 dataSource.setPassword(sqlContainer.getPassword());
             } catch (SQLException e) {

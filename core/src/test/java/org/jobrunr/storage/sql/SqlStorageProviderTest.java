@@ -6,11 +6,13 @@ import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
@@ -27,6 +29,15 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         Whitebox.setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
+    }
+
+    protected static void printSqlContainerDetails(JdbcDatabaseContainer<?> sqlContainer, Duration duration) {
+        System.out.println("=========================================================");
+        System.out.println("   connection: " + sqlContainer.getJdbcUrl());
+        System.out.println("         user: " + sqlContainer.getUsername());
+        System.out.println("     password: " + sqlContainer.getPassword());
+        System.out.println(" startup time: " + duration.getSeconds());
+        System.out.println("=========================================================");
     }
 
     protected abstract DataSource getDataSource();

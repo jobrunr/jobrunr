@@ -218,6 +218,7 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
                 getJobs(StateName.PROCESSING).count(),
                 getJobs(StateName.FAILED).count(),
                 getJobs(StateName.SUCCEEDED).count(),
+                getJobs(StateName.DELETED).count(),
                 recurringJobs.size(),
                 backgroundJobServers.size()
         );
