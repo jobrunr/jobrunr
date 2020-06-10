@@ -43,20 +43,20 @@ class JobSseExchangeTest {
 
     @Test
     void sseConnectionSubscribesForJobStates() throws IOException {
-        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, new JacksonJsonMapper(), storageProvider);
+        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, storageProvider, new JacksonJsonMapper());
         verify(storageProvider).addJobStorageOnChangeListener(jobSseExchange);
     }
 
     @Test
     void sseConnectionParsesJobIdCorrectly() throws IOException {
-        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, new JacksonJsonMapper(), storageProvider);
+        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, storageProvider, new JacksonJsonMapper());
 
         assertThat(jobSseExchange.getJobId()).isEqualTo(new JobId(jobId));
     }
 
     @Test
     void sseConnectionIsClosedIfJobStateIsSucceeded() throws IOException {
-        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, new JacksonJsonMapper(), storageProvider);
+        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, storageProvider, new JacksonJsonMapper());
 
         jobSseExchange.onChange(aSucceededJob().build());
 
@@ -65,7 +65,7 @@ class JobSseExchangeTest {
 
     @Test
     void sseConnectionIsClosedIfJobStateIsDeleted() throws IOException {
-        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, new JacksonJsonMapper(), storageProvider);
+        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, storageProvider, new JacksonJsonMapper());
 
         jobSseExchange.onChange(aDeletedJob().build());
 
@@ -74,9 +74,18 @@ class JobSseExchangeTest {
 
     @Test
     void sseConnectionIsClosedIfJobStateIsFailed() throws IOException {
-        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, new JacksonJsonMapper(), storageProvider);
+        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, storageProvider, new JacksonJsonMapper());
 
         jobSseExchange.onChange(aFailedJob().build());
+
+        verify(storageProvider).removeJobStorageOnChangeListener(jobSseExchange);
+    }
+
+    @Test
+    void closeRemovesSseExchangeFromStorageProviderListeners() throws IOException {
+        JobSseExchange jobSseExchange = new JobSseExchange(httpExchange, storageProvider, new JacksonJsonMapper());
+
+        jobSseExchange.close();
 
         verify(storageProvider).removeJobStorageOnChangeListener(jobSseExchange);
     }

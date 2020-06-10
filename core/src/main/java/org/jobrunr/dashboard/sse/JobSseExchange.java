@@ -18,7 +18,7 @@ public class JobSseExchange extends AbstractObjectSseExchange implements JobChan
     private final StorageProvider storageProvider;
     private final JobId jobId;
 
-    public JobSseExchange(HttpExchange httpExchange, JsonMapper jsonMapper, StorageProvider storageProvider) throws IOException {
+    public JobSseExchange(HttpExchange httpExchange, StorageProvider storageProvider, JsonMapper jsonMapper) throws IOException {
         super(httpExchange, jsonMapper);
         this.storageProvider = storageProvider;
         this.jobId = getJobId(httpExchange);

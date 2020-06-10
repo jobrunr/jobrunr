@@ -79,11 +79,23 @@ const Servers = React.memo(() => {
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {
-                setServers(response);
+                setServers(sortServers(response));
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
+
+        const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/servers");
+        eventSource.addEventListener('message', e => setServers(sortServers(JSON.parse(e.data))));
+        eventSource.addEventListener('close', e => eventSource.close());
+        return function cleanUp() {
+            eventSource.close();
+        }
     }, []);
+
+    const sortServers = (servers) => {
+        servers.sort((a, b) => a.firstHeartbeat > b.firstHeartbeat)
+        return servers;
+    }
 
     return (
         <div>

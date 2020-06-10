@@ -2,9 +2,10 @@ package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.scheduling.JobId;
+import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
-import org.jobrunr.storage.listeners.JobStorageChangeListener;
+import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageProvider.class);
 
-    private final Set<JobStorageChangeListener> onChangeListeners = ConcurrentHashMap.newKeySet();
+    private final Set<StorageProviderChangeListener> onChangeListeners = ConcurrentHashMap.newKeySet();
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock reentrantLock;
     private Timer timer;
@@ -45,13 +46,13 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
-    public void addJobStorageOnChangeListener(JobStorageChangeListener listener) {
+    public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.add(listener);
         if (timer == null) {
             try {
                 if (reentrantLock.tryLock()) {
                     timer = new Timer(true);
-                    timer.schedule(new SendJobStatsUpdate(), 5000, 5000);
+                    timer.schedule(new SendJobStatsUpdate(), 3000, 5000);
                 }
             } finally {
                 reentrantLock.unlock();
@@ -60,7 +61,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
-    public void removeJobStorageOnChangeListener(JobStorageChangeListener listener) {
+    public void removeJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.remove(listener);
         if (onChangeListeners.isEmpty()) {
             try {
@@ -84,13 +85,12 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     protected void notifyOnChangeListenersIf(boolean mustNotify) {
         if (mustNotify) {
-            notifyOnChangeListeners();
+            notifyJobStatsOnChangeListeners();
         }
     }
 
-    protected void notifyOnChangeListeners() {
+    protected void notifyJobStatsOnChangeListeners() {
         try {
-            if (onChangeListeners.isEmpty()) return;
             if (changeListenerNotificationRateLimit.isRateLimited()) return;
 
             final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
@@ -132,11 +132,26 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
+    private void notifyBackgroundJobServerStatusChangeListeners() {
+        try {
+            final List<BackgroundJobServerStatusChangeListener> serverChangeListeners = StreamUtils
+                    .ofType(onChangeListeners, BackgroundJobServerStatusChangeListener.class)
+                    .collect(toList());
+            if (!serverChangeListeners.isEmpty()) {
+                List<BackgroundJobServerStatus> servers = getBackgroundJobServers();
+                serverChangeListeners.forEach(listener -> listener.onChange(servers));
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
+        }
+    }
+
     class SendJobStatsUpdate extends TimerTask {
 
         public void run() {
-            notifyOnChangeListeners();
+            notifyJobStatsOnChangeListeners();
             notifyJobChangeListeners();
+            notifyBackgroundJobServerStatusChangeListeners();
         }
     }
 }

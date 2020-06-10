@@ -118,7 +118,7 @@ public class TestService implements TestServiceInterface {
     }
 
     public void doWorkThatTakesLong(JobContext jobContext) throws InterruptedException {
-        for (int i = 0; i < 60000; i++) {
+        for (int i = 0; i < 10; i++) {
             jobContext.dashboardConsolePrintln("This is a test " + i);
             doWorkThatTakesLong(5 + ThreadLocalRandom.current().nextInt(0, 5));
         }

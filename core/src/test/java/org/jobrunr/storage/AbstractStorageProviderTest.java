@@ -4,6 +4,7 @@ import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.JobId;
+import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -36,7 +37,7 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    void JobStatsChangeListenersAreNotifiedOfJobStats() {
+    void jobStatsChangeListenersAreNotifiedOfJobStats() {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
         storageProvider.addJobStorageOnChangeListener(changeListener);
         await()
@@ -44,17 +45,11 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    public void updatingOnChangeListenersIsThreadSafe() {
-        List<JobStatsChangeListenerForTest> changeListeners = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            final JobStatsChangeListenerForTest changeListener = new SlowJobChangeListenerForTest();
-            storageProvider.addJobStorageOnChangeListener(changeListener);
-            changeListeners.add(changeListener);
-        }
-
-        await().untilAsserted(() -> assertThat(changeListeners).anyMatch(jobStatsChangeListenerForTest -> jobStatsChangeListenerForTest.jobStats != null));
-        storageProvider.removeJobStorageOnChangeListener(changeListeners.get(9));
-        await().untilAsserted(() -> assertThat(changeListeners).allMatch(jobStatsChangeListenerForTest -> jobStatsChangeListenerForTest.jobStats != null));
+    void backgroundJobServerStatusChangeListenerAreNotifiedOfBackgroundJobServers() {
+        final BackgroundJobServerStatusChangeListenerForTest changeListener = new BackgroundJobServerStatusChangeListenerForTest();
+        storageProvider.addJobStorageOnChangeListener(changeListener);
+        await()
+                .untilAsserted(() -> assertThat(changeListener.changedServerStates).isNotNull());
     }
 
     @Test
@@ -92,6 +87,20 @@ class AbstractStorageProviderTest {
     }
 
     @Test
+    public void updatingOnChangeListenersIsThreadSafe() {
+        List<JobStatsChangeListenerForTest> changeListeners = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            final JobStatsChangeListenerForTest changeListener = new SlowJobChangeListenerForTest();
+            storageProvider.addJobStorageOnChangeListener(changeListener);
+            changeListeners.add(changeListener);
+        }
+
+        await().untilAsserted(() -> assertThat(changeListeners).anyMatch(jobStatsChangeListenerForTest -> jobStatsChangeListenerForTest.jobStats != null));
+        storageProvider.removeJobStorageOnChangeListener(changeListeners.get(9));
+        await().untilAsserted(() -> assertThat(changeListeners).allMatch(jobStatsChangeListenerForTest -> jobStatsChangeListenerForTest.jobStats != null));
+    }
+
+    @Test
     void updateTimerIsStoppedIfNoChangeListeners() {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
@@ -102,6 +111,16 @@ class AbstractStorageProviderTest {
         storageProvider.removeJobStorageOnChangeListener(changeListener);
         final Timer timerAfterRemovigChangeListener = getInternalState(storageProvider, "timer");
         assertThat(timerAfterRemovigChangeListener).isNull();
+    }
+
+    private static class BackgroundJobServerStatusChangeListenerForTest implements BackgroundJobServerStatusChangeListener {
+
+        private List<BackgroundJobServerStatus> changedServerStates;
+
+        @Override
+        public void onChange(List<BackgroundJobServerStatus> changedServerStates) {
+            this.changedServerStates = changedServerStates;
+        }
     }
 
     private static class JobStatsChangeListenerForTest implements JobStatsChangeListener {

@@ -6,7 +6,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.JobId;
-import org.jobrunr.storage.listeners.JobStorageChangeListener;
+import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,9 +17,9 @@ import java.util.UUID;
  */
 public interface StorageProvider extends AutoCloseable {
 
-    void addJobStorageOnChangeListener(JobStorageChangeListener listener);
+    void addJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
-    void removeJobStorageOnChangeListener(JobStorageChangeListener listener);
+    void removeJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
     void setJobMapper(JobMapper jobMapper);
 
@@ -33,6 +33,11 @@ public interface StorageProvider extends AutoCloseable {
 
     Job save(Job job);
 
+    /**
+     * This method changes the state of the job to the DeletedState - it does not permanently delete it yet
+     *
+     * @param id the id of the job
+     */
     int delete(UUID id);
 
     int deletePermanently(UUID id);

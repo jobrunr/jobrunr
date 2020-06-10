@@ -159,7 +159,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 throw new ConcurrentJobModificationException(job);
             }
         }
-        notifyOnChangeListeners();
+        notifyJobStatsOnChangeListeners();
         return job;
     }
 

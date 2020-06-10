@@ -111,14 +111,14 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
         }
 
         jobQueue.put(job.getId(), deepClone(job));
-        notifyOnChangeListeners();
+        notifyJobStatsOnChangeListeners();
         return job;
     }
 
     @Override
     public int deletePermanently(UUID id) {
         int amountDeleted = jobQueue.remove(id) != null ? 1 : 0;
-        if (amountDeleted > 0) notifyOnChangeListeners();
+        if (amountDeleted > 0) notifyJobStatsOnChangeListeners();
         return amountDeleted;
     }
 
@@ -126,7 +126,7 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
     public List<Job> save(List<Job> jobs) {
         jobs
                 .forEach(this::save);
-        notifyOnChangeListeners();
+        notifyJobStatsOnChangeListeners();
         return jobs;
     }
 
@@ -179,7 +179,7 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
                 .map(Job::getId)
                 .collect(toList());
         jobQueue.keySet().removeAll(jobsToRemove);
-        notifyOnChangeListeners();
+        notifyJobStatsOnChangeListeners();
         return jobsToRemove.size();
     }
 

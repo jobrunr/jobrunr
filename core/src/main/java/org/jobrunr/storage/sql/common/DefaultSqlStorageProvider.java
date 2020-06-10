@@ -104,7 +104,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public Job save(Job jobToSave) {
         final Job save = jobTable().save(jobToSave);
-        notifyOnChangeListeners();
+        notifyJobStatsOnChangeListeners();
         return save;
     }
 
@@ -118,7 +118,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> save(List<Job> jobs) {
         final List<Job> savedJobs = jobTable().save(jobs);
-        notifyOnChangeListeners();
+        notifyJobStatsOnChangeListeners();
         return savedJobs;
     }
 

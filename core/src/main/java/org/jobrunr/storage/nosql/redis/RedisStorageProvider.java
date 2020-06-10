@@ -164,7 +164,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             } else {
                 updateJob(jobToSave, jedis);
             }
-            notifyOnChangeListeners();
+            notifyJobStatsOnChangeListeners();
         }
         return jobToSave;
     }

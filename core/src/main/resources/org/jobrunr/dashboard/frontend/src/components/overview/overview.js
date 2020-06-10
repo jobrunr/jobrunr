@@ -7,6 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import RealtimeGraph from "./cards/realtime-graph";
 import EstimatedProcessingTimeCard from "./cards/estimated-processing-time-card";
 import UptimeCard from "./cards/uptime-card";
+import NbrOfBackgroundJobServersCard from "./cards/number-of-background-job-servers-card";
 import AvgSystemCpuLoadCard from "./cards/avg-system-cpu-load-card";
 import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
@@ -34,13 +35,23 @@ const Overview = () => {
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {
-                const serversSorted = response;
-                serversSorted.sort((a, b) => a.firstHeartbeat > b.firstHeartbeat)
-                setServers(serversSorted);
+                setServers(sortServers(response));
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
+
+        const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/servers");
+        eventSource.addEventListener('message', e => setServers(sortServers(JSON.parse(e.data))));
+        eventSource.addEventListener('close', e => eventSource.close());
+        return function cleanUp() {
+            eventSource.close();
+        }
     }, []);
+
+    const sortServers = (servers) => {
+        servers.sort((a, b) => a.firstHeartbeat > b.firstHeartbeat)
+        return servers;
+    }
 
     return (
         <div className="app">
@@ -56,6 +67,7 @@ const Overview = () => {
                         ? <>
                             <EstimatedProcessingTimeCard/>
                             <UptimeCard servers={servers}/>
+                            <NbrOfBackgroundJobServersCard servers={servers}/>
                             <AvgSystemCpuLoadCard servers={servers}/>
                             <AvgProcessMemoryUsageCard servers={servers}/>
                             <AvgProcessFreeMemoryCard servers={servers}/>

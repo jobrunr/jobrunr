@@ -6,7 +6,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.JobId;
-import org.jobrunr.storage.listeners.JobStorageChangeListener;
+import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.MultiLock;
 
@@ -23,12 +23,12 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public void addJobStorageOnChangeListener(JobStorageChangeListener listener) {
+    public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         storageProvider.addJobStorageOnChangeListener(listener);
     }
 
     @Override
-    public void removeJobStorageOnChangeListener(JobStorageChangeListener listener) {
+    public void removeJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         storageProvider.removeJobStorageOnChangeListener(listener);
     }
 

@@ -3,6 +3,7 @@ package org.jobrunr.dashboard;
 import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.sse.ServerSentEventHandler;
 import org.jobrunr.dashboard.server.sse.SseExchange;
+import org.jobrunr.dashboard.sse.BackgroundJobServerStatusSseExchange;
 import org.jobrunr.dashboard.sse.JobSseExchange;
 import org.jobrunr.dashboard.sse.JobStatsSseExchange;
 import org.jobrunr.storage.StorageProvider;
@@ -30,11 +31,12 @@ public class JobRunrSseHandler extends ServerSentEventHandler {
         final String requestUri = httpExchange.getRequestURI().toString();
         if (requestUri.startsWith("/sse/jobstats")) {
             return new JobStatsSseExchange(httpExchange, storageProvider, jsonMapper);
+        } else if (requestUri.startsWith("/sse/servers")) {
+            return new BackgroundJobServerStatusSseExchange(httpExchange, storageProvider, jsonMapper);
         } else if (requestUri.startsWith("/sse/jobs/")) {
-            return new JobSseExchange(httpExchange, jsonMapper, storageProvider);
+            return new JobSseExchange(httpExchange, storageProvider, jsonMapper);
         }
         throw new IllegalStateException("Unsupported httpExchange");
     }
-
 
 }
