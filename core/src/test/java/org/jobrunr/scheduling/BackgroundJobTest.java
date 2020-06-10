@@ -240,6 +240,12 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void testJobsStuckInProcessingStateAreReschuled() {
+        Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId()), now().minus(15, ChronoUnit.MINUTES)).build());
+        await().atMost(3, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
+    }
+
+    @Test
     void jobCanBeUpdatedInTheBackgroundAndThenGoToSucceededState() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(10));
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));

@@ -18,10 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -42,7 +42,9 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doThrow;
@@ -195,7 +197,7 @@ class JobZooKeeperTest {
         when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
                         singletonList(orphanedJob),
-                        emptyList()
+                        emptyJobList()
                 );
 
         jobZooKeeper.run();
@@ -209,12 +211,12 @@ class JobZooKeeperTest {
         lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
                         asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
-                        emptyList()
+                        emptyJobList()
                 );
 
         jobZooKeeper.run();
 
-        verify(storageProvider).save(Mockito.any(List.class));
+        verify(storageProvider).save(anyList());
         verify(storageProvider).publishJobStatCounter(SUCCEEDED, 5);
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
@@ -264,7 +266,7 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void jobsThatAreBeingProcessedButHasBeenDeletedViaDashboardWillBeInterrupted() {
+    void jobsThatAreBeingProcessedButHaveBeenDeletedViaDashboardWillBeInterrupted() {
         final Job job = anEnqueuedJob().withId().build();
         lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
         doThrow(new ConcurrentJobModificationException(job)).when(storageProvider).save(singletonList(job));
@@ -289,7 +291,7 @@ class JobZooKeeperTest {
         when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
                 .thenReturn(
                         singletonList(job),
-                        emptyList()
+                        emptyJobList()
                 );
 
         jobZooKeeper.run();
@@ -306,5 +308,11 @@ class JobZooKeeperTest {
         final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer);
         jobZooKeeper.setIsMaster(true);
         return jobZooKeeper;
+    }
+
+    private List<Job>[] emptyJobList() {
+        List<Job>[] result = cast(new ArrayList[1]);
+        result[0] = emptyList();
+        return result;
     }
 }
