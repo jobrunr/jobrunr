@@ -138,8 +138,6 @@ const Processing = (props) => {
             </ExpansionPanelDetails>
         </ExpansionPanel>
     )
-
-
 };
 
 export default Processing;
