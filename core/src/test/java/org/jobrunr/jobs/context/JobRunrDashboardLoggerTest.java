@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.not;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -179,6 +180,43 @@ class JobRunrDashboardLoggerTest {
 
         verify(slfLogger).warn("simple message");
         assertThat(job).hasMetadata(not(WarnLog.withMessage("simple message")));
+    }
+
+    @Test
+    void JobRunrDashboardLoggerIsThreadSafe() throws InterruptedException {
+        jobRunrDashboardLogger = new JobRunrDashboardLogger(slfLogger);
+
+        final Job job1 = aJobInProgress().withName("job1").build();
+        final Job job2 = aJobInProgress().withName("job2").build();
+
+        final CountDownLatch countDownLatch = new CountDownLatch(2);
+        final Thread thread1 = new Thread(loggingRunnable(job1, jobRunrDashboardLogger, countDownLatch));
+        final Thread thread2 = new Thread(loggingRunnable(job2, jobRunrDashboardLogger, countDownLatch));
+
+        thread1.start();
+        thread2.start();
+
+        countDownLatch.await();
+
+        assertThat(job1).hasMetadata(InfoLog.withMessage("info from job1"));
+        assertThat(job1).hasMetadata(not(InfoLog.withMessage("info from job2")));
+        assertThat(job2).hasMetadata(not(InfoLog.withMessage("info from job1")));
+        assertThat(job2).hasMetadata(InfoLog.withMessage("info from job2"));
+    }
+
+    private Runnable loggingRunnable(Job job, JobRunrDashboardLogger logger, CountDownLatch countDownLatch) {
+        return () -> {
+            try {
+                JobRunrDashboardLogger.setJob(job);
+                for (int i = 0; i < 100; i++) {
+                    logger.info("info from " + job.getJobName());
+                    Thread.sleep(5);
+                }
+                countDownLatch.countDown();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
     private static class InfoLog extends LogCondition {

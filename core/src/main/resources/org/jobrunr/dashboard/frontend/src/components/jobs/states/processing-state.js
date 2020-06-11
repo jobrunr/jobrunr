@@ -73,8 +73,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ColoredLinearProgress = withStyles({
+    root: {
+        height: '7px'
+    },
     barColorPrimary: {
-        backgroundColor: "#337CFF",
+        backgroundColor: '#78b869'
     },
 })(LinearProgress);
 
