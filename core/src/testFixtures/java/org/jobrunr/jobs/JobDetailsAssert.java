@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.jobs.context.JobContext;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;

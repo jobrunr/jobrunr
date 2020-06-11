@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.jobrunr.JobRunrException;
-import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;

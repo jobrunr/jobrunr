@@ -1,8 +1,8 @@
 package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.JobUtils;
 
 import java.lang.reflect.Method;

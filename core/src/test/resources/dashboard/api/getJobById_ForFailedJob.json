@@ -357,7 +357,7 @@
     }
   ],
   "metadata": {
-    "@class": "java.util.HashMap"
+    "@class": "java.util.concurrent.ConcurrentHashMap"
   },
   "version": 1
 }

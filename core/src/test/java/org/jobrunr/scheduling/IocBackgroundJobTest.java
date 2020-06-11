@@ -2,7 +2,7 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;

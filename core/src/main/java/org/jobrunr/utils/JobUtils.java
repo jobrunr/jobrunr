@@ -1,9 +1,9 @@
 package org.jobrunr.utils;
 
-import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 

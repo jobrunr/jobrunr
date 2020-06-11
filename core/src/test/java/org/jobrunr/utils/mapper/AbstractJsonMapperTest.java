@@ -2,6 +2,8 @@ package org.jobrunr.utils.mapper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.context.JobDashboardProgressBar;
+import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJson;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -51,6 +54,25 @@ public abstract class AbstractJsonMapperTest {
 
         final String jobAsString = jsonMapper.serialize(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-custom-object-parameter.json"));
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
+    void testSerializeAndDeserializeJobInProgressWithLoggingAndProgressBar() {
+        Job job = aJobInProgress().build();
+        final RunnerJobContext jobContext = new RunnerJobContext(job);
+
+        jobContext.logger().info("this is an info message");
+        jobContext.logger().warn("this is a warning message");
+        jobContext.logger().error("this is an error message");
+
+        final JobDashboardProgressBar progressBar = jobContext.progressBar(80);
+        progressBar.setValue(10);
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/job-in-progress-with-progressbar-and-logging.json"));
 
         final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isEqualTo(job);

@@ -96,7 +96,6 @@ const Job = (props) => {
         })
             .then(res => {
                 if (res.status === 204) {
-                    console.log('showing success message');
                     setApiStatus({type: 'delete', severity: 'success', message: 'Successfully deleted job'});
                 } else {
                     setApiStatus({type: 'delete', severity: 'error', message: 'Error deleting job'});

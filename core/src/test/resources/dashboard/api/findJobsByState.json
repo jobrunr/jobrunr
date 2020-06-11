@@ -27,7 +27,7 @@
       "jobName": "an enqueued job",
       "jobSignature": "System.out.println(String)",
       "metadata": {
-        "@class": "java.util.HashMap"
+        "@class": "java.util.concurrent.ConcurrentHashMap"
       },
       "version": 0
     }

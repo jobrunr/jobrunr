@@ -2,7 +2,7 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobContext;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;

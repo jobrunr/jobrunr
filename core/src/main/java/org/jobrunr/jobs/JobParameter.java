@@ -2,7 +2,7 @@ package org.jobrunr.jobs;
 
 public class JobParameter {
 
-    public static final JobParameter JobContext = new JobParameter(JobContext.class, null);
+    public static final JobParameter JobContext = new JobParameter(org.jobrunr.jobs.context.JobContext.class, null);
 
     private String className;
     private Object object;

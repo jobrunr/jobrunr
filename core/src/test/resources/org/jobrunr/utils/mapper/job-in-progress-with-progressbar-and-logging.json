@@ -1,0 +1,59 @@
+{
+  "version": 0,
+  "jobSignature": "System.out.println(String)",
+  "jobName": "an enqueued job",
+  "jobDetails": {
+    "className": "java.lang.System",
+    "staticFieldName": "out",
+    "methodName": "println",
+    "jobParameters": [
+      {
+        "className": "java.lang.String",
+        "object": "a test"
+      }
+    ]
+  },
+  "id": "${json-unit.ignore}",
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}",
+      "updatedAt": "${json-unit.ignore}"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap",
+    "jobRunrDashboardLog-2": {
+      "@class": "org.jobrunr.jobs.context.JobDashboardLogger$JobDashboardLogLines",
+      "logLines": [
+        {
+          "level": "INFO",
+          "logInstant": "${json-unit.ignore}",
+          "logMessage": "this is an info message"
+        },
+        {
+          "level": "WARN",
+          "logInstant": "${json-unit.ignore}",
+          "logMessage": "this is a warning message"
+        },
+        {
+          "level": "ERROR",
+          "logInstant": "${json-unit.ignore}",
+          "logMessage": "this is an error message"
+        }
+      ]
+    },
+    "jobRunrDashboardProgressBar-2": {
+      "@class": "org.jobrunr.jobs.context.JobDashboardProgressBar$JobDashboardProgress",
+      "totalAmount": 80,
+      "currentValue": 10
+    }
+  }
+}

@@ -1,12 +1,13 @@
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import Alert from "@material-ui/lab/Alert";
-import Typography from "@material-ui/core/Typography";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import React from "react";
-import {makeStyles} from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import ExpansionPanel from "@material-ui/core/ExpansionPanel";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Alert from "@material-ui/lab/Alert";
 import TimeAgo from "react-timeago/lib";
+import {makeStyles, withStyles} from '@material-ui/core/styles';
 import {Cogs} from "mdi-material-ui";
 
 const useStyles = makeStyles(() => ({
@@ -61,15 +62,34 @@ const useStyles = makeStyles(() => ({
         },
         '& > dl dd': {
             margin: '-0.2em 0 -0.2em 220px'
+        },
+        '& > dl.WARN dd': {
+            color: 'orange'
+        },
+        '& > dl.ERROR dd': {
+            color: 'red'
         }
     }
 }));
 
+const ColoredLinearProgress = withStyles({
+    barColorPrimary: {
+        backgroundColor: "#337CFF",
+    },
+})(LinearProgress);
+
 const getLogs = (job, index) => {
-    if (job.metadata && job.metadata['jobRunrLog-' + (index + 1)]) {
-        return job.metadata['jobRunrLog-' + (index + 1)][1];
+    if (job.metadata && job.metadata['jobRunrDashboardLog-' + (index + 1)]) {
+        return job.metadata['jobRunrDashboardLog-' + (index + 1)].logLines;
     }
     return [];
+}
+
+const getProgressBar = (job, index) => {
+    if (job.metadata && job.metadata['jobRunrDashboardProgressBar-' + (index + 1)]) {
+        return job.metadata['jobRunrDashboardProgressBar-' + (index + 1)];
+    }
+    return null;
 }
 
 const Processing = (props) => {
@@ -79,10 +99,11 @@ const Processing = (props) => {
     const jobState = props.jobState;
     const defaultExpanded = job.jobHistory.length === (index + 1);
     const logs = getLogs(job, index);
+    const progressBar = getProgressBar(job, index);
     const processingIcon = <Cogs/>
 
     return (
-        <ExpansionPanel defaultExpanded={defaultExpanded}>
+        <ExpansionPanel expanded={defaultExpanded}>
             <ExpansionPanelSummary
                 className={classes.processing}
                 id="processing-panel-header"
@@ -98,11 +119,14 @@ const Processing = (props) => {
                     date={new Date(jobState.createdAt)}/></Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanel}>
+                {progressBar &&
+                <ColoredLinearProgress variant="determinate" value={progressBar.progress}/>
+                }
                 <div className={classes.details}>Job is processing on server {jobState.serverId}</div>
                 {logs.length > 0 &&
                 <div className={classes.console}>
                     {logs.map((log) => (
-                        <dl key={log.logInstant}>
+                        <dl key={log.logInstant} className={log.level}>
                             <dt><TimeAgo date={new Date(log.logInstant)} now={() => new Date(jobState.createdAt)}
                                          live="false" formatter={(a, b, c) => a > 1 ? `+${a} ${b}s` : `+${a} ${b}`}/>
                             </dt>

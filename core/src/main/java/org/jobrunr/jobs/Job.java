@@ -14,10 +14,10 @@ import org.jobrunr.storage.ConcurrentJobModificationException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
@@ -30,10 +30,11 @@ public class Job extends AbstractJob {
 
     private UUID id;
     private ArrayList<JobState> jobHistory;
-    private volatile Map<String, Object> metadata;
+    private final Map<String, Object> metadata;
 
     private Job() {
         // used for deserialization
+        this.metadata = new ConcurrentHashMap<>();
     }
 
     public Job(JobDetails jobDetails) {
@@ -48,6 +49,7 @@ public class Job extends AbstractJob {
         super(jobDetails);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.jobHistory = new ArrayList<>(jobHistory);
+        this.metadata = new ConcurrentHashMap<>();
     }
 
     public void setId(UUID id) {
@@ -91,8 +93,7 @@ public class Job extends AbstractJob {
         return getJobState().getUpdatedAt();
     }
 
-    Map<String, Object> getMetadata() {
-        if (metadata == null) metadata = new HashMap<>();
+    public Map<String, Object> getMetadata() {
         return metadata;
     }
 

@@ -1,9 +1,9 @@
 package org.jobrunr.jobs.mappers;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.runner.RunnerJobContext;
@@ -62,14 +62,15 @@ abstract class JobMapperTest {
     void testSerializeAndDeserializeProcessingJobWithLogs() {
         Job job = anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID())).build();
         final RunnerJobContext jobContext = new RunnerJobContext(job);
-        jobContext.dashboardConsolePrintln("test 1");
-        jobContext.dashboardConsolePrintln("test 2");
+        jobContext.logger().info("test 1");
+        jobContext.logger().warn("test 2");
 
         String jobAsString = jobMapper.serializeJob(job);
         System.out.println(jobAsString);
         final Job actualJob = jobMapper.deserializeJob(jobAsString);
 
         assertThat(actualJob).isEqualTo(job);
+        throw new UnsupportedOperationException("todo add progress bar and assert content?");
     }
 
     @Test

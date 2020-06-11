@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;

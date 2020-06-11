@@ -1,7 +1,8 @@
 package org.jobrunr.stubs;
 
-import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
 import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
@@ -118,9 +119,18 @@ public class TestService implements TestServiceInterface {
     }
 
     public void doWorkThatTakesLong(JobContext jobContext) throws InterruptedException {
+        final JobDashboardProgressBar progressBar = jobContext.progressBar(9);
         for (int i = 0; i < 10; i++) {
-            jobContext.dashboardConsolePrintln("This is a test " + i);
+            jobContext.logger().info("This is an info message test " + i);
+            Thread.sleep(100);
+            jobContext.logger().warn("This is an warning message test " + i);
+            Thread.sleep(100);
+            jobContext.logger().error("This is an error message test " + i);
+            Thread.sleep(100);
+            jobContext.logger().info("This is an info message again " + i);
+            Thread.sleep(100);
             doWorkThatTakesLong(5 + ThreadLocalRandom.current().nextInt(0, 5));
+            progressBar.setValue(i);
         }
     }
 

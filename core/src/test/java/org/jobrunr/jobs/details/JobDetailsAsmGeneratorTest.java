@@ -1,9 +1,9 @@
 package org.jobrunr.jobs.details;
 
 import org.jobrunr.JobRunrException;
-import org.jobrunr.jobs.JobContext;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
