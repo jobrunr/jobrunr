@@ -25,6 +25,10 @@ public class JobDashboardProgressBar {
         return cast(jobMetadata.get(progressBarKey));
     }
 
+    public void increaseByOne() {
+        jobDashboardProgress.increaseByOne();
+    }
+
     public void setValue(int currentProgress) {
         this.setValue((long) currentProgress);
     }
