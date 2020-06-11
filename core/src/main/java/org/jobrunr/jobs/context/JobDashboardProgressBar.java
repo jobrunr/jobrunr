@@ -29,6 +29,10 @@ public class JobDashboardProgressBar {
         jobDashboardProgress.increaseByOne();
     }
 
+    public int getProgress() {
+        return jobDashboardProgress.getProgress();
+    }
+
     public void setValue(int currentProgress) {
         this.setValue((long) currentProgress);
     }
@@ -59,6 +63,7 @@ public class JobDashboardProgressBar {
 
         public JobDashboardProgress(Long totalAmount) {
             this.totalAmount = totalAmount;
+            this.currentValue = 0L;
         }
 
         public void increaseByOne() {

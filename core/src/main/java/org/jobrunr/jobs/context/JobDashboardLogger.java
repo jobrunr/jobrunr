@@ -11,6 +11,10 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobDashboardLogger {
 
+    public enum Level {
+        INFO, WARN, ERROR
+    }
+
     public static final String JOB_RUNR_LOG_KEY = "jobRunrDashboardLog";
 
     private final JobDashboardLogLines logLines;
@@ -20,15 +24,15 @@ public class JobDashboardLogger {
     }
 
     public void info(String infoMessage) {
-        logLines.add(new JobDashboardLogLine(JobDashboardLogLine.Level.INFO, infoMessage));
+        logLines.add(new JobDashboardLogLine(Level.INFO, infoMessage));
     }
 
-    public void warn(String infoMessage) {
-        logLines.add(new JobDashboardLogLine(JobDashboardLogLine.Level.WARN, infoMessage));
+    public void warn(String warnMessage) {
+        logLines.add(new JobDashboardLogLine(Level.WARN, warnMessage));
     }
 
-    public void error(String infoMessage) {
-        logLines.add(new JobDashboardLogLine(JobDashboardLogLine.Level.ERROR, infoMessage));
+    public void error(String errorMessage) {
+        logLines.add(new JobDashboardLogLine(Level.ERROR, errorMessage));
     }
 
     private JobDashboardLogLines initLogLines(Job job) {
@@ -50,7 +54,7 @@ public class JobDashboardLogger {
         return JOB_RUNR_LOG_KEY + "-" + jobStateNbr;
     }
 
-    private static class JobDashboardLogLines implements JobContext.Metadata {
+    static class JobDashboardLogLines implements JobContext.Metadata {
         /* Must be ArrayList for JSON serialization */
         private final ArrayList<JobDashboardLogLine> logLines;
 
@@ -67,10 +71,7 @@ public class JobDashboardLogger {
         }
     }
 
-    private static class JobDashboardLogLine {
-        private enum Level {
-            INFO, WARN, ERROR
-        }
+    static class JobDashboardLogLine {
 
         private Level level;
         private Instant logInstant;

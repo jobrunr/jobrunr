@@ -10,6 +10,7 @@ import java.io.OutputStreamWriter;
 public class SseExchange implements AutoCloseable {
 
     private final BufferedWriter writer;
+    private String lastSendMessage;
 
     public SseExchange(HttpExchange httpExchange) throws IOException {
         this.writer = new BufferedWriter(new OutputStreamWriter(httpExchange.getResponseBody()));
@@ -26,10 +27,12 @@ public class SseExchange implements AutoCloseable {
 
     public void sendMessage(String message) {
         if (message == null) return;
+        if (message.equals(lastSendMessage)) return;
         try {
             writer.write("event\n");
             writer.write("data: " + message + "\n\n");
             writer.flush();
+            lastSendMessage = message;
         } catch (IOException e) {
             close();
         }

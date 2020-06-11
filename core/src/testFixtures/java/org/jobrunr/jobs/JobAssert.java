@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
 import org.assertj.core.data.TemporalOffset;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.StateName;
@@ -44,6 +45,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasMetadata(String key, String value) {
         Assertions.assertThat(actual.getMetadata()).containsEntry(key, value);
+        return null;
+    }
+
+    public JobAssert hasMetadata(Condition condition) {
+        Assertions.assertThat(actual.getMetadata()).has(condition);
         return null;
     }
 

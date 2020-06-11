@@ -241,11 +241,17 @@ public class ReflectionUtils {
         throw new JobNotFoundException(clazz, "<init>", args);
     }
 
+    /**
+     * Why: less warnings and @SuppressWarnings("unchecked")
+     */
     @SuppressWarnings("unchecked")
     private static <T> Class<T> cast(Class<?> aClass) {
         return (Class<T>) aClass;
     }
 
+    /**
+     * Why: less warnings and @SuppressWarnings("unchecked")
+     */
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object anObject) {
         return (T) anObject;

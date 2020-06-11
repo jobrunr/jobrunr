@@ -97,13 +97,17 @@ const Processing = (props) => {
     const index = props.index;
     const job = props.job;
     const jobState = props.jobState;
-    const defaultExpanded = job.jobHistory.length === (index + 1);
+    const [expanded, setExpanded] = React.useState(job.jobHistory.length === (index + 1));
     const logs = getLogs(job, index);
     const progressBar = getProgressBar(job, index);
     const processingIcon = <Cogs/>
 
+    const handleChange = () => {
+        setExpanded(!expanded);
+    };
+
     return (
-        <ExpansionPanel expanded={defaultExpanded}>
+        <ExpansionPanel expanded={expanded} onChange={handleChange}>
             <ExpansionPanelSummary
                 className={classes.processing}
                 id="processing-panel-header"
