@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
-import static org.jobrunr.storage.sql.common.SqlStorageProviderFactory.getStorageProviderClassByJdbcUrl;
 import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class DatabaseCreator {
@@ -42,7 +41,7 @@ public class DatabaseCreator {
             System.out.println("==========================================================");
             System.out.println("================== JobRunr Table Creator =================");
             System.out.println("==========================================================");
-            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), getStorageProviderClassByJdbcUrl(url)).runMigrations();
+            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), new SqlStorageProviderFactory().getStorageProviderClassByJdbcUrl(url)).runMigrations();
             System.out.println("Successfully created all tables!");
         } catch (Exception e) {
             System.out.println("An error occurred: ");

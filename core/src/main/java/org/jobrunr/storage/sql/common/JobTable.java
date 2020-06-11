@@ -26,7 +26,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobTable extends Sql<Job> {
 
-    private final JobMapper jobMapper;
+    final JobMapper jobMapper;
 
     public JobTable(DataSource dataSource, JobMapper jobMapper) {
         this.jobMapper = jobMapper;
@@ -81,15 +81,13 @@ public class JobTable extends Sql<Job> {
             if (notAllJobsAreNew(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            jobs.forEach(JobTable::setId);
-            insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+            insertAllJobs(jobs);
         } else {
             try {
                 if (notAllJobsAreExisting(jobs)) {
                     throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
                 }
-                jobs.forEach(AbstractJob::increaseVersion);
-                updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+                updateAllJobs(jobs);
             } catch (ConcurrentSqlModificationException e) {
                 List<Job> concurrentUpdatedJobs = cast(e.getFailedItems());
                 throw new ConcurrentJobModificationException(concurrentUpdatedJobs);
@@ -148,36 +146,46 @@ public class JobTable extends Sql<Job> {
                 .delete("from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore");
     }
 
-    private Stream<Job> selectJobs(String statement) {
-        final Stream<SqlResultSet> select = super.select(statement);
-        return select.map(this::toJob);
-    }
-
     @Override
     public JobTable withLimitAndOffset(int limit, long offset) {
         super.withLimitAndOffset(limit, offset);
         return this;
     }
 
-    private Job toJob(SqlResultSet resultSet) {
+    void insertAllJobs(List<Job> jobs) {
+        jobs.forEach(JobTable::setId);
+        insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+    }
+
+    void updateAllJobs(List<Job> jobs) {
+        jobs.forEach(AbstractJob::increaseVersion);
+        updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+    }
+
+    Stream<Job> selectJobs(String statement) {
+        final Stream<SqlResultSet> select = super.select(statement);
+        return select.map(this::toJob);
+    }
+
+    Job toJob(SqlResultSet resultSet) {
         return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
     }
 
-    private static void setId(Job job) {
+    static void setId(Job job) {
         if (job.getId() == null) {
             job.setId(UUID.randomUUID());
         }
     }
 
-    private static boolean notAllJobsAreNew(List<Job> jobs) {
+    static boolean notAllJobsAreNew(List<Job> jobs) {
         return jobs.stream().anyMatch(job -> job.getId() != null);
     }
 
-    private static boolean notAllJobsAreExisting(List<Job> jobs) {
+    static boolean notAllJobsAreExisting(List<Job> jobs) {
         return jobs.stream().anyMatch(job -> job.getId() == null);
     }
 
-    private static boolean areNewJobs(List<Job> jobs) {
+    static boolean areNewJobs(List<Job> jobs) {
         return jobs.get(0).getId() == null;
     }
 

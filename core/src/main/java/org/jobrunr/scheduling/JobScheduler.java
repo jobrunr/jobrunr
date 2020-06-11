@@ -56,9 +56,13 @@ public class JobScheduler {
      * @param jobFilters      list of jobFilters that will be used for every job
      */
     public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
+        this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
+    }
+
+    JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
         if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
         this.storageProvider = storageProvider;
-        this.jobDetailsGenerator = new JobDetailsAsmGenerator();
+        this.jobDetailsGenerator = jobDetailsGenerator;
         this.jobFilters = new JobFilters(jobFilters);
     }
 
@@ -392,29 +396,29 @@ public class JobScheduler {
         this.storageProvider.deleteRecurringJob(id);
     }
 
-    private JobId enqueue(JobDetails jobDetails) {
+    JobId enqueue(JobDetails jobDetails) {
         return saveJob(new Job(jobDetails));
     }
 
-    private JobId schedule(JobDetails jobDetails, Instant scheduleAt) {
+    JobId schedule(JobDetails jobDetails, Instant scheduleAt) {
         return saveJob(new Job(jobDetails, new ScheduledState(scheduleAt)));
     }
 
-    private JobId saveJob(Job job) {
+    JobId saveJob(Job job) {
         jobFilters.runOnCreatingFilter(job);
         Job savedJob = this.storageProvider.save(job);
         jobFilters.runOnCreatedFilter(savedJob);
         return new JobId(savedJob.getId());
     }
 
-    private List<Job> saveJobs(List<Job> jobs) {
+    List<Job> saveJobs(List<Job> jobs) {
         jobFilters.runOnCreatingFilter(jobs);
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilters.runOnCreatedFilter(savedJobs);
         return savedJobs;
     }
 
-    private String scheduleRecurringly(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
+    String scheduleRecurringly(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
         jobFilters.runOnCreatingFilter(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);

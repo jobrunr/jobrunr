@@ -21,6 +21,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJson;
+import static org.jobrunr.JobRunrAssertions.contentOfResource;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -64,13 +66,13 @@ abstract class JobMapperTest {
         final RunnerJobContext jobContext = new RunnerJobContext(job);
         jobContext.logger().info("test 1");
         jobContext.logger().warn("test 2");
+        jobContext.progressBar(10).setValue(4);
 
         String jobAsString = jobMapper.serializeJob(job);
-        System.out.println(jobAsString);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/jobs/mappers/job-in-progress-with-logs-and-progressbar.json"));
         final Job actualJob = jobMapper.deserializeJob(jobAsString);
 
         assertThat(actualJob).isEqualTo(job);
-        throw new UnsupportedOperationException("todo add progress bar and assert content?");
     }
 
     @Test

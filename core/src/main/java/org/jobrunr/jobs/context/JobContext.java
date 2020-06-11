@@ -50,7 +50,7 @@ public class JobContext {
         return job.getUpdatedAt();
     }
 
-    public String getJobIdentifier() {
+    public String getSignature() {
         return job.getJobSignature();
     }
 

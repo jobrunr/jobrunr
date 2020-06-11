@@ -8,13 +8,11 @@ import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -240,21 +238,17 @@ public class TestService implements TestServiceInterface {
 
         @Override
         public void onStateApplied(org.jobrunr.jobs.Job job, JobState oldState, JobState newState) {
-            getMetadata(job).put("onStateApplied", null);
+            job.getMetadata().put("onStateApplied", "");
         }
 
         @Override
         public void onProcessing(org.jobrunr.jobs.Job job) {
-            getMetadata(job).put("onProcessing", null);
+            job.getMetadata().put("onProcessing", "");
         }
 
         @Override
         public void onProcessed(org.jobrunr.jobs.Job job) {
-            getMetadata(job).put("onProcessed", null);
-        }
-
-        private Map<String, Object> getMetadata(org.jobrunr.jobs.Job job) {
-            return Whitebox.getInternalState(job, "metadata");
+            job.getMetadata().put("onProcessed", "");
         }
     }
 }

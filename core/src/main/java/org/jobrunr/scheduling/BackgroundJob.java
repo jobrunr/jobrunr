@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  */
 public class BackgroundJob {
 
-    private BackgroundJob() {
+    BackgroundJob() {
     }
 
     private static JobScheduler jobScheduler;

@@ -1,5 +1,6 @@
 plugins {
     id 'java-platform'
+    id 'maven-publish'
 }
 
 dependencies {
@@ -42,5 +43,16 @@ dependencies {
         api 'org.testcontainers:mysql:1.14.2'
         api 'org.testcontainers:oracle-xe:1.14.2'
         api 'org.testcontainers:postgresql:1.14.2'
+    }
+}
+
+publishing {
+    publications {
+        mavenJavaPlatform(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-bom'
+            version = project.version.replace("v", "")
+            from components.javaPlatform
+        }
     }
 }

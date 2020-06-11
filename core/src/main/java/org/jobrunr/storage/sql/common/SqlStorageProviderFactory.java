@@ -13,10 +13,15 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class SqlStorageProviderFactory {
 
-    private SqlStorageProviderFactory() {
+    protected SqlStorageProviderFactory() {
     }
 
     public static StorageProvider using(DataSource dataSource) {
+        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
+        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource);
+    }
+
+    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource) {
         try (Connection connection = dataSource.getConnection()) {
             String jdbcUrl = connection.getMetaData().getURL();
             return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
@@ -25,12 +30,12 @@ public class SqlStorageProviderFactory {
         }
     }
 
-    private static StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource) {
+    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource) {
         final Class<SqlStorageProvider> storageProviderClassByJdbcUrl = getStorageProviderClassByJdbcUrl(jdbcUrl);
         return getStorageProvider(storageProviderClassByJdbcUrl, dataSource);
     }
 
-    static Class<SqlStorageProvider> getStorageProviderClassByJdbcUrl(String jdbcUrl) {
+    Class<SqlStorageProvider> getStorageProviderClassByJdbcUrl(String jdbcUrl) {
         if (jdbcUrl.startsWith("jdbc:sqlite")) {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".sqlite.SqLiteStorageProvider");
         } else if (jdbcUrl.startsWith("jdbc:h2")) {
@@ -47,7 +52,7 @@ public class SqlStorageProviderFactory {
         throw unsupportedDataSourceException(jdbcUrl);
     }
 
-    private static StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource) {
+    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource) {
         try {
             final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class);
             return (StorageProvider) declaredConstructor.newInstance(dataSource);
@@ -56,7 +61,7 @@ public class SqlStorageProviderFactory {
         }
     }
 
-    private static Class<SqlStorageProvider> getStorageProviderClass(String className) {
+    Class<SqlStorageProvider> getStorageProviderClass(String className) {
         try {
             return cast(Class.forName(className));
         } catch (ReflectiveOperationException e) {
@@ -64,7 +69,7 @@ public class SqlStorageProviderFactory {
         }
     }
 
-    private static JobRunrException unsupportedDataSourceException(String jdbcUrl) {
+    JobRunrException unsupportedDataSourceException(String jdbcUrl) {
         return new JobRunrException("Are you running an unsupported DataSource or Database? Please check the documentation. If you think this is wrong, please open an issue using the following url: https://github.com/jobrunr/jobrunr/issues/new?template=bug_report.md&title=%5BBUG%5D5%20-%20missing%20DataSource%20" + jdbcUrl);
     }
 }
