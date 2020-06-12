@@ -81,8 +81,42 @@ public class Job extends AbstractJob {
         return getJobState().getName();
     }
 
+    protected void addJobState(JobState jobState) {
+        this.jobHistory.add(jobState);
+    }
+
     public boolean hasState(StateName state) {
         return getState().equals(state);
+    }
+
+    public void enqueue() {
+        addJobState(new EnqueuedState());
+    }
+
+    public void scheduleAt(Instant instant, String reason) {
+        addJobState(new ScheduledState(instant, reason));
+    }
+
+    public void startProcessingOn(BackgroundJobServer backgroundJobServer) {
+        if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
+        addJobState(new ProcessingState(backgroundJobServer.getId()));
+    }
+
+    public void updateProcessing() {
+        ProcessingState jobState = getJobState();
+        jobState.setUpdatedAt(Instant.now());
+    }
+
+    public void succeeded() {
+        addJobState(new SucceededState(Duration.between(getCreatedAt(), Instant.now()), Duration.between(getUpdatedAt(), Instant.now())));
+    }
+
+    public void failed(String message, Exception exception) {
+        addJobState(new FailedState(message, exception));
+    }
+
+    public void delete() {
+        addJobState(new DeletedState());
     }
 
     public Instant getCreatedAt() {
@@ -95,36 +129,6 @@ public class Job extends AbstractJob {
 
     public Map<String, Object> getMetadata() {
         return metadata;
-    }
-
-    public void enqueue() {
-        this.jobHistory.add(new EnqueuedState());
-    }
-
-    public void scheduleAt(Instant instant, String reason) {
-        this.jobHistory.add(new ScheduledState(instant, reason));
-    }
-
-    public void startProcessingOn(BackgroundJobServer backgroundJobServer) {
-        if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
-        this.jobHistory.add(new ProcessingState(backgroundJobServer.getId()));
-    }
-
-    public void updateProcessing() {
-        ProcessingState jobState = getJobState();
-        jobState.setUpdatedAt(Instant.now());
-    }
-
-    public void succeeded() {
-        this.jobHistory.add(new SucceededState(Duration.between(getCreatedAt(), Instant.now()), Duration.between(getUpdatedAt(), Instant.now())));
-    }
-
-    public void failed(String message, Exception exception) {
-        this.jobHistory.add(new FailedState(message, exception));
-    }
-
-    public void delete() {
-        this.jobHistory.add(new DeletedState());
     }
 
     @Override

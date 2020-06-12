@@ -54,9 +54,9 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public abstract class StorageProviderTest {
 
-    private StorageProvider storageProvider;
-    private BackgroundJobServer backgroundJobServer;
-    private JobMapper jobMapper;
+    protected StorageProvider storageProvider;
+    protected BackgroundJobServer backgroundJobServer;
+    protected JobMapper jobMapper;
 
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {

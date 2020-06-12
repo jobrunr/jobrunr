@@ -33,9 +33,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         SKIP_CREATE
     }
 
-    final DataSource dataSource;
-    final DatabaseOptions databaseOptions;
-    JobMapper jobMapper;
+    protected final DataSource dataSource;
+    protected final DatabaseOptions databaseOptions;
+    protected JobMapper jobMapper;
 
     public DefaultSqlStorageProvider(DataSource dataSource) {
         this(dataSource, CREATE, rateLimit().at2Requests().per(SECOND));
@@ -222,15 +222,15 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         );
     }
 
-    JobTable jobTable() {
+    protected JobTable jobTable() {
         return new JobTable(dataSource, jobMapper);
     }
 
-    RecurringJobTable recurringJobTable() {
+    protected RecurringJobTable recurringJobTable() {
         return new RecurringJobTable(dataSource, jobMapper);
     }
 
-    BackgroundJobServerTable backgroundJobServerTable() {
+    protected BackgroundJobServerTable backgroundJobServerTable() {
         return new BackgroundJobServerTable(dataSource);
     }
 
