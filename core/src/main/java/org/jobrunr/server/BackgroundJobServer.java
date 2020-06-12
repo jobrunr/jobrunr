@@ -63,8 +63,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobFilters = new JobFilters();
-        this.serverZooKeeper = new ServerZooKeeper(this);
-        this.jobZooKeeper = new JobZooKeeper(this);
+        this.serverZooKeeper = createServerZooKeeper();
+        this.jobZooKeeper = createJobZooKeeper();
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "extShutdownHook"));
     }
 
@@ -204,6 +204,14 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
+    }
+
+    JobZooKeeper createJobZooKeeper() {
+        return new JobZooKeeper(this);
+    }
+
+    ServerZooKeeper createServerZooKeeper() {
+        return new ServerZooKeeper(this);
     }
 
 }

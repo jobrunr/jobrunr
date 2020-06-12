@@ -71,7 +71,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *            MyService service = new MyService();
-     *            BackgroundJob.enqueue(() -> service.doWork());
+     *            jobScheduler.enqueue(() -> service.doWork());
      *       }</pre>
      *
      * @param job the lambda which defines the fire-and-forget job
@@ -88,7 +88,7 @@ public class JobScheduler {
      * <pre>{@code
      *      MyService service = new MyService();
      *      Stream<UUID> workStream = getWorkStream();
-     *      BackgroundJob.enqueue(workStream, (uuid) -> service.doWork(uuid));
+     *      jobScheduler.enqueue(workStream, (uuid) -> service.doWork(uuid));
      * }</pre>
      *
      * @param input         the stream of items for which to create fire-and-forget jobs
@@ -105,7 +105,7 @@ public class JobScheduler {
      * Creates a new fire-and-forget job based on a given lambda. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *            BackgroundJob.<MyService>enqueue(x -> x.doWork());
+     *            jobScheduler.<MyService>enqueue(x -> x.doWork());
      *       }</pre>
      *
      * @param iocJob the lambda which defines the fire-and-forget job
@@ -121,7 +121,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      Stream<UUID> workStream = getWorkStream();
-     *      BackgroundJob.<MyService, UUID>enqueue(workStream, (x, uuid) -> x.doWork(uuid));
+     *      jobScheduler.<MyService, UUID>enqueue(workStream, (x, uuid) -> x.doWork(uuid));
      * }</pre>
      *
      * @param input            the stream of items for which to create fire-and-forget jobs
@@ -139,7 +139,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.schedule(() -> service.doWork(), ZonedDateTime.now().plusHours(5));
+     *      jobScheduler.schedule(() -> service.doWork(), ZonedDateTime.now().plusHours(5));
      * }</pre>
      *
      * @param job           the lambda which defines the fire-and-forget job
@@ -154,7 +154,7 @@ public class JobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>schedule(x -> x.doWork(), ZonedDateTime.now().plusHours(5));
+     *      jobScheduler.<MyService>schedule(x -> x.doWork(), ZonedDateTime.now().plusHours(5));
      * }</pre>
      *
      * @param iocJob        the lambda which defines the fire-and-forget job
@@ -170,7 +170,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.schedule(() -> service.doWork(), OffsetDateTime.now().plusHours(5));
+     *      jobScheduler.schedule(() -> service.doWork(), OffsetDateTime.now().plusHours(5));
      * }</pre>
      *
      * @param job            the lambda which defines the fire-and-forget job
@@ -185,7 +185,7 @@ public class JobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>schedule(x -> x.doWork(), OffsetDateTime.now().plusHours(5));
+     *      jobScheduler.<MyService>schedule(x -> x.doWork(), OffsetDateTime.now().plusHours(5));
      * }</pre>
      *
      * @param iocJob         the lambda which defines the fire-and-forget job
@@ -201,7 +201,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.schedule(() -> service.doWork(), LocalDateTime.now().plusHours(5));
+     *      jobScheduler.schedule(() -> service.doWork(), LocalDateTime.now().plusHours(5));
      * }</pre>
      *
      * @param job           the lambda which defines the fire-and-forget job
@@ -216,7 +216,7 @@ public class JobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>schedule(x -> x.doWork(), LocalDateTime.now().plusHours(5));
+     *      jobScheduler.<MyService>schedule(x -> x.doWork(), LocalDateTime.now().plusHours(5));
      * }</pre>
      *
      * @param iocJob        the lambda which defines the fire-and-forget job
@@ -232,7 +232,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.schedule(() -> service.doWork(), Instant.now().plusHours(5));
+     *      jobScheduler.schedule(() -> service.doWork(), Instant.now().plusHours(5));
      * }</pre>
      *
      * @param job     the lambda which defines the fire-and-forget job
@@ -248,7 +248,7 @@ public class JobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>schedule(x -> x.doWork(), Instant.now().plusHours(5));
+     *      jobScheduler.<MyService>schedule(x -> x.doWork(), Instant.now().plusHours(5));
      * }</pre>
      *
      * @param iocJob  the lambda which defines the fire-and-forget job
@@ -281,7 +281,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.scheduleRecurringly(() -> service.doWork(), Cron.daily());
+     *      jobScheduler.scheduleRecurringly(() -> service.doWork(), Cron.daily());
      * }</pre>
      *
      * @param job  the lambda which defines the fire-and-forget job
@@ -297,7 +297,7 @@ public class JobScheduler {
      * Creates a new recurring job based on the given lambda and the given cron expression. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>scheduleRecurringly(x -> x.doWork(), Cron.daily());
+     *      jobScheduler.<MyService>scheduleRecurringly(x -> x.doWork(), Cron.daily());
      * }</pre>
      *
      * @param iocJob the lambda which defines the fire-and-forget job
@@ -314,7 +314,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily());
+     *      jobScheduler.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily());
      * }</pre>
      *
      * @param id   the id of this recurring job which can be used to alter or delete it
@@ -331,7 +331,7 @@ public class JobScheduler {
      * Creates a new recurring job based on the given id, lambda and cron expression. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>scheduleRecurringly("my-recurring-job", x -> x.doWork(), Cron.daily());
+     *      jobScheduler.<MyService>scheduleRecurringly("my-recurring-job", x -> x.doWork(), Cron.daily());
      * }</pre>
      *
      * @param id     the id of this recurring job which can be used to alter or delete it
@@ -349,7 +349,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
+     *      jobScheduler.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
      * }</pre>
      *
      * @param id     the id of this recurring job which can be used to alter or delete it
@@ -368,7 +368,7 @@ public class JobScheduler {
      * Creates a new recurring job based on the given id, lambda, cron expression and {@code ZoneId}. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>scheduleRecurringly("my-recurring-job", x -> x.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
+     *      jobScheduler.<MyService>scheduleRecurringly("my-recurring-job", x -> x.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
      * }</pre>
      *
      * @param id     the id of this recurring job which can be used to alter or delete it
@@ -387,12 +387,12 @@ public class JobScheduler {
      * Deletes the recurring job based on the given id.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.deleteRecurringly("my-recurring-job"));
+     *      jobScheduler.delete("my-recurring-job"));
      * }</pre>
      *
      * @param id the id of the recurring job to delete
      */
-    public void deleteRecurringly(String id) {
+    public void delete(String id) {
         this.storageProvider.deleteRecurringJob(id);
     }
 

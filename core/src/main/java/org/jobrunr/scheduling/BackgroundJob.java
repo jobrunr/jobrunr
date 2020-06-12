@@ -361,7 +361,7 @@ public class BackgroundJob {
      */
     public static void delete(String id) {
         verifyJobScheduler();
-        jobScheduler.deleteRecurringly(id);
+        jobScheduler.delete(id);
     }
 
     private static void verifyJobScheduler() {

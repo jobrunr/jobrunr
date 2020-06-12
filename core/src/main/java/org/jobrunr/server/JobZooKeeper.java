@@ -35,24 +35,24 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public class JobZooKeeper implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
 
-    private final BackgroundJobServer backgroundJobServer;
-    private final StorageProvider storageProvider;
-    private final JobFilters jobFilters;
-    private final WorkDistributionStrategy workDistributionStrategy;
-    private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
-    private final Map<Job, Thread> currentlyProcessedJobs;
-    private final AtomicInteger exceptionCount;
-    private final ReentrantLock reentrantLock;
-    private final AtomicBoolean isMaster;
+    final BackgroundJobServer backgroundJobServer;
+    final StorageProvider storageProvider;
+    final JobFilters jobFilters;
+    final WorkDistributionStrategy workDistributionStrategy;
+    final ConcurrentJobModificationResolver concurrentJobModificationResolver;
+    final Map<Job, Thread> currentlyProcessedJobs;
+    final AtomicInteger exceptionCount;
+    final ReentrantLock reentrantLock;
+    final AtomicBoolean isMaster;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.jobFilters = backgroundJobServer.getJobFilters();
-        this.workDistributionStrategy = new BasicWorkDistributionStrategy(backgroundJobServer, this);
-        this.concurrentJobModificationResolver = new ConcurrentJobModificationResolver(storageProvider, this);
+        this.workDistributionStrategy = createWorkDistributionStrategy();
+        this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();
         this.reentrantLock = new ReentrantLock();
         this.exceptionCount = new AtomicInteger();
@@ -66,11 +66,7 @@ public class JobZooKeeper implements Runnable {
 
             if (canOnboardNewWork()) {
                 if (isMaster()) {
-                    checkForRecurringJobs();
-                    checkForScheduledJobs();
-                    checkForOrphanedJobs();
-                    checkForSucceededJobsThanCanGoToDeletedState();
-                    checkForJobsThatCanBeDeleted();
+                    runMasterTasks();
                 }
 
                 updateJobsThatAreBeingProcessed();
@@ -86,6 +82,14 @@ public class JobZooKeeper implements Runnable {
                 backgroundJobServer.stop();
             }
         }
+    }
+
+    void runMasterTasks() {
+        checkForRecurringJobs();
+        checkForScheduledJobs();
+        checkForOrphanedJobs();
+        checkForSucceededJobsThanCanGoToDeletedState();
+        checkForJobsThatCanBeDeleted();
     }
 
     public void stop() {
@@ -104,31 +108,31 @@ public class JobZooKeeper implements Runnable {
         return isMaster == null;
     }
 
-    private boolean canOnboardNewWork() {
+    boolean canOnboardNewWork() {
         return backgroundJobServerStatus().isRunning() && workDistributionStrategy.canOnboardNewWork();
     }
 
-    private void checkForRecurringJobs() {
+    void checkForRecurringJobs() {
         LOGGER.debug("Looking for recurring jobs... ");
         List<RecurringJob> enqueuedJobs = storageProvider.getRecurringJobs();
         processRecurringJobs(enqueuedJobs);
     }
 
-    private void checkForScheduledJobs() {
+    void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
 
         Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), PageRequest.asc(0, 1000));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
-    private void checkForOrphanedJobs() {
+    void checkForOrphanedJobs() {
         LOGGER.debug("Looking for orphan jobs... ");
         final Instant updatedBefore = now().minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
         Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, PageRequest.asc(0, 1000));
         processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
     }
 
-    private void checkForSucceededJobsThanCanGoToDeletedState() {
+    void checkForSucceededJobsThanCanGoToDeletedState() {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
@@ -144,17 +148,17 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    private void checkForJobsThatCanBeDeleted() {
+    void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
         storageProvider.deleteJobs(StateName.DELETED, now().minus(72, ChronoUnit.HOURS));
     }
 
-    private void updateJobsThatAreBeingProcessed() {
+    void updateJobsThatAreBeingProcessed() {
         LOGGER.debug("Updating currently processed jobs... ");
         processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), Job::updateProcessing);
     }
 
-    private void checkForEnqueuedJobs() {
+    void checkForEnqueuedJobs() {
         try {
             if (reentrantLock.tryLock()) {
                 LOGGER.debug("Looking for enqueued jobs... ");
@@ -171,21 +175,21 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    private void processRecurringJobs(List<RecurringJob> recurringJobs) {
+    void processRecurringJobs(List<RecurringJob> recurringJobs) {
         LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
         recurringJobs.stream()
                 .filter(this::isNotYetScheduled)
                 .forEach(backgroundJobServer::scheduleJob);
     }
 
-    private boolean isNotYetScheduled(RecurringJob recurringJob) {
+    boolean isNotYetScheduled(RecurringJob recurringJob) {
         if (storageProvider.exists(recurringJob.getJobDetails(), StateName.SCHEDULED)) return false;
         else if (storageProvider.exists(recurringJob.getJobDetails(), StateName.ENQUEUED)) return false;
         else if (storageProvider.exists(recurringJob.getJobDetails(), StateName.PROCESSING)) return false;
         else return true;
     }
 
-    private void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
+    void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
         List<Job> jobs = jobListSupplier.get();
         while (!jobs.isEmpty()) {
             processJobList(jobs, jobConsumer);
@@ -193,7 +197,7 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    private void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
+    void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
         if (!jobs.isEmpty()) {
             try {
                 jobs.forEach(jobConsumer);
@@ -206,7 +210,7 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    private BackgroundJobServerStatus backgroundJobServerStatus() {
+    BackgroundJobServerStatus backgroundJobServerStatus() {
         return backgroundJobServer.getServerStatus();
     }
 
@@ -230,5 +234,13 @@ public class JobZooKeeper implements Runnable {
         if (workDistributionStrategy.canOnboardNewWork()) {
             checkForEnqueuedJobs();
         }
+    }
+
+    BasicWorkDistributionStrategy createWorkDistributionStrategy() {
+        return new BasicWorkDistributionStrategy(backgroundJobServer, this);
+    }
+
+    ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
+        return new ConcurrentJobModificationResolver(storageProvider, this);
     }
 }

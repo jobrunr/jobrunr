@@ -1,5 +1,6 @@
 package org.jobrunr.dashboard.server;
 
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -22,8 +23,8 @@ public class TeenyWebServer {
         }
     }
 
-    public void createContext(TeenyHttpHandler httpHandler) {
-        httpServer.createContext(httpHandler.getContextPath(), httpHandler);
+    public HttpContext createContext(TeenyHttpHandler httpHandler) {
+        return httpServer.createContext(httpHandler.getContextPath(), httpHandler);
     }
 
     public void start() {

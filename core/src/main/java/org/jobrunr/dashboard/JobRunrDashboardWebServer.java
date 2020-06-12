@@ -1,5 +1,7 @@
 package org.jobrunr.dashboard;
 
+import com.sun.net.httpserver.HttpContext;
+import org.jobrunr.dashboard.server.TeenyHttpHandler;
 import org.jobrunr.dashboard.server.TeenyWebServer;
 import org.jobrunr.dashboard.server.http.RedirectHttpHandler;
 import org.jobrunr.storage.StorageProvider;
@@ -26,9 +28,9 @@ public class JobRunrDashboardWebServer {
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
         RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", "/dashboard");
-        JobRunrStaticFileHandler staticFileHandler = getStaticFileHandler();
-        JobRunrApiHandler dashboardHandler = getApiHandler(storageProvider, jsonMapper);
-        JobRunrSseHandler sseHandler = getSSeHandler(storageProvider, jsonMapper);
+        JobRunrStaticFileHandler staticFileHandler = createStaticFileHandler();
+        JobRunrApiHandler dashboardHandler = createApiHandler(storageProvider, jsonMapper);
+        JobRunrSseHandler sseHandler = createSSeHandler(storageProvider, jsonMapper);
 
         teenyWebServer = new TeenyWebServer(port);
         teenyWebServer.createContext(redirectHttpHandler);
@@ -44,15 +46,19 @@ public class JobRunrDashboardWebServer {
 
     }
 
-    JobRunrStaticFileHandler getStaticFileHandler() {
+    HttpContext registerContext(TeenyHttpHandler httpHandler) {
+        return teenyWebServer.createContext(httpHandler);
+    }
+
+    JobRunrStaticFileHandler createStaticFileHandler() {
         return new JobRunrStaticFileHandler();
     }
 
-    JobRunrApiHandler getApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
+    JobRunrApiHandler createApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrApiHandler(storageProvider, jsonMapper);
     }
 
-    JobRunrSseHandler getSSeHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
+    JobRunrSseHandler createSSeHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrSseHandler(storageProvider, jsonMapper);
     }
 
