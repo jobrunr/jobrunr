@@ -124,8 +124,15 @@ publishing {
                     url = 'https://github.com/jobrunr/jobrunr.git'
                 }
 
+                versionMapping {
+                    usage('java-runtime'){
+                        fromResolutionResult()
+                    }
+                }
+
                 withXml {
                     Node pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
                     pomNode.dependencies.'*'.findAll() {
                         it.optional.text() == 'true'
                     }.each() {
