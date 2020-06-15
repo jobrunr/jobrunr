@@ -56,6 +56,30 @@ publishing {
             artifactId = 'jobrunr-bom'
             version = project.version.replace("v", "")
             from components.javaPlatform
+
+            pom {
+                name = 'JobRunr BOM'
+                description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'Multi licensed'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+            }
         }
     }
 }
