@@ -34,6 +34,7 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'com.google.code.gson:gson'
+    compileOnly 'org.eclipse:yasson'
     compileOnly 'org.xerial:sqlite-jdbc'
     compileOnly 'com.h2database:h2'
     compileOnly 'org.postgresql:postgresql'
@@ -49,11 +50,11 @@ dependencies {
     compileOnly 'redis.clients:jedis'
     compileOnly 'org.mongodb:mongo-java-driver'
 
-
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.eclipse:yasson'
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mariadb'

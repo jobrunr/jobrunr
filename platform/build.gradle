@@ -16,6 +16,7 @@ dependencies {
         api 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.0'
         api 'com.google.code.gson:gson:2.8.6'
+        api 'org.eclipse:yasson:1.0.7'
         api 'org.xerial:sqlite-jdbc:3.31.1'
         api 'com.h2database:h2:1.4.200'
         api 'org.postgresql:postgresql:42.2.12'

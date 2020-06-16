@@ -46,10 +46,15 @@ public class Job extends AbstractJob {
     }
 
     public Job(JobDetails jobDetails, List<JobState> jobHistory) {
-        super(jobDetails);
+        this(null, 0, jobDetails, jobHistory, new ConcurrentHashMap<>());
+    }
+
+    public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentHashMap<String, Object> metadata) {
+        super(jobDetails, version);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
+        this.id = id;
         this.jobHistory = new ArrayList<>(jobHistory);
-        this.metadata = new ConcurrentHashMap<>();
+        this.metadata = metadata;
     }
 
     public void setId(UUID id) {

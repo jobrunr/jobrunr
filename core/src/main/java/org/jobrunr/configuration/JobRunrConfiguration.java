@@ -13,6 +13,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.JsonMapperException;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,6 +96,8 @@ public class JobRunrConfiguration {
             return new JacksonJsonMapper();
         } else if (classExists("com.google.gson.Gson")) {
             return new GsonJsonMapper();
+        } else if (classExists("javax.json.bind.JsonbBuilder")) {
+            return new JsonbJsonMapper();
         } else {
             throw new JsonMapperException("No JsonMapper class is found. Make sure you have Jackson as Json library available");
         }

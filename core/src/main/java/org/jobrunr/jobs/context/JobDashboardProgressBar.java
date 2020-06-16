@@ -57,7 +57,7 @@ public class JobDashboardProgressBar {
         private Long currentValue;
         private int progress;
 
-        private JobDashboardProgress() {
+        protected JobDashboardProgress() {
             // for json deserialization
         }
 

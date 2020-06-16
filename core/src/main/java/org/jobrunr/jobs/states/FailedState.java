@@ -5,17 +5,18 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import static org.jobrunr.utils.exceptions.Exceptions.getStackTraceAsString;
 
+@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class FailedState extends AbstractJobState {
 
-    private final String message;
-    private final String exceptionType;
-    private final String exceptionMessage;
-    private final String exceptionCauseType;
-    private final String exceptionCauseMessage;
-    private final String stackTrace;
-    private final boolean doNotRetry;
+    private String message;
+    private String exceptionType;
+    private String exceptionMessage;
+    private String exceptionCauseType;
+    private String exceptionCauseMessage;
+    private String stackTrace;
+    private boolean doNotRetry;
 
-    private FailedState() { // for jackson deserialization
+    protected FailedState() { // for json deserialization
         super(StateName.FAILED);
         this.message = null;
         this.exceptionType = null;

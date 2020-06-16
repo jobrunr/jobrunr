@@ -3,12 +3,13 @@ package org.jobrunr.jobs.states;
 import java.time.Instant;
 import java.util.UUID;
 
+@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class ProcessingState extends AbstractJobState {
 
-    private final UUID serverId;
+    private UUID serverId;
     private Instant updatedAt;
 
-    private ProcessingState() { // for jackson deserialization
+    protected ProcessingState() { // for json deserialization
         this(null);
     }
 

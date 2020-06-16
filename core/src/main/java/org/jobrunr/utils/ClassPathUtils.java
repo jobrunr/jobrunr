@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,17 +74,28 @@ public class ClassPathUtils {
     private static Path toPath(URL url) {
         try {
             URI uri = url.toURI();
+            if ("wsjar".equals(uri.getScheme())) { // support for openliberty
+                uri = new URI(uri.toString().replace("wsjar", "jar"));
+            }
             if ("jar".equals(uri.getScheme())) {
                 String jarName = uri.toString().substring(0, uri.toString().indexOf('!'));
-                if (!openFileSystems.containsKey(jarName)) {
-                    openFileSystems.put(jarName, FileSystems.newFileSystem(uri, Collections.emptyMap(), null));
-                }
+                loadFileSystemIfNecessary(uri, jarName);
                 return openFileSystems.get(jarName).getPath(uri.toString().substring(uri.toString().indexOf('!') + 1));
             } else {
                 return Paths.get(uri);
             }
         } catch (IOException | URISyntaxException e) {
             throw JobRunrException.shouldNotHappenException(e);
+        }
+    }
+
+    private static void loadFileSystemIfNecessary(URI uri, String jarName) throws IOException {
+        if (!openFileSystems.containsKey(jarName)) {
+            try {
+                openFileSystems.put(jarName, FileSystems.newFileSystem(uri, Collections.emptyMap(), null));
+            } catch (FileSystemAlreadyExistsException e) {
+                openFileSystems.put(jarName, FileSystems.getFileSystem(uri));
+            }
         }
     }
 

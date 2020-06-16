@@ -179,7 +179,7 @@ public class TestService implements TestServiceInterface {
         private String someString;
         private UUID uuid;
 
-        private Work() {
+        protected Work() {
 
         }
 

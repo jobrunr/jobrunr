@@ -54,9 +54,9 @@ public class JobDashboardLogger {
         return JOB_RUNR_LOG_KEY + "-" + jobStateNbr;
     }
 
-    static class JobDashboardLogLines implements JobContext.Metadata {
+    public static class JobDashboardLogLines implements JobContext.Metadata {
         /* Must be ArrayList for JSON serialization */
-        private final ArrayList<JobDashboardLogLine> logLines;
+        private ArrayList<JobDashboardLogLine> logLines;
 
         public JobDashboardLogLines() {
             this.logLines = new ArrayList<>();
@@ -71,13 +71,13 @@ public class JobDashboardLogger {
         }
     }
 
-    static class JobDashboardLogLine {
+    public static class JobDashboardLogLine {
 
         private Level level;
         private Instant logInstant;
         private String logMessage;
 
-        private JobDashboardLogLine() {
+        protected JobDashboardLogLine() {
             // for json deserialization
         }
 

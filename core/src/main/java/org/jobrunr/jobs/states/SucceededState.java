@@ -2,12 +2,13 @@ package org.jobrunr.jobs.states;
 
 import java.time.Duration;
 
+@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class SucceededState extends AbstractJobState {
 
-    private final Duration latencyDuration;
-    private final Duration processDuration;
+    private Duration latencyDuration;
+    private Duration processDuration;
 
-    private SucceededState() { // for jackson deserialization
+    protected SucceededState() { // for json deserialization
         this(null, null);
     }
 

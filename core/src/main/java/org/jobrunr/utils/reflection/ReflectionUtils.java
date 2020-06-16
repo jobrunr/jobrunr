@@ -11,6 +11,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -94,7 +96,7 @@ public class ReflectionUtils {
         T t = newInstance(clazz);
         Field[] declaredFields = clazz.getDeclaredFields();
         for (Field field : declaredFields) {
-            setFieldsUsingAutoboxing(field, t, fieldValues.get(field.getName()));
+            setFieldUsingAutoboxing(field, t, fieldValues.get(field.getName()));
         }
         return t;
     }
@@ -193,13 +195,19 @@ public class ReflectionUtils {
         final Class<?> type = field.getType();
         try {
             final Object value = objectFunction.apply(type);
-            setFieldsUsingAutoboxing(field, object, value);
+            setFieldUsingAutoboxing(field, object, value);
         } catch (Exception e) {
             throw shouldNotHappenException(e);
         }
     }
 
-    public static void setFieldsUsingAutoboxing(Field field, Object object, Object value) {
+    public static void setFieldUsingAutoboxing(String fieldName, Object object, Object value) {
+        if (value == null) return;
+
+        setFieldUsingAutoboxing(getField(object.getClass(), fieldName), object, value);
+    }
+
+    public static void setFieldUsingAutoboxing(Field field, Object object, Object value) {
         try {
             if (value == null) return;
 
@@ -218,7 +226,10 @@ public class ReflectionUtils {
     }
 
     public static void makeAccessible(AccessibleObject accessibleObject) {
-        accessibleObject.setAccessible(true);
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            accessibleObject.setAccessible(true);
+            return null;
+        });
     }
 
     private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) {

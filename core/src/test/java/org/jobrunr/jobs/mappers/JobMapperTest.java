@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.UUID;
@@ -49,7 +50,7 @@ abstract class JobMapperTest {
     protected abstract JsonMapper getJsonMapper();
 
     @Test
-    void testSerializeAndDeserializeJob() {
+    void testSerializeAndDeserializeJobWithVersion() {
         Job job = anEnqueuedJob()
                 .withVersion(2)
                 .build();
@@ -116,7 +117,9 @@ abstract class JobMapperTest {
         Job job = anEnqueuedJob()
                 .withMetadata("metadata1", new TestMetadata("input"))
                 .withMetadata("metadata2", "a string")
-                .withMetadata("metadata3", 15.0)
+                .withMetadata("metadata3", 15.1)
+                .withMetadata("metadata6", 16.0)
+                .withMetadata("metadata7", true)
                 .build();
         job.startProcessingOn(backgroundJobServer);
         job.failed("exception", new Exception("Test"));
@@ -131,13 +134,17 @@ abstract class JobMapperTest {
     public static class TestMetadata implements JobContext.Metadata {
         private String input;
         private Instant instant;
+        private Path path;
+        private File file;
 
-        private TestMetadata() {
+        protected TestMetadata() {
         }
 
         public TestMetadata(String input) {
             this.input = input;
             this.instant = Instant.now();
+            this.path = Path.of("/tmp");
+            this.file = new File("/tmp");
         }
 
         public String getInput() {

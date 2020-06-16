@@ -19,9 +19,14 @@ public abstract class AbstractJob implements Lockable {
     }
 
     public AbstractJob(JobDetails jobDetails) {
+        this(jobDetails, 0);
+    }
+
+    public AbstractJob(JobDetails jobDetails, int version) {
         this();
-        this.jobSignature = JobUtils.getJobSignature(jobDetails);
         this.jobDetails = jobDetails;
+        this.version = version;
+        this.jobSignature = JobUtils.getJobSignature(jobDetails);
     }
 
     public int getVersion() {

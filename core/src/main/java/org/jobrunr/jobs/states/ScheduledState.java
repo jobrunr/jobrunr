@@ -2,12 +2,13 @@ package org.jobrunr.jobs.states;
 
 import java.time.Instant;
 
+@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class ScheduledState extends AbstractJobState {
 
-    private final Instant scheduledAt;
-    private final String reason;
+    private Instant scheduledAt;
+    private String reason;
 
-    private ScheduledState() { // for jackson deserialization
+    protected ScheduledState() { // for json deserialization
         this(null);
     }
 
