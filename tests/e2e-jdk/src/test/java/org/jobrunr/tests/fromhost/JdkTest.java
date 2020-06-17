@@ -2,7 +2,6 @@ package org.jobrunr.tests.fromhost;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.executioncondition.RunTestBetween;
 
 import java.time.Duration;
 
@@ -12,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 // we do not want to run this test within the docker container itself as it would otherwise run recursively
 // once inside the docker build, the ENV variable JDK_TEST is set
 // the end result is that only the tests inside org.jobrunr.tests.e2e must run (on the correct JDK)
-@RunTestBetween(from = "00:00", to = "03:00")
+//@RunTestBetween(from = "00:00", to = "03:00")
 @DisabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
 public class JdkTest {
 
@@ -74,6 +73,11 @@ public class JdkTest {
     @Test
     public void jdk14Zulu() {
         assertThat(buildAndTestOnImage("azul/zulu-openjdk:14")).contains("BUILD SUCCESSFUL");
+    }
+
+    @Test
+    public void jdk15OpenJDKEA() {
+        assertThat(buildAndTestOnImage("amd64/openjdk:15-ea-jdk")).contains("BUILD SUCCESSFUL");
     }
 
     private String buildAndTestOnImage(String dockerfile) {
