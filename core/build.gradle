@@ -14,11 +14,6 @@ sourceSets {
     }
 }
 
-compileTestFixturesJava {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
 task myJavadocs(type: Javadoc) {
     source = sourceSets.main.allJava
     classpath = project.sourceSets.main.compileClasspath

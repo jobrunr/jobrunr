@@ -83,7 +83,7 @@ public class JdkTest {
     private String buildAndTestOnImage(String dockerfile) {
         final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
         buildAndTestContainer
-                .withStartupTimeout(Duration.ofMinutes(10))
+                .withStartupTimeout(Duration.ofMinutes(5))
                 .start();
         return buildAndTestContainer.getLogs();
     }
