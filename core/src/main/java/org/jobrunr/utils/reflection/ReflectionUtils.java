@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.lang.Thread.currentThread;
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
@@ -32,7 +33,7 @@ public class ReflectionUtils {
 
     public static boolean classExists(String className) {
         try {
-            Class.forName(className);
+            loadClass(className);
             return true;
         } catch (ClassNotFoundException e) {
             return false;
@@ -67,10 +68,18 @@ public class ReflectionUtils {
                 return cast(void.class);
             default:
                 try {
-                    return cast(Class.forName(className));
+                    return cast(loadClass(className));
                 } catch (ClassNotFoundException ex) {
                     throw new IllegalArgumentException("Class not found: " + className, ex);
                 }
+        }
+    }
+
+    public static Class<?> loadClass(String className) throws ClassNotFoundException {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) { // why: support for quarkus:dev (see https://github.com/quarkusio/quarkus/issues/2809)
+            return currentThread().getContextClassLoader().loadClass(className);
         }
     }
 
@@ -92,13 +101,17 @@ public class ReflectionUtils {
                 .anyMatch(c -> c.getParameterCount() == 0);
     }
 
-    public static <T> T newInstance(Class<T> clazz, Map<String, String> fieldValues) {
+    public static <T> T newInstanceAndSetFieldValues(Class<T> clazz, Map<String, String> fieldValues) {
         T t = newInstance(clazz);
         Field[] declaredFields = clazz.getDeclaredFields();
         for (Field field : declaredFields) {
             setFieldUsingAutoboxing(field, t, fieldValues.get(field.getName()));
         }
         return t;
+    }
+
+    public static <T> T newInstance(String className, Object... params) {
+        return newInstance(toClass(className), params);
     }
 
     public static <T> T newInstance(Class<T> clazz, Object... params) {

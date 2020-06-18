@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.getField;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getMethod;
+import static org.jobrunr.utils.reflection.ReflectionUtils.loadClass;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsGeneratorUtils {
@@ -52,7 +53,7 @@ public class JobDetailsGeneratorUtils {
 
     public static Object createObjectViaConstructor(String fqClassName, Class<?>[] paramTypes, Object[] parameters) {
         try {
-            Class<?> clazz = Class.forName(fqClassName);
+            Class<?> clazz = loadClass(fqClassName);
             Constructor<?> constructor = clazz.getDeclaredConstructor(paramTypes);
             return constructor.newInstance(parameters);
         } catch (Exception e) {
@@ -72,7 +73,7 @@ public class JobDetailsGeneratorUtils {
 
     public static Object createObjectViaStaticMethod(String fqClassName, String methodName, Class<?>[] paramTypes, Object[] parameters) {
         try {
-            Class<?> clazz = Class.forName(fqClassName);
+            Class<?> clazz = loadClass(fqClassName);
             Method method = getMethod(clazz, methodName, paramTypes);
             return method.invoke(null, parameters);
         } catch (Exception e) {
@@ -82,7 +83,7 @@ public class JobDetailsGeneratorUtils {
 
     public static Object getObjectViaStaticField(String fqClassName, String fieldName) {
         try {
-            Class<?> clazz = Class.forName(fqClassName);
+            Class<?> clazz = loadClass(fqClassName);
             Field field = getField(clazz, fieldName);
             ReflectionUtils.makeAccessible(field);
             return field.get(null);
