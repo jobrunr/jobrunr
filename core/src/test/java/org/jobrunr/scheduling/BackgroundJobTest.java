@@ -194,13 +194,6 @@ public class BackgroundJobTest {
     }
 
     @Test
-    void testScheduleThatSchedulesOtherJobsInline() {
-        JobId jobId = BackgroundJob.enqueue(() -> BackgroundJob.enqueue(() -> testService.doWork(5)));
-        await().atMost(ONE_MINUTE).until(() -> storageProvider.countJobs(SUCCEEDED) == (2));
-        assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
-    }
-
-    @Test
     void testScheduleThatSchedulesOtherJobsSlowlyDoesNotBlockOtherWorkers() {
         JobId jobId = BackgroundJob.schedule(() -> testService.scheduleNewWorkSlowly(5), now().plusSeconds(1));
         await().atMost(ofSeconds(12)).until(() -> (storageProvider.countJobs(PROCESSING) + storageProvider.countJobs(SUCCEEDED)) > 1);
