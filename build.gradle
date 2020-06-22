@@ -18,8 +18,8 @@ configure(subprojects.findAll {it.name != 'platform'}) {
     }
 
     repositories {
-        mavenLocal()
         jcenter()
+        mavenLocal()
     }
 
 

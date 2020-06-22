@@ -17,9 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -57,8 +55,6 @@ public class BackgroundJobTest {
 
     @BeforeEach
     void setUpTests() throws IOException {
-        Files.deleteIfExists(Paths.get("/tmp/code.txt"));
-
         testService = new TestService();
         testService.reset();
         storageProvider = new SimpleStorageProvider();
@@ -194,6 +190,13 @@ public class BackgroundJobTest {
     void testScheduleThatSchedulesOtherJobs() {
         JobId jobId = BackgroundJob.schedule(() -> testService.scheduleNewWork(5), now().plusSeconds(1));
         await().atMost(ONE_MINUTE).until(() -> storageProvider.countJobs(SUCCEEDED) == (5 + 1));
+        assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testScheduleThatSchedulesOtherJobsInline() {
+        JobId jobId = BackgroundJob.enqueue(() -> BackgroundJob.enqueue(() -> testService.doWork(5)));
+        await().atMost(ONE_MINUTE).until(() -> storageProvider.countJobs(SUCCEEDED) == (2));
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 

@@ -15,8 +15,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,8 +40,6 @@ public class LoadTest {
 
     @BeforeEach
     public void setUpTests() throws IOException {
-        Files.deleteIfExists(Paths.get("/tmp/code.txt"));
-
         testService = new TestService();
         testService.reset();
         jobStorageProvider = new PostgresStorageProvider(getPostgresDataSource());

@@ -206,11 +206,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    JobZooKeeper createJobZooKeeper() {
+    private JobZooKeeper createJobZooKeeper() {
         return new JobZooKeeper(this);
     }
 
-    ServerZooKeeper createServerZooKeeper() {
+    private ServerZooKeeper createServerZooKeeper() {
         return new ServerZooKeeper(this);
     }
 

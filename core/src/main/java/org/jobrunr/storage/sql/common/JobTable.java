@@ -62,11 +62,11 @@ public class JobTable extends Sql<Job> {
         boolean isNewJob = jobToSave.getId() == null;
         if (isNewJob) {
             jobToSave.setId(UUID.randomUUID());
-            insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+            insertOneJob(jobToSave);
         } else {
             jobToSave.increaseVersion();
             try {
-                update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+                updateOneJob(jobToSave);
             } catch (ConcurrentSqlModificationException e) {
                 throw new ConcurrentJobModificationException(jobToSave);
             }
@@ -152,40 +152,48 @@ public class JobTable extends Sql<Job> {
         return this;
     }
 
-    void insertAllJobs(List<Job> jobs) {
+    private void insertOneJob(Job jobToSave) {
+        insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+    }
+
+    private void updateOneJob(Job jobToSave) {
+        update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+    }
+
+    private void insertAllJobs(List<Job> jobs) {
         jobs.forEach(JobTable::setId);
         insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
     }
 
-    void updateAllJobs(List<Job> jobs) {
+    private void updateAllJobs(List<Job> jobs) {
         jobs.forEach(AbstractJob::increaseVersion);
         updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
     }
 
-    Stream<Job> selectJobs(String statement) {
+    private Stream<Job> selectJobs(String statement) {
         final Stream<SqlResultSet> select = super.select(statement);
         return select.map(this::toJob);
     }
 
-    Job toJob(SqlResultSet resultSet) {
+    private Job toJob(SqlResultSet resultSet) {
         return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
     }
 
-    static void setId(Job job) {
+    private static void setId(Job job) {
         if (job.getId() == null) {
             job.setId(UUID.randomUUID());
         }
     }
 
-    static boolean notAllJobsAreNew(List<Job> jobs) {
+    private static boolean notAllJobsAreNew(List<Job> jobs) {
         return jobs.stream().anyMatch(job -> job.getId() != null);
     }
 
-    static boolean notAllJobsAreExisting(List<Job> jobs) {
+    private static boolean notAllJobsAreExisting(List<Job> jobs) {
         return jobs.stream().anyMatch(job -> job.getId() == null);
     }
 
-    static boolean areNewJobs(List<Job> jobs) {
+    private static boolean areNewJobs(List<Job> jobs) {
         return jobs.get(0).getId() == null;
     }
 

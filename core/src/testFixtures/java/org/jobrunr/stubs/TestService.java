@@ -147,9 +147,17 @@ public class TestService implements TestServiceInterface {
     }
 
     public void scheduleNewWork(int amount) {
+        scheduleNewWork(amount, -1);
+    }
+
+    public void scheduleNewWork(int amount, int exceptionOnNbr) {
         for (int i = 0; i < amount; i++) {
-            int finalI = i;
-            BackgroundJob.enqueue(() -> doWork(finalI));
+            if (i == exceptionOnNbr) {
+                throw new IllegalStateException("An error has occurred processing item " + i);
+            } else {
+                int finalI = i;
+                BackgroundJob.enqueue(() -> doWork(finalI));
+            }
         }
     }
 
