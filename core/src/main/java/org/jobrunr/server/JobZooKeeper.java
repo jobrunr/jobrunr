@@ -37,15 +37,15 @@ public class JobZooKeeper implements Runnable {
 
     static final Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
 
-    final BackgroundJobServer backgroundJobServer;
-    final StorageProvider storageProvider;
-    final JobFilters jobFilters;
-    final WorkDistributionStrategy workDistributionStrategy;
-    final ConcurrentJobModificationResolver concurrentJobModificationResolver;
-    final Map<Job, Thread> currentlyProcessedJobs;
-    final AtomicInteger exceptionCount;
-    final ReentrantLock reentrantLock;
-    final AtomicBoolean isMaster;
+    private final BackgroundJobServer backgroundJobServer;
+    private final StorageProvider storageProvider;
+    private final JobFilters jobFilters;
+    private final WorkDistributionStrategy workDistributionStrategy;
+    private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
+    private final Map<Job, Thread> currentlyProcessedJobs;
+    private final AtomicInteger exceptionCount;
+    private final ReentrantLock reentrantLock;
+    private final AtomicBoolean isMaster;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
