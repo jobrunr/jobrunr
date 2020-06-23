@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.mariadb;
 
+import org.junit.jupiter.api.AfterAll;
 import org.mariadb.jdbc.MariaDbPoolDataSource;
 
 import javax.sql.DataSource;
@@ -22,5 +23,10 @@ class NativePoolMariaDbStorageProviderTest extends AbstractMariaDbStorageProvide
             }
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

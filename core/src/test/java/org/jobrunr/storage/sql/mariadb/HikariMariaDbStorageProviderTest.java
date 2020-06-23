@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.mariadb;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
@@ -20,5 +21,10 @@ class HikariMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTes
             dataSource = new HikariDataSource(config);
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

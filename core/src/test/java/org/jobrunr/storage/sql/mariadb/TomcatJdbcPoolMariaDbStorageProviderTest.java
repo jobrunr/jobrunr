@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.mariadb;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.junit.jupiter.api.AfterAll;
 
 class TomcatJdbcPoolMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
@@ -15,5 +16,10 @@ class TomcatJdbcPoolMariaDbStorageProviderTest extends AbstractMariaDbStoragePro
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

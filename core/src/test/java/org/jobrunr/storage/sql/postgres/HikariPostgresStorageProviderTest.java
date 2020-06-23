@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.postgres;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
@@ -19,5 +20,10 @@ class HikariPostgresStorageProviderTest extends AbstractPostgresStorageProviderT
             dataSource = new HikariDataSource(config);
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

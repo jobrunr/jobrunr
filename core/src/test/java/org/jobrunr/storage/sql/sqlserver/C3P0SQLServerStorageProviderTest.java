@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.sqlserver;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
@@ -18,5 +19,10 @@ class C3P0SQLServerStorageProviderTest extends AbstractSQLServerStorageProviderT
         }
 
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

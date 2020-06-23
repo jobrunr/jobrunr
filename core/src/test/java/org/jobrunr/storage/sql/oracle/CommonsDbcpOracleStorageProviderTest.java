@@ -1,10 +1,12 @@
 package org.jobrunr.storage.sql.oracle;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 
 @RunTestBetween(from = "00:00", to = "03:00")
 @RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
@@ -34,5 +36,10 @@ class CommonsDbcpOracleStorageProviderTest extends AbstractOracleStorageProvider
         }
 
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() throws SQLException {
+        dataSource.close();
     }
 }

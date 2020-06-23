@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.h2;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
+import org.junit.jupiter.api.AfterAll;
 
 public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest {
 
@@ -16,5 +17,10 @@ public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest 
             dataSource.setPassword("sa");
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

@@ -80,6 +80,11 @@ public class JdkTest {
         assertThat(buildAndTestOnImage("amd64/openjdk:15-ea-jdk")).contains("BUILD SUCCESSFUL");
     }
 
+    @Test
+    public void jdk16OpenJDKEA() {
+        assertThat(buildAndTestOnImage("amd64/openjdk:16-ea-jdk")).contains("BUILD SUCCESSFUL");
+    }
+
     private String buildAndTestOnImage(String dockerfile) {
         final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
         buildAndTestContainer

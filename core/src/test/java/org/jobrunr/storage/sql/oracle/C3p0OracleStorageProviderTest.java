@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.oracle;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 
@@ -33,5 +34,10 @@ class C3p0OracleStorageProviderTest extends AbstractOracleStorageProviderTest {
         }
 
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

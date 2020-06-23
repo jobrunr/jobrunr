@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.oracle;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 
@@ -32,5 +33,10 @@ class TomcatJdbcPoolOracleStorageProviderTest extends AbstractOracleStorageProvi
         }
 
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

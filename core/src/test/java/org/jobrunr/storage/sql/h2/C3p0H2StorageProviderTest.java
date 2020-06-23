@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.h2;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
@@ -18,5 +19,10 @@ public class C3p0H2StorageProviderTest extends SqlStorageProviderTest {
             dataSource.setPassword("sa");
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

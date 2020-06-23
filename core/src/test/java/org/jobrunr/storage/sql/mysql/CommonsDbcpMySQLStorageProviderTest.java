@@ -1,8 +1,10 @@
 package org.jobrunr.storage.sql.mysql;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 
 class CommonsDbcpMySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
 
@@ -17,5 +19,10 @@ class CommonsDbcpMySQLStorageProviderTest extends AbstractMySQLStorageProviderTe
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() throws SQLException {
+        dataSource.close();
     }
 }

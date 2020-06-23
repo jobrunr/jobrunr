@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.mysql;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
@@ -18,5 +19,10 @@ class C3p0MySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

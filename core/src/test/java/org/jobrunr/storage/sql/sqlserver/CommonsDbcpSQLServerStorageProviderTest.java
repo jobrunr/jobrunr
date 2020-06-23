@@ -1,8 +1,10 @@
 package org.jobrunr.storage.sql.sqlserver;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 
 class CommonsDbcpSQLServerStorageProviderTest extends AbstractSQLServerStorageProviderTest {
 
@@ -17,5 +19,10 @@ class CommonsDbcpSQLServerStorageProviderTest extends AbstractSQLServerStoragePr
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() throws SQLException {
+        dataSource.close();
     }
 }

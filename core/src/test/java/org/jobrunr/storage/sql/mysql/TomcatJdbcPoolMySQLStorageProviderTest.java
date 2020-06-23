@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.mysql;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.junit.jupiter.api.AfterAll;
 
 class TomcatJdbcPoolMySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
 
@@ -15,5 +16,10 @@ class TomcatJdbcPoolMySQLStorageProviderTest extends AbstractMySQLStorageProvide
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }

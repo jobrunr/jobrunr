@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.postgres;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.junit.jupiter.api.AfterAll;
 
 class TomcatJdbcPoolPostgresStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
@@ -16,5 +17,10 @@ class TomcatJdbcPoolPostgresStorageProviderTest extends AbstractPostgresStorageP
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
     }
 }
