@@ -1,5 +1,6 @@
 package org.jobrunr.tests.fromhost;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
@@ -80,6 +81,7 @@ public class JdkTest {
         assertThat(buildAndTestOnImage("amd64/openjdk:15-ea-jdk")).contains("BUILD SUCCESSFUL");
     }
 
+    @Disabled("Not yet working due to gradle")
     @Test
     public void jdk16OpenJDKEA() {
         assertThat(buildAndTestOnImage("amd64/openjdk:16-ea-jdk")).contains("BUILD SUCCESSFUL");
