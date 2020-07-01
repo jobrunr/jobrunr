@@ -56,7 +56,6 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
     private void init() {
         try {
             conn = dataSource.getConnection();
-            conn.setAutoCommit(false);
             ps = conn.prepareStatement(sqlStatement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             ps.setFetchSize(100);
             paramsSetter.accept(ps);
