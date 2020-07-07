@@ -5,6 +5,7 @@ import org.jobrunr.dashboard.server.TeenyHttpHandler;
 import org.jobrunr.dashboard.server.TeenyWebServer;
 import org.jobrunr.dashboard.server.http.RedirectHttpHandler;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.slf4j.Logger;
@@ -50,14 +51,17 @@ public class JobRunrDashboardWebServer {
         return teenyWebServer.createContext(httpHandler);
     }
 
+    @VisibleFor("github issue 18")
     JobRunrStaticFileHandler createStaticFileHandler() {
         return new JobRunrStaticFileHandler();
     }
 
+    @VisibleFor("github issue 18")
     JobRunrApiHandler createApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrApiHandler(storageProvider, jsonMapper);
     }
 
+    @VisibleFor("github issue 18")
     JobRunrSseHandler createSSeHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrSseHandler(storageProvider, jsonMapper);
     }
