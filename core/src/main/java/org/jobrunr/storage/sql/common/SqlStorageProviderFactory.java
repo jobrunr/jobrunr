@@ -48,6 +48,8 @@ public class SqlStorageProviderFactory {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".oracle.OracleStorageProvider");
         } else if (jdbcUrl.startsWith("jdbc:sqlserver")) {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".sqlserver.SQLServerStorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:db2")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".db2.DB2StorageProvider");
         }
         throw unsupportedDataSourceException(jdbcUrl);
     }

@@ -25,6 +25,7 @@ dependencies {
         api 'org.mariadb.jdbc:mariadb-java-client:2.6.1'
         api 'mysql:mysql-connector-java:8.0.20'
         api 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
+        api 'com.ibm.db2.jcc:db2jcc:db2jcc4'
         api 'com.zaxxer:HikariCP:3.4.5'
         api 'org.apache.commons:commons-dbcp2:2.7.0'
         api 'com.mchange:c3p0:0.9.5.5'
@@ -47,6 +48,7 @@ dependencies {
         api 'org.testcontainers:mysql:1.14.3'
         api 'org.testcontainers:oracle-xe:1.14.3'
         api 'org.testcontainers:postgresql:1.14.3'
+        api "org.testcontainers:db2:1.14.3"
     }
 }
 
