@@ -18,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+
 public class TestService implements TestServiceInterface {
 
     private static int processedJobs = 0;
@@ -173,6 +175,11 @@ public class TestService implements TestServiceInterface {
         }
     }
 
+    @Job(jobFilters = {SkipProcessingElectStateFilter.class})
+    public void tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter() {
+        System.out.println("This should not be executed");
+    }
+
     public void reset() {
         processedJobs = 0;
     }
@@ -239,6 +246,16 @@ public class TestService implements TestServiceInterface {
         @Override
         public void onStateElection(org.jobrunr.jobs.Job job, JobState newState) {
             job.succeeded();
+        }
+    }
+
+    public static class SkipProcessingElectStateFilter implements ElectStateFilter {
+
+        @Override
+        public void onStateElection(org.jobrunr.jobs.Job job, JobState newState) {
+            if (PROCESSING.equals(newState.getName())) {
+                job.scheduleAt(Instant.now(), "Should not run due to business rule. Will be rescheduled and picked up by other server.");
+            }
         }
     }
 

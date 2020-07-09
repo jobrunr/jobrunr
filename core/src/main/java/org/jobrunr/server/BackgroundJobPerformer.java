@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
 public class BackgroundJobPerformer implements Runnable {
@@ -57,7 +58,7 @@ public class BackgroundJobPerformer implements Runnable {
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
             LOGGER.debug("Job {} - {} - processing started", job.getId(), job.getJobName());
-            return true;
+            return job.hasState(PROCESSING);
         } catch (ConcurrentJobModificationException e) {
             // processing already started on other server
             LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet());
