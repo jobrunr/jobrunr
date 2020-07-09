@@ -77,10 +77,10 @@ public class Sql<T> {
         return this;
     }
 
-    public Sql<T> withLimitAndOffset(int limit, long offset) {
+    public Sql<T> withOrderLimitAndOffset(String field, String order, int limit, long offset) {
         with("limit", limit);
         with("offset", offset);
-        suffix = dialect.limitAndOffset();
+        suffix = dialect.limitAndOffset(field, order);
         return this;
     }
 

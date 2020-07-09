@@ -109,23 +109,23 @@ public class JobTable extends Sql<Job> {
 
     public List<Job> selectJobsByState(StateName state, PageRequest pageRequest) {
         return withState(state)
-                .withLimitAndOffset(pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state ORDER BY createdAt " + pageRequest.getOrder())
+                .withOrderLimitAndOffset(pageRequest.getOrderField(), pageRequest.getOrder().name(), pageRequest.getLimit(), pageRequest.getOffset())
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state")
                 .collect(toList());
     }
 
     public List<Job> selectJobsByState(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         return withState(state)
                 .withUpdatedBefore(updatedBefore)
-                .withLimitAndOffset(pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore ORDER BY createdAt " + pageRequest.getOrder())
+                .withOrderLimitAndOffset(pageRequest.getOrderField(), pageRequest.getOrder().name(), pageRequest.getLimit(), pageRequest.getOffset())
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore")
                 .collect(toList());
     }
 
     public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, PageRequest pageRequest) {
         return withScheduledAt(scheduledBefore)
-                .withLimitAndOffset(pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt ORDER BY createdAt")
+                .withOrderLimitAndOffset(pageRequest.getOrderField(), pageRequest.getOrder().name(), pageRequest.getLimit(), pageRequest.getOffset())
+                .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt")
                 .collect(toList());
     }
 
@@ -147,8 +147,8 @@ public class JobTable extends Sql<Job> {
     }
 
     @Override
-    public JobTable withLimitAndOffset(int limit, long offset) {
-        super.withLimitAndOffset(limit, offset);
+    public JobTable withOrderLimitAndOffset(String field, String order, int limit, long offset) {
+        super.withOrderLimitAndOffset(field, order, limit, offset);
         return this;
     }
 

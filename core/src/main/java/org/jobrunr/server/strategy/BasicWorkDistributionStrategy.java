@@ -32,9 +32,8 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
         final int workQueueSize = jobZooKeeper.getWorkQueueSize();
         final int workerPoolSize = backgroundJobServerStatus.getWorkerPoolSize();
 
-        final long offset = 0;
         final int limit = workerPoolSize - workQueueSize;
         LOGGER.debug("Can onboard {} new work (workQueueSize = {}; workerPoolSize = {}).", limit, workQueueSize, workerPoolSize);
-        return PageRequest.asc(offset, limit);
+        return PageRequest.ascOnCreatedAt(limit);
     }
 }

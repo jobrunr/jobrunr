@@ -32,6 +32,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
 
 public class JobZooKeeper implements Runnable {
 
@@ -121,14 +122,14 @@ public class JobZooKeeper implements Runnable {
     void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
 
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), PageRequest.asc(0, 1000));
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnCreatedAt(1000));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
     void checkForOrphanedJobs() {
         LOGGER.debug("Looking for orphan jobs... ");
         final Instant updatedBefore = now().minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
-        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, PageRequest.asc(0, 1000));
+        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnCreatedAt(1000));
         processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
     }
 
@@ -137,7 +138,7 @@ public class JobZooKeeper implements Runnable {
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
         final Instant updatedBefore = now().minus(36, ChronoUnit.HOURS);
-        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, PageRequest.asc(0, 1000));
+        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnCreatedAt(1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
             job.delete();

@@ -6,7 +6,6 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Work;
@@ -40,6 +39,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
 
 public class IocBackgroundJobTest {
 
@@ -208,7 +208,7 @@ public class IocBackgroundJobTest {
         BackgroundJob.<TestService>scheduleRecurringly(x -> x.doWork(5), Cron.minutely());
         await().atMost(ofSeconds(65)).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.asc(0, 1)).get(0);
+        final Job job = jobStorageProvider.getJobs(SUCCEEDED, ascOnCreatedAt(1000)).get(0);
         assertThat(jobStorageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -217,7 +217,7 @@ public class IocBackgroundJobTest {
         BackgroundJob.<TestService>scheduleRecurringly("theId", x -> x.doWork(5), Cron.minutely());
         await().atMost(ofSeconds(65)).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.asc(0, 1)).get(0);
+        final Job job = jobStorageProvider.getJobs(SUCCEEDED, ascOnCreatedAt(1000)).get(0);
         assertThat(jobStorageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -226,7 +226,7 @@ public class IocBackgroundJobTest {
         BackgroundJob.<TestService>scheduleRecurringly("theId", x -> x.doWork(5), Cron.minutely(), systemDefault());
         await().atMost(ofSeconds(65)).until(() -> jobStorageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = jobStorageProvider.getJobs(SUCCEEDED, PageRequest.asc(0, 1)).get(0);
+        final Job job = jobStorageProvider.getJobs(SUCCEEDED, ascOnCreatedAt(1000)).get(0);
         assertThat(jobStorageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 

@@ -17,8 +17,8 @@ public class StorageProviderConstants {
         public static final String FIELD_STATE = "state";
         public static final String FIELD_JOB_AS_JSON = "jobAsJson";
         public static final String FIELD_JOB_SIGNATURE = "jobSignature";
-        public static final String FIELD_UPDATED_AT = "updatedAt";
         public static final String FIELD_CREATED_AT = "createdAt";
+        public static final String FIELD_UPDATED_AT = "updatedAt";
         public static final String FIELD_SCHEDULED_AT = "scheduledAt";
     }
 

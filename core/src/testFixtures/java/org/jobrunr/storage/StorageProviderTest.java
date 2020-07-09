@@ -51,6 +51,8 @@ import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
+import static org.jobrunr.storage.PageRequest.descOnCreatedAt;
 
 public abstract class StorageProviderTest {
 
@@ -233,14 +235,14 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.countJobs(ENQUEUED)).isEqualTo(0);
         assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(3);
 
-        List<Job> fetchedJobsAsc = storageProvider.getJobs(PROCESSING, PageRequest.asc(0, 100));
+        List<Job> fetchedJobsAsc = storageProvider.getJobs(PROCESSING, ascOnCreatedAt(100));
         assertThat(withoutLocks(fetchedJobsAsc))
                 .hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsAll(withoutLocks(savedJobs));
         assertThat(fetchedJobsAsc).extracting("jobName").containsExactly("1", "2", "3");
 
-        List<Job> fetchedJobsDesc = storageProvider.getJobs(PROCESSING, PageRequest.desc(0, 100));
+        List<Job> fetchedJobsDesc = storageProvider.getJobs(PROCESSING, descOnCreatedAt(0, 100));
         assertThat(withoutLocks(fetchedJobsDesc))
                 .hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -258,8 +260,8 @@ public abstract class StorageProviderTest {
         );
         storageProvider.save(jobs);
 
-        assertThat(storageProvider.getJobs(ENQUEUED, now().minus(2, HOURS), PageRequest.asc(0, 100))).hasSize(2);
-        assertThat(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), PageRequest.asc(0, 100))).hasSize(3);
+        assertThat(storageProvider.getJobs(ENQUEUED, now().minus(2, HOURS), ascOnCreatedAt(100))).hasSize(2);
+        assertThat(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), ascOnCreatedAt(100))).hasSize(3);
     }
 
     @Test
@@ -275,7 +277,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.deleteJobs(ENQUEUED, now().minus(1, HOURS));
 
-        List<Job> fetchedJobs = storageProvider.getJobs(ENQUEUED, PageRequest.asc(0, 100));
+        List<Job> fetchedJobs = storageProvider.getJobs(ENQUEUED, ascOnCreatedAt(100));
 
         assertThat(fetchedJobs).hasSize(1);
     }
@@ -291,7 +293,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        Page<Job> fetchedJobs = storageProvider.getJobPage(ENQUEUED, PageRequest.asc(2, 2));
+        Page<Job> fetchedJobs = storageProvider.getJobPage(ENQUEUED, ascOnCreatedAt(2, 2));
 
         assertThat(withoutLocks(fetchedJobs.getItems()))
                 .hasSize(2)
@@ -307,7 +309,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        assertThat(storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), PageRequest.asc(0, 100))).hasSize(1);
+        assertThat(storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), ascOnCreatedAt(100))).hasSize(1);
     }
 
     @Test
@@ -423,7 +425,7 @@ public abstract class StorageProviderTest {
 
         AtomicInteger atomicInteger = new AtomicInteger();
         storageProvider
-                .getJobs(ENQUEUED, PageRequest.asc(0, 1000))
+                .getJobs(ENQUEUED, ascOnCreatedAt(1000))
                 .stream()
                 .peek(job -> {
                     if (atomicInteger.get() % 10000 == 0) {

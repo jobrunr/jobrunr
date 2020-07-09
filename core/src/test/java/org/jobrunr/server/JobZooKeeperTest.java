@@ -10,7 +10,6 @@ import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.PageRequest;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +41,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -149,7 +149,7 @@ class JobZooKeeperTest {
         final List<Job> jobs = List.of(enqueuedJob);
 
         lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 10)))).thenReturn(jobs);
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(ascOnCreatedAt(10)))).thenReturn(jobs);
 
         jobZooKeeper.run();
 
@@ -164,7 +164,7 @@ class JobZooKeeperTest {
 
         jobZooKeeper.run();
 
-        verify(storageProvider, never()).getJobs(eq(ENQUEUED), refEq(PageRequest.asc(0, 1)));
+        verify(storageProvider, never()).getJobs(eq(ENQUEUED), refEq(ascOnCreatedAt(1)));
         verify(backgroundJobServer, never()).processJob(enqueuedJob);
     }
 
@@ -208,7 +208,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForSucceededJobsThanCanGoToDeletedState() {
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(PageRequest.asc(0, 1000))))
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnCreatedAt(1000))))
                 .thenReturn(
                         asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
                         emptyJobList()
@@ -288,7 +288,7 @@ class JobZooKeeperTest {
     void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = aScheduledJob().build();
 
-        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(PageRequest.asc(0, 1000))))
+        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(ascOnCreatedAt(1000))))
                 .thenReturn(
                         singletonList(job),
                         emptyJobList()
