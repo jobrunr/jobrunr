@@ -24,9 +24,12 @@ public class HttpRequest {
         return requestUrl.param(paramName, clazz);
 
     }
+
     public <T> T fromQueryParams(Class<T> clazz) {
         return requestUrl.fromQueryParams(clazz);
     }
 
-
+    public <T> T queryParam(String queryParamName, Class<T> clazz, T defaultValue) {
+        return requestUrl.queryParam(queryParamName, clazz, defaultValue);
+    }
 }

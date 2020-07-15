@@ -98,7 +98,7 @@ abstract class JobRunrDashboardWebServerTest {
     void testFindJobsByState() {
         storageProvider.save(anEnqueuedJob().build());
 
-        HttpResponse<String> getResponse = http.get("/api/jobs/default/ENQUEUED");
+        HttpResponse<String> getResponse = http.get("/api/jobs?state=ENQUEUED");
         assertThat(getResponse)
                 .hasStatusCode(200)
                 .hasSameJsonBodyAsResource("/dashboard/api/findJobsByState.json");

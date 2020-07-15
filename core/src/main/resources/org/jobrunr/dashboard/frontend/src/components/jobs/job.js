@@ -160,9 +160,8 @@ const Job = (props) => {
                         : <>
                             <Breadcrumbs separator={<NavigateNextIcon fontSize="small"/>} aria-label="breadcrumb">
                                 <Link color="inherit" to="/dashboard/jobs">Jobs</Link>
-                                <Link color="inherit" to="/dashboard/jobs/default/enqueued">Default queue</Link>
                                 <Link color="inherit"
-                                      to={`/dashboard/jobs/default/${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
+                                      to={`/dashboard/jobs/${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
                                 <Typography color="textPrimary">{job.id}</Typography>
                             </Breadcrumbs>
                             <Box my={3} className={classes.box}>

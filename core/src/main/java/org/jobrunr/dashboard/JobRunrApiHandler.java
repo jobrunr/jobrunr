@@ -20,11 +20,11 @@ public class JobRunrApiHandler extends RestHttpHandler {
     public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         super("/api", jsonMapper);
 
+        get("/jobs", findJobByState(storageProvider));
+
         get("/jobs/:id", getJobById(storageProvider));
         delete("/jobs/:id", deleteJobById(storageProvider));
         post("/jobs/:id/requeue", requeueJobById(storageProvider));
-
-        get("/jobs/default/:state", findJobByState(storageProvider));
 
         get("/recurring-jobs", getRecurringJobs(storageProvider));
         delete("/recurring-jobs/:id", deleteRecurringJob(storageProvider));
@@ -59,7 +59,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         return (request, response) ->
                 response.asJson(
                         storageProvider.getJobPage(
-                                request.param(":state", StateName.class),
+                                request.queryParam("state", StateName.class, StateName.ENQUEUED),
                                 request.fromQueryParams(PageRequest.class)
                         ));
     }

@@ -77,7 +77,7 @@ public class E2EJDKTest {
     }
 
     private String getSucceededJobs() {
-        return getJson("http://localhost:8000/api/jobs/default/succeeded");
+        return getJson("http://localhost:8000/api/jobs/succeeded");
     }
 
     private <T> T jobActivator(Class<T> clazz) {

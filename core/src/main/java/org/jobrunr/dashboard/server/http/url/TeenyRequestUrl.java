@@ -1,6 +1,7 @@
 package org.jobrunr.dashboard.server.http.url;
 
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jobrunr.utils.reflection.autobox.Autoboxer;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
@@ -57,10 +58,12 @@ public class TeenyRequestUrl {
         return optionalQueryParam(queryParamName).orElse(null);
     }
 
-    public int queryParam(String queryParamName, int defaultValue) {
-        return optionalQueryParam(queryParamName)
-                .map(Integer::parseInt)
-                .orElse(defaultValue);
+    public <T> T queryParam(String queryParamName, Class<T> clazz, T defaultValue) {
+        final Optional<String> queryParam = optionalQueryParam(queryParamName);
+        if (queryParam.isPresent()) {
+            return Autoboxer.autobox(queryParam.get(), clazz);
+        }
+        return defaultValue;
     }
 
     public <T> T fromQueryParams(Class<T> clazz) {

@@ -41,11 +41,10 @@ const AdminUI = function () {
                 <main className={classes.content}>
                     <Switch>
                         <Route path="/dashboard/overview" component={Overview}/>
-                        <Route path="/dashboard/jobs/:queue/:state" component={Jobs}/>
                         <Route path="/dashboard/jobs/:id" component={Job}/>
+                        <Route path="/dashboard/jobs" component={Jobs}/>
                         <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
                         <Route path="/dashboard/servers" component={Servers}/>
-                        <Redirect from="/dashboard/jobs" to="/dashboard/jobs/default/enqueued"/>
                         <Redirect from="/dashboard" to="/dashboard/overview"/>
                     </Switch>
                 </main>

@@ -9,8 +9,6 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import Breadcrumbs from '@material-ui/core/Breadcrumbs';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import TimeAgo from "react-timeago/lib";
 import Box from "@material-ui/core/Box";
 import {makeStyles} from '@material-ui/core/styles';
@@ -47,35 +45,41 @@ const JobsTable = (props) => {
     const classes = useStyles();
     const history = useHistory();
 
-    const page = props.location.search.indexOf('page=') < 1 ? 0 : props.location.search.substring(props.location.search.indexOf('page=') + 5);
+    const urlSearchParams = new URLSearchParams(props.location.search);
+    const page = urlSearchParams.get('page');
+    const jobState = urlSearchParams.get('state') ?? 'ENQUEUED';
     const [isLoading, setIsLoading] = React.useState(true);
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
-    const jobState = props.match.params.state;
 
     let title, column, sortOrder = 'ASC';
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
-    switch (jobState) {
-        case 'scheduled':
+    switch (jobState.toUpperCase()) {
+        case 'SCHEDULED':
             title = "Scheduled jobs";
             column = "Scheduled";
             columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].scheduledAt;
             break;
-        case 'enqueued':
+        case 'ENQUEUED':
             title = "Enqueued jobs";
             column = "Enqueued";
             break;
-        case 'processing':
+        case 'PROCESSING':
             title = "Jobs being processed";
             column = "Started";
             break;
-        case 'succeeded':
+        case 'SUCCEEDED':
             title = "Succeeded jobs";
             column = "Succeeded";
             sortOrder = 'DESC';
             break;
-        case 'failed':
+        case 'FAILED':
             title = "Failed jobs";
             column = "Failed";
+            sortOrder = 'DESC';
+            break;
+        case 'DELETED':
+            title = "Deleted jobs";
+            column = "Deleted";
             sortOrder = 'DESC';
             break;
         default:
@@ -86,7 +90,7 @@ const JobsTable = (props) => {
         setIsLoading(true);
         let offset = (page) * 20;
         let limit = 20;
-        fetch(`/api/jobs/default/${jobState}?offset=${offset}&limit=${limit}&order=${sortOrder}`)
+        fetch(`/api/jobs?state=${jobState.toUpperCase()}&offset=${offset}&limit=${limit}&order=${sortOrder}`)
             .then(res => res.json())
             .then(response => {
                 setJobPage(response);
@@ -101,11 +105,6 @@ const JobsTable = (props) => {
 
     return (
         <div>
-            <Breadcrumbs id="breadcrumb" separator={<NavigateNextIcon fontSize="small"/>} aria-label="breadcrumb">
-                <Link color="inherit" to="/dashboard/jobs">Jobs</Link>
-                <Link color="inherit" to="/dashboard/jobs/default/enqueued">Default queue</Link>
-                <Typography color="textPrimary">{title}</Typography>
-            </Breadcrumbs>
             <Box my={3}>
                 <Typography id="title" variant="h4">{title}</Typography>
             </Box>

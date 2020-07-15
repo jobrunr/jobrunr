@@ -8,6 +8,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 
 class TeenyRequestUrlTest {
 
@@ -32,7 +34,7 @@ class TeenyRequestUrlTest {
     @Test
     void testRequestUrlParamAsEnum() {
         TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs/enqueued?offset=2&limit=2").toRequestUrl("/api/jobs/:state");
-        assertThat(teenyRequestUrl.param(":state", StateName.class)).isEqualTo(StateName.ENQUEUED);
+        assertThat(teenyRequestUrl.param(":state", StateName.class)).isEqualTo(ENQUEUED);
     }
 
     @Test
@@ -48,10 +50,15 @@ class TeenyRequestUrlTest {
     }
 
     @Test
-    void testRequestUrlQueryParamAsInt() {
-        TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs/enqueued?present=2").toRequestUrl("/api/jobs/:state");
-        assertThat(teenyRequestUrl.queryParam("present", 3)).isEqualTo(2);
-        assertThat(teenyRequestUrl.queryParam("notPresent", 3)).isEqualTo(3);
+    void testRequestUrlQueryParamWhichIsPresentUsingClass() {
+        TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs?state=SCHEDULED").toRequestUrl("/api/jobs");
+        assertThat(teenyRequestUrl.queryParam("state", StateName.class, ENQUEUED)).isEqualTo(SCHEDULED);
+    }
+
+    @Test
+    void testRequestUrlQueryParamWhichIsNotPresentUsingClass() {
+        TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs").toRequestUrl("/api/jobs");
+        assertThat(teenyRequestUrl.queryParam("state", StateName.class, ENQUEUED)).isEqualTo(ENQUEUED);
     }
 
     @Test
