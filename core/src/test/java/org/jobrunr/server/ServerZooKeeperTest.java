@@ -119,26 +119,26 @@ class ServerZooKeeperTest {
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue();
+        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue();
+        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue();
+        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .during(FIVE_SECONDS)
                 .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(0));
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse();
+        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse());
     }
 
     @Test
