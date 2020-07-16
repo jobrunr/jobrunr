@@ -16,7 +16,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -55,7 +54,7 @@ public class BackgroundJobTest {
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
-    void setUpTests() throws IOException {
+    void setUpTests() {
         testService = new TestService();
         testService.reset();
         storageProvider = new InMemoryStorageProvider();

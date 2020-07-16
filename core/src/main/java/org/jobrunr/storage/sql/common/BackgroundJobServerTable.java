@@ -48,6 +48,9 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
     public void announce(BackgroundJobServerStatus serverStatus) {
         this
+                .with(COLUMN_ID, serverStatus.getId())
+                .delete("from jobrunr_backgroundjobservers where id = :id");
+        this
                 .insert(serverStatus, "into jobrunr_backgroundjobservers values (:id, :workerPoolSize, :pollIntervalInSeconds, :firstHeartbeat, :lastHeartbeat, :running, :systemTotalMemory, :systemFreeMemory, :systemCpuLoad, :processMaxMemory, :processFreeMemory, :processAllocatedMemory, :processCpuLoad)");
     }
 
