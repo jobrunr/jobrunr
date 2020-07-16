@@ -4,15 +4,15 @@
     "id": "${json-unit.ignore}",
     "workerPoolSize": 10,
     "pollIntervalInSeconds": 15,
-    "firstHeartbeat": null,
+    "firstHeartbeat": "${json-unit.ignore}",
     "lastHeartbeat": "${json-unit.ignore}",
     "running": true,
-    "systemTotalMemory": null,
-    "systemFreeMemory": null,
-    "systemCpuLoad": null,
-    "processMaxMemory": null,
-    "processFreeMemory": null,
-    "processAllocatedMemory": null,
-    "processCpuLoad": null
+    "systemTotalMemory": "${json-unit.ignore}",
+    "systemFreeMemory": "${json-unit.ignore}",
+    "systemCpuLoad": "${json-unit.ignore}",
+    "processMaxMemory": "${json-unit.ignore}",
+    "processFreeMemory": "${json-unit.ignore}",
+    "processAllocatedMemory": "${json-unit.ignore}",
+    "processCpuLoad": "${json-unit.ignore}"
   }
 ]

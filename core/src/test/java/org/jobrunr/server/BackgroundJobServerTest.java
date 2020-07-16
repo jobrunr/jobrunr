@@ -10,8 +10,8 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.JobId;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
-import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
 import org.jobrunr.stubs.TestServiceThatCannotBeRun;
@@ -57,7 +57,7 @@ class BackgroundJobServerTest {
         testServiceForIoC = new TestServiceForIoC("an argument");
         testService.reset();
         testServiceForIoC.reset();
-        storageProvider = new SimpleStorageProvider();
+        storageProvider = new InMemoryStorageProvider();
         backgroundJobServer = new BackgroundJobServer(storageProvider, new SimpleJobActivator(testServiceForIoC), usingStandardConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
@@ -66,8 +66,9 @@ class BackgroundJobServerTest {
     }
 
     @AfterEach
-    void stopBackgroundJobServer() {
+    void stopBackgroundJobServer() throws Exception {
         backgroundJobServer.stop();
+        storageProvider.close();
     }
 
     @Test

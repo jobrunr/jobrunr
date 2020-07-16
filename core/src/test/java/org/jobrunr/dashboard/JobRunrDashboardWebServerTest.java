@@ -4,8 +4,10 @@ import org.jobrunr.dashboard.server.http.client.TeenyHttpClient;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.SimpleStorageProvider;
+import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +23,7 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 abstract class JobRunrDashboardWebServerTest {
 
-    private SimpleStorageProvider storageProvider;
+    private StorageProvider storageProvider;
 
     private JobRunrDashboardWebServer dashboardWebServer;
     private TeenyHttpClient http;
@@ -30,7 +32,7 @@ abstract class JobRunrDashboardWebServerTest {
     void setUpWebServer() {
         final JsonMapper jsonMapper = getJsonMapper();
 
-        storageProvider = new SimpleStorageProvider();
+        storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
         dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper);
 
@@ -40,8 +42,9 @@ abstract class JobRunrDashboardWebServerTest {
     abstract JsonMapper getJsonMapper();
 
     @AfterEach
-    void stopWebServer() {
+    void stopWebServer() throws Exception {
         dashboardWebServer.stop();
+        storageProvider.close();
     }
 
     @Test
@@ -55,7 +58,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testGetJobById_ForFailedJob() {
-        final Job job = aFailedJobWithRetries().build();
+        final Job job = aFailedJobWithRetries().withoutId().build();
         final Job savedJob = storageProvider.save(job);
 
         HttpResponse<String> getResponse = http.get("/api/jobs/%s", savedJob.getId());
@@ -66,7 +69,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testRequeueJob() {
-        final Job job = aFailedJobWithRetries().build();
+        final Job job = aFailedJobWithRetries().withoutId().build();
         final Job savedJob = storageProvider.save(job);
 
         HttpResponse<String> deleteResponse = http.post("/api/jobs/%s/requeue", savedJob.getId());
@@ -77,7 +80,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testDeleteJob() {
-        final Job job = aFailedJobWithRetries().build();
+        final Job job = aFailedJobWithRetries().withoutId().build();
         final Job savedJob = storageProvider.save(job);
 
         HttpResponse<String> deleteResponse = http.delete("/api/jobs/%s", savedJob.getId());
@@ -127,7 +130,9 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testGetBackgroundJobServers() {
-        storageProvider.announceBackgroundJobServer(new BackgroundJobServerStatus(15, 10));
+        final BackgroundJobServerStatus serverStatus = new BackgroundJobServerStatus(15, 10);
+        serverStatus.start();
+        storageProvider.announceBackgroundJobServer(new ServerZooKeeper.BackgroundJobServerStatusWriteModel(serverStatus));
 
         HttpResponse<String> getResponse = http.get("/api/servers");
         assertThat(getResponse)

@@ -76,7 +76,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         if (timer != null) {
             timer.cancel();
             timer = null;

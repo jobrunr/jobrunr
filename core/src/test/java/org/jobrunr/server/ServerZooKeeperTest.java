@@ -1,8 +1,9 @@
 package org.jobrunr.server;
 
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.SimpleStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +23,12 @@ import static org.mockito.ArgumentMatchers.any;
 
 class ServerZooKeeperTest {
 
-    private SimpleStorageProvider storageProvider;
+    private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
     void setUp() {
-        storageProvider = new SimpleStorageProvider();
+        storageProvider = new InMemoryStorageProvider().withJsonMapper(new JacksonJsonMapper());
         backgroundJobServer = new BackgroundJobServer(storageProvider, null, 5, 10);
     }
 
@@ -35,6 +36,7 @@ class ServerZooKeeperTest {
     void tearDown() {
         try {
             backgroundJobServer.stop();
+            storageProvider.close();
         } catch (Exception e) {
             e.printStackTrace();
             // not that important
