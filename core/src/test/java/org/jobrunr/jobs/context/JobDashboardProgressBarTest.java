@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 
 class JobDashboardProgressBarTest {
@@ -19,17 +20,23 @@ class JobDashboardProgressBarTest {
     }
 
     @Test
-    public void canIncreaseByOne() {
+    void canIncreaseByOne() {
         jobDashboardProgressBar.increaseByOne();
 
         assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(10);
     }
 
     @Test
-    public void canSetValue() {
+    void canSetValue() {
         jobDashboardProgressBar.setValue(3);
 
         assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(30);
+    }
+
+    @Test
+    void canNotConstructProgressBarWithSize0() {
+        final Job job = aJobInProgress().build();
+        assertThatThrownBy(() -> new JobDashboardProgressBar(job, 0L)).isInstanceOf(IllegalArgumentException.class);
     }
 
 }

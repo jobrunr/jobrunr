@@ -62,6 +62,7 @@ public class JobDashboardProgressBar {
         }
 
         public JobDashboardProgress(Long totalAmount) {
+            if (totalAmount < 1) throw new IllegalArgumentException("The total progress amount must be larger than 0.");
             this.totalAmount = totalAmount;
             this.currentValue = 0L;
         }
