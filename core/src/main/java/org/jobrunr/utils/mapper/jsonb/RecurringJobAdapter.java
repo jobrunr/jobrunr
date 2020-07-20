@@ -1,5 +1,6 @@
 package org.jobrunr.utils.mapper.jsonb;
 
+import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
@@ -39,9 +40,13 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .add("jobName", recurringJob.getJobName())
                 .add("jobSignature", recurringJob.getJobSignature())
                 .add("version", recurringJob.getVersion())
+                .add("version", recurringJob.getVersion())
                 .add("cronExpression", recurringJob.getCronExpression())
                 .add("zoneId", recurringJob.getZoneId())
                 .add("jobDetails", jobDetailsAdapter.adaptToJson(recurringJob.getJobDetails()));
+        if (recurringJob instanceof RecurringJobUIModel) {
+            builder.add("nextRun", recurringJob.getNextRun().toString());
+        }
         return builder.build();
     }
 
