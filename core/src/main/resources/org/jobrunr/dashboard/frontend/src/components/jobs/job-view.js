@@ -24,6 +24,7 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Box from "@material-ui/core/Box";
 import LoadingIndicator from "../LoadingIndicator";
+import {jobStateToHumanReadableName} from "../utils/job-utils";
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -120,7 +121,7 @@ const JobView = (props) => {
         setIsLoading(false);
         let state = job.jobHistory[job.jobHistory.length - 1].state;
         setStateBreadcrumb({
-            name: state.charAt(0).toUpperCase() + state.substring(1).toLocaleLowerCase(),
+            name: jobStateToHumanReadableName(state),
             link: state.toLowerCase()
         })
     }
@@ -152,7 +153,8 @@ const JobView = (props) => {
                     <Paper><Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>Job
                         not found</Typography></Paper>
                     : <>
-                        <Breadcrumbs separator={<NavigateNextIcon fontSize="small"/>} aria-label="breadcrumb">
+                        <Breadcrumbs id="breadcrumb" separator={<NavigateNextIcon fontSize="small"/>}
+                                     aria-label="breadcrumb">
                             <Link color="inherit" to="/dashboard/jobs">Jobs</Link>
                             <Link color="inherit"
                                   to={`/dashboard/jobs?state=${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>

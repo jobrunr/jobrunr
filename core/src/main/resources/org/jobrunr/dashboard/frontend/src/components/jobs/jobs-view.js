@@ -6,6 +6,7 @@ import Box from "@material-ui/core/Box";
 import {makeStyles} from '@material-ui/core/styles';
 import LoadingIndicator from "../LoadingIndicator";
 import JobsTable from "../utils/jobs-table";
+import {jobStateToHumanReadableName} from "../utils/job-utils";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -47,34 +48,16 @@ const JobsView = (props) => {
     const [isLoading, setIsLoading] = React.useState(true);
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
 
-    let title, sortField = 'createdAt', sortOrder = 'ASC';
+    let sortField = 'createdAt', sortOrder = 'ASC';
     switch (jobState.toUpperCase()) {
-        case 'SCHEDULED':
-            title = "Scheduled jobs";
-            break;
-        case 'ENQUEUED':
-            title = "Enqueued jobs";
-            break;
-        case 'PROCESSING':
-            title = "Jobs being processed";
-            break;
         case 'SUCCEEDED':
-            title = "Succeeded jobs";
             sortField = 'updatedAt';
             sortOrder = 'DESC';
             break;
         case 'FAILED':
-            title = "Failed jobs";
             sortField = 'updatedAt';
             sortOrder = 'DESC';
             break;
-        case 'DELETED':
-            title = "Deleted jobs";
-            sortField = 'updatedAt';
-            sortOrder = 'DESC';
-            break;
-        default:
-        // code block
     }
 
     React.useEffect(() => {
@@ -94,7 +77,7 @@ const JobsView = (props) => {
     return (
         <main className={classes.content}>
             <Box my={3}>
-                <Typography id="title" variant="h4">{title}</Typography>
+                <Typography id="title" variant="h4">{jobStateToHumanReadableName(jobState)}</Typography>
             </Box>
             {isLoading
                 ? <LoadingIndicator/>

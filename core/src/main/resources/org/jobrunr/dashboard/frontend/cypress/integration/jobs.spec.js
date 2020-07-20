@@ -30,7 +30,6 @@ context('Actions', () => {
 
     it('It opens the jobs dashboard page', () => {
         jobsTabBtn().get('span.MuiChip-label').should('contain', '33');
-        breadcrumb().should('contain', 'Enqueued jobs');
         title().should('contain', 'Enqueued jobs');
 
         jobTableRows().should('have.length', 20);
@@ -44,7 +43,6 @@ context('Actions', () => {
     it('It can navigate to the scheduled jobs', () => {
         scheduledMenuBtn().should('contain', '1');
         scheduledMenuBtn().click();
-        breadcrumb().should('contain', 'Scheduled jobs');
         title().should('contain', 'Scheduled jobs');
 
         jobTableRows().should('have.length', 1);
@@ -57,7 +55,6 @@ context('Actions', () => {
     it('It can navigate to the enqueued jobs', () => {
         enqueuedMenuBtn().should('contain', '33');
         enqueuedMenuBtn().click();
-        breadcrumb().should('contain', 'Enqueued jobs');
         title().should('contain', 'Enqueued jobs');
 
         jobTableRows().should('have.length', 20);
@@ -70,7 +67,6 @@ context('Actions', () => {
     it('It can navigate to the processing jobs', () => {
         processingMenuBtn().should('contain', '0');
         processingMenuBtn().click();
-        breadcrumb().should('contain', 'Jobs being processed');
         title().should('contain', 'Jobs being processed');
 
         noJobsFoundMessage().should('be.visible')
@@ -80,7 +76,6 @@ context('Actions', () => {
     it('It can navigate to the succeeded jobs', () => {
         succeededMenuBtn().should('contain', '2');
         succeededMenuBtn().click();
-        breadcrumb().should('contain', 'Succeeded jobs');
         title().should('contain', 'Succeeded jobs');
 
         jobTableRows().should('have.length', 2);
@@ -93,7 +88,6 @@ context('Actions', () => {
     it('It can navigate to the failed jobs', () => {
         failedMenuBtn().should('contain', '1');
         failedMenuBtn().click();
-        breadcrumb().should('contain', 'Failed jobs');
         title().should('contain', 'Failed jobs');
 
         jobTableRows().should('have.length', 1);
@@ -105,17 +99,17 @@ context('Actions', () => {
 
     it('It can navigate to the details of a job', () => {
         failedMenuBtn().click();
-        breadcrumb().should('contain', 'Failed jobs');
         title().should('contain', 'Failed jobs');
-
         jobTableRows().should('have.length', 1);
+
         jobTableRows().eq(0).should('contain', 'failed job');
         jobTableRows().eq(0).find('td a').eq(0).click();
-
         jobIdTitle().should('be.visible');
-        jobNameTitle().should('contain', 'failed job');
 
+        breadcrumb().should('contain', 'Failed jobs');
+        jobNameTitle().should('contain', 'failed job');
         jobHistoryPanel().should('be.visible');
+
         jobHistoryPanelItems().should('have.length', 44);
         jobHistoryPanelItems().eq(0).should('contain', 'Job scheduled');
         jobHistorySortDescBtn().click();
