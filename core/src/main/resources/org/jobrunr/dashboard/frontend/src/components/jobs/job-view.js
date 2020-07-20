@@ -50,6 +50,7 @@ const JobView = (props) => {
     const classes = useStyles();
     const history = useHistory();
     const location = useLocation();
+
     const [apiStatus, setApiStatus] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [job, setJob] = React.useState(null);
@@ -154,7 +155,7 @@ const JobView = (props) => {
                         <Breadcrumbs separator={<NavigateNextIcon fontSize="small"/>} aria-label="breadcrumb">
                             <Link color="inherit" to="/dashboard/jobs">Jobs</Link>
                             <Link color="inherit"
-                                  to={`/dashboard/jobs/${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
+                                  to={`/dashboard/jobs?state=${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
                             <Typography color="textPrimary">{job.id}</Typography>
                         </Breadcrumbs>
                         <Box my={3} className={classes.box}>

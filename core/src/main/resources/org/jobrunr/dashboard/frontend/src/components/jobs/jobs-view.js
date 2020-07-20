@@ -1,9 +1,7 @@
 import React from 'react';
-import {Link, useHistory} from "react-router-dom";
+import {useHistory} from "react-router-dom";
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import Breadcrumbs from '@material-ui/core/Breadcrumbs';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import Box from "@material-ui/core/Box";
 import {makeStyles} from '@material-ui/core/styles';
 import LoadingIndicator from "../LoadingIndicator";
@@ -95,11 +93,6 @@ const JobsView = (props) => {
 
     return (
         <main className={classes.content}>
-            <Breadcrumbs id="breadcrumb" separator={<NavigateNextIcon fontSize="small"/>} aria-label="breadcrumb">
-                <Link color="inherit" to="/dashboard/jobs">Jobs</Link>
-                <Link color="inherit" to="/dashboard/jobs/default/enqueued">Default queue</Link>
-                <Typography color="textPrimary">{title}</Typography>
-            </Breadcrumbs>
             <Box my={3}>
                 <Typography id="title" variant="h4">{title}</Typography>
             </Box>
