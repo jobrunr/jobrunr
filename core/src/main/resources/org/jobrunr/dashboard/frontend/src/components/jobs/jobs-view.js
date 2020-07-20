@@ -58,6 +58,7 @@ const JobsView = (props) => {
             sortField = 'updatedAt';
             sortOrder = 'DESC';
             break;
+        default:
     }
 
     React.useEffect(() => {
