@@ -48,32 +48,33 @@ const Sidebar = () => {
             <div className={classes.toolbar}/>
             <List>
                 <List component="div" disablePadding>
-                    <ListItem id="scheduled-menu-btn" button key="Scheduled" className={classes.nested} component={Link}
+                    <ListItem id="scheduled-menu-btn" button key="Scheduled" component={Link}
                               to="/dashboard/jobs?state=SCHEDULED">
                         <ListItemIcon><Schedule/></ListItemIcon>
                         <ListItemText primary="Scheduled"/><Chip label={stats.scheduled}/>
                     </ListItem>
-                    <ListItem id="enqueued-menu-btn" button key="Enqueued" className={classes.nested}
+                    <ListItem id="enqueued-menu-btn" button key="Enqueued"
                               component={Link} to="/dashboard/jobs?state=ENQUEUED">
                         <ListItemIcon><TimerSand/></ListItemIcon>
-                        <ListItemText primary="Enqueued"/><Chip label={stats.enqueued}/>
+                        <ListItemText primary="Enqueued"/>
+                        <Chip label={stats.enqueued}/>
                     </ListItem>
-                    <ListItem id="processing-menu-btn" button key="Processing" className={classes.nested}
+                    <ListItem id="processing-menu-btn" button key="Processing"
                               component={Link} to="/dashboard/jobs?state=PROCESSING">
                         <ListItemIcon><Cogs/></ListItemIcon>
                         <ListItemText primary="Processing"/><Chip label={stats.processing}/>
                     </ListItem>
-                    <ListItem id="succeeded-menu-btn" button key="Succeeded" className={classes.nested}
+                    <ListItem id="succeeded-menu-btn" button key="Succeeded"
                               component={Link} to="/dashboard/jobs?state=SUCCEEDED">
                         <ListItemIcon><Check/></ListItemIcon>
                         <ListItemText primary="Succeeded"/><Chip label={stats.succeeded}/>
                     </ListItem>
-                    <ListItem id="failed-menu-btn" button key="Failed" className={classes.nested} component={Link}
+                    <ListItem id="failed-menu-btn" button key="Failed" component={Link}
                               to="/dashboard/jobs?state=FAILED">
                         <ListItemIcon><AlertCircleOutline/></ListItemIcon>
                         <ListItemText primary="Failed"/><Chip label={stats.failed}/>
                     </ListItem>
-                    <ListItem id="deleted-menu-btn" button key="Deleted" className={classes.nested} component={Link}
+                    <ListItem id="deleted-menu-btn" button key="Deleted" component={Link}
                               to="/dashboard/jobs?state=DELETED">
                         <ListItemIcon><Delete/></ListItemIcon>
                         <ListItemText primary="Deleted"/><Chip label={stats.deleted}/>

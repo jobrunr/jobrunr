@@ -4,9 +4,11 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
 import Servers from "../components/servers/servers";
-import Jobs from '../components/jobs/jobs.js';
-import Job from '../components/jobs/job.js';
 import RecurringJobs from "../components/recurring-jobs/recurring-jobs";
+import WithSidebar from "../components/utils/with-sidebar";
+import JobView from "../components/jobs/job-view";
+import JobsView from "../components/jobs/jobs-view";
+import Sidebar from "../components/jobs/sidebar";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -34,6 +36,9 @@ const AdminUI = function () {
     });
     const classes = useStyles();
 
+    const JobWithSidebar = WithSidebar(Sidebar, JobView);
+    const JobsWithSidebar = WithSidebar(Sidebar, JobsView);
+
     return (
         <MuiThemeProvider theme={theme}>
             <div className={classes.root}>
@@ -41,8 +46,8 @@ const AdminUI = function () {
                 <main className={classes.content}>
                     <Switch>
                         <Route path="/dashboard/overview" component={Overview}/>
-                        <Route path="/dashboard/jobs/:id" component={Job}/>
-                        <Route path="/dashboard/jobs" component={Jobs}/>
+                        <Route path="/dashboard/jobs/:id" component={JobWithSidebar}/>
+                        <Route path="/dashboard/jobs" component={JobsWithSidebar}/>
                         <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
                         <Route path="/dashboard/servers" component={Servers}/>
                         <Redirect from="/dashboard" to="/dashboard/overview"/>
