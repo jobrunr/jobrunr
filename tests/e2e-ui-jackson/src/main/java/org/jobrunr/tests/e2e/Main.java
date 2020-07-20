@@ -1,9 +1,10 @@
 package org.jobrunr.tests.e2e;
 
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
 import static java.time.Instant.now;
@@ -26,7 +27,8 @@ public class Main extends AbstractMain {
 
     @Override
     protected StorageProvider initStorageProvider() {
-        final InMemoryStorageProvider storageProvider = new InMemoryStorageProvider().withJsonMapper(new JacksonJsonMapper());
+        final org.jobrunr.storage.InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         addDefaultData(storageProvider);
         return storageProvider;
     }
@@ -40,9 +42,9 @@ public class Main extends AbstractMain {
             storageProvider.save(anEnqueuedJob().build());
         }
         storageProvider.save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
-        storageProvider.save(aSucceededJob().build());
         storageProvider.save(aFailedJobWithRetries().build());
         storageProvider.save(aFailedJobThatEventuallySucceeded().build());
+        storageProvider.save(aSucceededJob().build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").withName("Generate sales report at 3am").withCronExpression("0 3 * * *").build());
     }

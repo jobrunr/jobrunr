@@ -2,7 +2,6 @@ package org.jobrunr.utils.reflection;
 
 import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
-import org.jobrunr.utils.StringUtils;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingFunction;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
 
@@ -22,6 +21,7 @@ import java.util.stream.Stream;
 import static java.lang.Thread.currentThread;
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.utils.StringUtils.capitalize;
 
 public class ReflectionUtils {
 
@@ -138,12 +138,12 @@ public class ReflectionUtils {
         }
     }
 
-    public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         return findMethod(clazz, methodName, parameterTypes)
                 .orElseThrow(() -> new JobNotFoundException(clazz, methodName, parameterTypes));
     }
 
-    public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
+    public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         return findMethod(clazz, m -> methodName.equals(m.getName()) && Arrays.equals(m.getParameterTypes(), parameterTypes));
     }
 
@@ -190,15 +190,21 @@ public class ReflectionUtils {
     public static Object getValueFromFieldOrProperty(Object object, String paramName) {
         try {
             Class<?> aClass = object.getClass();
-            if (objectContainsField(object, paramName)) {
-                Field declaredField = aClass.getDeclaredField(paramName);
-                makeAccessible(declaredField);
-                return declaredField.get(object);
-            } else {
-                Method getter = aClass.getDeclaredMethod("get" + StringUtils.capitalize(paramName));
+            final Optional<Field> optionalField = findField(aClass, paramName);
+            if (optionalField.isPresent()) {
+                Field field = optionalField.get();
+                makeAccessible(field);
+                return field.get(object);
+            }
+
+            final Optional<Method> optionalMethod = findMethod(aClass, "get" + capitalize(paramName));
+            if (optionalMethod.isPresent()) {
+                Method getter = optionalMethod.get();
                 makeAccessible(getter);
                 return getter.invoke(object);
             }
+
+            throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
         } catch (ReflectiveOperationException willNotHappen) {
             throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
         }
@@ -282,10 +288,10 @@ public class ReflectionUtils {
     }
 
     private static boolean objectContainsField(Object object, String fieldName) {
-        return stream(object.getClass().getDeclaredFields()).anyMatch(f -> f.getName().equals(fieldName));
+        return findField(object.getClass(), fieldName).isPresent();
     }
 
     private static boolean objectContainsProperty(Object object, String fieldName) {
-        return stream(object.getClass().getDeclaredMethods()).anyMatch(m -> m.getName().equalsIgnoreCase("get" + fieldName));
+        return findMethod(object.getClass(), "get" + capitalize(fieldName)).isPresent();
     }
 }

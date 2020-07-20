@@ -1,8 +1,9 @@
 package org.jobrunr.server;
 
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,8 @@ class ServerZooKeeperTest {
 
     @BeforeEach
     void setUp() {
-        storageProvider = new InMemoryStorageProvider().withJsonMapper(new JacksonJsonMapper());
+        storageProvider = new InMemoryStorageProvider();
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         backgroundJobServer = new BackgroundJobServer(storageProvider, null, 5, 10);
     }
 

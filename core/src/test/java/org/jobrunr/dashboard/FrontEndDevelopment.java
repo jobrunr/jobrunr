@@ -1,9 +1,10 @@
 package org.jobrunr.dashboard;
 
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StubDataProvider;
-import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
 /**
@@ -12,8 +13,8 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws InterruptedException {
-        StorageProvider storageProvider = new InMemoryStorageProvider()
-                .withJsonMapper(new JacksonJsonMapper());
+        StorageProvider storageProvider = new InMemoryStorageProvider();
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
 
         StubDataProvider.using(storageProvider)
                 .addALotOfEnqueuedJobsThatTakeSomeTime()

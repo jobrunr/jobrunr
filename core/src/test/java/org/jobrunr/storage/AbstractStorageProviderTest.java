@@ -7,7 +7,6 @@ import org.jobrunr.scheduling.JobId;
 import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
-import org.jobrunr.storage.sql.h2.InMemoryStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

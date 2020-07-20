@@ -13,7 +13,6 @@ dependencies {
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.h2database:h2'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":core"))

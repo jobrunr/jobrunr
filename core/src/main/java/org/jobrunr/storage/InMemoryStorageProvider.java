@@ -6,40 +6,47 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.utils.mapper.JsonMapper;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static java.time.Instant.now;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJobThatEventuallySucceeded;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJobThatTakesLong;
-import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
+import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-public class SimpleStorageProvider extends AbstractStorageProvider {
+public class InMemoryStorageProvider extends AbstractStorageProvider {
 
-    private volatile Map<String, RecurringJob> recurringJobs = new ConcurrentHashMap<>();
     private volatile Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private volatile Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
+    private volatile List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
+    private volatile Map<Object, AtomicLong> jobStats = new ConcurrentHashMap<>();
     private JobMapper jobMapper;
 
-    public SimpleStorageProvider() {
-        super(rateLimit().at2Requests().per(SECOND));
+    public InMemoryStorageProvider() {
+        this(rateLimit().at2Requests().per(SECOND));
+    }
+
+    public InMemoryStorageProvider(RateLimiter rateLimiter) {
+        super(rateLimiter);
     }
 
     @Override
@@ -78,7 +85,9 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
-        return new ArrayList<>(backgroundJobServers.values());
+        return backgroundJobServers.values().stream()
+                .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
+                .collect(toList());
     }
 
     @Override
@@ -94,23 +103,12 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
     @Override
     public Job getJobById(UUID id) {
         if (!jobQueue.containsKey(id)) throw new JobNotFoundException(id);
-
         return deepClone(jobQueue.get(id));
     }
 
     @Override
     public Job save(Job job) {
-        if (job.getId() == null) {
-            job.setId(UUID.randomUUID());
-        } else {
-            final Job oldJob = jobQueue.get(job.getId());
-            if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
-                throw new ConcurrentJobModificationException(job);
-            }
-            job.increaseVersion();
-        }
-
-        jobQueue.put(job.getId(), deepClone(job));
+        saveJob(job);
         notifyJobStatsOnChangeListeners();
         return job;
     }
@@ -125,7 +123,7 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> save(List<Job> jobs) {
         jobs
-                .forEach(this::save);
+                .forEach(this::saveJob);
         notifyJobStatsOnChangeListeners();
         return jobs;
     }
@@ -142,7 +140,7 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return getJobs(StateName.SCHEDULED)
+        return getJobs(SCHEDULED)
                 .filter(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isBefore(scheduledBefore))
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
@@ -157,11 +155,24 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
+        Comparator<Job> comparator = getJobComparator(pageRequest);
         return getJobs(state)
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
+                .sorted(comparator)
                 .map(this::deepClone)
                 .collect(toList());
+    }
+
+    private Comparator<Job> getJobComparator(PageRequest pageRequest) {
+        Comparator<Job> comparator = null;
+        if (pageRequest.getOrderField().equals("createdAt")) {
+            comparator = Comparator.comparing(Job::getCreatedAt);
+        } else if (pageRequest.getOrderField().equals("updatedAt")) {
+            comparator = Comparator.comparing(Job::getUpdatedAt);
+        }
+        if (pageRequest.getOrder() == PageRequest.Order.DESC) comparator = comparator.reversed();
+        return comparator;
     }
 
     @Override
@@ -193,18 +204,19 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
-        recurringJobs.put(recurringJob.getId(), recurringJob);
+        deleteRecurringJob(recurringJob.getId());
+        recurringJobs.add(recurringJob);
         return recurringJob;
     }
 
     @Override
     public List<RecurringJob> getRecurringJobs() {
-        return new ArrayList<>(recurringJobs.values());
+        return recurringJobs;
     }
 
     @Override
     public int deleteRecurringJob(String id) {
-        recurringJobs.remove(id);
+        recurringJobs.removeIf(job -> id.equals(job.getId()));
         return 0;
     }
 
@@ -212,13 +224,13 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
     public JobStats getJobStats() {
         return new JobStats(
                 (long) jobQueue.size(),
-                getJobs(StateName.AWAITING).count(),
-                getJobs(StateName.SCHEDULED).count(),
-                getJobs(StateName.ENQUEUED).count(),
-                getJobs(StateName.PROCESSING).count(),
-                getJobs(StateName.FAILED).count(),
-                getJobs(StateName.SUCCEEDED).count(),
-                getJobs(StateName.DELETED).count(),
+                getJobs(AWAITING).count(),
+                getJobs(SCHEDULED).count(),
+                getJobs(ENQUEUED).count(),
+                getJobs(PROCESSING).count(),
+                getJobs(FAILED).count(),
+                getJobs(SUCCEEDED).count() + jobStats.getOrDefault(SUCCEEDED, new AtomicLong()).get(),
+                getJobs(DELETED).count(),
                 recurringJobs.size(),
                 backgroundJobServers.size()
         );
@@ -226,55 +238,33 @@ public class SimpleStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
-
-    }
-
-    public SimpleStorageProvider withJsonMapper(JsonMapper jsonMapper) {
-        setJobMapper(new JobMapper(jsonMapper));
-        return this;
-    }
-
-    public SimpleStorageProvider withDefaultData() {
-        final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(10, 10);
-        backgroundJobServerStatus.start();
-        announceBackgroundJobServer(backgroundJobServerStatus);
-        for (int i = 0; i < 33; i++) {
-            save(anEnqueuedJob().build());
-        }
-        save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
-        save(aSucceededJob().build());
-        save(aFailedJobWithRetries().build());
-        save(aFailedJobThatEventuallySucceeded().build());
-        return this;
-    }
-
-    public SimpleStorageProvider withALotOfEnqueuedJobsThatTakeSomeTime() {
-        for (int i = 0; i < 33000; i++) {
-            save(anEnqueuedJobThatTakesLong().build());
-        }
-        save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
-        save(aSucceededJob().build());
-        save(aFailedJobWithRetries().build());
-        save(aFailedJobThatEventuallySucceeded().build());
-        return this;
-    }
-
-    public SimpleStorageProvider withSomeRecurringJobs() {
-        saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build());
-        saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").withName("Generate sales report at 3am").withCronExpression("0 3 * * *").build());
-        return this;
+        jobStats.put(state, new AtomicLong(amount));
     }
 
     private Stream<Job> getJobs(StateName state) {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state))
-                .sorted(Comparator.comparing(Job::getCreatedAt));
+                .sorted(comparing(Job::getCreatedAt));
     }
 
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        Whitebox.setInternalState(result, "lock", Whitebox.getInternalState(job, "lock"));
+        setFieldUsingAutoboxing("lock", result, getValueFromFieldOrProperty(job, "lock"));
         return result;
+    }
+
+    private void saveJob(Job job) {
+        if (job.getId() == null) {
+            job.setId(UUID.randomUUID());
+        } else {
+            final Job oldJob = jobQueue.get(job.getId());
+            if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
+                throw new ConcurrentJobModificationException(job);
+            }
+            job.increaseVersion();
+        }
+
+        jobQueue.put(job.getId(), deepClone(job));
     }
 }
