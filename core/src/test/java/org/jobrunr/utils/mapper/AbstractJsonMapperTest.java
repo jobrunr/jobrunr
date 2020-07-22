@@ -130,13 +130,13 @@ public abstract class AbstractJsonMapperTest {
 
     @Test
     void testSerializeAndDeserializeRecurringJob() {
-        RecurringJob recurringJob = aDefaultRecurringJob().build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withName("some name").build();
 
         final String recurringJobAsString = jsonMapper.serialize(recurringJob);
         assertThatJson(recurringJobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/recurring-job.json"));
 
         final RecurringJob actualRecurringJob = jsonMapper.deserialize(recurringJobAsString, RecurringJob.class);
-        assertThat(actualRecurringJob).isEqualTo(actualRecurringJob);
+        assertThat(actualRecurringJob).isEqualTo(recurringJob);
     }
 
     @Test

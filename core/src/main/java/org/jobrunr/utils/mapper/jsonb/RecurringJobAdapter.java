@@ -52,12 +52,14 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
 
     @Override
     public RecurringJob adaptFromJson(JsonObject jsonObject) throws Exception {
-        return new RecurringJob(
+        final RecurringJob recurringJob = new RecurringJob(
                 jsonObject.getString("id"),
                 jobDetailsAdapter.adaptFromJson(jsonObject.getJsonObject("jobDetails")),
                 jsonObject.getString("cronExpression"),
                 jsonObject.getString("zoneId")
         );
+        recurringJob.setJobName(jsonObject.getString("jobName"));
+        return recurringJob;
     }
 
 }
