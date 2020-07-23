@@ -26,6 +26,7 @@ public class RecurringJobTestBuilder {
     public static RecurringJobTestBuilder aDefaultRecurringJob() {
         return aRecurringJob()
                 .withId("anId")
+                .withName("a recurring job")
                 .withJobDetails(defaultJobDetails())
                 .withCronExpression(Cron.daily())
                 .withZoneId(ZoneId.systemDefault());
