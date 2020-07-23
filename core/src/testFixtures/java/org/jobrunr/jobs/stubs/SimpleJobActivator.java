@@ -29,4 +29,8 @@ public class SimpleJobActivator implements JobActivator {
         }
         return cast(anObject);
     }
+
+    public void clear() {
+        allServices.clear();
+    }
 }

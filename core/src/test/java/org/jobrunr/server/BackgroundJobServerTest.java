@@ -50,6 +50,7 @@ class BackgroundJobServerTest {
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
     private TestServiceForIoC testServiceForIoC;
+    private SimpleJobActivator jobActivator;
 
     @BeforeEach
     void setUpTestService() {
@@ -58,7 +59,8 @@ class BackgroundJobServerTest {
         testService.reset();
         testServiceForIoC.reset();
         storageProvider = new InMemoryStorageProvider();
-        backgroundJobServer = new BackgroundJobServer(storageProvider, new SimpleJobActivator(testServiceForIoC), usingStandardConfiguration().andPollIntervalInSeconds(5));
+        jobActivator = new SimpleJobActivator(testServiceForIoC);
+        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
@@ -236,6 +238,8 @@ class BackgroundJobServerTest {
 
     @Test
     void getBackgroundJobRunnerForNonIoCJobWithoutInstance() {
+        jobActivator.clear();
+
         final Job job = anEnqueuedJob()
                 .withJobDetails((IocJobLambda<TestService>) (x) -> x.doWork())
                 .build();
@@ -246,6 +250,8 @@ class BackgroundJobServerTest {
 
     @Test
     void getBackgroundJobRunnerForNonIoCJobWithInstance() {
+        jobActivator.clear();
+
         final Job job = anEnqueuedJob()
                 .withJobDetails(() -> testService.doWork())
                 .build();
