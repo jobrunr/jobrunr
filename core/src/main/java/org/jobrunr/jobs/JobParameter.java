@@ -7,7 +7,7 @@ public class JobParameter {
     private String className;
     private Object object;
 
-    protected JobParameter() {
+    private JobParameter() {
         // used for deserialization
     }
 

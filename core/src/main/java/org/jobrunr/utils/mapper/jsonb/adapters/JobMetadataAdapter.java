@@ -1,7 +1,6 @@
 package org.jobrunr.utils.mapper.jsonb.adapters;
 
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
-import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import javax.json.Json;
 import javax.json.JsonNumber;
@@ -20,6 +19,7 @@ import static javax.json.JsonValue.ValueType.OBJECT;
 import static javax.json.JsonValue.ValueType.STRING;
 import static javax.json.JsonValue.ValueType.TRUE;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
+import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, JsonObject> {
 
@@ -59,7 +59,7 @@ public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, Jso
             final JsonValue jsonValue = jsonMetadataObject.get(key);
             if (OBJECT.equals(jsonValue.getValueType())) {
                 final JsonObject jsonObject = jsonValue.asJsonObject();
-                final Object o = jsonb.fromJsonValue(jsonObject, ReflectionUtils.toClass(jsonObject.getString("@class")));
+                final Object o = jsonb.fromJsonValue(jsonObject, toClass(jsonObject.getString("@class")));
                 result.put(key, o);
             } else if (STRING.equals(jsonValue.getValueType())) {
                 result.put(key, ((JsonString) jsonValue).getString());

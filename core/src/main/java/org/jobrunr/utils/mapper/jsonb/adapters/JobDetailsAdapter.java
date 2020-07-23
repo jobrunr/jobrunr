@@ -52,12 +52,10 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
     private List<JobParameter> getJobDetailsParameters(JsonArray jobParameters) {
         List<JobParameter> result = new ArrayList<>();
         for (JsonValue jsonValue : jobParameters) {
-            JobParameter jobParameter = jsonb.fromJsonValue(jsonValue.asJsonObject(), JobParameter.class);
-            if (jobParameter.getObject() != null && !jobParameter.getClassName().equals(jobParameter.getObject().getClass().getName())) {
-                Object object = jsonb.fromJsonValue(jsonValue.asJsonObject().get("object"), toClass(jobParameter.getClassName()));
-                jobParameter = new JobParameter(jobParameter.getClassName(), object);
-            }
-            result.add(jobParameter);
+            final JsonObject jsonObject = jsonValue.asJsonObject();
+            String className = jsonObject.getString("className");
+            Object object = jsonb.fromJsonValue(jsonObject.get("object"), toClass(className));
+            result.add(new JobParameter(className, object));
         }
         return result;
     }

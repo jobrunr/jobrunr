@@ -2,7 +2,6 @@ package org.jobrunr.utils.mapper.jsonb.adapters;
 
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
-import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
+import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobHistoryAdapter implements JsonbAdapter<List<JobState>, JsonArray> {
 
@@ -41,7 +41,7 @@ public class JobHistoryAdapter implements JsonbAdapter<List<JobState>, JsonArray
         for (JsonValue jsonValue : jsonArray) {
             final JsonObject jsonObject = jsonValue.asJsonObject();
             String className = jsonObject.getString("@class");
-            result.add(jsonb.fromJsonValue(jsonObject, ReflectionUtils.toClass(className)));
+            result.add(jsonb.fromJsonValue(jsonObject, toClass(className)));
         }
         return result;
     }
