@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.JMException;
+import javax.management.MBeanServer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.time.Duration;
@@ -183,17 +184,17 @@ public class ServerZooKeeper implements Runnable {
 
         @Override
         public Long getSystemTotalMemory() {
-            return getMXBeanValue("TotalPhysicalMemorySize");
+            return getMXBeanValueAsLong("TotalPhysicalMemorySize");
         }
 
         @Override
         public Long getSystemFreeMemory() {
-            return getMXBeanValue("FreePhysicalMemorySize");
+            return getMXBeanValueAsLong("FreePhysicalMemorySize");
         }
 
         @Override
         public Double getSystemCpuLoad() {
-            final Double systemCpuLoad = getMXBeanValue("SystemCpuLoad");
+            final Double systemCpuLoad = getMXBeanValueAsDouble("SystemCpuLoad");
             if (Double.isNaN(systemCpuLoad)) {
                 if (cachedSystemCpuLoad == null) {
                     return (double) -1;
@@ -221,7 +222,7 @@ public class ServerZooKeeper implements Runnable {
 
         @Override
         public Double getProcessCpuLoad() {
-            final Double processCpuLoad = getMXBeanValue("ProcessCpuLoad");
+            final Double processCpuLoad = getMXBeanValueAsDouble("ProcessCpuLoad");
             if (Double.isNaN(processCpuLoad)) {
                 if (cachedProcessCpuLoad == null) {
                     return (double) -1;
@@ -232,13 +233,22 @@ public class ServerZooKeeper implements Runnable {
             return cachedProcessCpuLoad;
         }
 
+        Double getMXBeanValueAsDouble(String name) {
+            return ((Number) getMXBeanValue(name)).doubleValue();
+        }
+
+        Long getMXBeanValueAsLong(String name) {
+            return ((Number) getMXBeanValue(name)).longValue();
+        }
+
         // visible for testing
         // see bug JDK-8193878
         <O> O getMXBeanValue(String name) {
             try {
-                final Object attribute = ManagementFactory.getPlatformMBeanServer().getAttribute(operatingSystemMXBean.getObjectName(), name);
+                final MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+                final Object attribute = platformMBeanServer.getAttribute(operatingSystemMXBean.getObjectName(), name);
                 return cast(attribute);
-            } catch (JMException ex) {
+            } catch (JMException | NullPointerException ex) {
                 return cast(-1);
             }
         }
