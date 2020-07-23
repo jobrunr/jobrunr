@@ -187,9 +187,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private List<BackgroundJobRunner> initializeBackgroundJobRunners(JobActivator jobActivator) {
         return asList(
+                new BackgroundJobWithIocRunner(jobActivator),
                 new BackgroundJobWithoutIocRunner(),
-                new BackgroundStaticJobWithoutIocRunner(),
-                new BackgroundJobWithIocRunner(jobActivator)
+                new BackgroundStaticJobWithoutIocRunner()
         );
     }
 
