@@ -18,21 +18,25 @@ public class ContentType {
     public static final String IMAGE_X_ICON = "image/x-icon";
 
     public static String from(Path path) {
-        if (path.toString().toLowerCase().endsWith(".html")) {
+        return from(path.toString());
+    }
+
+    public static String from(String path) {
+        if (path.toLowerCase().endsWith(".html")) {
             return TEXT_HTML;
-        } else if (path.toString().toLowerCase().endsWith(".txt")) {
+        } else if (path.toLowerCase().endsWith(".txt")) {
             return TEXT_PLAIN;
-        } else if (path.toString().toLowerCase().endsWith(".json")) {
+        } else if (path.toLowerCase().endsWith(".json")) {
             return APPLICATION_JSON;
-        } else if (path.toString().toLowerCase().endsWith(".js")) {
+        } else if (path.toLowerCase().endsWith(".js")) {
             return TEXT_JAVASCRIPT;
-        } else if (path.toString().toLowerCase().endsWith(".css")) {
+        } else if (path.toLowerCase().endsWith(".css")) {
             return TEXT_CSS;
-        } else if (path.toString().toLowerCase().endsWith(".png")) {
+        } else if (path.toLowerCase().endsWith(".png")) {
             return IMAGE_PNG;
-        } else if (path.toString().toLowerCase().endsWith(".ico")) {
+        } else if (path.toLowerCase().endsWith(".ico")) {
             return IMAGE_X_ICON;
-        } else if (path.toString().toLowerCase().endsWith(".map")) {
+        } else if (path.toLowerCase().endsWith(".map")) {
             return APPLICATION_OCTET_STREAM;
         }
         throw new IllegalArgumentException("Unsupported mimetype");
