@@ -36,10 +36,29 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
+function convertISO8601ToSeconds(durationString) {
+    var stringPattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,3})?)S)?$/;
+    var stringParts = stringPattern.exec(durationString);
+    return (
+        (
+            (
+                (stringParts[1] === undefined ? 0 : stringParts[1] * 1)  /* Days */
+                * 24 + (stringParts[2] === undefined ? 0 : stringParts[2] * 1) /* Hours */
+            )
+            * 60 + (stringParts[3] === undefined ? 0 : stringParts[3] * 1) /* Minutes */
+        )
+        * 60 + (stringParts[4] === undefined ? 0 : stringParts[4] * 1) /* Seconds */
+    );
+}
+
 const Succeeded = (props) => {
     const classes = useStyles();
     const jobState = props.jobState;
-    const checkIcon = <Check />
+    const checkIcon = <Check/>
+
+    const latencyDuration = jobState.latencyDuration.toString().startsWith('PT') ? convertISO8601ToSeconds(jobState.latencyDuration) : jobState.latencyDuration;
+    const processDuration = jobState.processDuration.toString().startsWith('PT') ? convertISO8601ToSeconds(jobState.processDuration) : jobState.processDuration;
+
 
     return (
         <ExpansionPanel>
@@ -59,8 +78,8 @@ const Succeeded = (props) => {
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanel}>
                 <ul>
-                    <li>Latency duration: {jobState.latencyDuration.toFixed(2)} s</li>
-                    <li>Process duration: {jobState.processDuration.toFixed(2)} s</li>
+                    <li>Latency duration: {latencyDuration.toFixed(2)} s</li>
+                    <li>Process duration: {processDuration.toFixed(2)} s</li>
                 </ul>
             </ExpansionPanelDetails>
         </ExpansionPanel>
