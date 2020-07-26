@@ -8,6 +8,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
@@ -19,19 +20,19 @@ public class RedisStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected void cleanup() {
-        try (Jedis jedis = getJedis()) {
+        try (Jedis jedis = getJedisPool().getResource()) {
             jedis.flushDB();
         }
     }
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final RedisStorageProvider redisStorageProvider = new RedisStorageProvider(getJedis(), rateLimit().withoutLimits());
+        final RedisStorageProvider redisStorageProvider = new RedisStorageProvider(getJedisPool(), rateLimit().withoutLimits());
         redisStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         return redisStorageProvider;
     }
 
-    private Jedis getJedis() {
-        return new Jedis(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379));
+    private JedisPool getJedisPool() {
+        return new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379));
     }
 }

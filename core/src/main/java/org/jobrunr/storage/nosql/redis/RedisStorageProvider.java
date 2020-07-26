@@ -19,6 +19,7 @@ import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
@@ -53,20 +54,20 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
     public static final String QUEUE_SCHEDULEDJOBS_KEY = "queue:scheduledjobs";
 
-    private final Jedis jedisConnector;
+    private final JedisPool jedisPool;
     private JobMapper jobMapper;
 
     public RedisStorageProvider() {
-        this(new Jedis());
+        this(new JedisPool());
     }
 
-    public RedisStorageProvider(Jedis jedis) {
-        this(jedis, rateLimit().at2Requests().per(SECOND));
+    public RedisStorageProvider(JedisPool jedisPool) {
+        this(jedisPool, rateLimit().at2Requests().per(SECOND));
     }
 
-    public RedisStorageProvider(Jedis jedis, RateLimiter changeListenerNotificationRateLimit) {
+    public RedisStorageProvider(JedisPool jedisPool, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
-        this.jedisConnector = jedis;
+        this.jedisPool = jedisPool;
     }
 
     @Override
@@ -109,6 +110,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
             final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
             p.sync();
             return Boolean.parseBoolean(isRunningResponse.get());
@@ -242,13 +244,15 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return new RedisPipelinedStream<>(jedisConnector.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now())), jedisConnector)
-                .skip(pageRequest.getOffset())
-                .limit(pageRequest.getLimit())
-                .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
-                .mapAfterSync(Response::get)
-                .map(jobMapper::deserializeJob)
-                .collect(toList());
+        try (Jedis jedis = getJedis()) {
+            return new RedisPipelinedStream<>(jedis.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now())), jedis)
+                    .skip(pageRequest.getOffset())
+                    .limit(pageRequest.getLimit())
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
     }
 
     @Override
@@ -409,7 +413,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     }
 
     protected Jedis getJedis() {
-        return jedisConnector;
+        return jedisPool.getResource();
     }
 
     private boolean notAllJobsAreNew(List<Job> jobs) {
