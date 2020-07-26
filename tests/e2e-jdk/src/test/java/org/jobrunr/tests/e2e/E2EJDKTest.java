@@ -3,9 +3,8 @@ package org.jobrunr.tests.e2e;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.storage.SimpleStorageProvider;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
-import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -29,7 +28,7 @@ public class E2EJDKTest {
 
         JobRunr
                 .configure()
-                .useStorageProvider(new SimpleStorageProvider().withJsonMapper(new GsonJsonMapper()))
+                .useStorageProvider(new InMemoryStorageProvider())
                 .useJobActivator(this::jobActivator)
                 .useDashboard()
                 .useDefaultBackgroundJobServer()
@@ -62,7 +61,7 @@ public class E2EJDKTest {
 
     @Test
     void usingMethodReference() {
-        BackgroundJob.enqueue((JobLambda)testService::doWork);
+        BackgroundJob.enqueue((JobLambda) testService::doWork);
 
         await()
                 .atMost(30, TimeUnit.SECONDS)
