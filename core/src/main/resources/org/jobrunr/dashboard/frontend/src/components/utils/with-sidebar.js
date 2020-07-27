@@ -9,8 +9,7 @@ const useStyles = makeStyles(() => ({
 
 const WithSidebar = (Sidebar, Component) => {
     const classes = useStyles();
-
-    return function WithSidebarComponent(props) {
+    return (props) => {
         return (
             <div className={classes.root}>
                 <Sidebar {...props} />

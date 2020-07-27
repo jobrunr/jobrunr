@@ -21,20 +21,20 @@ class State {
     useStatsState(obj) {
         const [stats, setStats] = React.useState(state.getStats());
         const cleanup = () => this.removeListener(obj);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        React.useEffect(() => cleanup, []);
-        this.addListener(obj, setStats);
+        React.useEffect(() => {
+            this.addListener(obj, setStats);
+            return () => cleanup
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
         return stats;
     }
 
     addListener(obj, listener) {
         this._listeners.set(obj, listener);
-        //console.log("Adding listener", this._listeners);
     }
 
     removeListener(obj) {
         this._listeners.delete(obj);
-        //console.log("Removing listener", this._listeners);
     }
 }
 

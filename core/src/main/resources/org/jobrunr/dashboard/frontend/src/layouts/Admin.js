@@ -36,9 +36,6 @@ const AdminUI = function () {
     });
     const classes = useStyles();
 
-    const JobWithSidebar = WithSidebar(Sidebar, JobView);
-    const JobsWithSidebar = WithSidebar(Sidebar, JobsView);
-
     return (
         <MuiThemeProvider theme={theme}>
             <div className={classes.root}>
@@ -46,8 +43,8 @@ const AdminUI = function () {
                 <main className={classes.content}>
                     <Switch>
                         <Route path="/dashboard/overview" component={Overview}/>
-                        <Route path="/dashboard/jobs/:id" component={JobWithSidebar}/>
-                        <Route path="/dashboard/jobs" component={JobsWithSidebar}/>
+                        <Route path="/dashboard/jobs/:id" component={WithSidebar(Sidebar, JobView)}/>
+                        <Route path="/dashboard/jobs" component={WithSidebar(Sidebar, JobsView)}/>
                         <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
                         <Route path="/dashboard/servers" component={Servers}/>
                         <Redirect from="/dashboard" to="/dashboard/overview"/>
