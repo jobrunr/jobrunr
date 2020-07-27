@@ -1,9 +1,8 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.RedisStorageProvider;
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 public class Main extends AbstractMain {
 
@@ -24,6 +23,6 @@ public class Main extends AbstractMain {
             throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable MONREDIS_PORTGO_PORT is not set");
         }
 
-        return new RedisStorageProvider(new Jedis(getEnvOrProperty("REDIS_HOST"), Integer.parseInt(getEnvOrProperty("REDIS_PORT"))));
+        return new RedisStorageProvider(new JedisPool(getEnvOrProperty("REDIS_HOST"), Integer.parseInt(getEnvOrProperty("REDIS_PORT"))));
     }
 }
