@@ -4,7 +4,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.RedisStorageProvider;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 public class RedisGsonBackgroundJobContainer extends AbstractBackgroundJobContainer {
 
@@ -30,7 +30,7 @@ public class RedisGsonBackgroundJobContainer extends AbstractBackgroundJobContai
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        return new RedisStorageProvider(new Jedis(redisContainer.getContainerIpAddress(), redisContainer.getFirstMappedPort()));
+        return new RedisStorageProvider(new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getFirstMappedPort()));
     }
 
 }
