@@ -36,7 +36,7 @@ JobRunr provides a unified programming model to handle background tasks in a **r
 - Distributed & cluster-friendly: guarantees execution by single scheduler instance using optimistic locking.
 - Persistent jobs: using either a RDMBS (four tables and a view) or a noSQL data store.
 - Embeddable: built to be embedded in existing applications.
-- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310 or [gson](https://github.com/google/gson))
+- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310, [gson](https://github.com/google/gson) or a JSON-B compliant library)
 
 ## Usage scenario's
 Some scenario's where it may be a good fit:
@@ -110,7 +110,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.12</version>
+    <version>0.9.13</version>
 </dependency>
 ```
  
@@ -118,7 +118,7 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.12'
+implementation 'org.jobrunr:jobrunr:0.9.13'
 ```
 
 Configuration
