@@ -44,6 +44,7 @@
     ]
   },
   "devDependencies": {
-    "cypress": "^4.3.0"
+    "cypress": "^4.12.1",
+    "cypress-failed-log": "^2.7.0"
   }
 }
