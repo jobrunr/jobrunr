@@ -3,6 +3,7 @@ package org.jobrunr.scheduling;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
@@ -30,6 +31,7 @@ import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
@@ -88,6 +90,13 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void testEnqueueWithInterfaceImplementationThrowsNiceException() {
+        assertThatThrownBy(() -> BackgroundJob.enqueue(new JobImplementation()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Please provide a lambda expression (e.g. BackgroundJob.enqueue(() -> myService.doWork()) instead of an actual implementation.");
+    }
+
+    @Test
     void testEnqueueWithCustomObject() {
         final TestService.Work work = new TestService.Work(2, "some string", UUID.randomUUID());
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(work));
@@ -138,6 +147,12 @@ public class BackgroundJobTest {
                 .map(uuid -> new TestService.Work(atomicInteger.incrementAndGet(), "some string " + uuid, uuid));
 
         BackgroundJob.enqueue(workStream, (work) -> testService.doWork(work.getUuid()));
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
+    }
+
+    @Test
+    void testEnqueueStreamWithMethodReference() {
+        BackgroundJob.enqueue(getWorkStream(), TestService::doWorkWithUUID);
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
     }
 
@@ -312,6 +327,14 @@ public class BackgroundJobTest {
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
         assertThat(failedState.getException()).isInstanceOf(JobMethodNotFoundException.class);
+    }
+
+    class JobImplementation implements JobLambda {
+
+        @Override
+        public void run() throws Exception {
+            System.out.println("This should not be run");
+        }
     }
 
     private Stream<UUID> getWorkStream() {

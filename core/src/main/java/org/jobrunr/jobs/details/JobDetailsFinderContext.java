@@ -73,10 +73,17 @@ public class JobDetailsFinderContext {
     }
 
     private void invokeInstructions() {
-        AbstractJVMInstruction instruction = pollFirstInstruction();
-        while (instruction != null) {
-            instruction.invokeInstructionAndPushOnStack();
-            instruction = pollFirstInstruction();
+        if (instructions.isEmpty() && localVariables.size() > 1) { // it is a method reference
+            for (int i = 1; i < localVariables.size(); i++) {
+                Object variable = localVariables.get(i);
+                jobDetailsJobParameters.add(new JobParameter(variable.getClass(), variable));
+            }
+        } else {
+            AbstractJVMInstruction instruction = pollFirstInstruction();
+            while (instruction != null) {
+                instruction.invokeInstructionAndPushOnStack();
+                instruction = pollFirstInstruction();
+            }
         }
     }
 

@@ -75,6 +75,14 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work... " + uuid);
     }
 
+    public void doWorkWithUUID(UUID uuid) {
+        System.out.println("Doing some work... " + uuid);
+    }
+
+    public void doWorkWithLong(Long value) {
+        System.out.println("Doing some work... " + value);
+    }
+
     public void doWork(UUID uuid, int count, Instant instant) {
         processedJobs += count;
         System.out.println("Doing some work... " + processedJobs + " " + uuid + " " + instant);

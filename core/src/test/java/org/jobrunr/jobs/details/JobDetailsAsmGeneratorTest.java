@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static java.time.Instant.now;
@@ -376,6 +377,16 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    void testJobLambdaWithStreamAndMethodReference() {
+        final UUID uuid = UUID.randomUUID();
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(uuid, TestService::doWorkWithUUID);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkWithUUID")
+                .hasArgs(uuid);
+    }
+
+    @Test
     void testIocJobLambda() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork();
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
@@ -605,5 +616,10 @@ class JobDetailsAsmGeneratorTest {
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());
+    }
+
+    private Stream<Long> getLongWorkStream() {
+        return LongStream.range(0, 5)
+                .mapToObj(l -> l);
     }
 }
