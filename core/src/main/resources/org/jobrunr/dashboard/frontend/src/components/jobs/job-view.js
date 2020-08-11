@@ -42,6 +42,9 @@ const useStyles = makeStyles(() => ({
     cardContent: {
         width: "100%"
     },
+    sortButton: {
+        scrollMarginTop: '70px'
+    },
     jobDetails: {
         paddingBottom: "0 !important",
     }
@@ -198,9 +201,11 @@ const JobView = (props) => {
                                     History&nbsp;
                                     {order
                                         ? <IconButton id="jobhistory-sort-desc-btn" color="inherit"
-                                                      onClick={changeSortOrder}><SortDescending/></IconButton>
+                                                      onClick={changeSortOrder}
+                                                      className={classes.sortButton}><SortDescending/></IconButton>
                                         : <IconButton id="jobhistory-sort-asc-btn" color="inherit"
-                                                      onClick={changeSortOrder}><SortAscending/></IconButton>
+                                                      onClick={changeSortOrder}
+                                                      className={classes.sortButton}><SortAscending/></IconButton>
                                     }
                                 </Typography>
                             </Grid>
