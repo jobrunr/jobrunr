@@ -13,6 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
 
+/**
+ * Provides a dashboard which gives insights in your jobs and servers.
+ *
+ * @author Ronald Dehuysser
+ */
 public class JobRunrDashboardWebServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrDashboardWebServer.class);
@@ -34,17 +39,24 @@ public class JobRunrDashboardWebServer {
         JobRunrSseHandler sseHandler = createSSeHandler(storageProvider, jsonMapper);
 
         teenyWebServer = new TeenyWebServer(port);
-        teenyWebServer.createContext(redirectHttpHandler);
-        teenyWebServer.createContext(staticFileHandler);
-        teenyWebServer.createContext(dashboardHandler);
-        teenyWebServer.createContext(sseHandler);
-        teenyWebServer.start();
+        registerContext(redirectHttpHandler);
+        registerContext(staticFileHandler);
+        registerContext(dashboardHandler);
+        registerContext(sseHandler);
 
         LOGGER.info(format("JobRunr dashboard started at http://%s:%d%s",
                 teenyWebServer.getWebServerHostAddress(),
                 teenyWebServer.getWebServerHostPort(),
                 staticFileHandler.getContextPath()));
 
+    }
+
+    public void start() {
+        teenyWebServer.start();
+    }
+
+    public void stop() {
+        teenyWebServer.stop();
     }
 
     HttpContext registerContext(TeenyHttpHandler httpHandler) {
@@ -64,10 +76,6 @@ public class JobRunrDashboardWebServer {
     @VisibleFor("github issue 18")
     JobRunrSseHandler createSSeHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrSseHandler(storageProvider, jsonMapper);
-    }
-
-    public void stop() {
-        teenyWebServer.stop();
     }
 
 }

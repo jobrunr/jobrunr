@@ -1,6 +1,8 @@
 # Todo
-- [ ] Add test that JobRunner wit IoC is performed first
-- [ ] Re-enable JDK tests once new release is done
+- [ ] Website:
+  - [ ] Explain difference between static BackgroundJob and jobscheduler access
+  - [ ] Fix typo Alexander: BackgroundJob.enqueue should be jobScheduler.enqueue
+  - [ ] Add examples about Quarkus
 - [ ] GraalVM
   - [ ] Add support for JobDetails
   - [ ] What about platformmbean?

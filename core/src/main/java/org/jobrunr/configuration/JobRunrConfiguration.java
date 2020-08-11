@@ -70,11 +70,13 @@ public class JobRunrConfiguration {
 
     public JobRunrConfiguration useDashboard() {
         this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper);
+        this.dashboardWebServer.start();
         return this;
     }
 
     public JobRunrConfiguration useDashboard(int dashboardPort) {
         this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, dashboardPort);
+        this.dashboardWebServer.start();
         return this;
     }
 

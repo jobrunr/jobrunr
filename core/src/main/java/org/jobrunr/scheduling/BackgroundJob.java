@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 /**
  * Provides static methods for creating fire-and-forget, delayed and recurring jobs as well as to delete existing background jobs.
+ * If you prefer not to use a static accessor, you can inject the {@link JobScheduler} which exposes the same methods.
  *
  * @author Ronald Dehuysser
  */
