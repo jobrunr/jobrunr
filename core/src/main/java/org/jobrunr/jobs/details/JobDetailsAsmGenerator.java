@@ -79,7 +79,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            if (name.equals(serializedLambda.getImplMethodName())) {
+            if (serializedLambda.getImplMethodName().startsWith("lambda$") && name.equals(serializedLambda.getImplMethodName())) {
                 return new MethodVisitor(Opcodes.ASM7) {
 
                     @Override

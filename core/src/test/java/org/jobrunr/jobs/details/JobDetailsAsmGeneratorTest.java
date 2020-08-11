@@ -386,6 +386,16 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    void testJobLambdaWithStreamAndMethodReferenceInSameFile() {
+        final UUID uuid = UUID.randomUUID();
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(uuid, JobDetailsAsmGeneratorTest::doWorkWithUUID);
+        assertThat(jobDetails)
+                .hasClass(JobDetailsAsmGeneratorTest.class)
+                .hasMethodName("doWorkWithUUID")
+                .hasArgs(uuid);
+    }
+
+    @Test
     void testIocJobLambda() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork();
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
@@ -615,5 +625,9 @@ class JobDetailsAsmGeneratorTest {
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());
+    }
+
+    public void doWorkWithUUID(UUID uuid) {
+        System.out.println("Doing some work... " + uuid);
     }
 }
