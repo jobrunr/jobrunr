@@ -77,6 +77,16 @@ const JobView = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.job, jobId]);
 
+    React.useEffect(() => {
+        if (job) {
+            if (order) {
+                setJobStates([...job.jobHistory]);
+            } else {
+                setJobStates([...job.jobHistory].reverse());
+            }
+        }
+    }, [job, order]);
+
     const getJob = (id) => {
         fetch(`/api/jobs/${id}`)
             .then(res => {
@@ -120,7 +130,6 @@ const JobView = (props) => {
 
     const onJob = (job) => {
         setJob(job);
-        setJobStates([...job.jobHistory]);
         setIsLoading(false);
         let state = job.jobHistory[job.jobHistory.length - 1].state;
         setStateBreadcrumb({
@@ -144,7 +153,6 @@ const JobView = (props) => {
 
     const changeSortOrder = () => {
         setOrder(!order);
-        jobStates.reverse();
     };
 
     return (
