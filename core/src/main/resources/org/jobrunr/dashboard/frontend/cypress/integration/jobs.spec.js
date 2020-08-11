@@ -113,12 +113,12 @@ context('Actions', () => {
 
         jobHistoryPanelItems().should('have.length', 44);
         jobHistoryPanelItems().eq(0).invoke('text').then(text => {
-            cy.log('Text before click', text)
+            cy.task('log', 'Text before click: ' + text)
         });
         jobHistoryPanelItems().eq(0).should('contain', 'Job scheduled');
         jobHistorySortDescBtn().click();
         jobHistoryPanelItems().eq(0).invoke('text').then(text => {
-            cy.log('Text after click', text)
+            cy.task('log', 'Text after click: ' + text)
         });
         jobHistoryPanelItems().eq(0).should('contain', 'Job processing failed');
     });

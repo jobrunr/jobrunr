@@ -16,7 +16,10 @@
  * @type {Cypress.PluginConfig}
  */
 module.exports = (on, config) => {
-    // on('task', {
-    //     failed: require('cypress-failed-log/src/failed')(),
-    // })
+    on('task', {
+        log(message) {
+            console.log(message)
+            return null
+        }
+    })
 }
