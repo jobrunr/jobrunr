@@ -35,7 +35,7 @@ abstract class JobRunrDashboardWebServerTest {
         storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
         dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper);
-
+        dashboardWebServer.start();
         http = new TeenyHttpClient("http://localhost:8000");
     }
 
