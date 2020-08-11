@@ -5,6 +5,7 @@ context('Actions', () => {
         waitForSSE();
     });
 
+
     const scheduledMenuBtn = () => cy.get('#scheduled-menu-btn');
     const enqueuedMenuBtn = () => cy.get('#enqueued-menu-btn');
     const processingMenuBtn = () => cy.get('#processing-menu-btn');
@@ -112,14 +113,9 @@ context('Actions', () => {
         jobHistoryPanel().should('be.visible');
 
         jobHistoryPanelItems().should('have.length', 44);
-        jobHistoryPanelItems().eq(0).invoke('text').then(text => {
-            cy.task('log', 'Text before click: ' + text)
-        });
         jobHistoryPanelItems().eq(0).should('contain', 'Job scheduled');
         jobHistorySortDescBtn().click();
-        jobHistoryPanelItems().eq(0).invoke('text').then(text => {
-            cy.task('log', 'Text after click: ' + text)
-        });
+        cy.wait(1000);
         jobHistoryPanelItems().eq(0).should('contain', 'Job processing failed');
     });
 
