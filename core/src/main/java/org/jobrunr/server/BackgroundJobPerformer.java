@@ -57,7 +57,7 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.debug("Job {} - {} - processing started", job.getId(), job.getJobName());
+            LOGGER.debug("Job(id={}, jobName='{}') processing started", job.getId(), job.getJobName());
             return job.hasState(PROCESSING);
         } catch (ConcurrentJobModificationException e) {
             // processing already started on other server
@@ -70,7 +70,7 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             JobRunrDashboardLogger.setJob(job);
             backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
-            LOGGER.trace("Job {} is running", job.getId());
+            LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
             jobFilters.runOnJobProcessingFilters(job);
             BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
             backgroundJobRunner.run(job);
@@ -83,9 +83,9 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToSucceededAndRunJobFilters() {
         try {
+            LOGGER.debug("Job(id={}, jobName='{}') processing succeeded", job.getId(), job.getJobName());
             job.succeeded();
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.debug("Job(id={}, jobName='{}') processing succeeded", job.getId(), job.getJobName());
         } catch (Exception badException) {
             LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
         }
@@ -93,9 +93,9 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToFailed(String message, Exception e) {
         try {
+            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
             job.failed(message, e);
             this.backgroundJobServer.getStorageProvider().save(job);
-            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
         } catch (Exception badException) {
             LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
@@ -103,9 +103,9 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToFailedAndRunJobFilters(String message, Exception e) {
         try {
+            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
             job.failed(message, e);
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
         } catch (Exception badException) {
             LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
