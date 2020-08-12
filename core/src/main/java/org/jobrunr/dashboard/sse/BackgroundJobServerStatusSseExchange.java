@@ -30,5 +30,6 @@ public class BackgroundJobServerStatusSseExchange extends AbstractObjectSseExcha
     @Override
     public void close() {
         storageProvider.removeJobStorageOnChangeListener(this);
+        super.close();
     }
 }

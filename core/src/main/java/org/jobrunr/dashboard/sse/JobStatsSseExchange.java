@@ -29,5 +29,6 @@ public class JobStatsSseExchange extends AbstractObjectSseExchange implements Jo
     @Override
     public void close() {
         storageProvider.removeJobStorageOnChangeListener(this);
+        super.close();
     }
 }

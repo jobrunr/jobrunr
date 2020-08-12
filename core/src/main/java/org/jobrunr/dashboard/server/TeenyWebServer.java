@@ -39,7 +39,7 @@ public class TeenyWebServer {
     }
 
     public void stop() {
-        httpHandlers.forEach(TeenyHttpHandler::close);
+        httpHandlers.forEach(this::closeHttpHandler);
         executorService.shutdownNow();
         httpServer.stop(0);
     }
@@ -53,5 +53,13 @@ public class TeenyWebServer {
 
     public int getWebServerHostPort() {
         return httpServer.getAddress().getPort();
+    }
+
+    private void closeHttpHandler(TeenyHttpHandler httpHandler) {
+        try {
+            httpHandler.close();
+        } catch (Exception shouldNotHappen) {
+            shouldNotHappen.printStackTrace();
+        }
     }
 }
