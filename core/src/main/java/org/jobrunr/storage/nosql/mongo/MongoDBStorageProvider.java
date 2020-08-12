@@ -129,12 +129,17 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
-        final UpdateResult updateResult = this.backgroundJobServerCollection.updateOne(eq(toMongoId(Jobs.FIELD_ID), serverStatus.getId()), backgroundJobServerStatusDocumentMapper.toUpdateDocument(serverStatus));
+        final UpdateResult updateResult = this.backgroundJobServerCollection.updateOne(eq(toMongoId(BackgroundJobServers.FIELD_ID), serverStatus.getId()), backgroundJobServerStatusDocumentMapper.toUpdateDocument(serverStatus));
         if (updateResult.getModifiedCount() < 1) {
             throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
         }
         final Document document = this.backgroundJobServerCollection.find(eq(toMongoId(Jobs.FIELD_ID), serverStatus.getId())).projection(include(BackgroundJobServers.FIELD_IS_RUNNING)).first();
         return document != null && document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING);
+    }
+
+    @Override
+    public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
+        this.backgroundJobServerCollection.deleteOne(eq(toMongoId(BackgroundJobServers.FIELD_ID), serverStatus.getId()));
     }
 
     @Override

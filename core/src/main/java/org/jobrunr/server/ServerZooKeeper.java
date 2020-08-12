@@ -53,6 +53,7 @@ public class ServerZooKeeper implements Runnable {
     }
 
     public void stop() {
+        storageProvider.signalBackgroundJobServerStopped(backgroundJobServerStatus);
         isAnnounced = false;
     }
 

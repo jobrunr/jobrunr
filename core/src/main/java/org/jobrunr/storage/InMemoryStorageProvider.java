@@ -35,10 +35,10 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
 
-    private volatile Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
-    private volatile Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
-    private volatile List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
-    private volatile Map<Object, AtomicLong> jobStats = new ConcurrentHashMap<>();
+    private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
+    private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
+    private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
+    private final Map<Object, AtomicLong> jobStats = new ConcurrentHashMap<>();
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
@@ -81,6 +81,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         announceBackgroundJobServer(serverStatus);
         final BackgroundJobServerStatus backgroundJobServerStatus = backgroundJobServers.get(serverStatus.getId());
         return backgroundJobServerStatus.isRunning();
+    }
+
+    @Override
+    public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
+        backgroundJobServers.remove(serverStatus.getId());
     }
 
     @Override
@@ -171,7 +176,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         } else if (pageRequest.getOrderField().equals("updatedAt")) {
             comparator = Comparator.comparing(Job::getUpdatedAt);
         }
-        if (pageRequest.getOrder() == PageRequest.Order.DESC) comparator = comparator.reversed();
+        if (comparator != null && pageRequest.getOrder() == PageRequest.Order.DESC) comparator = comparator.reversed();
         return comparator;
     }
 

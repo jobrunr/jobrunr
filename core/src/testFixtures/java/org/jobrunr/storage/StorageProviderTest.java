@@ -103,6 +103,9 @@ public abstract class StorageProviderTest {
         assertThat(backgroundJobServers.get(0).getLastHeartbeat()).isAfter(backgroundJobServers.get(0).getFirstHeartbeat());
         assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, ChronoUnit.MICROS));
         assertThat(backgroundJobServers.get(1).getLastHeartbeat()).isAfter(backgroundJobServers.get(1).getFirstHeartbeat());
+
+        storageProvider.signalBackgroundJobServerStopped(serverStatus1);
+        assertThat(storageProvider.getBackgroundJobServers()).hasSize(1);
     }
 
     @Test

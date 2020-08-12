@@ -109,6 +109,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         stopWorkers();
         stopZooKeepers();
         serverStatus.stop();
+        storageProvider.close();
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers stopped");
     }
 

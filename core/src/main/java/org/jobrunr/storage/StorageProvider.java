@@ -27,6 +27,8 @@ public interface StorageProvider extends AutoCloseable {
 
     boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus);
 
+    void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus);
+
     List<BackgroundJobServerStatus> getBackgroundJobServers();
 
     int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan);
@@ -74,4 +76,5 @@ public interface StorageProvider extends AutoCloseable {
         return getJobById(jobId.asUUID());
     }
 
+    void close();
 }

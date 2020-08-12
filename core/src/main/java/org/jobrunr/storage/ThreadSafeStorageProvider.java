@@ -48,6 +48,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
+        storageProvider.signalBackgroundJobServerStopped(serverStatus);
+    }
+
+    @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         return storageProvider.getBackgroundJobServers();
     }
@@ -152,7 +157,7 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         storageProvider.close();
     }
 }

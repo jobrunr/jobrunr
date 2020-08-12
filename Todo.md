@@ -1,5 +1,5 @@
 # Todo
-- [ ] signalBackgroundJobServerStopped
+- [x] signalBackgroundJobServerStopped
 - [x] Id for recurring job
 - [ ] When dashboard server is stopped, stop sse handlers so that timer is stopped
 - [ ] Website:

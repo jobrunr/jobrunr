@@ -75,6 +75,16 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
         }
     }
 
+    public void signalServerStopped(BackgroundJobServerStatus serverStatus) {
+        try {
+            this
+                    .with(COLUMN_ID, serverStatus.getId())
+                    .delete("from jobrunr_backgroundjobservers where id = :id");
+        } catch (StorageException notImportant) {
+            // this is not important
+        }
+    }
+
     public int removeAllWithLastHeartbeatOlderThan(Instant heartbeatOlderThan) {
         return with("heartbeatOlderThan", heartbeatOlderThan)
                 .delete("from jobrunr_backgroundjobservers where lastHeartbeat < :heartbeatOlderThan");
@@ -103,4 +113,5 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 resultSet.asDouble(COLUMN_PROCESS_CPU_LOAD)
         );
     }
+
 }

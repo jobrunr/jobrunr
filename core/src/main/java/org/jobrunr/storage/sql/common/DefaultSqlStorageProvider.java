@@ -82,6 +82,11 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
+        backgroundJobServerTable().signalServerStopped(serverStatus);
+    }
+
+    @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         return backgroundJobServerTable()
                 .getAll();

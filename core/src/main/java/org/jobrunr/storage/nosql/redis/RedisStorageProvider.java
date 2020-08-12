@@ -118,6 +118,16 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
+        try (Jedis jedis = getJedis()) {
+            final Pipeline p = jedis.pipelined();
+            p.del(backgroundJobServerKey(serverStatus.getId()));
+            p.zrem(BACKGROUND_JOB_SERVERS_KEY, serverStatus.getId().toString());
+            p.sync();
+        }
+    }
+
+    @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try (Jedis jedis = getJedis()) {
             return new RedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE), jedis)

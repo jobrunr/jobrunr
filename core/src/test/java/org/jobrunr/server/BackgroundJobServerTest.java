@@ -70,7 +70,6 @@ class BackgroundJobServerTest {
     @AfterEach
     void stopBackgroundJobServer() throws Exception {
         backgroundJobServer.stop();
-        storageProvider.close();
     }
 
     @Test

@@ -72,7 +72,6 @@ public class BackgroundJobTest {
     @AfterEach
     public void cleanUp() throws Exception {
         backgroundJobServer.stop();
-        storageProvider.close();
     }
 
     @Test

@@ -21,6 +21,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_HUNDRED_MILLISECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 class ServerZooKeeperTest {
 
@@ -29,7 +30,7 @@ class ServerZooKeeperTest {
 
     @BeforeEach
     void setUp() {
-        storageProvider = new InMemoryStorageProvider();
+        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         backgroundJobServer = new BackgroundJobServer(storageProvider, null, 5, 10);
     }
@@ -38,7 +39,6 @@ class ServerZooKeeperTest {
     void tearDown() {
         try {
             backgroundJobServer.stop();
-            storageProvider.close();
         } catch (Exception e) {
             e.printStackTrace();
             // not that important
@@ -145,14 +145,21 @@ class ServerZooKeeperTest {
 
     @Test
     void serverIsShutdownIfServerZooKeeperCrashes() {
-        final StorageProvider storageProviderMock = Mockito.mock(StorageProvider.class);
-        Mockito.doThrow(new IllegalStateException()).when(storageProviderMock).announceBackgroundJobServer(any());
+        Mockito.doThrow(new IllegalStateException()).when(storageProvider).announceBackgroundJobServer(any());
 
-        backgroundJobServer = new BackgroundJobServer(storageProviderMock);
         backgroundJobServer.start();
 
         await().untilAsserted(() -> assertThat(backgroundJobServer.isStopped()).isTrue());
+    }
 
+    @Test
+    public void backgroundJobServerSignalsItIsStoppedWhenItIsStoppedAndClosesTheStorageProvider() {
+        backgroundJobServer.start();
+        await().untilAsserted(() -> verify(storageProvider).announceBackgroundJobServer(any()));
+
+        backgroundJobServer.stop();
+        await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
+        await().untilAsserted(() -> verify(storageProvider).close());
     }
 
     private BackgroundJobServerStatus anotherServer() {

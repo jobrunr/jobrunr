@@ -109,8 +109,21 @@ class AbstractStorageProviderTest {
         assertThat(timerAfterAddingChangeListener).isNotNull();
 
         storageProvider.removeJobStorageOnChangeListener(changeListener);
-        final Timer timerAfterRemovigChangeListener = getInternalState(storageProvider, "timer");
-        assertThat(timerAfterRemovigChangeListener).isNull();
+        final Timer timerAfterRemovingChangeListener = getInternalState(storageProvider, "timer");
+        assertThat(timerAfterRemovingChangeListener).isNull();
+    }
+
+    @Test
+    void updateTimerIsStoppedWhenStorageProviderIsStopped() {
+        final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
+
+        storageProvider.addJobStorageOnChangeListener(changeListener);
+        final Timer timerAfterAddingChangeListener = getInternalState(storageProvider, "timer");
+        assertThat(timerAfterAddingChangeListener).isNotNull();
+
+        storageProvider.close();
+        final Timer timerAfterClosingStorageProvider = getInternalState(storageProvider, "timer");
+        assertThat(timerAfterClosingStorageProvider).isNull();
     }
 
     private static class BackgroundJobServerStatusChangeListenerForTest implements BackgroundJobServerStatusChangeListener {

@@ -48,39 +48,20 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.add(listener);
-        if (timer == null) {
-            try {
-                if (reentrantLock.tryLock()) {
-                    timer = new Timer(true);
-                    timer.schedule(new SendJobStatsUpdate(), 3000, 5000);
-                }
-            } finally {
-                reentrantLock.unlock();
-            }
-        }
+        startTimerToSendUpdates();
     }
 
     @Override
     public void removeJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.remove(listener);
         if (onChangeListeners.isEmpty()) {
-            try {
-                if (reentrantLock.tryLock()) {
-                    timer.cancel();
-                    timer = null;
-                }
-            } finally {
-                reentrantLock.unlock();
-            }
+            stopTimerToSendUpdates();
         }
     }
 
     @Override
-    public void close() throws Exception {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
+    public void close() {
+        stopTimerToSendUpdates();
     }
 
     protected void notifyOnChangeListenersIf(boolean mustNotify) {
@@ -143,6 +124,34 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
             }
         } catch (Exception e) {
             LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
+        }
+    }
+
+    void startTimerToSendUpdates() {
+        if (timer == null) {
+            try {
+                if (reentrantLock.tryLock()) {
+                    timer = new Timer(true);
+                    timer.schedule(new SendJobStatsUpdate(), 3000, 5000);
+                }
+            } finally {
+                reentrantLock.unlock();
+            }
+        }
+    }
+
+    void stopTimerToSendUpdates() {
+        if (timer != null) {
+            try {
+                if (reentrantLock.tryLock()) {
+                    if (timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
+                }
+            } finally {
+                reentrantLock.unlock();
+            }
         }
     }
 
