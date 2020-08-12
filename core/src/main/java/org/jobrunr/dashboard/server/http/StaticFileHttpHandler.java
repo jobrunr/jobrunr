@@ -1,7 +1,7 @@
 package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.dashboard.server.TeenyHttpHandler;
+import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-public class StaticFileHttpHandler implements TeenyHttpHandler {
+public class StaticFileHttpHandler extends AbstractTeenyHttpHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StaticFileHttpHandler.class);
 
@@ -45,9 +45,7 @@ public class StaticFileHttpHandler implements TeenyHttpHandler {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.from(toServe));
                 httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 httpExchange.sendResponseHeaders(200, 0);
-                final OutputStream responseBody = httpExchange.getResponseBody();
-                copyStream(resource.openStream(), responseBody);
-                responseBody.close();
+                copyResourceToResponseBody(resource, httpExchange);
             } else {
                 httpExchange.sendResponseHeaders(404, -1);
             }
@@ -71,7 +69,13 @@ public class StaticFileHttpHandler implements TeenyHttpHandler {
         }
     }
 
-    public static void copyStream(InputStream input, OutputStream output) throws IOException {
+    void copyResourceToResponseBody(URL resource, HttpExchange httpExchange) throws IOException {
+        try (InputStream inputStream = resource.openStream(); OutputStream outputStream = httpExchange.getResponseBody()) {
+            copyStream(inputStream, outputStream);
+        }
+    }
+
+    private static void copyStream(InputStream input, OutputStream output) throws IOException {
         byte[] buffer = new byte[1024]; // Adjust if you want
         int bytesRead;
         while ((bytesRead = input.read(buffer)) != -1) {

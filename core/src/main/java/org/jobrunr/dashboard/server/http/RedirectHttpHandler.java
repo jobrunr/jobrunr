@@ -1,11 +1,11 @@
 package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.dashboard.server.TeenyHttpHandler;
+import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
 
 import java.io.IOException;
 
-public class RedirectHttpHandler implements TeenyHttpHandler {
+public class RedirectHttpHandler extends AbstractTeenyHttpHandler {
 
     private final String contextPath;
     private final String to;

@@ -1,7 +1,7 @@
 package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.dashboard.server.TeenyHttpHandler;
+import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
 import org.jobrunr.dashboard.server.http.handlers.ExceptionHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers;
@@ -20,7 +20,7 @@ import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.Req
 import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.POST;
 import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.PUT;
 
-public class RestHttpHandler implements TeenyHttpHandler {
+public class RestHttpHandler extends AbstractTeenyHttpHandler {
 
     private final String contextPath;
     private final JsonMapper jsonMapper;

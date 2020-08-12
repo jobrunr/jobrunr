@@ -85,9 +85,9 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             job.succeeded();
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.debug("Job {} - {} - processing succeeded", job.getId(), job.getJobName());
+            LOGGER.debug("Job(id={}, jobName='{}') processing succeeded", job.getId(), job.getJobName());
         } catch (Exception badException) {
-            LOGGER.error("FATAL - could not update job {} to SUCCEEDED state", job.getId(), badException);
+            LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
         }
     }
 
@@ -95,9 +95,9 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             job.failed(message, e);
             this.backgroundJobServer.getStorageProvider().save(job);
-            LOGGER.warn("Job {} - {} - processing failed", job.getId(), job.getJobName(), e);
+            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
         } catch (Exception badException) {
-            LOGGER.error("FATAL - could not update job {} to FAILED state", job.getId(), badException);
+            LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
     }
 
@@ -105,9 +105,9 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             job.failed(message, e);
             saveAndRunStateRelatedJobFilters(job);
-            LOGGER.warn("Job {} - {} - processing failed", job.getId(), job.getJobName(), e);
+            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
         } catch (Exception badException) {
-            LOGGER.error("FATAL - could not update job {} to FAILED state", job.getId(), badException);
+            LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
     }
 

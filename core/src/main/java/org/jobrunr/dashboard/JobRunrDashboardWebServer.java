@@ -15,6 +15,7 @@ import static java.lang.String.format;
 
 /**
  * Provides a dashboard which gives insights in your jobs and servers.
+ * The dashboard server starts by default on port 8000.
  *
  * @author Ronald Dehuysser
  */
