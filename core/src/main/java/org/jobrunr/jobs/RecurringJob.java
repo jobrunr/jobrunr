@@ -24,7 +24,7 @@ public class RecurringJob extends AbstractJob {
 
     public RecurringJob(String id, JobDetails jobDetails, String cronExpression, String zoneId) {
         super(jobDetails);
-        this.id = Optional.ofNullable(id).orElse(getJobSignature());
+        this.id = validateAndSetId(id);
         this.cronExpression = cronExpression;
         this.zoneId = zoneId;
     }
@@ -56,5 +56,14 @@ public class RecurringJob extends AbstractJob {
 
     public Instant getNextRun() {
         return CronExpression.create(cronExpression).next(ZoneId.of(zoneId));
+    }
+
+    private String validateAndSetId(String input) {
+        String id = Optional.ofNullable(input).orElse(getJobSignature());
+
+        if (!id.matches("[\\dA-Za-z-_(),.]+")) {
+            throw new IllegalArgumentException("The id of a recurring job can only contain letters and numbers.");
+        }
+        return id;
     }
 }

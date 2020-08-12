@@ -1,5 +1,8 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
+import org.jobrunr.jobs.lambdas.IocJobLambda;
+import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 
@@ -37,8 +40,23 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
+    public RecurringJobTestBuilder withoutId() {
+        this.id = null;
+        return this;
+    }
+
     public RecurringJobTestBuilder withName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public RecurringJobTestBuilder withJobDetails(JobLambda jobLambda) {
+        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
+        return this;
+    }
+
+    public RecurringJobTestBuilder withJobDetails(IocJobLambda jobLambda) {
+        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
         return this;
     }
 

@@ -1,4 +1,7 @@
 # Todo
+- [ ] signalBackgroundJobServerStopped
+- [x] Id for recurring job
+- [ ] When dashboard server is stopped, stop sse handlers so that timer is stopped
 - [ ] Website:
   - [ ] Explain difference between static BackgroundJob and jobscheduler access
   - [ ] Fix typo Alexander: BackgroundJob.enqueue should be jobScheduler.enqueue
