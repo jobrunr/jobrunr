@@ -33,7 +33,6 @@ public class RedisPipelinedStream<T> implements Stream<T> {
 
     private final Stream<T> initialStream;
     private final Jedis jedis;
-    private final Pipeline pipeline;
 
     public RedisPipelinedStream(Collection<T> initial, Jedis jedis) {
         this(initial.stream(), jedis);
@@ -42,32 +41,21 @@ public class RedisPipelinedStream<T> implements Stream<T> {
     public RedisPipelinedStream(Stream<T> initialStream, Jedis jedis) {
         this.initialStream = initialStream;
         this.jedis = jedis;
-        this.pipeline = jedis.pipelined();
-    }
-
-    public RedisPipelinedStream(Collection<T> initial, RedisPipelinedStream<?> redisPipelinedStream) {
-        this(initial.stream(), redisPipelinedStream);
-    }
-
-    public RedisPipelinedStream(Stream<T> initialStream, RedisPipelinedStream<?> redisPipelinedStream) {
-        this.initialStream = initialStream;
-        this.jedis = redisPipelinedStream.jedis;
-        this.pipeline = redisPipelinedStream.pipeline;
     }
 
     public <R> RedisPipelinedStream<R> mapUsingPipeline(BiFunction<Pipeline, T, R> biFunction) {
-        final List<R> collect = initialStream
-                .map(item -> biFunction.apply(pipeline, item))
-                .collect(toList());
-        return new RedisPipelinedStream<>(collect, this);
+        List<R> collect;
+        try (final Pipeline pipeline = jedis.pipelined()) {
+            collect = initialStream
+                    .map(item -> biFunction.apply(pipeline, item))
+                    .collect(toList()); // must collect otherwise map is not executed
+            pipeline.sync();
+        }
+        return new RedisPipelinedStream<>(collect, jedis);
     }
 
     public <R> RedisPipelinedStream<R> mapAfterSync(Function<? super T, ? extends R> function) {
-        return new RedisPipelinedStream<>(initialStream
-                .map(item -> {
-                    pipeline.sync();
-                    return function.apply(item);
-                }), this);
+        return new RedisPipelinedStream<>(initialStream.map(function::apply), jedis);
     }
 
     @Override
@@ -137,12 +125,12 @@ public class RedisPipelinedStream<T> implements Stream<T> {
 
     @Override
     public RedisPipelinedStream<T> limit(long l) {
-        return new RedisPipelinedStream<>(initialStream.limit(l), this);
+        return new RedisPipelinedStream<>(initialStream.limit(l), jedis);
     }
 
     @Override
     public RedisPipelinedStream<T> skip(long l) {
-        return new RedisPipelinedStream<>(initialStream.skip(l), this);
+        return new RedisPipelinedStream<>(initialStream.skip(l), jedis);
     }
 
     @Override

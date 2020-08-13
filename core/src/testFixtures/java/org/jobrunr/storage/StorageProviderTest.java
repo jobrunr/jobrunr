@@ -428,16 +428,19 @@ public abstract class StorageProviderTest {
 
         AtomicInteger atomicInteger = new AtomicInteger();
         storageProvider
-                .getJobs(ENQUEUED, ascOnCreatedAt(1000))
+                .getJobs(ENQUEUED, ascOnCreatedAt(10000))
                 .stream()
+                .parallel()
                 .peek(job -> {
-                    if (atomicInteger.get() % 10000 == 0) {
+                    job.startProcessingOn(backgroundJobServer);
+                    storageProvider.save(job);
+                    if (atomicInteger.get() % 100 == 0) {
                         System.out.println("Retrieved job " + atomicInteger.get());
                     }
                 })
                 .forEach(job -> atomicInteger.incrementAndGet());
 
-        assertThat(atomicInteger).hasValue(amount);
+        assertThat(atomicInteger).hasValue(10000);
     }
 
     private static class SimpleJobStorageOnChangeListener implements JobStatsChangeListener {

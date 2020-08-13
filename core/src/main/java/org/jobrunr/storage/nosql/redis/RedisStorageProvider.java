@@ -23,7 +23,6 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.commands.RedisPipeline;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -77,8 +76,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        try (Jedis jedis = getJedis()) {
-            final Pipeline p = jedis.pipelined();
+        try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
@@ -99,28 +97,28 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             final Map<String, String> valueMap = jedis.hgetAll(backgroundJobServerKey(serverStatus));
             if (valueMap.isEmpty()) throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
-            final Pipeline p = jedis.pipelined();
-            p.watch(backgroundJobServerKey(serverStatus));
-            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-            p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
-            final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
-            p.sync();
-            return Boolean.parseBoolean(isRunningResponse.get());
+            try (final Pipeline p = jedis.pipelined()) {
+                p.watch(backgroundJobServerKey(serverStatus));
+                p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+                p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+                p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+                p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+                p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+                p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+                p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
+                final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
+                p.sync();
+                return Boolean.parseBoolean(isRunningResponse.get());
+            }
         }
     }
 
     @Override
     public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
-        try (Jedis jedis = getJedis()) {
-            final Pipeline p = jedis.pipelined();
+        try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             p.del(backgroundJobServerKey(serverStatus.getId()));
             p.zrem(BACKGROUND_JOB_SERVERS_KEY, serverStatus.getId().toString());
             p.sync();
@@ -129,7 +127,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             return new RedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE), jedis)
                     .mapUsingPipeline((p, id) -> p.hgetAll(backgroundJobServerKey(id)))
                     .mapAfterSync(Response::get)
@@ -154,22 +152,22 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             final Set<String> backgroundjobservers = jedis.zrangeByScore(BACKGROUND_JOB_SERVERS_KEY, 0, toMicroSeconds(heartbeatOlderThan));
-            final Pipeline p = jedis.pipelined();
-
-            backgroundjobservers.forEach(backgroundJobServerId -> {
-                p.del(backgroundJobServerKey(backgroundJobServerId));
-                p.zrem(BACKGROUND_JOB_SERVERS_KEY, backgroundJobServerId);
-            });
-            p.sync();
+            try (final Pipeline p = jedis.pipelined()) {
+                backgroundjobservers.forEach(backgroundJobServerId -> {
+                    p.del(backgroundJobServerKey(backgroundJobServerId));
+                    p.zrem(BACKGROUND_JOB_SERVERS_KEY, backgroundJobServerId);
+                });
+                p.sync();
+            }
             return backgroundjobservers.size();
         }
     }
 
     @Override
     public Job save(Job jobToSave) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             boolean isNewJob = jobToSave.getId() == null;
             if (isNewJob) {
                 insertJob(jobToSave, jedis);
@@ -184,8 +182,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public int deletePermanently(UUID id) {
         Job job = getJobById(id);
-        try (Jedis jedis = getJedis()) {
-            Transaction transaction = jedis.multi();
+        try (final Jedis jedis = getJedis(); Transaction transaction = jedis.multi()) {
             transaction.del(jobKey(job));
             transaction.del(jobVersionKey(job));
             deleteJobMetadata(transaction, job);
@@ -198,7 +195,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public Job getJobById(UUID id) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             final String serializedJobAsString = jedis.get(jobKey(id));
             if (serializedJobAsString == null) throw new JobNotFoundException(id);
 
@@ -214,21 +211,21 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             if (notAllJobsAreNew(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            try (Jedis jedis = getJedis()) {
-                Pipeline p = jedis.pipelined();
-                jobs.forEach(jobToSave -> {
+            try (final Jedis jedis = getJedis(); Transaction p = jedis.multi()) {
+                for (Job jobToSave : jobs) {
                     jobToSave.setId(UUID.randomUUID());
                     saveJob(p, jobToSave);
-                    p.publish("job-queue-channel", jobToSave.getId().toString());
-                });
-                p.sync();
+                }
+                p.exec();
             }
         } else {
             if (notAllJobsAreExisting(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            try (Jedis jedis = getJedis()) {
-                jobs.forEach(job -> updateJob(job, jedis));
+            try (final Jedis jedis = getJedis()) {
+                for (Job job : jobs) {
+                    updateJob(job, jedis);
+                }
             }
         }
         notifyOnChangeListenersIf(jobs.size() > 0);
@@ -237,7 +234,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
             if (PageRequest.Order.ASC == pageRequest.getOrder()) {
                 jobsByState = jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore));
@@ -256,7 +253,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             return new RedisPipelinedStream<>(jedis.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now())), jedis)
                     .skip(pageRequest.getOffset())
                     .limit(pageRequest.getLimit())
@@ -269,14 +266,14 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public Long countJobs(StateName state) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             return jedis.zcount(jobQueueForStateKey(state), 0, Long.MAX_VALUE);
         }
     }
 
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
             if (PageRequest.Order.ASC == pageRequest.getOrder()) {
                 jobsByState = jedis.zrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
@@ -304,7 +301,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public int deleteJobs(StateName state, Instant updatedBefore) {
         int amount = 0;
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             Set<String> zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
             outerloop:
             while (!zrangeToInspect.isEmpty()) {
@@ -312,13 +309,14 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                     final Job job = getJobById(UUID.fromString(id));
                     if (job.getUpdatedAt().isAfter(updatedBefore)) break outerloop;
 
-                    Transaction transaction = jedis.multi();
-                    transaction.del(jobKey(job));
-                    transaction.del(jobVersionKey(job));
-                    deleteJobMetadata(transaction, job);
+                    try (Transaction transaction = jedis.multi()) {
+                        transaction.del(jobKey(job));
+                        transaction.del(jobVersionKey(job));
+                        deleteJobMetadata(transaction, job);
 
-                    final List<Object> exec = transaction.exec();
-                    if (exec != null && exec.size() > 0) amount++;
+                        final List<Object> exec = transaction.exec();
+                        if (exec != null && exec.size() > 0) amount++;
+                    }
                 }
                 zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
             }
@@ -329,15 +327,14 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean exists(JobDetails jobDetails, StateName state) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             return jedis.sismember(jobDetailsKey(state), getJobSignature(jobDetails));
         }
     }
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
-        try (Jedis jedis = getJedis()) {
-            final Pipeline p = jedis.pipelined();
+        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
             p.set(recurringJobKey(recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
             p.sadd(RECURRING_JOBS_KEY, recurringJob.getId());
             p.sync();
@@ -347,7 +344,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<RecurringJob> getRecurringJobs() {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             return jedis.smembers(RECURRING_JOBS_KEY)
                     .stream()
                     .map(id -> jedis.get("recurringjob:" + id))
@@ -358,8 +355,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int deleteRecurringJob(String id) {
-        try (Jedis jedis = getJedis()) {
-            final Transaction transaction = jedis.multi();
+        try (final Jedis jedis = getJedis(); final Transaction transaction = jedis.multi()) {
             transaction.del("recurringjob:" + id);
             transaction.srem(RECURRING_JOBS_KEY, id);
 
@@ -370,8 +366,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public JobStats getJobStats() {
-        try (Jedis jedis = getJedis()) {
-            final Pipeline p = jedis.pipelined();
+        try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             final Response<String> waitingCounterResponse = p.get(jobCounterKey(AWAITING));
             final Response<Long> waitingResponse = p.zcount(jobQueueForStateKey(AWAITING), 0, Long.MAX_VALUE);
             final Response<String> scheduledCounterResponse = p.get(jobCounterKey(SCHEDULED));
@@ -419,7 +414,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
-        try (Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis()) {
             jedis.incrBy(jobCounterKey(state), amount);
         }
     }
@@ -442,10 +437,10 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     private void insertJob(Job jobToSave, Jedis jedis) {
         jobToSave.setId(UUID.randomUUID());
-        Pipeline p = jedis.pipelined();
-        saveJob(p, jobToSave);
-        p.publish("job-queue-channel", jobToSave.getId().toString());
-        p.sync();
+        try (Transaction transaction = jedis.multi()) {
+            saveJob(transaction, jobToSave);
+            transaction.exec();
+        }
     }
 
     private void updateJob(Job jobToSave, Jedis jedis) {
@@ -453,42 +448,43 @@ public class RedisStorageProvider extends AbstractStorageProvider {
         final int version = Integer.parseInt(jedis.get(jobVersionKey(jobToSave)));
         if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave);
         jobToSave.increaseVersion();
-        Transaction transaction = jedis.multi();
-        saveJob(transaction, jobToSave);
-        List<Object> result = transaction.exec();
-        jedis.unwatch();
-        if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave);
-    }
-
-    private void saveJob(RedisPipeline p, Job jobToSave) {
-        deleteJobMetadata(p, jobToSave);
-        p.set(jobVersionKey(jobToSave), String.valueOf(jobToSave.getVersion()));
-        p.set(jobKey(jobToSave), jobMapper.serializeJob(jobToSave));
-        p.zadd(jobQueueForStateKey(jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
-        p.sadd(jobDetailsKey(jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));
-        if (SCHEDULED.equals(jobToSave.getState())) {
-            p.zadd(QUEUE_SCHEDULEDJOBS_KEY, toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
+        try (Transaction transaction = jedis.multi()) {
+            saveJob(transaction, jobToSave);
+            List<Object> result = transaction.exec();
+            jedis.unwatch();
+            if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave);
         }
     }
 
-    private void deleteJobMetadata(RedisPipeline p, Job job) {
-        String id = job.getId().toString();
-        p.zrem(jobQueueForStateKey(AWAITING), id);
-        p.zrem(jobQueueForStateKey(SCHEDULED), id);
-        p.zrem(jobQueueForStateKey(ENQUEUED), id);
-        p.zrem(jobQueueForStateKey(PROCESSING), id);
-        p.zrem(jobQueueForStateKey(FAILED), id);
-        p.zrem(jobQueueForStateKey(SUCCEEDED), id);
-        p.zrem(jobQueueForStateKey(DELETED), id);
-        p.zrem(QUEUE_SCHEDULEDJOBS_KEY, id);
+    private void saveJob(Transaction transaction, Job jobToSave) {
+        deleteJobMetadata(transaction, jobToSave);
+        transaction.set(jobVersionKey(jobToSave), String.valueOf(jobToSave.getVersion()));
+        transaction.set(jobKey(jobToSave), jobMapper.serializeJob(jobToSave));
+        transaction.zadd(jobQueueForStateKey(jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
+        transaction.sadd(jobDetailsKey(jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));
+        if (SCHEDULED.equals(jobToSave.getState())) {
+            transaction.zadd(QUEUE_SCHEDULEDJOBS_KEY, toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
+        }
+    }
 
-        p.srem(jobDetailsKey(AWAITING), getJobSignature(job.getJobDetails()));
-        p.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
-        p.srem(jobDetailsKey(ENQUEUED), getJobSignature(job.getJobDetails()));
-        p.srem(jobDetailsKey(PROCESSING), getJobSignature(job.getJobDetails()));
-        p.srem(jobDetailsKey(FAILED), getJobSignature(job.getJobDetails()));
-        p.srem(jobDetailsKey(SUCCEEDED), getJobSignature(job.getJobDetails()));
-        p.srem(jobDetailsKey(DELETED), getJobSignature(job.getJobDetails()));
+    private void deleteJobMetadata(Transaction transaction, Job job) {
+        String id = job.getId().toString();
+        transaction.zrem(jobQueueForStateKey(AWAITING), id);
+        transaction.zrem(jobQueueForStateKey(SCHEDULED), id);
+        transaction.zrem(jobQueueForStateKey(ENQUEUED), id);
+        transaction.zrem(jobQueueForStateKey(PROCESSING), id);
+        transaction.zrem(jobQueueForStateKey(FAILED), id);
+        transaction.zrem(jobQueueForStateKey(SUCCEEDED), id);
+        transaction.zrem(jobQueueForStateKey(DELETED), id);
+        transaction.zrem(QUEUE_SCHEDULEDJOBS_KEY, id);
+
+        transaction.srem(jobDetailsKey(AWAITING), getJobSignature(job.getJobDetails()));
+        transaction.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
+        transaction.srem(jobDetailsKey(ENQUEUED), getJobSignature(job.getJobDetails()));
+        transaction.srem(jobDetailsKey(PROCESSING), getJobSignature(job.getJobDetails()));
+        transaction.srem(jobDetailsKey(FAILED), getJobSignature(job.getJobDetails()));
+        transaction.srem(jobDetailsKey(SUCCEEDED), getJobSignature(job.getJobDetails()));
+        transaction.srem(jobDetailsKey(DELETED), getJobSignature(job.getJobDetails()));
     }
 
     private long getCounterValue(Response<String> counterResponse, Response<Long> countResponse) {
