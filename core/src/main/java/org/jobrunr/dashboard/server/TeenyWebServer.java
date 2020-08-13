@@ -41,7 +41,6 @@ public class TeenyWebServer {
 
     public void stop() {
         httpHandlers.forEach(this::closeHttpHandler);
-        httpServer.stop(0);
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
@@ -51,6 +50,7 @@ public class TeenyWebServer {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        httpServer.stop(0);
     }
 
     public String getWebServerHostAddress() {

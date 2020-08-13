@@ -8,6 +8,7 @@ import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.FreePortFinder;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,9 +37,12 @@ abstract class JobRunrDashboardWebServerTest {
 
         storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
-        dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper);
+
+        int port = FreePortFinder.nextFreePort(8000);
+        dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, port);
         dashboardWebServer.start();
-        http = new TeenyHttpClient("http://localhost:8000");
+
+        http = new TeenyHttpClient("http://localhost:" + port);
     }
 
     @AfterEach
