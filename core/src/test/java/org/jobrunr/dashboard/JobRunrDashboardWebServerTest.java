@@ -46,7 +46,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @AfterEach
-    void stopWebServer() throws Exception {
+    void stopWebServer() {
         dashboardWebServer.stop();
         storageProvider.close();
     }
