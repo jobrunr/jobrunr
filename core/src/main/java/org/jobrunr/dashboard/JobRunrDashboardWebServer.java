@@ -44,20 +44,18 @@ public class JobRunrDashboardWebServer {
         registerContext(staticFileHandler);
         registerContext(dashboardHandler);
         registerContext(sseHandler);
-
-        LOGGER.info(format("JobRunr dashboard started at http://%s:%d%s",
-                teenyWebServer.getWebServerHostAddress(),
-                teenyWebServer.getWebServerHostPort(),
-                staticFileHandler.getContextPath()));
-
     }
 
     public void start() {
         teenyWebServer.start();
+        LOGGER.info(format("JobRunr dashboard started at http://%s:%d",
+                teenyWebServer.getWebServerHostAddress(),
+                teenyWebServer.getWebServerHostPort()));
     }
 
     public void stop() {
         teenyWebServer.stop();
+        LOGGER.info("JobRunr dashboard stopped");
     }
 
     HttpContext registerContext(TeenyHttpHandler httpHandler) {

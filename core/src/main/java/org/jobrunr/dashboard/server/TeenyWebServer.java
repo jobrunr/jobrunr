@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TeenyWebServer {
 
@@ -40,8 +41,16 @@ public class TeenyWebServer {
 
     public void stop() {
         httpHandlers.forEach(this::closeHttpHandler);
-        executorService.shutdownNow();
         httpServer.stop(0);
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public String getWebServerHostAddress() {

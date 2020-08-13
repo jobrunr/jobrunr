@@ -28,6 +28,8 @@ abstract class JobRunrDashboardWebServerTest {
     private JobRunrDashboardWebServer dashboardWebServer;
     private TeenyHttpClient http;
 
+    abstract JsonMapper getJsonMapper();
+
     @BeforeEach
     void setUpWebServer() {
         final JsonMapper jsonMapper = getJsonMapper();
@@ -38,8 +40,6 @@ abstract class JobRunrDashboardWebServerTest {
         dashboardWebServer.start();
         http = new TeenyHttpClient("http://localhost:8000");
     }
-
-    abstract JsonMapper getJsonMapper();
 
     @AfterEach
     void stopWebServer() throws Exception {
