@@ -23,7 +23,11 @@ public class JobRunrDashboardWebServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrDashboardWebServer.class);
 
-    private final TeenyWebServer teenyWebServer;
+    private final StorageProvider storageProvider;
+    private final JsonMapper jsonMapper;
+    private final int port;
+
+    private TeenyWebServer teenyWebServer;
 
     public static void main(String[] args) {
         new JobRunrDashboardWebServer(null, new JacksonJsonMapper());
@@ -34,6 +38,12 @@ public class JobRunrDashboardWebServer {
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
+        this.storageProvider = storageProvider;
+        this.jsonMapper = jsonMapper;
+        this.port = port;
+    }
+
+    public void start() {
         RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", "/dashboard");
         JobRunrStaticFileHandler staticFileHandler = createStaticFileHandler();
         JobRunrApiHandler dashboardHandler = createApiHandler(storageProvider, jsonMapper);
@@ -44,18 +54,18 @@ public class JobRunrDashboardWebServer {
         registerContext(staticFileHandler);
         registerContext(dashboardHandler);
         registerContext(sseHandler);
-    }
-
-    public void start() {
         teenyWebServer.start();
+
         LOGGER.info(format("JobRunr dashboard started at http://%s:%d",
                 teenyWebServer.getWebServerHostAddress(),
                 teenyWebServer.getWebServerHostPort()));
     }
 
     public void stop() {
+        if (teenyWebServer == null) return;
         teenyWebServer.stop();
         LOGGER.info("JobRunr dashboard stopped");
+        teenyWebServer = null;
     }
 
     HttpContext registerContext(TeenyHttpHandler httpHandler) {
