@@ -13,6 +13,7 @@ public class Autoboxer {
             new IntegerTypeAutoboxer(),
             new LongTypeAutoboxer(),
             new DoubleTypeAutoboxer(),
+            new FloatTypeAutoboxer(),
             new StringTypeAutoboxer(),
             new UUIDTypeAutoboxer(),
             new EnumAutoboxer()

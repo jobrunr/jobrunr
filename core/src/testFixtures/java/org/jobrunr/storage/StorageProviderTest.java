@@ -13,7 +13,6 @@ import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.jobrunr.utils.streams.StreamUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -53,6 +52,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
 import static org.jobrunr.storage.PageRequest.descOnCreatedAt;
+import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 public abstract class StorageProviderTest {
 
@@ -424,7 +424,7 @@ public abstract class StorageProviderTest {
                     }
                 })
                 .mapToObj(i -> anEnqueuedJob().withJobDetails(systemOutPrintLnJobDetails("this is test " + i)).build())
-                .collect(StreamUtils.batchCollector(1000, storageProvider::save));
+                .collect(batchCollector(1000, storageProvider::save));
 
         AtomicInteger atomicInteger = new AtomicInteger();
         storageProvider

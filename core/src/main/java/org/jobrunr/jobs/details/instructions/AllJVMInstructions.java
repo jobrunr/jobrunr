@@ -34,6 +34,9 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.INVOKESTATIC, InvokeStaticInstruction::new);
         instructions.put(Opcodes.INVOKEVIRTUAL, InvokeVirtualInstruction::new);
         instructions.put(Opcodes.ISTORE, IStoreInstruction::new);
+        instructions.put(Opcodes.LSTORE, LStoreInstruction::new);
+        instructions.put(Opcodes.DSTORE, DStoreInstruction::new);
+        instructions.put(Opcodes.FSTORE, FStoreInstruction::new);
         instructions.put(Opcodes.DUP, DupOperandInstruction::new);
         instructions.put(Opcodes.ILOAD, ILoadOperandInstruction::new);
         instructions.put(Opcodes.LCONST_0, LConst0OperandInstruction::new);

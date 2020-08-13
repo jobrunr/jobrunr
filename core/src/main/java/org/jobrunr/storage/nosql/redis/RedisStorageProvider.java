@@ -208,6 +208,8 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> save(List<Job> jobs) {
+        if (jobs.isEmpty()) return jobs;
+
         if (areNewJobs(jobs)) {
             if (notAllJobsAreNew(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");

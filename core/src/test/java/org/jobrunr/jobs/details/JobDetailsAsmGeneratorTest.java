@@ -38,6 +38,11 @@ class JobDetailsAsmGeneratorTest {
     private TestServiceInterface testServiceInterface;
     private JobDetailsAsmGenerator jobDetailsGenerator;
 
+    private enum SomeEnum {
+        Value1,
+        Value2
+    }
+
     @BeforeEach
     void setUp() {
         jobDetailsGenerator = new JobDetailsAsmGenerator();
@@ -301,9 +306,14 @@ class JobDetailsAsmGeneratorTest {
     void testJobLambdaCallingMultiLineStatement() {
         JobLambda job = () -> {
             UUID testId = UUID.randomUUID();
-            int count = 6;
+            int someInt = 6;
+            double someDouble = 5.3;
+            float someFloat = 5.3F;
+            long someLong = 3L;
+            boolean someBoolean = true;
+            SomeEnum someEnum = SomeEnum.Value1;
             LocalDateTime now = LocalDateTime.now();
-            System.out.println("This is a test: " + testId + "; " + count + "; " + now);
+            System.out.println("This is a test: " + testId + "; " + someInt + "; " + someDouble + "; " + someFloat + "; " + someLong + "; " + someBoolean + "; " + someEnum + "; " + now);
         };
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails)
@@ -311,7 +321,7 @@ class JobDetailsAsmGeneratorTest {
                 .hasStaticFieldName("out")
                 .hasMethodName("println")
                 .hasArg(obj -> obj.toString().startsWith("This is a test: ")
-                        && obj.toString().contains(" 6;")
+                        && obj.toString().contains(" 6; 5.3; 5.3; 3; true; Value1;")
                         && obj.toString().contains(LocalDateTime.now().withNano(0).toString()));
     }
 
