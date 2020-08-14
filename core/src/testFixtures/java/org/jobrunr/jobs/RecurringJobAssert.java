@@ -16,7 +16,7 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
     public RecurringJobAssert isEqualTo(RecurringJob otherRecurringJob) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
-                .ignoringFields("lock")
+                .ignoringFields("locker")
                 .isEqualTo(otherRecurringJob);
         return this;
     }

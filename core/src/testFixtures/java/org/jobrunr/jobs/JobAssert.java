@@ -56,7 +56,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     public JobAssert isEqualTo(Job otherJob) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
-                .ignoringFields("lock")
+                .ignoringFields("locker")
                 .isEqualTo(otherJob);
         return this;
     }

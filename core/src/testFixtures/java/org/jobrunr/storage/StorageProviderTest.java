@@ -34,7 +34,6 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.failedJob;
-import static org.jobrunr.JobRunrAssertions.withoutLocks;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
@@ -239,17 +238,17 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(3);
 
         List<Job> fetchedJobsAsc = storageProvider.getJobs(PROCESSING, ascOnCreatedAt(100));
-        assertThat(withoutLocks(fetchedJobsAsc))
+        assertThat(fetchedJobsAsc)
                 .hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
-                .containsAll(withoutLocks(savedJobs));
+                .containsAll(savedJobs);
         assertThat(fetchedJobsAsc).extracting("jobName").containsExactly("1", "2", "3");
 
         List<Job> fetchedJobsDesc = storageProvider.getJobs(PROCESSING, descOnCreatedAt(0, 100));
-        assertThat(withoutLocks(fetchedJobsDesc))
+        assertThat(fetchedJobsDesc)
                 .hasSize(3)
                 .usingRecursiveFieldByFieldElementComparator()
-                .containsAll(withoutLocks(savedJobs));
+                .containsAll(savedJobs);
         assertThat(fetchedJobsDesc).extracting("jobName").containsExactly("3", "2", "1");
     }
 
@@ -298,10 +297,10 @@ public abstract class StorageProviderTest {
 
         Page<Job> fetchedJobs = storageProvider.getJobPage(ENQUEUED, ascOnCreatedAt(2, 2));
 
-        assertThat(withoutLocks(fetchedJobs.getItems()))
+        assertThat(fetchedJobs.getItems())
                 .hasSize(2)
                 .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(withoutLocks(job3, job4));
+                .containsExactly(job3, job4);
     }
 
     @Test

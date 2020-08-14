@@ -29,6 +29,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public class JobTestBuilder {
@@ -39,7 +40,7 @@ public class JobTestBuilder {
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
-    private Lock lock;
+    private Lock locker;
 
     private JobTestBuilder() {
     }
@@ -55,7 +56,7 @@ public class JobTestBuilder {
                 .withId(job.getId())
                 .withName(job.getJobName())
                 .withVersion(job.getVersion())
-                .withLock(Whitebox.getInternalState(job, "lock"))
+                .withLock(getInternalState(job, "locker"))
                 .withJobDetails(job.getJobDetails())
                 .withStates(job.getJobStates())
                 .withMetadata(job.getMetadata());
@@ -192,7 +193,7 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withLock(Lock lock) {
-        this.lock = lock;
+        this.locker = lock;
         return this;
     }
 
@@ -264,14 +265,14 @@ public class JobTestBuilder {
         if (version != null) {
             Whitebox.setInternalState(job, "version", version);
         }
-        if (lock != null) {
-            Whitebox.setInternalState(job, "lock", lock);
+        if (locker != null) {
+            Whitebox.setInternalState(job, "locker", locker);
         }
         job.setId(id);
         job.setJobName(name);
         job.getMetadata().putAll(metadata);
 
-        ArrayList<JobState> jobHistory = Whitebox.getInternalState(job, "jobHistory");
+        ArrayList<JobState> jobHistory = getInternalState(job, "jobHistory");
         jobHistory.addAll(states);
         return job;
     }

@@ -6,7 +6,7 @@ import org.jobrunr.utils.resilience.Lockable;
 
 public abstract class AbstractJob implements Lockable {
 
-    private transient final Lock lock;
+    private transient final Lock locker;
 
     private int version;
     private String jobSignature;
@@ -15,7 +15,7 @@ public abstract class AbstractJob implements Lockable {
 
     protected AbstractJob() {
         // used for deserialization
-        this.lock = new Lock();
+        this.locker = new Lock();
     }
 
     public AbstractJob(JobDetails jobDetails) {
@@ -60,6 +60,6 @@ public abstract class AbstractJob implements Lockable {
 
     @Override
     public Lock lock() {
-        return lock.lock();
+        return locker.lock();
     }
 }

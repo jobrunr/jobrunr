@@ -15,15 +15,10 @@ import org.jobrunr.jobs.JobDetailsAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
 import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 public class JobRunrAssertions extends Assertions {
 
@@ -33,14 +28,6 @@ public class JobRunrAssertions extends Assertions {
 
     public static JobAssert assertThat(Job job) {
         return JobAssert.assertThat(job);
-    }
-
-    public static Job[] withoutLocks(Job... actual) {
-        return Arrays.stream(actual).peek(job -> Whitebox.setInternalState(job, "lock", null)).toArray(Job[]::new);
-    }
-
-    public static List<Job> withoutLocks(List<Job> actual) {
-        return actual.stream().peek(job -> Whitebox.setInternalState(job, "lock", null)).collect(toList());
     }
 
     public static RecurringJobAssert assertThat(RecurringJob recurringJob) {

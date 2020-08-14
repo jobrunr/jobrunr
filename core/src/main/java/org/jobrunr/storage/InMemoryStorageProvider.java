@@ -255,7 +255,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        setFieldUsingAutoboxing("lock", result, getValueFromFieldOrProperty(job, "lock"));
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
         return result;
     }
 
