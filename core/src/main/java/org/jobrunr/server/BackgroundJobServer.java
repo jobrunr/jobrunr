@@ -10,7 +10,7 @@ import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
-import org.jobrunr.server.threadpool.ScheduledThreadPool;
+import org.jobrunr.server.threadpool.ScheduledThreadPoolJobExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
@@ -22,9 +22,9 @@ import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Integer.compare;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
@@ -41,7 +41,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
 
-    private ScheduledThreadPoolExecutor zookeeperThreadPool;
+    private java.util.concurrent.ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
     private JobFilters jobFilters;
 
@@ -169,7 +169,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startZooKeepers() {
-        zookeeperThreadPool = new ScheduledThreadPool(2, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new ScheduledThreadPoolJobExecutor(2, "backgroundjob-zookeeper-pool");
         zookeeperThreadPool.scheduleAtFixedRate(serverZooKeeper, 0, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleAtFixedRate(jobZooKeeper, 1, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
     }
@@ -224,9 +224,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private JobRunrExecutor loadJobRunrExecutor() {
         ServiceLoader<JobRunrExecutor> serviceLoader = ServiceLoader.load(JobRunrExecutor.class);
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
-                .sorted((a, b) -> b.getPriority().compareTo(a.getPriority()))
+                .sorted((a, b) -> compare(b.getPriority(), a.getPriority()))
                 .findFirst()
-                .orElse(new ScheduledThreadPool(serverStatus.getWorkerPoolSize(), "backgroundjob-worker-pool"));
+                .orElse(new ScheduledThreadPoolJobExecutor(serverStatus.getWorkerPoolSize(), "backgroundjob-worker-pool"));
     }
 
 }

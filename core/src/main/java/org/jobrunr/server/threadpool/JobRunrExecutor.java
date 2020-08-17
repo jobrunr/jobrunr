@@ -4,7 +4,7 @@ import java.util.concurrent.Executor;
 
 public interface JobRunrExecutor extends Executor {
 
-    Integer getPriority();
+    int getPriority();
 
     void start();
 

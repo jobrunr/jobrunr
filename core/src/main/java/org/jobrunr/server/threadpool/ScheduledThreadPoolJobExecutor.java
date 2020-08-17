@@ -4,22 +4,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledThreadPool extends ScheduledThreadPoolExecutor implements JobRunrExecutor {
+public class ScheduledThreadPoolJobExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPool.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobExecutor.class);
 
-    public ScheduledThreadPool(int corePoolSize, String threadNamePrefix) {
+    public ScheduledThreadPoolJobExecutor(int corePoolSize, String threadNamePrefix) {
         super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
         setMaximumPoolSize(corePoolSize * 2);
         setKeepAliveTime(1, TimeUnit.MINUTES);
     }
 
     @Override
-    public Integer getPriority() {
+    public int getPriority() {
         return 10;
     }
 
