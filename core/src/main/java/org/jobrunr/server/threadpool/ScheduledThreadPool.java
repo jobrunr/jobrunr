@@ -1,16 +1,45 @@
 package org.jobrunr.server.threadpool;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledThreadPool extends ScheduledThreadPoolExecutor {
+public class ScheduledThreadPool extends ScheduledThreadPoolExecutor implements JobRunrExecutor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPool.class);
 
     public ScheduledThreadPool(int corePoolSize, String threadNamePrefix) {
         super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
         setMaximumPoolSize(corePoolSize * 2);
         setKeepAliveTime(1, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public Integer getPriority() {
+        return 10;
+    }
+
+    @Override
+    public void start() {
+        this.prestartAllCoreThreads();
+        LOGGER.info("ThreadManager of type 'ScheduledThreadPool' started");
+    }
+
+    @Override
+    public void stop() {
+        shutdown();
+        try {
+            if (!awaitTermination(10, TimeUnit.SECONDS)) {
+                shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private static class NamedThreadFactory implements ThreadFactory {

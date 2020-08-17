@@ -106,7 +106,7 @@ public class JobRunrConfiguration {
         } else if (classExists("javax.json.bind.JsonbBuilder")) {
             return new JsonbJsonMapper();
         } else {
-            throw new JsonMapperException("No JsonMapper class is found. Make sure you have Jackson as Json library available");
+            throw new JsonMapperException("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath");
         }
     }
 }

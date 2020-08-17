@@ -28,6 +28,10 @@ public abstract class ServerSentEventHandler extends AbstractTeenyHttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+        if (sseExchanges.size() > 40) {
+            httpExchange.sendResponseHeaders(417, 0);
+            return;
+        }
         sseExchanges.add(createSseExchange(httpExchange));
     }
 
