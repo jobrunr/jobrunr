@@ -7,11 +7,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledThreadPoolJobExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
+public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobRunrExecutor.class);
 
-    public ScheduledThreadPoolJobExecutor(int corePoolSize, String threadNamePrefix) {
+    public ScheduledThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
         super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
         setMaximumPoolSize(corePoolSize * 2);
         setKeepAliveTime(1, TimeUnit.MINUTES);

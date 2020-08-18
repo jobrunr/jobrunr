@@ -10,7 +10,7 @@ import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
-import org.jobrunr.server.threadpool.ScheduledThreadPoolJobExecutor;
+import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
@@ -169,7 +169,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startZooKeepers() {
-        zookeeperThreadPool = new ScheduledThreadPoolJobExecutor(2, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         zookeeperThreadPool.scheduleAtFixedRate(serverZooKeeper, 0, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleAtFixedRate(jobZooKeeper, 1, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
     }
@@ -226,7 +226,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
                 .sorted((a, b) -> compare(b.getPriority(), a.getPriority()))
                 .findFirst()
-                .orElse(new ScheduledThreadPoolJobExecutor(serverStatus.getWorkerPoolSize(), "backgroundjob-worker-pool"));
+                .orElse(new ScheduledThreadPoolJobRunrExecutor(serverStatus.getWorkerPoolSize(), "backgroundjob-worker-pool"));
     }
 
 }
