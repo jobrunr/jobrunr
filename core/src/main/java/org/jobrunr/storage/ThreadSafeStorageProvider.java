@@ -122,8 +122,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName state) {
-        return storageProvider.exists(jobDetails, state);
+    public boolean exists(JobDetails jobDetails, StateName... states) {
+        return storageProvider.exists(jobDetails, states);
     }
 
     @Override

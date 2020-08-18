@@ -8,27 +8,35 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
 import org.jobrunr.utils.JobUtils;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobTable extends Sql<Job> {
 
-    final JobMapper jobMapper;
+    private final DataSource dataSource;
+    private final JobMapper jobMapper;
+    private static final SqlPageRequestMapper pageRequestMapper = new SqlPageRequestMapper();
 
     public JobTable(DataSource dataSource, JobMapper jobMapper) {
+        this.dataSource = dataSource;
         this.jobMapper = jobMapper;
         this
                 .using(dataSource)
@@ -45,6 +53,16 @@ public class JobTable extends Sql<Job> {
 
     public JobTable withState(StateName state) {
         with("state", state);
+        return this;
+    }
+
+    public JobTable withPriority(int priority) {
+        with("priority", priority);
+        return this;
+    }
+
+    public JobTable withAwaitingOn(UUID awaitingOn) {
+        with("awaitingOn", awaitingOn);
         return this;
     }
 
@@ -102,14 +120,20 @@ public class JobTable extends Sql<Job> {
                 .findFirst();
     }
 
-    public long countJobsByState(StateName state) {
+    public long countJobs(StateName state) {
         return withState(state)
                 .selectCount("from jobrunr_jobs where state = :state");
     }
 
+    public long countJobs(StateName state, int queuePriority) {
+        return withState(state)
+                .withPriority(queuePriority)
+                .selectCount("from jobrunr_jobs where state = :state and priority = :priority");
+    }
+
     public List<Job> selectJobsByState(StateName state, PageRequest pageRequest) {
         return withState(state)
-                .withOrderLimitAndOffset(pageRequest.getOrderField(), pageRequest.getOrder().name(), pageRequest.getLimit(), pageRequest.getOffset())
+                .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
                 .selectJobs("jobAsJson from jobrunr_jobs where state = :state")
                 .collect(toList());
     }
@@ -117,27 +141,25 @@ public class JobTable extends Sql<Job> {
     public List<Job> selectJobsByState(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         return withState(state)
                 .withUpdatedBefore(updatedBefore)
-                .withOrderLimitAndOffset(pageRequest.getOrderField(), pageRequest.getOrder().name(), pageRequest.getLimit(), pageRequest.getOffset())
+                .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
                 .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore")
                 .collect(toList());
     }
 
     public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, PageRequest pageRequest) {
         return withScheduledAt(scheduledBefore)
-                .withOrderLimitAndOffset(pageRequest.getOrderField(), pageRequest.getOrder().name(), pageRequest.getLimit(), pageRequest.getOffset())
+                .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
                 .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt")
                 .collect(toList());
     }
 
-    public boolean exists(JobDetails jobDetails, StateName state) {
-        return withState(state)
-                .with("jobSignature", getJobSignature(jobDetails))
-                .selectExists("from jobrunr_jobs where state = :state AND jobSignature = :jobSignature");
+    public boolean exists(JobDetails jobDetails, StateName... states) {
+        return with("jobSignature", getJobSignature(jobDetails))
+                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND jobSignature = :jobSignature");
     }
 
-    public int deleteById(UUID id) {
-        return withId(id)
-                .delete("from jobrunr_jobs where id = :id");
+    public int deletePermanently(UUID... ids) {
+        return delete("from jobrunr_jobs where id in (" + stream(ids).map(uuid -> "'" + uuid.toString() + "'").collect(joining(",")) + ")");
     }
 
     public int deleteJobsByStateAndUpdatedBefore(StateName state, Instant updatedBefore) {
@@ -147,25 +169,33 @@ public class JobTable extends Sql<Job> {
     }
 
     @Override
-    public JobTable withOrderLimitAndOffset(String field, String order, int limit, long offset) {
-        super.withOrderLimitAndOffset(field, order, limit, offset);
+    public JobTable withOrderLimitAndOffset(String order, int limit, long offset) {
+        super.withOrderLimitAndOffset(order, limit, offset);
         return this;
     }
 
-    private void insertOneJob(Job jobToSave) {
-        insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+    void insertOneJob(Job jobToSave) {
+        try (Connection conn = dataSource.getConnection()) {
+            insert(conn, jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
     }
 
-    private void updateOneJob(Job jobToSave) {
-        update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+    void updateOneJob(Job jobToSave) {
+        try (Connection conn = dataSource.getConnection()) {
+            update(conn, jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
     }
 
-    private void insertAllJobs(List<Job> jobs) {
+    void insertAllJobs(List<Job> jobs) {
         jobs.forEach(JobTable::setId);
         insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
     }
 
-    private void updateAllJobs(List<Job> jobs) {
+    void updateAllJobs(List<Job> jobs) {
         jobs.forEach(AbstractJob::increaseVersion);
         updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
     }
@@ -196,5 +226,4 @@ public class JobTable extends Sql<Job> {
     private static boolean areNewJobs(List<Job> jobs) {
         return jobs.get(0).getId() == null;
     }
-
 }

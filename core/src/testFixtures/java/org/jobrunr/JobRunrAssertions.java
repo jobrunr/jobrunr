@@ -7,23 +7,24 @@ import net.javacrumbs.jsonunit.assertj.JsonAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
 import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobAssert;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.JobDetailsAssert;
-import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.RecurringJobAssert;
+import org.jobrunr.jobs.*;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class JobRunrAssertions extends Assertions {
 
     public static Condition<Throwable> failedJob(Job job) {
         return new Condition<>(x -> x instanceof ConcurrentJobModificationException && ((ConcurrentJobModificationException) x).getConcurrentUpdatedJobs().contains(job), "Should contain job");
+    }
+
+    public static <T extends Job> ListAssert<T> assertThatJobs(List<T> jobs) {
+        return Assertions.assertThat(jobs).usingRecursiveFieldByFieldElementComparator();
     }
 
     public static JobAssert assertThat(Job job) {

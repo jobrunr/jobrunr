@@ -6,42 +6,21 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.AbstractStorageProvider;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.JobNotFoundException;
-import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.Page;
-import org.jobrunr.storage.PageRequest;
-import org.jobrunr.storage.ServerTimedOutException;
-import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static java.time.Instant.now;
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -99,7 +78,8 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
         try (final Jedis jedis = getJedis()) {
             final Map<String, String> valueMap = jedis.hgetAll(backgroundJobServerKey(serverStatus));
-            if (valueMap.isEmpty()) throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
+            if (valueMap.isEmpty())
+                throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
             try (final Pipeline p = jedis.pipelined()) {
                 p.watch(backgroundJobServerKey(serverStatus));
                 p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
@@ -146,7 +126,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                             Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
                             Double.parseDouble(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
     }
 
@@ -236,10 +216,12 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
-            if (PageRequest.Order.ASC == pageRequest.getOrder()) {
-                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore));
+            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
+                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
+            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
+                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
             } else {
-                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore));
+                throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
             }
             return new RedisPipelinedStream<>(jobsByState, jedis)
                     .skip(pageRequest.getOffset())
@@ -275,10 +257,13 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
-            if (PageRequest.Order.ASC == pageRequest.getOrder()) {
+            // we only support what is used by frontend
+            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else {
+            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrevrange(jobQueueForStateKey(state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
             }
             return new RedisPipelinedStream<>(jobsByState, jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
@@ -326,9 +311,13 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName state) {
-        try (final Jedis jedis = getJedis()) {
-            return jedis.sismember(jobDetailsKey(state), getJobSignature(jobDetails));
+    public boolean exists(JobDetails jobDetails, StateName... states) {
+        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
+            List<Response<Boolean>> existsJob = stream(states)
+                    .map(stateName -> p.sismember(jobDetailsKey(stateName), getJobSignature(jobDetails)))
+                    .collect(toList());
+            p.sync();
+            return existsJob.stream().map(Response::get).filter(b -> b).findAny().orElse(false);
         }
     }
 
@@ -457,7 +446,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     }
 
     private void saveJob(Transaction transaction, Job jobToSave) {
-        deleteJobMetadata(transaction, jobToSave);
+        deleteJobMetadataForUpdate(transaction, jobToSave);
         transaction.set(jobVersionKey(jobToSave), String.valueOf(jobToSave.getVersion()));
         transaction.set(jobKey(jobToSave), jobMapper.serializeJob(jobToSave));
         transaction.zadd(jobQueueForStateKey(jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
@@ -467,24 +456,22 @@ public class RedisStorageProvider extends AbstractStorageProvider {
         }
     }
 
+    private void deleteJobMetadataForUpdate(Transaction transaction, Job job) {
+        String id = job.getId().toString();
+        transaction.zrem(QUEUE_SCHEDULEDJOBS_KEY, id);
+        Stream.of(StateName.values()).forEach(stateName -> transaction.zrem(jobQueueForStateKey(stateName), id));
+        Stream.of(StateName.values()).filter(stateName -> !SCHEDULED.equals(stateName)).forEach(stateName -> transaction.srem(jobDetailsKey(stateName), getJobSignature(job.getJobDetails())));
+        if ((job.hasState(ENQUEUED) && job.getJobStates().size() >= 2 && job.getJobState(-2) instanceof ScheduledState)
+                || (job.hasState(DELETED) && job.getJobStates().size() >= 2 && job.getJobState(-2) instanceof ScheduledState)) {
+            transaction.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
+        }
+    }
+
     private void deleteJobMetadata(Transaction transaction, Job job) {
         String id = job.getId().toString();
-        transaction.zrem(jobQueueForStateKey(AWAITING), id);
-        transaction.zrem(jobQueueForStateKey(SCHEDULED), id);
-        transaction.zrem(jobQueueForStateKey(ENQUEUED), id);
-        transaction.zrem(jobQueueForStateKey(PROCESSING), id);
-        transaction.zrem(jobQueueForStateKey(FAILED), id);
-        transaction.zrem(jobQueueForStateKey(SUCCEEDED), id);
-        transaction.zrem(jobQueueForStateKey(DELETED), id);
         transaction.zrem(QUEUE_SCHEDULEDJOBS_KEY, id);
-
-        transaction.srem(jobDetailsKey(AWAITING), getJobSignature(job.getJobDetails()));
-        transaction.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
-        transaction.srem(jobDetailsKey(ENQUEUED), getJobSignature(job.getJobDetails()));
-        transaction.srem(jobDetailsKey(PROCESSING), getJobSignature(job.getJobDetails()));
-        transaction.srem(jobDetailsKey(FAILED), getJobSignature(job.getJobDetails()));
-        transaction.srem(jobDetailsKey(SUCCEEDED), getJobSignature(job.getJobDetails()));
-        transaction.srem(jobDetailsKey(DELETED), getJobSignature(job.getJobDetails()));
+        Stream.of(StateName.values()).forEach(stateName -> transaction.zrem(jobQueueForStateKey(stateName), id));
+        Stream.of(StateName.values()).forEach(stateName -> transaction.srem(jobDetailsKey(stateName), getJobSignature(job.getJobDetails())));
     }
 
     private long getCounterValue(Response<String> counterResponse, Response<Long> countResponse) {

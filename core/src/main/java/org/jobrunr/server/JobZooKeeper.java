@@ -32,7 +32,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
+import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class JobZooKeeper implements Runnable {
 
@@ -47,6 +47,7 @@ public class JobZooKeeper implements Runnable {
     private final AtomicInteger exceptionCount;
     private final ReentrantLock reentrantLock;
     private final AtomicBoolean isMaster;
+    private final AtomicInteger occupiedWorkers;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
@@ -58,6 +59,7 @@ public class JobZooKeeper implements Runnable {
         this.reentrantLock = new ReentrantLock();
         this.exceptionCount = new AtomicInteger();
         this.isMaster = new AtomicBoolean();
+        this.occupiedWorkers = new AtomicInteger();
     }
 
     @Override
@@ -122,14 +124,14 @@ public class JobZooKeeper implements Runnable {
     void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
 
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnCreatedAt(1000));
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(1000));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
     void checkForOrphanedJobs() {
         LOGGER.debug("Looking for orphan jobs... ");
         final Instant updatedBefore = now().minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
-        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnCreatedAt(1000));
+        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
     }
 
@@ -138,7 +140,7 @@ public class JobZooKeeper implements Runnable {
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
         final Instant updatedBefore = now().minus(36, ChronoUnit.HOURS);
-        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnCreatedAt(1000));
+        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
             job.delete();
@@ -184,9 +186,8 @@ public class JobZooKeeper implements Runnable {
     }
 
     boolean isNotYetScheduled(RecurringJob recurringJob) {
-        if (storageProvider.exists(recurringJob.getJobDetails(), StateName.SCHEDULED)) return false;
-        else if (storageProvider.exists(recurringJob.getJobDetails(), StateName.ENQUEUED)) return false;
-        else if (storageProvider.exists(recurringJob.getJobDetails(), StateName.PROCESSING)) return false;
+        if (storageProvider.exists(recurringJob.getJobDetails(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING))
+            return false;
         else return true;
     }
 
@@ -223,15 +224,20 @@ public class JobZooKeeper implements Runnable {
         currentlyProcessedJobs.remove(job);
     }
 
-    public int getWorkQueueSize() {
-        return currentlyProcessedJobs.size();
-    }
-
     public Thread getThreadProcessingJob(Job job) {
         return currentlyProcessedJobs.get(job);
     }
 
+    public int getOccupiedWorkerCount() {
+        return occupiedWorkers.get();
+    }
+
+    public void notifyThreadOccupied() {
+        occupiedWorkers.incrementAndGet();
+    }
+
     public void notifyThreadIdle() {
+        this.occupiedWorkers.decrementAndGet();
         if (workDistributionStrategy.canOnboardNewWork()) {
             checkForEnqueuedJobs();
         }

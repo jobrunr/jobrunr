@@ -5,19 +5,9 @@ import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import org.jobrunr.storage.sql.common.db.dialect.DialectFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -77,15 +67,21 @@ public class Sql<T> {
         return this;
     }
 
-    public Sql<T> withOrderLimitAndOffset(String field, String order, int limit, long offset) {
+    public Sql<T> withOrderLimitAndOffset(String order, int limit, long offset) {
         with("limit", limit);
         with("offset", offset);
-        suffix = dialect.limitAndOffset(field, order);
+        suffix = dialect.limitAndOffset(order);
         return this;
     }
 
     public Stream<SqlResultSet> select(String statement) {
         String parsedStatement = parse("select " + statement + suffix);
+        SqlSpliterator sqlSpliterator = new SqlSpliterator(dataSource, parsedStatement, this::setParams);
+        return StreamSupport.stream(sqlSpliterator, false);
+    }
+
+    public Stream<SqlResultSet> execute(String statement) {
+        String parsedStatement = parse(statement + suffix);
         SqlSpliterator sqlSpliterator = new SqlSpliterator(dataSource, parsedStatement, this::setParams);
         return StreamSupport.stream(sqlSpliterator, false);
     }
@@ -108,20 +104,56 @@ public class Sql<T> {
     }
 
     public void insert(T item, String statement) {
-        insertOrUpdate(item, "insert " + statement);
+        try (final Connection conn = dataSource.getConnection()) {
+            insertOrUpdate(conn, item, "insert " + statement);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
     }
 
-    public void update(T item, String statement) {
-        insertOrUpdate(item, "update " + statement);
+    public void insert(Connection conn, String statement) throws SQLException {
+        insertOrUpdate(conn, null, "insert " + statement);
+    }
+
+    public void insert(Connection conn, T item, String statement) throws SQLException {
+        insertOrUpdate(conn, item, "insert " + statement);
     }
 
     public void update(String statement) {
-        insertOrUpdate(null, "update " + statement);
+        try (final Connection conn = dataSource.getConnection()) {
+            insertOrUpdate(conn, null, "update " + statement);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    public void update(T item, String statement) {
+        try (final Connection conn = dataSource.getConnection()) {
+            insertOrUpdate(conn, item, "update " + statement);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    public void update(Connection conn, T item, String statement) throws SQLException {
+        insertOrUpdate(conn, item, "update " + statement);
+    }
+
+    public void update(Connection conn, String statement) throws SQLException {
+        insertOrUpdate(conn, null, "update " + statement);
     }
 
     public int delete(String statement) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return delete(conn, statement);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    public int delete(Connection conn, String statement) {
         String parsedStatement = parse("delete " + statement);
-        try (final Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
+        try (PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
             setParams(ps);
             return ps.executeUpdate();
         } catch (SQLException e) {
@@ -129,16 +161,14 @@ public class Sql<T> {
         }
     }
 
-    private void insertOrUpdate(T item, String statement) {
+    private void insertOrUpdate(Connection conn, T item, String statement) throws SQLException {
         String parsedStatement = parse(statement);
-        try (final Connection conn = dataSource.getConnection(); PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
+        try (PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
             setParams(ps, item);
             final int updated = ps.executeUpdate();
             if (updated != 1) {
                 throw concurrentDatabaseModificationException(item, updated);
             }
-        } catch (SQLException e) {
-            throw new StorageException(e);
         }
     }
 

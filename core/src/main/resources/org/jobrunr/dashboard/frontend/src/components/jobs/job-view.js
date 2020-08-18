@@ -133,6 +133,7 @@ const JobView = (props) => {
         setIsLoading(false);
         let state = job.jobHistory[job.jobHistory.length - 1].state;
         setStateBreadcrumb({
+            state: state,
             name: jobStateToHumanReadableName(state),
             link: state.toLowerCase()
         })
@@ -187,9 +188,11 @@ const JobView = (props) => {
                                                 <Button variant="outlined" color="primary" onClick={requeueJob}>
                                                     Requeue
                                                 </Button>
+                                                {stateBreadcrumb.state != 'DELETED' &&
                                                 <Button variant="outlined" color="primary" onClick={deleteJob}>
                                                     Delete
                                                 </Button>
+                                                }
                                             </ButtonGroup>
                                         </Grid>
                                         <Grid item xs={12} className={classes.jobDetails} style={{paddingTop: 0}}>

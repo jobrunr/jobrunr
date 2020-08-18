@@ -33,21 +33,14 @@ import static java.time.ZoneId.systemDefault;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.FIVE_SECONDS;
-import static org.awaitility.Durations.ONE_MINUTE;
-import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
-import static org.jobrunr.storage.PageRequest.ascOnCreatedAt;
+import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class BackgroundJobTest {
 
@@ -220,7 +213,7 @@ public class BackgroundJobTest {
         BackgroundJob.scheduleRecurringly(() -> testService.doWork(5), Cron.minutely());
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnCreatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -229,7 +222,7 @@ public class BackgroundJobTest {
         BackgroundJob.scheduleRecurringly("theId", () -> testService.doWork(5), Cron.minutely());
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnCreatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -238,7 +231,7 @@ public class BackgroundJobTest {
         BackgroundJob.scheduleRecurringly("theId", () -> testService.doWork(5), Cron.minutely(), systemDefault());
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnCreatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -275,7 +268,7 @@ public class BackgroundJobTest {
         BackgroundJob.delete(jobId);
 
         await().atMost(6, SECONDS).untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
         });
     }
@@ -286,7 +279,7 @@ public class BackgroundJobTest {
         BackgroundJob.delete(jobId);
 
         await().atMost(6, SECONDS).untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, DELETED);
         });
     }
@@ -299,7 +292,7 @@ public class BackgroundJobTest {
         BackgroundJob.delete(jobId);
 
         await().atMost(6, SECONDS).untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getWorkQueueSize()).isZero();
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
     }

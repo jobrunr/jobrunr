@@ -60,7 +60,7 @@ public interface StorageProvider extends AutoCloseable {
 
     int deleteJobs(StateName state, Instant updatedBefore);
 
-    boolean exists(JobDetails jobDetails, StateName state);
+    boolean exists(JobDetails jobDetails, StateName... states);
 
     RecurringJob saveRecurringJob(RecurringJob recurringJob);
 

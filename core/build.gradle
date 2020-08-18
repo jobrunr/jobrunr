@@ -53,6 +53,7 @@ dependencies {
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mongodb'
     testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.testcontainers:mssqlserver'
     testImplementation 'org.testcontainers:mysql'

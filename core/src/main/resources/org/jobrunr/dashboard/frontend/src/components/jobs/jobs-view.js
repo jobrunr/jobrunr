@@ -48,15 +48,13 @@ const JobsView = (props) => {
     const [isLoading, setIsLoading] = React.useState(true);
     const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
 
-    let sortField = 'createdAt', sortOrder = 'ASC';
+    let sort = 'updatedAt:ASC';
     switch (jobState.toUpperCase()) {
         case 'SUCCEEDED':
-            sortField = 'updatedAt';
-            sortOrder = 'DESC';
+            sort = 'updatedAt:DESC';
             break;
         case 'FAILED':
-            sortField = 'updatedAt';
-            sortOrder = 'DESC';
+            sort = 'updatedAt:DESC';
             break;
         default:
     }
@@ -65,7 +63,7 @@ const JobsView = (props) => {
         setIsLoading(true);
         const offset = (page) * 20;
         const limit = 20;
-        let url = `/api/jobs?state=${jobState.toUpperCase()}&offset=${offset}&limit=${limit}&order=${sortOrder}&orderOnField=${sortField}`;
+        let url = `/api/jobs?state=${jobState.toUpperCase()}&offset=${offset}&limit=${limit}&order=${sort}`;
         fetch(url)
             .then(res => res.json())
             .then(response => {
@@ -73,7 +71,7 @@ const JobsView = (props) => {
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
-    }, [page, jobState, sortField, sortOrder, history.location.key]);
+    }, [page, jobState, sort, history.location.key]);
 
     return (
         <main className={classes.content}>

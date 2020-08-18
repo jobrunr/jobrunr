@@ -32,6 +32,7 @@ public class BackgroundJobPerformer implements Runnable {
 
     public void run() {
         try {
+            backgroundJobServer.getJobZooKeeper().notifyThreadOccupied();
             boolean canProcess = updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart();
             if (canProcess) {
                 runActualJob();

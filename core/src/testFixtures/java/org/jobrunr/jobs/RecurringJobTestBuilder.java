@@ -61,7 +61,12 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsBuilder) {
-        this.jobDetails = jobDetailsBuilder.build();
+        withJobDetails(jobDetailsBuilder.build());
+        return this;
+    }
+
+    public RecurringJobTestBuilder withJobDetails(JobDetails jobDetails) {
+        this.jobDetails = jobDetails;
         return this;
     }
 

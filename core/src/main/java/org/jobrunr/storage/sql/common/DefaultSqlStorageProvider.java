@@ -5,12 +5,7 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.AbstractStorageProvider;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.JobNotFoundException;
-import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.Page;
-import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.*;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
@@ -114,7 +109,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public int deletePermanently(UUID id) {
-        final int amountDeleted = jobTable().deleteById(id);
+        final int amountDeleted = jobTable().deletePermanently(id);
         notifyOnChangeListenersIf(amountDeleted > 0);
         return amountDeleted;
     }
@@ -147,7 +142,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public Long countJobs(StateName state) {
         return jobTable()
-                .countJobsByState(state);
+                .countJobs(state);
     }
 
     @Override
@@ -168,9 +163,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName state) {
+    public boolean exists(JobDetails jobDetails, StateName... states) {
         return jobTable()
-                .exists(jobDetails, state);
+                .exists(jobDetails, states);
     }
 
     @Override
@@ -195,7 +190,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public JobStats getJobStats() {
         return Sql.forType(JobStats.class)
                 .using(dataSource)
-                .withOrderLimitAndOffset("total", "ASC", 1, 0)
+                .withOrderLimitAndOffset("total ASC", 1, 0)
                 .select("* from jobrunr_jobs_stats")
                 .map(this::toJobStats)
                 .findFirst()

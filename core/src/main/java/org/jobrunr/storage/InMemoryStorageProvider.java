@@ -9,24 +9,16 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
@@ -39,6 +31,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
     private final Map<Object, AtomicLong> jobStats = new ConcurrentHashMap<>();
+    private final Set<String> mutexes = ConcurrentHashMap.newKeySet();
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
@@ -76,7 +69,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
-        if (!backgroundJobServers.containsKey(serverStatus.getId())) throw new ServerTimedOutException(serverStatus, new StorageException("Tha server is not there"));
+        if (!backgroundJobServers.containsKey(serverStatus.getId()))
+            throw new ServerTimedOutException(serverStatus, new StorageException("Tha server is not there"));
 
         announceBackgroundJobServer(serverStatus);
         final BackgroundJobServerStatus backgroundJobServerStatus = backgroundJobServers.get(serverStatus.getId());
@@ -120,9 +114,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int deletePermanently(UUID id) {
-        int amountDeleted = jobQueue.remove(id) != null ? 1 : 0;
-        if (amountDeleted > 0) notifyJobStatsOnChangeListeners();
-        return amountDeleted;
+        boolean removed = jobQueue.keySet().remove(id);
+        notifyOnChangeListenersIf(removed);
+        return removed ? 1 : 0;
     }
 
     @Override
@@ -135,8 +129,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return jobQueue.values().stream()
-                .filter(job -> job.hasState(state) && job.getUpdatedAt().isBefore(updatedBefore))
+        return getJobsStream(state, pageRequest)
+                .filter(job -> job.getUpdatedAt().isBefore(updatedBefore))
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
                 .map(this::deepClone)
@@ -145,7 +139,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return getJobs(SCHEDULED)
+        return getJobsStream(SCHEDULED, pageRequest)
                 .filter(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isBefore(scheduledBefore))
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
@@ -155,29 +149,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public Long countJobs(StateName state) {
-        return getJobs(state).count();
+        return getJobsStream(state).count();
     }
 
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        Comparator<Job> comparator = getJobComparator(pageRequest);
-        return getJobs(state)
+        return getJobsStream(state, pageRequest)
                 .skip(pageRequest.getOffset())
                 .limit(pageRequest.getLimit())
-                .sorted(comparator)
                 .map(this::deepClone)
                 .collect(toList());
-    }
-
-    private Comparator<Job> getJobComparator(PageRequest pageRequest) {
-        Comparator<Job> comparator = null;
-        if (pageRequest.getOrderField().equals("createdAt")) {
-            comparator = Comparator.comparing(Job::getCreatedAt);
-        } else if (pageRequest.getOrderField().equals("updatedAt")) {
-            comparator = Comparator.comparing(Job::getUpdatedAt);
-        }
-        if (comparator != null && pageRequest.getOrder() == PageRequest.Order.DESC) comparator = comparator.reversed();
-        return comparator;
     }
 
     @Override
@@ -200,11 +181,12 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName state) {
+    public boolean exists(JobDetails jobDetails, StateName... states) {
         String actualJobSignature = getJobSignature(jobDetails);
         return jobQueue.values().stream()
-                .filter(job -> actualJobSignature.equals(getJobSignature(job.getJobDetails())))
-                .anyMatch(job -> job.hasState(state));
+                .anyMatch(job ->
+                        asList(states).contains(job.getState())
+                                && actualJobSignature.equals(getJobSignature(job.getJobDetails())));
     }
 
     @Override
@@ -229,13 +211,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public JobStats getJobStats() {
         return new JobStats(
                 (long) jobQueue.size(),
-                getJobs(AWAITING).count(),
-                getJobs(SCHEDULED).count(),
-                getJobs(ENQUEUED).count(),
-                getJobs(PROCESSING).count(),
-                getJobs(FAILED).count(),
-                getJobs(SUCCEEDED).count() + jobStats.getOrDefault(SUCCEEDED, new AtomicLong()).get(),
-                getJobs(DELETED).count(),
+                getJobsStream(AWAITING).count(),
+                getJobsStream(SCHEDULED).count(),
+                getJobsStream(ENQUEUED).count(),
+                getJobsStream(PROCESSING).count(),
+                getJobsStream(FAILED).count(),
+                getJobsStream(SUCCEEDED).count() + jobStats.getOrDefault(SUCCEEDED, new AtomicLong()).get(),
+                getJobsStream(DELETED).count(),
                 recurringJobs.size(),
                 backgroundJobServers.size()
         );
@@ -246,10 +228,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         jobStats.put(state, new AtomicLong(amount));
     }
 
-    private Stream<Job> getJobs(StateName state) {
+    private Stream<Job> getJobsStream(StateName state, PageRequest pageRequest) {
+        return getJobsStream(state)
+                .sorted(getJobComparator(pageRequest));
+    }
+
+    private Stream<Job> getJobsStream(StateName state) {
         return jobQueue.values().stream()
-                .filter(job -> job.hasState(state))
-                .sorted(comparing(Job::getCreatedAt));
+                .filter(job -> job.hasState(state));
     }
 
     private Job deepClone(Job job) {
@@ -271,5 +257,31 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         }
 
         jobQueue.put(job.getId(), deepClone(job));
+    }
+
+    private Comparator<Job> getJobComparator(PageRequest pageRequest) {
+        List<Comparator<Job>> result = new ArrayList<>();
+        final String[] sortOns = pageRequest.getOrder().split(",");
+        for (String sortOn : sortOns) {
+            final String[] sortAndOrder = sortOn.split(":");
+            String sortField = sortAndOrder[0];
+            PageRequest.Order order = PageRequest.Order.ASC;
+            if (sortAndOrder.length > 1) {
+                order = PageRequest.Order.valueOf(sortAndOrder[1].toUpperCase());
+            }
+            Comparator<Job> comparator = null;
+            if (sortField.equalsIgnoreCase("createdAt")) {
+                comparator = Comparator.comparing(Job::getCreatedAt);
+            } else if (sortField.equalsIgnoreCase("updatedAt")) {
+                comparator = Comparator.comparing(Job::getUpdatedAt);
+            }
+            if (order == PageRequest.Order.DESC) {
+                comparator = comparator.reversed();
+            }
+            result.add(comparator);
+        }
+        return result.stream()
+                .reduce(Comparator::thenComparing)
+                .orElse((a, b) -> 0); // default order
     }
 }

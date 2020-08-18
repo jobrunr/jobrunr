@@ -13,6 +13,7 @@ dependencies {
     testImplementation testFixtures(project(":core"))
     testImplementation project(':tests:e2e-base')
     testImplementation testFixtures(project(":tests:e2e-base"))
+    testImplementation 'org.testcontainers:mongodb'
 }
 
 test.dependsOn(jibDockerBuild)

@@ -7,6 +7,8 @@ import org.jobrunr.storage.PageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+
 public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicWorkDistributionStrategy.class);
@@ -21,19 +23,19 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
     @Override
     public boolean canOnboardNewWork() {
-        final double workQueueSize = jobZooKeeper.getWorkQueueSize();
+        final double occupiedWorkerCount = jobZooKeeper.getOccupiedWorkerCount();
         final double workerPoolSize = backgroundJobServerStatus.getWorkerPoolSize();
-        final boolean canOnboardWork = (workQueueSize / workerPoolSize) < 0.7;
+        final boolean canOnboardWork = (occupiedWorkerCount / workerPoolSize) < 0.7;
         return canOnboardWork;
     }
 
     @Override
     public PageRequest getWorkPageRequest() {
-        final int workQueueSize = jobZooKeeper.getWorkQueueSize();
+        final int occupiedWorkerCount = jobZooKeeper.getOccupiedWorkerCount();
         final int workerPoolSize = backgroundJobServerStatus.getWorkerPoolSize();
 
-        final int limit = workerPoolSize - workQueueSize;
-        LOGGER.debug("Can onboard {} new work (workQueueSize = {}; workerPoolSize = {}).", limit, workQueueSize, workerPoolSize);
-        return PageRequest.ascOnCreatedAt(limit);
+        final int limit = workerPoolSize - occupiedWorkerCount;
+        LOGGER.debug("Can onboard {} new work (occupiedWorkerCount = {}; workerPoolSize = {}).", limit, occupiedWorkerCount, workerPoolSize);
+        return ascOnUpdatedAt(limit);
     }
 }
