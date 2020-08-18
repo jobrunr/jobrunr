@@ -110,7 +110,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.13</version>
+    <version>0.9.15</version>
 </dependency>
 ```
  
@@ -118,7 +118,7 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.13'
+implementation 'org.jobrunr:jobrunr:0.9.15'
 ```
 
 Configuration
