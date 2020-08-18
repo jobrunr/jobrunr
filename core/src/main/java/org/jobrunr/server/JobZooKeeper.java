@@ -181,14 +181,14 @@ public class JobZooKeeper implements Runnable {
     void processRecurringJobs(List<RecurringJob> recurringJobs) {
         LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
         recurringJobs.stream()
-                .filter(this::isNotYetScheduled)
+                .filter(this::mustSchedule)
                 .forEach(backgroundJobServer::scheduleJob);
     }
 
-    boolean isNotYetScheduled(RecurringJob recurringJob) {
-        if (storageProvider.exists(recurringJob.getJobDetails(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING))
-            return false;
-        else return true;
+    boolean mustSchedule(RecurringJob recurringJob) {
+        return recurringJob.getNextRun().isBefore(now().plusSeconds(60))
+                && !storageProvider.exists(recurringJob.getJobDetails(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING);
+
     }
 
     void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {

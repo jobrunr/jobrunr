@@ -8,6 +8,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
@@ -74,7 +75,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForRecurringJobs() {
-        RecurringJob recurringJob = aDefaultRecurringJob().build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
 
@@ -84,41 +85,11 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduled() {
-        RecurringJob recurringJob = aDefaultRecurringJob().build();
+    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
-        when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED)).thenReturn(true);
-
-        jobZooKeeper.run();
-
-        verify(backgroundJobServer, never()).scheduleJob(recurringJob);
-        verify(storageProvider, never()).exists(recurringJob.getJobDetails(), ENQUEUED);
-        verify(storageProvider, never()).exists(recurringJob.getJobDetails(), PROCESSING);
-    }
-
-    @Test
-    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyEnqueued() {
-        RecurringJob recurringJob = aDefaultRecurringJob().build();
-
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
-        when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED)).thenReturn(false);
-        when(storageProvider.exists(recurringJob.getJobDetails(), ENQUEUED)).thenReturn(true);
-
-        jobZooKeeper.run();
-
-        verify(backgroundJobServer, never()).scheduleJob(recurringJob);
-        verify(storageProvider, never()).exists(recurringJob.getJobDetails(), PROCESSING);
-    }
-
-    @Test
-    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyProcessing() {
-        RecurringJob recurringJob = aDefaultRecurringJob().build();
-
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
-        when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED)).thenReturn(false);
-        when(storageProvider.exists(recurringJob.getJobDetails(), ENQUEUED)).thenReturn(false);
-        when(storageProvider.exists(recurringJob.getJobDetails(), PROCESSING)).thenReturn(true);
+        when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
         jobZooKeeper.run();
 
