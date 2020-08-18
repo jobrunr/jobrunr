@@ -188,7 +188,7 @@ const JobView = (props) => {
                                                 <Button variant="outlined" color="primary" onClick={requeueJob}>
                                                     Requeue
                                                 </Button>
-                                                {stateBreadcrumb.state != 'DELETED' &&
+                                                {stateBreadcrumb.state !== 'DELETED' &&
                                                 <Button variant="outlined" color="primary" onClick={deleteJob}>
                                                     Delete
                                                 </Button>
