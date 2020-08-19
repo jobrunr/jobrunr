@@ -3,6 +3,7 @@ package org.jobrunr.server.runner;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.JobActivator;
 
+import static org.jobrunr.utils.JobUtils.assertJobExists;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
@@ -15,6 +16,7 @@ public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
 
     @Override
     public boolean supports(Job job) {
+        assertJobExists(job.getJobDetails());
         if (jobActivator == null) return false;
         return jobActivator.activateJob(toClass(job.getJobDetails().getClassName())) != null;
     }

@@ -13,9 +13,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
-import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
+import static org.jobrunr.utils.reflection.ReflectionUtils.*;
 
 public class JobUtils {
 
@@ -84,5 +82,9 @@ public class JobUtils {
             return JobContext.class.getSimpleName();
         }
         return jobParameter.getObject().toString();
+    }
+
+    public static void assertJobExists(JobDetails jobDetails) {
+        assert getJobMethod(jobDetails) != null;
     }
 }
