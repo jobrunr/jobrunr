@@ -12,6 +12,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.*;
@@ -111,14 +113,12 @@ class JobZooKeeperTest {
 
     @Test
     void checkForEnqueuedJobsNotDoneIfRequestedStateIsStopped() {
-        Job enqueuedJob = anEnqueuedJob().build();
-
         backgroundJobServerStatus.pause();
 
         jobZooKeeper.run();
 
         verify(storageProvider, never()).getJobs(eq(ENQUEUED), refEq(ascOnUpdatedAt(1)));
-        verify(backgroundJobServer, never()).processJob(enqueuedJob);
+        verify(backgroundJobServer, never()).processJob(any());
     }
 
     @Test
@@ -252,6 +252,21 @@ class JobZooKeeperTest {
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
         assertThat(logAllStateChangesFilter.processingPassed).isFalse();
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/27")
+    void jobNotFoundExceptionsDoNotCauseTheBackgroundJobServerToStop() {
+        Job job = aSucceededJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
+
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
+                .thenReturn(
+                        singletonList(job),
+                        emptyJobList());
+
+        jobZooKeeper.run();
+
+        assertThat(logger).hasNoWarnLogMessages();
     }
 
     private JobZooKeeper initializeJobZooKeeper() {

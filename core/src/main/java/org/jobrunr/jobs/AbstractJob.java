@@ -29,6 +29,8 @@ public abstract class AbstractJob implements Lockable {
         this.jobSignature = JobUtils.getJobSignature(jobDetails);
     }
 
+    public abstract Object getId();
+
     public int getVersion() {
         return version;
     }

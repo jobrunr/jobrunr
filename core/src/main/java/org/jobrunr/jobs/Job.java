@@ -1,13 +1,6 @@
 package org.jobrunr.jobs;
 
-import org.jobrunr.jobs.states.DeletedState;
-import org.jobrunr.jobs.states.EnqueuedState;
-import org.jobrunr.jobs.states.FailedState;
-import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.jobs.states.*;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 
@@ -61,6 +54,7 @@ public class Job extends AbstractJob {
         this.id = id;
     }
 
+    @Override
     public UUID getId() {
         return id;
     }
