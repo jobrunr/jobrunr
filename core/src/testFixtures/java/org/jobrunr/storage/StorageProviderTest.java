@@ -354,6 +354,10 @@ public abstract class StorageProviderTest {
         assertThatJobs(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), ascOnUpdatedAt(100)))
                 .hasSize(3)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2));
+
+        assertThatJobs(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), descOnUpdatedAt(100)))
+                .hasSize(3)
+                .containsExactly(jobs.get(2), jobs.get(1), jobs.get(0));
     }
 
     @Test

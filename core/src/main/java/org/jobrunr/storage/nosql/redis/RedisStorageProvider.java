@@ -219,7 +219,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
             } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
-                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
+                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(state), toMicroSeconds(updatedBefore), 0, (int) pageRequest.getOffset(), pageRequest.getLimit());
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
             }
