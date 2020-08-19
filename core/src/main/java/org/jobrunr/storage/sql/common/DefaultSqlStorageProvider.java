@@ -188,11 +188,12 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public JobStats getJobStats() {
+        Instant instant = Instant.now();
         return Sql.forType(JobStats.class)
                 .using(dataSource)
                 .withOrderLimitAndOffset("total ASC", 1, 0)
                 .select("* from jobrunr_jobs_stats")
-                .map(this::toJobStats)
+                .map(resultSet -> toJobStats(resultSet, instant))
                 .findFirst()
                 .orElse(JobStats.empty()); //why: because oracle returns nothing
     }
@@ -206,8 +207,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
                 .update("jobrunr_job_counters set amount = amount + :amount where name = :name");
     }
 
-    private JobStats toJobStats(SqlResultSet resultSet) {
+    private JobStats toJobStats(SqlResultSet resultSet, Instant instant) {
         return new JobStats(
+                instant,
                 resultSet.asLong("total"),
                 resultSet.asLong("awaiting"),
                 resultSet.asLong("scheduled"),

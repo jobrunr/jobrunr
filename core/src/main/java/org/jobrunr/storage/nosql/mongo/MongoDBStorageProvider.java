@@ -265,6 +265,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public JobStats getJobStats() {
+        Instant instant = Instant.now();
         final Document jobStats = jobStatsCollection.find(eq(toMongoId(Jobs.FIELD_ID), FIELD_STATS)).first();
         final List<Document> aggregates = jobCollection.aggregate(singletonList(facet(new Facet(Jobs.FIELD_STATE, sortByCount("$state"), limit(7))))).first().get(Jobs.FIELD_STATE, List.class);
 
@@ -280,6 +281,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
         final int backgroundJobServerCount = (int) backgroundJobServerCollection.countDocuments();
 
         return new JobStats(
+                instant,
                 7L,
                 awaiting,
                 scheduled,

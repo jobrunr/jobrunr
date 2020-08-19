@@ -351,6 +351,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     @Override
     public JobStats getJobStats() {
+        Instant instant = Instant.now();
         try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             final Response<String> waitingCounterResponse = p.get(jobCounterKey(AWAITING));
             final Response<Long> waitingResponse = p.zcount(jobQueueForStateKey(AWAITING), 0, Long.MAX_VALUE);
@@ -383,6 +384,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             final Long recurringJobsCount = recurringJobsResponse.get();
             final Long backgroundJobServerCount = backgroundJobServerResponse.get();
             return new JobStats(
+                    instant,
                     total,
                     awaitingCount,
                     scheduledCount,

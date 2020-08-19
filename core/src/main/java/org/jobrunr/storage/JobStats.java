@@ -17,11 +17,19 @@ public class JobStats {
     private final int backgroundJobServers;
 
     public static JobStats empty() {
-        return new JobStats(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
+        return new JobStats(Instant.now(), 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
     }
 
-    public JobStats(Long total, Long awaiting, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, Long deleted, int recurringJobs, int backgroundJobServers) {
-        this.timeStamp = Instant.now();
+    public static JobStats of(Instant instant, JobStats jobStats) {
+        return new JobStats(instant, jobStats.getTotal(), jobStats.getAwaiting(), jobStats.getScheduled(), jobStats.getEnqueued(), jobStats.getProcessing(), jobStats.getFailed(), jobStats.getSucceeded(), jobStats.getDeleted(), jobStats.getRecurringJobs(), jobStats.getBackgroundJobServers());
+    }
+
+    protected JobStats(JobStats jobStats) {
+        this(jobStats.getTimeStamp(), jobStats.getTotal(), jobStats.getAwaiting(), jobStats.getScheduled(), jobStats.getEnqueued(), jobStats.getProcessing(), jobStats.getFailed(), jobStats.getSucceeded(), jobStats.getDeleted(), jobStats.getRecurringJobs(), jobStats.getBackgroundJobServers());
+    }
+
+    public JobStats(Instant timeStamp, Long total, Long awaiting, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, Long deleted, int recurringJobs, int backgroundJobServers) {
+        this.timeStamp = timeStamp;
         this.total = total;
         this.awaiting = awaiting;
         this.scheduled = scheduled;

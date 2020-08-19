@@ -210,6 +210,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public JobStats getJobStats() {
         return new JobStats(
+                Instant.now(),
                 (long) jobQueue.size(),
                 getJobsStream(AWAITING).count(),
                 getJobsStream(SCHEDULED).count(),

@@ -11,12 +11,7 @@ import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,6 +26,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock reentrantLock;
     private Timer timer;
+    private JobStats jobStats;
 
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
@@ -78,7 +74,11 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                     .ofType(onChangeListeners, JobStatsChangeListener.class)
                     .collect(toList());
             if (!jobStatsChangeListeners.isEmpty()) {
-                JobStats jobStats = getJobStats();
+                JobStats oldJobStats = jobStats;
+                jobStats = getJobStats();
+                if (oldJobStats != null && jobStats.getSucceeded() < oldJobStats.getSucceeded()) {
+                    LOGGER.info("Something strange is going on");
+                }
                 jobStatsChangeListeners.forEach(listener -> listener.onChange(jobStats));
             }
         } catch (Exception e) {
