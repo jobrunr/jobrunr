@@ -224,8 +224,6 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
             }
             return new RedisPipelinedStream<>(jobsByState, jedis)
-                    .skip(pageRequest.getOffset())
-                    .limit(pageRequest.getLimit())
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)
@@ -236,9 +234,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now())), jedis)
-                    .skip(pageRequest.getOffset())
-                    .limit(pageRequest.getLimit())
+            return new RedisPipelinedStream<>(jedis.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now()), (int) pageRequest.getOffset(), pageRequest.getLimit()), jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)

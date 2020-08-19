@@ -16,12 +16,16 @@ public class PageRequest {
         return ascOnUpdatedAt(0, amount);
     }
 
-    public static PageRequest ascOnUpdatedAt(int offset, int limit) {
+    public static PageRequest ascOnUpdatedAt(long offset, int limit) {
         return new PageRequest(DEFAULT_ORDER_FIELD + ":" + Order.ASC, offset, limit);
     }
 
     public static PageRequest descOnUpdatedAt(int amount) {
-        return new PageRequest(DEFAULT_ORDER_FIELD + ":" + Order.DESC, 0, amount);
+        return descOnUpdatedAt(0, amount);
+    }
+
+    public static PageRequest descOnUpdatedAt(long offset, int limit) {
+        return new PageRequest(DEFAULT_ORDER_FIELD + ":" + Order.DESC, offset, limit);
     }
 
     private PageRequest() {

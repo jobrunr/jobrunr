@@ -330,11 +330,15 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        Page<Job> fetchedJobs = storageProvider.getJobPage(ENQUEUED, ascOnUpdatedAt(2, 2));
-
-        assertThatJobs(fetchedJobs.getItems())
+        Page<Job> fetchedJobsAsc = storageProvider.getJobPage(ENQUEUED, ascOnUpdatedAt(2, 2));
+        assertThatJobs(fetchedJobsAsc.getItems())
                 .hasSize(2)
                 .containsExactly(jobs.get(2), jobs.get(3));
+
+        Page<Job> fetchedJobsDesc = storageProvider.getJobPage(ENQUEUED, descOnUpdatedAt(2, 2));
+        assertThatJobs(fetchedJobsDesc.getItems())
+                .hasSize(2)
+                .containsExactly(jobs.get(2), jobs.get(1));
     }
 
     @Test
