@@ -30,7 +30,7 @@ const EstimatedProcessingTimeCard = () => {
             processingTimeRef.current = <>All done!</>;
         } else {
             if (stats.estimation.estimatedProcessingTimeAvailable) {
-                const estimatedProcessingTimeDate = new Date(stats.estimation.estimatedProcessingTime);
+                const estimatedProcessingTimeDate = new Date(stats.estimation.estimatedProcessingFinishedAt);
                 processingTimeRef.current =
                     <TimeAgo date={estimatedProcessingTimeDate} title={estimatedProcessingTimeDate.toString()}
                              formatter={timeAgoFormatter}/>;

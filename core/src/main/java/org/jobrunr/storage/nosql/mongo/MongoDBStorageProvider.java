@@ -65,7 +65,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient) {
-        this(mongoClient, rateLimit().at2Requests().per(SECOND));
+        this(mongoClient, rateLimit().at1Request().per(SECOND));
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, RateLimiter changeListenerNotificationRateLimit) {

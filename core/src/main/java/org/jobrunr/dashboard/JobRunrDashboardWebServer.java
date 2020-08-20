@@ -5,6 +5,7 @@ import org.jobrunr.dashboard.server.TeenyHttpHandler;
 import org.jobrunr.dashboard.server.TeenyWebServer;
 import org.jobrunr.dashboard.server.http.RedirectHttpHandler;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -38,7 +39,7 @@ public class JobRunrDashboardWebServer {
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
-        this.storageProvider = storageProvider;
+        this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
         this.port = port;
     }

@@ -35,7 +35,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
-        this(rateLimit().at2Requests().per(SECOND));
+        this(rateLimit().at1Request().per(SECOND));
     }
 
     public InMemoryStorageProvider(RateLimiter rateLimiter) {

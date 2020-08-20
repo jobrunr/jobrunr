@@ -40,7 +40,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     }
 
     public RedisStorageProvider(JedisPool jedisPool) {
-        this(jedisPool, rateLimit().at2Requests().per(SECOND));
+        this(jedisPool, rateLimit().at1Request().per(SECOND));
     }
 
     public RedisStorageProvider(JedisPool jedisPool, RateLimiter changeListenerNotificationRateLimit) {

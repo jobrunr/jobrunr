@@ -33,11 +33,11 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     protected JobMapper jobMapper;
 
     public DefaultSqlStorageProvider(DataSource dataSource) {
-        this(dataSource, CREATE, rateLimit().at2Requests().per(SECOND));
+        this(dataSource, CREATE, rateLimit().at1Request().per(SECOND));
     }
 
     public DefaultSqlStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        this(dataSource, databaseOptions, rateLimit().at2Requests().per(SECOND));
+        this(dataSource, databaseOptions, rateLimit().at1Request().per(SECOND));
     }
 
     DefaultSqlStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {

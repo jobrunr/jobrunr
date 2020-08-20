@@ -2,9 +2,10 @@
 - [x] signalBackgroundJobServerStopped
 - [x] Id for recurring job
 - [x] When dashboard server is stopped, stop sse handlers so that timer is stopped
+- [ ] Test JobStats for Gson and JsonB
 - [ ] Website:
-  - [ ] Explain difference between static BackgroundJob and jobscheduler access
-  - [ ] Fix typo Alexander: BackgroundJob.enqueue should be jobScheduler.enqueue
+  - [x] Explain difference between static BackgroundJob and jobscheduler access
+  - [x] Fix typo Alexander: BackgroundJob.enqueue should be jobScheduler.enqueue
   - [ ] Add examples about Quarkus
 - [ ] GraalVM
   - [ ] Add support for JobDetails

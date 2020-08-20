@@ -22,13 +22,15 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageProvider.class);
 
-    private final Set<StorageProviderChangeListener> onChangeListeners = ConcurrentHashMap.newKeySet();
+    private final Set<StorageProviderChangeListener> onChangeListeners;
+    private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock reentrantLock;
     private Timer timer;
-    private JobStats jobStats;
 
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
+        this.onChangeListeners = ConcurrentHashMap.newKeySet();
+        this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.reentrantLock = new ReentrantLock();
     }
@@ -74,12 +76,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                     .ofType(onChangeListeners, JobStatsChangeListener.class)
                     .collect(toList());
             if (!jobStatsChangeListeners.isEmpty()) {
-                JobStats oldJobStats = jobStats;
-                jobStats = getJobStats();
-                if (oldJobStats != null && jobStats.getSucceeded() < oldJobStats.getSucceeded()) {
-                    LOGGER.info("Something strange is going on");
-                }
-                jobStatsChangeListeners.forEach(listener -> listener.onChange(jobStats));
+                JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
+                jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
             }
         } catch (Exception e) {
             LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
