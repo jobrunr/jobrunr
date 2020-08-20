@@ -113,7 +113,6 @@ public class Job extends AbstractJob {
     }
 
     public void succeeded() {
-        if (getState() != StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
         Duration latencyDuration = Duration.between(getJobStatesOfType(EnqueuedState.class).reduce((first, second) -> second).get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));

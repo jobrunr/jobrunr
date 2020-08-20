@@ -66,13 +66,6 @@ class JobTest {
     }
 
     @Test
-    void jobCanOnlySucceedIfItIsInProcessingState() {
-        Job job = aJob().withId().withState(new ScheduledState(Instant.now()), Instant.now().minusSeconds(60)).build();
-
-        assertThatThrownBy(() -> job.succeeded()).isInstanceOf(ConcurrentJobModificationException.class);
-    }
-
-    @Test
     void succeededLatencyOnlyTakesIntoAccountStateFromEnqueuedToProcessing() {
         Job job = aJob()
                 .withState(new ScheduledState(Instant.now()), Instant.now().minusSeconds(600))
