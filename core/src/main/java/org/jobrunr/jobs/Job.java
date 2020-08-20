@@ -3,6 +3,7 @@ package org.jobrunr.jobs;
 import org.jobrunr.jobs.states.*;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.utils.streams.StreamUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
@@ -63,6 +65,10 @@ public class Job extends AbstractJob {
         return unmodifiableList(jobHistory);
     }
 
+    public <T extends JobState> Stream<T> getJobStatesOfType(Class<T> clazz) {
+        return StreamUtils.ofType(getJobStates(), clazz);
+    }
+
     public <T extends JobState> T getJobState() {
         return cast(getJobState(-1));
     }
@@ -107,7 +113,10 @@ public class Job extends AbstractJob {
     }
 
     public void succeeded() {
-        addJobState(new SucceededState(Duration.between(getCreatedAt(), Instant.now()), Duration.between(getUpdatedAt(), Instant.now())));
+        if (getState() != StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
+        Duration latencyDuration = Duration.between(getJobStatesOfType(EnqueuedState.class).reduce((first, second) -> second).get().getEnqueuedAt(), getJobState().getCreatedAt());
+        Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
+        addJobState(new SucceededState(latencyDuration, processDuration));
     }
 
     public void failed(String message, Exception exception) {
