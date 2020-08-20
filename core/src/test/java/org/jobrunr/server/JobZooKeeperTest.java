@@ -19,12 +19,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -266,6 +268,8 @@ class JobZooKeeperTest {
 
         jobZooKeeper.run();
 
+        AtomicInteger exceptionCount = Whitebox.getInternalState(jobZooKeeper, "exceptionCount");
+        assertThat(exceptionCount).hasValue(0);
         assertThat(logger).hasNoWarnLogMessages();
     }
 
