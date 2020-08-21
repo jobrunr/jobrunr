@@ -13,7 +13,6 @@ import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -25,7 +24,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 public class MongoDBStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new MongoDBContainer("mongo:4.2.8").withExposedPorts(27017);
+    private static GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8").withExposedPorts(27017);
 
     private static MongoClient mongoClient;
 
