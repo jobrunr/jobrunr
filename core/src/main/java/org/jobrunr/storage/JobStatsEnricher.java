@@ -1,10 +1,14 @@
 package org.jobrunr.storage;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.lang.Math.ceil;
+import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.valueOf;
 
 public class JobStatsEnricher {
 
@@ -46,15 +50,19 @@ public class JobStatsEnricher {
         Long amountSucceeded = jobStats.getSucceeded() - previousJobStats.getSucceeded();
         Long amountFailed = jobStats.getFailed() - previousJobStats.getFailed();
         Instant estimatedProcessingFinishedInstant = estimatedProcessingFinishedInstant(firstRelevantJobStats, jobStats);
-        jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, estimatedProcessingFinishedInstant);
+        if (estimatedProcessingFinishedInstant != null) {
+            jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, estimatedProcessingFinishedInstant);
+        }
     }
 
     private Instant estimatedProcessingFinishedInstant(JobStats firstRelevantJobStats, JobStats jobStats) {
         if (jobStats.getSucceeded() - firstRelevantJobStats.getSucceeded() < 1) return null;
-        Duration durationForAmountSucceeded = Duration.between(firstRelevantJobStats.getTimeStamp(), jobStats.getTimeStamp());
-        Long amountSucceededPerSecond = Double.valueOf(Math.ceil((jobStats.getSucceeded() - firstRelevantJobStats.getSucceeded()) / durationForAmountSucceeded.get(SECONDS))).longValue();
-        long processingTimeInSeconds = Double.valueOf(Math.ceil((jobStats.getEnqueued() + jobStats.getProcessing()) / amountSucceededPerSecond)).longValue();
-        return Instant.now().plusSeconds(processingTimeInSeconds);
+        BigDecimal durationForAmountSucceededInSeconds = valueOf(Duration.between(firstRelevantJobStats.getTimeStamp(), jobStats.getTimeStamp()).getSeconds());
+        if (ZERO.equals(durationForAmountSucceededInSeconds)) return null;
+        BigDecimal amountSucceededPerSecond = valueOf(ceil(jobStats.getSucceeded() - firstRelevantJobStats.getSucceeded())).divide(durationForAmountSucceededInSeconds, RoundingMode.CEILING);
+        if (ZERO.equals(amountSucceededPerSecond)) return null;
+        BigDecimal processingTimeInSeconds = BigDecimal.valueOf(jobStats.getEnqueued() + jobStats.getProcessing()).divide(amountSucceededPerSecond, RoundingMode.HALF_UP);
+        return Instant.now().plusSeconds(processingTimeInSeconds.longValue());
     }
 
     private void setPreviousJobStats(JobStats jobStats) {
