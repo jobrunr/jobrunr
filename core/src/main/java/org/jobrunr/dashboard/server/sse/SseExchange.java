@@ -11,6 +11,7 @@ public class SseExchange implements AutoCloseable {
 
     private final BufferedWriter writer;
     private String lastSendMessage;
+    private boolean closed;
 
     public SseExchange(HttpExchange httpExchange) throws IOException {
         this.writer = new BufferedWriter(new OutputStreamWriter(httpExchange.getResponseBody()));
@@ -47,6 +48,12 @@ public class SseExchange implements AutoCloseable {
             writer.close();
         } catch (IOException e) {
             // nothing more we can do...
+        } finally {
+            this.closed = true;
         }
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 }
