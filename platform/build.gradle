@@ -42,7 +42,6 @@ dependencies {
         api 'ch.qos.logback:logback-classic:1.2.3'
         api 'org.testcontainers:testcontainers:1.14.3'
         api 'org.testcontainers:junit-jupiter:1.14.3'
-        api 'org.testcontainers:mongodb:1.14.3'
         api 'org.testcontainers:jdbc:1.14.3'
         api 'org.testcontainers:mariadb:1.14.3'
         api 'org.testcontainers:mssqlserver:1.14.3'
