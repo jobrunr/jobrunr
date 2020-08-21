@@ -1,11 +1,13 @@
 package org.jobrunr.configuration;
 
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
@@ -57,7 +59,11 @@ public class JobRunrConfiguration {
     }
 
     public JobRunrConfiguration useDefaultBackgroundJobServer(int workerCount) {
-        this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator, usingStandardConfiguration().andWorkerCount(workerCount)));
+        return useDefaultBackgroundJobServer(usingStandardConfiguration().andWorkerCount(workerCount));
+    }
+
+    public JobRunrConfiguration useDefaultBackgroundJobServer(BackgroundJobServerConfiguration configuration) {
+        this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator, configuration));
         this.backgroundJobServer.start();
         return this;
     }
@@ -80,14 +86,22 @@ public class JobRunrConfiguration {
         return this;
     }
 
+    public JobRunrConfiguration useDashboard(JobRunrDashboardWebServerConfiguration configuration) {
+        this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, configuration);
+        this.dashboardWebServer.start();
+        return this;
+    }
+
     public JobRunrConfiguration useJobActivator(JobActivator jobActivator) {
         this.jobActivator = jobActivator;
         return this;
     }
 
     public JobRunrConfiguration useJmxExtensions() {
-        if (backgroundJobServer == null) throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
-        if (storageProvider == null) throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
+        if (backgroundJobServer == null)
+            throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
+        if (storageProvider == null)
+            throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
         this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider);
         return this;
     }

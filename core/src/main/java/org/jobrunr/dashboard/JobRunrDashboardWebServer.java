@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
+import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardConfiguration;
 
 /**
  * Provides a dashboard which gives insights in your jobs and servers.
@@ -39,9 +40,13 @@ public class JobRunrDashboardWebServer {
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
+        this(storageProvider, jsonMapper, usingStandardConfiguration().andPort(port));
+    }
+
+    public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
-        this.port = port;
+        this.port = configuration.port;
     }
 
     public void start() {
