@@ -7,7 +7,7 @@ import GitHubIcon from '@material-ui/icons/GitHub';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
 import {Link as RouterLink} from 'react-router-dom';
-import state from "../StateContext";
+import statsState from "StatsStateContext.js";
 import logo from '../assets/jobrunr-logo-white.png';
 
 const useStyles = makeStyles(theme => ({
@@ -54,7 +54,7 @@ const useStyles = makeStyles(theme => ({
 const TopAppBar = () => {
     const classes = useStyles();
 
-    const stats = state.useStatsState(TopAppBar);
+    const stats = statsState.useStatsState(TopAppBar);
 
     return (
         <AppBar position="fixed" className={classes.appBar}>

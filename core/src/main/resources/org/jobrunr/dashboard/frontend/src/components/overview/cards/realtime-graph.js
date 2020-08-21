@@ -5,13 +5,13 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Chart from "react-apexcharts";
 import ApexCharts from "apexcharts";
-import state from "../../../StateContext";
+import statsState from "../../../StatsStateContext";
 
 const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
-    const stats = state.useStatsState(RealtimeGraph);
+    const stats = statsState.useStatsState(RealtimeGraph);
 
     const [graphState] = useState({
         options: {

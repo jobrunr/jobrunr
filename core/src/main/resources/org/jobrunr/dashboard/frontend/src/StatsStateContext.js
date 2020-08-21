@@ -1,6 +1,6 @@
 import React from 'react';
 
-class State {
+class StatsState {
     constructor() {
         this._listeners = new Map();
         this._data = {};
@@ -17,7 +17,7 @@ class State {
     }
 
     useStatsState(obj) {
-        const [stats, setStats] = React.useState(state.getStats());
+        const [stats, setStats] = React.useState(statsState.getStats());
         const cleanup = () => this.removeListener(obj);
         React.useEffect(() => {
             this.addListener(obj, setStats);
@@ -36,12 +36,12 @@ class State {
     }
 }
 
-const state = new State();
-Object.freeze(state);
+const statsState = new StatsState();
+Object.freeze(statsState);
 
 const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/jobstats")
 eventSource.onmessage = e => {
-    state.setStats(JSON.parse(e.data));
+    statsState.setStats(JSON.parse(e.data));
 };
 
-export default state;
+export default statsState;

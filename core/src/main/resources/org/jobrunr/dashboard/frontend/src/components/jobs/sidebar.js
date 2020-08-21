@@ -9,7 +9,7 @@ import Chip from '@material-ui/core/Chip';
 import {makeStyles} from '@material-ui/core/styles';
 import {Schedule} from "@material-ui/icons";
 import {AlertCircleOutline, Check, Cogs, Delete, TimerSand} from "mdi-material-ui";
-import state from "../../StateContext";
+import statsState from "../../StatsStateContext";
 
 const drawerWidth = 320;
 
@@ -35,7 +35,7 @@ const useStyles = makeStyles(theme => ({
 
 const Sidebar = () => {
     const classes = useStyles();
-    const stats = state.useStatsState(Sidebar);
+    const stats = statsState.useStatsState(Sidebar);
 
     return (
         <Drawer
