@@ -120,6 +120,7 @@ public class TestService implements TestServiceInterface {
         return "Hello to you to " + someString;
     }
 
+    @Job(name = "Doing some work", retries = 2)
     public void doWorkThatFails() {
         processedJobs++;
         System.out.println("Whoopsie, an error will occur " + processedJobs);

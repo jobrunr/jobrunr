@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.annotations;
 
 import org.jobrunr.jobs.filters.JobFilter;
+import org.jobrunr.jobs.filters.RetryFilter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -47,6 +48,8 @@ import java.lang.annotation.Target;
 public @interface Job {
 
     String name() default "";
+
+    int retries() default RetryFilter.DEFAULT_NBR_OF_RETRIES;
 
     Class<? extends JobFilter>[] jobFilters() default {};
 

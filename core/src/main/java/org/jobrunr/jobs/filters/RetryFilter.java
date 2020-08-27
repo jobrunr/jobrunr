@@ -3,6 +3,7 @@ package org.jobrunr.jobs.filters;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.utils.JobUtils;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
@@ -37,7 +38,8 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     private boolean maxAmountOfRetriesReached(Job job) {
-        return getFailureCount(job) >= numberOfRetries;
+        int maxNumberOfRetries = JobUtils.getJobAnnotation(job.getJobDetails()).map(jobAnnotation -> jobAnnotation.retries()).orElse(this.numberOfRetries);
+        return getFailureCount(job) >= maxNumberOfRetries;
     }
 
     private long getFailureCount(Job job) {

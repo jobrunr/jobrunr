@@ -37,7 +37,7 @@ public class JobUtils {
                 .orElseThrow(() -> new JobMethodNotFoundException(jobDetails));
     }
 
-    public static <T extends Annotation> Optional<T> getJobAnnotation(JobDetails jobDetails) {
+    public static <T extends Annotation> Optional<Job> getJobAnnotation(JobDetails jobDetails) {
         return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Job.class)).findFirst());
     }
 
