@@ -55,6 +55,7 @@ public class JobRunrConfiguration {
     public JobRunrConfiguration useDefaultBackgroundJobServer() {
         this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator));
         this.backgroundJobServer.start();
+        this.backgroundJobServer.setJobFilters(jobFilters);
         return this;
     }
 
@@ -64,6 +65,7 @@ public class JobRunrConfiguration {
 
     public JobRunrConfiguration useDefaultBackgroundJobServer(BackgroundJobServerConfiguration configuration) {
         this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator, configuration));
+        this.backgroundJobServer.setJobFilters(jobFilters);
         this.backgroundJobServer.start();
         return this;
     }

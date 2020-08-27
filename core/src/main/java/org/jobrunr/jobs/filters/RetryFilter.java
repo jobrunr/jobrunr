@@ -9,10 +9,12 @@ import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
 
 public class RetryFilter implements ElectStateFilter {
 
+    public static final int DEFAULT_NBR_OF_RETRIES = 10;
+
     private int numberOfRetries;
 
     public RetryFilter() {
-        this(10);
+        this(DEFAULT_NBR_OF_RETRIES);
     }
 
     public RetryFilter(int numberOfRetries) {
