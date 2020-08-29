@@ -168,7 +168,7 @@ class AbstractStorageProviderTest {
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             this.closeIsCalled = true;
         }
     }

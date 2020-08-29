@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  *      }
  *
  *      MyService service = new MyService();
- *      BackgroundJob.enqueue(() -> service.doWork());
+ *      BackgroundJob.enqueue(() -&gt; service.doWork());
  * </pre>
  * <p>
  * In the Job name you can also reference parameters which where passed to the method.
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  *       }
  *
  *       MyService service = new MyService();
- *       BackgroundJob.enqueue(() -> service.doWork("Ronald"));
+ *       BackgroundJob.enqueue(() -&gt; service.doWork("Ronald"));
  *  </pre>
  */
 

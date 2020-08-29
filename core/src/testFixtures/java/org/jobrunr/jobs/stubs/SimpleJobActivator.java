@@ -9,7 +9,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class SimpleJobActivator implements JobActivator {
 
-    private Map<Class<?>, Object> allServices = new HashMap<>();
+    private final Map<Class<?>, Object> allServices = new HashMap<>();
 
     public SimpleJobActivator(Object... services) {
         for (Object service : services) {

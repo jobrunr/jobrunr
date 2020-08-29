@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +20,7 @@ public class CypressJacksonUIE2ETest {
     public CypressTestContainer cypressContainer = new CypressTestContainer(backgroundJobContainer);
 
     @Test
-    void runUITests() throws IOException {
+    void runUITests() {
         await()
                 .pollInterval(5, TimeUnit.SECONDS)
                 .atMost(6, TimeUnit.MINUTES).untilAsserted(() -> assertThat(cypressContainer.getLogs()).contains("(Run Finished)"));

@@ -26,13 +26,13 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public class JobRunrConfiguration {
 
+    final JsonMapper jsonMapper;
+    final JobMapper jobMapper;
+    final List<JobFilter> jobFilters;
     StorageProvider storageProvider;
-    JsonMapper jsonMapper;
-    JobMapper jobMapper;
     BackgroundJobServer backgroundJobServer;
     JobRunrDashboardWebServer dashboardWebServer;
     JobActivator jobActivator;
-    List<JobFilter> jobFilters;
     JobRunrJMXExtensions jmxExtension;
 
     JobRunrConfiguration() {

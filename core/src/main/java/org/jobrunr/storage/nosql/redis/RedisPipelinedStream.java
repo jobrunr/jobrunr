@@ -3,29 +3,9 @@ package org.jobrunr.storage.nosql.redis;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collector;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -55,7 +35,7 @@ public class RedisPipelinedStream<T> implements Stream<T> {
     }
 
     public <R> RedisPipelinedStream<R> mapAfterSync(Function<? super T, ? extends R> function) {
-        return new RedisPipelinedStream<>(initialStream.map(function::apply), jedis);
+        return new RedisPipelinedStream<>(initialStream.map(function), jedis);
     }
 
     @Override

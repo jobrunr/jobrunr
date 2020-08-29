@@ -15,7 +15,7 @@ public class Main extends AbstractMain {
     }
 
     @Override
-    protected StorageProvider initStorageProvider() throws Exception {
+    protected StorageProvider initStorageProvider() {
         if (getEnvOrProperty("REDIS_HOST") == null) {
             throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable REDIS_HOST is not set");
         }

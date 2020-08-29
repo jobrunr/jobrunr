@@ -24,7 +24,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 public class MongoDBStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8").withExposedPorts(27017);
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8").withExposedPorts(27017);
 
     private static MongoClient mongoClient;
 

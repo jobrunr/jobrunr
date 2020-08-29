@@ -9,16 +9,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class MongoDBGsonE2ETest extends AbstractE2EGsonTest {
 
-    private static Network network = Network.newNetwork();
+    private static final Network network = Network.newNetwork();
 
     @Container
-    private static GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8")
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8")
             .withNetwork(network)
             .withNetworkAliases("mongo")
             .withExposedPorts(27017);
 
     @Container
-    private static MongoDBGsonBackgroundJobContainer backgroundJobServer = new MongoDBGsonBackgroundJobContainer(mongoContainer, network);
+    private static final MongoDBGsonBackgroundJobContainer backgroundJobServer = new MongoDBGsonBackgroundJobContainer(mongoContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

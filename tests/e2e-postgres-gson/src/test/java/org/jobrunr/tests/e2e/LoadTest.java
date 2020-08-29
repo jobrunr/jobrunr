@@ -4,7 +4,6 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
-import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.Stopwatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -14,7 +13,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,13 +34,10 @@ public class LoadTest {
     @Container
     private PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>();
 
-    private TestService testService;
     private StorageProvider jobStorageProvider;
 
     @BeforeEach
-    public void setUpTests() throws IOException {
-        testService = new TestService();
-        testService.reset();
+    public void setUpTests() {
         jobStorageProvider = new PostgresStorageProvider(getPostgresDataSource());
         JobRunr.configure()
                 .useStorageProvider(jobStorageProvider)

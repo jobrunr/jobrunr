@@ -75,8 +75,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
     }
 
     private static Method findMethodWithAnnotation(Class clazz, Class<? extends Annotation> annotation) {
-        return Arrays.asList(annotatedTestClass.getDeclaredMethods())
-                .stream()
+        return Arrays.stream(annotatedTestClass.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotation))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Exactly one method should be annotated with " + annotation.getSimpleName()));

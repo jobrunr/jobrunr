@@ -9,16 +9,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class RedisGsonE2ETest extends AbstractE2EGsonTest {
 
-    private static Network network = Network.newNetwork();
+    private static final Network network = Network.newNetwork();
 
     @Container
-    private static GenericContainer redisContainer = new GenericContainer("redis")
+    private static final GenericContainer redisContainer = new GenericContainer("redis")
             .withNetwork(network)
             .withNetworkAliases("redis")
             .withExposedPorts(6379);
 
     @Container
-    private static RedisGsonBackgroundJobContainer backgroundJobServer = new RedisGsonBackgroundJobContainer(redisContainer, network);
+    private static final RedisGsonBackgroundJobContainer backgroundJobServer = new RedisGsonBackgroundJobContainer(redisContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

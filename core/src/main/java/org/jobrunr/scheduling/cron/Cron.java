@@ -3,6 +3,7 @@ package org.jobrunr.scheduling.cron;
 import java.time.DayOfWeek;
 import java.time.Month;
 
+@SuppressWarnings("SameReturnValue")
 public class Cron {
 
     private Cron() {

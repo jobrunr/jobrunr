@@ -10,12 +10,11 @@ import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 
 class JobDashboardProgressBarTest {
 
-    private Job job;
     private JobDashboardProgressBar jobDashboardProgressBar;
 
     @BeforeEach
     void setUpJobDashboardProgressBar() {
-        job = aJobInProgress().build();
+        Job job = aJobInProgress().build();
         jobDashboardProgressBar = new JobDashboardProgressBar(job, 10L);
     }
 

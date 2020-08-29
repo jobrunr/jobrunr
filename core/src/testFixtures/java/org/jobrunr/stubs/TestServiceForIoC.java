@@ -11,4 +11,8 @@ public class TestServiceForIoC extends TestService {
     public TestServiceForIoC(String anArgument) {
         this.anArgument = anArgument;
     }
+
+    public String getAnArgument() {
+        return anArgument;
+    }
 }

@@ -3,11 +3,7 @@ package org.jobrunr.utils.mapper.jsonb.adapters;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.json.bind.adapter.JsonbAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +32,7 @@ public class JobHistoryAdapter implements JsonbAdapter<List<JobState>, JsonArray
     }
 
     @Override
-    public List<JobState> adaptFromJson(JsonArray jsonArray) throws Exception {
+    public List<JobState> adaptFromJson(JsonArray jsonArray) {
         List<JobState> result = new ArrayList<>();
         for (JsonValue jsonValue : jsonArray) {
             final JsonObject jsonObject = jsonValue.asJsonObject();

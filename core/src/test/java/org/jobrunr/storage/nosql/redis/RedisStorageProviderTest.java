@@ -16,7 +16,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 public class RedisStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static GenericContainer redisContainer = new GenericContainer("redis").withExposedPorts(6379);
+    private static final GenericContainer redisContainer = new GenericContainer("redis").withExposedPorts(6379);
 
     @Override
     protected void cleanup() {

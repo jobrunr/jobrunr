@@ -25,20 +25,8 @@
 
 package org.jobrunr.utils;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.IdentityHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * Contains utility methods for calculating the memory usage of objects. It
@@ -461,7 +449,7 @@ public final class ObjectSizeCalculator {
                 for (final Object mp : memoryPoolMXBeans) {
                     final Object usage = getUsage.invoke(mp);
                     final Object max = getMax.invoke(usage);
-                    maxMemory += ((Long) max).longValue();
+                    maxMemory += (Long) max;
                 }
             } catch (IllegalAccessException |
                     IllegalArgumentException |

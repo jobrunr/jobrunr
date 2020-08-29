@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MariaDbJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
-    private static MariaDBContainer sqlContainer = new MariaDBContainer();
+    private static final MariaDBContainer sqlContainer = new MariaDBContainer();
 
     @Container
-    private static MariaDbJacksonBackgroundJobContainer backgroundJobServer = new MariaDbJacksonBackgroundJobContainer(sqlContainer);
+    private static final MariaDbJacksonBackgroundJobContainer backgroundJobServer = new MariaDbJacksonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

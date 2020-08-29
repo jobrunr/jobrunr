@@ -42,7 +42,10 @@ import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
-class BackgroundJobTest {
+/**
+ * Must be public as used as a background job
+ */
+public class BackgroundJobTest {
 
     private TestService testService;
     private StorageProvider storageProvider;
@@ -63,7 +66,7 @@ class BackgroundJobTest {
     }
 
     @AfterEach
-    void cleanUp() throws Exception {
+    void cleanUp() {
         backgroundJobServer.stop();
     }
 

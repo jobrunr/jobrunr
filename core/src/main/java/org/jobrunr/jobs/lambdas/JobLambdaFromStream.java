@@ -5,7 +5,8 @@ package org.jobrunr.jobs.lambdas;
  * You <strong>may not create an actual instance of this class</strong>, instead you use it as follows:
  *
  * <pre>{@code
- *     @Inject
+ *
+ *     &commat;Inject
  *     MyService myService;
  *
  *     Stream<User> userStream = userRepository.getAllUsers();
@@ -14,7 +15,8 @@ package org.jobrunr.jobs.lambdas;
  * <p>
  * or
  * <pre>{@code
- *      @Inject
+ *
+ *      &commat;Inject
  *      MyService myService;
  *
  *      Stream<User> userStream = userRepository.getAllUsers();

@@ -12,7 +12,7 @@ public class MySQLJacksonBackgroundJobContainer extends AbstractBackgroundJobSql
     }
 
     @Override
-    protected StorageProvider initStorageProvider(JdbcDatabaseContainer sqlContainer) throws Exception {
+    protected StorageProvider initStorageProvider(JdbcDatabaseContainer sqlContainer) {
         MysqlDataSource dataSource = new MysqlDataSource();
         dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
         dataSource.setUser(sqlContainer.getUsername());

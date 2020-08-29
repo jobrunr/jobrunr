@@ -5,7 +5,7 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import static org.jobrunr.utils.exceptions.Exceptions.getStackTraceAsString;
 
-@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
+@SuppressWarnings({"FieldMayBeFinal", "CanBeFinal"}) // because of JSON-B
 public class FailedState extends AbstractJobState {
 
     private String message;

@@ -9,16 +9,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class RedisJacksonE2ETest extends AbstractE2EJacksonTest {
 
-    private static Network network = Network.newNetwork();
+    private static final Network network = Network.newNetwork();
 
     @Container
-    private static GenericContainer redisContainer = new GenericContainer("redis")
+    private static final GenericContainer redisContainer = new GenericContainer("redis")
             .withNetwork(network)
             .withNetworkAliases("redis")
             .withExposedPorts(6379);
 
     @Container
-    private static RedisJacksonBackgroundJobContainer backgroundJobServer = new RedisJacksonBackgroundJobContainer(redisContainer, network);
+    private static final RedisJacksonBackgroundJobContainer backgroundJobServer = new RedisJacksonBackgroundJobContainer(redisContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

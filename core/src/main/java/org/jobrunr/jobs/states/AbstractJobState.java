@@ -2,7 +2,7 @@ package org.jobrunr.jobs.states;
 
 import java.time.Instant;
 
-@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
+@SuppressWarnings({"FieldMayBeFinal", "CanBeFinal"}) // because of JSON-B
 public abstract class AbstractJobState implements JobState {
 
     private final StateName state;

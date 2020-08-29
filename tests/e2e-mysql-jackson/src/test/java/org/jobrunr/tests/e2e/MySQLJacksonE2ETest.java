@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MySQLJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
-    private static MySQLContainer sqlContainer = new MySQLContainer<>();
+    private static final MySQLContainer sqlContainer = new MySQLContainer<>();
 
     @Container
-    private static MySQLJacksonBackgroundJobContainer backgroundJobServer = new MySQLJacksonBackgroundJobContainer(sqlContainer);
+    private static final MySQLJacksonBackgroundJobContainer backgroundJobServer = new MySQLJacksonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

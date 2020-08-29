@@ -13,7 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class OracleJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
-    private static OracleContainer sqlContainer = new OracleContainer("container-registry.oracle.com/database/standard:12.1.0.2")
+    private static final OracleContainer sqlContainer = new OracleContainer("container-registry.oracle.com/database/standard:12.1.0.2")
             .withStartupTimeoutSeconds(900)
             .withConnectTimeoutSeconds(500)
             .withEnv("DB_SID", "ORCL")
@@ -21,7 +21,7 @@ public class OracleJacksonE2ETest extends AbstractE2EJacksonTest {
             .withSharedMemorySize(4294967296L);
 
     @Container
-    private static OracleJacksonBackgroundJobContainer backgroundJobServer = new OracleJacksonBackgroundJobContainer(sqlContainer);
+    private static final OracleJacksonBackgroundJobContainer backgroundJobServer = new OracleJacksonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

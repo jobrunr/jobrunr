@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 
 public class Whitebox {
 
-    public static <T extends Object> T getInternalState(Object target, String field) {
+    public static <T> T getInternalState(Object target, String field) {
         Class<?> c = target.getClass();
         try {
             Field f = getFieldFromHierarchy(c, field);

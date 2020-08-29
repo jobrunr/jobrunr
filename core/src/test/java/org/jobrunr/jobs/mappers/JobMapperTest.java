@@ -21,9 +21,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.JobRunrAssertions.assertThatJson;
-import static org.jobrunr.JobRunrAssertions.contentOfResource;
+import static org.jobrunr.JobRunrAssertions.*;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -153,6 +151,14 @@ abstract class JobMapperTest {
 
         public Instant getInstant() {
             return instant;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+
+        public File getFile() {
+            return file;
         }
     }
 }

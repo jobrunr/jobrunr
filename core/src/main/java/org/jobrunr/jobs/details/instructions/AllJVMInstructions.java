@@ -12,7 +12,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class AllJVMInstructions {
 
-    private static Map<Integer, Function<JobDetailsFinderContext, AbstractJVMInstruction>> instructions = new HashMap<>();
+    private static final Map<Integer, Function<JobDetailsFinderContext, AbstractJVMInstruction>> instructions = new HashMap<>();
 
     static {
         instructions.put(Opcodes.AASTORE, AAStoreInstruction::new);

@@ -17,6 +17,7 @@ public class JobContext {
     private JobDashboardProgressBar jobDashboardProgressBar;
 
     private JobContext() {
+        // Needed for deserialization
         this.job = null;
     }
 

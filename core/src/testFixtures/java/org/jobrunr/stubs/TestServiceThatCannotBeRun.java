@@ -12,4 +12,7 @@ public class TestServiceThatCannotBeRun extends TestService {
         this.anArgument = anArgument;
     }
 
+    public String getAnArgument() {
+        return anArgument;
+    }
 }

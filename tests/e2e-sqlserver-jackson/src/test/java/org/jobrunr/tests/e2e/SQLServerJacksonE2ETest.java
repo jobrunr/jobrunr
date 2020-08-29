@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class SQLServerJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
-    protected static MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>();
+    private static final MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>();
 
     @Container
-    private static SQLServerJacksonBackgroundJobContainer backgroundJobServer = new SQLServerJacksonBackgroundJobContainer(sqlContainer);
+    private static final SQLServerJacksonBackgroundJobContainer backgroundJobServer = new SQLServerJacksonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

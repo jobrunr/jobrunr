@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class SQLServerGsonE2ETest extends AbstractE2EGsonTest {
 
     @Container
-    protected static MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>();
+    private static final MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>();
 
     @Container
-    private static SQLServerGsonBackgroundJobContainer backgroundJobServer = new SQLServerGsonBackgroundJobContainer(sqlContainer);
+    private static final SQLServerGsonBackgroundJobContainer backgroundJobServer = new SQLServerGsonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

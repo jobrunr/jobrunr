@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class PostgresJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
-    private static PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>();
+    private static final PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>();
 
     @Container
-    private static PostgresJacksonBackgroundJobContainer backgroundJobServer = new PostgresJacksonBackgroundJobContainer(sqlContainer);
+    private static final PostgresJacksonBackgroundJobContainer backgroundJobServer = new PostgresJacksonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

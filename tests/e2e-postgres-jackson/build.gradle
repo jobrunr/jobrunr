@@ -11,8 +11,6 @@ dependencies {
 
 
     testImplementation project(':core')
-    testImplementation testFixtures(project(":core"))
-    testImplementation project(':tests:e2e-base')
     testImplementation testFixtures(project(":tests:e2e-base"))
     testImplementation 'org.testcontainers:postgresql'
 }

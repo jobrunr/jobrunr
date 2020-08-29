@@ -12,7 +12,7 @@ public class RetryFilter implements ElectStateFilter {
 
     public static final int DEFAULT_NBR_OF_RETRIES = 10;
 
-    private int numberOfRetries;
+    private final int numberOfRetries;
 
     public RetryFilter() {
         this(DEFAULT_NBR_OF_RETRIES);

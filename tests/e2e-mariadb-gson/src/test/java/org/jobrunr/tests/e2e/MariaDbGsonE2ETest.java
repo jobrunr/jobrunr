@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MariaDbGsonE2ETest extends AbstractE2EGsonTest {
 
     @Container
-    private static MariaDBContainer sqlContainer = new MariaDBContainer();
+    private static final MariaDBContainer sqlContainer = new MariaDBContainer();
 
     @Container
-    private static MariaDbGsonBackgroundJobContainer backgroundJobServer = new MariaDbGsonBackgroundJobContainer(sqlContainer);
+    private static final MariaDbGsonBackgroundJobContainer backgroundJobServer = new MariaDbGsonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

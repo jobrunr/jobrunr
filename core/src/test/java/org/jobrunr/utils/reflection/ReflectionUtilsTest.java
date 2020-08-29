@@ -79,7 +79,7 @@ class ReflectionUtilsTest {
 
     public static class TestObject {
 
-        private String field;
+        private final String field;
 
         public TestObject(String field) {
             this.field = field;

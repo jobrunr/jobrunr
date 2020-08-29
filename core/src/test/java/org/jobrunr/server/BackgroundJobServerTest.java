@@ -62,7 +62,7 @@ class BackgroundJobServerTest {
     }
 
     @AfterEach
-    void stopBackgroundJobServer() throws Exception {
+    void stopBackgroundJobServer() {
         backgroundJobServer.stop();
     }
 

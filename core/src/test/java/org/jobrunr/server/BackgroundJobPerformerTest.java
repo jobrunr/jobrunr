@@ -4,7 +4,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +17,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobPerformerTest {
 
-    private TestService testService;
-
     @Mock
     private BackgroundJobServer backgroundJobServer;
     @Mock
@@ -30,10 +27,9 @@ class BackgroundJobPerformerTest {
     private BackgroundJobTestFilter logAllStateChangesFilter;
 
     @BeforeEach
-    void setUpTestService() {
+    void setUpMocks() {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
 
-        testService = new TestService();
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));

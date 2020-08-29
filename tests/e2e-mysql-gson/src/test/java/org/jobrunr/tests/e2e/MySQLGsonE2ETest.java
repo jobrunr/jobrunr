@@ -9,10 +9,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MySQLGsonE2ETest extends AbstractE2EGsonTest {
 
     @Container
-    private static MySQLContainer sqlContainer = new MySQLContainer<>();
+    private static final MySQLContainer sqlContainer = new MySQLContainer<>();
 
     @Container
-    private static MySqlGsonBackgroundJobContainer backgroundJobServer = new MySqlGsonBackgroundJobContainer(sqlContainer);
+    private static final MySqlGsonBackgroundJobContainer backgroundJobServer = new MySqlGsonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

@@ -20,7 +20,7 @@ public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, Jso
     }
 
     @Override
-    public JsonObject adaptToJson(Map<String, Object> map) throws Exception {
+    public JsonObject adaptToJson(Map<String, Object> map) {
         final JsonObjectBuilder metadataJsonObjectBuilder = Json.createObjectBuilder()
                 .add("@class", "java.util.concurrent.ConcurrentHashMap");
 
@@ -42,7 +42,7 @@ public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, Jso
     }
 
     @Override
-    public ConcurrentHashMap<String, Object> adaptFromJson(JsonObject jsonMetadataObject) throws Exception {
+    public ConcurrentHashMap<String, Object> adaptFromJson(JsonObject jsonMetadataObject) {
         final ConcurrentHashMap<String, Object> result = new ConcurrentHashMap<>();
         for (Map.Entry<String, JsonValue> entry : jsonMetadataObject.entrySet()) {
             String key = entry.getKey();

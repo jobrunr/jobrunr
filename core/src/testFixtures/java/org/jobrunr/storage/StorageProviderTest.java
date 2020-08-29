@@ -57,7 +57,7 @@ public abstract class StorageProviderTest {
     }
 
     @AfterEach
-    public void cleanupStorageProvider() throws Exception {
+    public void cleanupStorageProvider() {
         this.storageProvider.close();
     }
 
@@ -525,7 +525,7 @@ public abstract class StorageProviderTest {
 
     private static class SimpleJobStorageOnChangeListener implements JobStatsChangeListener {
 
-        private List<JobStats> changes = new ArrayList<>();
+        private final List<JobStats> changes = new ArrayList<>();
 
         @Override
         public void onChange(JobStats jobStats) {

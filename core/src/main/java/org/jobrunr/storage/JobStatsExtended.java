@@ -4,9 +4,9 @@ import java.time.Instant;
 
 public class JobStatsExtended extends JobStats {
 
-    private Long amountSucceeded;
-    private Long amountFailed;
-    private Estimation estimation;
+    private final Long amountSucceeded;
+    private final Long amountFailed;
+    private final Estimation estimation;
 
     public JobStatsExtended(JobStats jobStats) {
         super(jobStats);
@@ -35,9 +35,9 @@ public class JobStatsExtended extends JobStats {
     }
 
     public static class Estimation {
-        private boolean processingDone;
-        private boolean estimatedProcessingTimeAvailable;
-        private Instant estimatedProcessingFinishedAt;
+        private final boolean processingDone;
+        private final boolean estimatedProcessingTimeAvailable;
+        private final Instant estimatedProcessingFinishedAt;
 
         public Estimation(boolean processingDone) {
             this.processingDone = processingDone;

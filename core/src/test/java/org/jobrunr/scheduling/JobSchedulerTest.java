@@ -55,7 +55,7 @@ class JobSchedulerTest {
     void onStreamOfJobsCreatingAndCreatedAreCalled() {
         when(storageProvider.save(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        final Stream<Integer> range = IntStream.range(0, 1).mapToObj(i -> i);
+        final Stream<Integer> range = IntStream.range(0, 1).boxed();
         jobScheduler.enqueue(range, (i) -> testService.doWork(i));
 
         assertThat(jobClientLogFilter.onCreating).isTrue();

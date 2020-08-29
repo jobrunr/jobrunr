@@ -59,7 +59,7 @@ public class IocBackgroundJobTest {
     }
 
     @AfterEach
-    public void cleanUp() throws Exception {
+    public void cleanUp() {
         backgroundJobServer.stop();
         storageProvider.close();
     }

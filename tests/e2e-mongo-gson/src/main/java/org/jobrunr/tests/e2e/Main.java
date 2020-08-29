@@ -14,7 +14,7 @@ public class Main extends AbstractMain {
     }
 
     @Override
-    protected StorageProvider initStorageProvider() throws Exception {
+    protected StorageProvider initStorageProvider() {
         if (getEnvOrProperty("MONGO_HOST") == null) {
             throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable MONGO_HOST is not set");
         }
