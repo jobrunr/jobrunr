@@ -40,7 +40,7 @@ public class HttpResponse {
             httpExchange.sendResponseHeaders(status, 0);
             streamConsumer.accept(outputStream);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
         return this;
     }
@@ -51,7 +51,7 @@ public class HttpResponse {
             httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
             httpExchange.sendResponseHeaders(i, -1);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }

@@ -1,23 +1,11 @@
 package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.details.instructions.AllJVMInstructions;
-import org.jobrunr.jobs.details.instructions.InvokeDynamicInstruction;
-import org.jobrunr.jobs.details.instructions.LdcInstruction;
-import org.jobrunr.jobs.details.instructions.SingleIntOperandInstruction;
-import org.jobrunr.jobs.details.instructions.VisitFieldInstruction;
-import org.jobrunr.jobs.details.instructions.VisitLocalVariableInstruction;
-import org.jobrunr.jobs.details.instructions.VisitMethodInstruction;
-import org.jobrunr.jobs.details.instructions.VisitTypeInstruction;
-import org.jobrunr.jobs.details.instructions.ZeroOperandInstruction;
+import org.jobrunr.jobs.details.instructions.*;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.lang.invoke.SerializedLambda;
@@ -43,16 +31,16 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     }
 
     @Override
-    public <TItem> JobDetails toJobDetails(TItem input, JobLambdaFromStream<TItem> lambda) {
+    public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
         SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, input);
+        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, itemFromStream);
         return findJobDetailsInByteCode(lambda, jobDetailsFinder);
     }
 
     @Override
-    public <TService, TItem> JobDetails toJobDetails(TItem input, IocJobLambdaFromStream<TService, TItem> lambda) {
+    public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
         SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, null, input);
+        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, null, itemFromStream);
         return findJobDetailsInByteCode(lambda, jobDetailsFinder);
     }
 

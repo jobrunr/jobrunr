@@ -2,6 +2,8 @@ package org.jobrunr.dashboard.server;
 
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,6 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class TeenyWebServer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TeenyWebServer.class);
 
     private final HttpServer httpServer;
     private final ExecutorService executorService;
@@ -24,7 +28,7 @@ public class TeenyWebServer {
             httpServer.setExecutor(executorService);
             httpHandlers = new HashSet<>();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -68,7 +72,7 @@ public class TeenyWebServer {
         try {
             httpHandler.close();
         } catch (Exception shouldNotHappen) {
-            shouldNotHappen.printStackTrace();
+            LOGGER.warn("Error closing HttpHandler", shouldNotHappen);
         }
     }
 }

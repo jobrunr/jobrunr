@@ -25,6 +25,6 @@ public abstract class AbstractJobState implements JobState {
 
     @Override
     public Instant getUpdatedAt() {
-        return createdAt;
+        return getCreatedAt();
     }
 }

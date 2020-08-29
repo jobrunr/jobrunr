@@ -7,7 +7,7 @@ public class Exceptions {
 
     public static boolean hasCause(Throwable t, Class<? extends Throwable> exceptionClass) {
         if (t.getClass().isAssignableFrom(exceptionClass)) return true;
-        while (t.getCause() != null) {
+        if (t.getCause() != null) {
             return hasCause(t.getCause(), exceptionClass);
         }
         return false;

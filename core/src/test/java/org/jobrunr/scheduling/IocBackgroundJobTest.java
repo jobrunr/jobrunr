@@ -33,7 +33,7 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class IocBackgroundJobTest {
@@ -49,7 +49,7 @@ public class IocBackgroundJobTest {
         testServiceForIoC = new TestServiceForIoC("a constructor arg");
         testServiceInterface = testServiceForIoC;
         SimpleJobActivator jobActivator = new SimpleJobActivator(testServiceForIoC, new TestService());
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardConfiguration().andPollIntervalInSeconds(5));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useJobActivator(jobActivator)

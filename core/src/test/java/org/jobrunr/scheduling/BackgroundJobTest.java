@@ -39,7 +39,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class BackgroundJobTest {
@@ -53,7 +53,7 @@ public class BackgroundJobTest {
         testService = new TestService();
         testService.reset();
         storageProvider = new InMemoryStorageProvider();
-        backgroundJobServer = new BackgroundJobServer(storageProvider, null, usingStandardConfiguration().andPollIntervalInSeconds(5));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, null, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
@@ -63,8 +63,16 @@ public class BackgroundJobTest {
     }
 
     @AfterEach
-    public void cleanUp() throws Exception {
+    void cleanUp() throws Exception {
         backgroundJobServer.stop();
+    }
+
+    @Test
+    void ifBackgroundJobIsNotConfiguredCorrectlyAnExceptionIsThrown() {
+        BackgroundJob.setJobScheduler(null);
+        assertThatThrownBy(() -> BackgroundJob.enqueue(() -> System.out.println("Test")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("The JobScheduler has not been initialized. Use the fluent JobRunr.configure() API to setup JobRunr or set the JobScheduler via the static setter method.");
     }
 
     @Test

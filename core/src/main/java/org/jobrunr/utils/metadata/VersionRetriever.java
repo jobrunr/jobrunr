@@ -19,11 +19,12 @@ public class VersionRetriever {
         try {
             File file = new File(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
             if (file.isFile()) {
-                JarFile jarFile = new JarFile(file);
-                Manifest manifest = jarFile.getManifest();
-                Attributes attributes = manifest.getMainAttributes();
-                final String version = attributes.getValue("Bundle-Version");
-                return Optional.of(version);
+                try (JarFile jarFile = new JarFile(file)) {
+                    Manifest manifest = jarFile.getManifest();
+                    Attributes attributes = manifest.getMainAttributes();
+                    final String version = attributes.getValue("Bundle-Version");
+                    return Optional.of(version);
+                }
             }
         } catch (Exception e) {
             // ignore

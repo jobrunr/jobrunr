@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public class JobRunrConfiguration {
@@ -60,7 +60,7 @@ public class JobRunrConfiguration {
     }
 
     public JobRunrConfiguration useDefaultBackgroundJobServer(int workerCount) {
-        return useDefaultBackgroundJobServer(usingStandardConfiguration().andWorkerCount(workerCount));
+        return useDefaultBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andWorkerCount(workerCount));
     }
 
     public JobRunrConfiguration useDefaultBackgroundJobServer(BackgroundJobServerConfiguration configuration) {

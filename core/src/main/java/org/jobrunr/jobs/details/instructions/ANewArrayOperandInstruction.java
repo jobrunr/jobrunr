@@ -18,7 +18,7 @@ public class ANewArrayOperandInstruction extends VisitTypeInstruction {
         Integer arraySize = (Integer) jobDetailsBuilder.getStack().pollLast();
         final Object[] result = (Object[]) Array.newInstance(toClass(toFQClassName(type)), arraySize);
         for (int i = 0; i < arraySize; i++) {
-            final Object arrayIndex = jobDetailsBuilder.pollFirstInstruction().invokeInstruction();
+            jobDetailsBuilder.pollFirstInstruction().invokeInstruction(); // not interested in this
             final Object arrayItem = jobDetailsBuilder.pollFirstInstruction().invokeInstruction();
             result[i] = arrayItem;
         }

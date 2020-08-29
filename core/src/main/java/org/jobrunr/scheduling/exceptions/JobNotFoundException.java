@@ -1,12 +1,11 @@
 package org.jobrunr.scheduling.exceptions;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 
 import java.util.stream.Stream;
 
-public class JobNotFoundException extends JobRunrException {
+public class JobNotFoundException extends RuntimeException {
 
     public JobNotFoundException(JobDetails jobDetails) {
         this(jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters().stream().map(JobParameter::getClassName).toArray(String[]::new));

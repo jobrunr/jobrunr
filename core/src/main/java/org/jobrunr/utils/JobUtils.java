@@ -37,7 +37,7 @@ public class JobUtils {
                 .orElseThrow(() -> new JobMethodNotFoundException(jobDetails));
     }
 
-    public static <T extends Annotation> Optional<Job> getJobAnnotation(JobDetails jobDetails) {
+    public static Optional<Job> getJobAnnotation(JobDetails jobDetails) {
         return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Job.class)).findFirst());
     }
 
@@ -85,6 +85,6 @@ public class JobUtils {
     }
 
     public static void assertJobExists(JobDetails jobDetails) {
-        assert getJobMethod(jobDetails) != null;
+        if (getJobMethod(jobDetails) == null) throw new IllegalStateException("Job does not exist");
     }
 }

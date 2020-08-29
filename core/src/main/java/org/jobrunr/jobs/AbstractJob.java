@@ -6,7 +6,7 @@ import org.jobrunr.utils.resilience.Lockable;
 
 public abstract class AbstractJob implements Lockable {
 
-    private transient final Lock locker;
+    private final transient Lock locker;
 
     private int version;
     private String jobSignature;

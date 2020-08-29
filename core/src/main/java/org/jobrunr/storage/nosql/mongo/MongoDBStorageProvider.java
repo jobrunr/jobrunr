@@ -47,7 +47,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
-    private final MongoClient mongoClient;
     private final MongoCollection<Document> jobCollection;
     private final MongoCollection<Document> recurringJobCollection;
     private final MongoCollection<Document> backgroundJobServerCollection;
@@ -70,7 +69,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     public MongoDBStorageProvider(MongoClient mongoClient, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
-        this.mongoClient = mongoClient;
 
         if (jobRunrDatabaseExists(mongoClient)) {
             jobrunrDatabase = mongoClient.getDatabase("jobrunr");
@@ -195,7 +193,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                         .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
                         .projection(include(Jobs.FIELD_JOB_AS_JSON))
                         .map(jobDocumentMapper::toJob)
-                        .forEach((Consumer<? super Job>) job -> mongoDbDocuments.put(job.getId(), job));
+                        .forEach((Consumer<Job>) job -> mongoDbDocuments.put(job.getId(), job));
 
                 final List<Job> concurrentModifiedJobs = jobs.stream()
                         .filter(job -> !job.getUpdatedAt().equals(mongoDbDocuments.get(job.getId()).getUpdatedAt()))

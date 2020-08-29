@@ -15,11 +15,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.storage.StorageProvider;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -38,7 +34,7 @@ public class JobScheduler {
     private final StorageProvider storageProvider;
     private final JobDetailsGenerator jobDetailsGenerator;
     private final JobFilters jobFilters;
-    private final int batchSize = 5000;
+    private static final int batchSize = 5000;
 
     /**
      * Creates a new JobScheduler using the provided storageProvider
@@ -94,7 +90,7 @@ public class JobScheduler {
      * @param input         the stream of items for which to create fire-and-forget jobs
      * @param jobFromStream the lambda which defines the fire-and-forget job to create for each item in the {@code input}
      */
-    public <TItem> void enqueue(Stream<TItem> input, JobLambdaFromStream<TItem> jobFromStream) {
+    public <T> void enqueue(Stream<T> input, JobLambdaFromStream<T> jobFromStream) {
         input
                 .map(x -> jobDetailsGenerator.toJobDetails(x, jobFromStream))
                 .map(org.jobrunr.jobs.Job::new)
@@ -111,7 +107,7 @@ public class JobScheduler {
      * @param iocJob the lambda which defines the fire-and-forget job
      * @return the id of the job
      */
-    public <T> JobId enqueue(IocJobLambda<T> iocJob) {
+    public <S> JobId enqueue(IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return enqueue(jobDetails);
     }
@@ -127,7 +123,7 @@ public class JobScheduler {
      * @param input            the stream of items for which to create fire-and-forget jobs
      * @param iocJobFromStream the lambda which defines the fire-and-forget job to create for each item in the {@code input}
      */
-    public <TItem, TService> void enqueue(Stream<TItem> input, IocJobLambdaFromStream<TService, TItem> iocJobFromStream) {
+    public <S, T> void enqueue(Stream<T> input, IocJobLambdaFromStream<S, T> iocJobFromStream) {
         input
                 .map(x -> jobDetailsGenerator.toJobDetails(x, iocJobFromStream))
                 .map(org.jobrunr.jobs.Job::new)
@@ -161,7 +157,7 @@ public class JobScheduler {
      * @param zonedDateTime The moment in time at which the job will be enqueued.
      * @return the id of the Job
      */
-    public <T> JobId schedule(IocJobLambda<T> iocJob, ZonedDateTime zonedDateTime) {
+    public <S> JobId schedule(IocJobLambda<S> iocJob, ZonedDateTime zonedDateTime) {
         return schedule(iocJob, zonedDateTime.toInstant());
     }
 
@@ -192,7 +188,7 @@ public class JobScheduler {
      * @param offsetDateTime The moment in time at which the job will be enqueued.
      * @return the id of the Job
      */
-    public <T> JobId schedule(IocJobLambda<T> iocJob, OffsetDateTime offsetDateTime) {
+    public <S> JobId schedule(IocJobLambda<S> iocJob, OffsetDateTime offsetDateTime) {
         return schedule(iocJob, offsetDateTime.toInstant());
     }
 
@@ -223,7 +219,7 @@ public class JobScheduler {
      * @param localDateTime The moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
      * @return the id of the Job
      */
-    public <T> JobId schedule(IocJobLambda<T> iocJob, LocalDateTime localDateTime) {
+    public <S> JobId schedule(IocJobLambda<S> iocJob, LocalDateTime localDateTime) {
         return schedule(iocJob, localDateTime.atZone(systemDefault()).toInstant());
     }
 
@@ -255,7 +251,7 @@ public class JobScheduler {
      * @param instant The moment in time at which the job will be enqueued.
      * @return the id of the Job
      */
-    public <T> JobId schedule(IocJobLambda<T> iocJob, Instant instant) {
+    public <S> JobId schedule(IocJobLambda<S> iocJob, Instant instant) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return schedule(jobDetails, instant);
     }
@@ -305,7 +301,7 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public <T> String scheduleRecurringly(IocJobLambda<T> iocJob, String cron) {
+    public <S> String scheduleRecurringly(IocJobLambda<S> iocJob, String cron) {
         return scheduleRecurringly(null, iocJob, cron);
     }
 
@@ -340,7 +336,7 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public <T> String scheduleRecurringly(String id, IocJobLambda<T> iocJob, String cron) {
+    public <S> String scheduleRecurringly(String id, IocJobLambda<S> iocJob, String cron) {
         return scheduleRecurringly(id, iocJob, cron, systemDefault());
     }
 
@@ -378,7 +374,7 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public <T> String scheduleRecurringly(String id, IocJobLambda<T> iocJob, String cron, ZoneId zoneId) {
+    public <S> String scheduleRecurringly(String id, IocJobLambda<S> iocJob, String cron, ZoneId zoneId) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurringly(id, jobDetails, CronExpression.create(cron), zoneId);
     }

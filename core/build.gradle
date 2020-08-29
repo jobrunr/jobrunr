@@ -86,6 +86,8 @@ java {
     withSourcesJar()
 }
 
+tasks['jacocoTestReport'].dependsOn test
+
 jacocoTestReport {
     reports {
         xml.enabled true

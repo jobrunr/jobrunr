@@ -1,19 +1,13 @@
 package org.jobrunr.dashboard.server.http;
 
-import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.http.url.TeenyRequestUrl;
-import org.jobrunr.utils.mapper.JsonMapper;
 
 public class HttpRequest {
 
     private final TeenyRequestUrl requestUrl;
-    private final HttpExchange httpExchange;
-    private final JsonMapper jsonMapper;
 
-    public HttpRequest(TeenyRequestUrl requestUrl, HttpExchange httpExchange, JsonMapper jsonMapper) {
+    public HttpRequest(TeenyRequestUrl requestUrl) {
         this.requestUrl = requestUrl;
-        this.httpExchange = httpExchange;
-        this.jsonMapper = jsonMapper;
     }
 
     public String param(String paramName) {

@@ -28,6 +28,7 @@ import static org.awaitility.Durations.ONE_MINUTE;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJobThatTakesLong;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 @Testcontainers
 public class LoadTest {
@@ -62,7 +63,7 @@ public class LoadTest {
         try (Stopwatch start = stopwatch.start()) {
             List<BackgroundJobServer> backgroundJobServerList = new ArrayList<>();
             for (int i = 0; i < amountOfServers; i++) {
-                final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(jobStorageProvider, null, 15, 10);
+                final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(jobStorageProvider, null, usingStandardBackgroundJobServerConfiguration().andWorkerCount(10));
                 backgroundJobServerList.add(backgroundJobServer);
                 backgroundJobServer.start();
                 Thread.sleep(1000L);

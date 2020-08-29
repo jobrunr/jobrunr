@@ -208,7 +208,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                 }
             }
         }
-        notifyOnChangeListenersIf(jobs.size() > 0);
+        notifyOnChangeListenersIf(!jobs.isEmpty());
         return jobs;
     }
 
@@ -296,7 +296,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
                         deleteJobMetadata(transaction, job);
 
                         final List<Object> exec = transaction.exec();
-                        if (exec != null && exec.size() > 0) amount++;
+                        if (exec != null && !exec.isEmpty()) amount++;
                     }
                 }
                 zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
@@ -345,7 +345,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             transaction.srem(RECURRING_JOBS_KEY, id);
 
             final List<Object> exec = transaction.exec();
-            return (exec != null && exec.size() > 0) ? 1 : 0;
+            return (exec != null && !exec.isEmpty()) ? 1 : 0;
         }
     }
 

@@ -14,7 +14,7 @@ import static com.mongodb.client.model.Sorts.descending;
 
 public class MongoDBPageRequestMapper {
 
-    public static final Set<String> allowedSortColumns = new HashSet<>();
+    private static final Set<String> allowedSortColumns = new HashSet<>();
 
     static {
         allowedSortColumns.add("createdAt");

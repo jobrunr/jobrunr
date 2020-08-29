@@ -21,7 +21,7 @@ public class BackgroundJobServerConfiguration {
      *
      * @return the default JobRunrDashboard configuration
      */
-    public static BackgroundJobServerConfiguration usingStandardConfiguration() {
+    public static BackgroundJobServerConfiguration usingStandardBackgroundJobServerConfiguration() {
         return new BackgroundJobServerConfiguration();
     }
 

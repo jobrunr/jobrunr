@@ -6,12 +6,12 @@ import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 public class BackgroundJobServerStub extends BackgroundJobServer {
 
     public BackgroundJobServerStub(StorageProvider storageProvider) {
-        this(storageProvider, usingStandardConfiguration());
+        this(storageProvider, usingStandardBackgroundJobServerConfiguration());
     }
 
     public BackgroundJobServerStub(StorageProvider storageProvider, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {

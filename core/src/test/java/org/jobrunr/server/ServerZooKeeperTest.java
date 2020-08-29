@@ -17,9 +17,9 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.FIVE_SECONDS;
-import static org.awaitility.Durations.ONE_HUNDRED_MILLISECONDS;
-import static org.awaitility.Durations.TWO_SECONDS;
+import static org.awaitility.Durations.*;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -32,7 +32,7 @@ class ServerZooKeeperTest {
     void setUp() {
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        backgroundJobServer = new BackgroundJobServer(storageProvider, null, 5, 10);
+        backgroundJobServer = new BackgroundJobServer(storageProvider, null, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5).andWorkerCount(10));
     }
 
     @AfterEach
@@ -67,10 +67,10 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    void serverKeepsSignalingItsAlive() throws InterruptedException {
+    void serverKeepsSignalingItsAlive() {
         backgroundJobServer.start();
 
-        Thread.sleep(1000);
+        sleep(1000);
 
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(FIVE_SECONDS)
@@ -78,7 +78,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    void masterDoesZookeepingAndKeepsHisMasterStatus() throws InterruptedException {
+    void masterDoesZookeepingAndKeepsHisMasterStatus() {
         backgroundJobServer.start();
 
         storageProvider.announceBackgroundJobServer(anotherServer());
@@ -92,16 +92,14 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    void otherServersDoZookeepingAndBecomeMasterIfMasterIsGone() throws InterruptedException {
+    void otherServersDoZookeepingAndBecomeMasterIfMasterIsGone() {
         final BackgroundJobServerStatus master = anotherServer();
         storageProvider.announceBackgroundJobServer(master);
 
         backgroundJobServer.start();
 
         await().atMost(TWO_SECONDS)
-                .untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster())
-                        .isNotNull()
-                        .isFalse());
+                .untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse());
 
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atLeast(15, TimeUnit.SECONDS)
@@ -113,9 +111,9 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    void aServerThatSignalsItsAliveAlthoughItTimedOutRestartsCompletely3TimesAndThenShutsDown() throws InterruptedException {
+    void aServerThatSignalsItsAliveAlthoughItTimedOutRestartsCompletely3TimesAndThenShutsDown() {
         backgroundJobServer.start();
-        Thread.sleep(100);
+        sleep(100);
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)

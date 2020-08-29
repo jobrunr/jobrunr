@@ -15,7 +15,7 @@ public class JobRunrDashboardWebServerConfiguration {
      *
      * @return the default JobRunrDashboard configuration
      */
-    public static JobRunrDashboardWebServerConfiguration usingStandardConfiguration() {
+    public static JobRunrDashboardWebServerConfiguration usingStandardDashboardConfiguration() {
         return new JobRunrDashboardWebServerConfiguration();
     }
 

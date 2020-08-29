@@ -80,7 +80,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
             }
         } catch (Exception e) {
-            LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
+            logError(e);
         }
     }
 
@@ -107,7 +107,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 });
             }
         } catch (Exception e) {
-            LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
+            logError(e);
         }
     }
 
@@ -121,7 +121,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 serverChangeListeners.forEach(listener -> listener.onChange(servers));
             }
         } catch (Exception e) {
-            LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
+            logError(e);
         }
     }
 
@@ -151,6 +151,10 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 reentrantLock.unlock();
             }
         }
+    }
+
+    private void logError(Exception e) {
+        LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
     }
 
     class SendJobStatsUpdate extends TimerTask {

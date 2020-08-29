@@ -5,11 +5,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -54,7 +50,7 @@ public class BackgroundJob {
      * @param input         the stream of items for which to create fire-and-forget jobs
      * @param jobFromStream the lambda which defines the fire-and-forget job to create for each item in the {@code input}
      */
-    public static <TItem> void enqueue(Stream<TItem> input, JobLambdaFromStream<TItem> jobFromStream) {
+    public static <T> void enqueue(Stream<T> input, JobLambdaFromStream<T> jobFromStream) {
         verifyJobScheduler();
         jobScheduler.enqueue(input, jobFromStream);
     }
@@ -69,7 +65,7 @@ public class BackgroundJob {
      * @param iocJob the lambda which defines the fire-and-forget job
      * @return the id of the job
      */
-    public static <TService> JobId enqueue(IocJobLambda<TService> iocJob) {
+    public static <S> JobId enqueue(IocJobLambda<S> iocJob) {
         verifyJobScheduler();
         return jobScheduler.enqueue(iocJob);
     }
@@ -85,7 +81,7 @@ public class BackgroundJob {
      * @param input            the stream of items for which to create fire-and-forget jobs
      * @param iocJobFromStream the lambda which defines the fire-and-forget job to create for each item in the {@code input}
      */
-    public static <TService, TItem> void enqueue(Stream<TItem> input, IocJobLambdaFromStream<TService, TItem> iocJobFromStream) {
+    public static <S, T> void enqueue(Stream<T> input, IocJobLambdaFromStream<S, T> iocJobFromStream) {
         verifyJobScheduler();
         jobScheduler.enqueue(input, iocJobFromStream);
     }
@@ -118,7 +114,7 @@ public class BackgroundJob {
      * @param zonedDateTime The moment in time at which the job will be enqueued.
      * @return the id of the Job
      */
-    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, ZonedDateTime zonedDateTime) {
+    public static <S> JobId schedule(IocJobLambda<S> iocJob, ZonedDateTime zonedDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, zonedDateTime);
     }
@@ -151,7 +147,7 @@ public class BackgroundJob {
      * @param offsetDateTime The moment in time at which the job will be enqueued.
      * @return the id of the Job
      */
-    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, OffsetDateTime offsetDateTime) {
+    public static <S> JobId schedule(IocJobLambda<S> iocJob, OffsetDateTime offsetDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, offsetDateTime);
     }
@@ -184,7 +180,7 @@ public class BackgroundJob {
      * @param localDateTime The moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
      * @return the id of the Job
      */
-    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, LocalDateTime localDateTime) {
+    public static <S> JobId schedule(IocJobLambda<S> iocJob, LocalDateTime localDateTime) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, localDateTime);
     }
@@ -217,7 +213,7 @@ public class BackgroundJob {
      * @param instant The moment in time at which the job will be enqueued.
      * @return the id of the Job
      */
-    public static <TService> JobId schedule(IocJobLambda<TService> iocJob, Instant instant) {
+    public static <S> JobId schedule(IocJobLambda<S> iocJob, Instant instant) {
         verifyJobScheduler();
         return jobScheduler.schedule(iocJob, instant);
     }
@@ -236,8 +232,7 @@ public class BackgroundJob {
      * @see #delete(UUID)
      */
     public static void delete(JobId jobId) {
-        verifyJobScheduler();
-        jobScheduler.delete(jobId.asUUID());
+        delete(jobId.asUUID());
     }
 
     /**
@@ -270,7 +265,7 @@ public class BackgroundJob {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public static <TService> String scheduleRecurringly(IocJobLambda<TService> iocJob, String cron) {
+    public static <S> String scheduleRecurringly(IocJobLambda<S> iocJob, String cron) {
         verifyJobScheduler();
         return jobScheduler.scheduleRecurringly(iocJob, cron);
     }
@@ -307,7 +302,7 @@ public class BackgroundJob {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public static <TService> String scheduleRecurringly(String id, IocJobLambda<TService> iocJob, String cron) {
+    public static <S> String scheduleRecurringly(String id, IocJobLambda<S> iocJob, String cron) {
         verifyJobScheduler();
         return jobScheduler.scheduleRecurringly(id, iocJob, cron);
     }
@@ -346,7 +341,7 @@ public class BackgroundJob {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public static <TService> String scheduleRecurringly(String id, IocJobLambda<TService> iocJob, String cron, ZoneId zoneId) {
+    public static <S> String scheduleRecurringly(String id, IocJobLambda<S> iocJob, String cron, ZoneId zoneId) {
         verifyJobScheduler();
         return jobScheduler.scheduleRecurringly(id, iocJob, cron, zoneId);
     }
@@ -367,7 +362,7 @@ public class BackgroundJob {
 
     private static void verifyJobScheduler() {
         if (jobScheduler != null) return;
-        throw new IllegalStateException("The JobScheduler has not been initialized. Use the fluent JobRunr.configure() API to setup JobRunr,");
+        throw new IllegalStateException("The JobScheduler has not been initialized. Use the fluent JobRunr.configure() API to setup JobRunr or set the JobScheduler via the static setter method.");
     }
 
     public static void setJobScheduler(JobScheduler jobScheduler) {

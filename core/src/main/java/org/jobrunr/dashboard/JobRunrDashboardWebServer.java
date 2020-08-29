@@ -12,8 +12,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.lang.String.format;
-import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 
 /**
  * Provides a dashboard which gives insights in your jobs and servers.
@@ -40,7 +39,7 @@ public class JobRunrDashboardWebServer {
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port) {
-        this(storageProvider, jsonMapper, usingStandardConfiguration().andPort(port));
+        this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port));
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
@@ -62,9 +61,9 @@ public class JobRunrDashboardWebServer {
         registerContext(sseHandler);
         teenyWebServer.start();
 
-        LOGGER.info(format("JobRunr dashboard started at http://%s:%d",
+        LOGGER.info("JobRunr dashboard started at http://{}:{}}",
                 teenyWebServer.getWebServerHostAddress(),
-                teenyWebServer.getWebServerHostPort()));
+                teenyWebServer.getWebServerHostPort());
     }
 
     public void stop() {

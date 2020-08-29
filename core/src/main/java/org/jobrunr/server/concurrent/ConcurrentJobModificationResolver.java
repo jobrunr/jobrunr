@@ -2,15 +2,9 @@ package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.JobZooKeeper;
-import org.jobrunr.server.concurrent.statechanges.AllowedConcurrentStateChange;
-import org.jobrunr.server.concurrent.statechanges.DeletedWhileFailedConcurrentStateChange;
-import org.jobrunr.server.concurrent.statechanges.DeletedWhileProcessingConcurrentStateChange;
-import org.jobrunr.server.concurrent.statechanges.DeletedWhileScheduledConcurrentStateChange;
-import org.jobrunr.server.concurrent.statechanges.DeletedWhileSucceededConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.*;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,8 +12,6 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 public class ConcurrentJobModificationResolver {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConcurrentJobModificationResolver.class);
 
     private final StorageProvider storageProvider;
     private final List<AllowedConcurrentStateChange> allowedConcurrentStateChanges;

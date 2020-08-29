@@ -19,6 +19,9 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrPr
 import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
 
 public class Sql<T> {
+    private static final String INSERT = "insert ";
+    private static final String UPDATE = "update ";
+    private static final String DELETE = "delete ";
 
     private final List<String> paramNames;
     private final Map<String, Object> params;
@@ -37,7 +40,7 @@ public class Sql<T> {
         return new Sql<>();
     }
 
-    public static Sql<?> withoutType() {
+    public static Sql withoutType() {
         return new Sql<>();
     }
 
@@ -105,23 +108,23 @@ public class Sql<T> {
 
     public void insert(T item, String statement) {
         try (final Connection conn = dataSource.getConnection()) {
-            insertOrUpdate(conn, item, "insert " + statement);
+            insertOrUpdate(conn, item, INSERT + statement);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     public void insert(Connection conn, String statement) throws SQLException {
-        insertOrUpdate(conn, null, "insert " + statement);
+        insertOrUpdate(conn, null, INSERT + statement);
     }
 
     public void insert(Connection conn, T item, String statement) throws SQLException {
-        insertOrUpdate(conn, item, "insert " + statement);
+        insertOrUpdate(conn, item, INSERT + statement);
     }
 
     public void update(String statement) {
         try (final Connection conn = dataSource.getConnection()) {
-            insertOrUpdate(conn, null, "update " + statement);
+            insertOrUpdate(conn, null, UPDATE + statement);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -129,18 +132,18 @@ public class Sql<T> {
 
     public void update(T item, String statement) {
         try (final Connection conn = dataSource.getConnection()) {
-            insertOrUpdate(conn, item, "update " + statement);
+            insertOrUpdate(conn, item, UPDATE + statement);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     public void update(Connection conn, T item, String statement) throws SQLException {
-        insertOrUpdate(conn, item, "update " + statement);
+        insertOrUpdate(conn, item, UPDATE + statement);
     }
 
     public void update(Connection conn, String statement) throws SQLException {
-        insertOrUpdate(conn, null, "update " + statement);
+        insertOrUpdate(conn, null, UPDATE + statement);
     }
 
     public int delete(String statement) {
@@ -152,7 +155,7 @@ public class Sql<T> {
     }
 
     public int delete(Connection conn, String statement) {
-        String parsedStatement = parse("delete " + statement);
+        String parsedStatement = parse(DELETE + statement);
         try (PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
             setParams(ps);
             return ps.executeUpdate();
@@ -173,7 +176,7 @@ public class Sql<T> {
     }
 
     public void insertAll(List<T> batchCollection, String statement) {
-        int[] result = insertOrUpdateAll(batchCollection, "insert " + statement);
+        int[] result = insertOrUpdateAll(batchCollection, INSERT + statement);
         if (result.length != batchCollection.size()) {
             throw shouldNotHappenException("Could not insert or update all objects - different result size: originalCollectionSize=" + batchCollection.size() + "; " + Arrays.toString(result));
         } else if (stream(result).anyMatch(i -> i < Statement.SUCCESS_NO_INFO || i == 0)) {
@@ -182,7 +185,7 @@ public class Sql<T> {
     }
 
     public void updateAll(List<T> batchCollection, String statement) {
-        int[] result = insertOrUpdateAll(batchCollection, "update " + statement);
+        int[] result = insertOrUpdateAll(batchCollection, UPDATE + statement);
         if (result.length != batchCollection.size()) {
             throw shouldNotHappenException("Could not insert or update all objects - different result size: originalCollectionSize=" + batchCollection.size() + "; " + Arrays.toString(result));
         } else if (stream(result).anyMatch(i -> i < 1)) {

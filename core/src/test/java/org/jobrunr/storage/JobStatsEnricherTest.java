@@ -1,7 +1,6 @@
 package org.jobrunr.storage;
 
 import org.assertj.core.data.Offset;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -13,7 +12,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class JobStatsEnricherTest {
 
-    private JobStatsEnricher jobStatsEnricher = new JobStatsEnricher();
+    private final JobStatsEnricher jobStatsEnricher = new JobStatsEnricher();
 
     @Test
     void enrichGivenNoPreviousJobStatsAndNoWorkToDo() {
@@ -82,8 +81,7 @@ class JobStatsEnricherTest {
     void estimatedTimeProcessingIsCalculated1() {
         JobStats firstJobStats = getJobStats(now().minusSeconds(10), 100L, 0L, 0L, 100L);
         JobStats secondJobStats = getJobStats(now(), 85L, 5L, 0L, 110L);
-        JobStatsExtended firstJobStatsExtended = jobStatsEnricher.enrich(firstJobStats);
-        JobStatsExtended secondJobStatsExtended = jobStatsEnricher.enrich(secondJobStats);
+        JobStatsExtended secondJobStatsExtended = enrich(firstJobStats, secondJobStats);
 
         assertThat(secondJobStatsExtended.getEstimation().isProcessingDone()).isFalse();
         assertThat(Duration.between(now(), secondJobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt()).toSeconds()).isCloseTo(90L, Offset.offset(1L));
@@ -98,13 +96,8 @@ class JobStatsEnricherTest {
         JobStats jobStats4 = getJobStats(now().minusSeconds(20), 55L, 5L, 0L, 140L);
         JobStats jobStats5 = getJobStats(now().minusSeconds(10), 45L, 5L, 0L, 150L);
         JobStats jobStats6 = getJobStats(now(), 35L, 5L, 0L, 160L);
-        jobStatsEnricher.enrich(jobStats0);
-        jobStatsEnricher.enrich(jobStats1);
-        jobStatsEnricher.enrich(jobStats2);
-        jobStatsEnricher.enrich(jobStats3);
-        jobStatsEnricher.enrich(jobStats4);
-        jobStatsEnricher.enrich(jobStats5);
-        JobStatsExtended jobStatsExtended = jobStatsEnricher.enrich(jobStats6);
+
+        JobStatsExtended jobStatsExtended = enrich(jobStats0, jobStats1, jobStats2, jobStats3, jobStats4, jobStats5, jobStats6);
 
         assertThat(jobStatsExtended.getEstimation().isProcessingDone()).isFalse();
         assertThat(Duration.between(now(), jobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt()).toSeconds()).isCloseTo(40L, Offset.offset(1L));
@@ -114,23 +107,23 @@ class JobStatsEnricherTest {
     void estimatedTimeProcessingIsCalculated3() {
         JobStats firstJobStats = getJobStats(now().minusMillis(10), 100L, 0L, 0L, 100L);
         JobStats secondJobStats = getJobStats(now(), 99L, 0L, 0L, 101L);
-        JobStatsExtended firstJobStatsExtended = jobStatsEnricher.enrich(firstJobStats);
-        JobStatsExtended secondJobStatsExtended = jobStatsEnricher.enrich(secondJobStats);
 
-        assertThat(secondJobStatsExtended.getEstimation().isProcessingDone()).isFalse();
-        assertThat(secondJobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()).isFalse();
+        JobStatsExtended jobStatsExtended = enrich(firstJobStats, secondJobStats);
+
+        assertThat(jobStatsExtended.getEstimation().isProcessingDone()).isFalse();
+        assertThat(jobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()).isFalse();
     }
 
     @Test
     void estimatedTimeProcessingIsCalculated4() {
         JobStats firstJobStats = getJobStats(now().minusSeconds(10), 100L, 0L, 0L, 100L);
         JobStats secondJobStats = getJobStats(now(), 99L, 0L, 0L, 101L);
-        JobStatsExtended firstJobStatsExtended = jobStatsEnricher.enrich(firstJobStats);
-        JobStatsExtended secondJobStatsExtended = jobStatsEnricher.enrich(secondJobStats);
 
-        assertThat(secondJobStatsExtended.getEstimation().isProcessingDone()).isFalse();
-        assertThat(secondJobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()).isTrue();
-        assertThat(Duration.between(now(), secondJobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt()).toSeconds()).isCloseTo(990L, Offset.offset(10L));
+        JobStatsExtended jobStatsExtended = enrich(firstJobStats, secondJobStats);
+
+        assertThat(jobStatsExtended.getEstimation().isProcessingDone()).isFalse();
+        assertThat(jobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()).isTrue();
+        assertThat(Duration.between(now(), jobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt()).toSeconds()).isCloseTo(990L, Offset.offset(10L));
     }
 
     @Test
@@ -138,21 +131,26 @@ class JobStatsEnricherTest {
         JobStats firstJobStats = getJobStats(now().minusSeconds(3610), 10L, 0L, 0L, 100L);
         JobStats secondJobStats = getJobStats(now().minusSeconds(3600), 5L, 4L, 0L, 101L);
         JobStats thirdJobStats = getJobStats(now(), 4L, 4L, 0L, 102L);
-        JobStatsExtended jobStatsExtended0 = jobStatsEnricher.enrich(firstJobStats);
-        JobStatsExtended jobStatsExtended1 = jobStatsEnricher.enrich(secondJobStats);
-        JobStatsExtended jobStatsExtended2 = jobStatsEnricher.enrich(thirdJobStats);
 
-        assertThat(jobStatsExtended2.getEstimation().isProcessingDone()).isFalse();
-        assertThat(jobStatsExtended2.getEstimation().isEstimatedProcessingFinishedInstantAvailable()).isTrue();
-        assertThat(Duration.between(now(), jobStatsExtended2.getEstimation().getEstimatedProcessingFinishedAt()).toSeconds()).isCloseTo(80L, Offset.offset(2L));
+        JobStatsExtended jobStatsExtended = enrich(firstJobStats, secondJobStats, thirdJobStats);
+
+        assertThat(jobStatsExtended.getEstimation().isProcessingDone()).isFalse();
+        assertThat(jobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()).isTrue();
+        assertThat(Duration.between(now(), jobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt()).toSeconds()).isCloseTo(80L, Offset.offset(2L));
     }
 
-    @NotNull
+    private JobStatsExtended enrich(JobStats... allJobStats) {
+        JobStatsExtended lastJobStatsExtends = null;
+        for (JobStats jobStats : allJobStats) {
+            lastJobStatsExtends = jobStatsEnricher.enrich(jobStats);
+        }
+        return lastJobStatsExtends;
+    }
+
     private JobStats getJobStats(long enqueued, long processing, long failed, long succeeded) {
         return getJobStats(now(), enqueued, processing, failed, succeeded);
     }
 
-    @NotNull
     private JobStats getJobStats(Instant instant, long enqueued, long processing, long failed, long succeeded) {
         return new JobStats(instant, 0L, 0L, 0L, enqueued, processing, failed, succeeded, 0L, 1, 1);
     }

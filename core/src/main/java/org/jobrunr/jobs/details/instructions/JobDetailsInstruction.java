@@ -1,7 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsFinderContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,15 +12,11 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaMethod;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptor;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.isClassAssignableToObject;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.*;
 
 public class JobDetailsInstruction extends VisitMethodInstruction {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobDetailsAsmGenerator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobDetailsInstruction.class);
 
     public JobDetailsInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
@@ -41,7 +36,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
             final Object result = getObject();
             final long after = System.nanoTime();
             if ((after - before) > 1_000_000) {
-                LOGGER.warn(String.format("You are using a custom method (%s.%s(%s)) while enqueueing that takes a lot of time. See https://www.jobrunr.io/documentation/best-practices/ on how to use JobRunr effectively.", toFQClassName(owner), name, Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", "))));
+                LOGGER.warn("You are using a custom method ({}.{}}({}})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/documentation/best-practices/ on how to use JobRunr effectively.", toFQClassName(owner), name, Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
             }
             return result;
         }

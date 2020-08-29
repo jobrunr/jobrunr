@@ -31,7 +31,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
     private final Map<Object, AtomicLong> jobStats = new ConcurrentHashMap<>();
-    private final Set<String> mutexes = ConcurrentHashMap.newKeySet();
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
@@ -275,6 +274,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 comparator = Comparator.comparing(Job::getCreatedAt);
             } else if (sortField.equalsIgnoreCase("updatedAt")) {
                 comparator = Comparator.comparing(Job::getUpdatedAt);
+            } else {
+                throw new IllegalStateException("An unsupported sortOrder was requested: " + sortField);
             }
             if (order == PageRequest.Order.DESC) {
                 comparator = comparator.reversed();

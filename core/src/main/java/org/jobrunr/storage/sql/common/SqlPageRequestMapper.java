@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class SqlPageRequestMapper {
 
-    public static final Set<String> allowedSortColumns = new HashSet<>();
+    private static final Set<String> allowedSortColumns = new HashSet<>();
 
     static {
         allowedSortColumns.add("createdAt");

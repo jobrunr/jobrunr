@@ -7,11 +7,9 @@ import org.jobrunr.utils.streams.StreamUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -25,7 +23,7 @@ public class Job extends AbstractJob {
 
     private UUID id;
     private ArrayList<JobState> jobHistory;
-    private final Map<String, Object> metadata;
+    private final ConcurrentMap<String, Object> metadata;
 
     private Job() {
         // used for deserialization
@@ -44,7 +42,7 @@ public class Job extends AbstractJob {
         this(null, 0, jobDetails, jobHistory, new ConcurrentHashMap<>());
     }
 
-    public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentHashMap<String, Object> metadata) {
+    public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
         super(jobDetails, version);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id;
@@ -67,6 +65,10 @@ public class Job extends AbstractJob {
 
     public <T extends JobState> Stream<T> getJobStatesOfType(Class<T> clazz) {
         return StreamUtils.ofType(getJobStates(), clazz);
+    }
+
+    public <T extends JobState> Optional<T> getLastJobStateOfType(Class<T> clazz) {
+        return getJobStatesOfType(clazz).reduce((first, second) -> second);
     }
 
     public <T extends JobState> T getJobState() {
@@ -113,7 +115,11 @@ public class Job extends AbstractJob {
     }
 
     public void succeeded() {
-        Duration latencyDuration = Duration.between(getJobStatesOfType(EnqueuedState.class).reduce((first, second) -> second).get().getEnqueuedAt(), getJobState().getCreatedAt());
+        Optional<EnqueuedState> lastEnqueuedState = getLastJobStateOfType(EnqueuedState.class);
+        if (!lastEnqueuedState.isPresent())
+            throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
+
+        Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));
     }

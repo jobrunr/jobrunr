@@ -53,16 +53,17 @@ public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
                     final Object o1 = gson.fromJson(o, TypeToken.get(toClass(o.get(TYPE_FIELD_NAME).getAsString())).getType());
                     return o1;
                 } else {
-                    final JsonReader jsonReader = gson.newJsonReader(new StringReader(o.getAsString()));
-                    Map<String, Object> map = new LinkedTreeMap();
-                    jsonReader.beginObject();
+                    try (final JsonReader jsonReader = gson.newJsonReader(new StringReader(o.getAsString()))) {
+                        Map<String, Object> map = new LinkedTreeMap();
+                        jsonReader.beginObject();
 
-                    while (jsonReader.hasNext()) {
-                        map.put(jsonReader.nextName(), this.read(jsonReader));
+                        while (jsonReader.hasNext()) {
+                            map.put(jsonReader.nextName(), this.read(jsonReader));
+                        }
+
+                        jsonReader.endObject();
+                        return map;
                     }
-
-                    jsonReader.endObject();
-                    return map;
                 }
             case STRING:
                 return in.nextString();

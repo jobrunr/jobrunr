@@ -32,17 +32,11 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.FIVE_SECONDS;
-import static org.awaitility.Durations.TEN_SECONDS;
-import static org.awaitility.Durations.TWO_SECONDS;
+import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 class BackgroundJobServerTest {
 
@@ -60,7 +54,7 @@ class BackgroundJobServerTest {
         testServiceForIoC.reset();
         storageProvider = new InMemoryStorageProvider();
         jobActivator = new SimpleJobActivator(testServiceForIoC);
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardConfiguration().andPollIntervalInSeconds(5));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)

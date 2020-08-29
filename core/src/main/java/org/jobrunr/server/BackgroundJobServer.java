@@ -29,7 +29,7 @@ import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardConfiguration;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -50,15 +50,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator) {
-        this(storageProvider, jobActivator, usingStandardConfiguration());
-    }
-
-    @Deprecated
-    /**
-     * Use BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration)
-     */
-    public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, int pollIntervalInSeconds, int workerCount) {
-        this(storageProvider, jobActivator, usingStandardConfiguration().andPollIntervalInSeconds(pollIntervalInSeconds).andWorkerCount(workerCount));
+        this(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration());
     }
 
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {

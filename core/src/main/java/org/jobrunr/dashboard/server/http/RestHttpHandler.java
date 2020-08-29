@@ -13,12 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.DELETE;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.GET;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.HEAD;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.OPTIONS;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.POST;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.PUT;
+import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.*;
 
 public class RestHttpHandler extends AbstractTeenyHttpHandler {
 
@@ -73,9 +68,9 @@ public class RestHttpHandler extends AbstractTeenyHttpHandler {
         if (matchingUrl.isPresent()) {
             matchingUrl
                     .map(httpRequestMethodHandlers::get)
-                    .ifPresent(httpRequestHandler -> processRequest(httpRequestHandler, new HttpRequest(actualUrl.toRequestUrl(matchingUrl.get()), httpExchange, jsonMapper), new HttpResponse(httpExchange, jsonMapper)));
+                    .ifPresent(httpRequestHandler -> processRequest(httpRequestHandler, new HttpRequest(actualUrl.toRequestUrl(matchingUrl.get())), new HttpResponse(httpExchange, jsonMapper)));
         } else {
-            processRequest(HttpRequestHandlers.notFound, new HttpRequest(null, httpExchange, jsonMapper), new HttpResponse(httpExchange, jsonMapper));
+            processRequest(HttpRequestHandlers.notFound, new HttpRequest(null), new HttpResponse(httpExchange, jsonMapper));
         }
     }
 
