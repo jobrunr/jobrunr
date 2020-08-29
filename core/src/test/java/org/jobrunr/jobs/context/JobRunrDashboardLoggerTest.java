@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import static org.assertj.core.api.Assertions.not;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.Mockito.verify;
 
@@ -198,10 +199,12 @@ class JobRunrDashboardLoggerTest {
 
         countDownLatch.await();
 
-        assertThat(job1).hasMetadata(InfoLog.withMessage("info from job1"));
-        assertThat(job1).hasMetadata(not(InfoLog.withMessage("info from job2")));
-        assertThat(job2).hasMetadata(not(InfoLog.withMessage("info from job1")));
-        assertThat(job2).hasMetadata(InfoLog.withMessage("info from job2"));
+        assertThat(job1)
+                .hasMetadata(InfoLog.withMessage("info from job1"))
+                .hasMetadata(not(InfoLog.withMessage("info from job2")));
+        assertThat(job2)
+                .hasMetadata(not(InfoLog.withMessage("info from job1")))
+                .hasMetadata(InfoLog.withMessage("info from job2"));
     }
 
     private Runnable loggingRunnable(Job job, JobRunrDashboardLogger logger, CountDownLatch countDownLatch) {
@@ -210,7 +213,7 @@ class JobRunrDashboardLoggerTest {
                 JobRunrDashboardLogger.setJob(job);
                 for (int i = 0; i < 100; i++) {
                     logger.info("info from " + job.getJobName());
-                    Thread.sleep(5);
+                    sleep(5);
                 }
                 countDownLatch.countDown();
             } catch (Exception e) {

@@ -15,7 +15,7 @@ class JobIdTest {
         final JobId jobId2 = new JobId(uuid);
 
         assertThat(jobId1).isEqualTo(jobId2);
-        assertThat(jobId1.hashCode()).isEqualTo(jobId2.hashCode());
+        assertThat(jobId1).hasSameHashCodeAs(jobId2);
     }
 
     @Test

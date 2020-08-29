@@ -42,7 +42,7 @@ import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
-public class BackgroundJobTest {
+class BackgroundJobTest {
 
     private TestService testService;
     private StorageProvider storageProvider;

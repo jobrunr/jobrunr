@@ -22,7 +22,7 @@ class RecurringJobTest {
     }
 
     @Test
-    public void ifNoIdGivenItUsesJobSignature() {
+    void ifNoIdGivenItUsesJobSignature() {
         TestService testService = new TestService();
         final RecurringJob recurringJob1 = aDefaultRecurringJob().withoutId().withJobDetails(() -> System.out.println("This is a test")).build();
         assertThat(recurringJob1.getId()).isEqualTo("System.out.println(String)");

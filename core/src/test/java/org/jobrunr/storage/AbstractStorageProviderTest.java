@@ -87,7 +87,7 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    public void updatingOnChangeListenersIsThreadSafe() {
+    void updatingOnChangeListenersIsThreadSafe() {
         List<JobStatsChangeListenerForTest> changeListeners = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             final JobStatsChangeListenerForTest changeListener = new SlowJobChangeListenerForTest();

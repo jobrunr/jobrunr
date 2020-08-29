@@ -17,10 +17,8 @@ import java.util.concurrent.Executors;
 import static java.time.Duration.between;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -36,11 +34,11 @@ class ThreadSafeStorageProviderTest {
         threadSafeStorageProvider = new ThreadSafeStorageProvider(storageProviderMock);
 
         lenient().when(storageProviderMock.save(any(Job.class))).thenAnswer(invocation -> {
-            Thread.sleep(100);
+            sleep(100);
             return invocation.getArgument(0);
         });
         lenient().when(storageProviderMock.save(any(List.class))).thenAnswer(invocation -> {
-            Thread.sleep(100);
+            sleep(100);
             return invocation.getArgument(0);
         });
     }

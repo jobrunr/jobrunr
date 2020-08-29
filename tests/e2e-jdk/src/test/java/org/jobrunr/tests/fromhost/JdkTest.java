@@ -18,73 +18,73 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JdkTest {
 
     @Test
-    public void jdk8OpenJdk() {
+    void jdk8OpenJdk() {
         assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk8OpenJ9() {
+    void jdk8OpenJ9() {
         assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-openj9")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk8Zulu() {
+    void jdk8Zulu() {
         assertThat(buildAndTestOnImage("azul/zulu-openjdk:8")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk8GraalVM() {
+    void jdk8GraalVM() {
         assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java8")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk8Ibm() {
+    void jdk8Ibm() {
         assertThat(buildAndTestOnImage("ibmcom/ibmjava:8-sdk-alpine")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk11OpenJdk() {
+    void jdk11OpenJdk() {
         assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-hotspot")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk11OpenJ9() {
+    void jdk11OpenJ9() {
         assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-openj9")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk11Zulu() {
+    void jdk11Zulu() {
         assertThat(buildAndTestOnImage("azul/zulu-openjdk:11")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk11GraalVM() {
+    void jdk11GraalVM() {
         assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java11")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk14OpenJdk() {
+    void jdk14OpenJdk() {
         assertThat(buildAndTestOnImage("adoptopenjdk:14-jdk-hotspot")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk14OpenJ9() {
+    void jdk14OpenJ9() {
         assertThat(buildAndTestOnImage("adoptopenjdk:14-jdk-openj9")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk14Zulu() {
+    void jdk14Zulu() {
         assertThat(buildAndTestOnImage("azul/zulu-openjdk:14")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
-    public void jdk15OpenJDKEA() {
+    void jdk15OpenJDKEA() {
         assertThat(buildAndTestOnImage("amd64/openjdk:15-ea-jdk")).contains("BUILD SUCCESSFUL");
     }
 
     @Disabled("Not yet working due to gradle")
     @Test
-    public void jdk16OpenJDKEA() {
+    void jdk16OpenJDKEA() {
         assertThat(buildAndTestOnImage("amd64/openjdk:16-ea-jdk")).contains("BUILD SUCCESSFUL");
     }
 

@@ -38,6 +38,7 @@ import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -126,7 +127,7 @@ class JobZooKeeperTest {
     @Test
     void checkForEnqueuedJobsIsNotDoneConcurrently() throws InterruptedException {
         when(storageProvider.getJobs(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
-            Thread.sleep(100);
+            sleep(100);
             return emptyList();
         });
 

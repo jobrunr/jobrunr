@@ -8,6 +8,10 @@ import java.util.jar.Manifest;
 
 public class VersionRetriever {
 
+    private VersionRetriever() {
+
+    }
+
     public static String getVersion(Class<?> clazz) {
         return selectOptional(
                 getVersionFromManifest(clazz),

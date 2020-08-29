@@ -2,7 +2,6 @@ package org.jobrunr.utils.mapper.jsonb;
 
 import javax.json.JsonValue;
 import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -23,62 +22,62 @@ public class JobRunrJsonb implements Jsonb {
     }
 
     @Override
-    public <T> T fromJson(String s, Class<T> aClass) throws JsonbException {
+    public <T> T fromJson(String s, Class<T> aClass) {
         return delegate.fromJson(s, aClass);
     }
 
     @Override
-    public <T> T fromJson(String s, Type type) throws JsonbException {
+    public <T> T fromJson(String s, Type type) {
         return delegate.fromJson(s, type);
     }
 
     @Override
-    public <T> T fromJson(Reader reader, Class<T> aClass) throws JsonbException {
+    public <T> T fromJson(Reader reader, Class<T> aClass) {
         return delegate.fromJson(reader, aClass);
     }
 
     @Override
-    public <T> T fromJson(Reader reader, Type type) throws JsonbException {
+    public <T> T fromJson(Reader reader, Type type) {
         return delegate.fromJson(reader, type);
     }
 
     @Override
-    public <T> T fromJson(InputStream inputStream, Class<T> aClass) throws JsonbException {
+    public <T> T fromJson(InputStream inputStream, Class<T> aClass) {
         return delegate.fromJson(inputStream, aClass);
     }
 
     @Override
-    public <T> T fromJson(InputStream inputStream, Type type) throws JsonbException {
+    public <T> T fromJson(InputStream inputStream, Type type) {
         return delegate.fromJson(inputStream, type);
     }
 
     @Override
-    public String toJson(Object o) throws JsonbException {
+    public String toJson(Object o) {
         return delegate.toJson(o);
     }
 
     @Override
-    public String toJson(Object o, Type type) throws JsonbException {
+    public String toJson(Object o, Type type) {
         return delegate.toJson(o, type);
     }
 
     @Override
-    public void toJson(Object o, Writer writer) throws JsonbException {
+    public void toJson(Object o, Writer writer) {
         delegate.toJson(o, writer);
     }
 
     @Override
-    public void toJson(Object o, Type type, Writer writer) throws JsonbException {
+    public void toJson(Object o, Type type, Writer writer) {
         delegate.toJson(o, type, writer);
     }
 
     @Override
-    public void toJson(Object o, OutputStream outputStream) throws JsonbException {
+    public void toJson(Object o, OutputStream outputStream) {
         delegate.toJson(o, outputStream);
     }
 
     @Override
-    public void toJson(Object o, Type type, OutputStream outputStream) throws JsonbException {
+    public void toJson(Object o, Type type, OutputStream outputStream) {
         delegate.toJson(o, type, outputStream);
     }
 

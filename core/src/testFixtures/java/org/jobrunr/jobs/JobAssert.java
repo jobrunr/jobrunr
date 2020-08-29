@@ -45,12 +45,12 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasMetadata(String key, String value) {
         Assertions.assertThat(actual.getMetadata()).containsEntry(key, value);
-        return null;
+        return this;
     }
 
     public JobAssert hasMetadata(Condition condition) {
         Assertions.assertThat(actual.getMetadata()).has(condition);
-        return null;
+        return this;
     }
 
     public JobAssert isEqualTo(Job otherJob) {

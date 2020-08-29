@@ -5,11 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
@@ -100,8 +96,7 @@ class CronExpressionTest {
         CronExpression cronExpression2 = CronExpression.create(Cron.minutely());
 
         assertThat(cronExpression1).isEqualTo(cronExpression2);
-        assertThat(cronExpression1.hashCode()).isEqualTo(cronExpression2.hashCode());
-        assertThat(cronExpression1.hashCode()).isEqualByComparingTo(cronExpression2.hashCode());
+        assertThat(cronExpression1).hasSameHashCodeAs(cronExpression2);
     }
 
     @Test

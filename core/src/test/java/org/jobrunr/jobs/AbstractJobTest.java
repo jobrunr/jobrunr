@@ -16,7 +16,7 @@ class AbstractJobTest {
     void increaseVersion() {
         Job job = anEnqueuedJob().withId().build();
 
-        assertThat(job.increaseVersion()).isEqualTo(0);
+        assertThat(job.increaseVersion()).isZero();
         assertThat(job.getVersion()).isEqualTo(1);
 
         assertThat(job.increaseVersion()).isEqualTo(1);
@@ -24,7 +24,7 @@ class AbstractJobTest {
     }
 
     @Test
-    public void whileLockedJobCannotBeLockedForOtherSaveAction() {
+    void whileLockedJobCannotBeLockedForOtherSaveAction() {
         Job job = anEnqueuedJob().withId().build();
         final AtomicBoolean atomicBoolean = new AtomicBoolean();
 

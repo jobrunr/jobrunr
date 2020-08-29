@@ -137,7 +137,7 @@ class ServerZooKeeperTest {
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .during(FIVE_SECONDS)
                 .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(0));
+                .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).isEmpty());
         await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse());
     }
 
@@ -151,7 +151,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void backgroundJobServerSignalsItIsStoppedWhenItIsStoppedAndClosesTheStorageProvider() {
+    void backgroundJobServerSignalsItIsStoppedWhenItIsStoppedAndClosesTheStorageProvider() {
         backgroundJobServer.start();
         await().untilAsserted(() -> verify(storageProvider).announceBackgroundJobServer(any()));
 

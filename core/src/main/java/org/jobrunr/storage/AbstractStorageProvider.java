@@ -141,11 +141,9 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     void stopTimerToSendUpdates() {
         if (timer != null) {
             try {
-                if (reentrantLock.tryLock()) {
-                    if (timer != null) {
-                        timer.cancel();
-                        timer = null;
-                    }
+                if (reentrantLock.tryLock() && timer != null) {
+                    timer.cancel();
+                    timer = null;
                 }
             } finally {
                 reentrantLock.unlock();

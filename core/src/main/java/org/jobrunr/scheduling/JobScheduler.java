@@ -34,7 +34,7 @@ public class JobScheduler {
     private final StorageProvider storageProvider;
     private final JobDetailsGenerator jobDetailsGenerator;
     private final JobFilters jobFilters;
-    private static final int batchSize = 5000;
+    private static final int BATCH_SIZE = 5000;
 
     /**
      * Creates a new JobScheduler using the provided storageProvider
@@ -94,7 +94,7 @@ public class JobScheduler {
         input
                 .map(x -> jobDetailsGenerator.toJobDetails(x, jobFromStream))
                 .map(org.jobrunr.jobs.Job::new)
-                .collect(batchCollector(batchSize, this::saveJobs));
+                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 
     /**
@@ -127,7 +127,7 @@ public class JobScheduler {
         input
                 .map(x -> jobDetailsGenerator.toJobDetails(x, iocJobFromStream))
                 .map(org.jobrunr.jobs.Job::new)
-                .collect(batchCollector(batchSize, this::saveJobs));
+                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 
     /**

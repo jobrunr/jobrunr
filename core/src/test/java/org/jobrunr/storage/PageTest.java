@@ -16,8 +16,8 @@ class PageTest {
         assertThat(page.getLimit()).isEqualTo(5);
         assertThat(page.getCurrentPage()).isEqualTo(3);
         assertThat(page.getTotalPages()).isEqualTo(10);
-        assertThat(page.hasPrevious()).isEqualTo(true);
-        assertThat(page.hasNext()).isEqualTo(true);
+        assertThat(page.hasPrevious()).isTrue();
+        assertThat(page.hasNext()).isTrue();
     }
 
     @Test
@@ -28,20 +28,20 @@ class PageTest {
         assertThat(page.getLimit()).isEqualTo(2);
         assertThat(page.getCurrentPage()).isEqualTo(1);
         assertThat(page.getTotalPages()).isEqualTo(3);
-        assertThat(page.hasPrevious()).isEqualTo(true);
-        assertThat(page.hasNext()).isEqualTo(true);
+        assertThat(page.hasPrevious()).isTrue();
+        assertThat(page.hasNext()).isTrue();
     }
 
     @Test
     void testPaging3() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 0, 20);
         assertThat(page.getTotal()).isEqualTo(5);
-        assertThat(page.getOffset()).isEqualTo(0);
+        assertThat(page.getOffset()).isZero();
         assertThat(page.getLimit()).isEqualTo(20);
-        assertThat(page.getCurrentPage()).isEqualTo(0);
+        assertThat(page.getCurrentPage()).isZero();
         assertThat(page.getTotalPages()).isEqualTo(1);
-        assertThat(page.hasPrevious()).isEqualTo(false);
-        assertThat(page.hasNext()).isEqualTo(false);
+        assertThat(page.hasPrevious()).isFalse();
+        assertThat(page.hasNext()).isFalse();
     }
 
     @Test
@@ -52,8 +52,8 @@ class PageTest {
         assertThat(page.getLimit()).isEqualTo(4);
         assertThat(page.getCurrentPage()).isEqualTo(1);
         assertThat(page.getTotalPages()).isEqualTo(2);
-        assertThat(page.hasPrevious()).isEqualTo(true);
-        assertThat(page.hasNext()).isEqualTo(false);
+        assertThat(page.hasPrevious()).isTrue();
+        assertThat(page.hasNext()).isFalse();
     }
 
     @Test
@@ -64,8 +64,8 @@ class PageTest {
         assertThat(page.getLimit()).isEqualTo(3);
         assertThat(page.getCurrentPage()).isEqualTo(1);
         assertThat(page.getTotalPages()).isEqualTo(2); // or 3
-        assertThat(page.hasPrevious()).isEqualTo(true);
-        assertThat(page.hasNext()).isEqualTo(true);
+        assertThat(page.hasPrevious()).isTrue();
+        assertThat(page.hasNext()).isTrue();
     }
 
 }

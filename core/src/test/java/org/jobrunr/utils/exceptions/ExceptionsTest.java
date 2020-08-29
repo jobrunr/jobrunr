@@ -7,13 +7,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExceptionsTest {
 
     @Test
-    public void hasCauseReturnsTrueIfExceptionHasGivenCause() {
+    void hasCauseReturnsTrueIfExceptionHasGivenCause() {
         final boolean hasInterruptedExceptionAsCause = Exceptions.hasCause(new RuntimeException(new InterruptedException()), InterruptedException.class);
         assertThat(hasInterruptedExceptionAsCause).isTrue();
     }
 
     @Test
-    public void hasCauseReturnsFalseIfExceptionDoesNotHaveGivenCause() {
+    void hasCauseReturnsFalseIfExceptionDoesNotHaveGivenCause() {
         final boolean hasInterruptedExceptionAsCause = Exceptions.hasCause(new RuntimeException(new IllegalStateException()), InterruptedException.class);
         assertThat(hasInterruptedExceptionAsCause).isFalse();
     }

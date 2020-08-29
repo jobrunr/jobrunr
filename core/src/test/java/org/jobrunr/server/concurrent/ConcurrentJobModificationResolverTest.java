@@ -24,11 +24,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ConcurrentJobModificationResolverTest {
@@ -80,7 +76,7 @@ class ConcurrentJobModificationResolverTest {
     }
 
     @Test
-    public void concurrentStateChangeFromUnsupportedStateChangeIsNotAllowedAndThrowsException() {
+    void concurrentStateChangeFromUnsupportedStateChangeIsNotAllowedAndThrowsException() {
         final Job job1 = aJobInProgress().build();
         final Job job2 = aJobInProgress().build();
 
