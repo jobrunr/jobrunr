@@ -149,6 +149,12 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void jobsCanEnqueueOtherJobsInTheSameClassUsingMethodReference() {
+        JobId jobId = BackgroundJob.enqueue(this::aNestedJob);
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
+    }
+
+    @Test
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatFails());
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
@@ -244,7 +250,7 @@ public class BackgroundJobTest {
     }
 
     @Test
-    void testJobsStuckInProcessingStateAreReschuled() {
+    void jobsStuckInProcessingStateAreRescheduled() {
         Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId()), now().minus(15, ChronoUnit.MINUTES)).build());
         await().atMost(3, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
     }
@@ -319,6 +325,10 @@ public class BackgroundJobTest {
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
         assertThat(failedState.getException()).isInstanceOf(JobMethodNotFoundException.class);
+    }
+
+    public void aNestedJob() {
+        System.out.println("Nothing else to do");
     }
 
     class JobImplementation implements JobLambda {
