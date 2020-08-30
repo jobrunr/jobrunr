@@ -1,7 +1,7 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.nosql.redis.RedisStorageProvider;
+import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import redis.clients.jedis.JedisPool;
 
 public class Main extends AbstractMain {
@@ -23,6 +23,6 @@ public class Main extends AbstractMain {
             throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable REDIS_PORT is not set");
         }
 
-        return new RedisStorageProvider(new JedisPool(getEnvOrProperty("REDIS_HOST"), Integer.parseInt(getEnvOrProperty("REDIS_PORT"))));
+        return new JedisRedisStorageProvider(new JedisPool(getEnvOrProperty("REDIS_HOST"), Integer.parseInt(getEnvOrProperty("REDIS_PORT"))));
     }
 }

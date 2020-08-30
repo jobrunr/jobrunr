@@ -2,7 +2,6 @@ package org.jobrunr.utils.reflection;
 
 import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
-import org.jobrunr.utils.exceptions.Exceptions.ThrowingFunction;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
 
 import java.lang.reflect.AccessibleObject;
@@ -207,16 +206,6 @@ public class ReflectionUtils {
             throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
         } catch (ReflectiveOperationException willNotHappen) {
             throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
-        }
-    }
-
-    public static void autobox(Field field, Object object, ThrowingFunction<Class<?>, Object> objectFunction) {
-        final Class<?> type = field.getType();
-        try {
-            final Object value = objectFunction.apply(type);
-            setFieldUsingAutoboxing(field, object, value);
-        } catch (Exception e) {
-            throw shouldNotHappenException(e);
         }
     }
 

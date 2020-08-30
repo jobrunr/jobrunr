@@ -9,21 +9,21 @@ import java.util.stream.*;
 
 import static java.util.stream.Collectors.toList;
 
-public class RedisPipelinedStream<T> implements Stream<T> {
+public class JedisRedisPipelinedStream<T> implements Stream<T> {
 
     private final Stream<T> initialStream;
     private final Jedis jedis;
 
-    public RedisPipelinedStream(Collection<T> initial, Jedis jedis) {
+    public JedisRedisPipelinedStream(Collection<T> initial, Jedis jedis) {
         this(initial.stream(), jedis);
     }
 
-    public RedisPipelinedStream(Stream<T> initialStream, Jedis jedis) {
+    public JedisRedisPipelinedStream(Stream<T> initialStream, Jedis jedis) {
         this.initialStream = initialStream;
         this.jedis = jedis;
     }
 
-    public <R> RedisPipelinedStream<R> mapUsingPipeline(BiFunction<Pipeline, T, R> biFunction) {
+    public <R> JedisRedisPipelinedStream<R> mapUsingPipeline(BiFunction<Pipeline, T, R> biFunction) {
         List<R> collect;
         try (final Pipeline pipeline = jedis.pipelined()) {
             collect = initialStream
@@ -31,11 +31,11 @@ public class RedisPipelinedStream<T> implements Stream<T> {
                     .collect(toList()); // must collect otherwise map is not executed
             pipeline.sync();
         }
-        return new RedisPipelinedStream<>(collect, jedis);
+        return new JedisRedisPipelinedStream<>(collect, jedis);
     }
 
-    public <R> RedisPipelinedStream<R> mapAfterSync(Function<? super T, ? extends R> function) {
-        return new RedisPipelinedStream<>(initialStream.map(function), jedis);
+    public <R> JedisRedisPipelinedStream<R> mapAfterSync(Function<? super T, ? extends R> function) {
+        return new JedisRedisPipelinedStream<>(initialStream.map(function), jedis);
     }
 
     @Override
@@ -104,13 +104,13 @@ public class RedisPipelinedStream<T> implements Stream<T> {
     }
 
     @Override
-    public RedisPipelinedStream<T> limit(long l) {
-        return new RedisPipelinedStream<>(initialStream.limit(l), jedis);
+    public JedisRedisPipelinedStream<T> limit(long l) {
+        return new JedisRedisPipelinedStream<>(initialStream.limit(l), jedis);
     }
 
     @Override
-    public RedisPipelinedStream<T> skip(long l) {
-        return new RedisPipelinedStream<>(initialStream.skip(l), jedis);
+    public JedisRedisPipelinedStream<T> skip(long l) {
+        return new JedisRedisPipelinedStream<>(initialStream.skip(l), jedis);
     }
 
     @Override

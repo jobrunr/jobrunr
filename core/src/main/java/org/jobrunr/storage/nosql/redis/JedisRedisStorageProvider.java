@@ -13,7 +13,6 @@ import org.jobrunr.utils.resilience.RateLimiter;
 import redis.clients.jedis.*;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -26,7 +25,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 @Beta
-public class RedisStorageProvider extends AbstractStorageProvider {
+public class JedisRedisStorageProvider extends AbstractRedisStorageProvider {
 
     public static final String RECURRING_JOBS_KEY = "recurringjobs";
     public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
@@ -35,15 +34,15 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     private final JedisPool jedisPool;
     private JobMapper jobMapper;
 
-    public RedisStorageProvider() {
+    public JedisRedisStorageProvider() {
         this(new JedisPool());
     }
 
-    public RedisStorageProvider(JedisPool jedisPool) {
+    public JedisRedisStorageProvider(JedisPool jedisPool) {
         this(jedisPool, rateLimit().at1Request().per(SECOND));
     }
 
-    public RedisStorageProvider(JedisPool jedisPool, RateLimiter changeListenerNotificationRateLimit) {
+    public JedisRedisStorageProvider(JedisPool jedisPool, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.jedisPool = jedisPool;
     }
@@ -108,7 +107,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try (final Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE), jedis)
+            return new JedisRedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE), jedis)
                     .mapUsingPipeline((p, id) -> p.hgetAll(backgroundJobServerKey(id)))
                     .mapAfterSync(Response::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
@@ -223,7 +222,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
             }
-            return new RedisPipelinedStream<>(jobsByState, jedis)
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)
@@ -234,7 +233,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
-            return new RedisPipelinedStream<>(jedis.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now()), (int) pageRequest.getOffset(), pageRequest.getLimit()), jedis)
+            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(QUEUE_SCHEDULEDJOBS_KEY, 0, toMicroSeconds(now()), (int) pageRequest.getOffset(), pageRequest.getLimit()), jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)
@@ -261,7 +260,7 @@ public class RedisStorageProvider extends AbstractStorageProvider {
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
             }
-            return new RedisPipelinedStream<>(jobsByState, jedis)
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)
@@ -410,18 +409,6 @@ public class RedisStorageProvider extends AbstractStorageProvider {
         return jedisPool.getResource();
     }
 
-    private boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() != null);
-    }
-
-    private boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() == null);
-    }
-
-    private boolean areNewJobs(List<Job> jobs) {
-        return jobs.get(0).getId() == null;
-    }
-
     private void insertJob(Job jobToSave, Jedis jedis) {
         jobToSave.setId(UUID.randomUUID());
         try (Transaction transaction = jedis.multi()) {
@@ -474,57 +461,5 @@ public class RedisStorageProvider extends AbstractStorageProvider {
 
     private long getCounterValue(Response<String> counterResponse, Response<Long> countResponse) {
         return countResponse.get() + Long.parseLong(counterResponse.get() != null ? counterResponse.get() : "0");
-    }
-
-    private String jobCounterKey(StateName stateName) {
-        return "counter:jobs:" + stateName;
-    }
-
-    private String backgroundJobServerKey(BackgroundJobServerStatus serverStatus) {
-        return backgroundJobServerKey(serverStatus.getId());
-    }
-
-    private String backgroundJobServerKey(UUID serverId) {
-        return "backgroundjobserver:" + serverId.toString();
-    }
-
-    private String backgroundJobServerKey(String serverId) {
-        return "backgroundjobserver:" + serverId;
-    }
-
-    private String jobQueueForStateKey(StateName stateName) {
-        return "queue:jobs:" + stateName;
-    }
-
-    private String recurringJobKey(String id) {
-        return "recurringjob:" + id;
-    }
-
-    private String jobKey(Job job) {
-        return jobKey(job.getId());
-    }
-
-    private String jobKey(UUID id) {
-        return jobKey(id.toString());
-    }
-
-    private String jobKey(String id) {
-        return "job:" + id;
-    }
-
-    private String jobDetailsKey(StateName stateName) {
-        return "job:jobdetails:" + stateName;
-    }
-
-    private String jobVersionKey(Job job) {
-        return jobVersionKey(job.getId());
-    }
-
-    private String jobVersionKey(UUID id) {
-        return jobKey(id) + ":version";
-    }
-
-    private long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
     }
 }

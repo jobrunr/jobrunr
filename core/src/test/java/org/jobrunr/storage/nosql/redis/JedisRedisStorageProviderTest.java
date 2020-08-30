@@ -13,7 +13,7 @@ import redis.clients.jedis.JedisPool;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @Testcontainers
-public class RedisStorageProviderTest extends StorageProviderTest {
+public class JedisRedisStorageProviderTest extends StorageProviderTest {
 
     @Container
     private static final GenericContainer redisContainer = new GenericContainer("redis").withExposedPorts(6379);
@@ -27,9 +27,9 @@ public class RedisStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final RedisStorageProvider redisStorageProvider = new RedisStorageProvider(getJedisPool(), rateLimit().withoutLimits());
-        redisStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        return redisStorageProvider;
+        final JedisRedisStorageProvider jedisRedisStorageProvider = new JedisRedisStorageProvider(getJedisPool(), rateLimit().withoutLimits());
+        jedisRedisStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+        return jedisRedisStorageProvider;
     }
 
     private JedisPool getJedisPool() {

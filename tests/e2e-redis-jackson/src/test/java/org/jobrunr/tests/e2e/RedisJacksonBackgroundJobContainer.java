@@ -1,7 +1,7 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.nosql.redis.RedisStorageProvider;
+import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import redis.clients.jedis.JedisPool;
@@ -30,7 +30,7 @@ public class RedisJacksonBackgroundJobContainer extends AbstractBackgroundJobCon
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        return new RedisStorageProvider(new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getFirstMappedPort()));
+        return new JedisRedisStorageProvider(new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getFirstMappedPort()));
     }
 
 }

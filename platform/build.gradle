@@ -31,6 +31,7 @@ dependencies {
         api 'com.mchange:c3p0:0.9.5.5'
         api 'org.apache.tomcat:tomcat-jdbc:9.0.34'
         api 'redis.clients:jedis:3.3.0'
+        api 'io.lettuce:lettuce-core:6.0.0.RC1'
         api 'org.mongodb:mongo-java-driver:3.12.7'
 
         api 'org.junit.jupiter:junit-jupiter:5.6.2'
