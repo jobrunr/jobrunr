@@ -443,6 +443,12 @@ public class LettuceRedisStorageProvider extends AbstractRedisStorageProvider {
         }
     }
 
+    @Override
+    public void close() {
+        super.close();
+        pool.close();
+    }
+
     private void insertJob(Job jobToSave, RedisCommands commands) {
         jobToSave.setId(UUID.randomUUID());
         commands.multi();
