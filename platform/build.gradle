@@ -36,10 +36,10 @@ dependencies {
 
         api 'org.junit.jupiter:junit-jupiter:5.6.2'
         api 'org.awaitility:awaitility:4.0.3'
-        api 'org.assertj:assertj-core:3.16.1'
+        api 'org.assertj:assertj-core:3.17.1'
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.18.1'
-        api 'org.mockito:mockito-core:3.5.2'
-        api 'org.mockito:mockito-junit-jupiter:3.5.2'
+        api 'org.mockito:mockito-core:3.5.7'
+        api 'org.mockito:mockito-junit-jupiter:3.5.7'
         api 'ch.qos.logback:logback-classic:1.2.3'
         api 'org.testcontainers:testcontainers:1.14.3'
         api 'org.testcontainers:junit-jupiter:1.14.3'
