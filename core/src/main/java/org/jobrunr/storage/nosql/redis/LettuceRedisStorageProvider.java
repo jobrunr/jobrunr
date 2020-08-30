@@ -31,6 +31,8 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
+import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 @Beta
 public class LettuceRedisStorageProvider extends AbstractRedisStorageProvider {
@@ -42,6 +44,10 @@ public class LettuceRedisStorageProvider extends AbstractRedisStorageProvider {
     private final RedisClient redisClient;
     private final GenericObjectPool<StatefulRedisConnection> pool;
     private JobMapper jobMapper;
+
+    public LettuceRedisStorageProvider(RedisClient redisClient) {
+        this(redisClient, rateLimit().at1Request().per(SECOND));
+    }
 
     public LettuceRedisStorageProvider(RedisClient redisClient, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
