@@ -2,16 +2,14 @@ package org.jobrunr.dashboard.sse;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.scheduling.JobId;
+import org.jobrunr.jobs.JobId;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.io.IOException;
 
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 
 public class JobSseExchange extends AbstractObjectSseExchange implements JobChangeListener {
 

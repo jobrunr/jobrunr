@@ -2,8 +2,8 @@ package org.jobrunr.storage;
 
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.scheduling.JobId;
 import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;

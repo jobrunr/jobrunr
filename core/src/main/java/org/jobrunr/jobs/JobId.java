@@ -1,4 +1,4 @@
-package org.jobrunr.scheduling;
+package org.jobrunr.jobs;
 
 import java.util.UUID;
 

@@ -1,23 +1,19 @@
 package org.jobrunr.server;
 
 import org.jobrunr.JobRunrException;
+import org.jobrunr.server.jmx.JobServerStats;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.JMException;
-import javax.management.MBeanServer;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Comparator.comparing;
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class ServerZooKeeper implements Runnable {
 
@@ -123,13 +119,12 @@ public class ServerZooKeeper implements Runnable {
 
     public static class BackgroundJobServerStatusWriteModel extends BackgroundJobServerStatus {
 
+        private final JobServerStats jobServerStats;
         private final BackgroundJobServerStatus serverStatusDelegate;
-        private final OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-        private Double cachedSystemCpuLoad;
-        private Double cachedProcessCpuLoad;
 
         public BackgroundJobServerStatusWriteModel(BackgroundJobServerStatus serverStatusDelegate) {
             super(serverStatusDelegate.getPollIntervalInSeconds(), serverStatusDelegate.getWorkerPoolSize());
+            this.jobServerStats = new JobServerStats();
             this.serverStatusDelegate = serverStatusDelegate;
         }
 
@@ -185,73 +180,37 @@ public class ServerZooKeeper implements Runnable {
 
         @Override
         public Long getSystemTotalMemory() {
-            return getMXBeanValueAsLong("TotalPhysicalMemorySize");
+            return jobServerStats.getSystemTotalMemory();
         }
 
         @Override
         public Long getSystemFreeMemory() {
-            return getMXBeanValueAsLong("FreePhysicalMemorySize");
+            return jobServerStats.getSystemFreeMemory();
         }
 
         @Override
         public Double getSystemCpuLoad() {
-            final Double systemCpuLoad = getMXBeanValueAsDouble("SystemCpuLoad");
-            if (Double.isNaN(systemCpuLoad)) {
-                if (cachedSystemCpuLoad == null) {
-                    return (double) -1;
-                }
-            } else {
-                cachedSystemCpuLoad = systemCpuLoad;
-            }
-            return cachedSystemCpuLoad;
+            return jobServerStats.getSystemCpuLoad();
         }
 
         @Override
         public Long getProcessMaxMemory() {
-            return Runtime.getRuntime().maxMemory();
+            return jobServerStats.getProcessMaxMemory();
         }
 
         @Override
         public Long getProcessFreeMemory() {
-            return Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            return jobServerStats.getProcessFreeMemory();
         }
 
         @Override
         public Long getProcessAllocatedMemory() {
-            return (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            return jobServerStats.getProcessAllocatedMemory();
         }
 
         @Override
         public Double getProcessCpuLoad() {
-            final Double processCpuLoad = getMXBeanValueAsDouble("ProcessCpuLoad");
-            if (Double.isNaN(processCpuLoad)) {
-                if (cachedProcessCpuLoad == null) {
-                    return (double) -1;
-                }
-            } else {
-                cachedProcessCpuLoad = processCpuLoad;
-            }
-            return cachedProcessCpuLoad;
-        }
-
-        Double getMXBeanValueAsDouble(String name) {
-            return ((Number) getMXBeanValue(name)).doubleValue();
-        }
-
-        Long getMXBeanValueAsLong(String name) {
-            return ((Number) getMXBeanValue(name)).longValue();
-        }
-
-        // visible for testing
-        // see bug JDK-8193878
-        <O> O getMXBeanValue(String name) {
-            try {
-                final MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-                final Object attribute = platformMBeanServer.getAttribute(operatingSystemMXBean.getObjectName(), name);
-                return cast(attribute);
-            } catch (JMException | NullPointerException ex) {
-                return cast(-1);
-            }
+            return jobServerStats.getProcessCpuLoad();
         }
     }
 }

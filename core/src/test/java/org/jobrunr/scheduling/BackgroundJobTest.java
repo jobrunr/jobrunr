@@ -2,6 +2,7 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.states.FailedState;

@@ -2,8 +2,8 @@ package org.jobrunr.tests.e2e;
 
 import org.awaitility.core.ConditionTimeoutException;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.JobId;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.scheduling.JobId;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
 import org.jobrunr.utils.Stopwatch;
@@ -19,9 +19,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
-import static org.awaitility.Durations.FIVE_HUNDRED_MILLISECONDS;
-import static org.awaitility.Durations.FIVE_SECONDS;
-import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.*;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public abstract class AbstractE2ETest {

@@ -1,7 +1,7 @@
 package org.jobrunr.storage.listeners;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.scheduling.JobId;
+import org.jobrunr.jobs.JobId;
 
 public interface JobChangeListener extends StorageProviderChangeListener, AutoCloseable {
 

@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.jobs.JobId;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

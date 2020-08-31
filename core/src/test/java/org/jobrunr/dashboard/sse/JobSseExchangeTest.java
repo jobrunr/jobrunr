@@ -2,7 +2,7 @@ package org.jobrunr.dashboard.sse;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.scheduling.JobId;
+import org.jobrunr.jobs.JobId;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +18,7 @@ import java.net.URISyntaxException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
