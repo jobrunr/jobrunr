@@ -40,7 +40,7 @@ public class Sql<T> {
         return new Sql<>();
     }
 
-    public static Sql withoutType() {
+    public static Sql<?> withoutType() {
         return new Sql<>();
     }
 

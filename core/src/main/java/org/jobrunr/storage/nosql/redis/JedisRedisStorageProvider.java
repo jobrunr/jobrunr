@@ -20,12 +20,13 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 @Beta
-public class JedisRedisStorageProvider extends AbstractRedisStorageProvider {
+public class JedisRedisStorageProvider extends AbstractStorageProvider {
 
     public static final String RECURRING_JOBS_KEY = "recurringjobs";
     public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
