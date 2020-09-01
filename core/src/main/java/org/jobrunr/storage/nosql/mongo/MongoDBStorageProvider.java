@@ -33,6 +33,7 @@ import java.util.function.Predicate;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -125,7 +126,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
-        return this.backgroundJobServerCollection.find().map(backgroundJobServerStatusDocumentMapper::toBackgroundJobServerStatus).into(new ArrayList<>());
+        return this.backgroundJobServerCollection
+                .find()
+                .sort(ascending(BackgroundJobServers.FIELD_FIRST_HEARTBEAT))
+                .map(backgroundJobServerStatusDocumentMapper::toBackgroundJobServerStatus)
+                .into(new ArrayList<>());
     }
 
     @Override

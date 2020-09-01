@@ -26,8 +26,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static io.lettuce.core.Range.unbounded;
 import static java.time.Instant.now;
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
@@ -36,6 +38,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 @Beta
+@SuppressWarnings("unchecked")
 public class LettuceRedisStorageProvider extends AbstractStorageProvider {
 
     public static final String RECURRING_JOBS_KEY = "recurringjobs";
@@ -142,6 +145,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
                             Long.parseLong(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
                             Double.parseDouble(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
+                    .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
                     .collect(toList());
         }
     }
@@ -270,7 +274,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
     public Long countJobs(StateName state) {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
-            return commands.zcount(jobQueueForStateKey(state), Range.unbounded());
+            return commands.zcount(jobQueueForStateKey(state), unbounded());
         }
     }
 
@@ -388,22 +392,22 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             connection.setAutoFlushCommands(false);
             RedisAsyncCommands<String, String> commands = connection.async();
             final RedisFuture<String> waitingCounterResponse = commands.get(jobCounterKey(AWAITING));
-            final RedisFuture<Long> waitingResponse = commands.zcount(jobQueueForStateKey(AWAITING), Range.unbounded());
+            final RedisFuture<Long> waitingResponse = commands.zcount(jobQueueForStateKey(AWAITING), unbounded());
             final RedisFuture<String> scheduledCounterResponse = commands.get(jobCounterKey(SCHEDULED));
-            final RedisFuture<Long> scheduledResponse = commands.zcount(jobQueueForStateKey(SCHEDULED), Range.unbounded());
+            final RedisFuture<Long> scheduledResponse = commands.zcount(jobQueueForStateKey(SCHEDULED), unbounded());
             final RedisFuture<String> enqueuedCounterResponse = commands.get(jobCounterKey(ENQUEUED));
-            final RedisFuture<Long> enqueuedResponse = commands.zcount(jobQueueForStateKey(ENQUEUED), Range.unbounded());
+            final RedisFuture<Long> enqueuedResponse = commands.zcount(jobQueueForStateKey(ENQUEUED), unbounded());
             final RedisFuture<String> processingCounterResponse = commands.get(jobCounterKey(PROCESSING));
-            final RedisFuture<Long> processingResponse = commands.zcount(jobQueueForStateKey(PROCESSING), Range.unbounded());
+            final RedisFuture<Long> processingResponse = commands.zcount(jobQueueForStateKey(PROCESSING), unbounded());
             final RedisFuture<String> succeededCounterResponse = commands.get(jobCounterKey(SUCCEEDED));
-            final RedisFuture<Long> succeededResponse = commands.zcount(jobQueueForStateKey(SUCCEEDED), Range.unbounded());
+            final RedisFuture<Long> succeededResponse = commands.zcount(jobQueueForStateKey(SUCCEEDED), unbounded());
             final RedisFuture<String> failedCounterResponse = commands.get(jobCounterKey(FAILED));
-            final RedisFuture<Long> failedResponse = commands.zcount(jobQueueForStateKey(FAILED), Range.unbounded());
+            final RedisFuture<Long> failedResponse = commands.zcount(jobQueueForStateKey(FAILED), unbounded());
             final RedisFuture<String> deletedCounterResponse = commands.get(jobCounterKey(DELETED));
-            final RedisFuture<Long> deletedResponse = commands.zcount(jobQueueForStateKey(DELETED), Range.unbounded());
+            final RedisFuture<Long> deletedResponse = commands.zcount(jobQueueForStateKey(DELETED), unbounded());
 
             final RedisFuture<Long> recurringJobsResponse = commands.scard(RECURRING_JOBS_KEY);
-            final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(BACKGROUND_JOB_SERVERS_KEY, 0, Long.MAX_VALUE);
+            final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(BACKGROUND_JOB_SERVERS_KEY, unbounded());
 
             connection.flushCommands();
             Futures.awaitAll(Duration.ofSeconds(10), waitingCounterResponse, waitingResponse, scheduledCounterResponse, scheduledResponse,

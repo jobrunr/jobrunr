@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 import static java.time.Instant.now;
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
@@ -126,6 +127,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
                             Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
                             Double.parseDouble(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
+                    .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
                     .collect(toList());
         }
     }

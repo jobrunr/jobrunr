@@ -77,8 +77,9 @@ public abstract class StorageProviderTest {
         storageProvider.announceBackgroundJobServer(serverStatus2);
         sleep(100);
 
-        storageProvider.signalBackgroundJobServerAlive(serverStatus1);
         storageProvider.signalBackgroundJobServerAlive(serverStatus2);
+        sleep(10);
+        storageProvider.signalBackgroundJobServerAlive(serverStatus1);
 
         final List<BackgroundJobServerStatus> backgroundJobServers = storageProvider.getBackgroundJobServers();
 
@@ -90,6 +91,7 @@ public abstract class StorageProviderTest {
         assertThat(backgroundJobServers.get(0).getLastHeartbeat()).isAfter(backgroundJobServers.get(0).getFirstHeartbeat());
         assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, ChronoUnit.MICROS));
         assertThat(backgroundJobServers.get(1).getLastHeartbeat()).isAfter(backgroundJobServers.get(1).getFirstHeartbeat());
+        assertThat(backgroundJobServers).extracting("id").containsExactly(serverStatus1.getId(), serverStatus2.getId());
 
         storageProvider.signalBackgroundJobServerStopped(serverStatus1);
         assertThat(storageProvider.getBackgroundJobServers()).hasSize(1);
