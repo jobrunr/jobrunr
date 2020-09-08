@@ -123,7 +123,6 @@ public class JobZooKeeper implements Runnable {
 
     void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
-
         Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(1000));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
