@@ -31,7 +31,7 @@ public class RecurringJobTestBuilder {
                 .withId("anId")
                 .withName("a recurring job")
                 .withJobDetails(defaultJobDetails())
-                .withCronExpression(Cron.daily(9, 30))
+                .withCronExpression(Cron.daily())
                 .withZoneId(ZoneId.systemDefault());
     }
 
