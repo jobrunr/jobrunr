@@ -5,6 +5,8 @@ import java.util.BitSet;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.Instant.now;
+
 /**
  * Schedule class represents a parsed crontab expression.
  *
@@ -156,15 +158,24 @@ public class CronExpression implements Comparable<CronExpression> {
      * @return Date object of the next occurrence.
      */
     public Instant next() {
-        return next(Instant.now());
+        return next(now());
     }
 
     public Instant next(ZoneId zoneId) {
         Instant next = next();
         if (hourIsWildcard) return next;
-        return LocalDateTime.ofInstant(next, ZoneOffset.UTC)
+        Instant instantNextRun = LocalDateTime.ofInstant(next, ZoneOffset.UTC)
                 .atZone(zoneId)
                 .toInstant();
+
+        if (instantNextRun.isBefore(Instant.now())) {
+            next = next(next);
+            instantNextRun = LocalDateTime.ofInstant(next, ZoneOffset.UTC)
+                    .atZone(zoneId)
+                    .toInstant();
+        }
+
+        return instantNextRun;
     }
 
     /**
@@ -266,7 +277,7 @@ public class CronExpression implements Comparable<CronExpression> {
      * @return Array of Date objects of the next N occurrences.
      */
     public Instant[] next(int count) {
-        return next(Instant.now(), count);
+        return next(now(), count);
     }
 
     /**
@@ -293,7 +304,7 @@ public class CronExpression implements Comparable<CronExpression> {
      * @return number of time units from the current time to the next occurrence.
      */
     public long nextDuration(TimeUnit timeUnit) {
-        return nextDuration(Instant.now(), timeUnit);
+        return nextDuration(now(), timeUnit);
     }
 
     /**
@@ -329,7 +340,7 @@ public class CronExpression implements Comparable<CronExpression> {
             return 0;
         }
 
-        Instant baseInstant = Instant.now();
+        Instant baseInstant = now();
         final Instant nextAnother = anotherCronExpression.next(baseInstant);
         final Instant nextThis = this.next(baseInstant);
 

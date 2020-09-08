@@ -2,8 +2,13 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -51,5 +56,24 @@ class RecurringJobTest {
         final Job job = recurringJob.toEnqueuedJob();
 
         assertThat(job).hasJobName("the recurring job");
+    }
+
+    @Test
+    void nextInstantIsCorrect() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        int hour = localDateTime.getHour();
+        int minute = localDateTime.getMinute();
+        if (localDateTime.getMinute() < 1) {
+            hour--;
+        } else {
+            minute--;
+        }
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withName("the recurring job")
+                .withCronExpression(Cron.daily(hour, (minute)))
+                .withZoneId(ZoneOffset.of("+02:00"))
+                .build();
+        Instant nextRun = recurringJob.getNextRun();
+        assertThat(nextRun).isAfter(Instant.now());
     }
 }
