@@ -65,7 +65,7 @@ Screenshots
 Usage
 ------
 
-[**Fire-and-forget tasks**](https://www.jobrunr.io/documentation/enqueueing-methods/)
+[**Fire-and-forget tasks**](https://www.jobrunr.io/en/documentation/background-methods/enqueueing-jobs/)
 
 Dedicated worker pool threads execute queued background jobs as soon as possible, shortening your request's processing time.
 
@@ -73,7 +73,7 @@ Dedicated worker pool threads execute queued background jobs as soon as possible
 BackgroundJob.enqueue(() -> System.out.println("Simple!"));
 ```
 
-[**Delayed tasks**](https://www.jobrunr.io/documentation/scheduling-methods/)
+[**Delayed tasks**](https://www.jobrunr.io/en/documentation/background-methods/scheduling-jobs/)
 
 Scheduled background jobs are executed only after a given amount of time.
 
@@ -81,7 +81,7 @@ Scheduled background jobs are executed only after a given amount of time.
 BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plusHours(5));
 ```
 
-[**Recurring tasks**](https://www.jobrunr.io/documentation/recurring-methods/)
+[**Recurring tasks**](https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/)
 
 Recurring jobs have never been simpler; just call the following method to perform any kind of recurring task using the [CRON expressions](http://en.wikipedia.org/wiki/Cron#CRON_expression).
 
@@ -110,7 +110,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.15</version>
+    <version>0.9.16</version>
 </dependency>
 ```
  
@@ -118,7 +118,7 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.15'
+implementation 'org.jobrunr:jobrunr:0.9.16'
 ```
 
 Configuration
