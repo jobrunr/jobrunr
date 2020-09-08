@@ -72,7 +72,7 @@ class CronExpressionTest {
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
-    // github issue 32
+    // github issue 31
     @Test
     void dailyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -91,6 +91,7 @@ class CronExpressionTest {
                 .isEqualTo(expectedNextRun);
     }
 
+    // github issue 31
     @Test
     void minutelyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
