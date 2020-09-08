@@ -85,7 +85,7 @@ class CronExpressionTest {
         }
 
         Instant nextRun = CronExpression.create(Cron.daily(hour, minute)).next(ZoneOffset.of("+02:00"));
-        Instant expectedNextRun = now().plusDays(1).withHour(hour).withMinute(minute).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
+        Instant expectedNextRun = now().plusDays(1).withHour(hour).withMinute(minute).withSecond(0).withNano(0).atZone(ZoneOffset.of("+02:00")).toInstant();
         assertThat(nextRun)
                 .isAfter(Instant.now())
                 .isEqualTo(expectedNextRun);
