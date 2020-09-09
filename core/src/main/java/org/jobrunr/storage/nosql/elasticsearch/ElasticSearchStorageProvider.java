@@ -495,14 +495,29 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     }
 
     void createIndicesIfNecessary() {
+        createIndicesIfNecessary(0);
+    }
+
+    void createIndicesIfNecessary(int retry) {
         try {
+            Thread.sleep(retry * 500);
             if (client.indices().exists(new GetIndexRequest(jobIndexName()), RequestOptions.DEFAULT)) return;
 
-            client.indices().create(jobIndex(), RequestOptions.DEFAULT);
-            client.indices().create(recurringJobIndex(), RequestOptions.DEFAULT);
-            client.indices().create(backgroundJobServersIndex(), RequestOptions.DEFAULT);
-            client.index(jobStatsIndex(), RequestOptions.DEFAULT);
-        } catch (IOException e) {
+            try {
+                client.indices().create(jobIndex(), RequestOptions.DEFAULT);
+                client.indices().create(recurringJobIndex(), RequestOptions.DEFAULT);
+                client.indices().create(backgroundJobServersIndex(), RequestOptions.DEFAULT);
+                client.index(jobStatsIndex(), RequestOptions.DEFAULT);
+            } catch (ElasticsearchStatusException e) {
+                if (retry >= 5) {
+                    throw e;
+                }
+                if (e.status().getStatus() == 400) {
+                    createIndicesIfNecessary(retry + 1);
+                }
+                throw e;
+            }
+        } catch (IOException | InterruptedException e) {
             throw new StorageException(e);
         }
     }

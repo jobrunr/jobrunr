@@ -16,10 +16,10 @@ public class Main extends AbstractMain {
     @Override
     protected StorageProvider initStorageProvider() {
         if (getEnvOrProperty("ELASTICSEARCH_HOST") == null) {
-            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable MONGO_HOST is not set");
+            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable ELASTICSEARCH_HOST is not set");
         }
         if (getEnvOrProperty("ELASTICSEARCH_PORT") == null) {
-            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable MONGO_PORT is not set");
+            throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable ELASTICSEARCH_PORT is not set");
         }
 
         return new ElasticSearchStorageProvider(getEnvOrProperty("ELASTICSEARCH_HOST"), Integer.parseInt(getEnvOrProperty("ELASTICSEARCH_PORT")));
