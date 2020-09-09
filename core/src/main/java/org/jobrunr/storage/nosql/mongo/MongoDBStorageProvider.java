@@ -18,9 +18,9 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
-import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
-import org.jobrunr.storage.StorageProviderConstants.Jobs;
-import org.jobrunr.storage.StorageProviderConstants.RecurringJobs;
+import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
+import org.jobrunr.storage.StorageProviderUtils.Jobs;
+import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
@@ -30,8 +30,13 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Aggregates.facet;
+import static com.mongodb.client.model.Aggregates.limit;
+import static com.mongodb.client.model.Aggregates.sortByCount;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.stream;
@@ -39,8 +44,19 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.storage.StorageProviderConstants.JobStats.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.StorageProviderUtils.JobStats.FIELD_ID;
+import static org.jobrunr.storage.StorageProviderUtils.JobStats.FIELD_STATS;
+import static org.jobrunr.storage.StorageProviderUtils.JobStats.NAME;
+import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
+import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
+import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -301,18 +317,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
         jobStatsCollection.updateOne(eq(toMongoId(FIELD_ID), FIELD_STATS), Updates.inc(state.name(), amount), new UpdateOptions().upsert(true));
-    }
-
-    private boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() != null);
-    }
-
-    private boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() == null);
-    }
-
-    private boolean areNewJobs(List<Job> jobs) {
-        return jobs.get(0).getId() == null;
     }
 
     private long toMicroSeconds(Instant instant) {

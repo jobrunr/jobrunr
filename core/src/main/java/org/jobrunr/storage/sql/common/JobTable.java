@@ -26,6 +26,9 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
+import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
+import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
@@ -213,17 +216,5 @@ public class JobTable extends Sql<Job> {
         if (job.getId() == null) {
             job.setId(UUID.randomUUID());
         }
-    }
-
-    private static boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() != null);
-    }
-
-    private static boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() == null);
-    }
-
-    private static boolean areNewJobs(List<Job> jobs) {
-        return jobs.get(0).getId() == null;
     }
 }

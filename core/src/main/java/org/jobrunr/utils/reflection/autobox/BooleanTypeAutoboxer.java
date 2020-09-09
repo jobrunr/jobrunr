@@ -12,7 +12,9 @@ public class BooleanTypeAutoboxer implements TypeAutoboxer<Boolean> {
 
     @Override
     public Boolean autobox(Object value, Class<Boolean> type) {
-        if (value instanceof BigDecimal) {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        } else if (value instanceof BigDecimal) {
             return cast(!BigDecimal.ZERO.equals(value));
         } else if (value instanceof Integer) {
             return cast(((Integer) value) != 0);

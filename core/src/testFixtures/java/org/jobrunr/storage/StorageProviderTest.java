@@ -30,12 +30,27 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.within;
-import static org.jobrunr.JobRunrAssertions.*;
+import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatCode;
+import static org.jobrunr.JobRunrAssertions.assertThatJobs;
+import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
+import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.storage.PageRequest.descOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
@@ -364,6 +379,9 @@ public abstract class StorageProviderTest {
         assertThatJobs(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), descOnUpdatedAt(100)))
                 .hasSize(3)
                 .containsExactly(jobs.get(2), jobs.get(1), jobs.get(0));
+
+        assertThatJobs(storageProvider.getJobs(PROCESSING, now().minus(1, HOURS), ascOnUpdatedAt(100)))
+                .isEmpty();
     }
 
     @Test
@@ -468,6 +486,7 @@ public abstract class StorageProviderTest {
 
         assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();
 
+        storageProvider.publishJobStatCounter(SUCCEEDED, 5);
         storageProvider.save(asList(
                 anEnqueuedJob().withoutId().build(),
                 anEnqueuedJob().withoutId().build(),
@@ -481,7 +500,6 @@ public abstract class StorageProviderTest {
         ));
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id1").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id2").build());
-        storageProvider.publishJobStatCounter(SUCCEEDED, 5);
 
         final JobStats jobStats = storageProvider.getJobStats();
         assertThat(jobStats.getAwaiting()).isEqualTo(0);

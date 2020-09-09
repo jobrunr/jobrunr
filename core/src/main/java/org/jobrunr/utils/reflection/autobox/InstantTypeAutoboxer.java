@@ -19,6 +19,8 @@ public class InstantTypeAutoboxer implements TypeAutoboxer<Instant> {
             return cast(new Timestamp((Long) value).toInstant());
         } else if ("oracle.sql.TIMESTAMP".equals(value.getClass().getName())) {
             return new InstantForOracleTypeAutoboxer().autobox(value, type);
+        } else if (value instanceof CharSequence) {
+            return Instant.parse((CharSequence) value);
         }
         throw new UnsupportedOperationException(String.format("Cannot autobox %s of type %s to %s", value, value.getClass().getName(), Instant.class.getName()));
     }

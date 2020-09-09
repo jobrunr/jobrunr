@@ -31,8 +31,24 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
+import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
+import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobCounterKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -70,19 +86,19 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
             commands.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
             commands.exec();
         }
@@ -98,16 +114,16 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
 
             commands.watch(backgroundJobServerKey(serverStatus));
             commands.multi();
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
             commands.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
             commands.exec();
             commands.unwatch();
-            return Boolean.parseBoolean(commands.hget(backgroundJobServerKey(serverStatus), StorageProviderConstants.BackgroundJobServers.FIELD_IS_RUNNING));
+            return Boolean.parseBoolean(commands.hget(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING));
         }
     }
 
@@ -131,19 +147,19 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
                     .mapUsingPipeline((p, id) -> p.hgetall(backgroundJobServerKey(id)))
                     .mapToValues()
                     .map(fieldMap -> new BackgroundJobServerStatus(
-                            UUID.fromString(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_ID)),
-                            Integer.parseInt(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
-                            Integer.parseInt(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
-                            Instant.parse(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_FIRST_HEARTBEAT)),
-                            Instant.parse(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_LAST_HEARTBEAT)),
-                            Boolean.parseBoolean(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_IS_RUNNING)),
-                            Long.parseLong(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY)),
-                            Long.parseLong(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY)),
-                            Double.parseDouble(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD)),
-                            Long.parseLong(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY)),
-                            Long.parseLong(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY)),
-                            Long.parseLong(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
-                            Double.parseDouble(fieldMap.get(StorageProviderConstants.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
+                            UUID.fromString(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_ID)),
+                            Integer.parseInt(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
+                            Integer.parseInt(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
+                            Instant.parse(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT)),
+                            Instant.parse(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT)),
+                            Boolean.parseBoolean(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING)),
+                            Long.parseLong(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY)),
+                            Long.parseLong(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY)),
+                            Double.parseDouble(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD)),
+                            Long.parseLong(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY)),
+                            Long.parseLong(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY)),
+                            Long.parseLong(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
+                            Double.parseDouble(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
                     .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
                     .collect(toList());

@@ -1,18 +1,34 @@
 package org.jobrunr.storage;
 
-public class StorageProviderConstants {
+import org.jobrunr.jobs.Job;
 
-    private StorageProviderConstants() {
+import java.util.List;
+
+public class StorageProviderUtils {
+
+    private StorageProviderUtils() {
     }
 
     private static final String FIELD_ID = "id";
+
+    public static boolean notAllJobsAreNew(List<Job> jobs) {
+        return jobs.stream().anyMatch(job -> job.getId() != null);
+    }
+
+    public static boolean notAllJobsAreExisting(List<Job> jobs) {
+        return jobs.stream().anyMatch(job -> job.getId() == null);
+    }
+
+    public static boolean areNewJobs(List<Job> jobs) {
+        return jobs.get(0).getId() == null;
+    }
 
     public static final class Jobs {
         private Jobs() {
         }
 
         public static final String NAME = "jobs";
-        public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
+        public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_VERSION = "version";
         public static final String FIELD_STATE = "state";
         public static final String FIELD_JOB_AS_JSON = "jobAsJson";
@@ -27,7 +43,7 @@ public class StorageProviderConstants {
         }
 
         public static final String NAME = "recurring_jobs";
-        public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
+        public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_VERSION = "version";
         public static final String FIELD_JOB_AS_JSON = "jobAsJson";
     }
@@ -37,7 +53,7 @@ public class StorageProviderConstants {
         }
 
         public static final String NAME = "background_job_servers";
-        public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
+        public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_WORKER_POOL_SIZE = "workerPoolSize";
         public static final String FIELD_POLL_INTERVAL_IN_SECONDS = "pollIntervalInSeconds";
         public static final String FIELD_FIRST_HEARTBEAT = "firstHeartbeat";
@@ -57,7 +73,7 @@ public class StorageProviderConstants {
         }
 
         public static final String NAME = "job_stats";
-        public static final String FIELD_ID = StorageProviderConstants.FIELD_ID;
+        public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_STATS = "stats";
 
     }

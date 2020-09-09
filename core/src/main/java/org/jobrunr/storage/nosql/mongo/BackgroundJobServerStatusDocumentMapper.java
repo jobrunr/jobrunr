@@ -2,7 +2,7 @@ package org.jobrunr.storage.nosql.mongo;
 
 import org.bson.Document;
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.StorageProviderConstants.BackgroundJobServers;
+import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 
 import java.util.Date;
 import java.util.UUID;

@@ -6,25 +6,12 @@ import org.jobrunr.storage.BackgroundJobServerStatus;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.UUID;
 
 public class RedisUtilities {
 
     private RedisUtilities() {
 
-    }
-
-    public static boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() != null);
-    }
-
-    public static boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() == null);
-    }
-
-    public static boolean areNewJobs(List<Job> jobs) {
-        return jobs.get(0).getId() == null;
     }
 
     public static String jobCounterKey(StateName stateName) {

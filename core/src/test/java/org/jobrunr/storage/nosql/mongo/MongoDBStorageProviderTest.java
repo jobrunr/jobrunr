@@ -8,8 +8,8 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.StorageProviderConstants;
 import org.jobrunr.storage.StorageProviderTest;
+import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.GenericContainer;
@@ -31,10 +31,10 @@ public class MongoDBStorageProviderTest extends StorageProviderTest {
     @Override
     protected void cleanup() {
         MongoDatabase jobrunrDb = mongoClient().getDatabase("jobrunr");
-        jobrunrDb.getCollection(StorageProviderConstants.Jobs.NAME).deleteMany(new Document());
-        jobrunrDb.getCollection(StorageProviderConstants.RecurringJobs.NAME).deleteMany(new Document());
-        jobrunrDb.getCollection(StorageProviderConstants.BackgroundJobServers.NAME).deleteMany(new Document());
-        jobrunrDb.getCollection(StorageProviderConstants.JobStats.NAME).deleteMany(new Document());
+        jobrunrDb.getCollection(StorageProviderUtils.Jobs.NAME).deleteMany(new Document());
+        jobrunrDb.getCollection(StorageProviderUtils.RecurringJobs.NAME).deleteMany(new Document());
+        jobrunrDb.getCollection(StorageProviderUtils.BackgroundJobServers.NAME).deleteMany(new Document());
+        jobrunrDb.getCollection(StorageProviderUtils.JobStats.NAME).deleteMany(new Document());
         //jobrunrDb.drop();
     }
 

@@ -10,8 +10,8 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.StorageProviderConstants.Jobs;
-import org.jobrunr.storage.StorageProviderConstants.RecurringJobs;
+import org.jobrunr.storage.StorageProviderUtils.Jobs;
+import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
