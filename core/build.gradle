@@ -61,7 +61,7 @@ dependencies {
     testImplementation 'org.testcontainers:oracle-xe'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:db2'
-    testImplementation 'org.testcontainers:elasticsearch:1.14.3'
+    testImplementation 'org.testcontainers:elasticsearch'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'

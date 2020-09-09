@@ -94,6 +94,11 @@ class PackageDependenciesTest {
                 .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.jobrunr.server.jmx..", "org.slf4j..", "java..");
         jobStorageClasses.check(classes);
 
+        ArchRule elasticSearchClasses = classes()
+                .that().resideInAPackage("org.jobrunr.storage.nosql.elasticsearch")
+                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.elasticsearch..", "org.apache.http..", "org.slf4j..", "java..");
+        elasticSearchClasses.check(classes);
+
         ArchRule mongoClasses = classes()
                 .that().resideInAPackage("org.jobrunr.storage.nosql.mongo")
                 .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..");
