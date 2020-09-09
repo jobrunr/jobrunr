@@ -510,12 +510,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
                 client.index(jobStatsIndex(), RequestOptions.DEFAULT);
             } catch (ElasticsearchStatusException e) {
                 if (retry >= 5) {
+                    throw new StorageException("Retried 5 times to setup ElasticSearch Indices", e);
+                } else if (e.status().getStatus() == 400) {
+                    createIndicesIfNecessary(retry + 1);
+                } else {
                     throw e;
                 }
-                if (e.status().getStatus() == 400) {
-                    createIndicesIfNecessary(retry + 1);
-                }
-                throw e;
             }
         } catch (IOException | InterruptedException e) {
             throw new StorageException(e);
