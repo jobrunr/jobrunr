@@ -26,9 +26,19 @@ Open and free for commercial use.
 </p>
 
 ## Overview
-Incredibly easy way to perform **fire-and-forget**, **delayed** and **recurring jobs** inside **Java applications** using only *Java 8 lambda's*. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via either RDBMS (e.g. Postgres, MariaDB/MySQL and Oracle) or NoSQL (MongoDB and Redis).
+```java
+BackgroundJob.enqueue(() -> System.out.println("This is all you need for distributed job processing!"));
+```
+
+Incredibly easy way to perform **fire-and-forget**, **delayed**, **scheduled** and **recurring jobs** inside **Java applications** using only *Java 8 lambda's*. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via either RDBMS (e.g. Postgres, MariaDB/MySQL and Oracle) or NoSQL (ElasticSearch, MongoDB and Redis).
 
 JobRunr provides a unified programming model to handle background tasks in a **reliable way** and runs them on shared hosting, dedicated hosting or in the cloud (hello Kubernetes) within a JVM instance.
+
+
+## Feedback
+> Thanks for building JobRunr, I like it a lot! Before that I used similar libraries in Ruby and Golang and JobRunr so far is the most pleasant one to use. I especially like the dashboard, it’s awesome! [Alex Denisov](https://www.linkedin.com/in/alex-denisov-a29bab2a/)
+
+View more feedback on [jobrunr.io](https://www.jobrunr.io/en/#why-jobrunr).
 
 
 ## Features
