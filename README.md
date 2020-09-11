@@ -27,7 +27,7 @@ Open and free for commercial use.
 
 ## Overview
 ```java
-BackgroundJob.enqueue(() -> System.out.println("This is all you need for distributed job processing!"));
+BackgroundJob.enqueue(() -> System.out.println("This is all you need for distributed jobs!"));
 ```
 
 Incredibly easy way to perform **fire-and-forget**, **delayed**, **scheduled** and **recurring jobs** inside **Java applications** using only *Java 8 lambda's*. CPU and I/O intensive, long-running and short-running jobs are supported. Persistent storage is done via either RDBMS (e.g. Postgres, MariaDB/MySQL and Oracle) or NoSQL (ElasticSearch, MongoDB and Redis).
