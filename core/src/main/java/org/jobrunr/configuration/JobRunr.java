@@ -15,6 +15,21 @@ package org.jobrunr.configuration;
  *                 .useDashboard()
  *                 .initialize();
  * </pre>
+ *
+ * Both the backgroundJobServer and the dashboard fluent API allow to be enabled or disabled using ENV variables which
+ * is handy in docker containers.
+ * <h5>An example:</h5>
+ * <pre>
+ *     boolean isBackgroundJobServerEnabled = true; // or get it via ENV variables
+ *     boolean isDashboardEnabled = true; // or get it via ENV variables
+ *     JobRunr.configure()
+ *                 .useJobStorageProvider(jobStorageProvider)
+ *                 .useJobActivator(jobActivator)
+ *                 .useDefaultBackgroundJobServerIf(isBackgroundJobServerEnabled)
+ *                 .useDashboardIf(isDashboardEnabled)
+ *                 .useJmxExtensions()
+ *                 .initialize();
+ * </pre>
  */
 public class JobRunr {
 

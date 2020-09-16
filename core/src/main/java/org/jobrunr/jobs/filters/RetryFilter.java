@@ -8,6 +8,20 @@ import org.jobrunr.utils.JobUtils;
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
 
+/**
+ * A JobFilter of type {@link ElectStateFilter} that will retry the job if it fails for up to 10 times.
+ * This JobFilter is added by default in JobRunr.
+ * <p>
+ * If you want to configure the amount of retries, create a new instance and pass it to the JobRunrConfiguration, e.g.:
+ *
+ * <pre>
+ *     JobRunr.configure()
+ *                 ...
+ *                 .withJobFilter(new RetryFilter(20)) // this will result in 20 retries
+ *                 ...
+ *                 .initialize();
+ * </pre>
+ */
 public class RetryFilter implements ElectStateFilter {
 
     public static final int DEFAULT_NBR_OF_RETRIES = 10;
