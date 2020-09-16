@@ -48,7 +48,7 @@ const getDuration = (duration) => {
             result += hours + " hours, "
         }
         if (minutes > 0) {
-            result += minutes + ((minutes > 1) ? " minutes " : " minute")
+            result += minutes + ((minutes > 1) ? " minutes" : " minute")
         }
         if (minutes > 0 && seconds > 0) {
             result += " and "
@@ -64,7 +64,7 @@ const getDuration = (duration) => {
 }
 
 const convertISO8601ToSeconds = (durationString) => {
-    var stringPattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,3})?)S)?$/;
+    var stringPattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
     var stringParts = stringPattern.exec(durationString);
     return (
         (
