@@ -35,8 +35,35 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+const getDuration = (duration) => {
+    try {
+        const actualDuration = duration.toString().startsWith('PT') ? convertISO8601ToSeconds(duration) : duration;
+        const totalSeconds = actualDuration.toFixed(2);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds - (hours * 3600)) / 60);
+        const seconds = totalSeconds - (hours * 3600) - (minutes * 60);
 
-function convertISO8601ToSeconds(durationString) {
+        let result = "";
+        if (hours > 0) {
+            result += hours + " hours, "
+        }
+        if (minutes > 0) {
+            result += minutes + ((minutes > 1) ? " minutes " : " minute")
+        }
+        if (minutes > 0 && seconds > 0) {
+            result += " and "
+        }
+        if (seconds > 0) {
+            result += seconds.toFixed(2) + " seconds"
+        }
+        return result;
+    } catch (e) {
+        console.warn("Could not parse " + duration + ". If you want pretty dates in the succeeded view, your durations must be formatted as either seconds or ISO8601 duration format (e.g. PT5M33S). This is a settings in Jackson.");
+        return duration + " (unsupported duration format - see console)";
+    }
+}
+
+const convertISO8601ToSeconds = (durationString) => {
     var stringPattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,3})?)S)?$/;
     var stringParts = stringPattern.exec(durationString);
     return (
@@ -56,10 +83,6 @@ const Succeeded = (props) => {
     const jobState = props.jobState;
     const checkIcon = <Check/>
 
-    const latencyDuration = jobState.latencyDuration.toString().startsWith('PT') ? convertISO8601ToSeconds(jobState.latencyDuration) : jobState.latencyDuration;
-    const processDuration = jobState.processDuration.toString().startsWith('PT') ? convertISO8601ToSeconds(jobState.processDuration) : jobState.processDuration;
-
-
     return (
         <ExpansionPanel>
             <ExpansionPanelSummary
@@ -73,13 +96,14 @@ const Succeeded = (props) => {
                         Job processing succeeded
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}><TimeAgo
-                    date={new Date(jobState.createdAt)}/></Typography>
+                <Typography className={classes.secondaryHeading}>
+                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                </Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanel}>
                 <ul>
-                    <li>Latency duration: {latencyDuration.toFixed(2)} s</li>
-                    <li>Process duration: {processDuration.toFixed(2)} s</li>
+                    <li>Latency duration: {getDuration(jobState.latencyDuration)}</li>
+                    <li>Process duration: {getDuration(jobState.processDuration)}</li>
                 </ul>
             </ExpansionPanelDetails>
         </ExpansionPanel>

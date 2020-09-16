@@ -1,8 +1,13 @@
 package org.jobrunr.storage;
 
+import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.ScheduledState;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
 import static java.time.Instant.now;
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobThatEventuallySucceeded;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
@@ -23,8 +28,9 @@ public class StubDataProvider {
     }
 
     public StubDataProvider addALotOfEnqueuedJobsThatTakeSomeTime() {
-        for (int i = 0; i < 33000; i++) {
-            storageProvider.save(anEnqueuedJobThatTakesLong().build());
+        for (int i = 0; i < 33; i++) {
+            List<Job> jobs = IntStream.range(0, 1000).mapToObj(j -> anEnqueuedJobThatTakesLong().build()).collect(toList());
+            storageProvider.save(jobs);
         }
         storageProvider.save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
         storageProvider.save(aSucceededJob().withoutId().build());

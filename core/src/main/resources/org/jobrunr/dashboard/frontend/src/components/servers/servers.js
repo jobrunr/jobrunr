@@ -134,10 +134,12 @@ const Servers = React.memo(() => {
                                                     {server.workerPoolSize}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <TimeAgo date={new Date(server.firstHeartbeat)}/>
+                                                    <TimeAgo date={new Date(server.firstHeartbeat)}
+                                                             title={new Date(server.firstHeartbeat).toString()}/>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <TimeAgo date={new Date(server.lastHeartbeat)}/>
+                                                    <TimeAgo date={new Date(server.lastHeartbeat)}
+                                                             title={new Date(server.lastHeartbeat).toString()}/>
                                                 </TableCell>
                                                 <TableCell>
                                                     {humanFileSize(server.processFreeMemory, true)}
@@ -198,7 +200,8 @@ const Servers = React.memo(() => {
                                         FirstHeartbeat
                                     </TableCell>
                                     <TableCell>
-                                        <TimeAgo date={new Date(serverRef.current.firstHeartbeat)}/>
+                                        <TimeAgo date={new Date(serverRef.current.firstHeartbeat)}
+                                                 title={new Date(serverRef.current.firstHeartbeat).toString()}/>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -206,7 +209,8 @@ const Servers = React.memo(() => {
                                         LastHeartbeat
                                     </TableCell>
                                     <TableCell>
-                                        <TimeAgo date={new Date(serverRef.current.lastHeartbeat)}/>
+                                        <TimeAgo date={new Date(serverRef.current.lastHeartbeat)}
+                                                 title={new Date(serverRef.current.lastHeartbeat).toString()}/>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>

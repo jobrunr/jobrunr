@@ -60,8 +60,9 @@ const Deleted = (props) => {
                         Job deleted
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}><TimeAgo
-                    date={new Date(jobState.createdAt)}/></Typography>
+                <Typography className={classes.secondaryHeading}>
+                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                </Typography>
             </ExpansionPanelSummary>
         </ExpansionPanel>
     )

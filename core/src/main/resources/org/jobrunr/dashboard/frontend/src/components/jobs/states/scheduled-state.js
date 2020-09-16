@@ -58,10 +58,12 @@ const Scheduled = (props) => {
             >
                 <Alert className={classes.alert} severity="info" color="#CFD8DC" icon={scheduledIcon}>
                     <Typography className={classes.primaryHeading} variant="h6">
-                        Job scheduled <ScheduledMessage />
+                        Job scheduled <ScheduledMessage/>
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}><TimeAgo date={new Date(jobState.scheduledAt)}/></Typography>
+                <Typography className={classes.secondaryHeading}>
+                    <TimeAgo date={new Date(jobState.scheduledAt)} title={new Date(jobState.scheduledAt).toString()}/>
+                </Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails>
                 Job scheduled at {scheduledDate.toString()}

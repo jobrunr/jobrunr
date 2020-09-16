@@ -122,8 +122,9 @@ const Processing = (props) => {
                         Processing job
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}><TimeAgo
-                    date={new Date(jobState.createdAt)}/></Typography>
+                <Typography className={classes.secondaryHeading}>
+                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                </Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanel}>
                 {progressBar &&

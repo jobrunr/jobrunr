@@ -180,7 +180,7 @@ const RecurringJobs = (props) => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <TimeAgo date={new Date(recurringJob.nextRun)}
-                                                             title={new Date(recurringJob.nextRun)}/>
+                                                             title={new Date(recurringJob.nextRun).toString()}/>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
