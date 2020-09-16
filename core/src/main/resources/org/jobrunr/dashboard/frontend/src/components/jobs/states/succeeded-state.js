@@ -9,8 +9,6 @@ import {makeStyles} from "@material-ui/core/styles";
 import TimeAgo from "react-timeago/lib";
 import {Check} from "mdi-material-ui";
 
-const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
-
 const useStyles = makeStyles(theme => ({
     primaryHeading: {
         textTransform: "none",
@@ -66,6 +64,7 @@ const getDuration = (duration) => {
 }
 
 const convertISO8601ToSeconds = (durationString) => {
+    const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
     const stringParts = iso8601TimePattern.exec(durationString);
     return (
         (
