@@ -17,6 +17,7 @@ import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
@@ -61,7 +62,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobFilters = new JobFilters();
         this.serverZooKeeper = createServerZooKeeper();
-        this.jobZooKeeper = createJobZooKeeper();
+        this.jobZooKeeper = createJobZooKeeper(configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter);
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "extShutdownHook"));
     }
 
@@ -205,8 +206,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    private JobZooKeeper createJobZooKeeper() {
-        return new JobZooKeeper(this);
+    private JobZooKeeper createJobZooKeeper(Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
+        return new JobZooKeeper(this,  deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter);
     }
 
     private ServerZooKeeper createServerZooKeeper() {

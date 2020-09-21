@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +69,7 @@ class JobZooKeeperTest {
 
     @Test
     void jobZooKeeperDoesNothingIfItIsNotInitialized() {
-        jobZooKeeper = new JobZooKeeper(backgroundJobServer);
+        jobZooKeeper = new JobZooKeeper(backgroundJobServer, Duration.ofHours(32), Duration.ofHours(72));
 
         jobZooKeeper.run();
 
@@ -278,7 +279,7 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
-        final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer);
+        final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer, Duration.ofHours(32), Duration.ofHours(72));
         jobZooKeeper.setIsMaster(true);
         return jobZooKeeper;
     }

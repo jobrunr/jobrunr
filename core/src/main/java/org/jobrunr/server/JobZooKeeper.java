@@ -15,6 +15,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -48,8 +49,10 @@ public class JobZooKeeper implements Runnable {
     private final ReentrantLock reentrantLock;
     private final AtomicBoolean isMaster;
     private final AtomicInteger occupiedWorkers;
+    private final Duration deleteSucceededJobsAfter;
+    private final Duration permanentlyDeleteDeletedJobsAfter;
 
-    public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
+    public JobZooKeeper(BackgroundJobServer backgroundJobServer, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.jobFilters = backgroundJobServer.getJobFilters();
@@ -60,7 +63,8 @@ public class JobZooKeeper implements Runnable {
         this.exceptionCount = new AtomicInteger();
         this.isMaster = new AtomicBoolean();
         this.occupiedWorkers = new AtomicInteger();
-    }
+        this.deleteSucceededJobsAfter = deleteSucceededJobsAfter;
+        this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;    }
 
     @Override
     public void run() {
@@ -138,7 +142,7 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
-        final Instant updatedBefore = now().minus(36, ChronoUnit.HOURS);
+        final Instant updatedBefore = now().minus(deleteSucceededJobsAfter);
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
@@ -152,7 +156,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
-        storageProvider.deleteJobs(StateName.DELETED, now().minus(72, ChronoUnit.HOURS));
+        storageProvider.deleteJobs(StateName.DELETED, now().minus(permanentlyDeleteDeletedJobsAfter));
     }
 
     void updateJobsThatAreBeingProcessed() {
