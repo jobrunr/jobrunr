@@ -57,7 +57,7 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the workerCount for the BackgroundJobServer which defines the duration to wait before deleting succeeded jobs
+     * Allows to set the duration to wait before deleting succeeded jobs
      *
      * @param duration the duration to wait before deleting successful jobs
      * @return the same configuration instance which provides a fluent api
@@ -68,7 +68,7 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the workerCount for the BackgroundJobServer which defines the duration to wait before permanently deleting succeeded jobs
+     * Allows to set the the duration to wait before permanently deleting succeeded jobs
      *
      * @param duration the duration to wait before permanently deleting successful jobs
      * @return the same configuration instance which provides a fluent api

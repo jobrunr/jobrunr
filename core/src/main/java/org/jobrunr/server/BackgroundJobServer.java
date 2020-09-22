@@ -17,7 +17,6 @@ import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
@@ -45,6 +44,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private java.util.concurrent.ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
     private JobFilters jobFilters;
+    private BackgroundJobServerConfiguration configuration;
 
     public BackgroundJobServer(StorageProvider storageProvider) {
         this(storageProvider, null);
@@ -57,12 +57,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
 
+        this.configuration = configuration;
         this.serverStatus = new BackgroundJobServerStatus(configuration.pollIntervalInSeconds, configuration.backgroundJobServerWorkerPolicy.getWorkerCount());
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobFilters = new JobFilters();
         this.serverZooKeeper = createServerZooKeeper();
-        this.jobZooKeeper = createJobZooKeeper(configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter);
+        this.jobZooKeeper = createJobZooKeeper();
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "extShutdownHook"));
     }
 
@@ -161,6 +162,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return serverStatus.isRunning();
     }
 
+    public BackgroundJobServerConfiguration getConfiguration() {
+        return configuration;
+    }
+
     private void startZooKeepers() {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         zookeeperThreadPool.scheduleAtFixedRate(serverZooKeeper, 0, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
@@ -206,8 +211,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    private JobZooKeeper createJobZooKeeper(Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
-        return new JobZooKeeper(this,  deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter);
+    private JobZooKeeper createJobZooKeeper() {
+        return new JobZooKeeper(this);
     }
 
     private ServerZooKeeper createServerZooKeeper() {

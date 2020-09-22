@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,14 +34,33 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JobZooKeeperTest {
@@ -65,11 +83,13 @@ class JobZooKeeperTest {
         backgroundJobServerStatus = new BackgroundJobServerStatus(15, 10);
         jobZooKeeper = initializeJobZooKeeper();
         logger = LoggerAssert.initFor(jobZooKeeper);
+
+        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
     }
 
     @Test
     void jobZooKeeperDoesNothingIfItIsNotInitialized() {
-        jobZooKeeper = new JobZooKeeper(backgroundJobServer, Duration.ofHours(32), Duration.ofHours(72));
+        jobZooKeeper = new JobZooKeeper(backgroundJobServer);
 
         jobZooKeeper.run();
 
@@ -279,7 +299,7 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
-        final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer, Duration.ofHours(32), Duration.ofHours(72));
+        final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer);
         jobZooKeeper.setIsMaster(true);
         return jobZooKeeper;
     }
