@@ -52,6 +52,8 @@ public class JobStatsEnricher {
         Instant estimatedProcessingFinishedInstant = estimatedProcessingFinishedInstant(firstRelevantJobStats, jobStats);
         if (estimatedProcessingFinishedInstant != null) {
             jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, estimatedProcessingFinishedInstant);
+        } else if (jobStatsExtended != null && jobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()) {
+            jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, jobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt());
         }
     }
 
