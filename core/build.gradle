@@ -30,6 +30,7 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
+
     compileOnly 'org.xerial:sqlite-jdbc'
     compileOnly 'com.h2database:h2'
     compileOnly 'org.postgresql:postgresql'

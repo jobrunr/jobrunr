@@ -1,0 +1,93 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.8.5'
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api project(':core')
+
+    api 'org.springframework.boot:spring-boot-starter:2.3.4.RELEASE'
+    api 'org.springframework.boot:spring-boot-autoconfigure:2.3.4.RELEASE'
+    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor:2.3.4.RELEASE'
+
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    compileOnly 'com.google.code.gson:gson'
+    compileOnly 'org.eclipse:yasson'
+}
+
+
+publishing {
+    publications {
+        mavenJavaPlatform(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-spring-boot-starter'
+            version = project.version.replace("v", "")
+            from components.java
+
+            pom {
+                name = 'JobRunr Spring Boot Starter'
+                description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'Multi licensed'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                versionMapping {
+                    usage('java-runtime'){
+                        fromResolutionResult()
+                    }
+                }
+
+                withXml {
+                    Node pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_APIKEY')
+    publications = ['mavenJavaPlatform']
+    publish = true
+
+    pkg {
+        userOrg = 'jobrunr'
+        repo = 'jobrunr'
+        name = 'JobRunr'
+        licenses = ['LGPL-3.0']
+        websiteUrl = 'https://www.jobrunr.io'
+        vcsUrl = 'https://github.com/jobrunr/jobrunr.git'
+        issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
+        version {
+            name = project.version.replace("v", "")
+            released  = new Date()
+            vcsTag = project.version
+        }
+    }
+}
