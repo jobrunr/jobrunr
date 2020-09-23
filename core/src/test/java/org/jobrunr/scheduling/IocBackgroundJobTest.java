@@ -31,9 +31,15 @@ import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.*;
+import static org.awaitility.Durations.FIVE_SECONDS;
+import static org.awaitility.Durations.ONE_MINUTE;
+import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -202,7 +208,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testRecurringJob() {
-        BackgroundJob.<TestService>scheduleRecurringly(x -> x.doWork(5), Cron.minutely());
+        BackgroundJob.<TestService>scheduleRecurrently(x -> x.doWork(5), Cron.minutely());
         await().atMost(ofSeconds(65)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -211,7 +217,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testRecurringJobWithId() {
-        BackgroundJob.<TestService>scheduleRecurringly("theId", x -> x.doWork(5), Cron.minutely());
+        BackgroundJob.<TestService>scheduleRecurrently("theId", x -> x.doWork(5), Cron.minutely());
         await().atMost(ofSeconds(65)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -220,7 +226,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testRecurringJobWithIdAndTimezone() {
-        BackgroundJob.<TestService>scheduleRecurringly("theId", x -> x.doWork(5), Cron.minutely(), systemDefault());
+        BackgroundJob.<TestService>scheduleRecurrently("theId", x -> x.doWork(5), Cron.minutely(), systemDefault());
         await().atMost(ofSeconds(65)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -229,7 +235,7 @@ public class IocBackgroundJobTest {
 
     @Test
     void testDeleteOfRecurringJob() {
-        String jobId = BackgroundJob.<TestService>scheduleRecurringly(x -> x.doWork(5), Cron.minutely());
+        String jobId = BackgroundJob.<TestService>scheduleRecurrently(x -> x.doWork(5), Cron.minutely());
         BackgroundJob.delete(jobId);
         await().atMost(ofSeconds(61)).until(() -> storageProvider.countJobs(ENQUEUED) == 0 && storageProvider.countJobs(SUCCEEDED) == 0);
         assertThat(storageProvider.getRecurringJobs()).isEmpty();

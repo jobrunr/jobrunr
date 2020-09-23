@@ -66,7 +66,7 @@ class JobSchedulerTest {
     void onRecurringJobCreatingAndCreatedAreCalled() {
         when(storageProvider.saveRecurringJob(any(RecurringJob.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        jobScheduler.scheduleRecurringly(null, () -> testService.doWork(), Cron.daily(), ZoneId.systemDefault());
+        jobScheduler.scheduleRecurrently(null, () -> testService.doWork(), Cron.daily(), ZoneId.systemDefault());
 
         assertThat(jobClientLogFilter.onCreating).isTrue();
         assertThat(jobClientLogFilter.onCreated).isTrue();

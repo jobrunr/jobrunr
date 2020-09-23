@@ -278,7 +278,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      jobScheduler.scheduleRecurringly(() -> service.doWork(), Cron.daily());
+     *      jobScheduler.scheduleRecurrently(() -> service.doWork(), Cron.daily());
      * }</pre>
      *
      * @param job  the lambda which defines the fire-and-forget job
@@ -286,15 +286,15 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public String scheduleRecurringly(JobLambda job, String cron) {
-        return scheduleRecurringly(null, job, cron);
+    public String scheduleRecurrently(JobLambda job, String cron) {
+        return scheduleRecurrently(null, job, cron);
     }
 
     /**
      * Creates a new recurring job based on the given lambda and the given cron expression. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      jobScheduler.<MyService>scheduleRecurringly(x -> x.doWork(), Cron.daily());
+     *      jobScheduler.<MyService>scheduleRecurrently(x -> x.doWork(), Cron.daily());
      * }</pre>
      *
      * @param iocJob the lambda which defines the fire-and-forget job
@@ -302,8 +302,8 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public <S> String scheduleRecurringly(IocJobLambda<S> iocJob, String cron) {
-        return scheduleRecurringly(null, iocJob, cron);
+    public <S> String scheduleRecurrently(IocJobLambda<S> iocJob, String cron) {
+        return scheduleRecurrently(null, iocJob, cron);
     }
 
     /**
@@ -311,7 +311,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      jobScheduler.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily());
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", () -> service.doWork(), Cron.daily());
      * }</pre>
      *
      * @param id   the id of this recurring job which can be used to alter or delete it
@@ -320,15 +320,15 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public String scheduleRecurringly(String id, JobLambda job, String cron) {
-        return scheduleRecurringly(id, job, cron, systemDefault());
+    public String scheduleRecurrently(String id, JobLambda job, String cron) {
+        return scheduleRecurrently(id, job, cron, systemDefault());
     }
 
     /**
      * Creates a new recurring job based on the given id, lambda and cron expression. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
-     *      jobScheduler.<MyService>scheduleRecurringly("my-recurring-job", x -> x.doWork(), Cron.daily());
+     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", x -> x.doWork(), Cron.daily());
      * }</pre>
      *
      * @param id     the id of this recurring job which can be used to alter or delete it
@@ -337,8 +337,8 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public <S> String scheduleRecurringly(String id, IocJobLambda<S> iocJob, String cron) {
-        return scheduleRecurringly(id, iocJob, cron, systemDefault());
+    public <S> String scheduleRecurrently(String id, IocJobLambda<S> iocJob, String cron) {
+        return scheduleRecurrently(id, iocJob, cron, systemDefault());
     }
 
     /**
@@ -346,7 +346,7 @@ public class JobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      jobScheduler.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", () -> service.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
      * }</pre>
      *
      * @param id     the id of this recurring job which can be used to alter or delete it
@@ -356,16 +356,16 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public String scheduleRecurringly(String id, JobLambda job, String cron, ZoneId zoneId) {
+    public String scheduleRecurrently(String id, JobLambda job, String cron, ZoneId zoneId) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
-        return scheduleRecurringly(id, jobDetails, CronExpression.create(cron), zoneId);
+        return scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
     }
 
     /**
      * Creates a new recurring job based on the given id, lambda, cron expression and {@code ZoneId}. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      jobScheduler.<MyService>scheduleRecurringly("my-recurring-job", x -> x.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
+     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", x -> x.doWork(), Cron.daily(), ZoneId.of("Europe/Brussels"));
      * }</pre>
      *
      * @param id     the id of this recurring job which can be used to alter or delete it
@@ -375,9 +375,9 @@ public class JobScheduler {
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
-    public <S> String scheduleRecurringly(String id, IocJobLambda<S> iocJob, String cron, ZoneId zoneId) {
+    public <S> String scheduleRecurrently(String id, IocJobLambda<S> iocJob, String cron, ZoneId zoneId) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
-        return scheduleRecurringly(id, jobDetails, CronExpression.create(cron), zoneId);
+        return scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
     }
 
     /**
@@ -415,7 +415,7 @@ public class JobScheduler {
         return savedJobs;
     }
 
-    String scheduleRecurringly(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
+    String scheduleRecurrently(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
         jobFilters.runOnCreatingFilter(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
