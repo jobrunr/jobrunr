@@ -3,6 +3,7 @@ package org.jobrunr;
 public class JobRunrException extends RuntimeException {
 
     public static final String SHOULD_NOT_HAPPEN_MESSAGE = "JobRunr encountered a problematic exception. Please create a bug report (if possible, provide the code to reproduce this and the stacktrace)";
+    public static final String INVALID_LAMBDA_MESSAGE = "The lambda you provided is not valid.";
 
     private final boolean doNotRetry;
 
@@ -30,6 +31,10 @@ public class JobRunrException extends RuntimeException {
 
     public static JobRunrException shouldNotHappenException(String message) {
         return new JobRunrException(SHOULD_NOT_HAPPEN_MESSAGE, new IllegalStateException(message));
+    }
+
+    public static JobRunrException invalidLambdaException(Exception exception) {
+        return new JobRunrException(INVALID_LAMBDA_MESSAGE, exception);
     }
 
     public static JobRunrException shouldNotHappenException(Throwable cause) {

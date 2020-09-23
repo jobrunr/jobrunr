@@ -197,6 +197,10 @@ public class TestService implements TestServiceInterface {
         return UUID.randomUUID();
     }
 
+    private void aPrivateMethod(String string, int someNumber) {
+        System.out.println("Nothing to do");
+    }
+
     public static class Work {
 
         private int workCount;

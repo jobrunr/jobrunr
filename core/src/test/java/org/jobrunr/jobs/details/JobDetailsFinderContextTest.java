@@ -1,10 +1,8 @@
 package org.jobrunr.jobs.details;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.details.instructions.ALoadOperandInstruction;
-import org.jobrunr.jobs.details.instructions.InvokeSpecialInstruction;
-import org.jobrunr.jobs.details.instructions.InvokeVirtualInstruction;
-import org.jobrunr.jobs.details.instructions.LdcInstruction;
+import org.jobrunr.jobs.details.instructions.*;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 
@@ -34,6 +33,19 @@ class JobDetailsFinderContextTest {
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
                 .hasArgs("Hello World");
+    }
+
+    @Test
+    void reproduceIssuePrivateMethod() {
+        final JobDetailsFinderContext jobDetailsFinderContext = getJobDetailsFinderContext();
+        new ALoadOperandInstruction(jobDetailsFinderContext).load(0);
+        new ALoadOperandInstruction(jobDetailsFinderContext).load(1);
+        new IConst2OperandInstruction(jobDetailsFinderContext).load();
+        new InvokeSpecialInstruction(jobDetailsFinderContext).load("org/jobrunr/stubs/TestService", "aPrivateMethod", "(Ljava/lang/String;I)V", false);
+
+        assertThatThrownBy(() -> jobDetailsFinderContext.getJobDetails())
+                .isInstanceOf(JobRunrException.class)
+                .hasMessage("The lambda you provided is not valid.");
     }
 
     private JobDetailsFinderContext getJobDetailsFinderContext() {
