@@ -3,10 +3,7 @@ package org.jobrunr.storage.nosql.mongo;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
 import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -358,7 +355,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     private boolean jobRunrDatabaseExists(MongoClient mongoClient) {
-        return mongoClient.listDatabaseNames().into(new ArrayList<>()).contains("jobrunr");
+        MongoIterable<String> allDatabases = mongoClient.listDatabaseNames();
+        for (String dbName : allDatabases) {
+            if ("jobrunr".equals(dbName)) return true;
+        }
+        return false;
     }
 
     // used to perform query analysis

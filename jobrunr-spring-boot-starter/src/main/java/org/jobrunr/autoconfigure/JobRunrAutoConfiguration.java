@@ -11,11 +11,9 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,7 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import javax.sql.DataSource;
 import java.time.Duration;
 
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
@@ -101,14 +98,6 @@ public class JobRunrAutoConfiguration {
         return applicationContext::getBean;
     }
 
-    @Bean
-    @ConditionalOnBean(name = "dataSource")
-    @ConditionalOnMissingBean
-    public StorageProvider storageProvider(DataSource dataSource, JobMapper jobMapper) {
-        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource);
-        storageProvider.setJobMapper(jobMapper);
-        return storageProvider;
-    }
 
     @Bean
     @ConditionalOnMissingBean

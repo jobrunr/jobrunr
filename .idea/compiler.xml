@@ -12,6 +12,15 @@
       <entry name="!?*.clj" />
       <entry name="!?*.aj!?*.sql" />
     </wildcardResourcePatterns>
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.3.4.RELEASE/ca924688c234a7aa3c1c070bbabf9392801dde0/spring-boot-autoconfigure-processor-2.3.4.RELEASE.jar" />
+        </processorPath>
+        <module name="JobRunr.jobrunr-spring-boot-starter.main" />
+      </profile>
+    </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
       <module name="JangFire.backgroundjob-server.main" target="1.8" />
       <module name="JangFire.backgroundjob-server.test" target="1.8" />
