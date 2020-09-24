@@ -27,6 +27,9 @@ import java.time.Duration;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
+/**
+ * A Spring Boot AutoConfiguration class for JobRunr
+ */
 @Configuration
 public class JobRunrAutoConfiguration {
 

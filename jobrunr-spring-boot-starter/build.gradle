@@ -29,6 +29,10 @@ dependencies {
     testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
 
 publishing {
     publications {
