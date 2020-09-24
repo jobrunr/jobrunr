@@ -120,7 +120,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>0.9.19</version>
+    <version>1.0.0</version>
 </dependency>
 ```
  
@@ -128,49 +128,21 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:0.9.19'
+implementation 'org.jobrunr:jobrunr:1.0.0'
 ```
 
 Configuration
 ------------
 #### Do you like to work Spring based?
 
-```java
-@Bean
-public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator) {
-    final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator);
-    backgroundJobServer.start();
-    return backgroundJobServer;
-}
+Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just setup your `application.properties`:
 
-@Bean
-public JobActivator jobActivator(ApplicationContext applicationContext) {
-    return applicationContext::getBean;
-}
-
-@Bean
-public JobScheduler jobScheduler(StorageProvider storageProvider) {
-    return new JobScheduler(storageProvider);
-}
-
-@Bean
-public StorageProvider storageProvider(JobMapper jobMapper) {
-    final SQLiteDataSource dataSource = new SQLiteDataSource();
-    dataSource.setUrl("jdbc:sqlite:" + Paths.get(System.getProperty("java.io.tmpdir"), "jobrunr.db"));
-    final SqLiteStorageProvider sqLiteStorageProvider = new SqLiteStorageProvider(dataSource);
-    sqLiteStorageProvider.setJobMapper(jobMapper);
-    return sqLiteStorageProvider;
-}
-
-@Bean
-public JobMapper jobMapper(JsonMapper jsonMapper) {
-    return new JobMapper(jsonMapper);
-}
-
-@Bean
-public JsonMapper jsonMapper() {
-    return new JacksonJsonMapper(); // or GsonMapper()
-}
+```
+# the job_scheduler is enabled by default
+# the background_job_server and dashboard are disabled by default
+org.jobrunr.job_scheduler=true
+org.jobrunr.background_job_server=true
+org.jobrunr.dashboard=true
 ```
 
 #### Or do you prefer a fluent API?
