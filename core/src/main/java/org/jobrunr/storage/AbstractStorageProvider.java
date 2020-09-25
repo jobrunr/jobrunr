@@ -154,7 +154,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     private void logError(Exception e) {
-        if (reentrantLock.isLocked()) return; // timer is being stopped so not interested in it
+        if (reentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 

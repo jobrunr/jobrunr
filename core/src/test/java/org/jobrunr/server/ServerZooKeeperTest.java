@@ -17,7 +17,9 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.*;
+import static org.awaitility.Durations.FIVE_SECONDS;
+import static org.awaitility.Durations.ONE_HUNDRED_MILLISECONDS;
+import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
@@ -151,13 +153,12 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    void backgroundJobServerSignalsItIsStoppedWhenItIsStoppedAndClosesTheStorageProvider() {
+    void backgroundJobServerSignalsItIsStoppedWhenItIsStopped() {
         backgroundJobServer.start();
         await().untilAsserted(() -> verify(storageProvider).announceBackgroundJobServer(any()));
 
         backgroundJobServer.stop();
         await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
-        await().untilAsserted(() -> verify(storageProvider).close());
     }
 
     private BackgroundJobServerStatus anotherServer() {
