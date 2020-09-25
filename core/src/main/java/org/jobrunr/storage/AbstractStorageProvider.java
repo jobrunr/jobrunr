@@ -33,6 +33,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.reentrantLock = new ReentrantLock();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close, "extShutdownHook"));
     }
 
     @Override
@@ -152,7 +154,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     private void logError(Exception e) {
-        LOGGER.error("Error notifying JobStorageChangeListeners - please create a bug report (with the stacktrace attached)", e);
+        if (reentrantLock.isLocked()) return; // timer is being stopped so not interested in it
+        LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 
     class SendJobStatsUpdate extends TimerTask {

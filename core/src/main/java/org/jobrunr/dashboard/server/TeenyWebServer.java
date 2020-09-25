@@ -40,7 +40,7 @@ public class TeenyWebServer {
     public void start() {
         httpServer.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "extShutdownHook"));
     }
 
     public void stop() {

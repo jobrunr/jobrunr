@@ -89,7 +89,7 @@ public class BackgroundJobPerformer implements Runnable {
             job.succeeded();
             saveAndRunStateRelatedJobFilters(job);
         } catch (Exception badException) {
-            LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
+            LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
         }
     }
 
@@ -99,7 +99,7 @@ public class BackgroundJobPerformer implements Runnable {
             job.failed(message, e);
             this.backgroundJobServer.getStorageProvider().save(job);
         } catch (Exception badException) {
-            LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
+            LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
     }
 
@@ -109,7 +109,7 @@ public class BackgroundJobPerformer implements Runnable {
             job.failed(message, e);
             saveAndRunStateRelatedJobFilters(job);
         } catch (Exception badException) {
-            LOGGER.error("FATAL - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
+            LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
     }
 
