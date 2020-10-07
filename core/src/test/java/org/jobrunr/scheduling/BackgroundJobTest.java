@@ -336,14 +336,19 @@ public class BackgroundJobTest {
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
         assertThat(failedState.getException()).isInstanceOf(JobClassNotFoundException.class);
+        Job failedJob = storageProvider.getJobById(job.getId());
+        assertThat(failedJob).hasStates(ENQUEUED, PROCESSING, FAILED);
     }
 
     @Test
     void jobToMethodThatDoesNotExistGoesToFailedState() {
         Job job = storageProvider.save(anEnqueuedJob().withJobDetails(methodThatDoesNotExistJobDetails()).build());
-        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
+        await().atMost(3000, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
         assertThat(failedState.getException()).isInstanceOf(JobMethodNotFoundException.class);
+        await().during(1, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
+        Job failedJob = storageProvider.getJobById(job.getId());
+        assertThat(failedJob).hasStates(ENQUEUED, PROCESSING, FAILED);
     }
 
     public void aNestedJob() {

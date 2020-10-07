@@ -6,8 +6,9 @@ import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
+import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
-import org.jobrunr.jobs.filters.JobFilters;
+import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
@@ -34,7 +35,7 @@ public class JobScheduler {
 
     private final StorageProvider storageProvider;
     private final JobDetailsGenerator jobDetailsGenerator;
-    private final JobFilters jobFilters;
+    private final JobFilterUtils jobFilterUtils;
     private static final int BATCH_SIZE = 5000;
 
     /**
@@ -60,7 +61,7 @@ public class JobScheduler {
         if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
         this.storageProvider = storageProvider;
         this.jobDetailsGenerator = jobDetailsGenerator;
-        this.jobFilters = new JobFilters(jobFilters);
+        this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
 
     /**
@@ -402,24 +403,24 @@ public class JobScheduler {
     }
 
     JobId saveJob(Job job) {
-        jobFilters.runOnCreatingFilter(job);
+        jobFilterUtils.runOnCreatingFilter(job);
         Job savedJob = this.storageProvider.save(job);
-        jobFilters.runOnCreatedFilter(savedJob);
+        jobFilterUtils.runOnCreatedFilter(savedJob);
         return new JobId(savedJob.getId());
     }
 
     List<Job> saveJobs(List<Job> jobs) {
-        jobFilters.runOnCreatingFilter(jobs);
+        jobFilterUtils.runOnCreatingFilter(jobs);
         final List<Job> savedJobs = this.storageProvider.save(jobs);
-        jobFilters.runOnCreatedFilter(savedJobs);
+        jobFilterUtils.runOnCreatedFilter(savedJobs);
         return savedJobs;
     }
 
     String scheduleRecurrently(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
-        jobFilters.runOnCreatingFilter(recurringJob);
+        jobFilterUtils.runOnCreatingFilter(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
-        jobFilters.runOnCreatedFilter(recurringJob);
+        jobFilterUtils.runOnCreatedFilter(recurringJob);
         return savedRecurringJob.getId();
     }
 }

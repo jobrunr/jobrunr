@@ -15,24 +15,25 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
-class JobFiltersTest {
-
-    private JobFilters jobFilters;
+class JobPerformingFiltersTest {
 
     private TestService testService;
 
     @BeforeEach
     void setUp() {
-        jobFilters = new JobFilters();
         testService = new TestService();
     }
 
     @Test
     void ifNoElectStateFilterIsProvidedTheDefaultRetryFilterIsUsed() {
         Job aJobWithoutJobFilters = aFailedJob().build();
-        jobFilters.runOnStateElectionFilter(aJobWithoutJobFilters);
+        jobPerformingFilters(aJobWithoutJobFilters).runOnStateElectionFilter();
         assertThat(aJobWithoutJobFilters.getJobStates())
                 .extracting("state")
                 .containsExactly(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
@@ -41,7 +42,7 @@ class JobFiltersTest {
     @Test
     void ifElectStateFilterIsProvidedItIsUsed() {
         Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
-        jobFilters.runOnStateElectionFilter(aJobWithACustomElectStateJobFilter);
+        jobPerformingFilters(aJobWithACustomElectStateJobFilter).runOnStateElectionFilter();
         assertThat(aJobWithACustomElectStateJobFilter.getJobStates())
                 .extracting("state")
                 .containsExactly(ENQUEUED, SUCCEEDED);
@@ -49,9 +50,9 @@ class JobFiltersTest {
 
     @Test
     void ifADefaultElectStateFilterIsProvidedItIsUsed() {
-        jobFilters = new JobFilters(new TestService.TheSunIsAlwaysShiningElectStateFilter());
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(new TestService.TheSunIsAlwaysShiningElectStateFilter());
         Job aJobWithoutJobFilters = aFailedJob().build();
-        jobFilters.runOnStateElectionFilter(aJobWithoutJobFilters);
+        jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnStateElectionFilter();
         assertThat(aJobWithoutJobFilters.getJobStates())
                 .extracting("state")
                 .containsExactly(ENQUEUED, PROCESSING, FAILED, SUCCEEDED);
@@ -60,9 +61,10 @@ class JobFiltersTest {
     @Test
     void ifOtherFilterIsProvidedItIsUsed() {
         Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
-        jobFilters.runOnStateAppliedFilters(aJobWithACustomElectStateJobFilter);
-        jobFilters.runOnJobProcessingFilters(aJobWithACustomElectStateJobFilter);
-        jobFilters.runOnJobProcessedFilters(aJobWithACustomElectStateJobFilter);
+        JobPerformingFilters jobPerformingFilters = jobPerformingFilters(aJobWithACustomElectStateJobFilter);
+        jobPerformingFilters.runOnStateAppliedFilters();
+        jobPerformingFilters.runOnJobProcessingFilters();
+        jobPerformingFilters.runOnJobProcessedFilters();
         Map<String, Object> metadata = Whitebox.getInternalState(aJobWithACustomElectStateJobFilter, "metadata");
 
         assertThat(metadata)
@@ -73,10 +75,10 @@ class JobFiltersTest {
 
     @Test
     void exceptionsAreCatched() {
-        jobFilters = new JobFilters(new JobFilterThatThrowsAnException());
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(new JobFilterThatThrowsAnException());
 
         Job aJobWithoutJobFilters = aFailedJob().build();
-        jobFilters.runOnStateAppliedFilters(aJobWithoutJobFilters);
+        jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnStateAppliedFilters();
         assertThat(aJobWithoutJobFilters.getJobStates())
                 .extracting("state")
                 .containsExactly(ENQUEUED, PROCESSING, FAILED);
@@ -85,15 +87,23 @@ class JobFiltersTest {
     @Test
     void noExceptionIsThrownIfJobClassIsNotFound() {
         Job aJobClassThatDoesNotExist = anEnqueuedJob().withJobDetails(classThatDoesNotExistJobDetails()).build();
-        assertThatCode(() -> jobFilters.runOnStateElectionFilter(aJobClassThatDoesNotExist)).doesNotThrowAnyException();
-        assertThatCode(() -> jobFilters.runOnStateAppliedFilters(aJobClassThatDoesNotExist)).doesNotThrowAnyException();
+        assertThatCode(() -> jobPerformingFilters(aJobClassThatDoesNotExist).runOnStateElectionFilter()).doesNotThrowAnyException();
+        assertThatCode(() -> jobPerformingFilters(aJobClassThatDoesNotExist).runOnStateAppliedFilters()).doesNotThrowAnyException();
     }
 
     @Test
     void noExceptionIsThrownIfJobMethodIsNotFound() {
         Job aJobMethodThatDoesNotExist = anEnqueuedJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
-        assertThatCode(() -> jobFilters.runOnStateElectionFilter(aJobMethodThatDoesNotExist)).doesNotThrowAnyException();
-        assertThatCode(() -> jobFilters.runOnStateAppliedFilters(aJobMethodThatDoesNotExist)).doesNotThrowAnyException();
+        assertThatCode(() -> jobPerformingFilters(aJobMethodThatDoesNotExist).runOnStateElectionFilter()).doesNotThrowAnyException();
+        assertThatCode(() -> jobPerformingFilters(aJobMethodThatDoesNotExist).runOnStateAppliedFilters()).doesNotThrowAnyException();
+    }
+
+    private JobPerformingFilters jobPerformingFilters(Job job) {
+        return jobPerformingFilters(job, new JobDefaultFilters());
+    }
+
+    private JobPerformingFilters jobPerformingFilters(Job job, JobDefaultFilters jobDefaultFilters) {
+        return new JobPerformingFilters(job, jobDefaultFilters);
     }
 
     private static class JobFilterThatThrowsAnException implements ApplyStateFilter {

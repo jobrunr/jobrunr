@@ -5,7 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.filters.JobFilters;
+import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
@@ -298,7 +298,7 @@ class JobZooKeeperTest {
     private JobZooKeeper initializeJobZooKeeper() {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
-        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
+        when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
         final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer);
         jobZooKeeper.setIsMaster(true);
         return jobZooKeeper;

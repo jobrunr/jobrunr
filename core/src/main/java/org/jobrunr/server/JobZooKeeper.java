@@ -3,7 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.filters.JobFilters;
+import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
@@ -39,7 +39,7 @@ public class JobZooKeeper implements Runnable {
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
-    private final JobFilters jobFilters;
+    private final JobFilterUtils jobFilterUtils;
     private final WorkDistributionStrategy workDistributionStrategy;
     private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
     private final Map<Job, Thread> currentlyProcessedJobs;
@@ -51,7 +51,7 @@ public class JobZooKeeper implements Runnable {
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
-        this.jobFilters = backgroundJobServer.getJobFilters();
+        this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
         this.workDistributionStrategy = createWorkDistributionStrategy();
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();
@@ -201,10 +201,11 @@ public class JobZooKeeper implements Runnable {
         if (!jobs.isEmpty()) {
             try {
                 jobs.forEach(jobConsumer);
-                jobFilters.runOnStateElectionFilter(jobs);
+                jobFilterUtils.runOnStateElectionFilter(jobs);
                 storageProvider.save(jobs);
-                jobFilters.runOnStateAppliedFilters(jobs);
+                jobFilterUtils.runOnStateAppliedFilters(jobs);
             } catch (ConcurrentJobModificationException e) {
+                // one of the jobs fails for some reason -> other jobs should be saved...
                 concurrentJobModificationResolver.resolve(e);
             }
         }

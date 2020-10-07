@@ -2,8 +2,8 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
-import org.jobrunr.jobs.filters.JobFilters;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
@@ -43,7 +43,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private java.util.concurrent.ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
-    private JobFilters jobFilters;
+    private JobDefaultFilters jobDefaultFilters;
     private BackgroundJobServerConfiguration configuration;
 
     public BackgroundJobServer(StorageProvider storageProvider) {
@@ -61,18 +61,18 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.serverStatus = new BackgroundJobServerStatus(configuration.pollIntervalInSeconds, configuration.backgroundJobServerWorkerPolicy.getWorkerCount());
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
-        this.jobFilters = new JobFilters();
+        this.jobDefaultFilters = new JobDefaultFilters();
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "extShutdownHook"));
     }
 
     public void setJobFilters(List<JobFilter> jobFilters) {
-        this.jobFilters = new JobFilters(jobFilters);
+        this.jobDefaultFilters = new JobDefaultFilters(jobFilters);
     }
 
-    JobFilters getJobFilters() {
-        return jobFilters;
+    JobDefaultFilters getJobFilters() {
+        return jobDefaultFilters;
     }
 
     public boolean isRunning() {

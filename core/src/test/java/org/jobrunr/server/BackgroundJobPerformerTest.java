@@ -1,7 +1,7 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.filters.JobFilters;
+import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class BackgroundJobPerformerTest {
 
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
-        when(backgroundJobServer.getJobFilters()).thenReturn(new JobFilters(logAllStateChangesFilter));
+        when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
     }
 
     @Test
