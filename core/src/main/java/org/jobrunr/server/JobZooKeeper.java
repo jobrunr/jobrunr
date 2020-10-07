@@ -205,7 +205,6 @@ public class JobZooKeeper implements Runnable {
                 storageProvider.save(jobs);
                 jobFilterUtils.runOnStateAppliedFilters(jobs);
             } catch (ConcurrentJobModificationException e) {
-                // one of the jobs fails for some reason -> other jobs should be saved...
                 concurrentJobModificationResolver.resolve(e);
             }
         }
