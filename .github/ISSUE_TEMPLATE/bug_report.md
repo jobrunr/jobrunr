@@ -13,6 +13,7 @@ A clear and concise description of what the bug is.
 **Environment**
 I'm using version <your JobRunr version>
 I'm running on JRE / JDK <your jre/jdk version> 
+I'm using the following StorageProvider <your storageprovider> 
 
 **To Reproduce**
 Provide a simple project or code fragment which shows how to reproduce the issue.
