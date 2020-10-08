@@ -1,9 +1,9 @@
 package org.jobrunr.storage.nosql.redis;
 
+import io.lettuce.core.LettuceFutures;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.internal.Futures;
 import org.jobrunr.utils.exceptions.Exceptions;
 
 import java.time.Duration;
@@ -34,7 +34,7 @@ public class LettuceRedisPipelinedStream<T> implements Stream<T> {
                 .map(item -> biFunction.apply(redisAsyncCommands, item))
                 .collect(toList()); // must collect otherwise map is not executed
         connection.flushCommands();
-        Futures.awaitAll(Duration.ofSeconds(10), collect.toArray(new RedisFuture[collect.size()]));
+        LettuceFutures.awaitAll(Duration.ofSeconds(10), collect.toArray(new RedisFuture[collect.size()]));
         return new LettuceRedisPipelinedStream<>(collect, connection);
     }
 

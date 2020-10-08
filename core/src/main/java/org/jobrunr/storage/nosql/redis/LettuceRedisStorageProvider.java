@@ -4,7 +4,6 @@ import io.lettuce.core.*;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
-import io.lettuce.core.internal.Futures;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -426,7 +425,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(BACKGROUND_JOB_SERVERS_KEY, unbounded());
 
             connection.flushCommands();
-            Futures.awaitAll(Duration.ofSeconds(10), waitingCounterResponse, waitingResponse, scheduledCounterResponse, scheduledResponse,
+            LettuceFutures.awaitAll(Duration.ofSeconds(10), waitingCounterResponse, waitingResponse, scheduledCounterResponse, scheduledResponse,
                     enqueuedCounterResponse, enqueuedResponse, processingCounterResponse, processingResponse, succeededCounterResponse, succeededResponse,
                     failedCounterResponse, failedResponse, deletedCounterResponse, deletedResponse);
 
