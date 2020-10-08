@@ -12,6 +12,7 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
+import org.jobrunr.utils.metadata.VersionRetriever;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,6 +27,9 @@ public class JacksonJsonMapper implements JsonMapper {
     private final ObjectMapper objectMapper;
 
     public JacksonJsonMapper() {
+        if (VersionRetriever.getVersion(ObjectMapper.class).compareTo("2.11.2") > 0) {
+            throw new UnsupportedOperationException("JobRunr currently does not support a Jackson version greater than 2.11.2");
+        }
         objectMapper = new ObjectMapper()
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
