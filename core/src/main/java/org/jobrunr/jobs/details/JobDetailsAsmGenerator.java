@@ -21,13 +21,9 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     @Override
     public <T extends JobRunrJob> JobDetails toJobDetails(T lambda) {
-        if (!lambda.getClass().isSynthetic()) {
-            throw new IllegalArgumentException("Please provide a lambda expression (e.g. BackgroundJob.enqueue(() -> myService.doWork()) instead of an actual implementation.");
-        } else {
-            SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-            JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda);
-            return findJobDetailsInByteCode(lambda, jobDetailsFinder);
-        }
+        SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
+        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda);
+        return findJobDetailsInByteCode(lambda, jobDetailsFinder);
     }
 
     @Override
