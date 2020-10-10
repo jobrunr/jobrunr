@@ -280,6 +280,28 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testRecurringJobExists() {
+        JobDetails jobDetails = defaultJobDetails().build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withJobDetails(jobDetails).build();
+        Job scheduledJob = recurringJob.toScheduledJob();
+
+        storageProvider.save(scheduledJob);
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED, PROCESSING, SUCCEEDED)).isFalse();
+
+        scheduledJob.enqueue();
+        storageProvider.save(scheduledJob);
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isFalse();
+
+        storageProvider.delete(scheduledJob.getId());
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isFalse();
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED, DELETED)).isTrue();
+    }
+
+    @Test
     void testSaveListUpdateListAndGetListOfJobs() {
         final List<Job> jobs = asList(
                 aJob().withName("1").withEnqueuedState(now().minusSeconds(30)).build(),

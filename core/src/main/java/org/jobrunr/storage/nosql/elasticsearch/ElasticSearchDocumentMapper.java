@@ -81,6 +81,7 @@ public class ElasticSearchDocumentMapper {
             if (job.hasState(StateName.SCHEDULED)) {
                 builder.field(Jobs.FIELD_SCHEDULED_AT, job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException()));
             }
+            builder.field(Jobs.FIELD_RECURRING_JOB_ID, job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).orElse(null));
             builder.endObject();
             return builder;
         } catch (IOException e) {

@@ -127,6 +127,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        return storageProvider.recurringJobExists(recurringJobId, states);
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         return storageProvider.saveRecurringJob(recurringJob);
     }

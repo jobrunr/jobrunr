@@ -336,6 +336,17 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
+            List<Response<Boolean>> existsJob = stream(states)
+                    .map(stateName -> p.sismember(recurringJobKey(stateName), recurringJobId))
+                    .collect(toList());
+            p.sync();
+            return existsJob.stream().map(Response::get).filter(b -> b).findAny().orElse(false);
+        }
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
             p.set(recurringJobKey(recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
@@ -458,6 +469,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
         if (SCHEDULED.equals(jobToSave.getState())) {
             transaction.zadd(QUEUE_SCHEDULEDJOBS_KEY, toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
+        jobToSave.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> transaction.sadd(recurringJobKey(jobToSave.getState()), recurringJobId));
     }
 
     private void deleteJobMetadataForUpdate(Transaction transaction, Job job) {
@@ -469,6 +481,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
                 || (job.hasState(DELETED) && job.getJobStates().size() >= 2 && job.getJobState(-2) instanceof ScheduledState)) {
             transaction.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
         }
+        job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> transaction.srem(recurringJobKey(stateName), recurringJobId)));
     }
 
     private void deleteJobMetadata(Transaction transaction, Job job) {

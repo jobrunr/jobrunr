@@ -364,6 +364,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        try (final StatefulRedisConnection connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            List<Boolean> existsJob = stream(states)
+                    .map(stateName -> commands.sismember(recurringJobKey(stateName), recurringJobId))
+                    .collect(toList());
+            return existsJob.stream().filter(b -> b).findAny().orElse(false);
+        }
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
@@ -497,6 +508,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
         if (SCHEDULED.equals(jobToSave.getState())) {
             commands.zadd(QUEUE_SCHEDULEDJOBS_KEY, toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
+        jobToSave.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> commands.sadd(recurringJobKey(jobToSave.getState()), recurringJobId));
     }
 
     private void deleteJobMetadataForUpdate(RedisCommands commands, Job job) {
@@ -508,6 +520,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
                 || (job.hasState(DELETED) && job.getJobStates().size() >= 2 && job.getJobState(-2) instanceof ScheduledState)) {
             commands.srem(jobDetailsKey(SCHEDULED), getJobSignature(job.getJobDetails()));
         }
+        job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> commands.srem(recurringJobKey(stateName), recurringJobId)));
     }
 
     private void deleteJobMetadata(RedisCommands commands, Job job) {

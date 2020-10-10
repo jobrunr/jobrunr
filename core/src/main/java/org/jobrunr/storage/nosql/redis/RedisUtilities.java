@@ -54,6 +54,10 @@ public class RedisUtilities {
         return "job:jobdetails:" + stateName;
     }
 
+    public static String recurringJobKey(StateName stateName) {
+        return "job:recurring-job-id:" + stateName;
+    }
+
     public static String jobVersionKey(Job job) {
         return jobVersionKey(job.getId());
     }

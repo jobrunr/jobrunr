@@ -40,7 +40,7 @@ public class RecurringJob extends AbstractJob {
 
     public Job toScheduledJob() {
         Instant nextRun = getNextRun();
-        final Job job = new Job(getJobDetails(), new ScheduledState(nextRun));
+        final Job job = new Job(getJobDetails(), new ScheduledState(nextRun, this));
         job.setJobName(getJobName());
         return job;
     }

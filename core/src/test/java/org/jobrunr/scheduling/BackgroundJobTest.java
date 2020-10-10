@@ -261,6 +261,18 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void test2RecurringJobsWithSameMethodSignatureShouldBothBeRun() {
+        BackgroundJob.scheduleRecurrently("recurring-job-1", () -> testService.doWork(5), Cron.minutely(), systemDefault());
+        BackgroundJob.scheduleRecurrently("recurring-job-2", () -> testService.doWork(5), Cron.minutely(), systemDefault());
+        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
+
+        final Job job1 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job2 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(1);
+        assertThat(storageProvider.getJobById(job1.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job2.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testDeleteOfRecurringJob() {
         String jobId = BackgroundJob.scheduleRecurrently(() -> testService.doWork(5), Cron.minutely());
         BackgroundJob.delete(jobId);

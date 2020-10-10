@@ -62,6 +62,8 @@ public interface StorageProvider extends AutoCloseable {
 
     boolean exists(JobDetails jobDetails, StateName... states);
 
+    boolean recurringJobExists(String recurringJobId, StateName... states);
+
     RecurringJob saveRecurringJob(RecurringJob recurringJob);
 
     List<RecurringJob> getRecurringJobs();

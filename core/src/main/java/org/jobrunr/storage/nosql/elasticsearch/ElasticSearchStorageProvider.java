@@ -379,6 +379,24 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        try {
+            BoolQueryBuilder stateQuery = boolQuery();
+            for (StateName state : states) {
+                stateQuery.should(matchQuery(Jobs.FIELD_STATE, state));
+            }
+
+            BoolQueryBuilder stateAndJobSignatureQuery = boolQuery()
+                    .must(stateQuery)
+                    .must(matchQuery(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
+
+            return countJobs(stateAndJobSignatureQuery) > 0;
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try {
             IndexRequest request = new IndexRequest(recurringJobIndexName())

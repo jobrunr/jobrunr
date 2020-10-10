@@ -46,7 +46,8 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with("jobAsJson", jobMapper::serializeJob)
                 .with("jobSignature", JobUtils::getJobSignature)
-                .with("scheduledAt", job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null);
+                .with("scheduledAt", job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
+                .with("recurringJobId", job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getRecurringJobId() : null);
     }
 
     public JobTable withId(UUID id) {
@@ -161,6 +162,11 @@ public class JobTable extends Sql<Job> {
                 .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND jobSignature = :jobSignature");
     }
 
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        return with("recurringJobId", recurringJobId)
+                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+    }
+
     public int deletePermanently(UUID... ids) {
         return delete("from jobrunr_jobs where id in (" + stream(ids).map(uuid -> "'" + uuid.toString() + "'").collect(joining(",")) + ")");
     }
@@ -179,7 +185,7 @@ public class JobTable extends Sql<Job> {
 
     void insertOneJob(Job jobToSave) {
         try (Connection conn = dataSource.getConnection()) {
-            insert(conn, jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+            insert(conn, jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -195,7 +201,7 @@ public class JobTable extends Sql<Job> {
 
     void insertAllJobs(List<Job> jobs) {
         jobs.forEach(JobTable::setId);
-        insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt)");
+        insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
     }
 
     void updateAllJobs(List<Job> jobs) {

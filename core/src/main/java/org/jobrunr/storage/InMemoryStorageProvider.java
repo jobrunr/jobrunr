@@ -18,7 +18,13 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
@@ -186,6 +192,17 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .anyMatch(job ->
                         asList(states).contains(job.getState())
                                 && actualJobSignature.equals(getJobSignature(job.getJobDetails())));
+    }
+
+    @Override
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        return jobQueue.values().stream()
+                .anyMatch(job ->
+                        asList(states).contains(job.getState())
+                                && job.getLastJobStateOfType(ScheduledState.class)
+                                .map(scheduledState -> scheduledState.getRecurringJobId())
+                                .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
+                                .orElse(false));
     }
 
     @Override

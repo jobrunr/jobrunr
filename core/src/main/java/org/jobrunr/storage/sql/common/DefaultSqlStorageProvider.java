@@ -169,6 +169,12 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        return jobTable()
+                .recurringJobExists(recurringJobId, states);
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         return recurringJobTable()
                 .save(recurringJob);
