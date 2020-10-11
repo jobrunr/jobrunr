@@ -115,7 +115,7 @@ class JobZooKeeperTest {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
-        when(storageProvider.exists(recurringJob.getJobDetails(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
         jobZooKeeper.run();
 
