@@ -3,6 +3,7 @@ package org.jobrunr.dashboard;
 import org.jobrunr.dashboard.server.http.client.TeenyHttpClient;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -15,10 +16,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static java.util.UUID.randomUUID;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
@@ -109,6 +114,16 @@ abstract class JobRunrDashboardWebServerTest {
         assertThat(getResponse)
                 .hasStatusCode(200)
                 .hasSameJsonBodyAsResource("/dashboard/api/findJobsByState.json");
+    }
+
+    @Test
+    void testGetJobsNotFound() {
+        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, ChronoUnit.DAYS))).build());
+
+        HttpResponse<String> getResponse = http.get("/api/problems");
+        assertThat(getResponse)
+                .hasStatusCode(200)
+                .hasSameJsonBodyAsResource("/dashboard/api/problems.json");
     }
 
     @Test

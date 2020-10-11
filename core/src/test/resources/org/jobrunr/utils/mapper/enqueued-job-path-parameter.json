@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "TestService.doWorkWithPath(UnixPath)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithPath(sun.nio.fs.UnixPath)",
   "jobName": "an enqueued job",
   "jobDetails": {
     "className": "org.jobrunr.stubs.TestService",

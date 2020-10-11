@@ -1,5 +1,6 @@
 package org.jobrunr.storage;
 
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
@@ -18,6 +19,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -183,6 +185,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         jobQueue.keySet().removeAll(jobsToRemove);
         notifyJobStatsOnChangeListeners();
         return jobsToRemove.size();
+    }
+
+    @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        return jobQueue.values().stream()
+                .filter(job -> asList(states).contains(job.getState()))
+                .map(AbstractJob::getJobSignature)
+                .collect(toSet());
     }
 
     @Override

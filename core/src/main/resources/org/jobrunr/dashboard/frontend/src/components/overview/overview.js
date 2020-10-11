@@ -12,8 +12,17 @@ import AvgSystemCpuLoadCard from "./cards/avg-system-cpu-load-card";
 import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import LoadingIndicator from "../LoadingIndicator";
+import {Alert, AlertTitle} from '@material-ui/lab';
 
 const useStyles = makeStyles(theme => ({
+    alert: {
+        width: '100%',
+        marginBottom: '2rem',
+    },
+    alertTitle: {
+        lineHeight: 1,
+        margin: 0
+    },
     metadata: {
         display: 'flex',
     },
@@ -27,16 +36,26 @@ const useStyles = makeStyles(theme => ({
 const Overview = () => {
     const classes = useStyles();
 
-    const [isLoading, setIsLoading] = React.useState(true);
+    const [isProblemsApiLoading, setProblemsApiIsLoading] = React.useState(true);
+    const [isServersApiLoading, setServersApiIsLoading] = React.useState(true);
+    const [problems, setProblems] = React.useState([]);
     const [servers, setServers] = React.useState([{firstHeartbeat: undefined}]);
 
 
     React.useEffect(() => {
+        fetch(`/api/problems`)
+            .then(res => res.json())
+            .then(response => {
+                setProblems(response);
+                setProblemsApiIsLoading(false);
+            })
+            .catch(error => console.log(error));
+
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {
                 setServers(sortServers(response));
-                setIsLoading(false);
+                setServersApiIsLoading(false);
             })
             .catch(error => console.log(error));
 
@@ -61,7 +80,26 @@ const Overview = () => {
                 </Box>
             </div>
             <div className={classes.metadata}>
-                {isLoading
+                {isProblemsApiLoading
+                    ? <LoadingIndicator/>
+                    : <> {problems.map((problem, index) => {
+                        switch (problem.type) {
+                            case 'jobs-not-found':
+                                return <Alert key={index} className={classes.alert} severity="warning">
+                                    <AlertTitle><h4 className={classes.alertTitle}>Warning</h4></AlertTitle>
+                                    There are SCHEDULED jobs that do not exist anymore in your code. These jobs will
+                                    fail with a <strong>JobNotFoundException</strong> (due to a ClassNotFoundException
+                                    or a MethodNotFoundException).<br/>
+                                </Alert>
+                            default:
+                                return <div key={index}>Unknown error</div>
+                        }
+                    })}
+                    </>
+                }
+            </div>
+            <div className={classes.metadata}>
+                {isServersApiLoading
                     ? <LoadingIndicator/>
                     : <> {servers.length > 0
                         ? <>

@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -25,9 +25,21 @@ import static org.jobrunr.utils.StringUtils.capitalize;
 public class ReflectionUtils {
 
     private static final String ROOT_PACKAGE_NAME = "org/jobrunr/";
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_TYPE_MAPPING = new HashMap<>();
 
     private ReflectionUtils() {
 
+    }
+
+    static {
+        PRIMITIVE_TO_TYPE_MAPPING.put(boolean.class, Boolean.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(byte.class, Byte.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(short.class, Short.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(char.class, Character.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(int.class, Integer.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(long.class, Long.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(float.class, Float.class);
+        PRIMITIVE_TO_TYPE_MAPPING.put(double.class, Double.class);
     }
 
     public static boolean classExists(String className) {
@@ -143,10 +155,10 @@ public class ReflectionUtils {
     }
 
     public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
-        return findMethod(clazz, m -> methodName.equals(m.getName()) && Arrays.equals(m.getParameterTypes(), parameterTypes));
+        return findMethod(clazz, new MethodFinderPredicate(methodName, parameterTypes));
     }
 
-    private static Optional<Method> findMethod(Class<?> clazz, Predicate<Method> predicate) {
+    private static Optional<Method> findMethod(Class<?> clazz, MethodFinderPredicate predicate) {
         final Optional<Method> optionalMethod = stream(clazz.getDeclaredMethods())
                 .filter(predicate)
                 .findFirst();
@@ -179,6 +191,19 @@ public class ReflectionUtils {
         } else {
             return Optional.empty();
         }
+    }
+
+    public static boolean isClassAssignableToObject(Class<?> clazz, Object object) {
+        if (object == null)
+            throw new NullPointerException("You are passing null to your background job - JobRunr prevents this to fail fast.");
+        return isClassAssignable(clazz, object.getClass());
+    }
+
+    public static boolean isClassAssignable(Class<?> clazz1, Class<?> clazz2) {
+        return clazz1.equals(clazz2)
+                || clazz1.isAssignableFrom(clazz2)
+                || (clazz1.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.get(clazz1).equals(clazz2))
+                || (clazz1.isPrimitive() && Boolean.TYPE.equals(clazz1) && Integer.class.equals(clazz2));
     }
 
     public static boolean objectContainsFieldOrProperty(Object object, String fieldName) {

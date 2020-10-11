@@ -20,6 +20,7 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -322,6 +323,17 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
         }
         notifyOnChangeListenersIf(amount > 0);
         return amount;
+    }
+
+    @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
+            List<Response<Set<String>>> jobSignatures = stream(states)
+                    .map(stateName -> p.smembers(jobDetailsKey(stateName)))
+                    .collect(toList());
+            p.sync();
+            return jobSignatures.stream().flatMap(res -> res.get().stream()).collect(toSet());
+        }
     }
 
     @Override

@@ -1,5 +1,5 @@
 {
-  "jobSignature": "System.out.println(String)",
+  "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "failed job",
   "jobDetails": {
     "className": "java.lang.System",

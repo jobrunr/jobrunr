@@ -8,9 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,19 +20,6 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 public class JobDetailsGeneratorUtils {
 
     private JobDetailsGeneratorUtils() {
-    }
-
-    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_TYPE_MAPPING = new HashMap<>();
-
-    static {
-        PRIMITIVE_TO_TYPE_MAPPING.put(boolean.class, Boolean.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(byte.class, Byte.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(short.class, Short.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(char.class, Character.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(int.class, Integer.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(long.class, Long.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(float.class, Float.class);
-        PRIMITIVE_TO_TYPE_MAPPING.put(double.class, Double.class);
     }
 
     public static String toFQClassName(String byteCodeName) {
@@ -101,14 +86,6 @@ public class JobDetailsGeneratorUtils {
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
-    }
-
-    public static boolean isClassAssignableToObject(Class<?> clazz, Object object) {
-        if (object == null) throw new NullPointerException("You are passing null to your background job - JobRunr prevents this to fail fast.");
-        return clazz.equals(object.getClass())
-                || clazz.isAssignableFrom(object.getClass())
-                || (clazz.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.get(clazz).equals(object.getClass()))
-                || (clazz.isPrimitive() && Boolean.TYPE.equals(clazz) && Integer.class.equals(object.getClass()));
     }
 
     public static Class<?>[] findParamTypesFromDescriptorAsArray(String desc) {

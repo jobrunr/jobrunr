@@ -49,15 +49,13 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -361,6 +359,27 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        try {
+            BoolQueryBuilder stateQuery = boolQuery();
+            for (StateName state : states) {
+                stateQuery.should(matchQuery(Jobs.FIELD_STATE, state));
+            }
+
+            SearchRequest searchRequest = new SearchRequest(jobIndexName());
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(stateQuery);
+            searchSourceBuilder.aggregation(AggregationBuilders.terms(Jobs.FIELD_JOB_SIGNATURE).field(Jobs.FIELD_JOB_SIGNATURE));
+            searchRequest.source(searchSourceBuilder);
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            Terms terms = searchResponse.getAggregations().get(Jobs.FIELD_JOB_SIGNATURE);
+            return terms.getBuckets().stream().map(MultiBucketsAggregation.Bucket::getKeyAsString).collect(toSet());
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public boolean exists(JobDetails jobDetails, StateName... states) {
         try {
             BoolQueryBuilder stateQuery = boolQuery();
@@ -449,9 +468,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
             searchSourceBuilder.query(QueryBuilders.matchAllQuery());
             searchSourceBuilder.aggregation(AggregationBuilders.terms(Jobs.FIELD_STATE).field(Jobs.FIELD_STATE));
             searchRequest.source(searchSourceBuilder);
-            SearchResponse search = client.search(searchRequest, RequestOptions.DEFAULT);
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
-            Terms terms = search.getAggregations().get(Jobs.FIELD_STATE);
+            Terms terms = searchResponse.getAggregations().get(Jobs.FIELD_STATE);
             List<? extends Terms.Bucket> buckets = terms.getBuckets();
 
             return new JobStats(

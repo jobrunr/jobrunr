@@ -25,7 +25,7 @@
         }
       ],
       "jobName": "an enqueued job",
-      "jobSignature": "System.out.println(String)",
+      "jobSignature": "java.lang.System.out.println(java.lang.String)",
       "metadata": {
         "@class": "java.util.concurrent.ConcurrentHashMap"
       },

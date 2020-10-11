@@ -258,6 +258,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        return jobCollection
+                .distinct(Jobs.FIELD_JOB_SIGNATURE, in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), String.class)
+                .into(new HashSet<>());
+    }
+
+    @Override
     public boolean exists(JobDetails jobDetails, StateName... states) {
         return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)))) > 0;
     }

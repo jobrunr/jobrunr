@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "TestService.doWork(Integer)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
   "jobName": "some name",
   "jobDetails": {
     "className": "org.jobrunr.stubs.TestService",

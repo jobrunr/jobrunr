@@ -10,6 +10,7 @@ import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -59,6 +60,8 @@ public interface StorageProvider extends AutoCloseable {
     Page<Job> getJobPage(StateName state, PageRequest pageRequest);
 
     int deleteJobs(StateName state, Instant updatedBefore);
+
+    Set<String> getDistinctJobSignatures(StateName... states);
 
     boolean exists(JobDetails jobDetails, StateName... states);
 

@@ -23,4 +23,18 @@ class JobDetailsTest {
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{5});
     }
 
+    @Test
+    void testJobDetailsWithoutParameters() {
+        JobDetails jobDetails = jobDetails()
+                .withClassName(TestService.class)
+                .withMethodName("doWork")
+                .build();
+
+        assertThat(jobDetails.getClassName()).isEqualTo(TestService.class.getName());
+        assertThat(jobDetails.getMethodName()).isEqualTo("doWork");
+        assertThat(jobDetails.getStaticFieldName()).isEmpty();
+        assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{});
+        assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{});
+    }
+
 }

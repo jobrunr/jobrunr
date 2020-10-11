@@ -17,7 +17,10 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
 @ExtendWith(MockitoExtension.class)
 class JobTest {
@@ -26,10 +29,10 @@ class JobTest {
     private BackgroundJobServer backgroundJobServer;
 
     @Test
-    void getJobIdentifier() {
+    void getJobSignature() {
         Job job = anEnqueuedJob().withJobDetails(systemOutPrintLnJobDetails("some message")).build();
 
-        assertThat(job.getJobSignature()).isEqualTo("System.out.println(String)");
+        assertThat(job.getJobSignature()).isEqualTo("java.lang.System.out.println(java.lang.String)");
     }
 
     @Test

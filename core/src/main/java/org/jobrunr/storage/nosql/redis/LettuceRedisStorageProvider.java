@@ -19,10 +19,7 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static io.lettuce.core.Range.unbounded;
@@ -30,6 +27,7 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -350,6 +348,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
 
         notifyOnChangeListenersIf(amount > 0);
         return amount;
+    }
+
+    @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        try (final StatefulRedisConnection connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            List<Set<String>> jobSignatures = stream(states)
+                    .map(stateName -> commands.smembers(jobDetailsKey(stateName)))
+                    .collect(toList());
+            return jobSignatures.stream().flatMap(Collection::stream).collect(toSet());
+        }
     }
 
     @Override

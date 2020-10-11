@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "TestService.doWork(LocalDateTime)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.time.LocalDateTime)",
   "jobName": "an enqueued job",
   "jobDetails": {
     "className": "org.jobrunr.stubs.TestService",

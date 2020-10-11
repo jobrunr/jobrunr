@@ -15,6 +15,7 @@ import javax.sql.DataSource;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions.CREATE;
@@ -160,6 +161,12 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         final int amountDeleted = jobTable().deleteJobsByStateAndUpdatedBefore(state, updatedBefore);
         notifyOnChangeListenersIf(amountDeleted > 0);
         return amountDeleted;
+    }
+
+    @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        return jobTable()
+                .getDistinctJobSignatures(states);
     }
 
     @Override

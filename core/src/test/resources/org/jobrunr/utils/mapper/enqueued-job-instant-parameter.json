@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "TestService.doWork(UUID,Integer,Instant)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.util.UUID,java.lang.Integer,java.time.Instant)",
   "jobName": "an enqueued job",
   "jobDetails": {
     "className": "org.jobrunr.stubs.TestService",

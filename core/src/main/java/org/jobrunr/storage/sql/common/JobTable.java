@@ -20,7 +20,9 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -155,6 +157,12 @@ public class JobTable extends Sql<Job> {
                 .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
                 .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt")
                 .collect(toList());
+    }
+
+    public Set<String> getDistinctJobSignatures(StateName[] states) {
+        return select("distinct jobSignature from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")")
+                .map(resultSet -> resultSet.asString("jobSignature"))
+                .collect(Collectors.toSet());
     }
 
     public boolean exists(JobDetails jobDetails, StateName... states) {

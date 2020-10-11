@@ -12,6 +12,7 @@ import org.jobrunr.utils.resilience.MultiLock;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class ThreadSafeStorageProvider implements StorageProvider {
@@ -119,6 +120,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public int deleteJobs(StateName state, Instant updatedBefore) {
         return storageProvider.deleteJobs(state, updatedBefore);
+    }
+
+    @Override
+    public Set<String> getDistinctJobSignatures(StateName... states) {
+        return storageProvider.getDistinctJobSignatures(states);
     }
 
     @Override

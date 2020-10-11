@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "System.out.println(String)",
+  "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "a succeeded job",
   "jobDetails": {
     "className": "java.lang.System",

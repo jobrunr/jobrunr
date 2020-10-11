@@ -45,7 +45,7 @@ class DisplayNameFilterTest {
 
         displayNameFilter.onCreating(job);
 
-        assertThat(job.getJobName()).isEqualTo("TestService.doWork(5.5)");
+        assertThat(job.getJobName()).isEqualTo("org.jobrunr.stubs.TestService.doWork(5.5)");
     }
 
     @Test
@@ -56,7 +56,7 @@ class DisplayNameFilterTest {
 
         displayNameFilter.onCreating(job);
 
-        assertThat(job.getJobName()).isEqualTo("System.out.println(some message)");
+        assertThat(job.getJobName()).isEqualTo("java.lang.System.out.println(some message)");
     }
 
 }

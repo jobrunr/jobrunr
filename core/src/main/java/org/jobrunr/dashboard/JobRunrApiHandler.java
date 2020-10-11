@@ -3,6 +3,7 @@ package org.jobrunr.dashboard;
 import org.jobrunr.dashboard.server.http.RestHttpHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandler;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
+import org.jobrunr.dashboard.ui.model.problems.Problems;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
@@ -17,6 +18,8 @@ import java.util.stream.Collectors;
 
 public class JobRunrApiHandler extends RestHttpHandler {
 
+    private static Problems problems;
+
     public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         super("/api", jsonMapper);
 
@@ -25,6 +28,8 @@ public class JobRunrApiHandler extends RestHttpHandler {
         get("/jobs/:id", getJobById(storageProvider));
         delete("/jobs/:id", deleteJobById(storageProvider));
         post("/jobs/:id/requeue", requeueJobById(storageProvider));
+
+        get("/problems", getProblems(storageProvider));
 
         get("/recurring-jobs", getRecurringJobs(storageProvider));
         delete("/recurring-jobs/:id", deleteRecurringJob(storageProvider));
@@ -64,6 +69,15 @@ public class JobRunrApiHandler extends RestHttpHandler {
                         ));
     }
 
+    private HttpRequestHandler getProblems(StorageProvider storageProvider) {
+        return (request, response) -> {
+            if (problems == null) {
+                problems = new Problems(storageProvider);
+            }
+            response.asJson(problems);
+        };
+    }
+
     private HttpRequestHandler getRecurringJobs(StorageProvider storageProvider) {
         return (request, response) -> {
             final List<RecurringJobUIModel> recurringJobUIModels = storageProvider
@@ -98,6 +112,5 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler getBackgroundJobServers(StorageProvider storageProvider) {
         return (request, response) -> response.asJson(storageProvider.getBackgroundJobServers());
-
     }
 }
