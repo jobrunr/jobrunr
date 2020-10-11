@@ -2,7 +2,7 @@
   {
     "@class": "${json-unit.ignore-element}",
     "version": 0,
-    "jobSignature": "TestService.doWork(Integer)",
+    "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
     "jobName": "Import sales data",
     "jobDetails": {
       "className": "org.jobrunr.stubs.TestService",
@@ -23,7 +23,7 @@
   {
     "@class": "${json-unit.ignore-element}",
     "version": 0,
-    "jobSignature": "TestService.doWork(Integer)",
+    "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
     "jobName": "Generate sales reports",
     "jobDetails": {
       "className": "org.jobrunr.stubs.TestService",
