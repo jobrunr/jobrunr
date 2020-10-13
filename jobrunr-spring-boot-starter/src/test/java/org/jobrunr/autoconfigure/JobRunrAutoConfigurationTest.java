@@ -1,11 +1,16 @@
 package org.jobrunr.autoconfigure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.mongodb.client.*;
 import io.lettuce.core.RedisClient;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.jobrunr.autoconfigure.json.JobRunrGsonAutoConfiguration;
+import org.jobrunr.autoconfigure.json.JobRunrJacksonAutoConfiguration;
+import org.jobrunr.autoconfigure.storage.*;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
@@ -16,9 +21,12 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,12 +47,30 @@ public class JobRunrAutoConfigurationTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
                     JobRunrAutoConfiguration.class,
+                    JobRunrJacksonAutoConfiguration.class,
+                    JobRunrGsonAutoConfiguration.class,
                     JobRunrElasticSearchStorageAutoConfiguration.class,
                     JobRunrJedisStorageAutoConfiguration.class,
                     JobRunrLettuceStorageAutoConfiguration.class,
                     JobRunrMongoDBStorageAutoConfiguration.class,
                     JobRunrSqlStorageAutoConfiguration.class
             ));
+
+    @Test
+    public void gsonIsIgnoredIfLibraryIsNotPresent() {
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withClassLoader(new FilteredClassLoader(Gson.class))
+                .run((context) -> assertThat(context).getBean("jsonMapper").isInstanceOf(JacksonJsonMapper.class));
+    }
+
+    @Test
+    public void jacksonIsIgnoredIfLibraryIsNotPresent() {
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withClassLoader(new FilteredClassLoader(ObjectMapper.class))
+                .run((context) -> assertThat(context).getBean("jsonMapper").isInstanceOf(GsonJsonMapper.class));
+    }
 
     @Test
     public void dashboardAutoConfiguration() {

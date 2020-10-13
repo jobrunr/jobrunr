@@ -1,6 +1,8 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.jobrunr.autoconfigure.JobRunrAutoConfiguration,\
-  org.jobrunr.autoconfigure.JobRunrElasticSearchStorageAutoConfiguration,\
-  org.jobrunr.autoconfigure.JobRunrJedisStorageAutoConfiguration,\
-  org.jobrunr.autoconfigure.JobRunrLettuceStorageAutoConfiguration,\
-  org.jobrunr.autoconfigure.JobRunrMongoDBStorageAutoConfiguration,\
-  org.jobrunr.autoconfigure.JobRunrSqlStorageAutoConfiguration
+  org.jobrunr.autoconfigure.json.JobRunrJacksonAutoConfiguration,\
+  org.jobrunr.autoconfigure.json.JobRunrGsonAutoConfiguration,\
+  org.jobrunr.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration,\
+  org.jobrunr.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration,\
+  org.jobrunr.autoconfigure.storage.JobRunrLettuceStorageAutoConfiguration,\
+  org.jobrunr.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration,\
+  org.jobrunr.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration

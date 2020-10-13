@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure;
+package org.jobrunr.autoconfigure.storage;
 
 import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.storage.StorageProvider;

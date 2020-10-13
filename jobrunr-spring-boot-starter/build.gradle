@@ -23,6 +23,7 @@ dependencies {
 
     testCompile 'org.springframework.boot:spring-boot-starter-test:2.3.4.RELEASE'
     testCompile 'com.fasterxml.jackson.core:jackson-databind'
+    testCompile 'com.google.code.gson:gson'
     testCompile 'redis.clients:jedis'
     testCompile 'io.lettuce:lettuce-core'
     testCompile 'org.mongodb:mongo-java-driver'

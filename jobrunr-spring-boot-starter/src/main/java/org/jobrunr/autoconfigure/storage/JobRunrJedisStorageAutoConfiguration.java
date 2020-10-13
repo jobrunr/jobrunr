@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure;
+package org.jobrunr.autoconfigure.storage;
 
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;

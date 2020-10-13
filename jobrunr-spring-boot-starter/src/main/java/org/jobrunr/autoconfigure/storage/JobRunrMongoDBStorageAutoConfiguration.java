@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure;
+package org.jobrunr.autoconfigure.storage;
 
 import com.mongodb.client.MongoClient;
 import org.jobrunr.storage.StorageProvider;

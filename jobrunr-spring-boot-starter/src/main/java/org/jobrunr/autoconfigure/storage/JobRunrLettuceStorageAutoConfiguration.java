@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure;
+package org.jobrunr.autoconfigure.storage;
 
 import io.lettuce.core.RedisClient;
 import org.jobrunr.storage.StorageProvider;
