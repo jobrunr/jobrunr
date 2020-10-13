@@ -87,7 +87,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         startZooKeepers();
         startWorkers();
         runStartupTasks();
-        LOGGER.info("BackgroundJobServer ({}) and BackgroundJobPerformers started successfully", getId());
+        LOGGER.info("BackgroundJobServer ({}) and {} BackgroundJobPerformers started successfully", getId(), serverStatus.getWorkerPoolSize());
     }
 
     public void pauseProcessing() {

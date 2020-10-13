@@ -10,6 +10,7 @@ dependencies {
 
     api 'org.springframework.boot:spring-boot-starter:2.3.4.RELEASE'
     annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor:2.3.4.RELEASE'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.3.4.RELEASE'
 
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
