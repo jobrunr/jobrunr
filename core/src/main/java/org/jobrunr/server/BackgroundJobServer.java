@@ -4,12 +4,12 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
-import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
+import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -18,19 +18,20 @@ import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.Spliterator;
+import java.util.UUID;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static java.lang.Integer.compare;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.JobUtils.jobExists;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -41,11 +42,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
+    private final BackgroundJobServerConfiguration configuration;
 
     private java.util.concurrent.ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
     private JobDefaultFilters jobDefaultFilters;
-    private BackgroundJobServerConfiguration configuration;
 
     public BackgroundJobServer(StorageProvider storageProvider) {
         this(storageProvider, null);
@@ -85,7 +86,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         serverStatus.start();
         startZooKeepers();
         startWorkers();
-        checkForPotentialJobNotFoundExceptions();
+        runStartupTasks();
         LOGGER.info("BackgroundJobServer ({}) and BackgroundJobPerformers started successfully", getId());
     }
 
@@ -178,17 +179,15 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         jobExecutor.start();
     }
 
-    private void checkForPotentialJobNotFoundExceptions() {
-        jobExecutor.execute(() -> {
-            Set<String> distinctJobSignatures = storageProvider.getDistinctJobSignatures(StateName.SCHEDULED);
-            Set<String> jobsThatCannotBeFound = distinctJobSignatures.stream().filter(job -> !jobExists(job)).collect(toSet());
-            if (!jobsThatCannotBeFound.isEmpty()) {
-                LOGGER.warn("JobRunr found SCHEDULED jobs that do not exist anymore in your code. These jobs will fail with a JobNotFoundException (due to a ClassNotFoundException or a MethodNotFoundException)." +
-                        "\n\tBelow you can find the method signatures of the jobs that cannot be found anymore: " +
-                        jobsThatCannotBeFound.stream().map(sign -> "\n\t" + sign + ",").collect(Collectors.joining())
-                );
+    private void runStartupTasks() {
+        try {
+            List<Runnable> startupTasks = asList(new CheckIfAllJobsExistTask(this));
+            for (Runnable startupTask : startupTasks) {
+                jobExecutor.execute(startupTask);
             }
-        });
+        } catch (RejectedExecutionException notImportant) {
+            // server is shut down immediately
+        }
     }
 
     private void stopZooKeepers() {
