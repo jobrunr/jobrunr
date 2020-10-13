@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 public class JobCreationFilters extends AbstractJobFilters {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobDefaultFilters.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobCreationFilters.class);
 
     public JobCreationFilters(AbstractJob job, JobDefaultFilters jobDefaultFilters) {
         super(job, jobDefaultFilters);
