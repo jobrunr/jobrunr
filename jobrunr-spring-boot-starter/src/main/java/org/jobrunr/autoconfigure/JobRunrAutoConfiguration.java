@@ -35,7 +35,7 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "org.jobrunr", name = "job_scheduler", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "org.jobrunr", name = "job-scheduler", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         final JobScheduler jobScheduler = new JobScheduler(storageProvider);
         BackgroundJob.setJobScheduler(jobScheduler);
@@ -44,7 +44,7 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "org.jobrunr", name = "background_job_server", havingValue = "true")
+    @ConditionalOnProperty(prefix = "org.jobrunr", name = "background-job-server", havingValue = "true")
     public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
         final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, backgroundJobServerConfiguration);
         backgroundJobServer.start();
@@ -53,23 +53,23 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "org.jobrunr", name = "background_job_server", havingValue = "true")
+    @ConditionalOnProperty(prefix = "org.jobrunr", name = "background-job-server", havingValue = "true")
     public BackgroundJobServerConfiguration backgroundJobServerConfiguration(Environment environment) {
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
-        if (environment.containsProperty("org.jobrunr.background_job_server.worker_count")) {
-            backgroundJobServerConfiguration.andWorkerCount(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background_job_server.worker_count")));
+        if (environment.containsProperty("org.jobrunr.background-job-server.worker-count")) {
+            backgroundJobServerConfiguration.andWorkerCount(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background-job-server.worker-count")));
         }
 
-        if (environment.containsProperty("org.jobrunr.background_job_server.poll_interval")) {
-            backgroundJobServerConfiguration.andPollIntervalInSeconds(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background_job_server.poll_interval")));
+        if (environment.containsProperty("org.jobrunr.background-job-server.poll-interval")) {
+            backgroundJobServerConfiguration.andPollIntervalInSeconds(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background-job-server.poll-interval")));
         }
 
-        if (environment.containsProperty("org.jobrunr.background_job_server.delete_succeeded_jobs_after")) {
-            backgroundJobServerConfiguration.andDeleteSucceededJobsAfter(Duration.ofHours(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background_job_server.delete_succeeded_jobs_after"))));
+        if (environment.containsProperty("org.jobrunr.background-job-server.delete-succeeded-jobs-after")) {
+            backgroundJobServerConfiguration.andDeleteSucceededJobsAfter(Duration.ofHours(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background-job-server.delete-succeeded-jobs-after"))));
         }
 
-        if (environment.containsProperty("org.jobrunr.background_job_server.permanently_delete_deleted_jobs_after")) {
-            backgroundJobServerConfiguration.andPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background_job_server.permanently_delete_deleted_jobs_after"))));
+        if (environment.containsProperty("org.jobrunr.background-job-server.permanently-delete-deleted-jobs-after")) {
+            backgroundJobServerConfiguration.andPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(Integer.parseInt(environment.getRequiredProperty("org.jobrunr.background-job-server.permanently-delete-deleted-jobs-after"))));
         }
 
         return backgroundJobServerConfiguration;

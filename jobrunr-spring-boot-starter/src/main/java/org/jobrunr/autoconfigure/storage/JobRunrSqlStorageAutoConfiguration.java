@@ -19,7 +19,7 @@ public class JobRunrSqlStorageAutoConfiguration {
     @Bean(name = "storageProvider")
     @ConditionalOnMissingBean
     public StorageProvider sqlStorageProvider(DataSource dataSource, JobMapper jobMapper, Environment environment) {
-        if (!environment.containsProperty("org.jobrunr.database.skip_create") && !Boolean.parseBoolean(environment.getProperty("org.jobrunr.database.skip_create"))) {
+        if (!environment.containsProperty("org.jobrunr.database.skip-create") && !Boolean.parseBoolean(environment.getProperty("org.jobrunr.database.skip-create"))) {
             StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource);
             storageProvider.setJobMapper(jobMapper);
             return storageProvider;

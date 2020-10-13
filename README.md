@@ -138,10 +138,10 @@ Configuration
 Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just setup your `application.properties`:
 
 ```
-# the job_scheduler is enabled by default
-# the background_job_server and dashboard are disabled by default
-org.jobrunr.job_scheduler=true
-org.jobrunr.background_job_server=true
+# the job-scheduler is enabled by default
+# the background-job-server and dashboard are disabled by default
+org.jobrunr.job-scheduler=true
+org.jobrunr.background-job-server=true
 org.jobrunr.dashboard=true
 ```
 

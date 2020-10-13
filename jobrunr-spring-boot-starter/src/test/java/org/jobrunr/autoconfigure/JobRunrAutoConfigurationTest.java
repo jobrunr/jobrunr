@@ -82,7 +82,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     public void backgroundJobServerAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.background_job_server=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+        this.contextRunner.withPropertyValues("org.jobrunr.background-job-server=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(BackgroundJobServer.class);
             assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
         });
@@ -98,7 +98,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     public void sqlStorageProviderAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.database.skip_create=true").withUserConfiguration(SqlDataSourceConfiguration.class).run((context) -> {
+        this.contextRunner.withPropertyValues("org.jobrunr.database.skip-create=true").withUserConfiguration(SqlDataSourceConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
             assertThat(context).hasSingleBean(JobScheduler.class);
         });
