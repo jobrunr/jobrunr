@@ -182,10 +182,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private void runStartupTasks() {
         try {
             List<Runnable> startupTasks = asList(new CheckIfAllJobsExistTask(this));
-            for (Runnable startupTask : startupTasks) {
-                jobExecutor.execute(startupTask);
-            }
-        } catch (RejectedExecutionException notImportant) {
+            startupTasks.forEach(jobExecutor::execute);
+        } catch (NullPointerException | RejectedExecutionException notImportant) {
             // server is shut down immediately
         }
     }
