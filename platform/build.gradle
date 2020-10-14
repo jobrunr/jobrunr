@@ -13,8 +13,8 @@ dependencies {
         api 'org.ow2.asm:asm-util:8.0.1'
 
         api 'org.slf4j:slf4j-simple:1.7.30'
-        api 'com.fasterxml.jackson.core:jackson-databind:2.11.2'
-        api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2'
+        api 'com.fasterxml.jackson.core:jackson-databind:2.11.3'
+        api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.3'
         api 'com.google.code.gson:gson:2.8.6'
         api 'org.eclipse:yasson:1.0.7'
 
