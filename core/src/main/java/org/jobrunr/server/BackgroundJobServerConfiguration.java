@@ -11,9 +11,13 @@ import java.time.Duration;
  */
 public class BackgroundJobServerConfiguration {
 
-    int pollIntervalInSeconds = 15;
-    Duration deleteSucceededJobsAfter = Duration.ofHours(36);
-    Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
+    public static final int DEFAULT_POLL_INTERVAL_IN_SECONDS = 15;
+    public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
+    public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
+
+    int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+    Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
 
     private BackgroundJobServerConfiguration() {

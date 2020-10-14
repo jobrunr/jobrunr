@@ -1,5 +1,7 @@
 package org.jobrunr.autoconfigure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -10,12 +12,20 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.json.bind.Jsonb;
 
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -49,22 +59,14 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
     public BackgroundJobServerConfiguration backgroundJobServerConfiguration(JobRunrProperties properties) {
+        PropertyMapper map = PropertyMapper.get();
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
-        if (properties.getBackgroundJobServer().getWorkerCount() != null) {
-            backgroundJobServerConfiguration.andWorkerCount(properties.getBackgroundJobServer().getWorkerCount());
-        }
+        JobRunrProperties.BackgroundJobServer backgroundJobServerProperties = properties.getBackgroundJobServer();
 
-        if (properties.getBackgroundJobServer().getPollIntervalInSeconds() != null) {
-            backgroundJobServerConfiguration.andPollIntervalInSeconds(properties.getBackgroundJobServer().getPollIntervalInSeconds());
-        }
-
-        if (properties.getBackgroundJobServer().getDeleteSucceededJobsAfter() != null) {
-            backgroundJobServerConfiguration.andDeleteSucceededJobsAfter(properties.getBackgroundJobServer().getDeleteSucceededJobsAfter());
-        }
-
-        if (properties.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter() != null) {
-            backgroundJobServerConfiguration.andPermanentlyDeleteDeletedJobsAfter(properties.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter());
-        }
+        map.from(backgroundJobServerProperties::getWorkerCount).whenNonNull().to(backgroundJobServerConfiguration::andWorkerCount);
+        map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
+        map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
+        map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
 
         return backgroundJobServerConfiguration;
     }
@@ -97,6 +99,41 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnMissingBean
     public JobMapper jobMapper(JsonMapper jsonMapper) {
         return new JobMapper(jsonMapper);
+    }
+
+    @Configuration
+    @ConditionalOnClass(Gson.class)
+    public class JobRunrGsonAutoConfiguration {
+
+        @Bean(name = "jsonMapper")
+        @ConditionalOnMissingBean
+        public JsonMapper gsonJsonMapper() {
+            return new GsonJsonMapper();
+        }
+    }
+
+    @Configuration
+    @ConditionalOnClass(ObjectMapper.class)
+    public class JobRunrJacksonAutoConfiguration {
+
+        @Bean(name = "jsonMapper")
+        @ConditionalOnMissingBean
+        public JsonMapper jacksonJsonMapper() {
+            return new JacksonJsonMapper();
+        }
+
+    }
+
+    @ConditionalOnClass(Jsonb.class)
+    @ConditionalOnResource(resources = {"classpath:META-INF/services/javax.json.bind.spi.JsonbProvider",
+            "classpath:META-INF/services/javax.json.spi.JsonProvider"})
+    public class JobRunrJsonbAutoConfiguration {
+
+        @Bean(name = "jsonMapper")
+        @ConditionalOnMissingBean
+        public JsonMapper jsonbJsonMapper() {
+            return new JsonbJsonMapper();
+        }
     }
 
 }

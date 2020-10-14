@@ -17,6 +17,7 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.3.4.RELEASE/ca924688c234a7aa3c1c070bbabf9392801dde0/spring-boot-autoconfigure-processor-2.3.4.RELEASE.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.3.4.RELEASE/b0ff01c3e647564fe2bd6ad470832fc700464e63/spring-boot-configuration-processor-2.3.4.RELEASE.jar" />
         </processorPath>
         <module name="JobRunr.jobrunr-spring-boot-starter.main" />
       </profile>

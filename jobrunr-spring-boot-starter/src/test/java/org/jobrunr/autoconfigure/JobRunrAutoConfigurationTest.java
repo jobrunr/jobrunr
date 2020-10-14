@@ -8,8 +8,6 @@ import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.jobrunr.autoconfigure.json.JobRunrGsonAutoConfiguration;
-import org.jobrunr.autoconfigure.json.JobRunrJacksonAutoConfiguration;
 import org.jobrunr.autoconfigure.storage.*;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobScheduler;
@@ -47,8 +45,6 @@ public class JobRunrAutoConfigurationTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
                     JobRunrAutoConfiguration.class,
-                    JobRunrJacksonAutoConfiguration.class,
-                    JobRunrGsonAutoConfiguration.class,
                     JobRunrElasticSearchStorageAutoConfiguration.class,
                     JobRunrJedisStorageAutoConfiguration.class,
                     JobRunrLettuceStorageAutoConfiguration.class,
