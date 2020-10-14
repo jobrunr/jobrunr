@@ -1,6 +1,5 @@
 package org.jobrunr.autoconfigure;
 
-import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 
@@ -68,21 +67,21 @@ public class JobRunrProperties {
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
-        private Integer pollIntervalInSeconds = BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL_IN_SECONDS;
+        private Integer pollIntervalInSeconds = 15;
 
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
         @DurationUnit(ChronoUnit.HOURS)
-        private Duration deleteSucceededJobsAfter = BackgroundJobServerConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+        private Duration deleteSucceededJobsAfter = Duration.ofHours(36);
 
         /**
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
         @DurationUnit(ChronoUnit.HOURS)
-        private Duration permanentlyDeleteDeletedJobsAfter = BackgroundJobServerConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
+        private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
         public boolean isEnabled() {
             return enabled;
