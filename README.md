@@ -140,9 +140,9 @@ Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just s
 ```
 # the job-scheduler is enabled by default
 # the background-job-server and dashboard are disabled by default
-org.jobrunr.job-scheduler=true
-org.jobrunr.background-job-server=true
-org.jobrunr.dashboard=true
+org.jobrunr.job-scheduler.enabled=true
+org.jobrunr.background-job-server.enabled=true
+org.jobrunr.dashboard.enabled=true
 ```
 
 #### Or do you prefer a fluent API?
