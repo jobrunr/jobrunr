@@ -150,19 +150,18 @@ Define a `javax.sql.DataSource` and put the following code on startup:
 
 ```java
 @SpringBootApplication
-@Import(JobRunrStorageConfiguration.class)
-public class WebApplication {
+public class JobRunrApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WebApplication.class, args);
+        SpringApplication.run(JobRunrApplication.class, args);
     }
 
     @Bean
-    public JobScheduler initJobRunr(ApplicationContext applicationContext) {
+    public JobScheduler initJobRunr(DataSource dataSource, JobActivator jobActivator) {
         return JobRunr.configure()
                 .useStorageProvider(SqlStorageProviderFactory
-                          .using(applicationContext.getBean(DataSource.class)))
-                .useJobActivator(applicationContext::getBean)
+                          .using(dataSource))
+                .useJobActivator(jobActivator)
                 .useDefaultBackgroundJobServer()
                 .useDashboard()
                 .initialize();
