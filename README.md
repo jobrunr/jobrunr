@@ -42,14 +42,14 @@ View more feedback on [jobrunr.io](https://www.jobrunr.io/en/#why-jobrunr).
 
 
 ## Features
-- Simple: just use Java 8 lambda's to create a background job
+- Simple: just use Java 8 lambda's to create a background job.
 - Distributed & cluster-friendly: guarantees execution by single scheduler instance using optimistic locking.
 - Persistent jobs: using either a RDMBS (four tables and a view) or a noSQL data store.
 - Embeddable: built to be embedded in existing applications.
-- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310, [gson](https://github.com/google/gson) or a JSON-B compliant library)
+- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310, [gson](https://github.com/google/gson) or a JSON-B compliant library).
 
-## Usage scenario's
-Some scenario's where it may be a good fit:
+## Usage scenarios
+Some scenarios where it may be a good fit:
 - within a REST api return response to client immediately and perform long-running job in the background
 - mass notifications/newsletters
 - calculations of wages and the creation of the resulting documents
@@ -63,9 +63,9 @@ Some scenario's where it may be a good fit:
 - updating elasticsearch/solr after data changes 
 - *…and so on*
 
-You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is an external webservice down? No worries, the job is automatically retried 10-times with a smart back-off policy.
+You can start small and process jobs within your web app or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is an external web service down? No worries, the job is automatically retried 10-times with a smart back-off policy.
 
-JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Spring Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
+JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](https://github.com/celery/celery) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Spring Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
 
 
 Screenshots
@@ -135,7 +135,7 @@ Configuration
 ------------
 #### Do you like to work Spring based?
 
-Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just setup your `application.properties`:
+Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just set up your `application.properties`:
 
 ```
 # the job-scheduler is enabled by default
