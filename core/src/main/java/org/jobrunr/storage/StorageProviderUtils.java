@@ -57,6 +57,8 @@ public class StorageProviderUtils {
         public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_WORKER_POOL_SIZE = "workerPoolSize";
         public static final String FIELD_POLL_INTERVAL_IN_SECONDS = "pollIntervalInSeconds";
+        public static final String FIELD_DELETE_SUCCEEDED_JOBS_AFTER = "deleteSucceededJobsAfter";
+        public static final String FIELD_DELETE_DELETED_JOBS_AFTER = "permanentlyDeleteDeletedJobsAfter";
         public static final String FIELD_FIRST_HEARTBEAT = "firstHeartbeat";
         public static final String FIELD_LAST_HEARTBEAT = "lastHeartbeat";
         public static final String FIELD_IS_RUNNING = "running";

@@ -2,6 +2,7 @@ package org.jobrunr.storage;
 
 import org.jobrunr.server.jmx.BackgroundJobServerStatusMBean;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,6 +11,8 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final UUID id;
     private final int workerPoolSize;
     private final int pollIntervalInSeconds;
+    private final Duration deleteSucceededJobsAfter;
+    private final Duration permanentlyDeleteDeletedJobsAfter;
     private volatile Instant firstHeartbeat;
     private volatile Instant lastHeartbeat;
     private volatile Boolean running;
@@ -21,14 +24,16 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final Long processAllocatedMemory;
     private final Double processCpuLoad;
 
-    public BackgroundJobServerStatus(int pollIntervalInSeconds, int workerPoolSize) {
-        this(UUID.randomUUID(), workerPoolSize, pollIntervalInSeconds, null, null, true, null, null, null, null, null, null, null);
+    public BackgroundJobServerStatus(int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
+        this(UUID.randomUUID(), workerPoolSize, pollIntervalInSeconds, deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, null, null, true, null, null, null, null, null, null, null);
     }
 
-    public BackgroundJobServerStatus(UUID id, int workerPoolSize, int pollIntervalInSeconds, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {
+    public BackgroundJobServerStatus(UUID id, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {
         this.id = id;
         this.workerPoolSize = workerPoolSize;
         this.pollIntervalInSeconds = pollIntervalInSeconds;
+        this.deleteSucceededJobsAfter = deleteSucceededJobsAfter;
+        this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
         this.firstHeartbeat = firstHeartbeat;
         this.lastHeartbeat = lastHeartbeat;
         this.running = isRunning;
@@ -52,6 +57,21 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     }
 
     @Override
+    public int getPollIntervalInSeconds() {
+        return pollIntervalInSeconds;
+    }
+
+    @Override
+    public Duration getDeleteSucceededJobsAfter() {
+        return deleteSucceededJobsAfter;
+    }
+
+    @Override
+    public Duration getPermanentlyDeleteDeletedJobsAfter() {
+        return permanentlyDeleteDeletedJobsAfter;
+    }
+
+    @Override
     public Instant getFirstHeartbeat() {
         return firstHeartbeat;
     }
@@ -59,11 +79,6 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     @Override
     public Instant getLastHeartbeat() {
         return lastHeartbeat;
-    }
-
-    @Override
-    public int getPollIntervalInSeconds() {
-        return pollIntervalInSeconds;
     }
 
     @Override

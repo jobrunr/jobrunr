@@ -7,7 +7,7 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Alert from '@material-ui/lab/Alert'
+import {Alert} from '@material-ui/lab';
 import Paper from '@material-ui/core/Paper';
 
 import Scheduled from "./states/scheduled-state";
@@ -25,6 +25,8 @@ import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Box from "@material-ui/core/Box";
 import LoadingIndicator from "../LoadingIndicator";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
+import SucceededNotification from "./notifications/succeeded-notification";
+import DeletedNotification from "./notifications/deleted-notification";
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -205,8 +207,13 @@ const JobView = (props) => {
                                 </CardContent>
                             </Card>
                         </Box>
+
                         <Grid container spacing={3}>
                             <JobCode job={job}/>
+
+                            {stateBreadcrumb.state === 'SUCCEEDED' && <SucceededNotification job={job}/>}
+                            {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
+
                             <Grid item xs={12}>
                                 <Typography variant="h5" component="h2">
                                     History&nbsp;
@@ -220,6 +227,7 @@ const JobView = (props) => {
                                     }
                                 </Typography>
                             </Grid>
+
                             <Grid id="job-history-panel" item xs={12}>
                                 {
                                     jobStates.map((jobState, index) => {

@@ -1,5 +1,6 @@
 package org.jobrunr.server.jmx;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -8,11 +9,15 @@ public interface BackgroundJobServerStatusMBean {
 
     int getWorkerPoolSize();
 
+    int getPollIntervalInSeconds();
+
     Instant getFirstHeartbeat();
 
     Instant getLastHeartbeat();
 
-    int getPollIntervalInSeconds();
+    Duration getDeleteSucceededJobsAfter();
+
+    Duration getPermanentlyDeleteDeletedJobsAfter();
 
     boolean isRunning();
 

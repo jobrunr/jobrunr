@@ -4,6 +4,7 @@ import org.bson.Document;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,6 +15,8 @@ public class BackgroundJobServerStatusDocumentMapper {
         document.put("_id", serverStatus.getId());
         document.put(BackgroundJobServers.FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
         document.put(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
+        document.put(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter().toString());
+        document.put(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER, serverStatus.getPermanentlyDeleteDeletedJobsAfter().toString());
         document.put(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, serverStatus.getFirstHeartbeat());
         document.put(BackgroundJobServers.FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
         document.put(BackgroundJobServers.FIELD_IS_RUNNING, serverStatus.isRunning());
@@ -44,6 +47,8 @@ public class BackgroundJobServerStatusDocumentMapper {
                 document.get("_id", UUID.class),
                 document.getInteger(BackgroundJobServers.FIELD_WORKER_POOL_SIZE),
                 document.getInteger(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS),
+                Duration.parse(document.getString(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),
+                Duration.parse(document.getString(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER)),
                 document.get(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, Date.class).toInstant(),
                 document.get(BackgroundJobServers.FIELD_LAST_HEARTBEAT, Date.class).toInstant(),
                 document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING),

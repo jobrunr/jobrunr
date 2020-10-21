@@ -4,12 +4,9 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.autobox;
 
@@ -57,6 +54,10 @@ public class SqlResultSet {
 
     public Instant asInstant(String name) {
         return autobox(val(name), Instant.class);
+    }
+
+    public Duration asDuration(String name) {
+        return autobox(val(name), Duration.class);
     }
 
     public float asFloat(String name) {

@@ -42,7 +42,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
-    private final BackgroundJobServerConfiguration configuration;
 
     private java.util.concurrent.ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
@@ -59,8 +58,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
 
-        this.configuration = configuration;
-        this.serverStatus = new BackgroundJobServerStatus(configuration.pollIntervalInSeconds, configuration.backgroundJobServerWorkerPolicy.getWorkerCount());
+        this.serverStatus = new BackgroundJobServerStatus(configuration.backgroundJobServerWorkerPolicy.getWorkerCount(), configuration.pollIntervalInSeconds, configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter);
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
@@ -162,10 +160,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     boolean isProcessing() {
         return serverStatus.isRunning();
-    }
-
-    public BackgroundJobServerConfiguration getConfiguration() {
-        return configuration;
     }
 
     private void startZooKeepers() {

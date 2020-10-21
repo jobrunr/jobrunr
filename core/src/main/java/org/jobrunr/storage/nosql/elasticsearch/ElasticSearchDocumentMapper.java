@@ -15,6 +15,7 @@ import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -36,6 +37,8 @@ public class ElasticSearchDocumentMapper {
             builder.field(BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
             builder.field(BackgroundJobServers.FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
             builder.field(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
+            builder.field(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter());
+            builder.field(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER, serverStatus.getPermanentlyDeleteDeletedJobsAfter());
             builder.field(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, serverStatus.getFirstHeartbeat());
             builder.field(BackgroundJobServers.FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
             builder.field(BackgroundJobServers.FIELD_IS_RUNNING, serverStatus.isRunning());
@@ -107,6 +110,8 @@ public class ElasticSearchDocumentMapper {
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_ID), UUID.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE), int.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS), int.class),
+                autobox(fieldMap.get(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER), Duration.class),
+                autobox(fieldMap.get(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER), Duration.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_FIRST_HEARTBEAT), Instant.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_LAST_HEARTBEAT), Instant.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_IS_RUNNING), boolean.class),

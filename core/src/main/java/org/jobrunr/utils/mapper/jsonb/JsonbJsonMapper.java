@@ -1,6 +1,8 @@
 package org.jobrunr.utils.mapper.jsonb;
 
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
@@ -15,6 +17,8 @@ public class JsonbJsonMapper implements JsonMapper {
     public JsonbJsonMapper() {
         jsonb = JsonbBuilder.create(new JsonbConfig()
                 .withNullValues(true)
+                .withSerializers(new DurationTypeSerializer())
+                .withDeserializers(new DurationTypeDeserializer())
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
                 .withAdapters(new JobAdapter(), new RecurringJobAdapter())
         );

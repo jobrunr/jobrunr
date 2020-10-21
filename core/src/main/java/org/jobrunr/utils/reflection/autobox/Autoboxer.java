@@ -16,7 +16,8 @@ public class Autoboxer {
             new FloatTypeAutoboxer(),
             new StringTypeAutoboxer(),
             new UUIDTypeAutoboxer(),
-            new EnumAutoboxer()
+            new EnumAutoboxer(),
+            new DurationTypeAutoboxer()
     );
 
     private Autoboxer() {

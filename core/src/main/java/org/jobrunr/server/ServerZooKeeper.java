@@ -123,7 +123,7 @@ public class ServerZooKeeper implements Runnable {
         private final BackgroundJobServerStatus serverStatusDelegate;
 
         public BackgroundJobServerStatusWriteModel(BackgroundJobServerStatus serverStatusDelegate) {
-            super(serverStatusDelegate.getPollIntervalInSeconds(), serverStatusDelegate.getWorkerPoolSize());
+            super(serverStatusDelegate.getWorkerPoolSize(), serverStatusDelegate.getPollIntervalInSeconds(), serverStatusDelegate.getDeleteSucceededJobsAfter(), serverStatusDelegate.getPermanentlyDeleteDeletedJobsAfter());
             this.jobServerStats = new JobServerStats();
             this.serverStatusDelegate = serverStatusDelegate;
         }
@@ -141,6 +141,16 @@ public class ServerZooKeeper implements Runnable {
         @Override
         public int getPollIntervalInSeconds() {
             return serverStatusDelegate.getPollIntervalInSeconds();
+        }
+
+        @Override
+        public Duration getDeleteSucceededJobsAfter() {
+            return serverStatusDelegate.getDeleteSucceededJobsAfter();
+        }
+
+        @Override
+        public Duration getPermanentlyDeleteDeletedJobsAfter() {
+            return serverStatusDelegate.getPermanentlyDeleteDeletedJobsAfter();
         }
 
         @Override

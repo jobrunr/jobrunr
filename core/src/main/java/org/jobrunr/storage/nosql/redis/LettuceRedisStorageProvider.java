@@ -72,7 +72,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
         pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig());
     }
 
-
     @Override
     public void setJobMapper(JobMapper jobMapper) {
         this.jobMapper = jobMapper;
@@ -86,6 +85,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, String.valueOf(serverStatus.getDeleteSucceededJobsAfter()));
+            commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER, String.valueOf(serverStatus.getPermanentlyDeleteDeletedJobsAfter()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
@@ -147,6 +148,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
                             UUID.fromString(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_ID)),
                             Integer.parseInt(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
                             Integer.parseInt(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
+                            Duration.parse(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),
+                            Duration.parse(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER)),
                             Instant.parse(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT)),
                             Instant.parse(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT)),
                             Boolean.parseBoolean(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING)),

@@ -8,6 +8,7 @@ import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import TimeAgo from "react-timeago/lib";
 import {Check} from "mdi-material-ui";
+import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
 
 const useStyles = makeStyles(theme => ({
     primaryHeading: {
@@ -37,7 +38,7 @@ const useStyles = makeStyles(theme => ({
 
 const getDuration = (duration) => {
     try {
-        const actualDuration = duration.toString().startsWith('PT') ? convertISO8601ToSeconds(duration) : duration;
+        const actualDuration = duration.toString().startsWith('PT') ? convertISO8601DurationToSeconds(duration) : duration;
         const totalSeconds = actualDuration.toFixed(2);
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds - (hours * 3600)) / 60);
@@ -61,21 +62,6 @@ const getDuration = (duration) => {
         console.warn("Could not parse " + duration + ". If you want pretty dates in the succeeded view, your durations must be formatted as either seconds or ISO8601 duration format (e.g. PT5M33S). This is a settings in Jackson.");
         return duration + " (unsupported duration format - see console)";
     }
-}
-
-const convertISO8601ToSeconds = (durationString) => {
-    const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
-    const stringParts = iso8601TimePattern.exec(durationString);
-    return (
-        (
-            (
-                (stringParts[1] === undefined ? 0 : stringParts[1] * 1)  /* Days */
-                * 24 + (stringParts[2] === undefined ? 0 : stringParts[2] * 1) /* Hours */
-            )
-            * 60 + (stringParts[3] === undefined ? 0 : stringParts[3] * 1) /* Minutes */
-        )
-        * 60 + (stringParts[4] === undefined ? 0 : stringParts[4] * 1) /* Seconds */
-    );
 }
 
 const Succeeded = (props) => {

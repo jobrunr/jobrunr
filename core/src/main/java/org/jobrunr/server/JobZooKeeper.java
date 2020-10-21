@@ -137,7 +137,7 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
-        final Instant updatedBefore = now().minus(backgroundJobServer.getConfiguration().deleteSucceededJobsAfter);
+        final Instant updatedBefore = now().minus(backgroundJobServer.getServerStatus().getDeleteSucceededJobsAfter());
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
@@ -151,7 +151,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
-        storageProvider.deleteJobs(StateName.DELETED, now().minus(backgroundJobServer.getConfiguration().permanentlyDeleteDeletedJobsAfter));
+        storageProvider.deleteJobs(StateName.DELETED, now().minus(backgroundJobServer.getServerStatus().getPermanentlyDeleteDeletedJobsAfter()));
     }
 
     void updateJobsThatAreBeingProcessed() {

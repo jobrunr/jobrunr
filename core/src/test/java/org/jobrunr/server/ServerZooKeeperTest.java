@@ -21,6 +21,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_HUNDRED_MILLISECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -162,7 +163,7 @@ class ServerZooKeeperTest {
     }
 
     private BackgroundJobServerStatus anotherServer() {
-        final BackgroundJobServerStatus masterBackgroundJobServerStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(new BackgroundJobServerStatus(5, 10));
+        final BackgroundJobServerStatus masterBackgroundJobServerStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aFastBackgroundJobServerStatus().build());
         masterBackgroundJobServerStatus.start();
         return masterBackgroundJobServerStatus;
     }

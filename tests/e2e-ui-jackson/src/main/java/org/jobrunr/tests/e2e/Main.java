@@ -14,6 +14,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 
 public class Main extends AbstractMain {
 
@@ -35,7 +36,7 @@ public class Main extends AbstractMain {
 
     // see https://github.com/eclipse/buildship/issues/991
     public void addDefaultData(StorageProvider storageProvider) {
-        final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(10, 10);
+        final BackgroundJobServerStatus backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withPollIntervalInSeconds(10).build();
         backgroundJobServerStatus.start();
         storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);
         for (int i = 0; i < 33; i++) {

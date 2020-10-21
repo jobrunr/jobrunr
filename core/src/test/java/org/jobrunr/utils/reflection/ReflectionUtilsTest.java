@@ -7,6 +7,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Clob;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,6 +65,7 @@ class ReflectionUtilsTest {
         assertThat(ReflectionUtils.autobox("1", Long.class)).isEqualTo(1L);
         assertThat(ReflectionUtils.autobox("6ec8044c-ad95-4416-a29e-e946c72a37b0", UUID.class)).isEqualTo(UUID.fromString("6ec8044c-ad95-4416-a29e-e946c72a37b0"));
         assertThat(ReflectionUtils.autobox("A", TestEnum.class)).isEqualTo(TestEnum.A);
+        assertThat(ReflectionUtils.autobox("PT8H6M12.345S", Duration.class)).isEqualTo(Duration.parse("PT8H6M12.345S"));
     }
 
     @Test

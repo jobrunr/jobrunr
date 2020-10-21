@@ -17,6 +17,8 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_WORKER_POOL_SIZE = "workerPoolSize";
     public static final String COLUMN_POLL_INTERVAL_IN_SECONDS = "pollIntervalInSeconds";
+    public static final String COLUMN_DELETE_SUCCEEDED_JOBS_AFTER = "deleteSucceededJobsAfter";
+    public static final String COLUMN_PERMANENTLY_DELETE_JOBS_AFTER = "permanentlyDeleteJobsAfter";
     public static final String COLUMN_FIRST_HEARTBEAT = "firstHeartbeat";
     public static final String COLUMN_LAST_HEARTBEAT = "lastHeartbeat";
     public static final String COLUMN_RUNNING = "running";
@@ -34,6 +36,8 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .with(COLUMN_ID, BackgroundJobServerStatus::getId)
                 .with(COLUMN_WORKER_POOL_SIZE, BackgroundJobServerStatus::getWorkerPoolSize)
                 .with(COLUMN_POLL_INTERVAL_IN_SECONDS, BackgroundJobServerStatus::getPollIntervalInSeconds)
+                .with(COLUMN_DELETE_SUCCEEDED_JOBS_AFTER, BackgroundJobServerStatus::getDeleteSucceededJobsAfter)
+                .with(COLUMN_PERMANENTLY_DELETE_JOBS_AFTER, BackgroundJobServerStatus::getPermanentlyDeleteDeletedJobsAfter)
                 .with(COLUMN_FIRST_HEARTBEAT, BackgroundJobServerStatus::getFirstHeartbeat)
                 .with(COLUMN_LAST_HEARTBEAT, BackgroundJobServerStatus::getLastHeartbeat)
                 .with(COLUMN_RUNNING, BackgroundJobServerStatus::isRunning)
@@ -51,7 +55,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .with(COLUMN_ID, serverStatus.getId())
                 .delete("from jobrunr_backgroundjobservers where id = :id");
         this
-                .insert(serverStatus, "into jobrunr_backgroundjobservers values (:id, :workerPoolSize, :pollIntervalInSeconds, :firstHeartbeat, :lastHeartbeat, :running, :systemTotalMemory, :systemFreeMemory, :systemCpuLoad, :processMaxMemory, :processFreeMemory, :processAllocatedMemory, :processCpuLoad)");
+                .insert(serverStatus, "into jobrunr_backgroundjobservers values (:id, :workerPoolSize, :pollIntervalInSeconds, :firstHeartbeat, :lastHeartbeat, :running, :systemTotalMemory, :systemFreeMemory, :systemCpuLoad, :processMaxMemory, :processFreeMemory, :processAllocatedMemory, :processCpuLoad, :deleteSucceededJobsAfter, :permanentlyDeleteJobsAfter)");
     }
 
     public boolean signalServerAlive(BackgroundJobServerStatus serverStatus) {
@@ -101,6 +105,8 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 resultSet.asUUID(COLUMN_ID),
                 resultSet.asInt(COLUMN_WORKER_POOL_SIZE),
                 resultSet.asInt(COLUMN_POLL_INTERVAL_IN_SECONDS),
+                resultSet.asDuration(COLUMN_DELETE_SUCCEEDED_JOBS_AFTER),
+                resultSet.asDuration(COLUMN_PERMANENTLY_DELETE_JOBS_AFTER),
                 resultSet.asInstant(COLUMN_FIRST_HEARTBEAT),
                 resultSet.asInstant(COLUMN_LAST_HEARTBEAT),
                 resultSet.asBoolean(COLUMN_RUNNING),

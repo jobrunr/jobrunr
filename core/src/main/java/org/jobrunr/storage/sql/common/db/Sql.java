@@ -6,6 +6,7 @@ import org.jobrunr.storage.sql.common.db.dialect.DialectFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
@@ -241,10 +242,12 @@ public class Sql<T> {
                 ps.setLong(i, (Long) o);
             } else if (o instanceof Double) {
                 ps.setDouble(i, (Double) o);
-            } else if (o instanceof Instant) {
-                ps.setTimestamp(i, Timestamp.from((Instant) o));
             } else if (o instanceof Boolean) {
                 ps.setInt(i, (boolean) o ? 1 : 0);
+            } else if (o instanceof Instant) {
+                ps.setTimestamp(i, Timestamp.from((Instant) o));
+            } else if (o instanceof Duration) {
+                ps.setString(i, o.toString());
             } else if (o instanceof Enum) {
                 ps.setString(i, ((Enum<?>) o).name());
             } else if (o instanceof UUID || o instanceof String) {
