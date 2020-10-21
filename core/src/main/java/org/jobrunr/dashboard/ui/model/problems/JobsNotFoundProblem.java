@@ -5,10 +5,12 @@ import java.util.Set;
 
 public class JobsNotFoundProblem extends Problem {
 
+    public static final String TYPE = "jobs-not-found";
+
     private HashSet<String> jobsNotFound;
 
     public JobsNotFoundProblem(Set<String> jobsNotFound) {
-        super("jobs-not-found");
+        super(TYPE);
         this.jobsNotFound = new HashSet<>(jobsNotFound);
     }
 

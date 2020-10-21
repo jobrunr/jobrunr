@@ -118,7 +118,7 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
-    void testGetJobsNotFound() {
+    void testGetProblems() {
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, ChronoUnit.DAYS))).build());
 
         HttpResponse<String> getResponse = http.get("/api/problems");
