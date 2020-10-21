@@ -12,7 +12,7 @@ Open and free for commercial use.
 
 <p align="center">
     <a href="https://bintray.com/jobrunr/jobrunr/JobRunr/_latestVersion"><img src="https://api.bintray.com/packages/jobrunr/jobrunr/JobRunr/images/download.svg"></a>&nbsp;
-    <img alt="Drone Build" src="https://drone-jobrunr.dehuysser.be/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
+    <img alt="Drone Build" src="https://build.jobrunr.io/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
     <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Quality Scale" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating" /></a>&nbsp;
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Reliability Rating" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating" /></a>&nbsp;
@@ -20,8 +20,8 @@ Open and free for commercial use.
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage" /></a>&nbsp;
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Vulnerabilities" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities" /></a>&nbsp;
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Bugs" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs" /></a><br/>
-    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/assets/image/tweet-btn.svg" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
-    <img alt="Star us!" src="https://www.jobrunr.io/assets/image/github-btn.svg" />
+    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/tweet-btn.svg?v2" /></a>&nbsp;
+    <a href="https://github.com/jobrunr/jobrunr/stargazers"><img alt="Star us!" src="https://www.jobrunr.io/github-star-btn.svg?v2" /></a>
     <a href="https://gitter.im/jobrunr/community"><img src="https://badges.gitter.im/jobrunr/general.svg" alt="Join the chat at Gitter" /></a><br />
 </p>
 
@@ -42,14 +42,14 @@ View more feedback on [jobrunr.io](https://www.jobrunr.io/en/#why-jobrunr).
 
 
 ## Features
-- Simple: just use Java 8 lambda's to create a background job
+- Simple: just use Java 8 lambda's to create a background job.
 - Distributed & cluster-friendly: guarantees execution by single scheduler instance using optimistic locking.
 - Persistent jobs: using either a RDMBS (four tables and a view) or a noSQL data store.
 - Embeddable: built to be embedded in existing applications.
-- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310, [gson](https://github.com/google/gson) or a JSON-B compliant library)
+- Minimal dependencies: ([ASM](https://asm.ow2.io/), slf4j and either [jackson](https://github.com/FasterXML/jackson) and jackson-datatype-jsr310, [gson](https://github.com/google/gson) or a JSON-B compliant library).
 
-## Usage scenario's
-Some scenario's where it may be a good fit:
+## Usage scenarios
+Some scenarios where it may be a good fit:
 - within a REST api return response to client immediately and perform long-running job in the background
 - mass notifications/newsletters
 - calculations of wages and the creation of the resulting documents
@@ -63,9 +63,9 @@ Some scenario's where it may be a good fit:
 - updating elasticsearch/solr after data changes 
 - *…and so on*
 
-You can start small and process jobs within your webapp or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is an external webservice down? No worries, the job is automatically retried 10-times with a smart back-off policy.
+You can start small and process jobs within your web app or scale horizontally and add as many background job servers as you want to handle a peak of jobs. JobRunr will distribute the load over all the servers for you. JobRunr is also fault-tolerant - is an external web service down? No worries, the job is automatically retried 10-times with a smart back-off policy.
 
-JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](http://www.celeryproject.org) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Spring Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
+JobRunr is a Java alternative to [HangFire](https://github.com/HangfireIO/Hangfire), [Resque](https://github.com/resque/resque), [Sidekiq](http://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](https://github.com/celery/celery) and is similar to [Quartz](https://github.com/quartz-scheduler/quartz) and [Spring Task Scheduler](https://github.com/spring-guides/gs-scheduling-tasks).
 
 
 Screenshots
@@ -135,7 +135,7 @@ Configuration
 ------------
 #### Do you like to work Spring based?
 
-Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just setup your `application.properties`:
+Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just set up your `application.properties`:
 
 ```
 # the job-scheduler is enabled by default
@@ -150,19 +150,18 @@ Define a `javax.sql.DataSource` and put the following code on startup:
 
 ```java
 @SpringBootApplication
-@Import(JobRunrStorageConfiguration.class)
-public class WebApplication {
+public class JobRunrApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WebApplication.class, args);
+        SpringApplication.run(JobRunrApplication.class, args);
     }
 
     @Bean
-    public JobScheduler initJobRunr(ApplicationContext applicationContext) {
+    public JobScheduler initJobRunr(DataSource dataSource, JobActivator jobActivator) {
         return JobRunr.configure()
                 .useStorageProvider(SqlStorageProviderFactory
-                          .using(applicationContext.getBean(DataSource.class)))
-                .useJobActivator(applicationContext::getBean)
+                          .using(dataSource))
+                .useJobActivator(jobActivator)
                 .useDefaultBackgroundJobServer()
                 .useDashboard()
                 .initialize();
