@@ -111,14 +111,14 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public int deletePermanently(UUID id) {
         final int amountDeleted = jobTable().deletePermanently(id);
-        notifyOnChangeListenersIf(amountDeleted > 0);
+        notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
         return amountDeleted;
     }
 
     @Override
     public List<Job> save(List<Job> jobs) {
         final List<Job> savedJobs = jobTable().save(jobs);
-        notifyJobStatsOnChangeListeners();
+        notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
         return savedJobs;
     }
 
@@ -157,9 +157,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public int deleteJobs(StateName state, Instant updatedBefore) {
+    public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         final int amountDeleted = jobTable().deleteJobsByStateAndUpdatedBefore(state, updatedBefore);
-        notifyOnChangeListenersIf(amountDeleted > 0);
+        notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
         return amountDeleted;
     }
 

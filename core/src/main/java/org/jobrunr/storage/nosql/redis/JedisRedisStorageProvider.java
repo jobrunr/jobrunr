@@ -192,7 +192,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
             deleteJobMetadata(transaction, job);
             final List<Object> result = transaction.exec();
             int amount = result == null || result.isEmpty() ? 0 : 1;
-            notifyOnChangeListenersIf(amount > 0);
+            notifyJobStatsOnChangeListenersIf(amount > 0);
             return amount;
         }
     }
@@ -232,7 +232,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
                 }
             }
         }
-        notifyOnChangeListenersIf(!jobs.isEmpty());
+        notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
         return jobs;
     }
 
@@ -304,7 +304,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int deleteJobs(StateName state, Instant updatedBefore) {
+    public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         int amount = 0;
         try (final Jedis jedis = getJedis()) {
             Set<String> zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
@@ -326,7 +326,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
                 zrangeToInspect = jedis.zrange(jobQueueForStateKey(state), 0, 1000);
             }
         }
-        notifyOnChangeListenersIf(amount > 0);
+        notifyJobStatsOnChangeListenersIf(amount > 0);
         return amount;
     }
 

@@ -118,8 +118,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public int deleteJobs(StateName state, Instant updatedBefore) {
-        return storageProvider.deleteJobs(state, updatedBefore);
+    public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
+        return storageProvider.deleteJobsPermanently(state, updatedBefore);
     }
 
     @Override

@@ -207,7 +207,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             deleteJobMetadata(commands, job);
             final TransactionResult result = commands.exec();
             int amount = result == null || result.isEmpty() ? 0 : 1;
-            notifyOnChangeListenersIf(amount > 0);
+            notifyJobStatsOnChangeListenersIf(amount > 0);
             return amount;
         }
     }
@@ -250,7 +250,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
                 }
             }
         }
-        notifyOnChangeListenersIf(!jobs.isEmpty());
+        notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
         return jobs;
     }
 
@@ -326,7 +326,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int deleteJobs(StateName state, Instant updatedBefore) {
+    public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         int amount = 0;
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
@@ -349,7 +349,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             }
         }
 
-        notifyOnChangeListenersIf(amount > 0);
+        notifyJobStatsOnChangeListenersIf(amount > 0);
         return amount;
     }
 

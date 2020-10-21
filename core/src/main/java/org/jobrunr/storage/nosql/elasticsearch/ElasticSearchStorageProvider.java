@@ -174,7 +174,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
                 RefreshRequest request = new RefreshRequest(backgroundJobServerIndexName());
                 client.indices().refresh(request, RequestOptions.DEFAULT);
             }
-            notifyOnChangeListenersIf(amountDeleted > 0);
+            notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
         } catch (IOException e) {
             throw new StorageException(e);
@@ -214,7 +214,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
         try {
             DeleteResponse delete = client.delete(new DeleteRequest(jobIndexName(), id.toString()).setRefreshPolicy(IMMEDIATE), RequestOptions.DEFAULT);
             int amountDeleted = delete.getShardInfo().getSuccessful();
-            notifyOnChangeListenersIf(amountDeleted > 0);
+            notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
         } catch (IOException e) {
             throw new StorageException(e);
@@ -268,7 +268,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
             if (!concurrentModifiedJobs.isEmpty()) {
                 throw new ConcurrentJobModificationException(concurrentModifiedJobs);
             }
-            notifyOnChangeListenersIf(!jobs.isEmpty());
+            notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
             return jobs;
         } catch (IOException e) {
             throw new StorageException(e);
@@ -337,7 +337,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int deleteJobs(StateName state, Instant updatedBefore) {
+    public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         try {
             BoolQueryBuilder boolQueryBuilder = boolQuery()
                     .must(matchQuery(Jobs.FIELD_STATE, state))
@@ -351,7 +351,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
                 RefreshRequest request = new RefreshRequest(jobIndexName());
                 client.indices().refresh(request, RequestOptions.DEFAULT);
             }
-            notifyOnChangeListenersIf(amountDeleted > 0);
+            notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
         } catch (IOException e) {
             throw new StorageException(e);
@@ -451,7 +451,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
         try {
             DeleteResponse delete = client.delete(new DeleteRequest(recurringJobIndexName(), id).setRefreshPolicy(IMMEDIATE), RequestOptions.DEFAULT);
             int amountDeleted = delete.getShardInfo().getSuccessful();
-            notifyOnChangeListenersIf(amountDeleted > 0);
+            notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
         } catch (IOException e) {
             throw new StorageException(e);

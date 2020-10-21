@@ -172,7 +172,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     public int deletePermanently(UUID id) {
         final DeleteResult result = jobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
         final int deletedCount = (int) result.getDeletedCount();
-        notifyOnChangeListenersIf(deletedCount > 0);
+        notifyJobStatsOnChangeListenersIf(deletedCount > 0);
         return deletedCount;
     }
 
@@ -220,7 +220,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
             }
         }
-        notifyOnChangeListenersIf(!jobs.isEmpty());
+        notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
         return jobs;
     }
 
@@ -250,10 +250,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public int deleteJobs(StateName state, Instant updatedBefore) {
+    public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_CREATED_AT, toMicroSeconds(updatedBefore))));
         final long deletedCount = deleteResult.getDeletedCount();
-        notifyOnChangeListenersIf(deletedCount > 0);
+        notifyJobStatsOnChangeListenersIf(deletedCount > 0);
         return (int) deletedCount;
     }
 

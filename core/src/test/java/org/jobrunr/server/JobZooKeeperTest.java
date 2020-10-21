@@ -94,7 +94,7 @@ class JobZooKeeperTest {
         verify(storageProvider, never()).getRecurringJobs();
         verify(storageProvider, never()).getScheduledJobs(any(), any());
         verify(storageProvider, never()).getJobs(any(), any(), any());
-        verify(storageProvider, never()).deleteJobs(any(), any());
+        verify(storageProvider, never()).deleteJobsPermanently(any(), any());
     }
 
     @Test
@@ -201,11 +201,11 @@ class JobZooKeeperTest {
 
     @Test
     void checkForJobsThatCanBeDeleted() {
-        when(storageProvider.deleteJobs(eq(DELETED), any())).thenReturn(5);
+        when(storageProvider.deleteJobsPermanently(eq(DELETED), any())).thenReturn(5);
 
         jobZooKeeper.run();
 
-        verify(storageProvider).deleteJobs(eq(DELETED), any());
+        verify(storageProvider).deleteJobsPermanently(eq(DELETED), any());
     }
 
     @Test

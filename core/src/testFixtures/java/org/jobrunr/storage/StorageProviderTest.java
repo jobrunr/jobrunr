@@ -466,7 +466,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        storageProvider.deleteJobs(ENQUEUED, now().minus(1, HOURS));
+        storageProvider.deleteJobsPermanently(ENQUEUED, now().minus(1, HOURS));
 
         List<Job> fetchedJobs = storageProvider.getJobs(ENQUEUED, ascOnUpdatedAt(100));
 
@@ -546,7 +546,7 @@ public abstract class StorageProviderTest {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
-        storageProvider.deleteJobs(ENQUEUED, now());
+        storageProvider.deleteJobsPermanently(ENQUEUED, now());
 
         assertThat(onChangeListener.changes).hasSize(1);
     }

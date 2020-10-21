@@ -64,7 +64,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         stopTimerToSendUpdates();
     }
 
-    protected void notifyOnChangeListenersIf(boolean mustNotify) {
+    protected void notifyJobStatsOnChangeListenersIf(boolean mustNotify) {
         if (mustNotify) {
             notifyJobStatsOnChangeListeners();
         }

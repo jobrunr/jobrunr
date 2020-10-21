@@ -59,7 +59,7 @@ public interface StorageProvider extends AutoCloseable {
 
     Page<Job> getJobPage(StateName state, PageRequest pageRequest);
 
-    int deleteJobs(StateName state, Instant updatedBefore);
+    int deleteJobsPermanently(StateName state, Instant updatedBefore);
 
     Set<String> getDistinctJobSignatures(StateName... states);
 

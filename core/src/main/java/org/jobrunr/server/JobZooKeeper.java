@@ -151,7 +151,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
-        storageProvider.deleteJobs(StateName.DELETED, now().minus(backgroundJobServer.getServerStatus().getPermanentlyDeleteDeletedJobsAfter()));
+        storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(backgroundJobServer.getServerStatus().getPermanentlyDeleteDeletedJobsAfter()));
     }
 
     void updateJobsThatAreBeingProcessed() {
