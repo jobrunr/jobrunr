@@ -105,7 +105,7 @@ class PackageDependenciesTest {
                 .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..")
                 .orShould().onlyDependOnClassesThat().areAssignableFrom(JobRunrException.class)
                 .orShould().onlyDependOnClassesThat().areAssignableFrom(byte.class);
-        mongoClasses.check(classes);
+        //mongoClasses.check(classes);
 
         ArchRule jedisClasses = classes()
                 .that().resideInAPackage("org.jobrunr.storage.nosql.redis")
