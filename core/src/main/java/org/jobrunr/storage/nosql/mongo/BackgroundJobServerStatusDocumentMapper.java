@@ -79,12 +79,18 @@ public class BackgroundJobServerStatusDocumentMapper {
         Binary idAsBinary = document.get("_id", Binary.class);
         if (BsonBinarySubType.isUuid(idAsBinary.getType())) {
             if (idAsBinary.getType() == BsonBinarySubType.UUID_STANDARD.getValue()) {
-                return decodeBinaryToUuid(idAsBinary.getData().clone(), idAsBinary.getType(), UuidRepresentation.STANDARD);
+                return decodeBinaryToUuid(clone(idAsBinary.getData()), idAsBinary.getType(), UuidRepresentation.STANDARD);
             } else if (idAsBinary.getType() == BsonBinarySubType.UUID_LEGACY.getValue()) {
-                return decodeBinaryToUuid(idAsBinary.getData().clone(), idAsBinary.getType(), UuidRepresentation.JAVA_LEGACY);
+                return decodeBinaryToUuid(clone(idAsBinary.getData()), idAsBinary.getType(), UuidRepresentation.JAVA_LEGACY);
             }
         }
 
         throw shouldNotHappenException("Unknown id: " + document.get("_id").getClass());
+    }
+
+    public static byte[] clone(final byte[] array) {
+        final byte[] result = new byte[array.length];
+        System.arraycopy(array, 0, result, 0, array.length);
+        return result;
     }
 }

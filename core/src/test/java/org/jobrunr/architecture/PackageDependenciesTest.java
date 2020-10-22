@@ -4,6 +4,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
+import org.jobrunr.JobRunrException;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,7 +102,9 @@ class PackageDependenciesTest {
 
         ArchRule mongoClasses = classes()
                 .that().resideInAPackage("org.jobrunr.storage.nosql.mongo")
-                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..");
+                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..")
+                .orShould().onlyDependOnClassesThat().areAssignableFrom(JobRunrException.class)
+                .orShould().onlyDependOnClassesThat().areAssignableFrom(byte.class);
         mongoClasses.check(classes);
 
         ArchRule jedisClasses = classes()
@@ -135,6 +138,7 @@ class PackageDependenciesTest {
         ArchRule jobUtilGsonMapperClasses = classes()
                 .that().resideInAPackage("org.jobrunr.utils.mapper.gson..")
                 .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "com.google.gson..", "java..");
+        //orShould().onlyDependOnClassesThat().areAssignableFrom(new int[0].getClass());
         //jobUtilGsonMapperClasses.check(classes);
 
         ArchRule jobUtilJacksonMapperClasses = classes()
