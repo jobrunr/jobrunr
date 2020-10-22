@@ -1,4 +1,4 @@
 ALTER TABLE jobrunr_backgroundjobservers
-    ADD deleteSucceededJobsAfter nvarchar(64);
+    ADD deleteSucceededJobsAfter nvarchar(32);
 ALTER TABLE jobrunr_backgroundjobservers
-    ADD permanentlyDeleteJobsAfter nvarchar(64);
+    ADD permanentlyDeleteJobsAfter nvarchar(32);
