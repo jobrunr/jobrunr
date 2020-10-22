@@ -154,6 +154,10 @@ public class ReflectionUtils {
                 .orElseThrow(() -> new JobNotFoundException(clazz, methodName, parameterTypes));
     }
 
+    public static Optional<Method> findMethod(Object object, String methodName, Class<?>... parameterTypes) {
+        return findMethod(object.getClass(), new MethodFinderPredicate(methodName, parameterTypes));
+    }
+
     public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         return findMethod(clazz, new MethodFinderPredicate(methodName, parameterTypes));
     }

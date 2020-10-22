@@ -6,6 +6,10 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.bson.UuidRepresentation;
+import org.bson.codecs.UuidCodec;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
@@ -51,11 +55,17 @@ public class MongoDBStorageProviderTest extends StorageProviderTest {
     }
 
     private MongoClient mongoClient() {
+        CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
+                CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
+                MongoClientSettings.getDefaultCodecRegistry()
+        );
         if (mongoClient == null) {
             mongoClient = MongoClients.create(
                     MongoClientSettings.builder()
                             .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoContainer.getContainerIpAddress(), mongoContainer.getMappedPort(27017)))))
+                            .codecRegistry(codecRegistry)
                             .build());
+
         }
         return mongoClient;
     }

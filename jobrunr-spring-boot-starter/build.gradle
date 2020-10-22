@@ -19,7 +19,7 @@ dependencies {
 
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
-    compileOnly 'org.mongodb:mongo-java-driver'
+    compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
     testCompile 'org.springframework.boot:spring-boot-starter-test:2.3.4.RELEASE'
@@ -27,7 +27,7 @@ dependencies {
     testCompile 'com.google.code.gson:gson'
     testCompile 'redis.clients:jedis'
     testCompile 'io.lettuce:lettuce-core'
-    testCompile 'org.mongodb:mongo-java-driver'
+    testCompile 'org.mongodb:mongodb-driver-sync'
     testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 }
 

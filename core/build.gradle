@@ -46,7 +46,7 @@ dependencies {
     compileOnly 'org.apache.tomcat:tomcat-jdbc'
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
-    compileOnly 'org.mongodb:mongo-java-driver'
+    compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
     testImplementation 'org.ow2.asm:asm-util'
@@ -78,7 +78,7 @@ dependencies {
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
-    testImplementation 'org.mongodb:mongo-java-driver'
+    testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
     testFixturesApi 'org.assertj:assertj-core'

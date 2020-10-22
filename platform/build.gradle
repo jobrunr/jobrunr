@@ -20,11 +20,11 @@ dependencies {
 
         api 'org.xerial:sqlite-jdbc:3.32.3.2'
         api 'com.h2database:h2:1.4.200'
-        api 'org.postgresql:postgresql:42.2.16'
+        api 'org.postgresql:postgresql:42.2.18'
         api 'com.google.cloud.sql:postgres-socket-factory:1.1.0'
         api 'com.oracle.ojdbc:ojdbc8_g:19.3.0.0'
         api 'org.mariadb.jdbc:mariadb-java-client:2.7.0'
-        api 'mysql:mysql-connector-java:8.0.21'
+        api 'mysql:mysql-connector-java:8.0.22'
         api 'com.microsoft.sqlserver:mssql-jdbc:8.4.1.jre8'
         api 'com.ibm.db2.jcc:db2jcc:db2jcc4'
         api 'com.zaxxer:HikariCP:3.4.5'
@@ -33,7 +33,7 @@ dependencies {
         api 'org.apache.tomcat:tomcat-jdbc:9.0.34'
         api 'redis.clients:jedis:3.3.0'
         api 'io.lettuce:lettuce-core:6.0.0.RELEASE'
-        api 'org.mongodb:mongo-java-driver:3.12.7'
+        api 'org.mongodb:mongodb-driver-sync:4.1.0'
         api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.9.2'
 
         api 'org.junit.jupiter:junit-jupiter:5.7.0'

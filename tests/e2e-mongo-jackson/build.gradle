@@ -7,7 +7,7 @@ dependencies {
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'org.mongodb:mongo-java-driver'
+    implementation 'org.mongodb:mongodb-driver-sync'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":tests:e2e-base"))
