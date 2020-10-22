@@ -395,10 +395,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 CodecRegistry codecRegistry = (CodecRegistry) codecRegistryGetter.get().invoke(mongoClient);
                 UuidCodec uuidCodec = (UuidCodec) codecRegistry.get(UUID.class);
                 if (UuidRepresentation.UNSPECIFIED == uuidCodec.getUuidRepresentation()) {
-                    throw new StorageException(
+                    throw new StorageException("\n" +
                             "Since release 4.0.0 of the MongoDB Java Driver, the default BSON representation of java.util.UUID values has changed from JAVA_LEGACY to UNSPECIFIED.\n" +
-                                    "Applications that store or retrieve UUID values must explicitly specify which representation to use, via the uuidRepresentation property of MongoClientSettings.\n" +
-                                    "The good news is that JobRunr works both with the STANDARD as the JAVA_LEGACY uuidRepresentation. Please choose the one most appropriate for your application.");
+                            "Applications that store or retrieve UUID values must explicitly specify which representation to use, via the uuidRepresentation property of MongoClientSettings.\n" +
+                            "The good news is that JobRunr works both with the STANDARD as the JAVA_LEGACY uuidRepresentation. Please choose the one most appropriate for your application.");
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw JobRunrException.shouldNotHappenException(e);

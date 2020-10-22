@@ -18,11 +18,11 @@ import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +32,7 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.resilience.WaitUntilBuilder.awaitSync;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -85,7 +86,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         startZooKeepers();
         startWorkers();
         runStartupTasks();
-        LOGGER.info("JobRunr BackgroundJobServer ({}) and {} BackgroundJobPerformers started successfully", getId(), serverStatus.getWorkerPoolSize());
+
+        awaitSync()
+                .atMost(3, ChronoUnit.SECONDS)
+                .until(serverZooKeeper::isAnnounced)
+                .andThen(() -> LOGGER.info("JobRunr BackgroundJobServer ({}) and {} BackgroundJobPerformers started successfully", getId(), serverStatus.getWorkerPoolSize()))
+                .orElse(() -> LOGGER.error("JobRunr BackgroundJobServer NOT started"));
     }
 
     public void pauseProcessing() {
@@ -177,7 +183,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         try {
             List<Runnable> startupTasks = asList(new CheckIfAllJobsExistTask(this));
             startupTasks.forEach(jobExecutor::execute);
-        } catch (NullPointerException | RejectedExecutionException notImportant) {
+        } catch (Exception notImportant) {
             // server is shut down immediately
         }
     }

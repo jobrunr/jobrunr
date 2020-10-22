@@ -1,5 +1,8 @@
 package org.jobrunr.server;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
@@ -11,6 +14,7 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
@@ -18,6 +22,7 @@ import org.jobrunr.stubs.TestServiceThatCannotBeRun;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -32,10 +37,16 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.*;
+import static org.awaitility.Durations.FIVE_SECONDS;
+import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 class BackgroundJobServerTest {
@@ -45,6 +56,7 @@ class BackgroundJobServerTest {
     private BackgroundJobServer backgroundJobServer;
     private TestServiceForIoC testServiceForIoC;
     private SimpleJobActivator jobActivator;
+    private ListAppender<ILoggingEvent> logger;
 
     @BeforeEach
     void setUpTestService() {
@@ -52,9 +64,10 @@ class BackgroundJobServerTest {
         testServiceForIoC = new TestServiceForIoC("an argument");
         testService.reset();
         testServiceForIoC.reset();
-        storageProvider = new InMemoryStorageProvider();
+        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         jobActivator = new SimpleJobActivator(testServiceForIoC);
         backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
+        logger = LoggerAssert.initFor(backgroundJobServer);
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
@@ -260,6 +273,24 @@ class BackgroundJobServerTest {
                 .build();
         assertThatThrownBy(() -> backgroundJobServer.getBackgroundJobRunner(job))
                 .isInstanceOf(JobRunrException.class);
+    }
+
+    @Test
+    void ifAnnouncingBackgroundSucceedsStartupMessageIsLogged() {
+        backgroundJobServer.start();
+
+        await().atMost(10, SECONDS)
+                .untilAsserted(() -> assertThat(logger).hasInfoMessageContaining("BackgroundJobPerformers started successfully").hasNoErrorLogMessages());
+    }
+
+    @Test
+    void ifAnnouncingBackgroundJobServerFailsThisIsLogged() {
+        Mockito.doThrow(new StorageException("Fail")).when(storageProvider).announceBackgroundJobServer(Mockito.any());
+
+        backgroundJobServer.start();
+
+        await().atMost(10, SECONDS)
+                .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer NOT started"));
     }
 
     private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {

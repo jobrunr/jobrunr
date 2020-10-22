@@ -49,12 +49,22 @@ public class ServerZooKeeper implements Runnable {
     }
 
     public void stop() {
-        storageProvider.signalBackgroundJobServerStopped(backgroundJobServerStatus);
-        isAnnounced = false;
+        if (isAnnounced) {
+            try {
+                storageProvider.signalBackgroundJobServerStopped(backgroundJobServerStatus);
+                isAnnounced = false;
+            } catch (Exception e) {
+                LOGGER.error("Error when signalling that BackgroundJobServer stopped", e);
+            }
+        }
     }
 
     protected BackgroundJobServerStatusWriteModel getBackgroundJobServerStatusWriteModel(BackgroundJobServer backgroundJobServer) {
         return new BackgroundJobServerStatusWriteModel(backgroundJobServer.getServerStatus());
+    }
+
+    public boolean isAnnounced() {
+        return isAnnounced;
     }
 
     private boolean isUnannounced() {
@@ -116,6 +126,7 @@ public class ServerZooKeeper implements Runnable {
     private JobZooKeeper jobZooKeeper() {
         return backgroundJobServer.getJobZooKeeper();
     }
+
 
     public static class BackgroundJobServerStatusWriteModel extends BackgroundJobServerStatus {
 
