@@ -120,7 +120,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
  
@@ -128,14 +128,14 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:1.0.0'
+implementation 'org.jobrunr:jobrunr:1.1.0'
 ```
 
 Configuration
 ------------
 #### Do you like to work Spring based?
 
-Just use the *jobrunr-spring-boot-starter* and you're almost ready to go! Just set up your `application.properties`:
+Add the [*jobrunr-spring-boot-starter*](https://search.maven.org/artifact/org.jobrunr/jobrunr-spring-boot-starter) to your dependencies and you're almost ready to go! Just set up your `application.properties`:
 
 ```
 # the job-scheduler is enabled by default
