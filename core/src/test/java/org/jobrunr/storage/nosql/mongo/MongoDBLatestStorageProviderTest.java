@@ -25,10 +25,10 @@ import java.util.Arrays;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @Testcontainers
-public class MongoDBStorageProviderTest extends StorageProviderTest {
+public class MongoDBLatestStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8").withExposedPorts(27017);
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:latest").withExposedPorts(27017);
 
     private static MongoClient mongoClient;
 
