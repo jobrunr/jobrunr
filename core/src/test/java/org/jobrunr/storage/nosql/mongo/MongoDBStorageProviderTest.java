@@ -34,7 +34,7 @@ public class MongoDBStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected void cleanup() {
-        MongoDatabase jobrunrDb = mongoClient().getDatabase("jobrunr");
+        MongoDatabase jobrunrDb = mongoClient().getDatabase(MongoDBStorageProvider.DEFAULT_DB_NAME);
         jobrunrDb.getCollection(StorageProviderUtils.Jobs.NAME).deleteMany(new Document());
         jobrunrDb.getCollection(StorageProviderUtils.RecurringJobs.NAME).deleteMany(new Document());
         jobrunrDb.getCollection(StorageProviderUtils.BackgroundJobServers.NAME).deleteMany(new Document());
