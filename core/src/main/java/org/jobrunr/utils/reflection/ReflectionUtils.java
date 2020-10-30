@@ -87,11 +87,14 @@ public class ReflectionUtils {
     }
 
     public static Class<?> loadClass(String className) throws ClassNotFoundException {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) { // why: support for quarkus:dev (see https://github.com/quarkusio/quarkus/issues/2809)
-            return currentThread().getContextClassLoader().loadClass(className);
+        // why: support for quarkus:dev (see https://github.com/quarkusio/quarkus/issues/2809) and Spring Boot Live reload
+        // Jackson uses this order also
+        ClassLoader classLoader = currentThread().getContextClassLoader();
+        if (classLoader != null) {
+            return Class.forName(className, true, classLoader);
         }
+
+        return Class.forName(className);
     }
 
     public static <T> T newInstanceOrElse(String className, T orElse) {
