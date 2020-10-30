@@ -68,6 +68,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class MongoDBStorageProvider extends AbstractStorageProvider {
 
+    public static final String DEFAULT_DB_NAME = "jobrunr";
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
     private final MongoCollection<Document> jobCollection;
     private final MongoCollection<Document> recurringJobCollection;
@@ -93,19 +94,27 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
         this(mongoClient, rateLimit().at1Request().per(SECOND));
     }
 
+    public MongoDBStorageProvider(MongoClient mongoClient, String dbName) {
+        this(mongoClient, dbName, rateLimit().at1Request().per(SECOND));
+    }
+
     public MongoDBStorageProvider(MongoClient mongoClient, RateLimiter changeListenerNotificationRateLimit) {
+        this(mongoClient, DEFAULT_DB_NAME, changeListenerNotificationRateLimit);
+    }
+
+    public MongoDBStorageProvider(MongoClient mongoClient, String dbName, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
 
         validateMongoClient(mongoClient);
 
-        if (jobRunrDatabaseExists(mongoClient)) {
-            jobrunrDatabase = mongoClient.getDatabase("jobrunr");
+        if (jobRunrDatabaseExists(mongoClient, dbName)) {
+            jobrunrDatabase = mongoClient.getDatabase(dbName);
             jobCollection = jobrunrDatabase.getCollection(Jobs.NAME, Document.class);
             recurringJobCollection = jobrunrDatabase.getCollection(RecurringJobs.NAME, Document.class);
             backgroundJobServerCollection = jobrunrDatabase.getCollection(BackgroundJobServers.NAME, Document.class);
             jobStatsCollection = jobrunrDatabase.getCollection(NAME, Document.class);
         } else {
-            jobrunrDatabase = mongoClient.getDatabase("jobrunr");
+            jobrunrDatabase = mongoClient.getDatabase(dbName);
 
             jobrunrDatabase.createCollection(Jobs.NAME);
             jobrunrDatabase.createCollection(RecurringJobs.NAME);
@@ -380,10 +389,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 .into(new ArrayList<>());
     }
 
-    private boolean jobRunrDatabaseExists(MongoClient mongoClient) {
+    private boolean jobRunrDatabaseExists(MongoClient mongoClient, String actualDbName) {
         MongoIterable<String> allDatabases = mongoClient.listDatabaseNames();
         for (String dbName : allDatabases) {
-            if ("jobrunr".equals(dbName)) return true;
+            if (actualDbName.equals(dbName)) return true;
         }
         return false;
     }
