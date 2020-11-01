@@ -39,7 +39,7 @@ public class AmazonDocumentDBStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final MongoDBStorageProvider dbStorageProvider = new MongoDBStorageProvider(mongoClient(), rateLimit().withoutLimits());
+        final MongoDBStorageProvider dbStorageProvider = new AmazonDocumentDBStorageProvider(mongoClient(), rateLimit().withoutLimits());
         dbStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         return dbStorageProvider;
     }
