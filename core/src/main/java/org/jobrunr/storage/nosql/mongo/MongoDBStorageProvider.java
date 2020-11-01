@@ -34,15 +34,17 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.mongodb.client.model.Aggregates.facet;
+import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.limit;
-import static com.mongodb.client.model.Aggregates.sortByCount;
+import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lt;
+import static com.mongodb.client.model.Filters.ne;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -318,7 +320,12 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     public JobStats getJobStats() {
         Instant instant = Instant.now();
         final Document jobStats = jobStatsCollection.find(eq(toMongoId(Jobs.FIELD_ID), FIELD_STATS)).first();
-        final List<Document> aggregates = jobCollection.aggregate(singletonList(facet(new Facet(Jobs.FIELD_STATE, sortByCount("$state"), limit(7))))).first().get(Jobs.FIELD_STATE, List.class);
+
+        final List<Document> aggregates = jobCollection.aggregate(asList(
+                match(ne("state", null)),
+                group("$state", Accumulators.sum("state", 1)),
+                limit(10)))
+                .into(new ArrayList<>());
 
         Long awaiting = getCount(AWAITING, jobStats, aggregates);
         Long scheduled = getCount(SCHEDULED, jobStats, aggregates);
@@ -357,7 +364,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     private Long getCount(StateName stateName, Document jobStats, List<Document> aggregates) {
         Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
-        BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger("count")).orElse(defaultValue);
+        BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger("state")).orElse(defaultValue);
 
         long jobstatsCount = (jobStats != null ? (long) ofNullable(jobStats.getInteger(stateName.name())).orElse(0) : 0L);
         int aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);

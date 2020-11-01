@@ -39,7 +39,6 @@ public class MongoDB3StorageProviderTest extends StorageProviderTest {
         jobrunrDb.getCollection(StorageProviderUtils.RecurringJobs.NAME).deleteMany(new Document());
         jobrunrDb.getCollection(StorageProviderUtils.BackgroundJobServers.NAME).deleteMany(new Document());
         jobrunrDb.getCollection(StorageProviderUtils.JobStats.NAME).deleteMany(new Document());
-        //jobrunrDb.drop();
     }
 
     @Override
