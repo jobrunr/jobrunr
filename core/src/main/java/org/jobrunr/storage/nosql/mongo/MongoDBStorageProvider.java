@@ -72,6 +72,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     public static final String DEFAULT_DB_NAME = "jobrunr";
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
+
+    private final MongoDatabase jobrunrDatabase;
     private final MongoCollection<Document> jobCollection;
     private final MongoCollection<Document> recurringJobCollection;
     private final MongoCollection<Document> backgroundJobServerCollection;
@@ -79,7 +81,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     private JobDocumentMapper jobDocumentMapper;
     private BackgroundJobServerStatusDocumentMapper backgroundJobServerStatusDocumentMapper;
-    private MongoDatabase jobrunrDatabase;
 
     public MongoDBStorageProvider(String hostName, int port) {
         this(MongoClients.create(
