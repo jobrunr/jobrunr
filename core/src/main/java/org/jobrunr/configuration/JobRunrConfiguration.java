@@ -254,11 +254,23 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useJmxExtensions() {
-        if (backgroundJobServer == null)
-            throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
-        if (storageProvider == null)
-            throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
-        this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider);
+        return useJmxExtensionsIf(true);
+    }
+
+    /**
+     * Enables JMX Extensions to monitor JobRunr via JMX if the guard is true
+     *
+     * @param guard whether to start the JXM Extensions or not.
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useJmxExtensionsIf(boolean guard) {
+        if (guard) {
+            if (backgroundJobServer == null)
+                throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
+            if (storageProvider == null)
+                throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
+            this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider);
+        }
         return this;
     }
 

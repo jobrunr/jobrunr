@@ -33,8 +33,6 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.reentrantLock = new ReentrantLock();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close, "extShutdownHook"));
     }
 
     @Override

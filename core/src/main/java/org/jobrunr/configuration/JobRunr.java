@@ -40,12 +40,16 @@ public class JobRunr {
 
     public static JobRunrConfiguration configure() {
         jobRunrConfiguration = new JobRunrConfiguration();
+        Runtime.getRuntime().addShutdownHook(new Thread(JobRunr::destroy, "extShutdownHook"));
         return jobRunrConfiguration;
     }
 
     public static JobRunrConfiguration destroy() {
-        jobRunrConfiguration.backgroundJobServer.stop();
-        jobRunrConfiguration.dashboardWebServer.stop();
+        if (jobRunrConfiguration != null) {
+            if (jobRunrConfiguration.backgroundJobServer != null) jobRunrConfiguration.backgroundJobServer.stop();
+            if (jobRunrConfiguration.dashboardWebServer != null) jobRunrConfiguration.dashboardWebServer.stop();
+            if (jobRunrConfiguration.storageProvider != null) jobRunrConfiguration.storageProvider.close();
+        }
         return jobRunrConfiguration;
     }
 }

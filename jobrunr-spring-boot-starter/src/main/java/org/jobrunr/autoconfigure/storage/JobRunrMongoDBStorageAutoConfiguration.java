@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(MongoAutoConfiguration.class)
 public class JobRunrMongoDBStorageAutoConfiguration {
 
-    @Bean(name = "storageProvider")
+    @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider mongoDBStorageProvider(MongoClient mongoClient) {
         return new MongoDBStorageProvider(mongoClient);

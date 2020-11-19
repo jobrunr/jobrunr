@@ -12,7 +12,7 @@ import redis.clients.jedis.JedisPool;
 @ConditionalOnBean(JedisPool.class)
 public class JobRunrJedisStorageAutoConfiguration {
 
-    @Bean(name = "storageProvider")
+    @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider jedisStorageProvider(JedisPool jedisPool) {
         return new JedisRedisStorageProvider(jedisPool);

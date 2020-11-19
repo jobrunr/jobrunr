@@ -65,7 +65,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobDefaultFilters = new JobDefaultFilters();
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
-        Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "extShutdownHook"));
     }
 
     public void setJobFilters(List<JobFilter> jobFilters) {

@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnBean(RedisClient.class)
 public class JobRunrLettuceStorageAutoConfiguration {
 
-    @Bean(name = "storageProvider")
+    @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider jedisStorageProvider(RedisClient redisClient) {
         return new LettuceRedisStorageProvider(redisClient);

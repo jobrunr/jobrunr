@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(ElasticsearchRestClientAutoConfiguration.class)
 public class JobRunrElasticSearchStorageAutoConfiguration {
 
-    @Bean(name = "storageProvider")
+    @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient) {
         return new ElasticSearchStorageProvider(restHighLevelClient);

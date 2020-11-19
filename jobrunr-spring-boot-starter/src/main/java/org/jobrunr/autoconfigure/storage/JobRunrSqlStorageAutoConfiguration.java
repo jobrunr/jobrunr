@@ -21,7 +21,7 @@ import javax.sql.DataSource;
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
 public class JobRunrSqlStorageAutoConfiguration {
 
-    @Bean(name = "storageProvider")
+    @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider sqlStorageProvider(DataSource dataSource, JobMapper jobMapper, Environment environment) {
         if (!environment.containsProperty("org.jobrunr.database.skip-create") && !Boolean.parseBoolean(environment.getProperty("org.jobrunr.database.skip-create"))) {

@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
@@ -392,6 +393,14 @@ public class JobScheduler {
      */
     public void delete(String id) {
         this.storageProvider.deleteRecurringJob(id);
+    }
+
+    /**
+     * Utility method to register the shutdown of JobRunr in various containers - it is even automatically called by Spring Framework.
+     * Note that this will stop the BackgroundJobServer, the Dashboard and the StorageProvider. JobProcessing will stop and enqueueing new jobs will fail.
+     */
+    public void shutdown() {
+        JobRunr.destroy();
     }
 
     JobId enqueue(JobDetails jobDetails) {
