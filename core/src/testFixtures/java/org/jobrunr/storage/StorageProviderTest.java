@@ -112,8 +112,11 @@ public abstract class StorageProviderTest {
         assertThat(backgroundJobServers.get(1).getLastHeartbeat()).isAfter(backgroundJobServers.get(1).getFirstHeartbeat());
         assertThat(backgroundJobServers).extracting("id").containsExactly(serverStatus1.getId(), serverStatus2.getId());
 
+        assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus1.getId());
+
         storageProvider.signalBackgroundJobServerStopped(serverStatus1);
         assertThat(storageProvider.getBackgroundJobServers()).hasSize(1);
+        assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus2.getId());
     }
 
     @Test

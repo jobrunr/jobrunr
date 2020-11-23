@@ -23,6 +23,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.internal.stubbing.answers.AnswersWithDelay;
+import org.mockito.internal.stubbing.answers.ThrowsException;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -48,6 +50,8 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 
 class BackgroundJobServerTest {
 
@@ -140,53 +144,79 @@ class BackgroundJobServerTest {
 
     @Test
     void testServerStatusStateMachine() {
-        // INIT -> START
+        // INITIAL
+        assertThat(backgroundJobServer.isAnnounced()).isFalse();
+        assertThat(backgroundJobServer.isUnAnnounced()).isTrue();
+        assertThat(backgroundJobServer.isStarted()).isFalse();
+        assertThat(backgroundJobServer.isRunning()).isFalse();
+
+        // INITIAL -> START (with failure)
+        doAnswer(new AnswersWithDelay(100, new ThrowsException(new IllegalStateException()))).when(storageProvider).announceBackgroundJobServer(any());
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isFalse();
+        assertThat(backgroundJobServer.isUnAnnounced()).isTrue();
+        assertThat(backgroundJobServer.isStarted()).isTrue();
+        assertThat(backgroundJobServer.isRunning()).isTrue();
+        Mockito.reset(storageProvider);
+        await().until(() -> backgroundJobServer.isStopped());
+
+        // INITIAL -> START
+        assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
 
         // START -> PAUSE
         assertThatCode(() -> backgroundJobServer.pauseProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isFalse();
 
         // PAUSE -> PAUSE
         assertThatCode(() -> backgroundJobServer.pauseProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isFalse();
 
         // PAUSE -> STOP
         assertThatCode(() -> backgroundJobServer.stop()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
 
         // STOP -> RESUME
         assertThatThrownBy(() -> backgroundJobServer.resumeProcessing()).isInstanceOf(IllegalStateException.class);
+        assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
 
         // STOP -> PAUSE
         assertThatThrownBy(() -> backgroundJobServer.pauseProcessing()).isInstanceOf(IllegalStateException.class);
+        assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
 
         // STOP -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
 
         // START -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
 
         // START -> RESUME
         assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
 
         // RESUME -> RESUME
         assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
     }
@@ -285,12 +315,12 @@ class BackgroundJobServerTest {
 
     @Test
     void ifAnnouncingBackgroundJobServerFailsThisIsLogged() {
-        Mockito.doThrow(new StorageException("Fail")).when(storageProvider).announceBackgroundJobServer(Mockito.any());
+        Mockito.doThrow(new StorageException("Fail")).when(storageProvider).announceBackgroundJobServer(any());
 
         backgroundJobServer.start();
 
         await().atMost(10, SECONDS)
-                .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer NOT started"));
+                .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer failed to start"));
     }
 
     private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {
@@ -302,7 +332,7 @@ class BackgroundJobServerTest {
     }
 
     private Stream<String> getThreadNames(Map<Thread, StackTraceElement[]> threadMap) {
-        return threadMap.keySet().stream().map(thread -> thread.getName());
+        return threadMap.keySet().stream().map(Thread::getName);
     }
 
 }

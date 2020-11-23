@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -45,7 +44,6 @@ public class JobZooKeeper implements Runnable {
     private final Map<Job, Thread> currentlyProcessedJobs;
     private final AtomicInteger exceptionCount;
     private final ReentrantLock reentrantLock;
-    private final AtomicBoolean isMaster;
     private final AtomicInteger occupiedWorkers;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
@@ -57,17 +55,16 @@ public class JobZooKeeper implements Runnable {
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();
         this.reentrantLock = new ReentrantLock();
         this.exceptionCount = new AtomicInteger();
-        this.isMaster = new AtomicBoolean();
         this.occupiedWorkers = new AtomicInteger();
     }
 
     @Override
     public void run() {
         try {
-            if (isNotInitialized()) return;
+            if (backgroundJobServer.isUnAnnounced()) return;
 
             if (canOnboardNewWork()) {
-                if (isMaster()) {
+                if (backgroundJobServer.isMaster()) {
                     runMasterTasks();
                 }
 
@@ -92,22 +89,6 @@ public class JobZooKeeper implements Runnable {
         checkForOrphanedJobs();
         checkForSucceededJobsThanCanGoToDeletedState();
         checkForJobsThatCanBeDeleted();
-    }
-
-    public void stop() {
-        this.isMaster.set(false);
-    }
-
-    public void setIsMaster(boolean isMaster) {
-        this.isMaster.set(isMaster);
-    }
-
-    public boolean isMaster() {
-        return this.isMaster.get();
-    }
-
-    private boolean isNotInitialized() {
-        return isMaster == null;
     }
 
     boolean canOnboardNewWork() {

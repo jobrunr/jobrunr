@@ -1,6 +1,5 @@
 package org.jobrunr.server;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.server.jmx.JobServerStats;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
@@ -13,8 +12,6 @@ import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Comparator.comparing;
-
 public class ServerZooKeeper implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
@@ -23,8 +20,9 @@ public class ServerZooKeeper implements Runnable {
     private final BackgroundJobServerStatusWriteModel backgroundJobServerStatus;
     private final StorageProvider storageProvider;
     private final Duration timeoutDuration;
-    private boolean isAnnounced;
     private final AtomicInteger restartAttempts;
+    private UUID masterId;
+    private Instant lastServerTimeoutCheck;
 
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
@@ -32,30 +30,30 @@ public class ServerZooKeeper implements Runnable {
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.timeoutDuration = Duration.ofSeconds(backgroundJobServerStatus.getPollIntervalInSeconds()).multipliedBy(4);
         this.restartAttempts = new AtomicInteger();
+        this.lastServerTimeoutCheck = Instant.now();
     }
 
     @Override
     public void run() {
         try {
-            if (isUnannounced()) {
+            if (backgroundJobServer.isUnAnnounced()) {
                 announceBackgroundJobServer();
             } else {
                 signalBackgroundJobServerAliveAndDoZooKeeping();
             }
         } catch (Exception shouldNotHappen) {
             LOGGER.error("An unrecoverable error occurred. Shutting server down...", shouldNotHappen);
+            backgroundJobServer.setIsMaster(null);
             new Thread(this::stopServer).start();
         }
     }
 
-    public void stop() {
-        if (isAnnounced) {
-            try {
-                storageProvider.signalBackgroundJobServerStopped(backgroundJobServerStatus);
-                isAnnounced = false;
-            } catch (Exception e) {
-                LOGGER.error("Error when signalling that BackgroundJobServer stopped", e);
-            }
+    public synchronized void stop() {
+        try {
+            storageProvider.signalBackgroundJobServerStopped(backgroundJobServerStatus);
+            masterId = null;
+        } catch (Exception e) {
+            LOGGER.error("Error when signalling that BackgroundJobServer stopped", e);
         }
     }
 
@@ -63,32 +61,16 @@ public class ServerZooKeeper implements Runnable {
         return new BackgroundJobServerStatusWriteModel(backgroundJobServer.getServerStatus());
     }
 
-    public boolean isAnnounced() {
-        return isAnnounced;
-    }
-
-    private boolean isUnannounced() {
-        return !isAnnounced;
-    }
-
     private void announceBackgroundJobServer() {
         storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);
-        jobZooKeeper().setIsMaster(determineIfBackgroundJobServerIsMaster());
-        isAnnounced = true;
+        determineIfCurrentBackgroundJobServerIsMaster();
     }
 
     private void signalBackgroundJobServerAliveAndDoZooKeeping() {
         try {
             final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(backgroundJobServerStatus);
-            final Instant timedOutInstant = Instant.now().minus(timeoutDuration);
-            final int amountOfServersThatTimedOut = storageProvider.removeTimedOutBackgroundJobServers(timedOutInstant);
-            if (amountOfServersThatTimedOut > 0) {
-                LOGGER.info("Removed {} server(s) that timed out", amountOfServersThatTimedOut);
-                if (!jobZooKeeper().isMaster()) {
-                    LOGGER.info("Starting master reelection process");
-                    jobZooKeeper().setIsMaster(determineIfBackgroundJobServerIsMaster());
-                }
-            }
+            deleteServersThatTimedOut();
+            determineIfCurrentBackgroundJobServerIsMaster();
             // TODO: stop server if requested?
         } catch (ServerTimedOutException e) {
             if (restartAttempts.getAndIncrement() < 3) {
@@ -101,17 +83,29 @@ public class ServerZooKeeper implements Runnable {
         }
     }
 
-    private boolean determineIfBackgroundJobServerIsMaster() {
-        final BackgroundJobServerStatus oldestServer = storageProvider
-                .getBackgroundJobServers()
-                .stream()
-                .min(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
-                .orElseThrow(() -> JobRunrException.shouldNotHappenException("No servers available?!"));
-        final boolean isMaster = oldestServer.getId().equals(backgroundJobServerStatus.getId());
-        if (isMaster) {
-            LOGGER.info("Server {} is master", backgroundJobServerStatus.getId());
+    private void deleteServersThatTimedOut() {
+        if (Instant.now().isAfter(this.lastServerTimeoutCheck.plus(timeoutDuration))) {
+            final Instant timedOutInstant = Instant.now().minus(timeoutDuration);
+            final int amountOfServersThatTimedOut = storageProvider.removeTimedOutBackgroundJobServers(timedOutInstant);
+            if (amountOfServersThatTimedOut > 0) {
+                LOGGER.info("Removed {} server(s) that timed out", amountOfServersThatTimedOut);
+            }
+            this.lastServerTimeoutCheck = Instant.now();
         }
-        return isMaster;
+    }
+
+    private void determineIfCurrentBackgroundJobServerIsMaster() {
+        UUID longestRunningBackgroundJobServerId = storageProvider.getLongestRunningBackgroundJobServerId();
+        if (this.masterId == null || !masterId.equals(longestRunningBackgroundJobServerId)) {
+            this.masterId = longestRunningBackgroundJobServerId;
+            if (masterId.equals(backgroundJobServerStatus.getId())) {
+                backgroundJobServer.setIsMaster(true);
+                LOGGER.info("Server {} is master (this BackgroundJobServer)", masterId);
+            } else {
+                backgroundJobServer.setIsMaster(false);
+                LOGGER.info("Server {} is master (another BackgroundJobServer)", masterId);
+            }
+        }
     }
 
     private void resetServer() {
@@ -121,10 +115,6 @@ public class ServerZooKeeper implements Runnable {
 
     private void stopServer() {
         backgroundJobServer.stop();
-    }
-
-    private JobZooKeeper jobZooKeeper() {
-        return backgroundJobServer.getJobZooKeeper();
     }
 
 

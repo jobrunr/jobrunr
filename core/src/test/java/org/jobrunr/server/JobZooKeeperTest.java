@@ -87,13 +87,15 @@ class JobZooKeeperTest {
 
     @Test
     void jobZooKeeperDoesNothingIfItIsNotInitialized() {
+        when(backgroundJobServer.isUnAnnounced()).thenReturn(true);
+
         jobZooKeeper = new JobZooKeeper(backgroundJobServer);
 
         jobZooKeeper.run();
 
         verify(storageProvider, never()).getRecurringJobs();
         verify(storageProvider, never()).getScheduledJobs(any(), any());
-        verify(storageProvider, never()).getJobs(any(), any(), any());
+        verify(storageProvider, never()).getJobs(any(), any());
         verify(storageProvider, never()).deleteJobsPermanently(any(), any());
     }
 
@@ -297,9 +299,8 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
-        final JobZooKeeper jobZooKeeper = new JobZooKeeper(backgroundJobServer);
-        jobZooKeeper.setIsMaster(true);
-        return jobZooKeeper;
+        lenient().when(backgroundJobServer.isMaster()).thenReturn(true);
+        return new JobZooKeeper(backgroundJobServer);
     }
 
     private List<Job>[] emptyJobList() {

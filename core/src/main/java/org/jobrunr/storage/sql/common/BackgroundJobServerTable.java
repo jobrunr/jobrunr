@@ -9,8 +9,10 @@ import org.jobrunr.storage.sql.common.db.SqlResultSet;
 import javax.sql.DataSource;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
@@ -100,6 +102,14 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .collect(toList());
     }
 
+    public UUID getLongestRunningBackgroundJobServerId() {
+        return withOrderLimitAndOffset("firstHeartbeat ASC", 1, 0)
+                .select("id from jobrunr_backgroundjobservers")
+                .map(sqlResultSet -> sqlResultSet.asUUID(COLUMN_ID))
+                .findFirst()
+                .orElseThrow(() -> shouldNotHappenException("No servers available?!"));
+    }
+
     private BackgroundJobServerStatus toBackgroundJobServerStatus(SqlResultSet resultSet) {
         return new BackgroundJobServerStatus(
                 resultSet.asUUID(COLUMN_ID),
@@ -119,5 +129,6 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 resultSet.asDouble(COLUMN_PROCESS_CPU_LOAD)
         );
     }
+
 
 }

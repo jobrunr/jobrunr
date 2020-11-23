@@ -63,6 +63,9 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration withJobFilter(JobFilter... jobFilters) {
+        if (this.backgroundJobServer != null) {
+            throw new IllegalStateException("Please configure the JobFilters before the BackgroundJobServer.");
+        }
         this.jobFilters.addAll(Arrays.asList(jobFilters));
         return this;
     }
@@ -86,7 +89,6 @@ public class JobRunrConfiguration {
         if (guard) {
             this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator));
             this.backgroundJobServer.start();
-            this.backgroundJobServer.setJobFilters(jobFilters);
         }
         return this;
     }
@@ -133,7 +135,6 @@ public class JobRunrConfiguration {
     public JobRunrConfiguration useDefaultBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration) {
         if (guard) {
             this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator, configuration));
-            this.backgroundJobServer.setJobFilters(jobFilters);
             this.backgroundJobServer.start();
         }
         return this;

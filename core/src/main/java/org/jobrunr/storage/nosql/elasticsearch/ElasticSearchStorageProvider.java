@@ -164,6 +164,24 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public UUID getLongestRunningBackgroundJobServerId() {
+        try {
+            SearchRequest searchRequest = new SearchRequest(backgroundJobServerIndexName());
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+            searchSourceBuilder.fetchSource(false);
+            searchSourceBuilder.sort(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, SortOrder.ASC);
+            searchSourceBuilder.size(1);
+            searchRequest.source(searchSourceBuilder);
+            SearchResponse search = client.search(searchRequest, RequestOptions.DEFAULT);
+
+            return UUID.fromString(search.getHits().getHits()[0].getId());
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         try {
             DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest(backgroundJobServerIndexName());

@@ -32,6 +32,8 @@ public interface StorageProvider extends AutoCloseable {
 
     List<BackgroundJobServerStatus> getBackgroundJobServers();
 
+    UUID getLongestRunningBackgroundJobServerId();
+
     int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan);
 
     Job save(Job job);

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,7 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class ServerZooKeeperTest {
@@ -54,7 +56,7 @@ class ServerZooKeeperTest {
 
         await().untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue();
+        assertThat(backgroundJobServer.isMaster()).isTrue();
     }
 
     @Test
@@ -66,7 +68,7 @@ class ServerZooKeeperTest {
 
         await().untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(2));
 
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse();
+        assertThat(backgroundJobServer.isMaster()).isFalse();
     }
 
     @Test
@@ -88,21 +90,42 @@ class ServerZooKeeperTest {
 
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atLeast(20, TimeUnit.SECONDS)
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(41, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
-        assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue();
+        assertThat(backgroundJobServer.isMaster()).isTrue();
+        verify(storageProvider, times(2)).removeTimedOutBackgroundJobServers(any());
     }
 
     @Test
-    void otherServersDoZookeepingAndBecomeMasterIfMasterIsGone() {
+    void otherServersDoZookeepingAndBecomeMasterIfMasterStops() {
         final BackgroundJobServerStatus master = anotherServer();
         storageProvider.announceBackgroundJobServer(master);
 
         backgroundJobServer.start();
 
         await().atMost(TWO_SECONDS)
-                .untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse());
+                .untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isFalse());
+
+        storageProvider.signalBackgroundJobServerStopped(master);
+
+        await().pollInterval(ONE_HUNDRED_MILLISECONDS)
+                .atMost(1, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
+
+        await().atMost(FIVE_SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isTrue());
+    }
+
+    @Test
+    void otherServersDoZookeepingAndBecomeMasterIfMasterCrashes() {
+        final BackgroundJobServerStatus master = anotherServer();
+        storageProvider.announceBackgroundJobServer(master);
+
+        backgroundJobServer.start();
+
+        await().atMost(TWO_SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isFalse());
 
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atLeast(15, TimeUnit.SECONDS)
@@ -110,7 +133,8 @@ class ServerZooKeeperTest {
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
         await().atMost(FIVE_SECONDS)
-                .untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
+                .untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isTrue());
+        verify(storageProvider, times(1)).removeTimedOutBackgroundJobServers(any());
     }
 
     @Test
@@ -122,26 +146,26 @@ class ServerZooKeeperTest {
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
-        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
+        await().untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isTrue());
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
-        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
+        await().untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isTrue());
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
-        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isTrue());
+        await().untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isTrue());
 
         storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .during(FIVE_SECONDS)
                 .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).isEmpty());
-        await().untilAsserted(() -> assertThat(backgroundJobServer.getJobZooKeeper().isMaster()).isFalse());
+        await().untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isFalse());
     }
 
     @Test
@@ -151,6 +175,7 @@ class ServerZooKeeperTest {
         backgroundJobServer.start();
 
         await().untilAsserted(() -> assertThat(backgroundJobServer.isStopped()).isTrue());
+        assertThat(Whitebox.<Object>getInternalState(backgroundJobServer, "zookeeperThreadPool")).isNull();
     }
 
     @Test

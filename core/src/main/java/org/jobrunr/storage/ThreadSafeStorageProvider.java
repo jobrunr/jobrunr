@@ -59,6 +59,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public UUID getLongestRunningBackgroundJobServerId() {
+        return storageProvider.getLongestRunningBackgroundJobServerId();
+    }
+
+    @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         return storageProvider.removeTimedOutBackgroundJobServers(heartbeatOlderThan);
     }

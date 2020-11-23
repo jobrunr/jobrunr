@@ -18,12 +18,12 @@ import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Integer.compare;
@@ -32,7 +32,6 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.resilience.WaitUntilBuilder.awaitSync;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -43,8 +42,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
+    private volatile Boolean isMaster;
 
-    private java.util.concurrent.ScheduledThreadPoolExecutor zookeeperThreadPool;
+    private ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
     private JobDefaultFilters jobDefaultFilters;
 
@@ -57,7 +57,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
+        if (storageProvider == null)
+            throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
 
         this.serverStatus = new BackgroundJobServerStatus(configuration.backgroundJobServerWorkerPolicy.getWorkerCount(), configuration.pollIntervalInSeconds, configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter);
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
@@ -67,16 +68,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobZooKeeper = createJobZooKeeper();
     }
 
-    public void setJobFilters(List<JobFilter> jobFilters) {
-        this.jobDefaultFilters = new JobDefaultFilters(jobFilters);
-    }
-
-    JobDefaultFilters getJobFilters() {
-        return jobDefaultFilters;
-    }
-
-    public boolean isRunning() {
-        return serverStatus.isRunning();
+    public UUID getId() {
+        return serverStatus.getId();
     }
 
     public void start() {
@@ -85,12 +78,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         startZooKeepers();
         startWorkers();
         runStartupTasks();
-
-        awaitSync()
-                .atMost(3, ChronoUnit.SECONDS)
-                .until(serverZooKeeper::isAnnounced)
-                .andThen(() -> LOGGER.info("JobRunr BackgroundJobServer ({}) and {} BackgroundJobPerformers started successfully", getId(), serverStatus.getWorkerPoolSize()))
-                .orElse(() -> LOGGER.error("JobRunr BackgroundJobServer NOT started"));
     }
 
     public void pauseProcessing() {
@@ -111,10 +98,36 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public void stop() {
         if (isStopped()) return;
+        isMaster = null;
         stopWorkers();
         stopZooKeepers();
         serverStatus.stop();
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers stopped");
+    }
+
+    public boolean isAnnounced() {
+        return isMaster != null;
+    }
+
+    public boolean isUnAnnounced() {
+        return !isAnnounced();
+    }
+
+    public boolean isMaster() {
+        return isAnnounced() && isMaster;
+    }
+
+    synchronized void setIsMaster(Boolean isMaster) {
+        this.isMaster = isMaster;
+        if (isMaster != null) {
+            LOGGER.info("JobRunr BackgroundJobServer ({}) and {} BackgroundJobPerformers started successfully", getId(), serverStatus.getWorkerPoolSize());
+        } else {
+            LOGGER.error("JobRunr BackgroundJobServer failed to start");
+        }
+    }
+
+    public boolean isRunning() {
+        return serverStatus.isRunning();
     }
 
     public BackgroundJobServerStatus getServerStatus() {
@@ -125,12 +138,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return jobZooKeeper;
     }
 
-    public UUID getId() {
-        return serverStatus.getId();
-    }
-
     public StorageProvider getStorageProvider() {
         return storageProvider;
+    }
+
+    public void setJobFilters(List<JobFilter> jobFilters) {
+        this.jobDefaultFilters = new JobDefaultFilters(jobFilters);
+    }
+
+    JobDefaultFilters getJobFilters() {
+        return jobDefaultFilters;
     }
 
     BackgroundJobRunner getBackgroundJobRunner(Job job) {
@@ -173,9 +190,21 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleAtFixedRate(jobZooKeeper, 1, serverStatus.getPollIntervalInSeconds(), TimeUnit.SECONDS);
     }
 
+    private void stopZooKeepers() {
+        serverZooKeeper.stop();
+        stop(zookeeperThreadPool);
+        this.zookeeperThreadPool = null;
+    }
+
     private void startWorkers() {
         jobExecutor = loadJobRunrExecutor();
         jobExecutor.start();
+    }
+
+    private void stopWorkers() {
+        if (jobExecutor == null) return;
+        jobExecutor.stop();
+        this.jobExecutor = null;
     }
 
     private void runStartupTasks() {
@@ -185,19 +214,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         } catch (Exception notImportant) {
             // server is shut down immediately
         }
-    }
-
-    private void stopZooKeepers() {
-        jobZooKeeper.stop();
-        serverZooKeeper.stop();
-        stop(zookeeperThreadPool);
-        this.zookeeperThreadPool = null;
-    }
-
-    private void stopWorkers() {
-        if (jobExecutor == null) return;
-        jobExecutor.stop();
-        this.jobExecutor = null;
     }
 
     private List<BackgroundJobRunner> initializeBackgroundJobRunners(JobActivator jobActivator) {
@@ -221,12 +237,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    private JobZooKeeper createJobZooKeeper() {
-        return new JobZooKeeper(this);
-    }
-
     private ServerZooKeeper createServerZooKeeper() {
         return new ServerZooKeeper(this);
+    }
+
+    private JobZooKeeper createJobZooKeeper() {
+        return new JobZooKeeper(this);
     }
 
     private JobRunrExecutor loadJobRunrExecutor() {

@@ -25,9 +25,9 @@ import java.util.stream.Stream;
 import static io.lettuce.core.Range.unbounded;
 import static java.time.Instant.now;
 import static java.util.Arrays.stream;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -55,7 +55,8 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 public class LettuceRedisStorageProvider extends AbstractStorageProvider {
 
     public static final String RECURRING_JOBS_KEY = "recurringjobs";
-    public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
+    public static final String BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT = "backgroundjobservers-created";
+    public static final String BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT = "backgroundjobservers-updated";
     public static final String QUEUE_SCHEDULEDJOBS_KEY = "queue:scheduledjobs";
 
     private final RedisClient redisClient;
@@ -97,7 +98,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-            commands.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
+            commands.zadd(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, toMicroSeconds(now()), serverStatus.getId().toString());
+            commands.zadd(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, toMicroSeconds(now()), serverStatus.getId().toString());
             commands.exec();
         }
     }
@@ -118,7 +120,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
             commands.hset(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-            commands.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
+            commands.zadd(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, toMicroSeconds(now()), serverStatus.getId().toString());
             commands.exec();
             commands.unwatch();
             return Boolean.parseBoolean(commands.hget(backgroundJobServerKey(serverStatus), StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING));
@@ -131,7 +133,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.del(backgroundJobServerKey(serverStatus.getId()));
-            commands.zrem(BACKGROUND_JOB_SERVERS_KEY, serverStatus.getId().toString());
+            commands.zrem(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, serverStatus.getId().toString());
+            commands.zrem(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, serverStatus.getId().toString());
             commands.exec();
         }
     }
@@ -140,7 +143,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
-            List<String> zrange = commands.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE);
+            List<String> zrange = commands.zrange(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, 0, Integer.MAX_VALUE);
             return new LettuceRedisPipelinedStream<>(zrange, connection)
                     .mapUsingPipeline((p, id) -> p.hgetall(backgroundJobServerKey(id)))
                     .mapToValues()
@@ -161,8 +164,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
                             Long.parseLong(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
                             Double.parseDouble(fieldMap.get(StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
-                    .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
                     .collect(toList());
+        }
+    }
+
+    @Override
+    public UUID getLongestRunningBackgroundJobServerId() {
+        try (final StatefulRedisConnection connection = getConnection()) {
+            RedisCommands commands = connection.sync();
+            return ((List<String>) commands.zrange(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, 0, 1)).stream()
+                    .map(UUID::fromString)
+                    .findFirst().orElseThrow(() -> shouldNotHappenException("No servers available?!"));
         }
     }
 
@@ -170,11 +182,12 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands commands = connection.sync();
-            final List<String> backgroundJobServers = commands.zrangebyscore(BACKGROUND_JOB_SERVERS_KEY, Range.create(0, toMicroSeconds(heartbeatOlderThan)));
+            final List<String> backgroundJobServers = commands.zrangebyscore(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, Range.create(0, toMicroSeconds(heartbeatOlderThan)));
             commands.multi();
             backgroundJobServers.forEach(backgroundJobServerId -> {
                 commands.del(backgroundJobServerKey(backgroundJobServerId));
-                commands.zrem(BACKGROUND_JOB_SERVERS_KEY, backgroundJobServerId);
+                commands.zrem(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, backgroundJobServerId);
+                commands.zrem(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, backgroundJobServerId);
             });
             commands.exec();
             return backgroundJobServers.size();
@@ -445,7 +458,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider {
             final RedisFuture<Long> deletedResponse = commands.zcount(jobQueueForStateKey(DELETED), unbounded());
 
             final RedisFuture<Long> recurringJobsResponse = commands.scard(RECURRING_JOBS_KEY);
-            final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(BACKGROUND_JOB_SERVERS_KEY, unbounded());
+            final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, unbounded());
 
             connection.flushCommands();
             LettuceFutures.awaitAll(Duration.ofSeconds(10), waitingCounterResponse, waitingResponse, scheduledCounterResponse, scheduledResponse,

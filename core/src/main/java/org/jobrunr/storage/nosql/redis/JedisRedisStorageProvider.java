@@ -19,9 +19,9 @@ import java.util.stream.Stream;
 
 import static java.time.Instant.now;
 import static java.util.Arrays.stream;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -48,7 +48,8 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 public class JedisRedisStorageProvider extends AbstractStorageProvider {
 
     public static final String RECURRING_JOBS_KEY = "recurringjobs";
-    public static final String BACKGROUND_JOB_SERVERS_KEY = "backgroundjobservers";
+    public static final String BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT = "backgroundjobservers-created";
+    public static final String BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT = "backgroundjobservers-updated";
     public static final String QUEUE_SCHEDULEDJOBS_KEY = "queue:scheduledjobs";
 
     private final JedisPool jedisPool;
@@ -90,7 +91,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
             p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-            p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
+            p.zadd(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, toMicroSeconds(now()), serverStatus.getId().toString());
+            p.zadd(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, toMicroSeconds(now()), serverStatus.getId().toString());
             p.sync();
         }
     }
@@ -109,7 +111,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
                 p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
                 p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
                 p.hset(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-                p.zadd(BACKGROUND_JOB_SERVERS_KEY, toMicroSeconds(now()), serverStatus.getId().toString());
+                p.zadd(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, toMicroSeconds(now()), serverStatus.getId().toString());
                 final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
                 p.sync();
                 return Boolean.parseBoolean(isRunningResponse.get());
@@ -121,7 +123,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
     public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
         try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             p.del(backgroundJobServerKey(serverStatus.getId()));
-            p.zrem(BACKGROUND_JOB_SERVERS_KEY, serverStatus.getId().toString());
+            p.zrem(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, serverStatus.getId().toString());
+            p.zrem(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, serverStatus.getId().toString());
             p.sync();
         }
     }
@@ -129,7 +132,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try (final Jedis jedis = getJedis()) {
-            return new JedisRedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY, 0, Integer.MAX_VALUE), jedis)
+            return new JedisRedisPipelinedStream<>(jedis.zrange(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, 0, Integer.MAX_VALUE), jedis)
                     .mapUsingPipeline((p, id) -> p.hgetAll(backgroundJobServerKey(id)))
                     .mapAfterSync(Response::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
@@ -149,19 +152,29 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
                             Long.parseLong(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY)),
                             Double.parseDouble(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD))
                     ))
-                    .sorted(comparing(BackgroundJobServerStatus::getFirstHeartbeat))
                     .collect(toList());
+        }
+    }
+
+    @Override
+    public UUID getLongestRunningBackgroundJobServerId() {
+        try (final Jedis jedis = getJedis()) {
+            return jedis.zrange(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, 0, 0).stream()
+                    .map(UUID::fromString)
+                    .findFirst()
+                    .orElseThrow(() -> shouldNotHappenException("No servers available?!"));
         }
     }
 
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         try (final Jedis jedis = getJedis()) {
-            final Set<String> backgroundjobservers = jedis.zrangeByScore(BACKGROUND_JOB_SERVERS_KEY, 0, toMicroSeconds(heartbeatOlderThan));
+            final Set<String> backgroundjobservers = jedis.zrangeByScore(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, 0, toMicroSeconds(heartbeatOlderThan));
             try (final Pipeline p = jedis.pipelined()) {
                 backgroundjobservers.forEach(backgroundJobServerId -> {
                     p.del(backgroundJobServerKey(backgroundJobServerId));
-                    p.zrem(BACKGROUND_JOB_SERVERS_KEY, backgroundJobServerId);
+                    p.zrem(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, backgroundJobServerId);
+                    p.zrem(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, backgroundJobServerId);
                 });
                 p.sync();
             }
@@ -415,7 +428,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
             final Response<Long> deletedResponse = p.zcount(jobQueueForStateKey(DELETED), 0, Long.MAX_VALUE);
 
             final Response<Long> recurringJobsResponse = p.scard(RECURRING_JOBS_KEY);
-            final Response<Long> backgroundJobServerResponse = p.zcount(BACKGROUND_JOB_SERVERS_KEY, 0, Long.MAX_VALUE);
+            final Response<Long> backgroundJobServerResponse = p.zcount(BACKGROUND_JOB_SERVERS_KEY_LAST_HEARTBEAT, 0, Long.MAX_VALUE);
 
             p.sync();
 

@@ -84,8 +84,12 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
-        return backgroundJobServerTable()
-                .getAll();
+        return backgroundJobServerTable().getAll();
+    }
+
+    @Override
+    public UUID getLongestRunningBackgroundJobServerId() {
+        return backgroundJobServerTable().getLongestRunningBackgroundJobServerId();
     }
 
     @Override

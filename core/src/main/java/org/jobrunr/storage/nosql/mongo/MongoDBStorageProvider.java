@@ -173,6 +173,16 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public UUID getLongestRunningBackgroundJobServerId() {
+        return this.backgroundJobServerCollection
+                .find()
+                .sort(ascending(BackgroundJobServers.FIELD_FIRST_HEARTBEAT))
+                .projection(include(toMongoId(BackgroundJobServers.FIELD_ID)))
+                .map(MongoUtils::getIdAsUUID)
+                .first();
+    }
+
+    @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         final DeleteResult deleteResult = this.backgroundJobServerCollection.deleteMany(lt(BackgroundJobServers.FIELD_LAST_HEARTBEAT, heartbeatOlderThan));
         return (int) deleteResult.getDeletedCount();
