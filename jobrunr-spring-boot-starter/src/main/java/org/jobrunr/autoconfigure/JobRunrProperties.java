@@ -13,6 +13,8 @@ public class JobRunrProperties {
 
     private BackgroundJobServer backgroundJobServer = new BackgroundJobServer();
 
+    private Database database = new Database();
+
     public Dashboard getDashboard() {
         return dashboard;
     }
@@ -27,6 +29,14 @@ public class JobRunrProperties {
 
     public void setBackgroundJobServer(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
+    }
+
+    public Database getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(Database database) {
+        this.database = database;
     }
 
     /**
@@ -153,6 +163,24 @@ public class JobRunrProperties {
 
         public void setPort(int port) {
             this.port = port;
+        }
+    }
+
+    /**
+     * JobRunr dashboard related settings
+     */
+    public static class Database {
+        /**
+         * Allows to skip the creation of the tables - this means you should add them manually or by database migration tools like FlywayDB.
+         */
+        private boolean skipCreate = false;
+
+        public void setSkipCreate(boolean skipCreate) {
+            this.skipCreate = skipCreate;
+        }
+
+        public boolean isSkipCreate() {
+            return skipCreate;
         }
     }
 }
