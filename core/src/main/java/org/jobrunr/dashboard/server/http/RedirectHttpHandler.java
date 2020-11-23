@@ -23,6 +23,6 @@ public class RedirectHttpHandler extends AbstractTeenyHttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         httpExchange.getResponseHeaders().add("Location", to);
-        httpExchange.sendResponseHeaders(302, 0);
+        httpExchange.sendResponseHeaders(302, -1);
     }
 }
