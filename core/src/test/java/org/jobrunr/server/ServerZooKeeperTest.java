@@ -90,7 +90,7 @@ class ServerZooKeeperTest {
 
         await().pollInterval(ONE_HUNDRED_MILLISECONDS)
                 .atLeast(20, TimeUnit.SECONDS)
-                .atMost(41, TimeUnit.SECONDS)
+                .atMost(45, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
         assertThat(backgroundJobServer.isMaster()).isTrue();

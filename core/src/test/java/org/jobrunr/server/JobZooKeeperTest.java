@@ -80,7 +80,7 @@ class JobZooKeeperTest {
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
-        backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().build();
+        backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         jobZooKeeper = initializeJobZooKeeper();
         logger = LoggerAssert.initFor(jobZooKeeper);
     }
@@ -299,6 +299,7 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
+        lenient().when(backgroundJobServer.isAnnounced()).thenReturn(true);
         lenient().when(backgroundJobServer.isMaster()).thenReturn(true);
         return new JobZooKeeper(backgroundJobServer);
     }
