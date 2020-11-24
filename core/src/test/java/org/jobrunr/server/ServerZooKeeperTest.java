@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_HUNDRED_MILLISECONDS;
+import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
@@ -88,9 +89,11 @@ class ServerZooKeeperTest {
 
         storageProvider.announceBackgroundJobServer(anotherServer());
 
-        await().pollInterval(ONE_HUNDRED_MILLISECONDS)
+        await()
+                .pollInterval(ONE_SECOND)
+                //.conditionEvaluationListener(condition -> System.out.printf("%s (elapsed time %dms, remaining time %dms)\n", condition.getDescription(), condition.getElapsedTimeInMS(), condition.getRemainingTimeInMS()))
                 .atLeast(20, TimeUnit.SECONDS)
-                .atMost(45, TimeUnit.SECONDS)
+                .atMost(55, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
         assertThat(backgroundJobServer.isMaster()).isTrue();
