@@ -1,6 +1,5 @@
 package org.jobrunr.storage;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
@@ -103,7 +102,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public UUID getLongestRunningBackgroundJobServerId() {
         return backgroundJobServers.values().stream()
                 .min(comparing(BackgroundJobServerStatus::getFirstHeartbeat)).map(BackgroundJobServerStatus::getId)
-                .orElseThrow(() -> JobRunrException.shouldNotHappenException("No servers available?!"));
+                .orElseThrow(() -> new IllegalStateException("No servers available?!"));
     }
 
     @Override

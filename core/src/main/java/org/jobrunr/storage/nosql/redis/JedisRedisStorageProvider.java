@@ -21,7 +21,6 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -162,7 +161,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider {
             return jedis.zrange(BACKGROUND_JOB_SERVERS_KEY_FIRST_HEARTBEAT, 0, 0).stream()
                     .map(UUID::fromString)
                     .findFirst()
-                    .orElseThrow(() -> shouldNotHappenException("No servers available?!"));
+                    .orElseThrow(() -> new IllegalStateException("No servers available?!"));
         }
     }
 
