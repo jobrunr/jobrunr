@@ -1,23 +1,19 @@
 package org.jobrunr.dashboard;
 
-import com.mongodb.MongoClientSettings;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import org.bson.UuidRepresentation;
-import org.bson.codecs.UuidCodec;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.cron.Cron;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StubDataProvider;
-import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
+import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
 import java.time.Instant;
-import java.util.Arrays;
+import java.time.ZoneId;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
@@ -30,20 +26,11 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws InterruptedException {
-        CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
-                CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
-                MongoClientSettings.getDefaultCodecRegistry()
-        );
-        MongoClient mongoClient = MongoClients.create(
-                MongoClientSettings.builder()
-                        .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress("127.0.0.1", 27017))))
-                        .codecRegistry(codecRegistry)
-                        .build());
-
-        StorageProvider storageProvider = new MongoDBStorageProvider(mongoClient);
+        StorageProvider storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
 
         StubDataProvider.using(storageProvider)
+                //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 .addSomeRecurringJobs();
 
@@ -57,7 +44,8 @@ public class FrontEndDevelopment {
                 .useDefaultBackgroundJobServer()
                 .initialize();
 
-        //BackgroundJob.<TestService>enqueue(x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently("Github-75", x -> x.doWorkThatTakesLong(JobContext.Null), Cron.daily(11, 42), ZoneId.of("America/New_York"));
+
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
