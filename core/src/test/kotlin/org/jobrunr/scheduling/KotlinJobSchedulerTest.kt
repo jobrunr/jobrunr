@@ -1,19 +1,24 @@
 package org.jobrunr.scheduling
 
+import org.awaitility.Awaitility
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
+import org.jobrunr.jobs.JobId
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName
 import org.jobrunr.scheduling.JobSchedulerTest.JobClientLogFilter
+import org.jobrunr.scheduling.cron.Cron
 import org.jobrunr.server.BackgroundJobServer
 import org.jobrunr.server.BackgroundJobServerConfiguration
 import org.jobrunr.storage.InMemoryStorageProvider
+import org.jobrunr.storage.PageRequest
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
+import java.util.concurrent.TimeUnit
 
 class KotlinJobSchedulerTest {
   @Mock
@@ -62,5 +67,24 @@ class KotlinJobSchedulerTest {
     }
     assertThat(storageProvider.getJobById(jobId))
       .hasStates(StateName.ENQUEUED, StateName.PROCESSING, StateName.SUCCEEDED)
+  }
+
+  @Test
+  fun `test schedule recurrent job`() {
+    val amount = 2
+    val text = "foo"
+    jobScheduler.scheduleRecurrently(Cron.minutely()) { "$text: $amount" }
+    assertThat(jobClientLogFilter.onCreating).isTrue
+    assertThat(jobClientLogFilter.onCreated).isTrue
+    await().atMost(65, TimeUnit.SECONDS).until {
+      storageProvider.countJobs(StateName.SUCCEEDED) == 1L
+    }
+    val job = storageProvider.getJobs(StateName.SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+    assertThat(storageProvider.getJobById(job.id)).hasStates(
+      StateName.SCHEDULED,
+      StateName.ENQUEUED,
+      StateName.PROCESSING,
+      StateName.SUCCEEDED
+    )
   }
 }
