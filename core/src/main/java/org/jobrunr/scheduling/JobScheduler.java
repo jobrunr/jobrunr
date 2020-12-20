@@ -294,7 +294,7 @@ public class JobScheduler {
         return scheduleRecurrently(null, job, cron);
     }
 
-    public String scheduleRecurrently(Function<?> lambda, String cron) {
+    public String scheduleRecurrently(String cron, Function<?> lambda) {
         return new KotlinJobScheduler(this).scheduleRecurrently(lambda, cron);
     }
 
