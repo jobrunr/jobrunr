@@ -10,7 +10,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 public class JobRunrDashboardLogger implements Logger {
 
-    private static JobDashboardLogger jobDashboardLogger;
+    private static final ThreadLocal<JobDashboardLogger> jobDashboardLoggerThreadLocal = new ThreadLocal<>();
     private final Logger logger;
     private final Level threshold;
 
@@ -24,11 +24,11 @@ public class JobRunrDashboardLogger implements Logger {
     }
 
     public static void setJob(Job job) {
-        jobDashboardLogger = new RunnerJobContext(job).logger();
+        jobDashboardLoggerThreadLocal.set(new RunnerJobContext(job).logger());
     }
 
     public static void clearJob() {
-        jobDashboardLogger = null;
+        jobDashboardLoggerThreadLocal.remove();
     }
 
     @Override
@@ -368,44 +368,44 @@ public class JobRunrDashboardLogger implements Logger {
 
     private void logInfoToJobDashboard(String message) {
         if (threshold.compareTo(Level.INFO) > 0) return;
-        if (jobDashboardLogger != null) {
-            jobDashboardLogger.info(message);
+        if (jobDashboardLoggerThreadLocal.get() != null) {
+            jobDashboardLoggerThreadLocal.get().info(message);
         }
     }
 
     private void logInfoToJobDashboard(String format, Object... args) {
         if (threshold.compareTo(Level.INFO) > 0) return;
-        if (jobDashboardLogger != null) {
+        if (jobDashboardLoggerThreadLocal.get() != null) {
             FormattingTuple tp = MessageFormatter.arrayFormat(format, args);
-            jobDashboardLogger.info(tp.getMessage());
+            jobDashboardLoggerThreadLocal.get().info(tp.getMessage());
         }
     }
 
     private void logWarnToJobDashboard(String message) {
         if (threshold.compareTo(Level.WARN) > 0) return;
-        if (jobDashboardLogger != null) {
-            jobDashboardLogger.warn(message);
+        if (jobDashboardLoggerThreadLocal.get() != null) {
+            jobDashboardLoggerThreadLocal.get().warn(message);
         }
     }
 
     private void logWarnToJobDashboard(String format, Object... args) {
         if (threshold.compareTo(Level.WARN) > 0) return;
-        if (jobDashboardLogger != null) {
+        if (jobDashboardLoggerThreadLocal.get() != null) {
             FormattingTuple tp = MessageFormatter.arrayFormat(format, args);
-            jobDashboardLogger.warn(tp.getMessage());
+            jobDashboardLoggerThreadLocal.get().warn(tp.getMessage());
         }
     }
 
     private void logErrorToJobDashboard(String message) {
-        if (jobDashboardLogger != null) {
-            jobDashboardLogger.error(message);
+        if (jobDashboardLoggerThreadLocal.get() != null) {
+            jobDashboardLoggerThreadLocal.get().error(message);
         }
     }
 
     private void logErrorToJobDashboard(String format, Object... args) {
-        if (jobDashboardLogger != null) {
+        if (jobDashboardLoggerThreadLocal.get() != null) {
             FormattingTuple tp = MessageFormatter.arrayFormat(format, args);
-            jobDashboardLogger.error(tp.getMessage());
+            jobDashboardLoggerThreadLocal.get().error(tp.getMessage());
         }
     }
 }

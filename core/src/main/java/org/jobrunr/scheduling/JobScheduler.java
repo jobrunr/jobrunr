@@ -294,6 +294,10 @@ public class JobScheduler {
         return scheduleRecurrently(null, job, cron);
     }
 
+    public String scheduleRecurrently(Function<?> lambda, String cron) {
+        return new KotlinJobScheduler(this).scheduleRecurrently(lambda, cron);
+    }
+
     /**
      * Creates a new recurring job based on the given lambda and the given cron expression. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>

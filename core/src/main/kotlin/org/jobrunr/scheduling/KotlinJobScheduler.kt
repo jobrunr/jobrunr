@@ -4,16 +4,31 @@ import org.jobrunr.jobs.Job
 import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.JobId
 import org.jobrunr.jobs.JobParameter
+import org.jobrunr.scheduling.cron.CronExpression
+import java.time.ZoneId
 
 internal class KotlinJobScheduler(private val jobScheduler: JobScheduler) {
+  /** TODO docs */
   fun enqueue(lambda: Function<*>): JobId {
+    val jobDetails = lambdaToJobDetails(lambda)
+    return jobScheduler.saveJob(Job(jobDetails))
+  }
+
+  /** TODO docs */
+  fun scheduleRecurrently(lambda: Function<*>, cron: String): String {
+    val jobDetails = lambdaToJobDetails(lambda)
+    val cronExpression = CronExpression.create(cron)
+    val zoneId = ZoneId.systemDefault()
+    return jobScheduler.scheduleRecurrently(null, jobDetails, cronExpression, zoneId)
+  }
+
+  private fun lambdaToJobDetails(lambda: Function<*>): JobDetails {
     val klass = lambda.javaClass
     val className = klass.name
     val boundVariables = collectBoundVariables(lambda).map {
       JobParameter(it.javaClass, it)
     }
-    val job = Job(JobDetails(className, null, klass.methods[0].name, listOf(), boundVariables))
-    return jobScheduler.saveJob(job)
+    return JobDetails(className, null, klass.methods[0].name, listOf(), boundVariables)
   }
 
   private fun <T> collectBoundVariables(lambda: Function<T>) =
