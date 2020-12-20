@@ -105,16 +105,6 @@ public class ReflectionUtils {
         }
     }
 
-    public static boolean hasDefaultNoArgConstructor(String clazzName) {
-        return Stream.of(toClass(clazzName).getConstructors())
-                .anyMatch(c -> c.getParameterCount() == 0);
-    }
-
-    public static boolean hasDefaultNoArgConstructor(Class<?> clazz) {
-        return Stream.of(clazz.getConstructors())
-                .anyMatch(c -> c.getParameterCount() == 0);
-    }
-
     public static <T> T newInstanceAndSetFieldValues(Class<T> clazz, Map<String, String> fieldValues) {
         T t = newInstance(clazz);
         Field[] declaredFields = clazz.getDeclaredFields();
@@ -273,10 +263,11 @@ public class ReflectionUtils {
     }
 
     private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) {
-        Constructor<?>[] constructors = clazz.getConstructors();
-
+        Constructor<?>[] constructors = clazz.getDeclaredConstructors();
         for (Constructor<?> constructor : constructors) {
-            Class<?>[] types = constructor.getParameterTypes();
+            Class<?>[] types = stream(constructor.getParameterTypes())
+                .map(ReflectionUtils::kClassToJava)
+                .toArray(Class[]::new);
             if (types.length == args.length) {
                 boolean argumentsMatch = true;
                 for (int i = 0; i < args.length; i++) {
@@ -290,6 +281,22 @@ public class ReflectionUtils {
             }
         }
         throw new JobNotFoundException(clazz, "<init>", args);
+    }
+
+    /** Java port of Kotlin's KClass<T>.javaObjectType */
+    private static Class<?> kClassToJava(Class<?> klass) {
+        switch (klass.getName()) {
+            case "boolean" : return Boolean.class;
+            case "char"    : return Character.class;
+            case "byte"    : return Byte.class;
+            case "short"   : return Short.class;
+            case "int"     : return Integer.class;
+            case "float"   : return Float.class;
+            case "long"    : return Long.class;
+            case "double"  : return Double.class;
+            case "void"    : return Void.class;
+            default: return klass;
+        }
     }
 
     /**

@@ -72,10 +72,10 @@ class JobSchedulerTest {
         assertThat(jobClientLogFilter.onCreated).isTrue();
     }
 
-    private static class JobClientLogFilter implements JobClientFilter {
+    public static class JobClientLogFilter implements JobClientFilter {
 
-        private boolean onCreating;
-        private boolean onCreated;
+        boolean onCreating;
+        boolean onCreated;
 
         @Override
         public void onCreating(AbstractJob job) {

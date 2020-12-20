@@ -36,7 +36,7 @@ public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
         }
 
         @Override
-        protected Object getJobToPerform(Class<?> jobToPerformClass) {
+        protected Object instantiateJob(Class<?> jobToPerformClass, Object... params) {
             return jobActivator.activateJob(jobToPerformClass);
         }
     }

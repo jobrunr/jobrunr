@@ -3,6 +3,7 @@ package org.jobrunr.jobs;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,17 +14,25 @@ public class JobDetails {
     private String className;
     private String staticFieldName;
     private String methodName;
-    private ArrayList<JobParameter> jobParameters;
+    private List<JobParameter> jobParameters;
+    private List<JobParameter> jobBoundVariables;
 
     private JobDetails() {
         // used for deserialization
     }
 
-    public JobDetails(String className, String staticFieldName, String methodName, List<JobParameter> jobParameters) {
+    public JobDetails(String className, String staticFieldName, String methodName,
+        List<JobParameter> jobParameters) {
+        this(className, staticFieldName, methodName, jobParameters, Collections.emptyList());
+    }
+
+    public JobDetails(String className, String staticFieldName, String methodName,
+        List<JobParameter> jobParameters, List<JobParameter> boundVariables) {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
         this.jobParameters = new ArrayList<>(jobParameters);
+        this.jobBoundVariables = new ArrayList<>(boundVariables);
     }
 
     public String getClassName() {
@@ -53,5 +62,11 @@ public class JobDetails {
         return jobParameters.stream()
                 .map(JobParameter::getObject)
                 .toArray();
+    }
+
+    public Object[] getJobBoundVariablesValues() {
+        return jobBoundVariables.stream()
+            .map(JobParameter::getObject)
+            .toArray();
     }
 }

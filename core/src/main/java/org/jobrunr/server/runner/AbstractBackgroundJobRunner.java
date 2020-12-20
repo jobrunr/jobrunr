@@ -31,7 +31,7 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
 
         public void run() throws Exception {
             Class<?> jobToPerformClass = getJobToPerformClass();
-            Object jobToPerform = getJobToPerform(jobToPerformClass);
+            Object jobToPerform = instantiateJob(jobToPerformClass, jobDetails.getJobBoundVariablesValues());
             Method jobMethodToPerform = getJobMethodToPerform(jobToPerformClass);
             invokeJobMethod(jobToPerform, jobMethodToPerform);
         }
@@ -40,8 +40,8 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
             return JobUtils.getJobClass(jobDetails);
         }
 
-        protected Object getJobToPerform(Class<?> jobToPerformClass) {
-            return newInstance(jobToPerformClass);
+        protected Object instantiateJob(Class<?> jobToPerformClass, Object... params) {
+            return newInstance(jobToPerformClass, params);
         }
 
         protected Method getJobMethodToPerform(Class<?> jobToPerformClass) {
@@ -50,12 +50,11 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
 
         protected void invokeJobMethod(Object jobToPerform, Method jobMethodToPerform) throws Exception {
             Object[] jobParameterValues = jobDetails.getJobParameterValues();
-
             OptionalInt indexOfJobContext = IntStream.range(0, jobDetails.getJobParameters().size())
                     .filter(i -> jobDetails.getJobParameters().get(i).getClassName().equals(JobContext.class.getName()))
                     .findFirst();
             indexOfJobContext.ifPresent(index -> jobParameterValues[index] = new RunnerJobContext(job));
-
+            jobMethodToPerform.setAccessible(true);
             jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
         }
     }
