@@ -5,8 +5,8 @@ import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.JobId
 import org.jobrunr.jobs.JobParameter
 
-class KotlinJobScheduler(private val jobScheduler: JobScheduler) {
-  fun enqueue(lambda: Function<*>): JobId? {
+internal class KotlinJobScheduler(private val jobScheduler: JobScheduler) {
+  fun enqueue(lambda: Function<*>): JobId {
     val klass = lambda.javaClass
     val className = klass.name
     val boundVariables = collectBoundVariables(lambda).map {

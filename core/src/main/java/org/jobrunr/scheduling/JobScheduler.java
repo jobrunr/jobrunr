@@ -79,6 +79,10 @@ public class JobScheduler {
         return enqueue(jobDetails);
     }
 
+    public JobId enqueue(Function<?> lambda) {
+        return new KotlinJobScheduler(this).enqueue(lambda);
+    }
+
     /**
      * Creates new fire-and-forget jobs for each item in the input stream using the lambda passed as {@code jobFromStream}.
      * <h5>An example:</h5>

@@ -22,7 +22,6 @@ class KotlinJobSchedulerTest {
   }
   private val jobClientLogFilter = JobClientLogFilter()
   private val jobScheduler = JobScheduler(storageProvider, listOf(jobClientLogFilter))
-  private val kotlinJobScheduler = KotlinJobScheduler(jobScheduler)
   private val backgroundJobServer = BackgroundJobServer(
     storageProvider,
     null,
@@ -41,7 +40,7 @@ class KotlinJobSchedulerTest {
 
   @Test
   fun `test enqueue simple lambda`() {
-    val jobId = kotlinJobScheduler.enqueue { "foo" }
+    val jobId = jobScheduler.enqueue { "foo" }
     assertThat(jobClientLogFilter.onCreating).isTrue
     assertThat(jobClientLogFilter.onCreated).isTrue
     await().atMost(Durations.FIVE_SECONDS).until {
@@ -55,7 +54,7 @@ class KotlinJobSchedulerTest {
   fun `test enqueue lambda with bound local variables`() {
     val amount = 2
     val text = "foo"
-    val jobId = kotlinJobScheduler.enqueue { "$text: $amount" }
+    val jobId = jobScheduler.enqueue { "$text: $amount" }
     assertThat(jobClientLogFilter.onCreating).isTrue
     assertThat(jobClientLogFilter.onCreated).isTrue
     await().atMost(Durations.FIVE_SECONDS).until {
