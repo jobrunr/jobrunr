@@ -75,9 +75,9 @@ class CronExpressionTest {
     @Test
     void minutelyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        int minute = localDateTime.getMinute();
+        int nextMinute = localDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute(minute))).next(ZoneOffset.of("+02:00"));
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(ZoneOffset.of("+02:00"));
         assertThat(nextRun).isAfter(Instant.now());
     }
 
@@ -85,16 +85,12 @@ class CronExpressionTest {
     @Test
     void cronExpressionCanBeUsedWithNegativeOffsetTimeZones() {
         OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("America/New_York"));
-        int minute = offsetDateTime.getMinute();
+        int nextMinute = offsetDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute(minute))).next(ZoneId.of("America/New_York"));
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(ZoneId.of("America/New_York"));
         assertThat(nextRun)
                 .isAfter(Instant.now())
                 .isBefore(now().toLocalDate().plusDays(1).atStartOfDay().toInstant(UTC));
-    }
-
-    private int nextMinute(int minute) {
-        return minute == 59 ? 0 : minute + 1;
     }
 
     @Test
