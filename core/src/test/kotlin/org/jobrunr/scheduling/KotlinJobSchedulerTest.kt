@@ -1,11 +1,9 @@
 package org.jobrunr.scheduling
 
-import org.awaitility.Awaitility
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
-import org.jobrunr.jobs.JobId
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName
 import org.jobrunr.scheduling.JobSchedulerTest.JobClientLogFilter
@@ -86,5 +84,24 @@ class KotlinJobSchedulerTest {
       StateName.PROCESSING,
       StateName.SUCCEEDED
     )
+  }
+
+  class TestLambdaContainer {
+    private val foo = 2
+    private val bar = "foo"
+    fun lambdaMethod() = "foo: $foo; bar: $bar"
+  }
+
+  @Test
+  fun `test enqueue lambda with method reference`() {
+    val container = TestLambdaContainer()
+    val jobId = jobScheduler.enqueue(container::lambdaMethod)
+    assertThat(jobClientLogFilter.onCreating).isTrue
+    assertThat(jobClientLogFilter.onCreated).isTrue
+    await().atMost(Durations.FIVE_SECONDS).until {
+      storageProvider.getJobById(jobId).state == StateName.SUCCEEDED
+    }
+    assertThat(storageProvider.getJobById(jobId))
+      .hasStates(StateName.ENQUEUED, StateName.PROCESSING, StateName.SUCCEEDED)
   }
 }

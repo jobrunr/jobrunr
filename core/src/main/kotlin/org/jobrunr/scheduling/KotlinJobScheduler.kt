@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobId
 import org.jobrunr.jobs.JobParameter
 import org.jobrunr.scheduling.cron.CronExpression
 import java.time.ZoneId
+import kotlin.jvm.internal.CallableReference
 
 internal class KotlinJobScheduler(private val jobScheduler: JobScheduler) {
   /** TODO docs */
@@ -25,10 +26,14 @@ internal class KotlinJobScheduler(private val jobScheduler: JobScheduler) {
   private fun lambdaToJobDetails(lambda: Function<*>): JobDetails {
     val klass = lambda.javaClass
     val className = klass.name
-    val boundVariables = collectBoundVariables(lambda).map {
-      JobParameter(it.javaClass, it)
+    val constructor = klass.declaredConstructors.first()
+    val boundVariables = if (lambda is CallableReference) {
+      if (constructor.parameterCount == 0) listOf() else listOf(lambda.boundReceiver)
+    } else {
+      collectBoundVariables(lambda)
     }
-    return JobDetails(className, null, klass.methods[0].name, listOf(), boundVariables)
+    val jobParameters = boundVariables.map { JobParameter(it.javaClass, it) }
+    return JobDetails(className, null, klass.methods[0].name, listOf(), jobParameters)
   }
 
   private fun <T> collectBoundVariables(lambda: Function<T>) =
