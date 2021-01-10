@@ -1,16 +1,20 @@
 {
   "version": 0,
-  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithPath(sun.nio.fs.UnixPath)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithCommand(org.jobrunr.stubs.TestService$SimpleCommand)",
   "jobName": "an enqueued job",
   "jobDetails": {
     "className": "org.jobrunr.stubs.TestService",
     "staticFieldName": null,
-    "methodName": "doWorkWithPath",
+    "methodName": "doWorkWithCommand",
     "jobParameters": [
       {
-        "className": "java.nio.file.Path",
-        "actualClassName": "sun.nio.fs.UnixPath",
-        "object": "${json-unit.ignore}"
+        "className": "org.jobrunr.stubs.TestService$Command",
+        "actualClassName": "org.jobrunr.stubs.TestService$SimpleCommand",
+        "object": {
+          "@class": "${json-unit.ignore-element}",
+          "string": "Hello",
+          "integer": 5
+        }
       }
     ]
   },

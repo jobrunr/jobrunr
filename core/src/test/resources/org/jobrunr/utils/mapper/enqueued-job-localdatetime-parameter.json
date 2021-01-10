@@ -9,6 +9,7 @@
     "jobParameters": [
       {
         "className": "java.time.LocalDateTime",
+        "actualClassName": "java.time.LocalDateTime",
         "object": "${json-unit.ignore}"
       }
     ]

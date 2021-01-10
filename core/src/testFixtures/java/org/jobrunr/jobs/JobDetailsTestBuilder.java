@@ -68,7 +68,7 @@ public class JobDetailsTestBuilder {
     }
 
     public JobDetailsTestBuilder withJobParameter(Object object) {
-        this.jobParameters.add(new JobParameter(object.getClass(), object));
+        this.jobParameters.add(new JobParameter(object));
         return this;
     }
 

@@ -9,6 +9,7 @@
     "jobParameters": [
       {
         "className": "org.jobrunr.stubs.TestService$Work",
+        "actualClassName": "org.jobrunr.stubs.TestService$Work",
         "object": {
           "@class": "${json-unit.ignore-element}",
           "workCount": 3,

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
@@ -21,14 +22,14 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
     @Override
     public JobParameter deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        final String className = node.get("className").asText();
+        final String methodClassName = node.get("className").asText();
+        final String actualClassName = node.has("actualClassName") ? node.get("actualClassName").asText() : null;
         final JsonNode objectJsonNode = node.get("object");
-        if (Path.class.getName().equals(className)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
-            return new JobParameter(className, Paths.get(objectJsonNode.asText().replace("file:", "")));
+        if (Path.class.getName().equals(methodClassName)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
+            return new JobParameter(methodClassName, Paths.get(objectJsonNode.asText().replace("file:", "")));
         } else {
-            final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, toClass(className));
-            return new JobParameter(className, object);
+            final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, toClass(getActualClassName(methodClassName, actualClassName)));
+            return new JobParameter(methodClassName, object);
         }
     }
-
 }

@@ -17,6 +17,7 @@ public class JobParameterSerializer extends StdSerializer<JobParameter> {
     public void serialize(JobParameter jobParameter, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("className", jobParameter.getClassName());
+        jgen.writeStringField("actualClassName", jobParameter.getActualClassName());
         jgen.writeObjectField("object", jobParameter.getObject());
         jgen.writeEndObject();
     }

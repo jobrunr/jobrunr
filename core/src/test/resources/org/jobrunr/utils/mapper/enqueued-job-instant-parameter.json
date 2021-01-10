@@ -9,14 +9,17 @@
     "jobParameters": [
       {
         "className": "java.util.UUID",
+        "actualClassName": "java.util.UUID",
         "object": "${json-unit.ignore}"
       },
       {
         "className": "int",
+        "actualClassName": "java.lang.Integer",
         "object": 3
       },
       {
         "className": "java.time.Instant",
+        "actualClassName": "java.time.Instant",
         "object": "${json-unit.ignore}"
       }
     ]
