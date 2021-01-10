@@ -1,6 +1,5 @@
 package org.jobrunr.scheduling;
 
-import kotlin.Function;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
@@ -77,10 +76,6 @@ public class JobScheduler {
     public JobId enqueue(JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return enqueue(jobDetails);
-    }
-
-    public JobId enqueue(Function<?> lambda) {
-        return new KotlinJobScheduler(this).enqueue(lambda);
     }
 
     /**
@@ -292,10 +287,6 @@ public class JobScheduler {
      */
     public String scheduleRecurrently(JobLambda job, String cron) {
         return scheduleRecurrently(null, job, cron);
-    }
-
-    public String scheduleRecurrently(String cron, Function<?> lambda) {
-        return new KotlinJobScheduler(this).scheduleRecurrently(lambda, cron);
     }
 
     /**

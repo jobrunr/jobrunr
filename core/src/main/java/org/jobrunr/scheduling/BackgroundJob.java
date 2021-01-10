@@ -1,6 +1,5 @@
 package org.jobrunr.scheduling;
 
-import kotlin.Function;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
@@ -36,12 +35,6 @@ public class BackgroundJob {
      * @return the id of the job
      */
     public static JobId enqueue(JobLambda job) {
-        verifyJobScheduler();
-        return jobScheduler.enqueue(job);
-    }
-
-    /** TODO */
-    public static JobId enqueue(Function<?> job) {
         verifyJobScheduler();
         return jobScheduler.enqueue(job);
     }
@@ -259,12 +252,6 @@ public class BackgroundJob {
     public static String scheduleRecurrently(JobLambda job, String cron) {
         verifyJobScheduler();
         return jobScheduler.scheduleRecurrently(job, cron);
-    }
-
-    /** TODO */
-    public static String scheduleRecurrently(String cron, Function<?> job) {
-        verifyJobScheduler();
-        return jobScheduler.scheduleRecurrently(cron, job);
     }
 
     /**

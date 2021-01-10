@@ -1,0 +1,10 @@
+plugins {
+  id 'java-library'
+  id "org.jetbrains.kotlin.jvm" version "1.4.21"
+}
+
+dependencies {
+  api project(':core')
+  testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}
