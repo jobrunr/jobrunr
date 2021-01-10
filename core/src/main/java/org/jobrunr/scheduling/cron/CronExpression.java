@@ -3,7 +3,6 @@ package org.jobrunr.scheduling.cron;
 import java.time.*;
 import java.util.BitSet;
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 import static java.time.Instant.now;
 
@@ -41,7 +40,6 @@ public class CronExpression implements Comparable<CronExpression> {
     private String expression;
 
     private boolean hasSecondsField;
-    private boolean hourIsWildcard;
     private DaysAndDaysOfWeekRelation daysAndDaysOfWeekRelation;
     private BitSet seconds;
     private BitSet minutes;
@@ -124,7 +122,6 @@ public class CronExpression implements Comparable<CronExpression> {
 
         token = fields[index++];
         cronExpression.hours = CronExpression.HOURS_FIELD_PARSER.parse(token);
-        cronExpression.hourIsWildcard = token.equals("*");
 
         token = fields[index++];
         cronExpression.days = CronExpression.DAYS_FIELD_PARSER.parse(token);
@@ -153,39 +150,31 @@ public class CronExpression implements Comparable<CronExpression> {
     }
 
     /**
-     * Calculates the next occurrence based on the current time.
+     * Calculates the next occurrence based on the current time (at UTC TimeZone).
      *
-     * @return Date object of the next occurrence.
+     * @return Instant of the next occurrence.
      */
     public Instant next() {
-        return next(now());
+        return next(now(), ZoneOffset.UTC);
     }
 
+    /**
+     * Calculates the next occurrence based on the current time (at the given TimeZone).
+     *
+     * @return Instant of the next occurrence.
+     */
     public Instant next(ZoneId zoneId) {
-        Instant next = next();
-        if (hourIsWildcard) return next;
-        Instant instantNextRun = LocalDateTime.ofInstant(next, ZoneOffset.UTC)
-                .atZone(zoneId)
-                .toInstant();
-
-        if (instantNextRun.isBefore(Instant.now())) {
-            next = next(next);
-            instantNextRun = LocalDateTime.ofInstant(next, ZoneOffset.UTC)
-                    .atZone(zoneId)
-                    .toInstant();
-        }
-
-        return instantNextRun;
+        return next(Instant.now(), zoneId);
     }
 
     /**
      * Calculates the next occurrence based on provided base time.
      *
      * @param baseInstant Instant object based on which calculating the next occurrence.
-     * @return Date object of the next occurrence.
+     * @return Instant of the next occurrence.
      */
-    public Instant next(Instant baseInstant) {
-        LocalDateTime baseDate = LocalDateTime.ofInstant(baseInstant, ZoneOffset.UTC);
+    public Instant next(Instant baseInstant, ZoneId zoneId) {
+        LocalDateTime baseDate = LocalDateTime.ofInstant(baseInstant, zoneId);
         int baseSecond = baseDate.getSecond();
         int baseMinute = baseDate.getMinute();
         int baseHour = baseDate.getHour();
@@ -266,59 +255,9 @@ public class CronExpression implements Comparable<CronExpression> {
             day = candidateDay;
             return LocalDateTime
                     .of(year, month, day, hour, minute, second)
-                    .toInstant(ZoneOffset.UTC);
+                    .atZone(zoneId)
+                    .toInstant();
         }
-    }
-
-    /**
-     * Calculates the next N occurrences based on current time.
-     *
-     * @param count number of next occurrences to calculate.
-     * @return Array of Date objects of the next N occurrences.
-     */
-    public Instant[] next(int count) {
-        return next(now(), count);
-    }
-
-    /**
-     * Calculates the next N occurrences based on provided base time.
-     *
-     * @param baseInstant Date object based on which calculating the next occurrence.
-     * @param count       number of next occurrences to calculate.
-     * @return Array of Date objects of the next N occurrences.
-     */
-    public Instant[] next(Instant baseInstant, int count) {
-        Instant[] instants = new Instant[count];
-        for (int i = 0; i < instants.length; i++) {
-            baseInstant = this.next(baseInstant);
-            instants[i] = baseInstant;
-        }
-        return instants;
-    }
-
-    /**
-     * Calculates the number of time units from the current time to the next
-     * occurrence.
-     *
-     * @param timeUnit time unit in which the returned value should be.
-     * @return number of time units from the current time to the next occurrence.
-     */
-    public long nextDuration(TimeUnit timeUnit) {
-        return nextDuration(now(), timeUnit);
-    }
-
-    /**
-     * Calculates the number of time units from the provided base time to the next
-     * occurrence.
-     *
-     * @param baseInstant Date object based on which calculating the next occurrence.
-     * @param timeUnit    time unit in which the returned value should be.
-     * @return number of time units from the provided base time to the next
-     * occurrence.
-     */
-    public long nextDuration(Instant baseInstant, TimeUnit timeUnit) {
-        long diff = Duration.between(this.next(baseInstant), baseInstant).toMillis();
-        return timeUnit.convert(diff, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -341,8 +280,8 @@ public class CronExpression implements Comparable<CronExpression> {
         }
 
         Instant baseInstant = now();
-        final Instant nextAnother = anotherCronExpression.next(baseInstant);
-        final Instant nextThis = this.next(baseInstant);
+        final Instant nextAnother = anotherCronExpression.next(baseInstant, ZoneOffset.UTC);
+        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC);
 
         return nextThis.compareTo(nextAnother);
     }

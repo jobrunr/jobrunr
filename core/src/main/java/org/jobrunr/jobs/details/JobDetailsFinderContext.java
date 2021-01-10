@@ -76,7 +76,7 @@ public class JobDetailsFinderContext {
         if (instructions.isEmpty() && localVariables.size() > 1) { // it is a method reference
             for (int i = 1; i < localVariables.size(); i++) {
                 Object variable = localVariables.get(i);
-                jobDetailsJobParameters.add(new JobParameter(variable.getClass(), variable));
+                jobDetailsJobParameters.add(new JobParameter(variable));
             }
         } else {
             AbstractJVMInstruction instruction = pollFirstInstruction();

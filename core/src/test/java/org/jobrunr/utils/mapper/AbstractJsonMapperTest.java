@@ -118,6 +118,19 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    void testSerializeAndDeserializeEnqueuedJobWithInterfaceAsJobParameter() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWorkWithCommand(new TestService.SimpleCommand("Hello", 5)))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-interface-object-parameter.json"));
+
+        Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
     void testSerializeAndDeserializeSucceededJob() {
         Job job = aSucceededJob().build();
 

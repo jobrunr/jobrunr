@@ -28,6 +28,11 @@ public class TestService implements TestServiceInterface {
         return processedJobs;
     }
 
+    public void doWorkWithCommand(Command command) throws Exception {
+        System.out.println("Doing some work... ");
+        command.doWork();
+    }
+
     public void doWorkWithFile(File file) throws Exception {
         System.out.println("Doing some work... " + file.getAbsolutePath());
     }
@@ -287,6 +292,31 @@ public class TestService implements TestServiceInterface {
         @Override
         public void onProcessed(org.jobrunr.jobs.Job job) {
             job.getMetadata().put("onProcessed", "");
+        }
+    }
+
+    public interface Command<T> {
+        T doWork();
+    }
+
+    public static class SimpleCommand implements Command<Void> {
+
+        private String string;
+        private int integer;
+
+        protected SimpleCommand() {
+
+        }
+
+        public SimpleCommand(String string, int integer) {
+            this.string = string;
+            this.integer = integer;
+        }
+
+        @Override
+        public Void doWork() {
+            System.out.println("Simple Command " + string + " " + integer);
+            return null;
         }
     }
 }

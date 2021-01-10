@@ -4,15 +4,12 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.json.bind.adapter.JsonbAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
@@ -53,9 +50,10 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
         List<JobParameter> result = new ArrayList<>();
         for (JsonValue jsonValue : jobParameters) {
             final JsonObject jsonObject = jsonValue.asJsonObject();
-            String className = jsonObject.getString("className");
-            Object object = jsonb.fromJsonValue(jsonObject.get("object"), toClass(className));
-            result.add(new JobParameter(className, object));
+            String methodClassName = jsonObject.getString("className");
+            String actualClassName = jsonObject.getString("actualClassName", null);
+            Object object = jsonb.fromJsonValue(jsonObject.get("object"), toClass(getActualClassName(methodClassName, actualClassName)));
+            result.add(new JobParameter(methodClassName, object));
         }
         return result;
     }

@@ -26,7 +26,7 @@ class CronExpressionTest {
         try {
             Instant inputInstant = LocalDateTime.parse(baseDate, dateTimeFormatter).toInstant(UTC);
             CronExpression cron = CronExpression.create(cronExpression);
-            Instant actualInstant = cron.next(inputInstant);
+            Instant actualInstant = cron.next(inputInstant, UTC);
             Instant expectedInstant = LocalDateTime.parse(expectedResult, dateTimeFormatter).toInstant(UTC);
 
             assertThat(actualInstant)
@@ -48,26 +48,6 @@ class CronExpressionTest {
         Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next();
 
         Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
-
-        assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
-    }
-
-    @Test
-    void cronExpressionsCanBeMappedToOtherZone() {
-        // always use next hour
-        int hour = now().getHour() + 1;
-        hour = hour >= 24 ? 0 : hour;
-
-        Instant now = Instant.now();
-
-        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(systemDefault());
-
-        Instant expectedNextInstant = OffsetDateTime.ofInstant(now, UTC)
-                .withHour(now().withHour(hour).atZone(systemDefault()).withZoneSameInstant(UTC).getHour())
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0)
-                .toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
@@ -95,10 +75,42 @@ class CronExpressionTest {
     @Test
     void minutelyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        int minute = localDateTime.getMinute();
+        int nextMinute = localDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(minute + 1)).next(ZoneOffset.of("+02:00"));
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(ZoneOffset.of("+02:00"));
         assertThat(nextRun).isAfter(Instant.now());
+    }
+
+    // github issue 75
+    @Test
+    void cronExpressionCanBeUsedWithNegativeOffsetTimeZones() {
+        OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("America/New_York"));
+        int nextMinute = offsetDateTime.plusMinutes(1).getMinute();
+
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(ZoneId.of("America/New_York"));
+        assertThat(nextRun)
+                .isAfter(Instant.now())
+                .isBefore(now().toLocalDate().plusDays(1).atStartOfDay().toInstant(UTC));
+    }
+
+    @Test
+    void cronExpressionsCanBeMappedToOtherZone() {
+        // always use next hour
+        int hour = now().getHour() + 1;
+        hour = hour >= 24 ? 0 : hour;
+
+        Instant now = Instant.now();
+
+        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(systemDefault());
+
+        Instant expectedNextInstant = OffsetDateTime.ofInstant(now, UTC)
+                .withHour(now().withHour(hour).atZone(systemDefault()).withZoneSameInstant(UTC).getHour())
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0)
+                .toInstant();
+
+        assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
     @Test

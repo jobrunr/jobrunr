@@ -48,6 +48,7 @@
     "jobParameters": [
       {
         "className": "java.lang.String",
+        "actualClassName": "java.lang.String",
         "object": "a test"
       }
     ]
