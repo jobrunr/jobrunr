@@ -10,7 +10,7 @@ import java.util.*
 import java.util.stream.Stream
 
 object KtBackgroundJob {
-  var jobScheduler: JobScheduler? = null
+  internal var jobScheduler: JobScheduler? = null
 
   /**
    * Creates a new fire-and-forget job based on a given lambda.
