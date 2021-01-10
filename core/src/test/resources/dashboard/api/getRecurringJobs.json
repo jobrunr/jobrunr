@@ -11,6 +11,7 @@
       "jobParameters": [
         {
           "className": "java.lang.Integer",
+          "actualClassName": "java.lang.Integer",
           "object": 5
         }
       ]
@@ -32,6 +33,7 @@
       "jobParameters": [
         {
           "className": "java.lang.Integer",
+          "actualClassName": "java.lang.Integer",
           "object": 5
         }
       ]
