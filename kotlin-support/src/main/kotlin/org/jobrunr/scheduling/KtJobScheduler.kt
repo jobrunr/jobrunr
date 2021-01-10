@@ -83,8 +83,20 @@ internal class KtJobScheduler(
    * @see org.jobrunr.scheduling.cron.Cron
    */
   fun scheduleRecurrently(cron: String, lambda: Function<*>): String {
-    val zoneId = ZoneId.systemDefault()
+    val zoneId = systemDefault()
     return scheduleRecurrently(cron, zoneId, lambda)
+  }
+
+  fun scheduleRecurrently(id: String, cron: String, lambda: Function<*>): String {
+    val jobDetails = lambdaToJobDetails(lambda)
+    val cronExpression = CronExpression.create(cron)
+    return scheduleRecurrently(id, jobDetails, cronExpression, systemDefault())
+  }
+
+  fun scheduleRecurrently(id: String, cron: String, zoneId: ZoneId, lambda: Function<*>): String {
+    val jobDetails = lambdaToJobDetails(lambda)
+    val cronExpression = CronExpression.create(cron)
+    return scheduleRecurrently(id, jobDetails, cronExpression, zoneId)
   }
 
   /**
@@ -106,8 +118,12 @@ internal class KtJobScheduler(
    *
    * @param id the id of the job
    */
-  fun delete(id: UUID?) {
+  fun delete(id: UUID) {
     storageProvider.delete(id)
+  }
+
+  fun delete(id: String) {
+    storageProvider.deleteRecurringJob(id)
   }
 
   /**
@@ -124,7 +140,7 @@ internal class KtJobScheduler(
     return JobId(savedJob.id)
   }
 
-  private fun scheduleRecurrently(
+  fun scheduleRecurrently(
     id: String?,
     jobDetails: JobDetails,
     cronExpression: CronExpression,
