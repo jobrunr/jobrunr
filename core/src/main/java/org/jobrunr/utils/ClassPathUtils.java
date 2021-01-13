@@ -6,26 +6,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class ClassPathUtils {
 
     private ClassPathUtils() {
     }
-
-    private static final Map<String, FileSystem> openFileSystems = new HashMap<>();
 
     public static Stream<Path> listAllChildrenOnClasspath(String... subFolder) {
         return listAllChildrenOnClasspath(ClassPathUtils.class, subFolder);
@@ -41,8 +34,7 @@ public class ClassPathUtils {
     }
 
     public static Stream<Path> toPathsOnClasspath(String... subFolder) {
-        final List<Path> collect = toPathsOnClasspath(ClassPathUtils.class, subFolder).collect(Collectors.toList());
-        return collect.stream();
+        return toPathsOnClasspath(ClassPathUtils.class, subFolder).collect(toList()).stream();
     }
 
     public static Stream<Path> toPathsOnClasspath(Class<?> clazz, String... subFolders) {
@@ -78,24 +70,12 @@ public class ClassPathUtils {
                 uri = new URI(uri.toString().replace("wsjar", "jar"));
             }
             if ("jar".equals(uri.getScheme())) {
-                String jarName = uri.toString().substring(0, uri.toString().indexOf('!'));
-                loadFileSystemIfNecessary(uri, jarName);
-                return openFileSystems.get(jarName).getPath(uri.toString().substring(uri.toString().indexOf('!') + 1));
+                return JarFileSystemUtils.toPath(uri);
             } else {
                 return Paths.get(uri);
             }
         } catch (IOException | URISyntaxException e) {
             throw JobRunrException.shouldNotHappenException(e);
-        }
-    }
-
-    private static void loadFileSystemIfNecessary(URI uri, String jarName) throws IOException {
-        if (!openFileSystems.containsKey(jarName)) {
-            try {
-                openFileSystems.put(jarName, FileSystems.newFileSystem(uri, Collections.emptyMap(), null));
-            } catch (FileSystemAlreadyExistsException e) {
-                openFileSystems.put(jarName, FileSystems.getFileSystem(uri));
-            }
         }
     }
 
