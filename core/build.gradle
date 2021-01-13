@@ -138,7 +138,7 @@ publishing {
                 }
 
                 withXml {
-                    Node pomNode = asNode()
+                    def pomNode = asNode()
                     pomNode.remove(pomNode.dependencyManagement)
                     pomNode.dependencies.'*'.findAll() {
                         it.optional.text() == 'true'
