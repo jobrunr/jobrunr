@@ -13,8 +13,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-
 public class ClassPathUtils {
 
     private ClassPathUtils() {
@@ -34,7 +32,7 @@ public class ClassPathUtils {
     }
 
     public static Stream<Path> toPathsOnClasspath(String... subFolder) {
-        return toPathsOnClasspath(ClassPathUtils.class, subFolder).collect(toList()).stream();
+        return toPathsOnClasspath(ClassPathUtils.class, subFolder);
     }
 
     public static Stream<Path> toPathsOnClasspath(Class<?> clazz, String... subFolders) {

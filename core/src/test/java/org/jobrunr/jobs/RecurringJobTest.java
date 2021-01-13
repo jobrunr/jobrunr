@@ -61,13 +61,11 @@ class RecurringJobTest {
     @Test
     void nextInstantIsCorrect() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        int hour = localDateTime.getHour();
-        int minute = localDateTime.getMinute();
-        if (localDateTime.getMinute() < 1) {
-            hour--;
-        } else {
-            minute--;
-        }
+        LocalDateTime timeForCron = localDateTime.plusMinutes(-1);
+
+        int hour = timeForCron.getHour();
+        int minute = timeForCron.getMinute();
+
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withName("the recurring job")
                 .withCronExpression(Cron.daily(hour, (minute)))

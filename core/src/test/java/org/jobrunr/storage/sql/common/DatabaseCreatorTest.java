@@ -2,20 +2,14 @@ package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.storage.sql.mariadb.MariaDbStorageProviderStub;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.sqlite.SQLiteDataSource;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -46,14 +40,6 @@ class DatabaseCreatorTest {
     void testValidateWithoutTables() {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB2));
         assertThatThrownBy(databaseCreator::validateTables).isInstanceOf(JobRunrException.class);
-    }
-
-    @Test
-    void testDatabaseSpecificMigrations() {
-        final DataSource dataSourceMock = Mockito.mock(DataSource.class);
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSourceMock, MariaDbStorageProviderStub.class);
-        final Stream<Path> databaseSpecificMigrations = databaseCreator.getDatabaseSpecificMigrations();
-        assertThat(databaseSpecificMigrations).anyMatch(path -> path.toString().contains("mariadb"));
     }
 
     private static SQLiteDataSource createDataSource(String url) {

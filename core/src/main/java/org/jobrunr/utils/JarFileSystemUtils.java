@@ -2,10 +2,7 @@ package org.jobrunr.utils;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,14 +19,19 @@ public class JarFileSystemUtils {
     }
 
     public static Path toPath(URI uri) throws IOException {
-        if (!"jar".equals(uri.getScheme()))
-            throw new IllegalArgumentException("JarFileSystemUtils only supports uri's starting with jar:");
+        try {
+            if (!"jar".equals(uri.getScheme())) {
+                throw new IllegalArgumentException("JarFileSystemUtils only supports uri's starting with jar:");
+            }
 
-        String path = substringAfterLast(uri.toString(), "!");
-        String fileSystemName = substringBeforeLast(uri.toString(), "!");
+            String fileSystemName = substringBeforeLast(uri.toString(), "!");
+            String path = substringAfterLast(uri.toString(), "!");
 
-        FileSystem fs = getFileSystem(fileSystemName);
-        return fs.getPath(path);
+            FileSystem fs = getFileSystem(fileSystemName);
+            return fs.getPath(path);
+        } catch (ProviderNotFoundException e) {
+            throw new ProviderNotFoundException("Provider not found for URI " + uri.toString());
+        }
     }
 
     private static FileSystem getFileSystem(String fileSystemName) throws IOException {
@@ -43,7 +45,7 @@ public class JarFileSystemUtils {
             } else {
                 FileSystem parent = getFileSystem(substringBeforeLast(fileSystemName, "!"));
                 Path path = parent.getPath(substringAfterLast(fileSystemName, "!"));
-                openFileSystems.put(fileSystemName, FileSystems.newFileSystem(path, null));
+                openFileSystems.put(fileSystemName, FileSystems.newFileSystem(path, ClassLoader.getSystemClassLoader()));
             }
         }
         return openFileSystems.get(fileSystemName);
