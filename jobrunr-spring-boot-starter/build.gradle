@@ -8,9 +8,9 @@ dependencies {
     api platform(project(':platform'))
     api project(':core')
 
-    api 'org.springframework.boot:spring-boot-starter:2.3.4.RELEASE'
-    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor:2.3.4.RELEASE'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.3.4.RELEASE'
+    api 'org.springframework.boot:spring-boot-starter:2.4.1'
+    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor:2.4.1'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.4.1'
 
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -22,7 +22,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test:2.3.4.RELEASE'
+    testCompile 'org.springframework.boot:spring-boot-starter-test:2.4.1'
     testCompile 'com.fasterxml.jackson.core:jackson-databind'
     testCompile 'com.google.code.gson:gson'
     testCompile 'redis.clients:jedis'

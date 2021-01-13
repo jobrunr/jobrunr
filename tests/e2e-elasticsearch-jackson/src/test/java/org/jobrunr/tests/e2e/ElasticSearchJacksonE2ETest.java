@@ -12,7 +12,7 @@ public class ElasticSearchJacksonE2ETest extends AbstractE2EJacksonTest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("elasticsearch:7.9.1")
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.10.1")
             .withNetwork(network)
             .withNetworkAliases("elasticsearch")
             .withExposedPorts(9200);

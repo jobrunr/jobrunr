@@ -21,7 +21,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("elasticsearch:7.9.1").withExposedPorts(9200);
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.10.1").withExposedPorts(9200);
 
     @Override
     protected void cleanup() {
