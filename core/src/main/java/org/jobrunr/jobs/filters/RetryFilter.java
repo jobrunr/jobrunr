@@ -9,7 +9,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
 
 /**
- * A JobFilter of type {@link ElectStateFilter} that will retry the job if it fails for up to 10 times.
+ * A JobFilter of type {@link ElectStateFilter} that will retry the job if it fails for up to 10 times with an exponential back-off policy.
  * This JobFilter is added by default in JobRunr.
  * <p>
  * If you want to configure the amount of retries, create a new instance and pass it to the JobRunrConfiguration, e.g.:
@@ -17,34 +17,42 @@ import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
  * <pre>
  *     JobRunr.configure()
  *                 ...
- *                 .withJobFilter(new RetryFilter(20)) // this will result in 20 retries
+ *                 .withJobFilter(new RetryFilter(20, 4)) // this will result in 20 retries and the retries will happen after 4 seconds, 16 seconds, 64 seconds, ...
  *                 ...
  *                 .initialize();
  * </pre>
  */
 public class RetryFilter implements ElectStateFilter {
 
+    public static final int DEFAULT_BACKOFF_POLICY_TIME_SEED = 3;
     public static final int DEFAULT_NBR_OF_RETRIES = 10;
 
     private final int numberOfRetries;
+    private final int backOffPolicyTimeSeed;
 
     public RetryFilter() {
         this(DEFAULT_NBR_OF_RETRIES);
     }
 
     public RetryFilter(int numberOfRetries) {
+        this(numberOfRetries, DEFAULT_BACKOFF_POLICY_TIME_SEED);
+    }
+
+    public RetryFilter(int numberOfRetries, int backOffPolicyTimeSeed) {
         this.numberOfRetries = numberOfRetries;
+        this.backOffPolicyTimeSeed = backOffPolicyTimeSeed;
     }
 
     @Override
     public void onStateElection(Job job, JobState newState) {
-        if (isNotFailed(newState) || isProblematicExceptionAndMustNotRetry(newState) || maxAmountOfRetriesReached(job)) return;
+        if (isNotFailed(newState) || isProblematicExceptionAndMustNotRetry(newState) || maxAmountOfRetriesReached(job))
+            return;
 
         job.scheduleAt(now().plusSeconds(getSecondsToAdd(job)), String.format("Retry %d of %d", getFailureCount(job), numberOfRetries));
     }
 
     protected long getSecondsToAdd(Job job) {
-        return getExponentialBackoffPolicy(job, 3);
+        return getExponentialBackoffPolicy(job, backOffPolicyTimeSeed);
     }
 
     protected long getExponentialBackoffPolicy(Job job, int seed) {
