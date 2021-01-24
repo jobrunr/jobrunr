@@ -72,7 +72,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return serverStatus.getId();
     }
 
-    public void start() {
+    public synchronized void start() {
         if (isStarted()) return;
         serverStatus.start();
         startZooKeepers();
@@ -80,7 +80,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         runStartupTasks();
     }
 
-    public void pauseProcessing() {
+    public synchronized void pauseProcessing() {
         if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
         if (isPaused()) return;
         serverStatus.pause();
@@ -88,7 +88,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.info("Paused job processing");
     }
 
-    public void resumeProcessing() {
+    public synchronized void resumeProcessing() {
         if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
         if (isProcessing()) return;
         startWorkers();
@@ -96,7 +96,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.info("Resumed job processing");
     }
 
-    public void stop() {
+    public synchronized void stop() {
         if (isStopped()) return;
         isMaster = null;
         stopWorkers();
