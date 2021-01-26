@@ -25,7 +25,6 @@ public class JobStatsEnricher {
             setPreviousJobStats(latestJobStats);
             lock.unlock();
         }
-        if (jobStatsExtended == null) return new JobStatsExtended(latestJobStats);
         return jobStatsExtended;
     }
 
@@ -54,6 +53,8 @@ public class JobStatsEnricher {
             jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, estimatedProcessingFinishedInstant);
         } else if (jobStatsExtended != null && jobStatsExtended.getEstimation().isEstimatedProcessingFinishedInstantAvailable()) {
             jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, jobStatsExtended.getEstimation().getEstimatedProcessingFinishedAt());
+        } else {
+            jobStatsExtended = new JobStatsExtended(jobStats);
         }
     }
 
