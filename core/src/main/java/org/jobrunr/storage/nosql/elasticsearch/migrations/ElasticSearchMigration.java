@@ -18,15 +18,23 @@ public abstract class ElasticSearchMigration {
 
     public abstract void runMigration(RestHighLevelClient restHighLevelClients) throws IOException;
 
-    public static boolean indexExists(RestHighLevelClient restHighLevelClient, String name) throws IOException {
-        return restHighLevelClient.indices().exists(new GetIndexRequest(name), RequestOptions.DEFAULT);
+    public static boolean indexExists(RestHighLevelClient restHighLevelClient, String name) {
+        try {
+            return restHighLevelClient.indices().exists(new GetIndexRequest(name), RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
     }
 
-    void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest) throws IOException {
+    public static void createIndex(RestHighLevelClient client, String name) {
+        createIndex(client, new CreateIndexRequest(name), 0);
+    }
+
+    public static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest) {
         createIndex(client, createIndexRequest, 0);
     }
 
-    void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest, int retry) throws IOException {
+    private static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest, int retry) {
         sleep(retry * 500);
         try {
             client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
@@ -43,6 +51,8 @@ public abstract class ElasticSearchMigration {
             } else {
                 throw e;
             }
+        } catch (IOException e) {
+            throw new StorageException(e);
         }
     }
 
@@ -65,7 +75,7 @@ public abstract class ElasticSearchMigration {
         return jsonMap;
     }
 
-    private void sleep(long amount) {
+    private static void sleep(long amount) {
         try {
             Thread.sleep(amount);
         } catch (InterruptedException e) {

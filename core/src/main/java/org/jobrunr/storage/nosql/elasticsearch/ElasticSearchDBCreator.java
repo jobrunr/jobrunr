@@ -6,7 +6,6 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.jobrunr.storage.StorageException;
@@ -19,6 +18,7 @@ import java.io.IOException;
 import java.time.Instant;
 
 import static org.jobrunr.storage.StorageProviderUtils.Migrations;
+import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.createIndex;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.indexExists;
 import static org.jobrunr.utils.StringUtils.substringBefore;
 
@@ -34,13 +34,9 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
     }
 
     private void createMigrationsIndexIfNotExists() {
-        try {
-            if (indexExists(client, JOBRUNR_MIGRATIONS_INDEX_NAME)) return;
+        if (indexExists(client, JOBRUNR_MIGRATIONS_INDEX_NAME)) return;
 
-            client.indices().create(new CreateIndexRequest(JOBRUNR_MIGRATIONS_INDEX_NAME), RequestOptions.DEFAULT);
-        } catch (IOException e) {
-            throw new StorageException(e);
-        }
+        createIndex(client, JOBRUNR_MIGRATIONS_INDEX_NAME);
     }
 
     @Override
