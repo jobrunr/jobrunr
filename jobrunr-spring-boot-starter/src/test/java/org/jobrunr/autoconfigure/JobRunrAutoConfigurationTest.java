@@ -160,7 +160,7 @@ public class JobRunrAutoConfigurationTest {
             when(connectionMock.getMetaData()).thenReturn(databaseMetaData);
             when(databaseMetaData.getURL()).thenReturn("jdbc:sqlite:this is not important");
 
-            mockTablePresent(connectionMock, "jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_jobs_stats");
+            mockTablePresent(connectionMock, "jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata");
 
             return dataSourceMock;
         }
