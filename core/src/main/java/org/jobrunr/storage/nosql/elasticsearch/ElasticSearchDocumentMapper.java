@@ -10,6 +10,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
@@ -20,11 +21,12 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.utils.reflection.ReflectionUtils.autobox;
 
 public class ElasticSearchDocumentMapper {
 
-    private JobMapper jobMapper;
+    private final JobMapper jobMapper;
 
     public ElasticSearchDocumentMapper(JobMapper jobMapper) {
         this.jobMapper = jobMapper;
@@ -92,6 +94,22 @@ public class ElasticSearchDocumentMapper {
         }
     }
 
+    public XContentBuilder toXContentBuilder(JobRunrMetadata metadata) {
+        try {
+            XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
+            builder.startObject();
+            builder.field(Metadata.FIELD_NAME, metadata.getName());
+            builder.field(Metadata.FIELD_OWNER, metadata.getOwner());
+            builder.field(Metadata.FIELD_VALUE, metadata.getValue());
+            builder.field(Metadata.FIELD_CREATED_AT, metadata.getCreatedAt());
+            builder.field(Metadata.FIELD_UPDATED_AT, metadata.getUpdatedAt());
+            builder.endObject();
+            return builder;
+        } catch (IOException e) {
+            throw new RuntimeException("Should never happen", e);
+        }
+    }
+
     public XContentBuilder toXContentBuilder(RecurringJob job) {
         try {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
@@ -124,6 +142,24 @@ public class ElasticSearchDocumentMapper {
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD), double.class)
         );
     }
+
+    public JobRunrMetadata toMetadata(SearchHit searchHit) {
+        return toMetadata(searchHit.getSourceAsMap());
+    }
+
+    public JobRunrMetadata toMetadata(GetResponse response) {
+        return toMetadata(response.getSourceAsMap());
+    }
+
+    public JobRunrMetadata toMetadata(Map<String, Object> fieldMap) {
+        return new JobRunrMetadata(
+                autobox(fieldMap.get(Metadata.FIELD_NAME), String.class),
+                autobox(fieldMap.get(Metadata.FIELD_OWNER), String.class),
+                autobox(fieldMap.get(Metadata.FIELD_VALUE), String.class),
+                autobox(fieldMap.get(Metadata.FIELD_CREATED_AT), Instant.class),
+                autobox(fieldMap.get(Metadata.FIELD_UPDATED_AT), Instant.class));
+    }
+
 
     public Job toJob(GetResponse response) {
         return jobMapper.deserializeJob(response.getField(Jobs.FIELD_JOB_AS_JSON).getValue());

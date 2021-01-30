@@ -36,6 +36,14 @@ public interface StorageProvider extends AutoCloseable {
 
     int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan);
 
+    void saveMetadata(JobRunrMetadata metadata);
+
+    List<JobRunrMetadata> getMetadata(String key);
+
+    JobRunrMetadata getMetadata(String key, String owner);
+
+    void deleteMetadata(String key);
+
     Job save(Job job);
 
     /**

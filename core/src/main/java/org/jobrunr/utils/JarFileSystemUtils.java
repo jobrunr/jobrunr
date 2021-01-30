@@ -15,7 +15,6 @@ public class JarFileSystemUtils {
     private static final Map<String, FileSystem> openFileSystems = new HashMap<>();
 
     private JarFileSystemUtils() {
-
     }
 
     public static Path toPath(URI uri) throws IOException {

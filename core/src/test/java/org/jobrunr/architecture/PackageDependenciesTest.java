@@ -5,11 +5,15 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.jobrunr.JobRunrException;
+import org.jobrunr.server.BackgroundJobPerformer;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -83,7 +87,7 @@ class PackageDependenciesTest {
         jobServerJmxClasses.check(classes);
 
         ArchRule jobServerClassesShouldNotDependOnSchedulingClasses = noClasses()
-                .that().resideInAPackage("org.jobrunr.server..")
+                .that().resideInAPackage("org.jobrunr.server..").and().areNotAssignableFrom(BackgroundJobPerformer.class)
                 .should().dependOnClassesThat().resideInAnyPackage("org.jobrunr.scheduling..");
         jobServerClassesShouldNotDependOnSchedulingClasses.check(classes);
     }
@@ -102,10 +106,12 @@ class PackageDependenciesTest {
 
         ArchRule mongoClasses = classes()
                 .that().resideInAPackage("org.jobrunr.storage.nosql.mongo")
-                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..")
-                .orShould().onlyDependOnClassesThat().areAssignableFrom(JobRunrException.class)
-                .orShould().onlyDependOnClassesThat().areAssignableFrom(byte.class);
-        //mongoClasses.check(classes);
+                .should().onlyDependOnClassesThat(
+                        resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..", "")
+                                .or(are(equivalentTo(JobRunrException.class)))
+                );
+        mongoClasses.check(classes); // see https://github.com/TNG/ArchUnit/issues/519
+
 
         ArchRule jedisClasses = classes()
                 .that().resideInAPackage("org.jobrunr.storage.nosql.redis")
@@ -137,9 +143,8 @@ class PackageDependenciesTest {
 
         ArchRule jobUtilGsonMapperClasses = classes()
                 .that().resideInAPackage("org.jobrunr.utils.mapper.gson..")
-                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "com.google.gson..", "java..");
-        //orShould().onlyDependOnClassesThat().areAssignableFrom(new int[0].getClass());
-        //jobUtilGsonMapperClasses.check(classes);
+                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "com.google.gson..", "java..", "");
+        jobUtilGsonMapperClasses.check(classes);
 
         ArchRule jobUtilJacksonMapperClasses = classes()
                 .that().resideInAPackage("org.jobrunr.utils.mapper.jackson..")

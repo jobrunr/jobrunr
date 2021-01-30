@@ -49,6 +49,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
         drop(dataSource, "table jobrunr_jobs");
         drop(dataSource, "table jobrunr_backgroundjobservers");
         drop(dataSource, "table jobrunr_migrations");
+        drop(dataSource, "table jobrunr_metadata");
     }
 
     private void drop(DataSource dataSource, String name) {

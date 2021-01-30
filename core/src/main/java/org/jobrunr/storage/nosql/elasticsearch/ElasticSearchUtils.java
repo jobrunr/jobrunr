@@ -1,7 +1,6 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.jobrunr.jobs.states.StateName;
@@ -15,61 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import static org.jobrunr.storage.StorageProviderUtils.Metadata;
+
 public class ElasticSearchUtils {
 
-    public static CreateIndexRequest jobIndex() {
-        return new CreateIndexRequest(jobIndexName())
-                .mapping(mapping(
-                        (sb, map) -> {
-                            sb.append(Jobs.FIELD_JOB_AS_JSON);
-                            map.put("type", "text");
-                            map.put("index", false);
-                            map.put("store", true);
-                        },
-                        (sb, map) -> {
-                            sb.append(Jobs.FIELD_STATE);
-                            map.put("type", "keyword");
-                        },
-                        (sb, map) -> {
-                            sb.append(Jobs.FIELD_JOB_SIGNATURE);
-                            map.put("type", "keyword");
-                        },
-                        (sb, map) -> {
-                            sb.append(Jobs.FIELD_SCHEDULED_AT);
-                            map.put("type", "date_nanos");
-                        },
-                        (sb, map) -> {
-                            sb.append(Jobs.FIELD_UPDATED_AT);
-                            map.put("type", "date_nanos");
-                        }
-                ));
-    }
-
-    public static CreateIndexRequest recurringJobIndex() {
-        return new CreateIndexRequest(recurringJobIndexName())
-                .mapping(mapping(
-                        (sb, map) -> {
-                            sb.append(RecurringJobs.FIELD_JOB_AS_JSON);
-                            map.put("type", "text");
-                            map.put("index", false);
-                            map.put("store", true);
-                        }
-                ));
-    }
-
-    public static CreateIndexRequest backgroundJobServersIndex() {
-        return new CreateIndexRequest(backgroundJobServerIndexName())
-                .mapping(mapping(
-                        (sb, map) -> {
-                            sb.append(BackgroundJobServers.FIELD_FIRST_HEARTBEAT);
-                            map.put("type", "date_nanos");
-                        },
-                        (sb, map) -> {
-                            sb.append(BackgroundJobServers.FIELD_LAST_HEARTBEAT);
-                            map.put("type", "date_nanos");
-                        }
-                ));
-    }
 
     public static IndexRequest jobStatsIndex() {
         try {
@@ -97,6 +45,10 @@ public class ElasticSearchUtils {
 
     public static String recurringJobIndexName() {
         return "jobrunr_" + RecurringJobs.NAME;
+    }
+
+    public static String metadataIndexName() {
+        return "jobrunr_" + Metadata.NAME;
     }
 
     public static String backgroundJobServerIndexName() {

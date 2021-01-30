@@ -10,6 +10,9 @@ import static java.lang.Math.ceil;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.valueOf;
 
+/**
+ * Class which takes JobStats and extends them with estimations on how long the work will take based on previous JobStats.
+ */
 public class JobStatsEnricher {
 
     private final ReentrantLock lock = new ReentrantLock();

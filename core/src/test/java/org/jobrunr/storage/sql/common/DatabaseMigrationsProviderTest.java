@@ -1,6 +1,6 @@
 package org.jobrunr.storage.sql.common;
 
-import org.jobrunr.storage.sql.common.migrations.Migration;
+import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.mariadb.MariaDbStorageProviderStub;
 import org.junit.jupiter.api.Test;
 
@@ -14,23 +14,19 @@ class DatabaseMigrationsProviderTest {
     @Test
     void testGetMigrations() {
         final DatabaseMigrationsProvider databaseCreator = new DatabaseMigrationsProvider(null);
-        final Stream<Migration> databaseSpecificMigrations = databaseCreator.getMigrations();
-        assertThat(databaseSpecificMigrations)
-                .anyMatch(migration -> migration.getFileName().equals("v000__create_migrations_table.sql"))
-                .hasSize(8);
+        final Stream<SqlMigration> databaseSpecificMigrations = databaseCreator.getMigrations();
+        assertThat(databaseSpecificMigrations).anyMatch(migration -> migration.getFileName().equals("v000__create_migrations_table.sql"));
     }
 
     @Test
     void testDatabaseSpecificMigrations() {
         final DatabaseMigrationsProvider databaseCreator = new DatabaseMigrationsProvider(MariaDbStorageProviderStub.class);
-        final Stream<Migration> databaseSpecificMigrations = databaseCreator.getMigrations();
+        final Stream<SqlMigration> databaseSpecificMigrations = databaseCreator.getMigrations();
 
-        assertThat(databaseSpecificMigrations)
-                .anyMatch(migration -> contains(migration, "DATETIME(6)"))
-                .hasSize(9);
+        assertThat(databaseSpecificMigrations).anyMatch(migration -> contains(migration, "DATETIME(6)"));
     }
 
-    private boolean contains(Migration migration, String toContain) {
+    private boolean contains(SqlMigration migration, String toContain) {
         try {
             return migration.getMigrationSql().contains(toContain);
         } catch (IOException e) {

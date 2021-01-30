@@ -16,6 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
@@ -38,7 +39,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
-    private final Map<Object, AtomicLong> jobStats = new ConcurrentHashMap<>();
+    private final Map<String, JobRunrMetadata> metadata = new ConcurrentHashMap<>();
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
@@ -47,6 +48,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     public InMemoryStorageProvider(RateLimiter rateLimiter) {
         super(rateLimiter);
+        publishJobStatCounter(SUCCEEDED, 0);
     }
 
     @Override
@@ -119,6 +121,30 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public Job getJobById(UUID id) {
         if (!jobQueue.containsKey(id)) throw new JobNotFoundException(id);
         return deepClone(jobQueue.get(id));
+    }
+
+    @Override
+    public void saveMetadata(JobRunrMetadata metadata) {
+        this.metadata.put(metadata.getName() + "-" + metadata.getOwner(), metadata);
+    }
+
+    @Override
+    public List<JobRunrMetadata> getMetadata(String key) {
+        return this.metadata.values().stream().filter(m -> m.getName().equals(key)).collect(toList());
+    }
+
+    @Override
+    public JobRunrMetadata getMetadata(String key, String owner) {
+        return this.metadata.get(key + "-" + owner);
+    }
+
+    @Override
+    public void deleteMetadata(String key) {
+        List<String> metadataToRemove = this.metadata.values().stream()
+                .filter(metadata -> metadata.getName().equals(key))
+                .map(JobRunrMetadata::getId)
+                .collect(toList());
+        this.metadata.keySet().removeAll(metadataToRemove);
     }
 
     @Override
@@ -219,7 +245,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .anyMatch(job ->
                         asList(states).contains(job.getState())
                                 && job.getLastJobStateOfType(ScheduledState.class)
-                                .map(scheduledState -> scheduledState.getRecurringJobId())
+                                .map(ScheduledState::getRecurringJobId)
                                 .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
                                 .orElse(false));
     }
@@ -252,7 +278,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),
                 getJobsStream(FAILED).count(),
-                getJobsStream(SUCCEEDED).count() + jobStats.getOrDefault(SUCCEEDED, new AtomicLong()).get(),
+                getJobsStream(SUCCEEDED).count() + getMetadata("jobstats", "cluster").getValueAsLong(),
                 getJobsStream(DELETED).count(),
                 recurringJobs.size(),
                 backgroundJobServers.size()
@@ -261,7 +287,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
-        jobStats.put(state, new AtomicLong(amount));
+        this.metadata.computeIfAbsent("jobstats-cluster", input -> new JobRunrMetadata("jobstats", "cluster", new AtomicLong(0).toString()));
+        JobRunrMetadata metadata = getMetadata("jobstats", "cluster");
+        metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
     private Stream<Job> getJobsStream(StateName state, PageRequest pageRequest) {
@@ -322,4 +350,5 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .reduce(Comparator::thenComparing)
                 .orElse((a, b) -> 0); // default order
     }
+
 }

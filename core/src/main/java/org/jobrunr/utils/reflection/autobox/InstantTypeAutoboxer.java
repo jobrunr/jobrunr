@@ -2,7 +2,9 @@ package org.jobrunr.utils.reflection.autobox;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
+import static java.time.ZoneId.systemDefault;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class InstantTypeAutoboxer implements TypeAutoboxer<Instant> {
@@ -17,6 +19,8 @@ public class InstantTypeAutoboxer implements TypeAutoboxer<Instant> {
             return cast(((Timestamp) value).toInstant());
         } else if (value instanceof Long) {
             return cast(new Timestamp((Long) value).toInstant());
+        } else if (value instanceof LocalDateTime) {
+            return ((LocalDateTime) value).atZone(systemDefault()).toInstant();
         } else if ("oracle.sql.TIMESTAMP".equals(value.getClass().getName())) {
             return new InstantForOracleTypeAutoboxer().autobox(value, type);
         } else if (value instanceof CharSequence) {

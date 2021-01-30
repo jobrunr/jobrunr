@@ -2,7 +2,7 @@ package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
-import org.jobrunr.storage.sql.common.migrations.Migration;
+import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class DatabaseCreator {
     }
 
     public void validateTables() {
-        String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_jobs_stats"};
+        String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
         try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             try (Statement pSt = conn.createStatement()) {
@@ -83,13 +83,15 @@ public class DatabaseCreator {
         }
     }
 
-    protected Stream<Migration> getMigrations() {
+    protected Stream<SqlMigration> getMigrations() {
         return databaseMigrationsProvider.getMigrations();
     }
 
-    protected void runMigration(Migration migration) {
+    protected void runMigration(SqlMigration migration) {
         LOGGER.info("Running migration {}", migration);
         try (Connection conn = getConnection()) {
+            if (isEmptyMigration(migration)) return;
+
             conn.setAutoCommit(true);
             runMigrationStatement(conn, migration);
             updateMigrationsTable(conn, migration);
@@ -98,7 +100,12 @@ public class DatabaseCreator {
         }
     }
 
-    protected void runMigrationStatement(Connection connection, Migration migration) throws IOException, SQLException {
+    private boolean isEmptyMigration(SqlMigration migration) throws IOException {
+        return migration.getMigrationSql().startsWith("-- Empty migration");
+    }
+
+
+    protected void runMigrationStatement(Connection connection, SqlMigration migration) throws IOException, SQLException {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";")) {
             try (final Statement stmt = connection.createStatement()) {
@@ -107,7 +114,7 @@ public class DatabaseCreator {
         }
     }
 
-    protected void updateMigrationsTable(Connection connection, Migration migration) throws SQLException {
+    protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
         try (PreparedStatement pSt = connection.prepareStatement("insert into jobrunr_migrations values (?, ?, ?)")) {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
@@ -116,11 +123,11 @@ public class DatabaseCreator {
         }
     }
 
-    private boolean isNewMigration(Migration migration) {
+    private boolean isNewMigration(SqlMigration migration) {
         return !isMigrationApplied(migration);
     }
 
-    protected boolean isMigrationApplied(Migration migration) {
+    protected boolean isMigrationApplied(SqlMigration migration) {
         try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             try (PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {

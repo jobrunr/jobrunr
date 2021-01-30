@@ -3,7 +3,10 @@ package org.jobrunr.storage.nosql.mongo;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
 import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.*;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -21,7 +24,13 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
+import org.jobrunr.storage.StorageProviderUtils.Metadata;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import org.jobrunr.storage.nosql.NoSqlStorageProvider;
+import org.jobrunr.storage.nosql.mongo.mapper.BackgroundJobServerStatusDocumentMapper;
+import org.jobrunr.storage.nosql.mongo.mapper.JobDocumentMapper;
+import org.jobrunr.storage.nosql.mongo.mapper.MetadataDocumentMapper;
+import org.jobrunr.storage.nosql.mongo.mapper.MongoDBPageRequestMapper;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 
@@ -47,7 +56,6 @@ import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
@@ -58,9 +66,6 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.storage.StorageProviderUtils.JobStats.FIELD_ID;
-import static org.jobrunr.storage.StorageProviderUtils.JobStats.FIELD_STATS;
-import static org.jobrunr.storage.StorageProviderUtils.JobStats.NAME;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
@@ -68,7 +73,7 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-public class MongoDBStorageProvider extends AbstractStorageProvider {
+public class MongoDBStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
     public static final String DEFAULT_DB_NAME = "jobrunr";
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
@@ -77,10 +82,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     private final MongoCollection<Document> jobCollection;
     private final MongoCollection<Document> recurringJobCollection;
     private final MongoCollection<Document> backgroundJobServerCollection;
-    private final MongoCollection<Document> jobStatsCollection;
+    private final MongoCollection<Document> metadataCollection;
 
     private JobDocumentMapper jobDocumentMapper;
     private BackgroundJobServerStatusDocumentMapper backgroundJobServerStatusDocumentMapper;
+    private MetadataDocumentMapper metadataDocumentMapper;
 
     public MongoDBStorageProvider(String hostName, int port) {
         this(MongoClients.create(
@@ -109,38 +115,20 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
         super(changeListenerNotificationRateLimit);
 
         validateMongoClient(mongoClient);
+        runMigrations(mongoClient, dbName);
 
-        if (jobRunrDatabaseExists(mongoClient, dbName)) {
-            jobrunrDatabase = mongoClient.getDatabase(dbName);
-            jobCollection = jobrunrDatabase.getCollection(Jobs.NAME, Document.class);
-            recurringJobCollection = jobrunrDatabase.getCollection(RecurringJobs.NAME, Document.class);
-            backgroundJobServerCollection = jobrunrDatabase.getCollection(BackgroundJobServers.NAME, Document.class);
-            jobStatsCollection = jobrunrDatabase.getCollection(NAME, Document.class);
-        } else {
-            jobrunrDatabase = mongoClient.getDatabase(dbName);
-
-            jobrunrDatabase.createCollection(Jobs.NAME);
-            jobrunrDatabase.createCollection(RecurringJobs.NAME);
-            jobrunrDatabase.createCollection(BackgroundJobServers.NAME);
-            jobrunrDatabase.createCollection(NAME);
-
-            jobCollection = jobrunrDatabase.getCollection(Jobs.NAME, Document.class);
-            jobCollection.createIndex(Indexes.compoundIndex(Indexes.ascending(Jobs.FIELD_STATE), Indexes.ascending(Jobs.FIELD_SCHEDULED_AT)));
-            jobCollection.createIndex(Indexes.compoundIndex(Indexes.ascending(Jobs.FIELD_STATE), Indexes.ascending(Jobs.FIELD_UPDATED_AT)));
-            jobCollection.createIndex(Indexes.compoundIndex(Indexes.ascending(Jobs.FIELD_STATE), Indexes.descending(Jobs.FIELD_UPDATED_AT)));
-            jobCollection.createIndex(Indexes.compoundIndex(Indexes.ascending(Jobs.FIELD_STATE), Indexes.ascending(Jobs.FIELD_CREATED_AT)));
-            jobCollection.createIndex(Indexes.compoundIndex(Indexes.ascending(Jobs.FIELD_STATE), Indexes.ascending(Jobs.FIELD_JOB_SIGNATURE)));
-
-            recurringJobCollection = jobrunrDatabase.getCollection(RecurringJobs.NAME, Document.class);
-            backgroundJobServerCollection = jobrunrDatabase.getCollection(BackgroundJobServers.NAME, Document.class);
-            jobStatsCollection = jobrunrDatabase.getCollection(NAME, Document.class);
-        }
+        jobrunrDatabase = mongoClient.getDatabase(dbName);
+        jobCollection = jobrunrDatabase.getCollection(Jobs.NAME, Document.class);
+        recurringJobCollection = jobrunrDatabase.getCollection(RecurringJobs.NAME, Document.class);
+        backgroundJobServerCollection = jobrunrDatabase.getCollection(BackgroundJobServers.NAME, Document.class);
+        metadataCollection = jobrunrDatabase.getCollection(Metadata.NAME, Document.class);
     }
 
     @Override
     public void setJobMapper(JobMapper jobMapper) {
         this.jobDocumentMapper = new JobDocumentMapper(jobMapper);
         this.backgroundJobServerStatusDocumentMapper = new BackgroundJobServerStatusDocumentMapper();
+        this.metadataDocumentMapper = new MetadataDocumentMapper();
     }
 
     @Override
@@ -186,6 +174,29 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         final DeleteResult deleteResult = this.backgroundJobServerCollection.deleteMany(lt(BackgroundJobServers.FIELD_LAST_HEARTBEAT, heartbeatOlderThan));
         return (int) deleteResult.getDeletedCount();
+    }
+
+    @Override
+    public void saveMetadata(JobRunrMetadata metadata) {
+        this.metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), metadata.getId()), metadataDocumentMapper.toUpdateDocument(metadata), new UpdateOptions().upsert(true));
+    }
+
+    @Override
+    public List<JobRunrMetadata> getMetadata(String name) {
+        return metadataCollection.find(eq(Metadata.FIELD_NAME, name))
+                .map(metadataDocumentMapper::toJobRunrMetadata)
+                .into(new ArrayList<>());
+    }
+
+    @Override
+    public JobRunrMetadata getMetadata(String name, String owner) {
+        Document document = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), JobRunrMetadata.toId(name, owner))).first();
+        return metadataDocumentMapper.toJobRunrMetadata(document);
+    }
+
+    @Override
+    public void deleteMetadata(String name) {
+        metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
     }
 
     @Override
@@ -330,7 +341,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
     @Override
     public JobStats getJobStats() {
         Instant instant = Instant.now();
-        final Document jobStats = jobStatsCollection.find(eq(toMongoId(Jobs.FIELD_ID), FIELD_STATS)).first();
+        final Document jobStats = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID)).first();
+        final long succeededCount = (jobStats != null ? ((Number) jobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
         final List<Document> aggregates = jobCollection.aggregate(asList(
                 match(ne("state", null)),
@@ -338,13 +350,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 limit(10)))
                 .into(new ArrayList<>());
 
-        Long awaiting = getCount(AWAITING, jobStats, aggregates);
-        Long scheduled = getCount(SCHEDULED, jobStats, aggregates);
-        Long enqueued = getCount(ENQUEUED, jobStats, aggregates);
-        Long processing = getCount(PROCESSING, jobStats, aggregates);
-        Long failed = getCount(FAILED, jobStats, aggregates);
-        Long succeeded = getCount(SUCCEEDED, jobStats, aggregates);
-        Long deleted = getCount(DELETED, jobStats, aggregates);
+        Long awaiting = getCount(AWAITING, aggregates);
+        Long scheduled = getCount(SCHEDULED, aggregates);
+        Long enqueued = getCount(ENQUEUED, aggregates);
+        Long processing = getCount(PROCESSING, aggregates);
+        Long failed = getCount(FAILED, aggregates);
+        Long succeeded = getCount(SUCCEEDED, aggregates) + succeededCount;
+        Long deleted = getCount(DELETED, aggregates);
 
         final int recurringJobCount = (int) recurringJobCollection.countDocuments();
         final int backgroundJobServerCount = (int) backgroundJobServerCollection.countDocuments();
@@ -366,20 +378,18 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
-        jobStatsCollection.updateOne(eq(toMongoId(FIELD_ID), FIELD_STATS), Updates.inc(state.name(), amount), new UpdateOptions().upsert(true));
+        metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, amount), new UpdateOptions().upsert(true));
     }
 
     private long toMicroSeconds(Instant instant) {
         return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
     }
 
-    private Long getCount(StateName stateName, Document jobStats, List<Document> aggregates) {
+    private Long getCount(StateName stateName, List<Document> aggregates) {
         Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
         BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger("state")).orElse(defaultValue);
-
-        long jobstatsCount = (jobStats != null ? (long) ofNullable(jobStats.getInteger(stateName.name())).orElse(0) : 0L);
-        int aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
-        return jobstatsCount + aggregateCount;
+        long aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
+        return aggregateCount;
     }
 
     public static String toMongoId(String id) {
@@ -407,14 +417,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 .into(new ArrayList<>());
     }
 
-    private boolean jobRunrDatabaseExists(MongoClient mongoClient, String actualDbName) {
-        MongoIterable<String> allDatabases = mongoClient.listDatabaseNames();
-        for (String dbName : allDatabases) {
-            if (actualDbName.equals(dbName)) return true;
-        }
-        return false;
-    }
-
     private void validateMongoClient(MongoClient mongoClient) {
         Optional<Method> codecRegistryGetter = ReflectionUtils.findMethod(mongoClient, "getCodecRegistry");
         if (codecRegistryGetter.isPresent()) {
@@ -431,6 +433,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider {
                 throw shouldNotHappenException(e);
             }
         }
+    }
+
+    private void runMigrations(MongoClient mongoClient, String dbName) {
+        new MongoDBCreator(this, mongoClient, dbName).runMigrations();
     }
 
     // used to perform query analysis for performance tuning

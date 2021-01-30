@@ -13,6 +13,7 @@ import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,12 +33,14 @@ import java.util.stream.IntStream;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.failedJob;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
@@ -149,6 +152,27 @@ public abstract class StorageProviderTest {
         storageProvider.removeTimedOutBackgroundJobServers(deleteServersWithHeartbeatOlderThanThis);
 
         assertThatThrownBy(() -> storageProvider.signalBackgroundJobServerAlive(serverStatus)).isInstanceOf(ServerTimedOutException.class);
+    }
+
+    @Test
+    void testCRUDMetadataLifeCycle() {
+        List<JobRunrMetadata> metadataListBeforeCreate = storageProvider.getMetadata("shouldNotHappenException");
+        assertThat(metadataListBeforeCreate).isEmpty();
+
+        JobRunrMetadata metadata1 = new JobRunrMetadata("shouldNotHappenException", UUID.randomUUID().toString(), Exceptions.getStackTraceAsString(shouldNotHappenException("bad!")));
+        JobRunrMetadata metadata2 = new JobRunrMetadata("shouldNotHappenException", UUID.randomUUID().toString(), Exceptions.getStackTraceAsString(shouldNotHappenException("Really bad!")));
+        storageProvider.saveMetadata(metadata1);
+        storageProvider.saveMetadata(metadata2);
+
+        List<JobRunrMetadata> metadataListAfterCreate = storageProvider.getMetadata("shouldNotHappenException");
+        assertThat(metadataListAfterCreate).hasSize(2);
+
+        assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata1.getOwner())).isEqualToComparingOnlyGivenFields(metadata1, "name", "owner", "value");
+        assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata2.getOwner())).isEqualToComparingOnlyGivenFields(metadata2, "name", "owner", "value");
+
+        storageProvider.deleteMetadata("shouldNotHappenException");
+        List<JobRunrMetadata> metadataListAfterDelete = storageProvider.getMetadata("shouldNotHappenException");
+        assertThat(metadataListAfterDelete).isEmpty();
     }
 
     @Test

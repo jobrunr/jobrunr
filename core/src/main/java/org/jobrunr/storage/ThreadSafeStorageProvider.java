@@ -69,6 +69,26 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public void saveMetadata(JobRunrMetadata metadata) {
+        storageProvider.saveMetadata(metadata);
+    }
+
+    @Override
+    public List<JobRunrMetadata> getMetadata(String key) {
+        return storageProvider.getMetadata(key);
+    }
+
+    @Override
+    public JobRunrMetadata getMetadata(String key, String owner) {
+        return storageProvider.getMetadata(key, owner);
+    }
+
+    @Override
+    public void deleteMetadata(String key) {
+
+    }
+
+    @Override
     public Job save(Job job) {
         try (Lock lock = job.lock()) {
             return storageProvider.save(job);

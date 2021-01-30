@@ -1,4 +1,4 @@
-package org.jobrunr.storage.sql.common.migrations;
+package org.jobrunr.storage.nosql.common.migrations;
 
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -9,10 +9,10 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
-public class RunningOnJava11OrLowerWithinFatJarMigrationProvider implements MigrationProvider {
+public class RunningOnJava11OrLowerWithinFatJarNoSqlMigrationProvider implements NoSqlMigrationProvider {
 
     @Override
-    public Stream<Migration> getMigrations(Class<?> clazz) {
+    public Stream<NoSqlMigration> getMigrations(Class<?> clazz) {
         try {
             URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
             URLConnection urlConnection = location.openConnection();
@@ -24,11 +24,11 @@ public class RunningOnJava11OrLowerWithinFatJarMigrationProvider implements Migr
         throw new UnsupportedOperationException("Unable to find migrations.");
     }
 
-    private Stream<Migration> getMigrationsFromJarUrlConnection(JarURLConnection jarURLConnection, Class<?> clazz) throws IOException {
+    private Stream<NoSqlMigration> getMigrationsFromJarUrlConnection(JarURLConnection jarURLConnection, Class<?> clazz) throws IOException {
         JarFile jarFile = jarURLConnection.getJarFile();
-        Predicate<JarEntry> jarEntryPredicate = jarEntry -> jarEntry.getName().startsWith(clazz.getPackage().getName().replace(".", "/") + "/migrations") && jarEntry.getName().endsWith(".sql");
+        Predicate<JarEntry> jarEntryPredicate = jarEntry -> jarEntry.getName().startsWith(clazz.getPackage().getName().replace(".", "/") + "/migrations");
         return jarFile.stream()
                 .filter(jarEntryPredicate)
-                .map(jarEntry -> new MigrationByJarEntry(jarFile, jarEntry));
+                .map(jarEntry -> new NoSqlMigrationByJarEntry(jarURLConnection, jarFile, jarEntry));
     }
 }

@@ -19,7 +19,6 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.index.VersionType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -44,6 +43,7 @@ import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.JobUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 
@@ -60,21 +60,21 @@ import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDI
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.backgroundJobServerIndexName;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.backgroundJobServersIndex;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.jobIndex;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.jobIndexName;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.jobStatsIndex;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.recurringJobIndex;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.metadataIndexName;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.recurringJobIndexName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-public class ElasticSearchStorageProvider extends AbstractStorageProvider {
+public class ElasticSearchStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
     private final RestHighLevelClient client;
     private ElasticSearchDocumentMapper elasticSearchDocumentMapper;
@@ -95,7 +95,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
         super(changeListenerNotificationRateLimit);
         this.client = client;
 
-        createIndicesIfNecessary();
+        new ElasticSearchDBCreator(this, client).runMigrations();
     }
 
     @Override
@@ -194,6 +194,62 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
             }
             notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public void saveMetadata(JobRunrMetadata metadata) {
+        try {
+            IndexRequest request = new IndexRequest(metadataIndexName())
+                    .id(metadata.getId())
+                    .setRefreshPolicy(IMMEDIATE)
+                    .source(elasticSearchDocumentMapper.toXContentBuilder(metadata));
+            client.index(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public List<JobRunrMetadata> getMetadata(String name) {
+        try {
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(matchQuery(Metadata.FIELD_NAME, name));
+            SearchRequest searchRequest = new SearchRequest(metadataIndexName());
+            searchRequest.source(searchSourceBuilder);
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+
+            return Stream.of(searchResponse.getHits().getHits())
+                    .map(elasticSearchDocumentMapper::toMetadata)
+                    .collect(toList());
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public JobRunrMetadata getMetadata(String name, String owner) {
+        try {
+            GetResponse response = client.get(new GetRequest(metadataIndexName(), JobRunrMetadata.toId(name, owner)), RequestOptions.DEFAULT);
+            return elasticSearchDocumentMapper.toMetadata(response);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public void deleteMetadata(String name) {
+        try {
+            DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest(metadataIndexName());
+            deleteByQueryRequest.setQuery(matchQuery(Metadata.FIELD_NAME, name));
+            BulkByScrollResponse bulkByScrollResponse = client.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT);
+            int amountDeleted = (int) bulkByScrollResponse.getDeleted();
+            if (amountDeleted > 0) {
+                RefreshRequest request = new RefreshRequest(metadataIndexName());
+                client.indices().refresh(request, RequestOptions.DEFAULT);
+            }
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -479,7 +535,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     @Override
     public JobStats getJobStats() {
         try {
-            GetResponse getResponse = client.get(new GetRequest("jobrunr_job_stats", "job_stats"), RequestOptions.DEFAULT);
+            GetResponse getResponse = client.get(new GetRequest(metadataIndexName(), STATS_ID), RequestOptions.DEFAULT);
 
             SearchRequest searchRequest = new SearchRequest(jobIndexName());
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -494,13 +550,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
             return new JobStats(
                     Instant.now(),
                     0L,
-                    buckets.stream().filter(bucket -> StateName.AWAITING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.AWAITING.toString(), 0L),
-                    buckets.stream().filter(bucket -> StateName.SCHEDULED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.SCHEDULED.toString(), 0L),
-                    buckets.stream().filter(bucket -> StateName.ENQUEUED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.ENQUEUED.toString(), 0L),
-                    buckets.stream().filter(bucket -> StateName.PROCESSING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.PROCESSING.toString(), 0L),
-                    buckets.stream().filter(bucket -> StateName.FAILED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.FAILED.toString(), 0L),
-                    buckets.stream().filter(bucket -> StateName.SUCCEEDED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.SUCCEEDED.toString(), 0L),
-                    buckets.stream().filter(bucket -> StateName.DELETED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(StateName.DELETED.toString(), 0L),
+                    buckets.stream().filter(bucket -> StateName.AWAITING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
+                    buckets.stream().filter(bucket -> StateName.SCHEDULED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
+                    buckets.stream().filter(bucket -> StateName.ENQUEUED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
+                    buckets.stream().filter(bucket -> StateName.PROCESSING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
+                    buckets.stream().filter(bucket -> StateName.FAILED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
+                    buckets.stream().filter(bucket -> StateName.SUCCEEDED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(FIELD_VALUE, 0L),
+                    buckets.stream().filter(bucket -> StateName.DELETED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     (int) client.count(new CountRequest(recurringJobIndexName()), RequestOptions.DEFAULT).getCount(),
                     (int) client.count(new CountRequest(backgroundJobServerIndexName()), RequestOptions.DEFAULT).getCount()
             );
@@ -512,11 +568,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
     @Override
     public void publishJobStatCounter(StateName state, int amount) {
         try {
-            UpdateRequest updateRequest = new UpdateRequest("jobrunr_job_stats", "job_stats");
+            UpdateRequest updateRequest = new UpdateRequest(metadataIndexName(), STATS_ID);
             updateRequest.scriptedUpsert(true);
-            Map<String, Object> parameters = singletonMap("amount", amount);
-            Script inline = new Script(ScriptType.INLINE, "painless",
-                    "ctx._source." + state + " += params.amount", parameters);
+            Map<String, Object> parameters = singletonMap("value", amount);
+            Script inline = new Script(ScriptType.INLINE, "painless", "ctx._source." + FIELD_VALUE + " += params.value", parameters);
             updateRequest.script(inline);
             client.update(updateRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
@@ -547,33 +602,5 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider {
         }
         searchRequest.source(searchSourceBuilder);
         return client.search(searchRequest, RequestOptions.DEFAULT);
-    }
-
-    void createIndicesIfNecessary() {
-        createIndicesIfNecessary(0);
-    }
-
-    void createIndicesIfNecessary(int retry) {
-        try {
-            Thread.sleep(retry * 500);
-            if (client.indices().exists(new GetIndexRequest(jobIndexName()), RequestOptions.DEFAULT)) return;
-
-            try {
-                client.indices().create(jobIndex(), RequestOptions.DEFAULT);
-                client.indices().create(recurringJobIndex(), RequestOptions.DEFAULT);
-                client.indices().create(backgroundJobServersIndex(), RequestOptions.DEFAULT);
-                client.index(jobStatsIndex(), RequestOptions.DEFAULT);
-            } catch (ElasticsearchStatusException e) {
-                if (retry >= 5) {
-                    throw new StorageException("Retried 5 times to setup ElasticSearch Indices", e);
-                } else if (e.status().getStatus() == 400) {
-                    createIndicesIfNecessary(retry + 1);
-                } else {
-                    throw e;
-                }
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new StorageException(e);
-        }
     }
 }

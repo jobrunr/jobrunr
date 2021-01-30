@@ -23,6 +23,16 @@ public class StorageProviderUtils {
         return jobs.get(0).getId() == null;
     }
 
+    public static final class Migrations {
+        private Migrations() {
+        }
+
+        public static final String NAME = "migrations";
+        public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
+        public static final String FIELD_NAME = "name";
+        public static final String FIELD_DATE = "date";
+    }
+
     public static final class Jobs {
         private Jobs() {
         }
@@ -71,6 +81,7 @@ public class StorageProviderUtils {
         public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
     }
 
+    @Deprecated
     public static final class JobStats {
         private JobStats() {
         }
@@ -78,6 +89,22 @@ public class StorageProviderUtils {
         public static final String NAME = "job_stats";
         public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_STATS = "stats";
+
+    }
+
+    public static final class Metadata {
+        private Metadata() {
+        }
+
+        public static final String NAME = "metadata";
+        public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
+        public static final String STATS_ID = "succeededjobs-cluster";
+        public static final String FIELD_NAME = "name";
+        public static final String FIELD_OWNER = "owner";
+        public static final String FIELD_VALUE = "value";
+        public static final String FIELD_CREATED_AT = "createdAt";
+        public static final String FIELD_UPDATED_AT = "updatedAt";
+
 
     }
 

@@ -4,12 +4,12 @@ import java.util.stream.Stream;
 
 import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
-public class DefaultMigrationProvider implements MigrationProvider {
+public class DefaultSqlMigrationProvider implements SqlMigrationProvider {
 
     @Override
-    public Stream<Migration> getMigrations(Class<?> clazz) {
+    public Stream<SqlMigration> getMigrations(Class<?> clazz) {
         return listAllChildrenOnClasspath(clazz, "migrations")
                 .filter(path -> path.toString().endsWith(".sql"))
-                .map(MigrationByPath::new);
+                .map(SqlMigrationByPath::new);
     }
 }

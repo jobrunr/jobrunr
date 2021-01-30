@@ -1,4 +1,4 @@
-package org.jobrunr.storage.nosql.mongo;
+package org.jobrunr.storage.nosql.mongo.mapper;
 
 import org.bson.Document;
 import org.jobrunr.storage.BackgroundJobServerStatus;

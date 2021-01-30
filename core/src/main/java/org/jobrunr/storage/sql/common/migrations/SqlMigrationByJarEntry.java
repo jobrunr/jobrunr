@@ -11,12 +11,12 @@ import java.util.jar.JarFile;
 import static java.util.stream.Collectors.joining;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
 
-public class MigrationByJarEntry implements Migration {
+public class SqlMigrationByJarEntry implements SqlMigration {
 
     private final JarFile jarFile;
     private final JarEntry jarEntry;
 
-    public MigrationByJarEntry(JarFile jarFile, JarEntry jarEntry) {
+    public SqlMigrationByJarEntry(JarFile jarFile, JarEntry jarEntry) {
         this.jarFile = jarFile;
         this.jarEntry = jarEntry;
     }

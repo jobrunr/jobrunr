@@ -53,8 +53,12 @@ public class ReflectionUtils {
 
     public static <T> Class<T> toClassFromPath(Path path) {
         final String classFile = path.toString().substring(path.toString().indexOf(ROOT_PACKAGE_NAME));
-        final String className = classFile.replace(".class", "").replace("/", ".");
+        String className = toClassNameFromFileName(classFile);
         return toClass(className);
+    }
+
+    public static String toClassNameFromFileName(String classFile) {
+        return classFile.replace(".class", "").replace("/", ".");
     }
 
     public static <T> Class<T> toClass(String className) {

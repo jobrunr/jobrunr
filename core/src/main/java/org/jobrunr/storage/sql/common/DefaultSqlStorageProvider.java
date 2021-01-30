@@ -99,6 +99,26 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public void saveMetadata(JobRunrMetadata metadata) {
+        metadataTable().save(metadata);
+    }
+
+    @Override
+    public List<JobRunrMetadata> getMetadata(String key) {
+        return metadataTable().getAll(key);
+    }
+
+    @Override
+    public JobRunrMetadata getMetadata(String key, String owner) {
+        return metadataTable().get(key, owner);
+    }
+
+    @Override
+    public void deleteMetadata(String key) {
+        metadataTable().deleteByKey(key);
+    }
+
+    @Override
     public Job getJobById(UUID id) {
         return jobTable()
                 .selectJobById(id)
@@ -219,9 +239,10 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public void publishJobStatCounter(StateName state, int amount) {
         Sql.withoutType()
                 .using(dataSource)
-                .with("name", state.name())
+                .with("id", "succeededjobs-cluster")
                 .with("amount", amount)
-                .update("jobrunr_job_counters set amount = amount + :amount where name = :name");
+                .update("jobrunr_metadata set value = cast((cast(cast(value as char(10)) as decimal) + :amount) as char(10)) where id = :id");
+        //why the 3 casts: to be compliant with all DB servers
     }
 
     private JobStats toJobStats(SqlResultSet resultSet, Instant instant) {
@@ -251,6 +272,10 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     protected BackgroundJobServerTable backgroundJobServerTable() {
         return new BackgroundJobServerTable(dataSource);
+    }
+
+    protected MetadataTable metadataTable() {
+        return new MetadataTable(dataSource);
     }
 
 }

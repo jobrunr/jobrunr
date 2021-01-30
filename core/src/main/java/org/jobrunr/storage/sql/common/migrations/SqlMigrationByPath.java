@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class MigrationByPath implements Migration {
+public class SqlMigrationByPath implements SqlMigration {
 
     private final Path path;
 
-    public MigrationByPath(Path path) {
+    public SqlMigrationByPath(Path path) {
         this.path = path;
     }
 

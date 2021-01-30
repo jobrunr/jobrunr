@@ -18,7 +18,7 @@ public class MongoUtils {
 
     //sorry about this -> necessary to be compatible with MongoDB Java Driver 3 and 4
     //see https://github.com/jobrunr/jobrunr/issues/55
-    static UUID getIdAsUUID(Document document) {
+    public static UUID getIdAsUUID(Document document) {
         if (document.get("_id") instanceof UUID) {
             return document.get("_id", UUID.class);
         }

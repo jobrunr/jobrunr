@@ -3,7 +3,12 @@ package org.jobrunr.autoconfigure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.mongodb.client.*;
+import com.mongodb.client.result.InsertOneResult;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -14,6 +19,7 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
@@ -28,6 +34,7 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import javax.sql.DataSource;
@@ -176,14 +183,14 @@ public class JobRunrAutoConfigurationTest {
         @Bean
         public MongoClient mongoClient() {
             MongoClient mongoClientMock = mock(MongoClient.class);
-            MongoIterable<String> mongoIterable = mock(ListDatabasesIterable.class);
-            MongoCursor<String> mongoCursorMock = mock(MongoCursor.class);
-            when(mongoClientMock.listDatabaseNames()).thenReturn(mongoIterable);
-            when(mongoIterable.iterator()).thenReturn(mongoCursorMock);
-            when(mongoCursorMock.hasNext()).thenReturn(true).thenReturn(false);
-            when(mongoCursorMock.next()).thenReturn("jobrunr");
-
-            when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mock(MongoDatabase.class));
+            MongoCollection migrationCollectionMock = mock(MongoCollection.class);
+            when(migrationCollectionMock.find(any(Bson.class))).thenReturn(mock(FindIterable.class));
+            MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);
+            when(mongoDatabaseMock.getCollection(StorageProviderUtils.Migrations.NAME)).thenReturn(migrationCollectionMock);
+            when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(MongoIterable.class));
+            when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
+            when(mongoDatabaseMock.getCollection(any(), eq(Document.class))).thenReturn(mock(MongoCollection.class));
+            when(migrationCollectionMock.insertOne(any())).thenReturn(mock(InsertOneResult.class));
             return mongoClientMock;
         }
     }
@@ -206,7 +213,9 @@ public class JobRunrAutoConfigurationTest {
 
         @Bean
         public JedisPool jedisPool() {
-            return mock(JedisPool.class);
+            JedisPool jedisPool = mock(JedisPool.class);
+            when(jedisPool.getResource()).thenReturn(mock(Jedis.class));
+            return jedisPool;
         }
     }
 
@@ -215,7 +224,11 @@ public class JobRunrAutoConfigurationTest {
 
         @Bean
         public RedisClient redisClient() {
-            return mock(RedisClient.class);
+            RedisClient redisClient = mock(RedisClient.class);
+            StatefulRedisConnection connection = mock(StatefulRedisConnection.class);
+            when(connection.sync()).thenReturn(mock(RedisCommands.class));
+            when(redisClient.connect()).thenReturn(connection);
+            return redisClient;
         }
     }
 }

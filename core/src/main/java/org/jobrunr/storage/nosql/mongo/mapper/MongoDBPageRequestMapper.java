@@ -1,4 +1,4 @@
-package org.jobrunr.storage.nosql.mongo;
+package org.jobrunr.storage.nosql.mongo.mapper;
 
 import com.mongodb.client.model.Sorts;
 import org.bson.conversions.Bson;

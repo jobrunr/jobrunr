@@ -163,6 +163,7 @@ class BackgroundJobServerTest {
 
         // INITIAL -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        await().until(() -> backgroundJobServer.isAnnounced() == true);
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
@@ -181,6 +182,7 @@ class BackgroundJobServerTest {
 
         // PAUSE -> STOP
         assertThatCode(() -> backgroundJobServer.stop()).doesNotThrowAnyException();
+        await().until(() -> backgroundJobServer.isAnnounced() == false);
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
@@ -199,6 +201,7 @@ class BackgroundJobServerTest {
 
         // STOP -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
+        await().until(() -> backgroundJobServer.isAnnounced() == true);
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();

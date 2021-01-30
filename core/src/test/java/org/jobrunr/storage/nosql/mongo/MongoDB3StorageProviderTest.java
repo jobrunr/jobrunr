@@ -20,6 +20,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -35,10 +36,12 @@ public class MongoDB3StorageProviderTest extends StorageProviderTest {
     @Override
     protected void cleanup() {
         MongoDatabase jobrunrDb = mongoClient().getDatabase(MongoDBStorageProvider.DEFAULT_DB_NAME);
-        jobrunrDb.getCollection(StorageProviderUtils.Jobs.NAME).deleteMany(new Document());
-        jobrunrDb.getCollection(StorageProviderUtils.RecurringJobs.NAME).deleteMany(new Document());
-        jobrunrDb.getCollection(StorageProviderUtils.BackgroundJobServers.NAME).deleteMany(new Document());
-        jobrunrDb.getCollection(StorageProviderUtils.JobStats.NAME).deleteMany(new Document());
+
+        jobrunrDb
+                .listCollectionNames()
+                .into(new ArrayList<>()).stream()
+                .filter(collectionName -> !collectionName.equals(StorageProviderUtils.Migrations.NAME))
+                .forEach(collectionName -> jobrunrDb.getCollection(collectionName).deleteMany(new Document()));
     }
 
     @Override

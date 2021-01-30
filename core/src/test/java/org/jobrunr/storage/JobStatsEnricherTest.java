@@ -1,6 +1,7 @@
 package org.jobrunr.storage;
 
 import org.assertj.core.data.Offset;
+import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.reflection.Whitebox;
@@ -73,11 +74,16 @@ class JobStatsEnricherTest {
     @Test
     void firstRelevantJobStatsIsUpdatedAfterWorkIsDone() {
         JobStats firstJobStats = getJobStats(0L, 0L, 0L, 100L);
-        JobStats secondJobStats = getJobStats(10L, 0L, 0L, 100L);
-        JobStats thirdJobStats = getJobStats(0L, 0L, 0L, 110L);
         jobStatsEnricher.enrich(firstJobStats);
+        SleepUtils.sleep(2); //sleeping as JVM is too fast and runs code in the same nanosecond
+
+        JobStats secondJobStats = getJobStats(10L, 0L, 0L, 100L);
         jobStatsEnricher.enrich(secondJobStats);
+        SleepUtils.sleep(2); //sleeping as JVM is too fast and runs code in the same nanosecond
+
+        JobStats thirdJobStats = getJobStats(0L, 0L, 0L, 110L);
         jobStatsEnricher.enrich(thirdJobStats);
+        SleepUtils.sleep(2); //sleeping as JVM is too fast and runs code in the same nanosecond
 
         JobStats jobStats = Whitebox.getInternalState(jobStatsEnricher, "firstRelevantJobStats");
         assertThat(jobStats).isEqualToComparingFieldByField(thirdJobStats);
