@@ -466,7 +466,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             return jedis.smembers(recurringJobsKey(keyPrefix))
                     .stream()
-                    .map(id -> jedis.get("recurringjob:" + id))
+                    .map(id -> jedis.get(recurringJobKey(keyPrefix, id)))
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
         }
@@ -475,7 +475,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public int deleteRecurringJob(String id) {
         try (final Jedis jedis = getJedis(); final Transaction transaction = jedis.multi()) {
-            transaction.del("recurringjob:" + id);
+            transaction.del(recurringJobKey(keyPrefix, id));
             transaction.srem(recurringJobsKey(keyPrefix), id);
 
             final List<Object> exec = transaction.exec();
@@ -589,9 +589,5 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         transaction.zrem(scheduledJobsKey(keyPrefix), id);
         Stream.of(StateName.values()).forEach(stateName -> transaction.zrem(jobQueueForStateKey(keyPrefix, stateName), id));
         Stream.of(StateName.values()).forEach(stateName -> transaction.srem(jobDetailsKey(keyPrefix, stateName), getJobSignature(job.getJobDetails())));
-    }
-
-    private long getCounterValue(Response<String> counterResponse, Response<Long> countResponse) {
-        return countResponse.get() + parseLong(counterResponse.get() != null ? counterResponse.get() : "0");
     }
 }

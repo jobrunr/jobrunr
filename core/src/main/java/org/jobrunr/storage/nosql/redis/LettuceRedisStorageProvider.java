@@ -498,7 +498,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisCommands<String, String> commands = connection.sync();
             return commands.smembers(recurringJobsKey(keyPrefix))
                     .stream()
-                    .map(id -> commands.get("recurringjob:" + id))
+                    .map(id -> commands.get(recurringJobKey(keyPrefix, id)))
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
         }
@@ -509,7 +509,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
-            commands.del("recurringjob:" + id);
+            commands.del(recurringJobKey(keyPrefix, id));
             commands.srem(recurringJobsKey(keyPrefix), id);
 
             final TransactionResult exec = commands.exec();
