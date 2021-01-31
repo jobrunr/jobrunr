@@ -341,8 +341,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public JobStats getJobStats() {
         Instant instant = Instant.now();
-        final Document jobStats = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID)).first();
-        final long succeededCount = (jobStats != null ? ((Number) jobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
+        final Document succeededJobStats = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID)).first();
+        final long succeededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
         final List<Document> aggregates = jobCollection.aggregate(asList(
                 match(ne("state", null)),
