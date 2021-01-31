@@ -1,8 +1,8 @@
 CREATE TABLE jobrunr_metadata
 (
-    id        varchar(128) PRIMARY KEY,
+    id        varchar(156) PRIMARY KEY,
     name      varchar(92) NOT NULL,
-    owner     varchar(36) NOT NULL,
+    owner     varchar(64) NOT NULL,
     value     text        NOT NULL,
     createdAt DATETIME(6) NOT NULL,
     updatedAt DATETIME(6) NOT NULL
