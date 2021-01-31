@@ -45,7 +45,6 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
 
     @Override
     protected boolean isNewMigration(NoSqlMigration noSqlMigration) {
-        waitForHealthyCluster(client);
         try {
             GetResponse migration = client.get(new GetRequest(JOBRUNR_MIGRATIONS_INDEX_NAME, substringBefore(noSqlMigration.getClassName(), "_")), RequestOptions.DEFAULT);
             return !migration.isExists();

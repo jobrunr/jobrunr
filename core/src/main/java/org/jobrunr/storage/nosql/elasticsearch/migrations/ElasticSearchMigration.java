@@ -48,9 +48,10 @@ public abstract class ElasticSearchMigration {
 
     private static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest, int retry) {
         sleep(retry * 500);
-        waitForHealthyCluster(client);
         try {
+            waitForHealthyCluster(client);
             client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+            waitForHealthyCluster(client);
         } catch (ElasticsearchStatusException e) {
             if (e.status().getStatus() == 400) {
                 if (e.getMessage().contains("resource_already_exists_exception")) {
