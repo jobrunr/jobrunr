@@ -1,6 +1,7 @@
 package org.jobrunr.storage.nosql.elasticsearch.migrations;
 
 import org.elasticsearch.ElasticsearchStatusException;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -18,9 +19,20 @@ public abstract class ElasticSearchMigration {
 
     public abstract void runMigration(RestHighLevelClient restHighLevelClients) throws IOException;
 
-    public static boolean indexExists(RestHighLevelClient restHighLevelClient, String name) {
+    public static void waitForHealthyCluster(RestHighLevelClient restHighLevelClient) {
         try {
-            return restHighLevelClient.indices().exists(new GetIndexRequest(name), RequestOptions.DEFAULT);
+            ClusterHealthRequest clusterHealthRequest = new ClusterHealthRequest();
+            clusterHealthRequest.waitForYellowStatus();
+            restHighLevelClient.cluster().health(clusterHealthRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    public static boolean indexExists(RestHighLevelClient client, String name) {
+        waitForHealthyCluster(client);
+        try {
+            return client.indices().exists(new GetIndexRequest(name), RequestOptions.DEFAULT);
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -36,6 +48,7 @@ public abstract class ElasticSearchMigration {
 
     private static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest, int retry) {
         sleep(retry * 500);
+        waitForHealthyCluster(client);
         try {
             client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
         } catch (ElasticsearchStatusException e) {

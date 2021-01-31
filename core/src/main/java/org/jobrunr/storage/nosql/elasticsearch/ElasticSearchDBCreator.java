@@ -20,6 +20,7 @@ import java.time.Instant;
 import static org.jobrunr.storage.StorageProviderUtils.Migrations;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.createIndex;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.indexExists;
+import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.waitForHealthyCluster;
 import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMigration> {
@@ -30,8 +31,11 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
     public ElasticSearchDBCreator(NoSqlStorageProvider noSqlStorageProvider, RestHighLevelClient client) {
         super(noSqlStorageProvider);
         this.client = client;
+
+        waitForHealthyCluster(client);
         this.createMigrationsIndexIfNotExists();
     }
+
 
     private void createMigrationsIndexIfNotExists() {
         if (indexExists(client, JOBRUNR_MIGRATIONS_INDEX_NAME)) return;
