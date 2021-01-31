@@ -18,9 +18,7 @@ public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration
 
     @Override
     public void runMigration(MongoDatabase jobrunrDatabase) {
-        boolean createCollectionSucceeded = createCollection(jobrunrDatabase, Metadata.NAME);
-
-        if (createCollectionSucceeded) {
+        if (createCollection(jobrunrDatabase, Metadata.NAME)) {
             MongoCollection<Document> metadataCollection = createMetadataCollection(jobrunrDatabase);
             migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(jobrunrDatabase, metadataCollection);
         }
