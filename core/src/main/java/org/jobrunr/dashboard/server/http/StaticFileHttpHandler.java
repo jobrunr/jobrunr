@@ -2,6 +2,7 @@ package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
+import org.jobrunr.utils.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,15 +72,7 @@ public class StaticFileHttpHandler extends AbstractTeenyHttpHandler {
 
     void copyResourceToResponseBody(URL resource, HttpExchange httpExchange) throws IOException {
         try (InputStream inputStream = resource.openStream(); OutputStream outputStream = httpExchange.getResponseBody()) {
-            copyStream(inputStream, outputStream);
-        }
-    }
-
-    private static void copyStream(InputStream input, OutputStream output) throws IOException {
-        byte[] buffer = new byte[1024]; // Adjust if you want
-        int bytesRead;
-        while ((bytesRead = input.read(buffer)) != -1) {
-            output.write(buffer, 0, bytesRead);
+            IOUtils.copyStream(inputStream, outputStream);
         }
     }
 }

@@ -1,5 +1,8 @@
 package org.jobrunr.utils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 public class StringUtils {
 
     private StringUtils() {
@@ -31,5 +34,13 @@ public class StringUtils {
 
     public static String substringAfterLast(String s, String splitter) {
         return s.substring(s.lastIndexOf(splitter) + 1);
+    }
+
+    public static String urlEncode(String string) {
+        try {
+            return URLEncoder.encode(string, StandardCharsets.UTF_8.toString());
+        } catch (Exception e) {
+            return string;
+        }
     }
 }

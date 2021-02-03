@@ -35,18 +35,18 @@ public class ConcurrentJobModificationResolver {
                 .collect(toList());
 
         if (!failedToResolve.isEmpty()) {
-            throw new ConcurrentJobModificationException(failedToResolve.stream().map(ConcurrentJobModificationResolveResult::getJob).collect(toList()));
+            throw new UnresolvableConcurrentJobModificationException(failedToResolve);
         }
     }
 
     public ConcurrentJobModificationResolveResult resolve(final Job localJob) {
-        final Job storageProviderJob = getJobFromStorageProvider(localJob);
+        final Job jobFromStorage = getJobFromStorageProvider(localJob);
         return allowedConcurrentStateChanges
                 .stream()
-                .filter(allowedConcurrentStateChange -> allowedConcurrentStateChange.matches(localJob.getState(), storageProviderJob.getState()))
+                .filter(allowedConcurrentStateChange -> allowedConcurrentStateChange.matches(localJob.getState(), jobFromStorage.getState()))
                 .findFirst()
-                .map(allowedConcurrentStateChange -> allowedConcurrentStateChange.resolve(localJob, storageProviderJob))
-                .orElse(ConcurrentJobModificationResolveResult.failed(localJob));
+                .map(allowedConcurrentStateChange -> allowedConcurrentStateChange.resolve(localJob, jobFromStorage))
+                .orElse(ConcurrentJobModificationResolveResult.failed(localJob, jobFromStorage));
     }
 
     private Job getJobFromStorageProvider(Job localJob) {

@@ -1,6 +1,8 @@
 package org.jobrunr.dashboard;
 
+import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.dashboard.server.http.client.TeenyHttpClient;
+import org.jobrunr.dashboard.ui.model.problems.SevereJobRunrExceptionProblem;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -8,6 +10,7 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.FreePortFinder;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -124,7 +127,24 @@ abstract class JobRunrDashboardWebServerTest {
         HttpResponse<String> getResponse = http.get("/api/problems");
         assertThat(getResponse)
                 .hasStatusCode(200)
-                .hasSameJsonBodyAsResource("/dashboard/api/problems.json");
+                .hasSameJsonBodyAsResource("/dashboard/api/problems-job-not-found.json");
+    }
+
+    @Test
+    void testDeleteProblem() {
+        storageProvider.saveMetadata(new JobRunrMetadata(SevereJobRunrException.class.getSimpleName(), "some id", "some value"));
+
+        HttpResponse<String> getResponseBeforeDelete = http.get("/api/problems");
+        assertThat(getResponseBeforeDelete)
+                .hasStatusCode(200)
+                .hasSameJsonBodyAsResource("/dashboard/api/problems-severe-jobrunr-problem.json");
+
+
+        http.delete("/api/problems/" + SevereJobRunrExceptionProblem.TYPE);
+        HttpResponse<String> getResponseAfterDelete = http.get("/api/problems");
+        assertThat(getResponseAfterDelete)
+                .hasStatusCode(200)
+                .hasJsonBody("[]");
     }
 
     @Test

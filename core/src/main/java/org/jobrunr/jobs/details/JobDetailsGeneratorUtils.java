@@ -31,9 +31,13 @@ public class JobDetailsGeneratorUtils {
     }
 
     public static InputStream getClassContainingLambdaAsInputStream(Object lambda) {
-        String name = lambda.getClass().getName();
-        String location = "/" + toFQResource(name.substring(0, name.indexOf("$$"))) + ".class";
+        String location = getClassLocationOfLambda(lambda);
         return lambda.getClass().getResourceAsStream(location);
+    }
+
+    public static String getClassLocationOfLambda(Object lambda) {
+        String name = lambda.getClass().getName();
+        return "/" + toFQResource(name.substring(0, name.indexOf("$$"))) + ".class";
     }
 
     public static Object createObjectViaConstructor(String fqClassName, Class<?>[] paramTypes, Object[] parameters) {

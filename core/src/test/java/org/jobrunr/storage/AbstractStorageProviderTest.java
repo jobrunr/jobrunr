@@ -7,6 +7,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
+import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 class AbstractStorageProviderTest {
 
+    public static final String SOME_METADATA_NAME = "some-metadata-name";
     Condition<JobChangeListenerForTest> closeCalled = new Condition<>(x -> x.closeIsCalled, "Close is called");
     Condition<JobChangeListenerForTest> jobNotNull = new Condition<>(x -> x.job != null, "Has Job");
 
@@ -45,11 +47,21 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    void backgroundJobServerStatusChangeListenerAreNotifiedOfBackgroundJobServers() {
+    void backgroundJobServerStatusChangeListenersAreNotifiedOfBackgroundJobServers() {
         final BackgroundJobServerStatusChangeListenerForTest changeListener = new BackgroundJobServerStatusChangeListenerForTest();
         storageProvider.addJobStorageOnChangeListener(changeListener);
         await()
                 .untilAsserted(() -> assertThat(changeListener.changedServerStates).isNotNull());
+    }
+
+    @Test
+    void metadataChangeListenersAreNotifiedOfMetadataChanges() {
+        final JobRunrMetadata jobRunrMetadata = new JobRunrMetadata(SOME_METADATA_NAME, "some owner", "some value");
+        storageProvider.saveMetadata(jobRunrMetadata);
+        final MetadataChangeListenerForTest changeListener = new MetadataChangeListenerForTest();
+        storageProvider.addJobStorageOnChangeListener(changeListener);
+        await()
+                .untilAsserted(() -> assertThat(changeListener.metadataList).isNotNull());
     }
 
     @Test
@@ -133,6 +145,21 @@ class AbstractStorageProviderTest {
         @Override
         public void onChange(List<BackgroundJobServerStatus> changedServerStates) {
             this.changedServerStates = changedServerStates;
+        }
+    }
+
+    private static class MetadataChangeListenerForTest implements MetadataChangeListener {
+
+        private List<JobRunrMetadata> metadataList;
+
+        @Override
+        public String listenForChangesOfMetadataName() {
+            return SOME_METADATA_NAME;
+        }
+
+        @Override
+        public void onChange(List<JobRunrMetadata> metadataList) {
+            this.metadataList = metadataList;
         }
     }
 

@@ -105,6 +105,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.info("BackgroundJobServer and BackgroundJobPerformers stopped");
     }
 
+    public synchronized void stop(Exception e) {
+        stop();
+
+    }
+
     public boolean isAnnounced() {
         return isMaster != null;
     }

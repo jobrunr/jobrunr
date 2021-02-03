@@ -11,6 +11,7 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
+import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.exceptions.Exceptions;
@@ -159,20 +160,50 @@ public abstract class StorageProviderTest {
         List<JobRunrMetadata> metadataListBeforeCreate = storageProvider.getMetadata("shouldNotHappenException");
         assertThat(metadataListBeforeCreate).isEmpty();
 
+        // CREATE
         JobRunrMetadata metadata1 = new JobRunrMetadata("shouldNotHappenException", UUID.randomUUID().toString(), Exceptions.getStackTraceAsString(shouldNotHappenException("bad!")));
         JobRunrMetadata metadata2 = new JobRunrMetadata("shouldNotHappenException", UUID.randomUUID().toString(), Exceptions.getStackTraceAsString(shouldNotHappenException("Really bad!")));
         storageProvider.saveMetadata(metadata1);
         storageProvider.saveMetadata(metadata2);
 
+        // LIST
         List<JobRunrMetadata> metadataListAfterCreate = storageProvider.getMetadata("shouldNotHappenException");
         assertThat(metadataListAfterCreate).hasSize(2);
 
-        assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata1.getOwner())).isEqualToComparingOnlyGivenFields(metadata1, "name", "owner", "value");
-        assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata2.getOwner())).isEqualToComparingOnlyGivenFields(metadata2, "name", "owner", "value");
+        // GET
+        assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata1.getOwner())).isEqualTo(metadata1);
+        assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata2.getOwner())).isEqualTo(metadata2);
 
+        // UPDATE
+        JobRunrMetadata metadata1Update = new JobRunrMetadata("shouldNotHappenException", metadata1.getOwner(), "An Update");
+        JobRunrMetadata metadata2Update = new JobRunrMetadata("shouldNotHappenException", metadata2.getOwner(), "An Update");
+        storageProvider.saveMetadata(metadata1Update);
+        storageProvider.saveMetadata(metadata2Update);
+
+        List<JobRunrMetadata> metadataListAfterUpdate = storageProvider.getMetadata("shouldNotHappenException");
+        assertThat(metadataListAfterUpdate).hasSize(2);
+
+        // DEL
         storageProvider.deleteMetadata("shouldNotHappenException");
+
+        // LIST
         List<JobRunrMetadata> metadataListAfterDelete = storageProvider.getMetadata("shouldNotHappenException");
         assertThat(metadataListAfterDelete).isEmpty();
+    }
+
+    @Test
+    void testOnChangeListenerForSaveAndDeleteMetadata() {
+        final SimpleMetadataOnChangeListener onChangeListener = new SimpleMetadataOnChangeListener();
+        storageProvider.addJobStorageOnChangeListener(onChangeListener);
+
+        JobRunrMetadata metadata = new JobRunrMetadata(onChangeListener.listenForChangesOfMetadataName(), "some-owner", "some-value");
+        storageProvider.saveMetadata(metadata);
+        assertThat(onChangeListener.changes).hasSize(1);
+        assertThat(onChangeListener.changes.get(0)).hasSize(1);
+
+        storageProvider.deleteMetadata(metadata.getName());
+        assertThat(onChangeListener.changes).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(onChangeListener.changes.get(onChangeListener.changes.size() - 1)).isEmpty();
     }
 
     @Test
@@ -530,26 +561,16 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testOnChangeListenerForSaveJob() {
+    void testOnChangeListenerForSaveAndDeleteJob() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
-        storageProvider.save(anEnqueuedJob().build());
-
-        assertThat(onChangeListener.changes).hasSize(1);
-    }
-
-    @Test
-    void testOnChangeListenerForDeleteJob() {
-        final Job job = anEnqueuedJob().build();
+        Job job = anEnqueuedJob().build();
         storageProvider.save(job);
-
-        final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
-        storageProvider.addJobStorageOnChangeListener(onChangeListener);
+        assertThat(onChangeListener.changes).hasSize(1);
 
         storageProvider.delete(job.getId());
-
-        assertThat(onChangeListener.changes).hasSize(1);
+        assertThat(onChangeListener.changes).hasSize(2);
     }
 
     @Test
@@ -648,6 +669,21 @@ public abstract class StorageProviderTest {
         @Override
         public void onChange(JobStats jobStats) {
             this.changes.add(jobStats);
+        }
+    }
+
+    private static class SimpleMetadataOnChangeListener implements MetadataChangeListener {
+
+        private final List<List<JobRunrMetadata>> changes = new ArrayList<>();
+
+        @Override
+        public String listenForChangesOfMetadataName() {
+            return "metadata-name";
+        }
+
+        @Override
+        public void onChange(List<JobRunrMetadata> metadata) {
+            this.changes.add(metadata);
         }
     }
 }

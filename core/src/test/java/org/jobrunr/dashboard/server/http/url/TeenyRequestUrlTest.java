@@ -32,6 +32,12 @@ class TeenyRequestUrlTest {
     }
 
     @Test
+    void testRequestUrlParamAsString() {
+        TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/problems/some-string").toRequestUrl("/api/problems/:type");
+        assertThat(teenyRequestUrl.param(":type", String.class)).isEqualTo("some-string");
+    }
+
+    @Test
     void testRequestUrlParamAsEnum() {
         TeenyRequestUrl teenyRequestUrl = new TeenyMatchUrl("/api/jobs/enqueued?offset=2&limit=2").toRequestUrl("/api/jobs/:state");
         assertThat(teenyRequestUrl.param(":state", StateName.class)).isEqualTo(ENQUEUED);

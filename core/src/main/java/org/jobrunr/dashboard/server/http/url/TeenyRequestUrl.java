@@ -4,14 +4,8 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -43,11 +37,13 @@ public class TeenyRequestUrl {
     }
 
     public <T> T param(String paramName, Class<T> clazz) {
-        if(UUID.class.equals(clazz)) {
-            return (T) UUID.fromString(param(paramName));
+        if (String.class.equals(clazz)) {
+            return clazz.cast(param(paramName));
+        } else if (UUID.class.equals(clazz)) {
+            return clazz.cast(UUID.fromString(param(paramName)));
         } else if (clazz.isEnum()) {
             return Stream.of(clazz.getEnumConstants())
-                    .filter(val -> ((Enum)val).name().equalsIgnoreCase(param(paramName)))
+                    .filter(val -> ((Enum) val).name().equalsIgnoreCase(param(paramName)))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("No enum constant " + clazz.getCanonicalName() + "." + param(paramName)));
         }

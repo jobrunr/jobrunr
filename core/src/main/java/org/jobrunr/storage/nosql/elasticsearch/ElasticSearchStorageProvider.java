@@ -207,6 +207,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                     .setRefreshPolicy(IMMEDIATE)
                     .source(elasticSearchDocumentMapper.toXContentBuilder(metadata));
             client.index(request, RequestOptions.DEFAULT);
+            notifyMetadataChangeListeners();
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -249,6 +250,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             if (amountDeleted > 0) {
                 RefreshRequest request = new RefreshRequest(metadataIndexName());
                 client.indices().refresh(request, RequestOptions.DEFAULT);
+                notifyMetadataChangeListeners();
             }
         } catch (IOException e) {
             throw new StorageException(e);

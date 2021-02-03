@@ -12,7 +12,7 @@ import AvgSystemCpuLoadCard from "./cards/avg-system-cpu-load-card";
 import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import LoadingIndicator from "../LoadingIndicator";
-import {Alert, AlertTitle} from '@material-ui/lab';
+import Problems from "./problems/problems-notifications";
 
 const useStyles = makeStyles(theme => ({
     alert: {
@@ -36,21 +36,11 @@ const useStyles = makeStyles(theme => ({
 const Overview = () => {
     const classes = useStyles();
 
-    const [isProblemsApiLoading, setProblemsApiIsLoading] = React.useState(true);
     const [isServersApiLoading, setServersApiIsLoading] = React.useState(true);
-    const [problems, setProblems] = React.useState([]);
     const [servers, setServers] = React.useState([{firstHeartbeat: undefined}]);
 
 
     React.useEffect(() => {
-        fetch(`/api/problems`)
-            .then(res => res.json())
-            .then(response => {
-                setProblems(response);
-                setProblemsApiIsLoading(false);
-            })
-            .catch(error => console.log(error));
-
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {
@@ -79,25 +69,7 @@ const Overview = () => {
                     <Typography id="title" variant="h4">Dashboard</Typography>
                 </Box>
             </div>
-            <div className={classes.metadata}>
-                {isProblemsApiLoading
-                    ? <LoadingIndicator/>
-                    : <> {problems.map((problem, index) => {
-                        switch (problem.type) {
-                            case 'jobs-not-found':
-                                return <Alert key={index} className={classes.alert} severity="warning">
-                                    <AlertTitle><h4 className={classes.alertTitle}>Warning</h4></AlertTitle>
-                                    There are SCHEDULED jobs that do not exist anymore in your code. These jobs will
-                                    fail with a <strong>JobNotFoundException</strong> (due to a ClassNotFoundException
-                                    or a MethodNotFoundException).<br/>
-                                </Alert>
-                            default:
-                                return <div key={index}>Unknown error</div>
-                        }
-                    })}
-                    </>
-                }
-            </div>
+            <Problems/>
             <div className={classes.metadata}>
                 {isServersApiLoading
                     ? <LoadingIndicator/>

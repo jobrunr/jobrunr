@@ -84,8 +84,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public void deleteMetadata(String key) {
-
+    public void deleteMetadata(String name) {
+        storageProvider.deleteMetadata(name);
     }
 
     @Override
@@ -195,5 +195,9 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
+    }
+
+    public StorageProvider getStorageProvider() {
+        return storageProvider;
     }
 }

@@ -126,6 +126,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
         this.metadata.put(metadata.getName() + "-" + metadata.getOwner(), metadata);
+        notifyMetadataChangeListeners();
     }
 
     @Override
@@ -144,7 +145,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .filter(metadata -> metadata.getName().equals(key))
                 .map(JobRunrMetadata::getId)
                 .collect(toList());
-        this.metadata.keySet().removeAll(metadataToRemove);
+        if (!metadataToRemove.isEmpty()) {
+            this.metadata.keySet().removeAll(metadataToRemove);
+            notifyMetadataChangeListeners();
+        }
     }
 
     @Override
@@ -218,7 +222,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .map(Job::getId)
                 .collect(toList());
         jobQueue.keySet().removeAll(jobsToRemove);
-        notifyJobStatsOnChangeListeners();
+        notifyJobStatsOnChangeListenersIf(!jobsToRemove.isEmpty());
         return jobsToRemove.size();
     }
 

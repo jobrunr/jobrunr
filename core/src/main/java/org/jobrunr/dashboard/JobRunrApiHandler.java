@@ -18,41 +18,44 @@ import java.util.stream.Collectors;
 
 public class JobRunrApiHandler extends RestHttpHandler {
 
-    private ProblemsManager problemsManager;
+    private final StorageProvider storageProvider;
+    private final ProblemsManager problemsManager;
 
     public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
         super("/api", jsonMapper);
+        this.storageProvider = storageProvider;
         this.problemsManager = new ProblemsManager(storageProvider);
 
-        get("/jobs", findJobByState(storageProvider));
+        get("/jobs", findJobByState());
 
-        get("/jobs/:id", getJobById(storageProvider));
-        delete("/jobs/:id", deleteJobById(storageProvider));
-        post("/jobs/:id/requeue", requeueJobById(storageProvider));
+        get("/jobs/:id", getJobById());
+        delete("/jobs/:id", deleteJobById());
+        post("/jobs/:id/requeue", requeueJobById());
 
-        get("/problems", getProblems(storageProvider));
+        get("/problems", getProblems());
+        delete("/problems/:type", deleteProblemByType());
 
-        get("/recurring-jobs", getRecurringJobs(storageProvider));
-        delete("/recurring-jobs/:id", deleteRecurringJob(storageProvider));
-        post("/recurring-jobs/:id/trigger", triggerRecurringJob(storageProvider));
+        get("/recurring-jobs", getRecurringJobs());
+        delete("/recurring-jobs/:id", deleteRecurringJob());
+        post("/recurring-jobs/:id/trigger", triggerRecurringJob());
 
-        get("/servers", getBackgroundJobServers(storageProvider));
+        get("/servers", getBackgroundJobServers());
 
         withExceptionMapping(JobNotFoundException.class, (exc, resp) -> resp.statusCode(404));
     }
 
-    private HttpRequestHandler getJobById(StorageProvider storageProvider) {
+    private HttpRequestHandler getJobById() {
         return (request, response) -> response.asJson(storageProvider.getJobById(request.param(":id", UUID.class)));
     }
 
-    private HttpRequestHandler deleteJobById(StorageProvider storageProvider) {
+    private HttpRequestHandler deleteJobById() {
         return (request, response) -> {
             storageProvider.delete(request.param(":id", UUID.class));
             response.statusCode(204);
         };
     }
 
-    private HttpRequestHandler requeueJobById(StorageProvider storageProvider) {
+    private HttpRequestHandler requeueJobById() {
         return (request, response) -> {
             final Job job = storageProvider.getJobById(request.param(":id", UUID.class));
             job.enqueue();
@@ -61,7 +64,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         };
     }
 
-    private HttpRequestHandler findJobByState(StorageProvider storageProvider) {
+    private HttpRequestHandler findJobByState() {
         return (request, response) ->
                 response.asJson(
                         storageProvider.getJobPage(
@@ -70,13 +73,20 @@ public class JobRunrApiHandler extends RestHttpHandler {
                         ));
     }
 
-    private HttpRequestHandler getProblems(StorageProvider storageProvider) {
+    private HttpRequestHandler getProblems() {
         return (request, response) -> {
             response.asJson(problemsManager.getProblems());
         };
     }
 
-    private HttpRequestHandler getRecurringJobs(StorageProvider storageProvider) {
+    private HttpRequestHandler deleteProblemByType() {
+        return (request, response) -> {
+            problemsManager.dismissProblemOfType(request.param(":type", String.class));
+            response.statusCode(204);
+        };
+    }
+
+    private HttpRequestHandler getRecurringJobs() {
         return (request, response) -> {
             final List<RecurringJobUIModel> recurringJobUIModels = storageProvider
                     .getRecurringJobs()
@@ -87,14 +97,14 @@ public class JobRunrApiHandler extends RestHttpHandler {
         };
     }
 
-    private HttpRequestHandler deleteRecurringJob(StorageProvider storageProvider) {
+    private HttpRequestHandler deleteRecurringJob() {
         return (request, response) -> {
             storageProvider.deleteRecurringJob(request.param(":id"));
             response.statusCode(204);
         };
     }
 
-    private HttpRequestHandler triggerRecurringJob(StorageProvider storageProvider) {
+    private HttpRequestHandler triggerRecurringJob() {
         return (request, response) -> {
             final RecurringJob recurringJob = storageProvider.getRecurringJobs()
                     .stream()
@@ -108,7 +118,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         };
     }
 
-    private HttpRequestHandler getBackgroundJobServers(StorageProvider storageProvider) {
+    private HttpRequestHandler getBackgroundJobServers() {
         return (request, response) -> response.asJson(storageProvider.getBackgroundJobServers());
     }
 }

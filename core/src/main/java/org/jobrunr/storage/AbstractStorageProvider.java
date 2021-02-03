@@ -2,10 +2,7 @@ package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
-import org.jobrunr.storage.listeners.JobChangeListener;
-import org.jobrunr.storage.listeners.JobStatsChangeListener;
-import org.jobrunr.storage.listeners.StorageProviderChangeListener;
+import org.jobrunr.storage.listeners.*;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
@@ -84,6 +81,29 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
+    protected void notifyMetadataChangeListeners(boolean mustNotify) {
+        if (mustNotify) {
+            notifyMetadataChangeListeners();
+        }
+    }
+
+    protected void notifyMetadataChangeListeners() {
+        try {
+            final Map<String, List<MetadataChangeListener>> metadataChangeListenersByName = StreamUtils
+                    .ofType(onChangeListeners, MetadataChangeListener.class)
+                    .collect(groupingBy(MetadataChangeListener::listenForChangesOfMetadataName));
+
+            if (!metadataChangeListenersByName.isEmpty()) {
+                metadataChangeListenersByName.forEach((metadataName, listeners) -> {
+                    List<JobRunrMetadata> jobRunrMetadata = getMetadata(metadataName);
+                    listeners.forEach(listener -> listener.onChange(jobRunrMetadata));
+                });
+            }
+        } catch (Exception e) {
+            logError(e);
+        }
+    }
+
     private void notifyJobChangeListeners() {
         try {
             final Map<JobId, List<JobChangeListener>> listenerByJob = StreamUtils
@@ -130,7 +150,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
             try {
                 if (reentrantLock.tryLock()) {
                     timer = new Timer(true);
-                    timer.schedule(new SendJobStatsUpdate(), 3000, 5000);
+                    timer.schedule(new NotifyOnChangeListeners(), 3000, 5000);
                 }
             } finally {
                 reentrantLock.unlock();
@@ -156,12 +176,13 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 
-    class SendJobStatsUpdate extends TimerTask {
+    class NotifyOnChangeListeners extends TimerTask {
 
         public void run() {
             notifyJobStatsOnChangeListeners();
             notifyJobChangeListeners();
             notifyBackgroundJobServerStatusChangeListeners();
+            notifyMetadataChangeListeners();
         }
     }
 }

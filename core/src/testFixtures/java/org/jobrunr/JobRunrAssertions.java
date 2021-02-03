@@ -11,6 +11,8 @@ import org.assertj.core.api.ListAssert;
 import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
 import org.jobrunr.jobs.*;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.JobRunrMetadataAssert;
 
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
@@ -37,6 +39,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static JobDetailsAssert assertThat(JobDetails jobDetails) {
         return JobDetailsAssert.assertThat(jobDetails);
+    }
+
+    public static JobRunrMetadataAssert assertThat(JobRunrMetadata metadata) {
+        return JobRunrMetadataAssert.assertThat(metadata);
     }
 
     public static HttpResponseAssert assertThat(HttpResponse httpResponse) {

@@ -101,6 +101,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
         metadataTable().save(metadata);
+        notifyMetadataChangeListeners();
     }
 
     @Override
@@ -115,7 +116,8 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public void deleteMetadata(String key) {
-        metadataTable().deleteByKey(key);
+        final int amountDeleted = metadataTable().deleteByKey(key);
+        notifyMetadataChangeListeners(amountDeleted > 0);
     }
 
     @Override

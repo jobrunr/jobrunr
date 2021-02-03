@@ -38,11 +38,11 @@ public interface StorageProvider extends AutoCloseable {
 
     void saveMetadata(JobRunrMetadata metadata);
 
-    List<JobRunrMetadata> getMetadata(String key);
+    List<JobRunrMetadata> getMetadata(String name);
 
-    JobRunrMetadata getMetadata(String key, String owner);
+    JobRunrMetadata getMetadata(String name, String owner);
 
-    void deleteMetadata(String key);
+    void deleteMetadata(String name);
 
     Job save(Job job);
 

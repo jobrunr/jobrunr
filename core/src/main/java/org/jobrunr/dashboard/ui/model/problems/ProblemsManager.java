@@ -1,53 +1,38 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
-import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.listeners.JobStatsChangeListener;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
-import static org.jobrunr.utils.JobUtils.jobExists;
-
-public class ProblemsManager implements JobStatsChangeListener {
+public class ProblemsManager {
 
     private final StorageProvider storageProvider;
-    private Problems problems;
-    private JobStats jobStats;
+    private final Problems problems;
+    private final Map<String, ProblemHandler> problemHandlers;
 
     public ProblemsManager(StorageProvider storageProvider) {
         this.storageProvider = storageProvider;
+        this.problems = new Problems();
+        this.problemHandlers = initProblemHandlers();
+    }
+
+    private Map<String, ProblemHandler> initProblemHandlers() {
+        Map<String, ProblemHandler> result = new HashMap<>();
+        result.put(ScheduledJobsNotFoundProblem.TYPE, new ScheduledJobsNotFoundProblemHandler(problems, storageProvider));
+        result.put(SevereJobRunrExceptionProblem.TYPE, new SevereJobRunrExceptionProblemHandler(problems, storageProvider));
+        return result;
     }
 
     public Problems getProblems() {
-        if (problems == null) {
-            initProblems();
-        }
         return problems;
     }
 
-    private void initProblems() {
-        this.problems = new Problems();
-        initScheduledJobNotFoundProblems();
-    }
-
-    private void initScheduledJobNotFoundProblems() {
-        problems.removeProblemsOfType(JobsNotFoundProblem.TYPE);
-        Set<String> jobsThatCannotBeFoundAnymore = storageProvider.getDistinctJobSignatures(StateName.SCHEDULED).stream().filter(jobSignature -> !jobExists(jobSignature)).collect(Collectors.toSet());
-        if (!jobsThatCannotBeFoundAnymore.isEmpty()) {
-            storageProvider.addJobStorageOnChangeListener(this);
-            jobStats = storageProvider.getJobStats();
-            problems.addProblem(new JobsNotFoundProblem(jobsThatCannotBeFoundAnymore));
+    public void dismissProblemOfType(String param) {
+        if (problemHandlers.containsKey(param)) {
+            problemHandlers.get(param).dismiss();
         } else {
-            storageProvider.removeJobStorageOnChangeListener(this);
-        }
-    }
-
-    @Override
-    public void onChange(JobStats jobStats) {
-        if (jobStats.getScheduled() < this.jobStats.getScheduled()) {
-            initScheduledJobNotFoundProblems();
+            throw new IllegalArgumentException("Unknown problem of type '" + param + "'");
         }
     }
 }

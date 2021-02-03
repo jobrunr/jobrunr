@@ -56,8 +56,8 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
                 .collect(toList());
     }
 
-    public void deleteByKey(String name) {
-        with("name", name)
+    public int deleteByKey(String name) {
+        return with("name", name)
                 .delete("from jobrunr_metadata where name = :name");
     }
 

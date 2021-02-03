@@ -1,10 +1,11 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
-import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Problems extends ArrayList<Problem> {
+public class Problems extends ConcurrentLinkedQueue<Problem> {
 
     public void addProblem(Problem problem) {
+        removeIf(someProblem -> someProblem.type.equals(problem.type));
         this.add(problem);
     }
 

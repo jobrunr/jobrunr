@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
@@ -11,6 +12,7 @@ import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,6 +74,9 @@ class JobZooKeeperTest {
     private BackgroundJobServer backgroundJobServer;
     @Captor
     private ArgumentCaptor<List<Job>> jobsToSaveArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<JobRunrMetadata> jobRunrMetadataArgumentCaptor;
+
 
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
@@ -295,7 +301,32 @@ class JobZooKeeperTest {
         assertThat(logger).hasNoWarnLogMessages();
     }
 
+    @Test
+    void severeJobRunrExceptionsAreLoggedToStorageProvider() {
+        Job succeededJob1 = aSucceededJob().build();
+        Job succeededJob2 = aSucceededJob().build();
+
+        when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
+        when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
+                .thenReturn(
+                        asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
+                        emptyJobList()
+                );
+        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).saveMetadata(jobRunrMetadataArgumentCaptor.capture());
+
+        assertThat(jobRunrMetadataArgumentCaptor.getValue())
+                .hasName(SevereJobRunrException.class.getSimpleName())
+                .hasOwner("BackgroundJobServer " + backgroundJobServer.getId())
+                .valueContains("## Runtime information");
+    }
+
     private JobZooKeeper initializeJobZooKeeper() {
+        when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));

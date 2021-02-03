@@ -206,6 +206,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_UPDATED_AT, String.valueOf(metadata.getUpdatedAt()));
             p.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));
             p.sync();
+            notifyMetadataChangeListeners();
         }
     }
 
@@ -247,12 +248,15 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .filter(metadataName -> metadataName.startsWith(metadataKey(keyPrefix, name + "-")))
                     .collect(toList());
 
-            try (final Pipeline p = jedis.pipelined()) {
-                metadataToDelete.forEach(metadataName -> {
-                    p.hdel(metadataName);
-                    p.srem(metadatasKey(keyPrefix), metadataName);
-                });
-                p.sync();
+            if (!metadataToDelete.isEmpty()) {
+                try (final Pipeline p = jedis.pipelined()) {
+                    metadataToDelete.forEach(metadataName -> {
+                        p.hdel(metadataName);
+                        p.srem(metadatasKey(keyPrefix), metadataName);
+                    });
+                    p.sync();
+                }
+                notifyMetadataChangeListeners();
             }
         }
     }

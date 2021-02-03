@@ -221,6 +221,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_UPDATED_AT, String.valueOf(metadata.getUpdatedAt()));
             commands.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));
             commands.exec();
+            notifyMetadataChangeListeners();
         }
     }
 
@@ -266,12 +267,15 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                     .filter(metadataName -> metadataName.startsWith(metadataKey(keyPrefix, name + "-")))
                     .collect(toList());
 
-            commands.multi();
-            metadataToDelete.forEach(metadataName -> {
-                commands.del(metadataName);
-                commands.srem(metadatasKey(keyPrefix), metadataName);
-            });
-            commands.exec();
+            if (!metadataToDelete.isEmpty()) {
+                commands.multi();
+                metadataToDelete.forEach(metadataName -> {
+                    commands.del(metadataName);
+                    commands.srem(metadatasKey(keyPrefix), metadataName);
+                });
+                commands.exec();
+                notifyMetadataChangeListeners();
+            }
         }
     }
 

@@ -16,7 +16,6 @@ public class HttpRequest {
 
     public <T> T param(String paramName, Class<T> clazz) {
         return requestUrl.param(paramName, clazz);
-
     }
 
     public <T> T fromQueryParams(Class<T> clazz) {
