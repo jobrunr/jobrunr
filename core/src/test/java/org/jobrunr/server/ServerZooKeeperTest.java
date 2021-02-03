@@ -26,6 +26,8 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -97,7 +99,8 @@ class ServerZooKeeperTest {
                 .untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
 
         assertThat(backgroundJobServer.isMaster()).isTrue();
-        verify(storageProvider, times(2)).removeTimedOutBackgroundJobServers(any());
+        verify(storageProvider, atLeastOnce()).removeTimedOutBackgroundJobServers(any());
+        verify(storageProvider, atMost(2)).removeTimedOutBackgroundJobServers(any());
     }
 
     @Test
