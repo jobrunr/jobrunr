@@ -646,6 +646,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         try {
             return getCounterValue(countResponse) + parseLong(totalSucceededAmountCounterResponse.get());
         } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
             return 0L;
         }
     }
