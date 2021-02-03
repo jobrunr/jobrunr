@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.time.Instant;
 
 import static org.jobrunr.storage.StorageProviderUtils.Migrations;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.sleep;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.createIndex;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.indexExists;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.waitForHealthyCluster;
@@ -45,12 +46,7 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
 
     @Override
     protected boolean isNewMigration(NoSqlMigration noSqlMigration) {
-        try {
-            GetResponse migration = client.get(new GetRequest(JOBRUNR_MIGRATIONS_INDEX_NAME, substringBefore(noSqlMigration.getClassName(), "_")), RequestOptions.DEFAULT);
-            return !migration.isExists();
-        } catch (IOException e) {
-            throw new StorageException(e);
-        }
+        return isNewMigration(noSqlMigration, 0);
     }
 
     @Override
@@ -72,6 +68,20 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
                     .source(builder);
             return client.index(indexRequest, RequestOptions.DEFAULT) != null;
         } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    private boolean isNewMigration(NoSqlMigration noSqlMigration, int retry) {
+        sleep(retry * 500);
+        try {
+            waitForHealthyCluster(client);
+            GetResponse migration = client.get(new GetRequest(JOBRUNR_MIGRATIONS_INDEX_NAME, substringBefore(noSqlMigration.getClassName(), "_")), RequestOptions.DEFAULT);
+            return !migration.isExists();
+        } catch (IOException e) {
+            if (retry < 5) {
+                return isNewMigration(noSqlMigration, retry + 1);
+            }
             throw new StorageException(e);
         }
     }

@@ -7,13 +7,14 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.StorageException;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.sleep;
 
 public abstract class ElasticSearchMigration {
 
@@ -87,13 +88,5 @@ public abstract class ElasticSearchMigration {
 
         }
         return jsonMap;
-    }
-
-    private static void sleep(long amount) {
-        try {
-            Thread.sleep(amount);
-        } catch (InterruptedException e) {
-            throw JobRunrException.shouldNotHappenException(e);
-        }
     }
 }
