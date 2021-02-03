@@ -79,26 +79,26 @@ class PackageDependenciesTest {
 
     @ArchTest
     ArchRule jobRunrStorageElasticSearchClassesDependenciesTest = classes()
-                .that().resideInAPackage("org.jobrunr.storage.nosql.elasticsearch")
+            .that().resideInAPackage("org.jobrunr.storage.nosql.elasticsearch..")
                 .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.elasticsearch..", "org.apache.http..", "org.slf4j..", "java..");
 
     @ArchTest
     ArchRule jobRunrStorageMongoClassesDependenciesTest = classes()
-                .that().resideInAPackage("org.jobrunr.storage.nosql.mongo")
+            .that().resideInAPackage("org.jobrunr.storage.nosql.mongo..")
                 .should().onlyDependOnClassesThat(
                         resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..", "")
                                 .or(are(equivalentTo(JobRunrException.class)))
                 ); // see https://github.com/TNG/ArchUnit/issues/519
 
     @ArchTest
-    ArchRule jobRunrStorageRedisClassesDependenciesTest = classes()
-                .that().resideInAPackage("org.jobrunr.storage.nosql.redis")
-                .and().haveSimpleNameStartingWith("Jedis")
-                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "redis.clients..", "org.slf4j..", "java..");
+    ArchRule jobRunrStorageRedisJedisClassesDependenciesTest = classes()
+            .that().resideInAPackage("org.jobrunr.storage.nosql.redis..")
+            .and().haveSimpleNameStartingWith("Jedis")
+            .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "redis.clients..", "org.slf4j..", "java..");
 
     @ArchTest
     ArchRule jobRunrStorageRedisLettuceClassesDependenciesTest = classes()
-                .that().resideInAPackage("org.jobrunr.storage.nosql.redis")
+            .that().resideInAPackage("org.jobrunr.storage.nosql.redis..")
                 .and().haveSimpleNameStartingWith("Lettuce")
                 .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "io.lettuce..", "org.apache.commons.pool2..", "org.slf4j..", "java..");
 
