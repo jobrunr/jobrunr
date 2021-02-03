@@ -85,7 +85,7 @@ public interface StorageProvider extends AutoCloseable {
 
     JobStats getJobStats();
 
-    void publishJobStatCounter(StateName state, int amount);
+    void publishTotalAmountOfSucceededJobs(int amount);
 
     default Job getJobById(JobId jobId) {
         return getJobById(jobId.asUUID());

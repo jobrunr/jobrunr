@@ -533,7 +533,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
+    public void publishTotalAmountOfSucceededJobs(int amount) {
         try (final Jedis jedis = getJedis()) {
             jedis.hincrBy(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);
         }

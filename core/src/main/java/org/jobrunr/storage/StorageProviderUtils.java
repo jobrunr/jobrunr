@@ -98,7 +98,7 @@ public class StorageProviderUtils {
 
         public static final String NAME = "metadata";
         public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
-        public static final String STATS_ID = "succeededjobs-cluster";
+        public static final String STATS_ID = "succeeded-jobs-counter-cluster";
         public static final String FIELD_NAME = "name";
         public static final String FIELD_OWNER = "owner";
         public static final String FIELD_VALUE = "value";

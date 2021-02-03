@@ -200,7 +200,7 @@ class JobZooKeeperTest {
         jobZooKeeper.run();
 
         verify(storageProvider).save(anyList());
-        verify(storageProvider).publishJobStatCounter(SUCCEEDED, 5);
+        verify(storageProvider).publishTotalAmountOfSucceededJobs(5);
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
         assertThat(logAllStateChangesFilter.processingPassed).isFalse();

@@ -4,13 +4,7 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
-import org.jobrunr.jobs.states.DeletedState;
-import org.jobrunr.jobs.states.EnqueuedState;
-import org.jobrunr.jobs.states.FailedState;
-import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.jobs.states.*;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.resilience.Lock;
 import org.mockito.internal.util.reflection.Whitebox;
@@ -18,11 +12,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
@@ -240,6 +230,10 @@ public class JobTestBuilder {
 
     public JobTestBuilder withSucceededState() {
         return withState(new SucceededState(ofMillis(10), ofMillis(3)));
+    }
+
+    public JobTestBuilder withSucceededState(Instant createdAt) {
+        return withState(new SucceededState(ofMillis(10), ofMillis(3)), createdAt);
     }
 
     public JobTestBuilder withFailedState() {

@@ -9,7 +9,7 @@ CREATE TABLE jobrunr_metadata
 );
 
 INSERT INTO jobrunr_metadata (id, name, owner, value, createdAt, updatedAt)
-VALUES ('succeededjobs-cluster', 'succeededjobs', 'cluster',
+VALUES ('succeeded-jobs-counter-cluster', 'succeeded-jobs-counter', 'cluster',
         cast((select amount from jobrunr_job_counters where name = 'SUCCEEDED') as char(10)), CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP);
 
@@ -27,7 +27,7 @@ select count(*)                                                                 
        (select((select count(*) from jobrunr_jobs jobs where jobs.state = 'SUCCEEDED') +
                (select cast(cast(value as char(10)) as decimal(10, 0))
                 from jobrunr_metadata jm
-                where jm.id = 'succeededjobs-cluster')))                        as succeeded,
+                where jm.id = 'succeeded-jobs-counter-cluster')))               as succeeded,
        (select count(*) from jobrunr_jobs jobs where jobs.state = 'DELETED')    as deleted,
        (select count(*) from jobrunr_backgroundjobservers)                      as nbrOfBackgroundJobServers,
        (select count(*) from jobrunr_recurring_jobs)                            as nbrOfRecurringJobs

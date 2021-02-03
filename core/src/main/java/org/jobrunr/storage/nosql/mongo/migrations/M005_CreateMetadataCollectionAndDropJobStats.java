@@ -44,7 +44,7 @@ public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration
     private Document initialAllTimeSucceededJobCounterDocument() {
         final Document document = new Document();
         document.put(Metadata.FIELD_ID, Metadata.STATS_ID);
-        document.put(Metadata.FIELD_NAME, "succeededjobs");
+        document.put(Metadata.FIELD_NAME, "succeeded-jobs-counter");
         document.put(Metadata.FIELD_OWNER, "cluster");
         document.put(Metadata.FIELD_VALUE, 0L);
         return document;

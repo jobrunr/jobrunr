@@ -605,7 +605,7 @@ public abstract class StorageProviderTest {
 
         assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();
 
-        storageProvider.publishJobStatCounter(SUCCEEDED, 5);
+        storageProvider.publishTotalAmountOfSucceededJobs(5);
         storageProvider.save(asList(
                 anEnqueuedJob().withoutId().build(),
                 anEnqueuedJob().withoutId().build(),

@@ -568,7 +568,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
+    public void publishTotalAmountOfSucceededJobs(int amount) {
         try {
             UpdateRequest updateRequest = new UpdateRequest(metadataIndexName(), STATS_ID);
             updateRequest.scriptedUpsert(true);

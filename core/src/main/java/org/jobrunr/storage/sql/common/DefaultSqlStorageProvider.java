@@ -238,10 +238,10 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
+    public void publishTotalAmountOfSucceededJobs(int amount) {
         Sql.withoutType()
                 .using(dataSource)
-                .with("id", "succeededjobs-cluster")
+                .with("id", "succeeded-jobs-counter-cluster")
                 .with("amount", amount)
                 .update("jobrunr_metadata set value = cast((cast(cast(value as char(10)) as decimal) + :amount) as char(10)) where id = :id");
         //why the 3 casts: to be compliant with all DB servers

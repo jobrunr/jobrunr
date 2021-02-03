@@ -571,7 +571,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
+    public void publishTotalAmountOfSucceededJobs(int amount) {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.hincrby(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);

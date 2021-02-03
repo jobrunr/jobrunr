@@ -48,7 +48,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     public InMemoryStorageProvider(RateLimiter rateLimiter) {
         super(rateLimiter);
-        publishJobStatCounter(SUCCEEDED, 0);
+        publishTotalAmountOfSucceededJobs(0);
     }
 
     @Override
@@ -282,7 +282,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),
                 getJobsStream(FAILED).count(),
-                getJobsStream(SUCCEEDED).count() + getMetadata("jobstats", "cluster").getValueAsLong(),
+                getJobsStream(SUCCEEDED).count() + getMetadata("succeeded-jobs-counter", "cluster").getValueAsLong(),
                 getJobsStream(DELETED).count(),
                 recurringJobs.size(),
                 backgroundJobServers.size()
@@ -290,9 +290,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
-        this.metadata.computeIfAbsent("jobstats-cluster", input -> new JobRunrMetadata("jobstats", "cluster", new AtomicLong(0).toString()));
-        JobRunrMetadata metadata = getMetadata("jobstats", "cluster");
+    public void publishTotalAmountOfSucceededJobs(int amount) {
+        this.metadata.computeIfAbsent("succeeded-jobs-counter-cluster", input -> new JobRunrMetadata("succeeded-jobs-counter", "cluster", new AtomicLong(0).toString()));
+        JobRunrMetadata metadata = getMetadata("succeeded-jobs-counter", "cluster");
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 

@@ -42,7 +42,7 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
         try {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
-            builder.field(Metadata.FIELD_NAME, "succeededjobs");
+            builder.field(Metadata.FIELD_NAME, "succeeded-jobs-counter");
             builder.field(Metadata.FIELD_OWNER, "cluster");
             builder.field(Metadata.FIELD_VALUE, totalSucceededAmount);
             builder.field(Metadata.FIELD_CREATED_AT, Instant.now());

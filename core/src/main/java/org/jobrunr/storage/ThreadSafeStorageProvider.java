@@ -183,8 +183,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
-        storageProvider.publishJobStatCounter(state, amount);
+    public void publishTotalAmountOfSucceededJobs(int amount) {
+        storageProvider.publishTotalAmountOfSucceededJobs(amount);
     }
 
     @Override

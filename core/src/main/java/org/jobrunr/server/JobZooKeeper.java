@@ -133,7 +133,7 @@ public class JobZooKeeper implements Runnable {
         });
 
         if (succeededJobsCounter.get() > 0) {
-            storageProvider.publishJobStatCounter(SUCCEEDED, succeededJobsCounter.get());
+            storageProvider.publishTotalAmountOfSucceededJobs(succeededJobsCounter.get());
         }
     }
 

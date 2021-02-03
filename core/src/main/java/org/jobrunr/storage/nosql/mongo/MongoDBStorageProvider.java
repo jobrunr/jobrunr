@@ -380,7 +380,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public void publishJobStatCounter(StateName state, int amount) {
+    public void publishTotalAmountOfSucceededJobs(int amount) {
         metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, amount), new UpdateOptions().upsert(true));
     }
 
