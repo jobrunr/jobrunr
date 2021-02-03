@@ -3,7 +3,6 @@ package org.jobrunr.storage.nosql.elasticsearch;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
@@ -75,7 +74,7 @@ public class ElasticSearchUtils {
         try {
             Thread.sleep(amount);
         } catch (InterruptedException e) {
-            throw JobRunrException.shouldNotHappenException(e);
+            Thread.currentThread().interrupt();
         }
     }
 }
