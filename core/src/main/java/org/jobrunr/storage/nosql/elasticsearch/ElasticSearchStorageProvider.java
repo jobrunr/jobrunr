@@ -50,7 +50,6 @@ import org.jobrunr.utils.resilience.RateLimiter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
@@ -260,16 +259,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Job save(Job job) {
         try {
-            if (job.getId() == null) {
-                job.setId(UUID.randomUUID());
-            } else {
-                job.increaseVersion();
-            }
-
             IndexRequest request = new IndexRequest(jobIndexName())
                     .id(job.getId().toString())
                     .versionType(VersionType.EXTERNAL)
-                    .version(job.getVersion())
+                    .version(job.increaseVersion())
                     .setRefreshPolicy(IMMEDIATE)
                     .source(elasticSearchDocumentMapper.toXContentBuilder(job));
             client.index(request, RequestOptions.DEFAULT);
@@ -316,23 +309,19 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<Job> save(List<Job> jobs) {
         try {
-            Consumer<Job> jobConsumer;
             if (areNewJobs(jobs)) {
                 if (notAllJobsAreNew(jobs)) {
                     throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
                 }
-                jobConsumer = job -> job.setId(UUID.randomUUID());
             } else {
                 if (notAllJobsAreExisting(jobs)) {
                     throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
                 }
-                jobConsumer = AbstractJob::increaseVersion;
-
             }
 
             BulkRequest bulkRequest = new BulkRequest(jobIndexName()).setRefreshPolicy(IMMEDIATE);
             jobs.stream()
-                    .peek(jobConsumer)
+                    .peek(AbstractJob::increaseVersion)
                     .map(job -> new IndexRequest().id(job.getId().toString())
                             .versionType(VersionType.EXTERNAL)
                             .version(job.getVersion())

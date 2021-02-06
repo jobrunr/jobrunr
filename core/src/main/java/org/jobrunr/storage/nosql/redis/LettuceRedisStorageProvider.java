@@ -55,6 +55,7 @@ import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.NumberUtils.parseLong;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -283,8 +284,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public Job save(Job jobToSave) {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands commands = connection.sync();
-            boolean isNewJob = jobToSave.getId() == null;
-            if (isNewJob) {
+            if (isNew(jobToSave)) {
                 insertJob(jobToSave, commands);
             } else {
                 updateJob(jobToSave, commands);
@@ -332,7 +332,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                 RedisCommands commands = connection.sync();
                 commands.multi();
                 for (Job jobToSave : jobs) {
-                    jobToSave.setId(UUID.randomUUID());
+                    jobToSave.increaseVersion();
                     saveJob(commands, jobToSave);
                 }
                 commands.exec();
@@ -585,7 +585,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     private void insertJob(Job jobToSave, RedisCommands commands) {
-        jobToSave.setId(UUID.randomUUID());
+        jobToSave.increaseVersion();
         commands.multi();
         saveJob(commands, jobToSave);
         commands.exec();

@@ -83,9 +83,10 @@ public class JobTable extends Sql<Job> {
     }
 
     public Job save(Job jobToSave) {
-        boolean isNewJob = jobToSave.getId() == null;
-        if (isNewJob) {
-            jobToSave.setId(UUID.randomUUID());
+        boolean isNewJob = jobToSave.getVersion() == 0;
+        if (JobUtils.isNew(jobToSave)) {
+            //jobToSave.setId(UUID.randomUUID());
+            jobToSave.increaseVersion();
             insertOneJob(jobToSave);
         } else {
             jobToSave.increaseVersion();
@@ -208,7 +209,7 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertAllJobs(List<Job> jobs) {
-        jobs.forEach(JobTable::setId);
+        jobs.forEach(AbstractJob::increaseVersion);
         insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
     }
 

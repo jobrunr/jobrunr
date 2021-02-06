@@ -49,6 +49,7 @@ import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -264,8 +265,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public Job save(Job jobToSave) {
         try (final Jedis jedis = getJedis()) {
-            boolean isNewJob = jobToSave.getId() == null;
-            if (isNewJob) {
+            if (isNew(jobToSave)) {
                 insertJob(jobToSave, jedis);
             } else {
                 updateJob(jobToSave, jedis);
@@ -309,7 +309,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             }
             try (final Jedis jedis = getJedis(); Transaction p = jedis.multi()) {
                 for (Job jobToSave : jobs) {
-                    jobToSave.setId(UUID.randomUUID());
+                    jobToSave.increaseVersion();
                     saveJob(p, jobToSave);
                 }
                 p.exec();
@@ -544,7 +544,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     private void insertJob(Job jobToSave, Jedis jedis) {
-        jobToSave.setId(UUID.randomUUID());
+        jobToSave.increaseVersion();
         try (Transaction transaction = jedis.multi()) {
             saveJob(transaction, jobToSave);
             transaction.exec();

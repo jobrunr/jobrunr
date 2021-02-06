@@ -16,6 +16,7 @@ import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
@@ -70,6 +71,7 @@ import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -204,8 +206,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public Job save(Job job) {
-        if (job.getId() == null) {
-            job.setId(UUID.randomUUID());
+        if (isNew(job)) {
+            job.increaseVersion();
             jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
         } else {
             final UpdateOneModel<Document> updateModel = jobDocumentMapper.toUpdateOneModel(job);
@@ -242,7 +244,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
             final List<Document> jobsToInsert = jobs.stream()
-                    .peek(job -> job.setId(UUID.randomUUID()))
+                    .peek(AbstractJob::increaseVersion)
                     .map(job -> jobDocumentMapper.toInsertDocument(job))
                     .collect(toList());
             jobCollection.insertMany(jobsToInsert);

@@ -37,6 +37,7 @@ public class JobTestBuilder {
 
     public static JobTestBuilder aJob() {
         return new JobTestBuilder()
+                .withId()
                 .withName("the job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"));
     }
@@ -59,14 +60,12 @@ public class JobTestBuilder {
 
     public static JobTestBuilder anEnqueuedJob() {
         return aJob()
-                .withoutId()
                 .withName("an enqueued job")
                 .withState(new EnqueuedState());
     }
 
     public static JobTestBuilder anEnqueuedJobThatTakesLong() {
         return aJob()
-                .withoutId()
                 .withName("an enqueued job that takes long")
                 .withState(new EnqueuedState())
                 .withJobDetails(jobDetails()
@@ -76,19 +75,17 @@ public class JobTestBuilder {
     }
 
     public static JobTestBuilder aJobInProgress() {
-        return anEnqueuedJob().withId().withState(new ProcessingState(UUID.randomUUID()));
+        return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID()));
     }
 
     public static JobTestBuilder aScheduledJob() {
         return aJob()
-                .withId()
                 .withName("a scheduled job")
                 .withState(new ScheduledState(now().minusSeconds(1)));
     }
 
     public static JobTestBuilder aFailedJob() {
         return anEnqueuedJob()
-                .withId()
                 .withName("a failed job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ProcessingState(UUID.randomUUID()))
@@ -97,7 +94,6 @@ public class JobTestBuilder {
 
     public static JobTestBuilder aSucceededJob() {
         return anEnqueuedJob()
-                .withId()
                 .withName("a succeeded job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ProcessingState(UUID.randomUUID()))
@@ -106,7 +102,6 @@ public class JobTestBuilder {
 
     public static JobTestBuilder aDeletedJob() {
         return anEnqueuedJob()
-                .withId()
                 .withName("a deleted job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new DeletedState());
@@ -114,7 +109,6 @@ public class JobTestBuilder {
 
     public static JobTestBuilder aFailedJobThatEventuallySucceeded() {
         final JobTestBuilder jobTestBuilder = aJob()
-                .withId()
                 .withName("failed job")
                 .withJobDetails(defaultJobDetails())
                 .withState(new ScheduledState(now().minusSeconds(11 * 60 * 60)));
@@ -135,7 +129,6 @@ public class JobTestBuilder {
 
     public static JobTestBuilder aFailedJobWithRetries() {
         final JobTestBuilder jobTestBuilder = aJob()
-                .withId()
                 .withName("failed job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ScheduledState(now().minusSeconds(11 * 60 * 60)));

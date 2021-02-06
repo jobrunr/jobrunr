@@ -4,6 +4,8 @@ import org.jobrunr.jobs.Job;
 
 import java.util.List;
 
+import static org.jobrunr.utils.JobUtils.isNew;
+
 public class StorageProviderUtils {
 
     private StorageProviderUtils() {
@@ -12,15 +14,15 @@ public class StorageProviderUtils {
     private static final String FIELD_ID = "id";
 
     public static boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() != null);
+        return jobs.stream().anyMatch(job -> !isNew(job));
     }
 
     public static boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> job.getId() == null);
+        return jobs.stream().anyMatch(job -> isNew(job));
     }
 
     public static boolean areNewJobs(List<Job> jobs) {
-        return jobs.get(0).getId() == null;
+        return isNew(jobs.get(0));
     }
 
     public static final class Migrations {

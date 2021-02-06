@@ -209,7 +209,7 @@ public abstract class StorageProviderTest {
     @Test
     void testCRUDJobLifeCycle() {
         // SCHEDULED
-        Job scheduledJob = aScheduledJob().withoutId().build();
+        Job scheduledJob = aScheduledJob().build();
         Job createdJob = storageProvider.save(scheduledJob);
         Job savedScheduledJob = storageProvider.getJobById(createdJob.getId());
         assertThat(savedScheduledJob).isEqualTo(createdJob);
@@ -300,11 +300,11 @@ public abstract class StorageProviderTest {
 
     @Test
     void testOptimisticLockingOnSaveJobs() {
-        Job job = aJobInProgress().withoutId().build();
-        Job createdJob1 = storageProvider.save(aCopyOf(job).build());
-        Job createdJob2 = storageProvider.save(aCopyOf(job).build());
-        Job createdJob3 = storageProvider.save(aCopyOf(job).build());
-        Job createdJob4 = storageProvider.save(aCopyOf(job).build());
+        Job job = aJobInProgress().build();
+        Job createdJob1 = storageProvider.save(aCopyOf(job).withId().build());
+        Job createdJob2 = storageProvider.save(aCopyOf(job).withId().build());
+        Job createdJob3 = storageProvider.save(aCopyOf(job).withId().build());
+        Job createdJob4 = storageProvider.save(aCopyOf(job).withId().build());
 
         storageProvider.save(aCopyOf(createdJob2).withSucceededState().build());
 
@@ -321,12 +321,12 @@ public abstract class StorageProviderTest {
     @Test
     void testGetDistinctJobSignatures() {
         TestService testService = new TestService();
-        Job job1 = aScheduledJob().withoutId().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
-        Job job2 = anEnqueuedJob().withoutId().withJobDetails(() -> testService.doWork(2)).build();
-        Job job3 = anEnqueuedJob().withoutId().withJobDetails(() -> testService.doWork(2)).build();
-        Job job4 = anEnqueuedJob().withoutId().withJobDetails(() -> testService.doWorkThatTakesLong(5)).build();
-        Job job5 = aJobInProgress().withoutId().withJobDetails(() -> testService.doWork(2, 5)).build();
-        Job job6 = aSucceededJob().withoutId().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
+        Job job1 = aScheduledJob().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
+        Job job2 = anEnqueuedJob().withJobDetails(() -> testService.doWork(2)).build();
+        Job job3 = anEnqueuedJob().withJobDetails(() -> testService.doWork(2)).build();
+        Job job4 = anEnqueuedJob().withJobDetails(() -> testService.doWorkThatTakesLong(5)).build();
+        Job job5 = aJobInProgress().withJobDetails(() -> testService.doWork(2, 5)).build();
+        Job job6 = aSucceededJob().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
 
         storageProvider.save(asList(job1, job2, job3, job4, job5, job6));
 
@@ -607,15 +607,15 @@ public abstract class StorageProviderTest {
 
         storageProvider.publishTotalAmountOfSucceededJobs(5);
         storageProvider.save(asList(
-                anEnqueuedJob().withoutId().build(),
-                anEnqueuedJob().withoutId().build(),
-                anEnqueuedJob().withoutId().build(),
-                aJobInProgress().withoutId().build(),
-                aScheduledJob().withoutId().build(),
-                aFailedJob().withoutId().build(),
-                aFailedJob().withoutId().build(),
-                aSucceededJob().withoutId().build(),
-                aDeletedJob().withoutId().build()
+                anEnqueuedJob().build(),
+                anEnqueuedJob().build(),
+                anEnqueuedJob().build(),
+                aJobInProgress().build(),
+                aScheduledJob().build(),
+                aFailedJob().build(),
+                aFailedJob().build(),
+                aSucceededJob().build(),
+                aDeletedJob().build()
         ));
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id1").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id2").build());

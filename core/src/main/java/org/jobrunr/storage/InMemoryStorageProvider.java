@@ -29,6 +29,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -314,15 +315,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     private void saveJob(Job job) {
-        if (job.getId() == null) {
-            job.setId(UUID.randomUUID());
-        } else {
+        if (!isNew(job)) {
             final Job oldJob = jobQueue.get(job.getId());
             if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
                 throw new ConcurrentJobModificationException(job);
             }
-            job.increaseVersion();
         }
+        job.increaseVersion();
 
         jobQueue.put(job.getId(), deepClone(job));
     }
