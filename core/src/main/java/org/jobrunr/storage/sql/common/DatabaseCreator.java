@@ -90,10 +90,10 @@ public class DatabaseCreator {
     protected void runMigration(SqlMigration migration) {
         LOGGER.info("Running migration {}", migration);
         try (Connection conn = getConnection()) {
-            if (isEmptyMigration(migration)) return;
-
             conn.setAutoCommit(true);
-            runMigrationStatement(conn, migration);
+            if (!isEmptyMigration(migration)) {
+                runMigrationStatement(conn, migration);
+            }
             updateMigrationsTable(conn, migration);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error running database migration " + migration.getFileName(), e));
