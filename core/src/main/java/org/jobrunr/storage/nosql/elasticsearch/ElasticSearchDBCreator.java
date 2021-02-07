@@ -13,6 +13,8 @@ import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -26,8 +28,10 @@ import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMigration> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchDBCreator.class);
+
     public static final String JOBRUNR_MIGRATIONS_INDEX_NAME = "jobrunr_" + Migrations.NAME;
-    private RestHighLevelClient client;
+    private final RestHighLevelClient client;
 
     public ElasticSearchDBCreator(NoSqlStorageProvider noSqlStorageProvider, RestHighLevelClient client) {
         super(noSqlStorageProvider);
@@ -80,6 +84,7 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
             return !migration.isExists();
         } catch (IOException e) {
             if (retry < 5) {
+                LOGGER.info("Failed to run migration on retry " + retry);
                 return isNewMigration(noSqlMigration, retry + 1);
             }
             throw new StorageException(e);
