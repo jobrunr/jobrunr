@@ -20,7 +20,7 @@ public class M001_JedisRemoveJobStatsAndUseMetadata extends JedisRedisMigration 
         final String succeededCounterResponse = jedis.get(jobCounterKey(SUCCEEDED));
         if (isNotNullOrEmpty(succeededCounterResponse)) {
             jedis.hincrBy(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, parseLong(succeededCounterResponse));
-            jedis.del(metadataKey(keyPrefix, Metadata.STATS_ID));
+            jedis.del(jobCounterKey(SUCCEEDED));
         } else {
             jedis.hset(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, "0");
         }

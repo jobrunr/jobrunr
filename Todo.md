@@ -1,11 +1,3 @@
-# Testing
-
-- SQL Server -> ok
-- Postgres -> ok
-- MariaDB -> ok
-- MySQL -> ok
-- Oracle -> ok
-
 # Todo
 
 - [x] signalBackgroundJobServerStopped

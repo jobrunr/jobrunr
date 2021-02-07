@@ -24,7 +24,7 @@ public class M001_LettuceRemoveJobStatsAndUseMetadata extends LettuceRedisMigrat
         final String succeededCounterResponse = commands.get(jobCounterKey(SUCCEEDED)) != null ? commands.get(jobCounterKey(SUCCEEDED)).toString() : null;
         if (isNotNullOrEmpty(succeededCounterResponse)) {
             commands.hincrby(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, parseLong(succeededCounterResponse));
-            commands.del(metadataKey(keyPrefix, Metadata.STATS_ID));
+            commands.del(jobCounterKey(SUCCEEDED));
         } else {
             commands.hset(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, "0");
         }
