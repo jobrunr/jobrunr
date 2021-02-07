@@ -1,5 +1,6 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -13,8 +14,6 @@ import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -27,8 +26,6 @@ import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMi
 import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMigration> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchDBCreator.class);
 
     public static final String JOBRUNR_MIGRATIONS_INDEX_NAME = "jobrunr_" + Migrations.NAME;
     private final RestHighLevelClient client;
@@ -82,11 +79,12 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
             waitForHealthyCluster(client);
             GetResponse migration = client.get(new GetRequest(JOBRUNR_MIGRATIONS_INDEX_NAME, substringBefore(noSqlMigration.getClassName(), "_")), RequestOptions.DEFAULT);
             return !migration.isExists();
-        } catch (IOException e) {
+        } catch (ElasticsearchStatusException e) {
             if (retry < 5) {
-                LOGGER.info("Failed to run migration on retry " + retry);
                 return isNewMigration(noSqlMigration, retry + 1);
             }
+            throw e;
+        } catch (IOException e) {
             throw new StorageException(e);
         }
     }

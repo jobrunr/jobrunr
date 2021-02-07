@@ -4,6 +4,7 @@
 - Postgres -> ok
 - MariaDB -> ok
 - MySQL -> ok
+- Oracle -> ok
 
 # Todo
 
