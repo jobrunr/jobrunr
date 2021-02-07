@@ -1,5 +1,6 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -27,7 +28,7 @@ import static org.jobrunr.utils.StringUtils.substringBefore;
 public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMigration> {
 
     public static final String JOBRUNR_MIGRATIONS_INDEX_NAME = "jobrunr_" + Migrations.NAME;
-    private RestHighLevelClient client;
+    private final RestHighLevelClient client;
 
     public ElasticSearchDBCreator(NoSqlStorageProvider noSqlStorageProvider, RestHighLevelClient client) {
         super(noSqlStorageProvider);
@@ -78,10 +79,12 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
             waitForHealthyCluster(client);
             GetResponse migration = client.get(new GetRequest(JOBRUNR_MIGRATIONS_INDEX_NAME, substringBefore(noSqlMigration.getClassName(), "_")), RequestOptions.DEFAULT);
             return !migration.isExists();
-        } catch (IOException e) {
+        } catch (ElasticsearchStatusException e) {
             if (retry < 5) {
                 return isNewMigration(noSqlMigration, retry + 1);
             }
+            throw e;
+        } catch (IOException e) {
             throw new StorageException(e);
         }
     }

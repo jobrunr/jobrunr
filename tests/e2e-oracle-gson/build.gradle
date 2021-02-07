@@ -6,7 +6,7 @@ dependencies {
     implementation project(':core')
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple'
-    implementation 'com.oracle.ojdbc:ojdbc8_g'
+    implementation 'com.oracle.database.jdbc:ojdbc8'
     implementation 'com.google.code.gson:gson'
 
     testImplementation project(':core')
