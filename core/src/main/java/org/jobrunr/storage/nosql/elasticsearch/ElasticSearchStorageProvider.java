@@ -259,10 +259,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Job save(Job job) {
         try {
+            job.increaseVersion();
             IndexRequest request = new IndexRequest(jobIndexName())
                     .id(job.getId().toString())
                     .versionType(VersionType.EXTERNAL)
-                    .version(job.increaseVersion())
+                    .version(job.getVersion())
                     .setRefreshPolicy(IMMEDIATE)
                     .source(elasticSearchDocumentMapper.toXContentBuilder(job));
             client.index(request, RequestOptions.DEFAULT);
