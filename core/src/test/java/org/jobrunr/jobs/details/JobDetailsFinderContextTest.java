@@ -6,13 +6,8 @@ import org.jobrunr.jobs.details.instructions.*;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 
 class JobDetailsFinderContextTest {
 
@@ -51,17 +46,17 @@ class JobDetailsFinderContextTest {
     private JobDetailsFinderContext getJobDetailsFinderContext() {
         return new JobDetailsFinderContext(null) {
 
-            @Override
-            protected void init() {
-                this.setClassName(toFQClassName("org/jobrunr/examples/webapp/api/JobController"));
-                this.setMethodName("lambda$simpleJob$4ffb5ff$1");
-                this.setJobParameters(new ArrayList<>());
-            }
-
-            @Override
-            protected List<Object> initLocalVariables(Object[] params) {
-                return Arrays.asList("World", null);
-            }
+//            @Override
+//            protected void init() {
+//                this.setClassName(toFQClassName("org/jobrunr/examples/webapp/api/JobController"));
+//                this.setMethodName("lambda$simpleJob$4ffb5ff$1");
+//                this.setJobParameters(new ArrayList<>());
+//            }
+//
+//            @Override
+//            protected List<Object> initLocalVariables(Object[] params) {
+//                return Arrays.asList("World", null);
+//            }
         };
     }
 

@@ -194,6 +194,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("This should not be executed");
     }
 
+    public void doWorkWithoutParameters() {
+        doWork(); // why: for kotlin method resolution
+    }
+
     public void reset() {
         processedJobs = 0;
     }

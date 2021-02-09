@@ -11,7 +11,11 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.makeAccessible;
 
 public class SerializedLambdaConverter {
 
-    public <T> SerializedLambda toSerializedLambda(T value) {
+    private SerializedLambdaConverter() {
+
+    }
+
+    public static <T> SerializedLambda toSerializedLambda(T value) {
         if (!value.getClass().isSynthetic()) {
             throw new IllegalArgumentException("Please provide a lambda expression (e.g. BackgroundJob.enqueue(() -> myService.doWork()) instead of an actual implementation.");
         }

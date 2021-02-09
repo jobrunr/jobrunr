@@ -30,8 +30,14 @@ public class JobDetailsGeneratorUtils {
         return byteCodeName.replace(".", "/");
     }
 
-    public static InputStream getClassContainingLambdaAsInputStream(Object lambda) {
+    public static InputStream getJavaClassContainingLambdaAsInputStream(Object lambda) {
         String location = getClassLocationOfLambda(lambda);
+        return lambda.getClass().getResourceAsStream(location);
+    }
+
+    public static InputStream getKotlinClassContainingLambdaAsInputStream(Object lambda) {
+        String name = lambda.getClass().getName();
+        String location = "/" + toFQResource(name) + ".class";
         return lambda.getClass().getResourceAsStream(location);
     }
 

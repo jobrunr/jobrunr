@@ -8,62 +8,95 @@ import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.invoke.SerializedLambda;
 
+import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getJavaClassContainingLambdaAsInputStream;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getKotlinClassContainingLambdaAsInputStream;
+import static org.jobrunr.jobs.details.SerializedLambdaConverter.toSerializedLambda;
 
 public class JobDetailsAsmGenerator implements JobDetailsGenerator {
-    private final SerializedLambdaConverter serializedLambdaConverter;
-
-    public JobDetailsAsmGenerator() {
-        this.serializedLambdaConverter = new SerializedLambdaConverter();
-    }
 
     @Override
     public <T extends JobRunrJob> JobDetails toJobDetails(T lambda) {
-        SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda);
-        return findJobDetailsInByteCode(lambda, jobDetailsFinder);
+        if (isKotlinLambda(lambda)) {
+            return new KotlinJobDetailsFinder(lambda).getJobDetails();
+        } else {
+            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
+        }
     }
 
     @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
-        SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, itemFromStream);
-        return findJobDetailsInByteCode(lambda, jobDetailsFinder);
+        return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), itemFromStream).getJobDetails();
     }
 
     @Override
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-        SerializedLambda serializedLambda = serializedLambdaConverter.toSerializedLambda(lambda);
-        JobDetailsFinder jobDetailsFinder = new JobDetailsFinder(serializedLambda, null, itemFromStream);
-        return findJobDetailsInByteCode(lambda, jobDetailsFinder);
+        return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), null, itemFromStream).getJobDetails();
     }
 
-    private JobDetails findJobDetailsInByteCode(Object lambda, JobDetailsFinder jobDetailsFinder) {
-        try {
-            ClassReader parser = new ClassReader(JobDetailsGeneratorUtils.getClassContainingLambdaAsInputStream(lambda));
-            parser.accept(jobDetailsFinder, ClassReader.SKIP_FRAMES);
-            return jobDetailsFinder.getJobDetails();
-        } catch (IOException e) {
-            throw shouldNotHappenException(e);
+    private <T extends JobRunrJob> boolean isKotlinLambda(T lambda) {
+        return !lambda.getClass().isSynthetic() && stream(lambda.getClass().getAnnotations()).map(Annotation::annotationType).anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
+    }
+
+    private static class JavaJobDetailsFinder extends JobDetailsFinder {
+
+        private final JobRunrJob jobRunrJob;
+        private final SerializedLambda serializedLambda;
+
+        private JavaJobDetailsFinder(JobRunrJob jobRunrJob, SerializedLambda serializedLambda, Object... params) {
+            super(new JavaJobDetailsFinderContext(serializedLambda, params));
+            this.jobRunrJob = jobRunrJob;
+            this.serializedLambda = serializedLambda;
+        }
+
+        @Override
+        protected boolean isLambdaContainingJobDetails(String name) {
+            return serializedLambda.getImplMethodName().startsWith("lambda$") && name.equals(serializedLambda.getImplMethodName());
+        }
+
+        @Override
+        protected InputStream getClassContainingLambdaAsInputStream() {
+            return getJavaClassContainingLambdaAsInputStream(jobRunrJob);
         }
     }
 
-    private static class JobDetailsFinder extends ClassVisitor {
+    private static class KotlinJobDetailsFinder extends JobDetailsFinder {
 
-        private final SerializedLambda serializedLambda;
+        private JobRunrJob jobRunrJob;
+
+        private KotlinJobDetailsFinder(JobRunrJob jobRunrJob) {
+            super(new KotlinJobDetailsFinderContext(jobRunrJob));
+            this.jobRunrJob = jobRunrJob;
+        }
+
+        @Override
+        protected boolean isLambdaContainingJobDetails(String name) {
+            return name.equals("run");
+        }
+
+        @Override
+        protected InputStream getClassContainingLambdaAsInputStream() {
+            return getKotlinClassContainingLambdaAsInputStream(jobRunrJob);
+        }
+    }
+
+    private static abstract class JobDetailsFinder extends ClassVisitor {
+
         private final JobDetailsFinderContext jobDetailsFinderContext;
 
-        private JobDetailsFinder(SerializedLambda serializedLambda, Object... params) {
+        private JobDetailsFinder(JobDetailsFinderContext jobDetailsFinderContext) {
             super(Opcodes.ASM7);
-            this.serializedLambda = serializedLambda;
-            this.jobDetailsFinderContext = new JobDetailsFinderContext(serializedLambda, params);
+            this.jobDetailsFinderContext = jobDetailsFinderContext;
         }
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            if (serializedLambda.getImplMethodName().startsWith("lambda$") && name.equals(serializedLambda.getImplMethodName())) {
+            if (isLambdaContainingJobDetails(name)) {
                 return new MethodVisitor(Opcodes.ASM7) {
 
                     @Override
@@ -119,8 +152,18 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
             }
         }
 
+        protected abstract boolean isLambdaContainingJobDetails(String name);
+
+        protected abstract InputStream getClassContainingLambdaAsInputStream();
+
         public JobDetails getJobDetails() {
-            return jobDetailsFinderContext.getJobDetails();
+            try {
+                ClassReader parser = new ClassReader(getClassContainingLambdaAsInputStream());
+                parser.accept(this, ClassReader.SKIP_FRAMES);
+                return jobDetailsFinderContext.getJobDetails();
+            } catch (IOException e) {
+                throw shouldNotHappenException(e);
+            }
         }
     }
 }

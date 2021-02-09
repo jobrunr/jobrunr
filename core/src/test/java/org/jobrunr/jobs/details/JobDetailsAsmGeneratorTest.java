@@ -11,7 +11,6 @@ import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -31,7 +30,6 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 
 class JobDetailsAsmGeneratorTest {
 
@@ -52,10 +50,11 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    @Disabled
+    //@Disabled
     void logByteCode() {
         String name = this.getClass().getName();
-        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+        //String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+        String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/kotlin-support/build/classes/kotlin/test/org/jobrunr/scheduling/KtJobSchedulerTest$test enqueue lambda with service dependency$jobId$1.class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 

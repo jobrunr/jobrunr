@@ -226,25 +226,35 @@ public class ReflectionUtils {
     }
 
     public static Object getValueFromFieldOrProperty(Object object, String paramName) {
+        Class<?> aClass = object.getClass();
+        final Optional<Field> optionalField = findField(aClass, paramName);
+        if (optionalField.isPresent()) {
+            return getValueFromField(optionalField.get(), object);
+        }
+
+        final Optional<Method> optionalGetMethod = findMethod(aClass, "get" + capitalize(paramName));
+        if (optionalGetMethod.isPresent()) {
+            return getValueFromGetMethod(optionalGetMethod.get(), object);
+        }
+
+        throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
+    }
+
+    public static Object getValueFromField(Field field, Object object) {
         try {
-            Class<?> aClass = object.getClass();
-            final Optional<Field> optionalField = findField(aClass, paramName);
-            if (optionalField.isPresent()) {
-                Field field = optionalField.get();
-                makeAccessible(field);
-                return field.get(object);
-            }
-
-            final Optional<Method> optionalMethod = findMethod(aClass, "get" + capitalize(paramName));
-            if (optionalMethod.isPresent()) {
-                Method getter = optionalMethod.get();
-                makeAccessible(getter);
-                return getter.invoke(object);
-            }
-
-            throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
+            makeAccessible(field);
+            return field.get(object);
         } catch (ReflectiveOperationException willNotHappen) {
-            throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", paramName, object.getClass()));
+            throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", field.getName(), object.getClass()));
+        }
+    }
+
+    public static Object getValueFromGetMethod(Method getter, Object object) {
+        try {
+            makeAccessible(getter);
+            return getter.invoke(object);
+        } catch (ReflectiveOperationException willNotHappen) {
+            throw new IllegalArgumentException(String.format("Could not get value '%s' from object with class %s", getter.getName(), object.getClass()));
         }
     }
 
