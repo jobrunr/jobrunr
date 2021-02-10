@@ -21,6 +21,12 @@ public class InvokeStaticInstruction extends VisitMethodInstruction {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         List<Object> parameters = getParametersUsingParamTypes(paramTypes);
 
+//        Object result = createObjectViaStaticMethod(className, methodName, paramTypes, parameters.toArray());
+//        if(isVoidInstruction()) {
+//            return AbstractJVMInstruction.DO_NOT_PUT_ON_STACK;
+//        }
+//        return result;
+
         return createObjectViaStaticMethod(className, methodName, paramTypes, parameters.toArray());
     }
 

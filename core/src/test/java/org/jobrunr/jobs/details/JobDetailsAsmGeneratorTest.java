@@ -54,7 +54,8 @@ class JobDetailsAsmGeneratorTest {
     void logByteCode() {
         String name = this.getClass().getName();
         //String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
-        String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/kotlin-support/build/classes/kotlin/test/org/jobrunr/scheduling/KtJobSchedulerTest$test enqueue lambda with service dependency$jobId$1.class";
+
+        String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/kotlin-support/build/classes/kotlin/test/org/jobrunr/jobs/details/JobDetailsAsmGeneratorForKotlinTest$testJobLambdaCallMethodReference$jobDetails$1.class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 
@@ -255,7 +256,7 @@ class JobDetailsAsmGeneratorTest {
 
     @Test
     void testJobLambdaWithPathOfInLambda() {
-        JobLambda job = () -> testService.doWorkWithPath(Path.of("/tmp/file.txt"));
+        JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp/file.txt"));
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");

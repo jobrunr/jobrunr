@@ -2,9 +2,7 @@ package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.details.instructions.*;
-import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
-import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
-import org.jobrunr.jobs.lambdas.JobRunrJob;
+import org.jobrunr.jobs.lambdas.*;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
@@ -21,8 +19,11 @@ import static org.jobrunr.jobs.details.SerializedLambdaConverter.toSerializedLam
 public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     @Override
-    public <T extends JobRunrJob> JobDetails toJobDetails(T lambda) {
+    public JobDetails toJobDetails(JobLambda lambda) {
         if (isKotlinLambda(lambda)) {
+            if (lambda.getClass().getDeclaredClasses().length > 0) {
+                System.out.println("Contains inner classes!");
+            }
             return new KotlinJobDetailsFinder(lambda).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
@@ -30,13 +31,38 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     }
 
     @Override
+    public JobDetails toJobDetails(IocJobLambda lambda) {
+        if (isKotlinLambda(lambda)) {
+            if (lambda.getClass().getDeclaredClasses().length > 0) {
+                System.out.println("Contains inner classes!");
+            }
+            return new KotlinJobDetailsFinder(lambda, new Object()).getJobDetails();
+        } else {
+            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
+        }
+    }
+
+    @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
-        return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), itemFromStream).getJobDetails();
+        if (isKotlinLambda(lambda)) {
+            if (lambda.getClass().getDeclaredClasses().length > 0) {
+                System.out.println("Contains inner classes!");
+            }
+            return new KotlinJobDetailsFinder(lambda, itemFromStream).getJobDetails();
+        } else {
+            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), itemFromStream).getJobDetails();
+        }
     }
 
     @Override
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-        return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), null, itemFromStream).getJobDetails();
+        if (isKotlinLambda(lambda)) {
+            // why new Object(): it represents the item injected when we run the IocJobLambdaFromStream function
+            return new KotlinJobDetailsFinder(lambda, new Object(), itemFromStream).getJobDetails();
+        } else {
+            // why null: it represents the item injected when we run the IocJobLambdaFromStream function
+            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), null, itemFromStream).getJobDetails();
+        }
     }
 
     private <T extends JobRunrJob> boolean isKotlinLambda(T lambda) {
@@ -67,16 +93,20 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     private static class KotlinJobDetailsFinder extends JobDetailsFinder {
 
+        private int acceptMethodCounter = 0;
         private JobRunrJob jobRunrJob;
 
-        private KotlinJobDetailsFinder(JobRunrJob jobRunrJob) {
-            super(new KotlinJobDetailsFinderContext(jobRunrJob));
+        private KotlinJobDetailsFinder(JobRunrJob jobRunrJob, Object... params) {
+            super(new KotlinJobDetailsFinderContext(jobRunrJob, params));
             this.jobRunrJob = jobRunrJob;
         }
 
         @Override
         protected boolean isLambdaContainingJobDetails(String name) {
-            return name.equals("run");
+            if (name.equals("accept")) {
+                acceptMethodCounter++;
+            }
+            return name.equals("run") || name.equals("accept") && acceptMethodCounter == 2;
         }
 
         @Override

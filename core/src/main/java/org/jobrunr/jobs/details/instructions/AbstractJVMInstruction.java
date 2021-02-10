@@ -4,6 +4,8 @@ import org.jobrunr.jobs.details.JobDetailsFinderContext;
 
 public abstract class AbstractJVMInstruction {
 
+    public static Object DO_NOT_PUT_ON_STACK = new Object();
+
     protected final JobDetailsFinderContext jobDetailsBuilder;
 
     public AbstractJVMInstruction(JobDetailsFinderContext jobDetailsBuilder) {
@@ -14,6 +16,8 @@ public abstract class AbstractJVMInstruction {
 
     public void invokeInstructionAndPushOnStack() {
         Object result = invokeInstruction();
-        jobDetailsBuilder.getStack().add(result);
+        if (result != DO_NOT_PUT_ON_STACK) {
+            jobDetailsBuilder.getStack().add(result);
+        }
     }
 }

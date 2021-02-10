@@ -22,6 +22,8 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.BIPUSH, SingleIntOperandInstruction::new);
         instructions.put(Opcodes.DLOAD, DLoadOperandInstruction::new);
         instructions.put(Opcodes.FLOAD, FLoadOperandInstruction::new);
+        instructions.put(Opcodes.I2B, I2BOperandInstruction::new);
+        instructions.put(Opcodes.I2S, I2SOperandInstruction::new);
         instructions.put(Opcodes.ICONST_0, IConst0OperandInstruction::new);
         instructions.put(Opcodes.ICONST_1, IConst1OperandInstruction::new);
         instructions.put(Opcodes.ICONST_2, IConst2OperandInstruction::new);

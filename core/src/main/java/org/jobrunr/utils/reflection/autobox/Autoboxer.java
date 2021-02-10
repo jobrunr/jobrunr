@@ -26,7 +26,7 @@ public class Autoboxer {
 
     @SuppressWarnings("unchecked")
     public static <T> T autobox(Object value, Class<T> type) {
-        if (type.equals(value.getClass())) {
+        if (type.isAssignableFrom(value.getClass())) {
             return cast(value);
         }
 
