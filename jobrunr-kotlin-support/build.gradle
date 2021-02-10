@@ -1,0 +1,66 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+  id "org.jetbrains.kotlin.jvm" version "1.4.30"
+}
+
+dependencies {
+  api project(':core')
+
+  testImplementation project(':core')
+  testImplementation testFixtures(project(":core"))
+
+  testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}
+
+publishing {
+  publications {
+    mavenJavaPlatform(MavenPublication) {
+      groupId = 'org.jobrunr'
+      artifactId = 'jobrunr-kotlin-support'
+      version = project.version.replace("v", "")
+      from components.java
+
+      pom {
+        name = 'JobRunr Kotlin Support'
+        description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
+        url = 'https://github.com/jobrunr/jobrunr'
+        licenses {
+          license {
+            name = 'Multi licensed'
+            url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+          }
+        }
+        developers {
+          developer {
+            id = 'rdehuyss'
+            name = 'Ronald Dehuysser'
+            email = 'ronald.dehuysser@gmail.com'
+          }
+        }
+        scm {
+          connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+          developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+          url = 'https://github.com/jobrunr/jobrunr.git'
+        }
+
+        versionMapping {
+          usage('java-runtime'){
+            fromResolutionResult()
+          }
+        }
+
+        withXml {
+          def pomNode = asNode()
+          pomNode.remove(pomNode.dependencyManagement)
+          pomNode.dependencies.'*'.findAll() {
+            it.optional.text() == 'true'
+          }.each() {
+            it.parent().remove(it)
+          }
+        }
+      }
+    }
+  }
+}
