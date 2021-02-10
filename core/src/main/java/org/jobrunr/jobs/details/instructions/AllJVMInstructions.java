@@ -20,6 +20,7 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.ANEWARRAY, ANewArrayOperandInstruction::new);
         instructions.put(Opcodes.ASTORE, AStoreInstruction::new);
         instructions.put(Opcodes.BIPUSH, SingleIntOperandInstruction::new);
+        instructions.put(Opcodes.CHECKCAST, CheckCastOperandInstruction::new);
         instructions.put(Opcodes.DLOAD, DLoadOperandInstruction::new);
         instructions.put(Opcodes.FLOAD, FLoadOperandInstruction::new);
         instructions.put(Opcodes.I2B, I2BOperandInstruction::new);

@@ -21,9 +21,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public JobDetails toJobDetails(JobLambda lambda) {
         if (isKotlinLambda(lambda)) {
-            if (lambda.getClass().getDeclaredClasses().length > 0) {
-                System.out.println("Contains inner classes!");
-            }
             return new KotlinJobDetailsFinder(lambda).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
@@ -78,6 +75,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
             super(new JavaJobDetailsFinderContext(serializedLambda, params));
             this.jobRunrJob = jobRunrJob;
             this.serializedLambda = serializedLambda;
+            parse(getClassContainingLambdaAsInputStream());
         }
 
         @Override
@@ -93,20 +91,21 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     private static class KotlinJobDetailsFinder extends JobDetailsFinder {
 
-        private int acceptMethodCounter = 0;
+        private int methodCounter = 0;
         private JobRunrJob jobRunrJob;
 
         private KotlinJobDetailsFinder(JobRunrJob jobRunrJob, Object... params) {
             super(new KotlinJobDetailsFinderContext(jobRunrJob, params));
             this.jobRunrJob = jobRunrJob;
+            parse(getClassContainingLambdaAsInputStream());
         }
 
         @Override
         protected boolean isLambdaContainingJobDetails(String name) {
             if (name.equals("accept")) {
-                acceptMethodCounter++;
+                methodCounter++;
             }
-            return name.equals("run") || name.equals("accept") && acceptMethodCounter == 2;
+            return name.equals("run") || (name.equals("accept") && methodCounter == 2);
         }
 
         @Override
@@ -187,10 +186,13 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
         protected abstract InputStream getClassContainingLambdaAsInputStream();
 
         public JobDetails getJobDetails() {
+            return jobDetailsFinderContext.getJobDetails();
+        }
+
+        protected void parse(InputStream inputStream) {
             try {
-                ClassReader parser = new ClassReader(getClassContainingLambdaAsInputStream());
+                ClassReader parser = new ClassReader(inputStream);
                 parser.accept(this, ClassReader.SKIP_FRAMES);
-                return jobDetailsFinderContext.getJobDetails();
             } catch (IOException e) {
                 throw shouldNotHappenException(e);
             }

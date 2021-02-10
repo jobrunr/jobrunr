@@ -1,0 +1,22 @@
+package org.jobrunr.jobs.details;
+
+import org.jobrunr.jobs.lambdas.JobRunrJob;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
+public class KotlinJobDetailsFinderContext extends JobDetailsFinderContext {
+
+    public KotlinJobDetailsFinderContext(JobRunrJob jobRunrJob, Object... params) {
+        super(getLocalVariables(jobRunrJob, params));
+    }
+
+    private static List<Object> getLocalVariables(JobRunrJob jobRunrJob, Object... params) {
+        List<Object> result = new ArrayList<>();
+        result.add(jobRunrJob);
+        result.addAll(asList(params));
+        return result;
+    }
+}
