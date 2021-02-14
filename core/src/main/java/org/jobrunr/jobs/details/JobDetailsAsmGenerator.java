@@ -3,18 +3,23 @@ package org.jobrunr.jobs.details;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.details.instructions.*;
 import org.jobrunr.jobs.lambdas.*;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.Field;
+import java.util.Optional;
 
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getJavaClassContainingLambdaAsInputStream;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getKotlinClassContainingLambdaAsInputStream;
 import static org.jobrunr.jobs.details.SerializedLambdaConverter.toSerializedLambda;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromField;
 
 public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 

@@ -19,17 +19,18 @@ public abstract class JobDetailsFinderContext {
     private String jobDetailsMethodName;
     private List<JobParameter> jobDetailsJobParameters;
 
-    public JobDetailsFinderContext(List<Object> localVariables, String className, String methodName) {
-        this(localVariables);
-        setClassName(className);
-        setMethodName(methodName);
-        setJobParameters(new ArrayList<>());
+    public JobDetailsFinderContext(List<Object> localVariables) {
+        this(localVariables, null, null);
     }
 
-    public JobDetailsFinderContext(List<Object> localVariables) {
+    public JobDetailsFinderContext(List<Object> localVariables, String className, String methodName) {
         this.instructions = new LinkedList<>();
         this.stack = new LinkedList<>();
         this.localVariables = localVariables;
+
+        setClassName(className);
+        setMethodName(methodName);
+        setJobParameters(new ArrayList<>());
     }
 
     public void pushInstructionOnStack(AbstractJVMInstruction jvmInstruction) {
