@@ -172,7 +172,7 @@ class KtJobSchedulerTest {
 
     abstract class AbstractRecurringJob(private val cronSchedule: String) : JobInterface {
         fun schedule() {
-            KtBackgroundJob.scheduleRecurrently("test-id", cronSchedule) { call() }
+            KtBackgroundJob.scheduleRecurrently("test-id", cronSchedule, ::call)
         }
     }
 
