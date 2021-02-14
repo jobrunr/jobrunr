@@ -617,11 +617,12 @@ class JobDetailsAsmGeneratorTest {
                 .hasFieldOrProperty("uuid");
     }
 
+    // Was TestServiceInterface
     @Test
     void testInlineJobLambdaFromInterface() {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testServiceInterface.doWork());
         assertThat(jobDetails)
-                .hasClass(TestServiceInterface.class)
+                .hasClass(TestService.class)
                 .hasMethodName("doWork")
                 .hasNoArgs();
     }

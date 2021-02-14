@@ -17,11 +17,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.JobRunrAssertions.*;
+import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJson;
+import static org.jobrunr.JobRunrAssertions.contentOfResource;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -76,7 +79,7 @@ abstract class JobMapperTest {
 
     @Test
     void testSerializeAndDeserializeJobWithPath() {
-        Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithPath(Path.of("/tmp", "jobrunr", "log.txt"))).build();
+        Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithPath(Paths.get("/tmp", "jobrunr", "log.txt"))).build();
 
         String jobAsString = jobMapper.serializeJob(job);
 
@@ -141,7 +144,7 @@ abstract class JobMapperTest {
         public TestMetadata(String input) {
             this.input = input;
             this.instant = Instant.now();
-            this.path = Path.of("/tmp");
+            this.path = Paths.get("/tmp");
             this.file = new File("/tmp");
         }
 

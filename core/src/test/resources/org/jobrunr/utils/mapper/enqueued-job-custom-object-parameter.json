@@ -19,7 +19,7 @@
       }
     ]
   },
-  "id": null,
+  "id": "${json-unit.ignore}",
   "jobHistory": [
     {
       "@class": "org.jobrunr.jobs.states.EnqueuedState",

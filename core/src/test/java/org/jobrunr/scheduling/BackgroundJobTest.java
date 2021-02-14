@@ -18,7 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -117,7 +117,7 @@ public class BackgroundJobTest {
 
     @Test
     void testEnqueueWithPath() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithPath(Path.of("/tmp/jobrunr/example.log")));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithPath(Paths.get("/tmp/jobrunr/example.log")));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
@@ -361,6 +361,41 @@ public class BackgroundJobTest {
         await().during(1, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         Job failedJob = storageProvider.getJobById(job.getId());
         assertThat(failedJob).hasStates(ENQUEUED, PROCESSING, FAILED);
+    }
+
+    @Test
+    void testJobInheritence() {
+        SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
+        someSysoutJobClass.schedule();
+    }
+
+    interface SomeJobInterface {
+        void doWork();
+    }
+
+    abstract static class SomeJobClass implements SomeJobInterface {
+
+        private String cron;
+
+        public SomeJobClass(String cron) {
+            this.cron = cron;
+        }
+
+        public void schedule() {
+            BackgroundJob.scheduleRecurrently("test-id", () -> doWork(), cron);
+        }
+    }
+
+    public static class SomeSysoutJobClass extends SomeJobClass {
+
+        public SomeSysoutJobClass(String cron) {
+            super(cron);
+        }
+
+        @Override
+        public void doWork() {
+            System.out.println("In doWork method");
+        }
     }
 
     public void aNestedJob() {

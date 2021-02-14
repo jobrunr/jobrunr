@@ -17,6 +17,7 @@ import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFr
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.isClassAssignableToObject;
+import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsInstruction extends VisitMethodInstruction {
 
@@ -29,8 +30,8 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     @Override
     public Object invokeInstruction() {
         if (isLastInstruction()) {
-            jobDetailsBuilder.setClassName(toFQClassName(owner));
-            jobDetailsBuilder.setMethodName(name);
+            jobDetailsBuilder.setClassName(getClassName());
+            jobDetailsBuilder.setMethodName(getMethodName());
             jobDetailsBuilder.setJobParameters(getJobParameters());
             return null;
         } else if (owner.startsWith("java")) {
@@ -40,10 +41,32 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
             final Object result = getObject();
             final long after = System.nanoTime();
             if ((after - before) > 1_000_000) {
-                LOGGER.warn("You are using a custom method ({}.{}}({}})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/documentation/best-practices/ on how to use JobRunr effectively.", toFQClassName(owner), name, Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
+                LOGGER.warn("You are using a custom method ({}.{}}({}})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/documentation/best-practices/ on how to use JobRunr effectively.", getClassName(), getMethodName(), Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
             }
             return result;
         }
+    }
+
+    String getClassName() {
+        String className = toFQClassName(owner);
+        if (jobDetailsBuilder.getStack().isEmpty()) {
+            return className;
+        }
+
+        Object jobOnStack = jobDetailsBuilder.getStack().getLast();
+        if (jobOnStack == null) {
+            return className;
+        }
+
+        Class<Object> jobClass = toClass(className);
+        if (jobClass.isAssignableFrom(jobOnStack.getClass())) {
+            return jobOnStack.getClass().getName();
+        }
+        return className;
+    }
+
+    String getMethodName() {
+        return name;
     }
 
     private Object getObject() {

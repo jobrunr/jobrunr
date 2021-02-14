@@ -8,6 +8,7 @@ import org.jobrunr.jobs.AbstractJob
 import org.jobrunr.jobs.filters.JobClientFilter
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName
+import org.jobrunr.scheduling.JobSchedulerExtensions.useKotlin
 import org.jobrunr.scheduling.cron.Cron
 import org.jobrunr.server.BackgroundJobServer
 import org.jobrunr.server.BackgroundJobServerConfiguration
@@ -53,10 +54,11 @@ class KtJobSchedulerTest {
 
     @BeforeEach
     fun setUp() {
-        JobRunr.configure()
+        val scheduler = JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(backgroundJobServer)
                 .initialize()
+        scheduler.useKotlin()
         backgroundJobServer.start()
     }
 
@@ -136,6 +138,12 @@ class KtJobSchedulerTest {
         )
     }
 
+    @Test
+    fun `testSchedule`() {
+        val job = PrintlnRecurringJob(Cron.daily());
+        job.schedule();
+    }
+
     class TestLambdaContainer {
         private val foo = 2
         private val bar = "foo"
@@ -156,5 +164,23 @@ class KtJobSchedulerTest {
         assertThat(job.jobStates.map { it.name }).containsExactly(
                 StateName.ENQUEUED, StateName.PROCESSING, StateName.SUCCEEDED
         )
+    }
+
+    interface JobInterface {
+        fun call()
+    }
+
+    abstract class AbstractRecurringJob(private val cronSchedule: String) : JobInterface {
+        fun schedule() {
+            KtBackgroundJob.scheduleRecurrently("test-id", cronSchedule) { call() }
+        }
+    }
+
+    class PrintlnRecurringJob(cronSchedule: String) : AbstractRecurringJob(cronSchedule) {
+
+        override fun call() {
+            println("In call method")
+        }
+
     }
 }

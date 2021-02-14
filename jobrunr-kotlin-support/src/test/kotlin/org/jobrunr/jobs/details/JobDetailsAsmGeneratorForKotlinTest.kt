@@ -553,6 +553,15 @@ class JobDetailsAsmGeneratorForKotlinTest {
                 .hasNoArgs()
     }
 
+    @Test
+    fun testMethodReferenceJobLambdaInSameClass() {
+        val jobDetails = toJobDetails(::doWorkWithUUID)
+        assertThat(jobDetails)
+                .hasClass(JobDetailsAsmGeneratorForKotlinTest::class.java)
+                .hasMethodName("doWorkWithUUID")
+                .hasNoArgs()
+    }
+
     fun toJobDetails(job: JobLambda): JobDetails {
         return jobDetailsGenerator.toJobDetails(job);
     }
@@ -580,4 +589,9 @@ class JobDetailsAsmGeneratorForKotlinTest {
     fun doWorkWithUUID(uuid: UUID) {
         println("Doing some work... $uuid");
     }
+
+    fun doWorkWithUUID() {
+        println("Doing some work without parameters");
+    }
+
 }

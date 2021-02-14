@@ -71,7 +71,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testGetJobById_ForFailedJob() {
-        final Job job = aFailedJobWithRetries().withoutId().build();
+        final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
         HttpResponse<String> getResponse = http.get("/api/jobs/%s", savedJob.getId());
@@ -82,7 +82,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testRequeueJob() {
-        final Job job = aFailedJobWithRetries().withoutId().build();
+        final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
         HttpResponse<String> deleteResponse = http.post("/api/jobs/%s/requeue", savedJob.getId());
@@ -93,7 +93,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testDeleteJob() {
-        final Job job = aFailedJobWithRetries().withoutId().build();
+        final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
         HttpResponse<String> deleteResponse = http.delete("/api/jobs/%s", savedJob.getId());
