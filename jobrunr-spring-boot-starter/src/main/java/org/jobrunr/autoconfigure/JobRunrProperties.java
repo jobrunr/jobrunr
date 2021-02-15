@@ -149,6 +149,16 @@ public class JobRunrProperties {
          */
         private int port = 8000;
 
+        /**
+         * The login wich the Dashboard should ask
+         */
+        private String login = null;
+
+        /**
+         * The password wich the Dashboard should ask
+         */
+        private String password = null;
+
         public boolean isEnabled() {
             return enabled;
         }
@@ -163,6 +173,23 @@ public class JobRunrProperties {
 
         public void setPort(int port) {
             this.port = port;
+        }
+
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
         }
     }
 

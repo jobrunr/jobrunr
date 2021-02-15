@@ -1,5 +1,6 @@
 package org.jobrunr.dashboard;
 
+import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
 import org.jobrunr.dashboard.server.TeenyHttpHandler;
 import org.jobrunr.dashboard.server.TeenyWebServer;
@@ -27,6 +28,8 @@ public class JobRunrDashboardWebServer {
     private final StorageProvider storageProvider;
     private final JsonMapper jsonMapper;
     private final int port;
+    private final String login;
+    private final String password;
 
     private TeenyWebServer teenyWebServer;
 
@@ -42,10 +45,16 @@ public class JobRunrDashboardWebServer {
         this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port));
     }
 
+    public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port, String login, String password) {
+        this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port).andLogin(login).andPassword(password));
+    }
+
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
         this.port = configuration.port;
+        this.login = configuration.login;
+        this.password = configuration.password;
     }
 
     public void start() {
@@ -57,13 +66,26 @@ public class JobRunrDashboardWebServer {
         teenyWebServer = new TeenyWebServer(port);
         registerContext(redirectHttpHandler);
         registerContext(staticFileHandler);
-        registerContext(dashboardHandler);
-        registerContext(sseHandler);
+        HttpContext httpContextDashboard = registerContext(dashboardHandler);
+        HttpContext httpContextEvent = registerContext(sseHandler);
+        if(login != null && password != null) {
+            addBasicAuth(httpContextDashboard);
+            addBasicAuth(httpContextEvent);
+        }
         teenyWebServer.start();
 
         LOGGER.info("JobRunr Dashboard started at http://{}:{}",
                 teenyWebServer.getWebServerHostAddress(),
                 teenyWebServer.getWebServerHostPort());
+    }
+
+    public void addBasicAuth(HttpContext httpContext) {
+        httpContext.setAuthenticator(new BasicAuthenticator("get") {
+            @Override
+            public boolean checkCredentials(String user, String pwd) {
+                return user.equals(login) && pwd.equals(password);
+            }
+        });
     }
 
     public void stop() {
