@@ -85,7 +85,8 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnProperty(prefix = "org.jobrunr.dashboard", name = "enabled", havingValue = "true")
     public JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration(JobRunrProperties properties) {
         return usingStandardDashboardConfiguration()
-                .andPort(properties.getDashboard().getPort());
+                .andPort(properties.getDashboard().getPort())
+                .andPath(properties.getDashboard().getPath());
     }
 
     @Bean

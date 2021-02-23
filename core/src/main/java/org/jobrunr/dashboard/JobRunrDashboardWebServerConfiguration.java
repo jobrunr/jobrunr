@@ -5,6 +5,7 @@ package org.jobrunr.dashboard;
  */
 public class JobRunrDashboardWebServerConfiguration {
     int port = 8000;
+    String path = "/dashboard";
 
     private JobRunrDashboardWebServerConfiguration() {
 
@@ -27,6 +28,17 @@ public class JobRunrDashboardWebServerConfiguration {
      */
     public JobRunrDashboardWebServerConfiguration andPort(int port) {
         this.port = port;
+        return this;
+    }
+
+    /**
+     * Specifies the path where the JobRunrDashboard will listen
+     *
+     * @param path the path where the JobRunrDashboard will listen
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrDashboardWebServerConfiguration andPath(String path) {
+        this.path = path;
         return this;
     }
 }

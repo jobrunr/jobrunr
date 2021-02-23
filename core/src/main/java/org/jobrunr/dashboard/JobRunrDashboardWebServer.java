@@ -26,7 +26,7 @@ public class JobRunrDashboardWebServer {
 
     private final StorageProvider storageProvider;
     private final JsonMapper jsonMapper;
-    private final int port;
+    private final JobRunrDashboardWebServerConfiguration configuration;
 
     private TeenyWebServer teenyWebServer;
 
@@ -42,19 +42,23 @@ public class JobRunrDashboardWebServer {
         this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port));
     }
 
-    public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
+    public JobRunrDashboardWebServer(
+            StorageProvider storageProvider,
+            JsonMapper jsonMapper,
+            JobRunrDashboardWebServerConfiguration configuration
+    ) {
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
-        this.port = configuration.port;
+        this.configuration = configuration;
     }
 
     public void start() {
-        RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", "/dashboard");
+        RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", configuration.path);
         JobRunrStaticFileHandler staticFileHandler = createStaticFileHandler();
         JobRunrApiHandler dashboardHandler = createApiHandler(storageProvider, jsonMapper);
         JobRunrSseHandler sseHandler = createSSeHandler(storageProvider, jsonMapper);
 
-        teenyWebServer = new TeenyWebServer(port);
+        teenyWebServer = new TeenyWebServer(configuration.port);
         registerContext(redirectHttpHandler);
         registerContext(staticFileHandler);
         registerContext(dashboardHandler);

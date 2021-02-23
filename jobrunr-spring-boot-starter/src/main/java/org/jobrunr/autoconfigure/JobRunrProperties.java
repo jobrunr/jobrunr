@@ -149,6 +149,8 @@ public class JobRunrProperties {
          */
         private int port = 8000;
 
+        private String path = "/dashboard";
+
         public boolean isEnabled() {
             return enabled;
         }
@@ -163,6 +165,14 @@ public class JobRunrProperties {
 
         public void setPort(int port) {
             this.port = port;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
         }
     }
 
