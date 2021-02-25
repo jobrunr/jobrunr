@@ -1,13 +1,13 @@
 package org.jobrunr.storage.sql.common.migrations;
 
 import java.io.IOException;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.function.Predicate;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements SqlMigrationProvider {
 
@@ -16,19 +16,36 @@ public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements S
         try {
             URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
             URLConnection urlConnection = location.openConnection();
-            if (urlConnection instanceof JarURLConnection) {
-                return getMigrationsFromJarUrlConnection((JarURLConnection) urlConnection, clazz);
-            }
+            ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream());
+            return getMigrationsFromZipInputStream(zipInputStream, clazz);
         } catch (IOException e) {
         }
         throw new UnsupportedOperationException("Unable to find migrations.");
     }
 
-    private Stream<SqlMigration> getMigrationsFromJarUrlConnection(JarURLConnection jarURLConnection, Class<?> clazz) throws IOException {
-        JarFile jarFile = jarURLConnection.getJarFile();
-        Predicate<JarEntry> jarEntryPredicate = jarEntry -> jarEntry.getName().startsWith(clazz.getPackage().getName().replace(".", "/") + "/migrations") && jarEntry.getName().endsWith(".sql");
-        return jarFile.stream()
-                .filter(jarEntryPredicate)
-                .map(jarEntry -> new SqlMigrationByJarEntry(jarFile, jarEntry));
+    private Stream<SqlMigration> getMigrationsFromZipInputStream(ZipInputStream zipInputStream, Class<?> clazz) throws IOException {
+        List<SqlMigration> result = new ArrayList<>();
+        ZipEntry zipEntry = zipInputStream.getNextEntry();
+        while (zipEntry != null) {
+            if (isSqlMigration(clazz, zipEntry)) {
+                result.add(getSqlMigrationFromZipEntry(zipInputStream, zipEntry));
+            }
+            zipEntry = zipInputStream.getNextEntry();
+        }
+        return result.stream();
+    }
+
+    private SqlMigrationByZipEntry getSqlMigrationFromZipEntry(ZipInputStream zipInputStream, ZipEntry zipEntry) throws IOException {
+        StringBuilder s = new StringBuilder();
+        int len;
+        byte[] buffer = new byte[2048];
+        while ((len = zipInputStream.read(buffer, 0, 1024)) >= 0) {
+            s.append(new String(buffer, 0, len));
+        }
+        return new SqlMigrationByZipEntry(zipEntry.getName(), s.toString());
+    }
+
+    private boolean isSqlMigration(Class<?> clazz, ZipEntry zipEntry) {
+        return zipEntry.getName().startsWith(clazz.getPackage().getName().replace(".", "/") + "/migrations") && zipEntry.getName().endsWith(".sql");
     }
 }
