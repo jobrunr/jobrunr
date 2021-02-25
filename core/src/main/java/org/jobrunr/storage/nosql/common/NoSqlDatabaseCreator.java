@@ -41,9 +41,9 @@ public abstract class NoSqlDatabaseCreator<T> {
 
     protected void runMigrationIfNecessary(NoSqlMigration noSqlMigration) {
         if (!isNewMigration(noSqlMigration)) {
-            LOGGER.info("Skipping migration {} as it is already done", noSqlMigration.getClassName());
+            LOGGER.info("Skipping migration {} as it is already done", noSqlMigration);
         } else {
-            LOGGER.info("Running migration {}", noSqlMigration.getClassName());
+            LOGGER.info("Running migration {}", noSqlMigration);
             try {
                 runMigration((T) noSqlMigration.getMigration());
                 markMigrationAsDone(noSqlMigration);
