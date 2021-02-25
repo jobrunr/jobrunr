@@ -56,7 +56,7 @@ class JobDetailsAsmGeneratorTest {
         String name = this.getClass().getName();
         //String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
 
-        String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/kotlin-support/build/classes/kotlin/test/org/jobrunr/jobs/details/JobDetailsAsmGeneratorForKotlinTest$testJobLambdaCallMethodReference$jobDetails$1.class";
+        String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/jobrunr-kotlin-support/build/classes/kotlin/test/org/jobrunr/jobs/details/JobDetailsAsmGeneratorForKotlinTest$testMethodReferenceJobLambdaInSameClass$jobDetails$1.class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 

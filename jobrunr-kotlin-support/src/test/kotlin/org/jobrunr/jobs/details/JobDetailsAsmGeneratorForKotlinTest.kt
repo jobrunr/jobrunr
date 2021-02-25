@@ -12,7 +12,6 @@ import org.jobrunr.jobs.lambdas.JobLambda
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream
 import org.jobrunr.stubs.TestService
 import org.jobrunr.stubs.TestServiceInterface
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Path
@@ -42,7 +41,6 @@ class JobDetailsAsmGeneratorForKotlinTest {
                 .hasArgs("This is a test!")
     }
 
-    @Disabled("not working due to nested class in nested class")
     @Test
     fun testJobLambdaCallMethodReference() {
         val jobDetails = toJobDetails { testService::doWorkWithoutParameters }
@@ -538,12 +536,11 @@ class JobDetailsAsmGeneratorForKotlinTest {
     fun testInlineJobLambdaFromInterface() {
         val jobDetails = toJobDetails { testServiceInterface.doWork() }
         assertThat(jobDetails)
-                .hasClass(TestServiceInterface::class.java)
+                .hasClass(TestService::class.java)
                 .hasMethodName("doWork")
                 .hasNoArgs()
     }
 
-    @Disabled("not working due to nested class in nested class")
     @Test
     fun testMethodReferenceJobLambdaFromInterface() {
         val jobDetails = toJobDetails { testServiceInterface::doWork }

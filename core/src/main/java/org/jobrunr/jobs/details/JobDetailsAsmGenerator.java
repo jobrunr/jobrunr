@@ -35,9 +35,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public JobDetails toJobDetails(IocJobLambda lambda) {
         if (isKotlinLambda(lambda)) {
-            if (lambda.getClass().getDeclaredClasses().length > 0) {
-                System.out.println("Contains inner classes!");
-            }
             return new KotlinJobDetailsFinder(lambda, new Object()).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
@@ -99,6 +96,8 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
         private int methodCounter = 0;
         private JobRunrJob jobRunrJob;
 
+        private String nestedKotlinClassWithMethodReference;
+
         private KotlinJobDetailsFinder(JobRunrJob jobRunrJob, Object... params) {
             super(new KotlinJobDetailsFinderContext(jobRunrJob, params));
             this.jobRunrJob = jobRunrJob;
@@ -107,21 +106,59 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         @Override
         protected boolean isLambdaContainingJobDetails(String name) {
-            if (name.equals("accept")) {
+            if (name.equals("accept") || name.equals("invoke")) {
                 methodCounter++;
             }
-            return name.equals("run") || (name.equals("accept") && methodCounter == 2);
+            return name.equals("run") || ((name.equals("accept") || name.equals("invoke")) && methodCounter == 2);
+        }
+
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            if (access == 0x1018) {
+                this.nestedKotlinClassWithMethodReference = name;
+            }
         }
 
         @Override
         protected InputStream getClassContainingLambdaAsInputStream() {
             return getKotlinClassContainingLambdaAsInputStream(jobRunrJob);
         }
+
+        @Override
+        protected void parse(InputStream inputStream) {
+            Optional<Field> field = ReflectionUtils.findField(jobRunrJob.getClass(), "function");
+            if (field.isPresent()) {
+                getJobDetailsFromKotlinFunction(field.get());
+            } else {
+                super.parse(inputStream);
+                parseNestedClassIfItIsAMethodReference();
+            }
+        }
+
+        private void getJobDetailsFromKotlinFunction(Field field) {
+            Object function = getValueFromField(field, jobRunrJob);
+            Field owner = ReflectionUtils.getField(function.getClass(), "owner");
+            Field name = ReflectionUtils.getField(function.getClass(), "name");
+            Class<?> ownerClass = cast(getValueFromField(owner, function));
+            String methodName = cast(getValueFromField(name, function));
+            jobDetailsFinderContext.setClassName(ownerClass.getName());
+            jobDetailsFinderContext.setMethodName(methodName);
+        }
+
+        private void parseNestedClassIfItIsAMethodReference() {
+            if (nestedKotlinClassWithMethodReference != null) {
+                String location = "/" + nestedKotlinClassWithMethodReference + ".class";
+                super.parse(jobRunrJob.getClass().getResourceAsStream(location));
+                while (jobDetailsFinderContext.getInstructions().size() > 1) {
+                    jobDetailsFinderContext.pollFirstInstruction();
+                }
+            }
+        }
     }
 
     private static abstract class JobDetailsFinder extends ClassVisitor {
 
-        private final JobDetailsFinderContext jobDetailsFinderContext;
+        protected final JobDetailsFinderContext jobDetailsFinderContext;
 
         private JobDetailsFinder(JobDetailsFinderContext jobDetailsFinderContext) {
             super(Opcodes.ASM7);
