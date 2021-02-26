@@ -1,6 +1,7 @@
 package org.jobrunr.autoconfigure.storage;
 
 import org.elasticsearch.client.RestHighLevelClient;
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -17,7 +18,9 @@ public class JobRunrElasticSearchStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
-    public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient) {
-        return new ElasticSearchStorageProvider(restHighLevelClient);
+    public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
+        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(restHighLevelClient);
+        elasticSearchStorageProvider.setJobMapper(jobMapper);
+        return elasticSearchStorageProvider;
     }
 }
