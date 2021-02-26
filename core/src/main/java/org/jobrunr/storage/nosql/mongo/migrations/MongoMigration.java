@@ -2,7 +2,6 @@ package org.jobrunr.storage.nosql.mongo.migrations;
 
 import com.mongodb.MongoCommandException;
 import com.mongodb.client.MongoDatabase;
-import org.jobrunr.storage.StorageProviderUtils;
 
 import java.util.LinkedList;
 
@@ -12,7 +11,7 @@ public abstract class MongoMigration {
 
     protected boolean createCollection(MongoDatabase mongoDatabase, String name) {
         try {
-            mongoDatabase.createCollection(StorageProviderUtils.Metadata.NAME);
+            mongoDatabase.createCollection(name);
             return true;
         } catch (MongoCommandException mongoCommandException) {
             if (mongoCommandException.getErrorCode() == 48) {

@@ -1,6 +1,7 @@
 package org.jobrunr.autoconfigure.storage;
 
 import io.lettuce.core.RedisClient;
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -14,7 +15,9 @@ public class JobRunrLettuceStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
-    public StorageProvider jedisStorageProvider(RedisClient redisClient) {
-        return new LettuceRedisStorageProvider(redisClient);
+    public StorageProvider jedisStorageProvider(RedisClient redisClient, JobMapper jobMapper) {
+        LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient);
+        lettuceRedisStorageProvider.setJobMapper(jobMapper);
+        return lettuceRedisStorageProvider;
     }
 }
