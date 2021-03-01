@@ -1,5 +1,7 @@
 package org.jobrunr.utils;
 
+import static org.jobrunr.utils.StringUtils.substringBefore;
+
 public class RuntimeUtils {
 
     public static int getJvmVersion() {
@@ -12,6 +14,7 @@ public class RuntimeUtils {
                 version = version.substring(0, dot);
             }
         }
+        version = substringBefore(version, "-");
         return Integer.parseInt(version);
     }
 
