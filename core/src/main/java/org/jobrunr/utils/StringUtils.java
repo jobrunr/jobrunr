@@ -21,7 +21,11 @@ public class StringUtils {
     }
 
     public static String substringBefore(String s, String splitter) {
-        return s.substring(0, s.indexOf(splitter));
+        int endIndex = s.indexOf(splitter);
+        if (endIndex > 0) {
+            return s.substring(0, endIndex);
+        }
+        return s;
     }
 
     public static String substringAfter(String s, String splitter) {

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
+import static org.jobrunr.utils.StringUtils.substringBefore;
 import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 
 class StringUtilsTest {
@@ -27,6 +28,12 @@ class StringUtilsTest {
     @Test
     void testCapitalize() {
         assertThat(StringUtils.capitalize("testMethod")).isEqualTo("TestMethod");
+    }
+
+    @Test
+    void testSubstringBefore() {
+        assertThat(substringBefore("15", "-")).isEqualTo("15");
+        assertThat(substringBefore("15-ea", "-")).isEqualTo("15");
     }
 
     @Test
