@@ -5,6 +5,8 @@ package org.jobrunr.dashboard;
  */
 public class JobRunrDashboardWebServerConfiguration {
     int port = 8000;
+    String login = null;
+    String password = null;
 
     private JobRunrDashboardWebServerConfiguration() {
 
@@ -27,6 +29,28 @@ public class JobRunrDashboardWebServerConfiguration {
      */
     public JobRunrDashboardWebServerConfiguration andPort(int port) {
         this.port = port;
+        return this;
+    }
+
+    /**
+     * Specifies the login which the JobRunrDashboard will ask
+     *
+     * @param login the login which the JobRunrDashboard will ask
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrDashboardWebServerConfiguration andLogin(String login) {
+        this.login = login;
+        return this;
+    }
+
+    /**
+     * Specifies the password on which the JobRunrDashboard will ask
+     *
+     * @param password the password which the JobRunrDashboard will ask
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrDashboardWebServerConfiguration andPassword(String password) {
+        this.password = password;
         return this;
     }
 }
