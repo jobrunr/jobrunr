@@ -5,7 +5,7 @@ package org.jobrunr.dashboard;
  */
 public class JobRunrDashboardWebServerConfiguration {
     int port = 8000;
-    String login = null;
+    String username = null;
     String password = null;
 
     private JobRunrDashboardWebServerConfiguration() {
@@ -33,23 +33,15 @@ public class JobRunrDashboardWebServerConfiguration {
     }
 
     /**
-     * Specifies the login which the JobRunrDashboard will ask
+     * Adds basic authentication to the dashboard using the provided username and password.
+     * <span class="strong">WARNING</span> the password will be stored in clear text and if you are using http, it can be easily intercepted.
      *
-     * @param login the login which the JobRunrDashboard will ask
-     * @return the same configuration instance which provides a fluent api
-     */
-    public JobRunrDashboardWebServerConfiguration andLogin(String login) {
-        this.login = login;
-        return this;
-    }
-
-    /**
-     * Specifies the password on which the JobRunrDashboard will ask
-     *
+     * @param username the login which the JobRunrDashboard will ask
      * @param password the password which the JobRunrDashboard will ask
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrDashboardWebServerConfiguration andPassword(String password) {
+    public JobRunrDashboardWebServerConfiguration andBasicAuthentication(String username, String password) {
+        this.username = username;
         this.password = password;
         return this;
     }

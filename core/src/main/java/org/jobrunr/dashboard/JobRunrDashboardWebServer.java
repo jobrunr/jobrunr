@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
 /**
  * Provides a dashboard which gives insights in your jobs and servers.
@@ -28,8 +29,7 @@ public class JobRunrDashboardWebServer {
     private final StorageProvider storageProvider;
     private final JsonMapper jsonMapper;
     private final int port;
-    private final String login;
-    private final String password;
+    private final BasicAuthenticator basicAuthenticator;
 
     private TeenyWebServer teenyWebServer;
 
@@ -45,16 +45,15 @@ public class JobRunrDashboardWebServer {
         this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port));
     }
 
-    public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port, String login, String password) {
-        this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port).andLogin(login).andPassword(password));
+    public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, int port, String username, String password) {
+        this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port).andBasicAuthentication(username, password));
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
         this.port = configuration.port;
-        this.login = configuration.login;
-        this.password = configuration.password;
+        this.basicAuthenticator = createOptionalBasicAuthenticator(configuration.username, configuration.password);
     }
 
     public void start() {
@@ -65,27 +64,14 @@ public class JobRunrDashboardWebServer {
 
         teenyWebServer = new TeenyWebServer(port);
         registerContext(redirectHttpHandler);
-        registerContext(staticFileHandler);
-        HttpContext httpContextDashboard = registerContext(dashboardHandler);
-        HttpContext httpContextEvent = registerContext(sseHandler);
-        if(login != null && password != null) {
-            addBasicAuth(httpContextDashboard);
-            addBasicAuth(httpContextEvent);
-        }
+        registerSecuredContext(staticFileHandler);
+        registerSecuredContext(dashboardHandler);
+        registerSecuredContext(sseHandler);
         teenyWebServer.start();
 
         LOGGER.info("JobRunr Dashboard started at http://{}:{}",
                 teenyWebServer.getWebServerHostAddress(),
                 teenyWebServer.getWebServerHostPort());
-    }
-
-    public void addBasicAuth(HttpContext httpContext) {
-        httpContext.setAuthenticator(new BasicAuthenticator("get") {
-            @Override
-            public boolean checkCredentials(String user, String pwd) {
-                return user.equals(login) && pwd.equals(password);
-            }
-        });
     }
 
     public void stop() {
@@ -97,6 +83,14 @@ public class JobRunrDashboardWebServer {
 
     HttpContext registerContext(TeenyHttpHandler httpHandler) {
         return teenyWebServer.createContext(httpHandler);
+    }
+
+    HttpContext registerSecuredContext(TeenyHttpHandler httpHandler) {
+        HttpContext httpContext = registerContext(httpHandler);
+        if (basicAuthenticator != null) {
+            httpContext.setAuthenticator(basicAuthenticator);
+        }
+        return httpContext;
     }
 
     @VisibleFor("github issue 18")
@@ -114,4 +108,15 @@ public class JobRunrDashboardWebServer {
         return new JobRunrSseHandler(storageProvider, jsonMapper);
     }
 
+    private BasicAuthenticator createOptionalBasicAuthenticator(String username, String password) {
+        if (isNotNullOrEmpty(username) && isNotNullOrEmpty(password)) {
+            return new BasicAuthenticator("JobRunr") {
+                @Override
+                public boolean checkCredentials(String user, String pwd) {
+                    return user.equals(username) && pwd.equals(password);
+                }
+            };
+        }
+        return null;
+    }
 }
