@@ -418,7 +418,7 @@ public class JobScheduler {
      * @return the id of the Job
      */
     public <S> JobId schedule(Instant instant, IocJobLambda<S> iocJob) {
-        return schedule(instant, iocJob);
+        return schedule(null, instant, iocJob);
     }
 
     /**
