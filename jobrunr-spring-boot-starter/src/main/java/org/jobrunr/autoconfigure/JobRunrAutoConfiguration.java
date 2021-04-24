@@ -86,8 +86,7 @@ public class JobRunrAutoConfiguration {
     public JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration(JobRunrProperties properties) {
         return usingStandardDashboardConfiguration()
                 .andPort(properties.getDashboard().getPort())
-                .andLogin(properties.getDashboard().getLogin())
-                .andPassword(properties.getDashboard().getPassword());
+                .andBasicAuthentication(properties.getDashboard().getUsername(), properties.getDashboard().getPassword());
     }
 
     @Bean

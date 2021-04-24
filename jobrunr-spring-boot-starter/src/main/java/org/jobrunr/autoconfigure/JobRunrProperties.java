@@ -150,12 +150,12 @@ public class JobRunrProperties {
         private int port = 8000;
 
         /**
-         * The login wich the Dashboard should ask
+         * The username for the basic authentication which protects the dashboard
          */
-        private String login = null;
+        private String username = null;
 
         /**
-         * The password wich the Dashboard should ask
+         * The password for the basic authentication which protects the dashboard. WARNING: this is insecure as it is in clear text
          */
         private String password = null;
 
@@ -184,12 +184,12 @@ public class JobRunrProperties {
             this.password = password;
         }
 
-        public String getLogin() {
-            return login;
+        public String getUsername() {
+            return username;
         }
 
-        public void setLogin(String login) {
-            this.login = login;
+        public void setUsername(String username) {
+            this.username = username;
         }
     }
 
