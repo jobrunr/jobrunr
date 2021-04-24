@@ -53,7 +53,8 @@ public class FrontEndDevelopment {
                 .initialize();
 
         backgroundJobServer.start();
-        BackgroundJob.<TestService>scheduleRecurrently("Github-75", x -> x.doWorkThatTakesLong(JobContext.Null), Cron.daily(11, 42), ZoneId.of("America/New_York"));
+        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(11, 42), ZoneId.of("America/New_York"),
+                x -> x.doWorkThatTakesLong(JobContext.Null));
 
         SevereExceptionManager severeExceptionManager = new SevereExceptionManager(backgroundJobServer);
         new Timer().schedule(new TimerTask() {

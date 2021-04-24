@@ -44,9 +44,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
         if (isKotlinLambda(lambda)) {
-            if (lambda.getClass().getDeclaredClasses().length > 0) {
-                System.out.println("Contains inner classes!");
-            }
             return new KotlinJobDetailsFinder(lambda, itemFromStream).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), itemFromStream).getJobDetails();
@@ -137,11 +134,12 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         private void getJobDetailsFromKotlinFunction(Field field) {
             Object function = getValueFromField(field, jobRunrJob);
-            Field owner = ReflectionUtils.getField(function.getClass(), "owner");
+            //Field owner = ReflectionUtils.getField(function.getClass(), "owner");
+            Field receiver = ReflectionUtils.getField(function.getClass(), "receiver");
             Field name = ReflectionUtils.getField(function.getClass(), "name");
-            Class<?> ownerClass = cast(getValueFromField(owner, function));
+            Class<?> receiverClass = getValueFromField(receiver, function).getClass();
             String methodName = cast(getValueFromField(name, function));
-            jobDetailsFinderContext.setClassName(ownerClass.getName());
+            jobDetailsFinderContext.setClassName(receiverClass.getName());
             jobDetailsFinderContext.setMethodName(methodName);
         }
 

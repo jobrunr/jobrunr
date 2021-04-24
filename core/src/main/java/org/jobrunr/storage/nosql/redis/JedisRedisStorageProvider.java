@@ -544,6 +544,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     private void insertJob(Job jobToSave, Jedis jedis) {
+        if (jedis.exists(jobKey(keyPrefix, jobToSave))) throw new ConcurrentJobModificationException(jobToSave);
         jobToSave.increaseVersion();
         try (Transaction transaction = jedis.multi()) {
             saveJob(transaction, jobToSave);

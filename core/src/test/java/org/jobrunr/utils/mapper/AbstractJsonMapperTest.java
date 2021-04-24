@@ -8,7 +8,6 @@ import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -150,19 +149,6 @@ public abstract class AbstractJsonMapperTest {
 
         final RecurringJob actualRecurringJob = jsonMapper.deserialize(recurringJobAsString, RecurringJob.class);
         assertThat(actualRecurringJob).isEqualTo(recurringJob);
-    }
-
-    @Test
-    void testSerializeToWriter() {
-        StringWriter stringWriter = new StringWriter();
-
-        Job job = anEnqueuedJob().build();
-
-        jsonMapper.serialize(stringWriter, job);
-        final String jobAsString = stringWriter.toString();
-        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
-
-        assertThat(actualJob).isEqualTo(job);
     }
 
 }

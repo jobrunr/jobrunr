@@ -585,6 +585,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     private void insertJob(Job jobToSave, RedisCommands commands) {
+        if (commands.exists(jobKey(keyPrefix, jobToSave)) > 0) throw new ConcurrentJobModificationException(jobToSave);
         jobToSave.increaseVersion();
         commands.multi();
         saveJob(commands, jobToSave);

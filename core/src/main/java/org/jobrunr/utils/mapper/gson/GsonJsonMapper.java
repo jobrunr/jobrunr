@@ -15,7 +15,6 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -48,11 +47,6 @@ public class GsonJsonMapper implements JsonMapper {
     @Override
     public String serialize(Object object) {
         return gson.toJson(object);
-    }
-
-    @Override
-    public void serialize(Writer writer, Object object) {
-        gson.toJson(object, writer);
     }
 
     @Override

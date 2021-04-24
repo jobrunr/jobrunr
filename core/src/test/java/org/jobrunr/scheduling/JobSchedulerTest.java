@@ -13,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -66,7 +65,7 @@ class JobSchedulerTest {
     void onRecurringJobCreatingAndCreatedAreCalled() {
         when(storageProvider.saveRecurringJob(any(RecurringJob.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        jobScheduler.scheduleRecurrently(null, () -> testService.doWork(), Cron.daily(), ZoneId.systemDefault());
+        jobScheduler.scheduleRecurrently(Cron.daily(), () -> testService.doWork());
 
         assertThat(jobClientLogFilter.onCreating).isTrue();
         assertThat(jobClientLogFilter.onCreated).isTrue();

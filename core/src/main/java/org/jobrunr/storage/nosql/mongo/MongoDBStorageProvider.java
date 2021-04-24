@@ -1,6 +1,7 @@
 package org.jobrunr.storage.nosql.mongo;
 
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoClient;
@@ -208,7 +209,12 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     public Job save(Job job) {
         if (isNew(job)) {
             job.increaseVersion();
-            jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
+            try {
+                jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
+            } catch (MongoWriteException e) {
+                if (e.getError().getCode() == 11000) throw new ConcurrentJobModificationException(job);
+                throw e;
+            }
         } else {
             final UpdateOneModel<Document> updateModel = jobDocumentMapper.toUpdateOneModel(job);
             final UpdateResult updateResult = jobCollection.updateOne(updateModel.getFilter(), updateModel.getUpdate());

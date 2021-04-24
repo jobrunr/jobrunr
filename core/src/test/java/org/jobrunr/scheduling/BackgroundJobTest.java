@@ -101,6 +101,17 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void testEnqueueWithId() {
+        UUID id = UUID.randomUUID();
+        JobId jobId1 = BackgroundJob.enqueue(id, () -> testService.doWork());
+        JobId jobId2 = BackgroundJob.enqueue(id, () -> testService.doWork());
+        // why: no exception whould be thrown.
+
+        assertThat(jobId1).isEqualTo(jobId2);
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId1)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
+    }
+
+    @Test
     void testEnqueueWithInterfaceImplementationThrowsNiceException() {
         assertThatThrownBy(() -> BackgroundJob.enqueue(new JobImplementation()))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -180,8 +191,19 @@ public class BackgroundJobTest {
     }
 
     @Test
+    void testScheduleWithId() {
+        UUID id = UUID.randomUUID();
+        JobId jobId1 = BackgroundJob.schedule(id, now(), () -> testService.doWork());
+        JobId jobId2 = BackgroundJob.schedule(id, now().plusSeconds(20), () -> testService.doWork());
+        // why: no exception whould be thrown.
+
+        assertThat(jobId1).isEqualTo(jobId2);
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId1)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED));
+    }
+
+    @Test
     void testScheduleWithZonedDateTime() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), ZonedDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(ZonedDateTime.now().plusSeconds(7), () -> testService.doWork());
         await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -189,7 +211,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleWithOffsetDateTime() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), OffsetDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(OffsetDateTime.now().plusSeconds(7), () -> testService.doWork());
         await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -197,7 +219,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleWithLocalDateTime() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), LocalDateTime.now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(LocalDateTime.now().plusSeconds(7), () -> testService.doWork());
         await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -205,7 +227,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleWithInstant() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), now().plusSeconds(7));
+        JobId jobId = BackgroundJob.schedule(now().plusSeconds(7), () -> testService.doWork());
         await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -213,7 +235,7 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleUsingDateTimeInTheFutureIsNotEnqueued() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.doWork(), now().plus(100, ChronoUnit.DAYS));
+        JobId jobId = BackgroundJob.schedule(now().plus(100, ChronoUnit.DAYS), () -> testService.doWork());
         await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED);
@@ -221,21 +243,21 @@ public class BackgroundJobTest {
 
     @Test
     void testScheduleThatSchedulesOtherJobs() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.scheduleNewWork(5), now().plusSeconds(1));
+        JobId jobId = BackgroundJob.schedule(now().plusSeconds(1), () -> testService.scheduleNewWork(5));
         await().atMost(ONE_MINUTE).until(() -> storageProvider.countJobs(SUCCEEDED) == (5 + 1));
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testScheduleThatSchedulesOtherJobsSlowlyDoesNotBlockOtherWorkers() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.scheduleNewWorkSlowly(5), now().plusSeconds(1));
+        JobId jobId = BackgroundJob.schedule(now().plusSeconds(1), () -> testService.scheduleNewWorkSlowly(5));
         await().atMost(ofSeconds(12)).until(() -> (storageProvider.countJobs(PROCESSING) + storageProvider.countJobs(SUCCEEDED)) > 1);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING);
     }
 
     @Test
     void testRecurringJob() {
-        BackgroundJob.scheduleRecurrently(() -> testService.doWork(5), Cron.minutely());
+        BackgroundJob.scheduleRecurrently(Cron.minutely(), () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -244,7 +266,7 @@ public class BackgroundJobTest {
 
     @Test
     void testRecurringJobWithId() {
-        BackgroundJob.scheduleRecurrently("theId", () -> testService.doWork(5), Cron.minutely());
+        BackgroundJob.scheduleRecurrently("theId", Cron.minutely(), () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -253,7 +275,7 @@ public class BackgroundJobTest {
 
     @Test
     void testRecurringJobWithIdAndTimezone() {
-        BackgroundJob.scheduleRecurrently("theId", () -> testService.doWork(5), Cron.minutely(), systemDefault());
+        BackgroundJob.scheduleRecurrently("theId", Cron.minutely(), systemDefault(), () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -262,8 +284,8 @@ public class BackgroundJobTest {
 
     @Test
     void test2RecurringJobsWithSameMethodSignatureShouldBothBeRun() {
-        BackgroundJob.scheduleRecurrently("recurring-job-1", () -> testService.doWork(5), Cron.minutely(), systemDefault());
-        BackgroundJob.scheduleRecurrently("recurring-job-2", () -> testService.doWork(5), Cron.minutely(), systemDefault());
+        BackgroundJob.scheduleRecurrently("recurring-job-1", Cron.minutely(), systemDefault(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently("recurring-job-2", Cron.minutely(), systemDefault(), () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
 
         final Job job1 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -274,7 +296,7 @@ public class BackgroundJobTest {
 
     @Test
     void testDeleteOfRecurringJob() {
-        String jobId = BackgroundJob.scheduleRecurrently(() -> testService.doWork(5), Cron.minutely());
+        String jobId = BackgroundJob.scheduleRecurrently(Cron.minutely(), () -> testService.doWork(5));
         BackgroundJob.delete(jobId);
         await().atMost(61, SECONDS).until(() -> storageProvider.countJobs(ENQUEUED) == 0 && storageProvider.countJobs(SUCCEEDED) == 0);
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
@@ -312,7 +334,7 @@ public class BackgroundJobTest {
 
     @Test
     void jobCanBeDeletedWhenScheduled() {
-        JobId jobId = BackgroundJob.schedule(() -> testService.doWorkThatTakesLong(12), now().plusSeconds(10));
+        JobId jobId = BackgroundJob.schedule(now().plusSeconds(10), () -> testService.doWorkThatTakesLong(12));
         BackgroundJob.delete(jobId);
 
         await().atMost(6, SECONDS).untilAsserted(() -> {
@@ -382,7 +404,7 @@ public class BackgroundJobTest {
         }
 
         public void schedule() {
-            BackgroundJob.scheduleRecurrently("test-id", () -> doWork(), cron);
+            BackgroundJob.scheduleRecurrently("test-id", cron, () -> doWork());
         }
     }
 

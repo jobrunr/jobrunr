@@ -173,6 +173,12 @@ public class Sql<T> {
             if (updated != 1) {
                 throw concurrentDatabaseModificationException(item, updated);
             }
+        } catch (SQLException e) {
+            String lowerCaseMessage = e.getMessage().toLowerCase();
+            if (e.getErrorCode() == -803 || lowerCaseMessage.contains("duplicate") || lowerCaseMessage.contains("primary key") || lowerCaseMessage.contains("unique constraint")) {
+                throw concurrentDatabaseModificationException(item, 0);
+            }
+            throw e;
         }
     }
 

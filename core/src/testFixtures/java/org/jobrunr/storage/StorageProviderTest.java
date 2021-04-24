@@ -299,6 +299,16 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testSaveOfJobWithSameId() {
+        UUID id = UUID.randomUUID();
+        Job job1 = anEnqueuedJob().withId(id).build();
+        Job job2 = anEnqueuedJob().withId(id).build();
+
+        storageProvider.save(job1);
+        assertThatThrownBy(() -> storageProvider.save(job2)).isInstanceOf(ConcurrentJobModificationException.class);
+    }
+
+    @Test
     void testOptimisticLockingOnSaveJobs() {
         Job job = aJobInProgress().build();
         Job createdJob1 = storageProvider.save(aCopyOf(job).withId().build());

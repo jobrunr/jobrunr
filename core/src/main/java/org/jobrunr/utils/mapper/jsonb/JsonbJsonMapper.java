@@ -8,7 +8,6 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 import java.io.OutputStream;
-import java.io.Writer;
 
 public class JsonbJsonMapper implements JsonMapper {
 
@@ -28,11 +27,6 @@ public class JsonbJsonMapper implements JsonMapper {
     @Override
     public String serialize(Object object) {
         return jsonb.toJson(object);
-    }
-
-    @Override
-    public void serialize(Writer writer, Object object) {
-        jsonb.toJson(object, writer);
     }
 
     @Override

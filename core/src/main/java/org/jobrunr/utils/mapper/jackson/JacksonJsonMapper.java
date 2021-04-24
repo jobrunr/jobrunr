@@ -13,7 +13,6 @@ import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.text.SimpleDateFormat;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceOrElse;
@@ -39,15 +38,6 @@ public class JacksonJsonMapper implements JsonMapper {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            throw JobRunrException.shouldNotHappenException(e);
-        }
-    }
-
-    @Override
-    public void serialize(Writer writer, Object object) {
-        try {
-            objectMapper.writeValue(writer, object);
-        } catch (IOException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
     }

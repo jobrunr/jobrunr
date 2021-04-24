@@ -2,9 +2,9 @@ package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageException;
-import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,12 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
@@ -95,7 +90,7 @@ class DefaultSqlStorageProviderTest {
     void saveJob_WhenJobIsNotSavedDueToOtherConcurrentModificationThenThrowConcurrentSqlModificationException() throws SQLException {
         when(preparedStatement.executeUpdate()).thenReturn(0);
 
-        assertThatThrownBy(() -> jobStorageProvider.save(anEnqueuedJob().build())).isInstanceOf(ConcurrentSqlModificationException.class);
+        assertThatThrownBy(() -> jobStorageProvider.save(anEnqueuedJob().build())).isInstanceOf(ConcurrentJobModificationException.class);
     }
 
     @Test

@@ -83,18 +83,16 @@ public class JobTable extends Sql<Job> {
     }
 
     public Job save(Job jobToSave) {
-        boolean isNewJob = jobToSave.getVersion() == 0;
-        if (JobUtils.isNew(jobToSave)) {
-            //jobToSave.setId(UUID.randomUUID());
+        try {
+            boolean isNewJob = JobUtils.isNew(jobToSave);
             jobToSave.increaseVersion();
-            insertOneJob(jobToSave);
-        } else {
-            jobToSave.increaseVersion();
-            try {
+            if (isNewJob) {
+                insertOneJob(jobToSave);
+            } else {
                 updateOneJob(jobToSave);
-            } catch (ConcurrentSqlModificationException e) {
-                throw new ConcurrentJobModificationException(jobToSave);
             }
+        } catch (ConcurrentSqlModificationException e) {
+            throw new ConcurrentJobModificationException(jobToSave);
         }
         return jobToSave;
     }
