@@ -3,7 +3,7 @@ plugins {
     id 'java-test-fixtures'
     id 'maven-publish'
     id 'jacoco'
-    id 'com.jfrog.bintray' version '1.8.5'
+    id 'signing'
 }
 
 sourceSets {
@@ -100,6 +100,10 @@ jacocoTestReport {
     }
 }
 
+nexusPublishing {
+    packageGroup = "org.jobrunr.jobrunr"
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -151,24 +155,10 @@ publishing {
     }
 }
 
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_APIKEY')
-    publications = ['mavenJava']
-    publish = true
-
-    pkg {
-        userOrg = 'jobrunr'
-        repo = 'jobrunr'
-        name = 'JobRunr'
-        licenses = ['LGPL-3.0']
-        websiteUrl = 'https://www.jobrunr.io'
-        vcsUrl = 'https://github.com/jobrunr/jobrunr.git'
-        issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
-        version {
-            name = project.version.replace("v", "")
-            released  = new Date()
-            vcsTag = project.version
-        }
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
     }
 }

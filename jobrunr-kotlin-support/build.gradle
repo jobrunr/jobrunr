@@ -1,7 +1,8 @@
 plugins {
   id 'java-library'
   id 'maven-publish'
-  id "org.jetbrains.kotlin.jvm" version "1.4.30"
+  id 'signing'
+  id 'org.jetbrains.kotlin.jvm' version '1.4.31'
 }
 
 dependencies {
@@ -15,9 +16,18 @@ dependencies {
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+nexusPublishing {
+  packageGroup = "org.jobrunr.jobrunr-kotlin-support"
+}
+
 publishing {
   publications {
-    mavenJavaPlatform(MavenPublication) {
+    mavenJava(MavenPublication) {
       groupId = 'org.jobrunr'
       artifactId = 'jobrunr-kotlin-support'
       version = project.version.replace("v", "")
@@ -63,5 +73,13 @@ publishing {
         }
       }
     }
+  }
+}
+
+signing {
+  String base64Key = System.getenv('SIGNING_KEY')
+  if (base64Key) {
+    useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+    sign publishing.publications.mavenJava
   }
 }

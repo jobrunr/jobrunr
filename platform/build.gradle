@@ -1,7 +1,7 @@
 plugins {
     id 'java-platform'
     id 'maven-publish'
-    id 'com.jfrog.bintray' version '1.8.5'
+    id 'signing'
 }
 
 version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
@@ -58,9 +58,13 @@ dependencies {
     }
 }
 
+nexusPublishing {
+    packageGroup = "org.jobrunr.jobrunr-bom"
+}
+
 publishing {
     publications {
-        mavenJavaPlatform(MavenPublication) {
+        mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr-bom'
             version = project.version.replace("v", "")
@@ -93,24 +97,10 @@ publishing {
     }
 }
 
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_APIKEY')
-    publications = ['mavenJavaPlatform']
-    publish = true
-
-    pkg {
-        userOrg = 'jobrunr'
-        repo = 'jobrunr'
-        name = 'JobRunr'
-        licenses = ['LGPL-3.0']
-        websiteUrl = 'https://www.jobrunr.io'
-        vcsUrl = 'https://github.com/jobrunr/jobrunr.git'
-        issueTrackerUrl = 'https://github.com/jobrunr/jobrunr/issues'
-        version {
-            name = project.version.replace("v", "")
-            released  = new Date()
-            vcsTag = project.version
-        }
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
     }
 }

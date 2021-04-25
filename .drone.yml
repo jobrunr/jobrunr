@@ -166,15 +166,19 @@ steps:
     when:
       event: tag
 
-  - name: upload-to-bintray
+  - name: upload-to-maven-central
     image: jobrunr.io/build-container:1.0
     environment:
-      BINTRAY_USER:
-        from_secret: BINTRAY_USER
-      BINTRAY_APIKEY:
-        from_secret: BINTRAY_APIKEY
+      SIGNING_KEY:
+        from_secret: SIGNING_KEY
+      SIGNING_PASSWORD:
+        from_secret: SIGNING_PASSWORD
+      ORG_GRADLE_PROJECT_sonatypeUsername:
+        from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
+      ORG_GRADLE_PROJECT_sonatypePassword:
+        from_secret: ORG_GRADLE_PROJECT_sonatypePassword
     commands:
-      - ./gradlew --no-daemon bintrayUpload
+      - ./gradlew --no-daemon publishToSonatype
     volumes:
       - name: maven-local
         path: /root/.m2
