@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
   api project(':core')
-  compileOnly 'org.koin:koin-core'
+  compileOnly 'io.insert-koin:koin-core'
 
   testImplementation project(':core')
   testImplementation testFixtures(project(":core"))
