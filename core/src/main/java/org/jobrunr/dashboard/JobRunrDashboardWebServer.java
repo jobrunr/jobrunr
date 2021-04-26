@@ -69,7 +69,7 @@ public class JobRunrDashboardWebServer {
         registerSecuredContext(sseHandler);
         teenyWebServer.start();
 
-        LOGGER.info("JobRunr Dashboard started at http://{}:{}",
+        LOGGER.info("JobRunr Dashboard started at http://{}:{}/dashboard",
                 teenyWebServer.getWebServerHostAddress(),
                 teenyWebServer.getWebServerHostPort());
     }
