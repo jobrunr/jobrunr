@@ -22,7 +22,7 @@ Open and free for commercial use.
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Bugs" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs" /></a><br/>
     <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/tweet-btn.svg?v2" /></a>&nbsp;
     <a href="https://github.com/jobrunr/jobrunr/stargazers"><img alt="Star us!" src="https://www.jobrunr.io/github-star-btn.svg?v2" /></a>
-    <a href="https://gitter.im/jobrunr/community"><img src="https://badges.gitter.im/jobrunr/general.svg" alt="Join the chat at Gitter" /></a><br />
+    <a href="https://github.com/jobrunr/jobrunr/discussions"><img src="https://img.shields.io/badge/chat-Github%20discussions-green" alt="Join the chat at Gitter" /></a><br />
 </p>
 
 ## Overview
