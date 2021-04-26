@@ -88,7 +88,7 @@ BackgroundJob.enqueue(() -> System.out.println("Simple!"));
 Scheduled background jobs are executed only after a given amount of time.
 
 ```java
-BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plusHours(5));
+BackgroundJob.schedule(Instant.now().plusHours(5), () -> System.out.println("Reliable!"));
 ```
 
 [**Recurring tasks**](https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/)
@@ -96,7 +96,7 @@ BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plus
 Recurring jobs have never been simpler; just call the following method to perform any kind of recurring task using the [CRON expressions](http://en.wikipedia.org/wiki/Cron#CRON_expression).
 
 ```java
-BackgroundJob.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily());
+BackgroundJob.scheduleRecurringly("my-recurring-job", Cron.daily(), () -> service.doWork());
 ```
 
 **Process background tasks inside a web application…**
@@ -174,6 +174,6 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 
 ### How can I contribute?
 * Take a look at issues with tag called [`Good first issue`](https://github.com/jobrunr/jobrunr/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-* Join the discussion on [gitter](https://gitter.im/jobrunr/community).
+* Join the discussion on [Github discussion](https://github.com/jobrunr/jobrunr/discussions) - we won't be using Gitter anymore.
 * Answer questions on [issues](https://github.com/jobrunr/jobrunr/issues).
 * Fix bugs reported on [issues](https://github.com/jobrunr/jobrunr/issues), and send us pull request.
