@@ -115,7 +115,7 @@ const JobsTable = (props) => {
                                         </TableCell>
                                         <TableCell>
                                             <Link to={{pathname: `/dashboard/jobs/${job.id}`, job: job}}>
-                                                <TimeAgo date={new Date(columnFunction(job))}/>
+                                                <TimeAgo date={new Date(columnFunction(job))} title={new Date(columnFunction(job)).toString()}/>
                                             </Link>
                                         </TableCell>
                                     </TableRow>

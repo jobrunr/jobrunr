@@ -164,3 +164,5 @@ yarn-debug.log*
 yarn-error.log*
 
 *.secrets
+dependency-check-bin
+dependency-check-reports
