@@ -11,7 +11,7 @@ Open and free for commercial use.
 
 
 <p align="center">
-    <a href="https://bintray.com/jobrunr/jobrunr/JobRunr/_latestVersion"><img src="https://api.bintray.com/packages/jobrunr/jobrunr/JobRunr/images/download.svg"></a>&nbsp;
+    <a href="https://search.maven.org/artifact/org.jobrunr/jobrunr"><img src="https://maven-badges.herokuapp.com/maven-central/org.jobrunr/jobrunr/badge.svg"></a>&nbsp;
     <img alt="Drone Build" src="https://build.jobrunr.io/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
     <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Quality Scale" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating" /></a>&nbsp;
@@ -22,7 +22,7 @@ Open and free for commercial use.
     <a href="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr"><img alt="Bugs" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs" /></a><br/>
     <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/tweet-btn.svg?v2" /></a>&nbsp;
     <a href="https://github.com/jobrunr/jobrunr/stargazers"><img alt="Star us!" src="https://www.jobrunr.io/github-star-btn.svg?v2" /></a>
-    <a href="https://gitter.im/jobrunr/community"><img src="https://badges.gitter.im/jobrunr/general.svg" alt="Join the chat at Gitter" /></a><br />
+    <a href="https://github.com/jobrunr/jobrunr/discussions"><img src="https://img.shields.io/badge/chat-Github%20discussions-green" alt="Join the chat at Gitter" /></a><br />
 </p>
 
 ## Overview
@@ -88,7 +88,7 @@ BackgroundJob.enqueue(() -> System.out.println("Simple!"));
 Scheduled background jobs are executed only after a given amount of time.
 
 ```java
-BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plusHours(5));
+BackgroundJob.schedule(Instant.now().plusHours(5), () -> System.out.println("Reliable!"));
 ```
 
 [**Recurring tasks**](https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/)
@@ -96,7 +96,7 @@ BackgroundJob.schedule(() -> System.out.println("Reliable!"), Instant.now().plus
 Recurring jobs have never been simpler; just call the following method to perform any kind of recurring task using the [CRON expressions](http://en.wikipedia.org/wiki/Cron#CRON_expression).
 
 ```java
-BackgroundJob.scheduleRecurringly("my-recurring-job", () -> service.doWork(), Cron.daily());
+BackgroundJob.scheduleRecurringly("my-recurring-job", Cron.daily(), () -> service.doWork());
 ```
 
 **Process background tasks inside a web application…**
@@ -120,7 +120,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
  <artifactId>jobrunr</artifactId>
- <version>1.2.2</version>
+ <version>2.0.0</version>
 </dependency>
 ```
  
@@ -128,7 +128,7 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:1.2.2'
+implementation 'org.jobrunr:jobrunr:2.0.0'
 ```
 
 Configuration
@@ -174,6 +174,6 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 
 ### How can I contribute?
 * Take a look at issues with tag called [`Good first issue`](https://github.com/jobrunr/jobrunr/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-* Join the discussion on [gitter](https://gitter.im/jobrunr/community).
+* Join the discussion on [Github discussion](https://github.com/jobrunr/jobrunr/discussions) - we won't be using Gitter anymore.
 * Answer questions on [issues](https://github.com/jobrunr/jobrunr/issues).
 * Fix bugs reported on [issues](https://github.com/jobrunr/jobrunr/issues), and send us pull request.
