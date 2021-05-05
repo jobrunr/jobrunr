@@ -195,7 +195,6 @@ steps:
     settings:
       branch: master
       remote_name: origin
-      remote: git@github.com:jobrunr/jobrunr.git
       ssh_key:
         from_secret: GITHUB_SSH_KEY
       force: false
