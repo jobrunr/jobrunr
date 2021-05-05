@@ -1,8 +1,6 @@
-import React from 'react';
-
 class StatsState {
     constructor() {
-        this._listeners = new Map();
+        this._listeners = [];
         this._data = {};
         this._data.stats = {estimation: {}};
     }
@@ -16,23 +14,15 @@ class StatsState {
         return this._data.stats;
     }
 
-    useStatsState(obj) {
-        const [stats, setStats] = React.useState(statsState.getStats());
-        const cleanup = () => this.removeListener(obj);
-        React.useEffect(() => {
-            this.addListener(obj, setStats);
-            return () => cleanup
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
-        return stats;
+    addListener(listener) {
+        this._listeners.push(listener);
     }
 
-    addListener(obj, listener) {
-        this._listeners.set(obj, listener);
-    }
-
-    removeListener(obj) {
-        this._listeners.delete(obj);
+    removeListener(listener) {
+        const index = this._listeners.indexOf(listener);
+        if (index > -1) {
+            this._listeners.splice(index, 1);
+        }
     }
 }
 

@@ -1,8 +1,6 @@
-import React from 'react';
-
 class ServersState {
     constructor() {
-        this._listeners = new Map();
+        this._listeners = [];
         this._data = {};
     }
 
@@ -15,23 +13,15 @@ class ServersState {
         return this._data.servers;
     }
 
-    useServersState(obj) {
-        const [servers, setServers] = React.useState(serversState.getServers());
-        const cleanup = () => this.removeListener(obj);
-        React.useEffect(() => {
-            this.addListener(obj, setServers);
-            return () => cleanup
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
-        return servers;
+    addListener(listener) {
+        this._listeners.push(listener);
     }
 
-    addListener(obj, listener) {
-        this._listeners.set(obj, listener);
-    }
-
-    removeListener(obj) {
-        this._listeners.delete(obj);
+    removeListener(listener) {
+        const index = this._listeners.indexOf(listener);
+        if (index > -1) {
+            this._listeners.splice(index, 1);
+        }
     }
 }
 

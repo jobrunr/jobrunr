@@ -11,7 +11,12 @@ const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
-    const stats = statsState.useStatsState(RealtimeGraph);
+
+    const [stats, setStats] = React.useState(statsState.getStats());
+    React.useEffect(() => {
+        statsState.addListener(setStats);
+        return () => statsState.removeListener(this);
+    }, [])
 
     const [graphState] = useState({
         options: {

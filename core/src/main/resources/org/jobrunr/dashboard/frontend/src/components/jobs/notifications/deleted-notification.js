@@ -19,7 +19,11 @@ const DeletedNotification = (props) => {
     const classes = useStyles();
 
     const job = props.job;
-    const serverStats = serversState.useServersState(DeletedNotification);
+    const [serverStats, setServerStats] = React.useState(serversState.getServers());
+    React.useEffect(() => {
+        serversState.addListener(setServerStats);
+        return () => serversState.removeListener(this);
+    }, [])
 
     const deleteDuration = serverStats[0].permanentlyDeleteDeletedJobsAfter;
     const deleteDurationInSec = deleteDuration.toString().startsWith('PT') ? convertISO8601DurationToSeconds(deleteDuration) : deleteDuration;

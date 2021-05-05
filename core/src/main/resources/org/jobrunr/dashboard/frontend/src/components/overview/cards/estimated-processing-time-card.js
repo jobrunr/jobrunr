@@ -22,7 +22,11 @@ const EstimatedProcessingTimeCard = () => {
     const classes = useStyles();
     const timeAgoFormatter = (a, b, c) => a > 1 ? `${a} ${b}s` : `${a} ${b}`;
 
-    const stats = statsState.useStatsState(EstimatedProcessingTimeCard);
+    const [stats, setStats] = React.useState(statsState.getStats());
+    React.useEffect(() => {
+        statsState.addListener(setStats);
+        return () => statsState.removeListener(this);
+    }, [])
 
     const processingTimeRef = useRef(<>Calculating...</>);
     React.useEffect(() => {

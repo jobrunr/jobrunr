@@ -35,7 +35,12 @@ const useStyles = makeStyles(theme => ({
 
 const Sidebar = () => {
     const classes = useStyles();
-    const stats = statsState.useStatsState(Sidebar);
+
+    const [stats, setStats] = React.useState(statsState.getStats());
+    React.useEffect(() => {
+        statsState.addListener(setStats);
+        return () => statsState.removeListener(this);
+    }, [])
 
     return (
         <Drawer
