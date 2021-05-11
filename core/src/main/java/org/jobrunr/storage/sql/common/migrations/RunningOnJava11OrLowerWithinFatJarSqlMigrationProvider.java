@@ -19,8 +19,8 @@ public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements S
             ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream());
             return getMigrationsFromZipInputStream(zipInputStream, clazz);
         } catch (IOException e) {
+            throw new UnsupportedOperationException("Unable to find migrations.");
         }
-        throw new UnsupportedOperationException("Unable to find migrations.");
     }
 
     private Stream<SqlMigration> getMigrationsFromZipInputStream(ZipInputStream zipInputStream, Class<?> clazz) throws IOException {

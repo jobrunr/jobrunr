@@ -12,11 +12,11 @@ public abstract class ServerSentEventHandler extends AbstractTeenyHttpHandler {
     private final String contextPath;
     private final Set<SseExchange> sseExchanges;
 
-    public ServerSentEventHandler() {
+    protected ServerSentEventHandler() {
         this("/sse");
     }
 
-    public ServerSentEventHandler(String contextPath) {
+    protected ServerSentEventHandler(String contextPath) {
         this.contextPath = contextPath;
         this.sseExchanges = new HashSet<>();
     }

@@ -19,9 +19,7 @@ public class JobDashboardProgressBar {
     private JobDashboardProgress initJobDashboardProgress(Job job, Long totalAmount) {
         Map<String, Object> jobMetadata = job.getMetadata();
         String progressBarKey = progressBarKey(job.getJobStates().size());
-        if (!jobMetadata.containsKey(progressBarKey)) {
-            jobMetadata.put(progressBarKey, new JobDashboardProgress(totalAmount));
-        }
+        jobMetadata.putIfAbsent(progressBarKey, new JobDashboardProgress(totalAmount));
         return cast(jobMetadata.get(progressBarKey));
     }
 

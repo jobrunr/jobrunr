@@ -84,6 +84,9 @@ public class StorageProviderUtils {
     }
 
     @Deprecated
+    /**
+     * @deprecated Is not used anymore in StorageProviders and will be removed
+     */
     public static final class JobStats {
         private JobStats() {
         }
@@ -101,12 +104,13 @@ public class StorageProviderUtils {
         public static final String NAME = "metadata";
         public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String STATS_ID = "succeeded-jobs-counter-cluster";
+        public static final String STATS_NAME = "succeeded-jobs-counter";
+        public static final String STATS_OWNER = "cluster";
         public static final String FIELD_NAME = "name";
         public static final String FIELD_OWNER = "owner";
         public static final String FIELD_VALUE = "value";
         public static final String FIELD_CREATED_AT = "createdAt";
         public static final String FIELD_UPDATED_AT = "updatedAt";
-
 
     }
 

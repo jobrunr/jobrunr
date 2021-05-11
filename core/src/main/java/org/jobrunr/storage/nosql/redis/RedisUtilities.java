@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.NAME;
 
 public class RedisUtilities {
 
@@ -45,15 +46,15 @@ public class RedisUtilities {
     }
 
     public static String metadatasKey(String keyPrefix) {
-        return toRedisKey(keyPrefix, "set", "metadata");
+        return toRedisKey(keyPrefix, "set", NAME);
     }
 
     public static String metadataKey(String keyPrefix, JobRunrMetadata metadata) {
-        return toRedisKey(keyPrefix, "metadata", metadata.getId());
+        return toRedisKey(keyPrefix, NAME, metadata.getId());
     }
 
     public static String metadataKey(String keyPrefix, String metadataId) {
-        return toRedisKey(keyPrefix, "metadata", metadataId);
+        return toRedisKey(keyPrefix, NAME, metadataId);
     }
 
     public static String jobQueueForStateKey(String keyPrefix, StateName stateName) {

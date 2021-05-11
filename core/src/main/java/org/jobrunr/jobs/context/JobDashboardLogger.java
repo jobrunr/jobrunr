@@ -38,9 +38,7 @@ public class JobDashboardLogger {
     private JobDashboardLogLines initLogLines(Job job) {
         Map<String, Object> jobMetadata = job.getMetadata();
         String logKey = logKey(job.getJobStates().size());
-        if (!jobMetadata.containsKey(logKey)) {
-            jobMetadata.put(logKey, new JobDashboardLogLines());
-        }
+        jobMetadata.putIfAbsent(logKey, new JobDashboardLogLines());
         return cast(jobMetadata.get(logKey));
     }
 

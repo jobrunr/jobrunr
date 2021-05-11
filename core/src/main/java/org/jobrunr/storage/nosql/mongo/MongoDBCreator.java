@@ -18,14 +18,12 @@ import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 
 public class MongoDBCreator extends NoSqlDatabaseCreator<MongoMigration> {
 
-    private final MongoClient mongoClient;
     private final MongoDatabase jobrunrDatabase;
 
     private final MongoCollection<Document> migrationCollection;
 
     public MongoDBCreator(MongoDBStorageProvider mongoDBStorageProvider, MongoClient mongoClient, String dbName) {
         super(mongoDBStorageProvider);
-        this.mongoClient = mongoClient;
         this.jobrunrDatabase = mongoClient.getDatabase(dbName);
         this.migrationCollection = jobrunrDatabase.getCollection(Migrations.NAME);
     }

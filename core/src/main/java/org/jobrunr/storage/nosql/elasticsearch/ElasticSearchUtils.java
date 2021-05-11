@@ -10,14 +10,15 @@ import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
 
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 
 public class ElasticSearchUtils {
 
+    private ElasticSearchUtils() {
+    }
+
+    public static final String JOBRUNR_PREFIX = "jobrunr_";
 
     public static IndexRequest jobStatsIndex() {
         try {
@@ -40,34 +41,19 @@ public class ElasticSearchUtils {
     }
 
     public static String jobIndexName() {
-        return "jobrunr_" + Jobs.NAME;
+        return JOBRUNR_PREFIX + Jobs.NAME;
     }
 
     public static String recurringJobIndexName() {
-        return "jobrunr_" + RecurringJobs.NAME;
+        return JOBRUNR_PREFIX + RecurringJobs.NAME;
     }
 
     public static String metadataIndexName() {
-        return "jobrunr_" + Metadata.NAME;
+        return JOBRUNR_PREFIX + Metadata.NAME;
     }
 
     public static String backgroundJobServerIndexName() {
-        return "jobrunr_" + BackgroundJobServers.NAME;
-    }
-
-    private static Map<String, Object> mapping(BiConsumer<StringBuilder, Map<String, Object>>... consumers) {
-        Map<String, Object> jsonMap = new HashMap<>();
-        Map<String, Object> properties = new HashMap<>();
-        jsonMap.put("properties", properties);
-
-        for (BiConsumer<StringBuilder, Map<String, Object>> consumer : consumers) {
-            StringBuilder sb = new StringBuilder();
-            Map<String, Object> fieldProperties = new HashMap<>();
-            consumer.accept(sb, fieldProperties);
-            properties.put(sb.toString(), fieldProperties);
-
-        }
-        return jsonMap;
+        return JOBRUNR_PREFIX + BackgroundJobServers.NAME;
     }
 
     public static void sleep(long amount) {

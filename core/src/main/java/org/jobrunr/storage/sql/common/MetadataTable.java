@@ -9,22 +9,28 @@ import java.time.Instant;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_NAME;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_OWNER;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 
 public class MetadataTable extends Sql<JobRunrMetadata> {
 
     public MetadataTable(DataSource dataSource) {
         this
                 .using(dataSource)
-                .with("id", JobRunrMetadata::getId)
-                .with("name", JobRunrMetadata::getName)
-                .with("owner", JobRunrMetadata::getOwner)
-                .with("value", JobRunrMetadata::getValue)
-                .with("createdAt", JobRunrMetadata::getCreatedAt)
-                .with("updatedAt", metadata -> Instant.now());
+                .with(FIELD_ID, JobRunrMetadata::getId)
+                .with(FIELD_NAME, JobRunrMetadata::getName)
+                .with(FIELD_OWNER, JobRunrMetadata::getOwner)
+                .with(FIELD_VALUE, JobRunrMetadata::getValue)
+                .with(FIELD_CREATED_AT, JobRunrMetadata::getCreatedAt)
+                .with(FIELD_UPDATED_AT, metadata -> Instant.now());
     }
 
     public MetadataTable withId(String id) {
-        with("id", id);
+        with(FIELD_ID, id);
         return this;
     }
 
@@ -40,8 +46,8 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
     }
 
     public JobRunrMetadata get(String name, String owner) {
-        return with("name", name)
-                .with("owner", owner)
+        return with(FIELD_NAME, name)
+                .with(FIELD_OWNER, owner)
                 .select("* from jobrunr_metadata where name = :name and owner = :owner")
                 .map(this::toJobRunrMetadata)
                 .findFirst()
@@ -49,7 +55,7 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
     }
 
     public List<JobRunrMetadata> getAll(String name) {
-        return with("name", name)
+        return with(FIELD_NAME, name)
                 .withOrderLimitAndOffset("updatedAt ASC", 1000, 0)
                 .select("* from jobrunr_metadata where name = :name")
                 .map(this::toJobRunrMetadata)
@@ -57,17 +63,17 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
     }
 
     public int deleteByKey(String name) {
-        return with("name", name)
+        return with(FIELD_NAME, name)
                 .delete("from jobrunr_metadata where name = :name");
     }
 
     private JobRunrMetadata toJobRunrMetadata(SqlResultSet resultSet) {
         return new JobRunrMetadata(
-                resultSet.asString("name"),
-                resultSet.asString("owner"),
-                resultSet.asString("value"),
-                resultSet.asInstant("createdAt"),
-                resultSet.asInstant("updatedAt")
+                resultSet.asString(FIELD_NAME),
+                resultSet.asString(FIELD_OWNER),
+                resultSet.asString(FIELD_VALUE),
+                resultSet.asInstant(FIELD_CREATED_AT),
+                resultSet.asInstant(FIELD_UPDATED_AT)
         );
     }
 }

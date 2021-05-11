@@ -8,7 +8,7 @@ public abstract class AbstractJVMInstruction {
 
     protected final JobDetailsFinderContext jobDetailsBuilder;
 
-    public AbstractJVMInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected AbstractJVMInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         this.jobDetailsBuilder = jobDetailsBuilder;
     }
 

@@ -356,8 +356,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         final long succeededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
         final List<Document> aggregates = jobCollection.aggregate(asList(
-                match(ne("state", null)),
-                group("$state", Accumulators.sum("state", 1)),
+                match(ne(Jobs.FIELD_STATE, null)),
+                group("$state", Accumulators.sum(Jobs.FIELD_STATE, 1)),
                 limit(10)))
                 .into(new ArrayList<>());
 
@@ -398,7 +398,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     private Long getCount(StateName stateName, List<Document> aggregates) {
         Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
-        BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger("state")).orElse(defaultValue);
+        BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger(Jobs.FIELD_STATE)).orElse(defaultValue);
         long aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
         return aggregateCount;
     }

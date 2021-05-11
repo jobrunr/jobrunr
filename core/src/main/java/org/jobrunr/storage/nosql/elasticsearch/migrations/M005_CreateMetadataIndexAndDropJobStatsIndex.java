@@ -19,6 +19,8 @@ import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.metadat
 
 public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchMigration {
 
+    public static final String JOBRUNR_JOB_STATS = "jobrunr_job_stats";
+
     @Override
     public void runMigration(RestHighLevelClient client) throws IOException {
         createIndex(client, metadataIndex());
@@ -29,10 +31,10 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
     private void migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(RestHighLevelClient client) throws IOException {
         long totalSucceededAmount = 0;
 
-        if (indexExists(client, "jobrunr_job_stats")) {
-            GetResponse getResponse = client.get(new GetRequest("jobrunr_job_stats", "job_stats"), RequestOptions.DEFAULT);
+        if (indexExists(client, JOBRUNR_JOB_STATS)) {
+            GetResponse getResponse = client.get(new GetRequest(JOBRUNR_JOB_STATS, "job_stats"), RequestOptions.DEFAULT);
             totalSucceededAmount = (int) getResponse.getSource().getOrDefault(StateName.SUCCEEDED.toString(), 0L);
-            deleteIndex(client, "jobrunr_job_stats");
+            deleteIndex(client, JOBRUNR_JOB_STATS);
         }
 
         client.index(jobStats(totalSucceededAmount), RequestOptions.DEFAULT);
@@ -42,8 +44,8 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
         try {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
-            builder.field(Metadata.FIELD_NAME, "succeeded-jobs-counter");
-            builder.field(Metadata.FIELD_OWNER, "cluster");
+            builder.field(Metadata.FIELD_NAME, Metadata.STATS_NAME);
+            builder.field(Metadata.FIELD_OWNER, Metadata.STATS_OWNER);
             builder.field(Metadata.FIELD_VALUE, totalSucceededAmount);
             builder.field(Metadata.FIELD_CREATED_AT, Instant.now());
             builder.field(Metadata.FIELD_UPDATED_AT, Instant.now());

@@ -18,11 +18,11 @@ public abstract class AbstractJob implements Lockable {
         this.locker = new Lock();
     }
 
-    public AbstractJob(JobDetails jobDetails) {
+    protected AbstractJob(JobDetails jobDetails) {
         this(jobDetails, 0);
     }
 
-    public AbstractJob(JobDetails jobDetails, int version) {
+    protected AbstractJob(JobDetails jobDetails, int version) {
         this();
         this.jobDetails = jobDetails;
         this.version = version;

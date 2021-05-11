@@ -2,6 +2,8 @@ package org.jobrunr;
 
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 
+import java.io.Serializable;
+
 public class SevereJobRunrException extends JobRunrException {
 
     private final DiagnosticsAware diagnosticsAware;
@@ -15,7 +17,7 @@ public class SevereJobRunrException extends JobRunrException {
         return diagnosticsAware.getDiagnosticsInfo();
     }
 
-    public interface DiagnosticsAware {
+    public interface DiagnosticsAware extends Serializable {
         DiagnosticsBuilder getDiagnosticsInfo();
     }
 }

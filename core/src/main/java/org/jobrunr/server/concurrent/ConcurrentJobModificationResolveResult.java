@@ -2,7 +2,9 @@ package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
 
-public class ConcurrentJobModificationResolveResult {
+import java.io.Serializable;
+
+public class ConcurrentJobModificationResolveResult implements Serializable {
 
     private final boolean succeeded;
     private final Job localJob;

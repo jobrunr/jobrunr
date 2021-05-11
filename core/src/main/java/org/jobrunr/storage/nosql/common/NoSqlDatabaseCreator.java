@@ -17,7 +17,7 @@ public abstract class NoSqlDatabaseCreator<T> {
     private final NoSqlStorageProvider noSqlStorageProvider;
     private final NoSqlDatabaseMigrationsProvider databaseMigrationsProvider;
 
-    public NoSqlDatabaseCreator(NoSqlStorageProvider noSqlStorageProvider) {
+    protected NoSqlDatabaseCreator(NoSqlStorageProvider noSqlStorageProvider) {
         this.noSqlStorageProvider = noSqlStorageProvider;
         this.databaseMigrationsProvider = new NoSqlDatabaseMigrationsProvider(this.noSqlStorageProvider.getClass());
     }

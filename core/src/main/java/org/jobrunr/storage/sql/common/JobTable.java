@@ -28,6 +28,10 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
@@ -46,10 +50,10 @@ public class JobTable extends Sql<Job> {
         this
                 .using(dataSource)
                 .withVersion(AbstractJob::getVersion)
-                .with("jobAsJson", jobMapper::serializeJob)
-                .with("jobSignature", JobUtils::getJobSignature)
-                .with("scheduledAt", job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
-                .with("recurringJobId", job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getRecurringJobId() : null);
+                .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
+                .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
+                .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
+                .with(FIELD_RECURRING_JOB_ID, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getRecurringJobId() : null);
     }
 
     public JobTable withId(UUID id) {
@@ -160,17 +164,17 @@ public class JobTable extends Sql<Job> {
 
     public Set<String> getDistinctJobSignatures(StateName[] states) {
         return select("distinct jobSignature from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")")
-                .map(resultSet -> resultSet.asString("jobSignature"))
+                .map(resultSet -> resultSet.asString(FIELD_JOB_SIGNATURE))
                 .collect(Collectors.toSet());
     }
 
     public boolean exists(JobDetails jobDetails, StateName... states) {
-        return with("jobSignature", getJobSignature(jobDetails))
+        return with(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails))
                 .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND jobSignature = :jobSignature");
     }
 
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        return with("recurringJobId", recurringJobId)
+        return with(FIELD_RECURRING_JOB_ID, recurringJobId)
                 .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
     }
 
