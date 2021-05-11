@@ -22,7 +22,7 @@ public class SevereJobRunrExceptionProblemHandler implements MetadataChangeListe
 
     @Override
     public void dismiss() {
-        problems.removeProblemsOfType(SevereJobRunrExceptionProblem.TYPE);
+        problems.removeProblemsOfType(SevereJobRunrExceptionProblem.PROBLEM_TYPE);
         storageProvider.deleteMetadata(SevereJobRunrException.class.getSimpleName());
     }
 
@@ -34,7 +34,7 @@ public class SevereJobRunrExceptionProblemHandler implements MetadataChangeListe
     @Override
     public void onChange(List<JobRunrMetadata> metadataList) {
         if (this.severeJobRunrExceptionAsMetadataList == null || this.severeJobRunrExceptionAsMetadataList.size() != metadataList.size()) {
-            problems.removeProblemsOfType(SevereJobRunrExceptionProblem.TYPE);
+            problems.removeProblemsOfType(SevereJobRunrExceptionProblem.PROBLEM_TYPE);
             if (!metadataList.isEmpty()) {
                 problems.addProblem(new SevereJobRunrExceptionProblem(metadataList));
             }

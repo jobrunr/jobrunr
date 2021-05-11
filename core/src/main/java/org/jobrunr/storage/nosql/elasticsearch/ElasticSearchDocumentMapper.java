@@ -54,7 +54,7 @@ public class ElasticSearchDocumentMapper {
             builder.endObject();
             return builder;
         } catch (IOException e) {
-            throw new RuntimeException("Should never happen", e);
+            throw new ShouldNotHappenException(e);
         }
     }
 
@@ -71,7 +71,7 @@ public class ElasticSearchDocumentMapper {
             builder.endObject();
             return builder;
         } catch (IOException e) {
-            throw new RuntimeException("Should never happen", e);
+            throw new ShouldNotHappenException(e);
         }
     }
 
@@ -90,7 +90,7 @@ public class ElasticSearchDocumentMapper {
             builder.endObject();
             return builder;
         } catch (IOException e) {
-            throw new RuntimeException("Should never happen", e);
+            throw new ShouldNotHappenException(e);
         }
     }
 
@@ -106,7 +106,7 @@ public class ElasticSearchDocumentMapper {
             builder.endObject();
             return builder;
         } catch (IOException e) {
-            throw new RuntimeException("Should never happen", e);
+            throw new ShouldNotHappenException(e);
         }
     }
 
@@ -118,7 +118,7 @@ public class ElasticSearchDocumentMapper {
             builder.endObject();
             return builder;
         } catch (IOException e) {
-            throw new RuntimeException("Should never happen", e);
+            throw new ShouldNotHappenException(e);
         }
     }
 
@@ -173,5 +173,11 @@ public class ElasticSearchDocumentMapper {
     public RecurringJob toRecurringJob(SearchHit hit) {
         String jobAsJson = hit.getFields().get(RecurringJobs.FIELD_JOB_AS_JSON).getValue().toString();
         return jobMapper.deserializeRecurringJob(jobAsJson);
+    }
+
+    static class ShouldNotHappenException extends RuntimeException {
+        public ShouldNotHappenException(Exception e) {
+            super("Should never happen", e);
+        }
     }
 }

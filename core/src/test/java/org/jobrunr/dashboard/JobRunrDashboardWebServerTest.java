@@ -140,7 +140,7 @@ abstract class JobRunrDashboardWebServerTest {
                 .hasSameJsonBodyAsResource("/dashboard/api/problems-severe-jobrunr-problem.json");
 
 
-        http.delete("/api/problems/" + SevereJobRunrExceptionProblem.TYPE);
+        http.delete("/api/problems/" + SevereJobRunrExceptionProblem.PROBLEM_TYPE);
         HttpResponse<String> getResponseAfterDelete = http.get("/api/problems");
         assertThat(getResponseAfterDelete)
                 .hasStatusCode(200)

@@ -24,7 +24,7 @@ public class ScheduledJobsNotFoundProblemHandler implements JobStatsChangeListen
 
     @Override
     public void dismiss() {
-        throw new IllegalStateException("Problem of type '" + ScheduledJobsNotFoundProblem.TYPE + "' cannot be dismissed.");
+        throw new IllegalStateException("Problem of type '" + ScheduledJobsNotFoundProblem.PROBLEM_TYPE + "' cannot be dismissed.");
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ScheduledJobsNotFoundProblemHandler implements JobStatsChangeListen
     }
 
     private void initScheduledJobNotFoundProblems() {
-        problems.removeProblemsOfType(ScheduledJobsNotFoundProblem.TYPE);
+        problems.removeProblemsOfType(ScheduledJobsNotFoundProblem.PROBLEM_TYPE);
         Set<String> jobsThatCannotBeFoundAnymore = storageProvider.getDistinctJobSignatures(StateName.SCHEDULED).stream().filter(jobSignature -> !jobExists(jobSignature)).collect(toSet());
         if (!jobsThatCannotBeFoundAnymore.isEmpty()) {
             storageProvider.addJobStorageOnChangeListener(this);

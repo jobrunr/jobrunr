@@ -32,6 +32,7 @@ import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
@@ -386,9 +387,9 @@ public class BackgroundJobTest {
     }
 
     @Test
-    void testJobInheritence() {
+    void testJobInheritance() {
         SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
-        someSysoutJobClass.schedule();
+        assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
     }
 
     interface SomeJobInterface {

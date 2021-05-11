@@ -4,7 +4,7 @@ import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 
 public class SevereJobRunrException extends JobRunrException {
 
-    private DiagnosticsAware diagnosticsAware;
+    private final DiagnosticsAware diagnosticsAware;
 
     public SevereJobRunrException(String message, DiagnosticsAware diagnosticsAware) {
         super(message);

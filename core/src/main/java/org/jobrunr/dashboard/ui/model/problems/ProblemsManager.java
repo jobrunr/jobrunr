@@ -19,8 +19,8 @@ public class ProblemsManager {
 
     private Map<String, ProblemHandler> initProblemHandlers() {
         Map<String, ProblemHandler> result = new HashMap<>();
-        result.put(ScheduledJobsNotFoundProblem.TYPE, new ScheduledJobsNotFoundProblemHandler(problems, storageProvider));
-        result.put(SevereJobRunrExceptionProblem.TYPE, new SevereJobRunrExceptionProblemHandler(problems, storageProvider));
+        result.put(ScheduledJobsNotFoundProblem.PROBLEM_TYPE, new ScheduledJobsNotFoundProblemHandler(problems, storageProvider));
+        result.put(SevereJobRunrExceptionProblem.PROBLEM_TYPE, new SevereJobRunrExceptionProblemHandler(problems, storageProvider));
         return result;
     }
 

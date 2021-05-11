@@ -8,14 +8,14 @@ import static java.util.stream.Collectors.joining;
 
 public class SevereJobRunrExceptionProblem extends Problem {
 
-    public static final String TYPE = "severe-jobrunr-exception";
+    public static final String PROBLEM_TYPE = "severe-jobrunr-exception";
 
     private final String githubIssueTitle;
     private final String githubIssueBody;
     private final int githubIssueBodyLength;
 
     public SevereJobRunrExceptionProblem(List<JobRunrMetadata> jobRunrMetadataSetWithSevereJobRunrExceptions) {
-        super(TYPE);
+        super(PROBLEM_TYPE);
         this.githubIssueTitle = "Severe JobRunr Exception";
         this.githubIssueBody = jobRunrMetadataSetWithSevereJobRunrExceptions.stream().map(JobRunrMetadata::getValue).collect(joining("\n\n\n"));
         this.githubIssueBodyLength = githubIssueBody.length();
