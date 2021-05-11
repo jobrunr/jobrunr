@@ -599,9 +599,8 @@ public class JobScheduler {
             LOGGER.debug("Created Job with id {}", job.getId());
         } catch (ConcurrentJobModificationException e) {
             LOGGER.info("Skipped Job with id {} as it already exists", job.getId());
-        } finally {
-            return new JobId(job.getId());
         }
+        return new JobId(job.getId());
     }
 
     List<Job> saveJobs(List<Job> jobs) {

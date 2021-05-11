@@ -48,7 +48,7 @@ public abstract class ElasticSearchMigration {
     }
 
     private static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest, int retry) {
-        sleep(retry * 500);
+        sleep(retry * 500L);
         try {
             waitForHealthyCluster(client);
             client.indices().create(createIndexRequest, RequestOptions.DEFAULT);

@@ -638,7 +638,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     private long getCounterValue(RedisFuture<Long> countResponse) {
         try {
             return countResponse.get();
-        } catch (Exception e) {
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
             return 0L;
         }
     }

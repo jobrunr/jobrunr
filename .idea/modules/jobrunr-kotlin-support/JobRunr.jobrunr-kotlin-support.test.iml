@@ -51,5 +51,4 @@
     <orderEntry type="library" scope="RUNTIME" name="Gradle: com.tngtech.archunit:archunit-junit5-engine-api:0.15.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.junit.platform:junit-platform-engine:1.7.0" level="project" />
   </component>
-  <component name="TestModuleProperties" production-module="JobRunr.jobrunr-kotlin-support.main" />
 </module>

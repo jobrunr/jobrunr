@@ -2,6 +2,7 @@ package org.jobrunr.utils.diagnostics;
 
 import org.jobrunr.utils.io.IOUtils;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -142,8 +143,11 @@ public class DiagnosticsBuilder {
             final int exitValue = process.waitFor();
             final String processOutput = writer.toString();
             return processOutput;
-        } catch (Throwable t) {
-            return "Unable to run javap command (" + t.getMessage() + ").";
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return "Unable to run javap command (" + e.getMessage() + ").";
+        } catch (IOException e) {
+            return "Unable to run javap command (" + e.getMessage() + ").";
         }
     }
 
