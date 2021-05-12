@@ -11,7 +11,7 @@ public abstract class AbstractPipelinedStream<T> implements Stream<T> {
 
     protected final Stream<T> initialStream;
 
-    public AbstractPipelinedStream(Stream<T> initialStream) {
+    protected AbstractPipelinedStream(Stream<T> initialStream) {
         this.initialStream = initialStream;
     }
 

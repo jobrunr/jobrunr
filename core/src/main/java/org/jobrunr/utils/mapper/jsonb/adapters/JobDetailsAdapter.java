@@ -9,6 +9,11 @@ import javax.json.bind.adapter.JsonbAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETERS;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_STATIC_FIELD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
@@ -29,20 +34,20 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
         }
 
         return nullSafeJsonObjectBuilder()
-                .add("className", jobDetails.getClassName())
-                .add("staticFieldName", jobDetails.getStaticFieldName().orElse(null))
-                .add("methodName", jobDetails.getMethodName())
-                .add("jobParameters", parametersJsonArray.build())
+                .add(FIELD_CLASS_NAME, jobDetails.getClassName())
+                .add(FIELD_STATIC_FIELD_NAME, jobDetails.getStaticFieldName().orElse(null))
+                .add(FIELD_METHOD_NAME, jobDetails.getMethodName())
+                .add(FIELD_JOB_PARAMETERS, parametersJsonArray.build())
                 .build();
     }
 
     @Override
     public JobDetails adaptFromJson(JsonObject jsonObject) throws Exception {
         return new JobDetails(
-                jsonObject.getString("className"),
-                jsonObject.isNull("staticFieldName") ? null : jsonObject.getString("staticFieldName"),
-                jsonObject.getString("methodName"),
-                getJobDetailsParameters(jsonObject.getJsonArray("jobParameters"))
+                jsonObject.getString(FIELD_CLASS_NAME),
+                jsonObject.isNull(FIELD_STATIC_FIELD_NAME) ? null : jsonObject.getString(FIELD_STATIC_FIELD_NAME),
+                jsonObject.getString(FIELD_METHOD_NAME),
+                getJobDetailsParameters(jsonObject.getJsonArray(FIELD_JOB_PARAMETERS))
         );
     }
 
@@ -50,8 +55,8 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
         List<JobParameter> result = new ArrayList<>();
         for (JsonValue jsonValue : jobParameters) {
             final JsonObject jsonObject = jsonValue.asJsonObject();
-            String methodClassName = jsonObject.getString("className");
-            String actualClassName = jsonObject.getString("actualClassName", null);
+            String methodClassName = jsonObject.getString(FIELD_CLASS_NAME);
+            String actualClassName = jsonObject.getString(FIELD_ACTUAL_CLASS_NAME, null);
             Object object = jsonb.fromJsonValue(jsonObject.get("object"), toClass(getActualClassName(methodClassName, actualClassName)));
             result.add(new JobParameter(methodClassName, object));
         }

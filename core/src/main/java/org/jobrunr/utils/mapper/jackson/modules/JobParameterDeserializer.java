@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
@@ -22,8 +24,8 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
     @Override
     public JobParameter deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        final String methodClassName = node.get("className").asText();
-        final String actualClassName = node.has("actualClassName") ? node.get("actualClassName").asText() : null;
+        final String methodClassName = node.get(FIELD_CLASS_NAME).asText();
+        final String actualClassName = node.has(FIELD_ACTUAL_CLASS_NAME) ? node.get(FIELD_ACTUAL_CLASS_NAME).asText() : null;
         final JsonNode objectJsonNode = node.get("object");
         if (Path.class.getName().equals(methodClassName)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
             return new JobParameter(methodClassName, Paths.get(objectJsonNode.asText().replace("file:", "")));

@@ -57,8 +57,10 @@ configure(subprojects.findAll {it.name != 'platform'}) {
         }
     }
 
+    jacoco {
+        toolVersion = "0.8.7"
+    }
     tasks['jacocoTestReport'].dependsOn test
-
     jacocoTestReport {
         reports {
             xml.enabled true

@@ -9,6 +9,8 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Type;
 
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 
 public class JobParameterDeserializer implements JsonDeserializer<JobParameter> {
@@ -16,8 +18,8 @@ public class JobParameterDeserializer implements JsonDeserializer<JobParameter> 
     @Override
     public JobParameter deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
-        String jobParameterMethodType = jsonObject.get("className").getAsString();
-        String jobParameterActualType = jsonObject.has("actualClassName") ? jsonObject.get("actualClassName").getAsString() : null;
+        String jobParameterMethodType = jsonObject.get(FIELD_CLASS_NAME).getAsString();
+        String jobParameterActualType = jsonObject.has(FIELD_ACTUAL_CLASS_NAME) ? jsonObject.get(FIELD_ACTUAL_CLASS_NAME).getAsString() : null;
         return new JobParameter(jobParameterMethodType, deserializeToObject(context, getActualClassName(jobParameterMethodType, jobParameterActualType), jsonObject.get("object")));
     }
 
