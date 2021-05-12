@@ -1,11 +1,11 @@
 FROM adoptopenjdk:11-jdk-hotspot
 
-RUN apt update
-RUN apt install -y software-properties-common git
+RUN apt-get update
+RUN apt-get install -y software-properties-common git
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-RUN apt update
-RUN apt install -y docker-ce-cli=5:19.03.15~3-0~ubuntu-$(lsb_release -cs)
+RUN apt-get update
+RUN apt-get install -y docker-ce-cli=5:19.03.15~3-0~ubuntu-$(lsb_release -cs)
 
 ENV GRADLE_VERSION 6.4
 COPY gradle /home/gradle/gradle
