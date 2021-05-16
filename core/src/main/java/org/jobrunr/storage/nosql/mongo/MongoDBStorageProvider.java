@@ -10,6 +10,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
@@ -136,7 +137,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        this.backgroundJobServerCollection.insertOne(backgroundJobServerStatusDocumentMapper.toInsertDocument(serverStatus));
+        InsertOneResult result = this.backgroundJobServerCollection.insertOne(backgroundJobServerStatusDocumentMapper.toInsertDocument(serverStatus));
+        if (!result.wasAcknowledged()) {
+            throw new StorageException("Unable to announce BackgroundJobServer.");
+        }
     }
 
     @Override
