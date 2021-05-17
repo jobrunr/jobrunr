@@ -40,7 +40,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
             final long before = System.nanoTime();
             final Object result = getObject();
             final long after = System.nanoTime();
-            if ((after - before) > 1_000_000) {
+            if ((after - before) > 5_000_000) {
                 LOGGER.warn("You are using a custom method ({}.{}({})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/en/documentation/background-methods/best-practices/ on how to use JobRunr effectively.", getClassName(), getMethodName(), Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
             }
             return result;
