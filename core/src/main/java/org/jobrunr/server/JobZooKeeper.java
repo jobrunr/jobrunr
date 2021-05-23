@@ -17,6 +17,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,8 @@ public class JobZooKeeper implements Runnable {
     private final AtomicInteger exceptionCount;
     private final ReentrantLock reentrantLock;
     private final AtomicInteger occupiedWorkers;
+    private final Duration durationPollIntervalTimeBox;
+    private long runStartTime;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
@@ -57,6 +60,7 @@ public class JobZooKeeper implements Runnable {
         this.workDistributionStrategy = createWorkDistributionStrategy();
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();
+        this.durationPollIntervalTimeBox = Duration.ofSeconds((long) (backgroundJobServerStatus().getPollIntervalInSeconds() - (backgroundJobServerStatus().getPollIntervalInSeconds() * 0.05)));
         this.reentrantLock = new ReentrantLock();
         this.exceptionCount = new AtomicInteger();
         this.occupiedWorkers = new AtomicInteger();
@@ -65,6 +69,7 @@ public class JobZooKeeper implements Runnable {
     @Override
     public void run() {
         try {
+            runStartTime = System.currentTimeMillis();
             if (backgroundJobServer.isUnAnnounced()) return;
 
             if (canOnboardNewWork()) {
@@ -178,6 +183,8 @@ public class JobZooKeeper implements Runnable {
     }
 
     void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
+        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
+
         List<Job> jobs = jobListSupplier.get();
         while (!jobs.isEmpty()) {
             processJobList(jobs, jobConsumer);
@@ -231,6 +238,16 @@ public class JobZooKeeper implements Runnable {
         if (workDistributionStrategy.canOnboardNewWork()) {
             checkForEnqueuedJobs();
         }
+    }
+
+    private boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
+        final long currentTime = System.currentTimeMillis();
+        final Duration durationRunTime = Duration.ofMillis(currentTime - runStartTime);
+        final boolean runTimeBoxIsPassed = durationRunTime.compareTo(durationPollIntervalTimeBox) >= 0;
+        if (runTimeBoxIsPassed) {
+            LOGGER.debug("JobRunr is passing the poll interval in seconds timebox because of too many tasks.");
+        }
+        return runTimeBoxIsPassed;
     }
 
     BasicWorkDistributionStrategy createWorkDistributionStrategy() {

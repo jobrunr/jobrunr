@@ -10,10 +10,7 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.*;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +20,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -325,6 +323,18 @@ class JobZooKeeperTest {
                 .valueContains("## Runtime information");
     }
 
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/122")
+    void masterTasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
+        when(backgroundJobServer.isUnAnnounced()).then(putRunStartTimeInPast());
+
+        jobZooKeeper.run();
+
+        verify(storageProvider, never()).getScheduledJobs(any(Instant.class), any(PageRequest.class));
+        verify(storageProvider, never()).getJobs(eq(PROCESSING), any(Instant.class), any(PageRequest.class));
+        verify(storageProvider, never()).getJobs(eq(SUCCEEDED), any(Instant.class), any(PageRequest.class));
+    }
+
     private JobZooKeeper initializeJobZooKeeper() {
         when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
@@ -339,5 +349,12 @@ class JobZooKeeperTest {
         List<Job>[] result = cast(new ArrayList[1]);
         result[0] = new ArrayList<>();
         return result;
+    }
+
+    private Answer<Boolean> putRunStartTimeInPast() {
+        return invocation -> {
+            Whitebox.setInternalState(jobZooKeeper, "runStartTime", System.currentTimeMillis() - 15000);
+            return false;
+        };
     }
 }
