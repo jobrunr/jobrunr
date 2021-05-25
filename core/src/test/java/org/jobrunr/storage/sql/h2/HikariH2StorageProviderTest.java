@@ -15,13 +15,16 @@ public class HikariH2StorageProviderTest extends SqlStorageProviderTest {
     protected DataSource getDataSource() {
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();
-
-            config.setJdbcUrl("jdbc:h2:/tmp/test-hikari");
-            config.setUsername("sa");
-            config.setPassword("sa");
-            dataSource = new HikariDataSource(config);
+            dataSource = createDataSource(config);
         }
         return dataSource;
+    }
+
+    protected HikariDataSource createDataSource(HikariConfig config) {
+        config.setJdbcUrl("jdbc:h2:/tmp/test-hikari");
+        config.setUsername("sa");
+        config.setPassword("sa");
+        return new HikariDataSource(config);
     }
 
     @AfterAll

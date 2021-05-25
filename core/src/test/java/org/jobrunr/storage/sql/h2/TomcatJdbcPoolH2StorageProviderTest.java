@@ -11,11 +11,16 @@ public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            dataSource = new DataSource();
-            dataSource.setUrl("jdbc:h2:/tmp/test-tomcatjdbcpool");
-            dataSource.setUsername("sa");
-            dataSource.setPassword("sa");
+            dataSource = createDataSource();
         }
+        return dataSource;
+    }
+
+    protected DataSource createDataSource() {
+        DataSource dataSource = new DataSource();
+        dataSource.setUrl("jdbc:h2:/tmp/test-tomcatjdbcpool");
+        dataSource.setUsername("sa");
+        dataSource.setPassword("sa");
         return dataSource;
     }
 

@@ -14,11 +14,16 @@ public class CommonsDbcpH2StorageProviderTest extends SqlStorageProviderTest {
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            dataSource = new BasicDataSource();
-            dataSource.setUrl("jdbc:h2:/tmp/test-commonsdbcp");
-            dataSource.setUsername("sa");
-            dataSource.setPassword("sa");
+            dataSource = createDataSource();
         }
+        return dataSource;
+    }
+
+    protected BasicDataSource createDataSource() {
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setUrl("jdbc:h2:/tmp/test-commonsdbcp");
+        dataSource.setUsername("sa");
+        dataSource.setPassword("sa");
         return dataSource;
     }
 
