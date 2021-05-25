@@ -197,6 +197,9 @@ public class JobTable extends Sql<Job> {
     void insertOneJob(Job jobToSave) {
         try (Connection conn = dataSource.getConnection()) {
             insert(conn, jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -205,6 +208,9 @@ public class JobTable extends Sql<Job> {
     void updateOneJob(Job jobToSave) {
         try (Connection conn = dataSource.getConnection()) {
             update(conn, jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
         } catch (SQLException e) {
             throw new StorageException(e);
         }

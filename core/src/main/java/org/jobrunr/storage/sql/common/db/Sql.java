@@ -110,6 +110,9 @@ public class Sql<T> {
     public void insert(T item, String statement) {
         try (final Connection conn = dataSource.getConnection()) {
             insertOrUpdate(conn, item, INSERT + statement);
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -126,6 +129,9 @@ public class Sql<T> {
     public void update(String statement) {
         try (final Connection conn = dataSource.getConnection()) {
             insertOrUpdate(conn, null, UPDATE + statement);
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -134,6 +140,9 @@ public class Sql<T> {
     public void update(T item, String statement) {
         try (final Connection conn = dataSource.getConnection()) {
             insertOrUpdate(conn, item, UPDATE + statement);
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -149,7 +158,11 @@ public class Sql<T> {
 
     public int delete(String statement) {
         try (final Connection conn = dataSource.getConnection()) {
-            return delete(conn, statement);
+            int delete = delete(conn, statement);
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
+            return delete;
         } catch (SQLException e) {
             throw new StorageException(e);
         }
