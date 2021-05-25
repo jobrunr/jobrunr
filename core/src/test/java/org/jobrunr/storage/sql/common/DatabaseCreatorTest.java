@@ -49,7 +49,9 @@ class DatabaseCreatorTest {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB1));
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
 
-        migrations.forEach(migration -> assertThat(databaseCreator.isMigrationApplied(migration)).isTrue());
+        migrations.forEach(migration -> assertThat(databaseCreator.isMigrationApplied(migration))
+                .describedAs("Expecting %s to be applied", migration)
+                .isTrue());
     }
 
     @Test

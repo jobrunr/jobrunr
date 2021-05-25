@@ -110,9 +110,7 @@ public class Sql<T> {
     public void insert(T item, String statement) {
         try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insertOrUpdate(conn, item, INSERT + statement);
-            if (!conn.getAutoCommit()) {
-                conn.commit();
-            }
+            tran.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -129,9 +127,7 @@ public class Sql<T> {
     public void update(String statement) {
         try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insertOrUpdate(conn, null, UPDATE + statement);
-            if (!conn.getAutoCommit()) {
-                conn.commit();
-            }
+            tran.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -140,9 +136,7 @@ public class Sql<T> {
     public void update(T item, String statement) {
         try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insertOrUpdate(conn, item, UPDATE + statement);
-            if (!conn.getAutoCommit()) {
-                conn.commit();
-            }
+            tran.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -157,11 +151,9 @@ public class Sql<T> {
     }
 
     public int delete(String statement) {
-        try (final Connection conn = dataSource.getConnection()) {
-            int delete = delete(conn, statement);
-            if (!conn.getAutoCommit()) {
-                conn.commit();
-            }
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
+            final int delete = delete(conn, statement);
+            tran.commit();
             return delete;
         } catch (SQLException e) {
             throw new StorageException(e);
@@ -215,8 +207,7 @@ public class Sql<T> {
 
     private int[] insertOrUpdateAll(List<T> batchCollection, String statement) {
         String parsedStatement = parse(statement);
-        try (final Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false);
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn, false)) {
             try (PreparedStatement ps = conn.prepareStatement(parsedStatement)) {
                 for (T object : batchCollection) {
                     setParams(ps, object);
