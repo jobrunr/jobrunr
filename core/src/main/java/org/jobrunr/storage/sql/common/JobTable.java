@@ -12,6 +12,7 @@ import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
+import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.utils.JobUtils;
 
 import javax.sql.DataSource;
@@ -195,22 +196,18 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertOneJob(Job jobToSave) {
-        try (Connection conn = dataSource.getConnection()) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insert(conn, jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
-            if (!conn.getAutoCommit()) {
-                conn.commit();
-            }
+            tran.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     void updateOneJob(Job jobToSave) {
-        try (Connection conn = dataSource.getConnection()) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             update(conn, jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
-            if (!conn.getAutoCommit()) {
-                conn.commit();
-            }
+            tran.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
         }

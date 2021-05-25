@@ -14,7 +14,7 @@ class CommonsDbcpMySQLStorageProviderTest extends AbstractMySQLStorageProviderTe
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new BasicDataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useSSL=false");
             dataSource.setUsername(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
         }

@@ -108,7 +108,7 @@ public class Sql<T> {
     }
 
     public void insert(T item, String statement) {
-        try (final Connection conn = dataSource.getConnection()) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insertOrUpdate(conn, item, INSERT + statement);
             if (!conn.getAutoCommit()) {
                 conn.commit();
@@ -127,7 +127,7 @@ public class Sql<T> {
     }
 
     public void update(String statement) {
-        try (final Connection conn = dataSource.getConnection()) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insertOrUpdate(conn, null, UPDATE + statement);
             if (!conn.getAutoCommit()) {
                 conn.commit();
@@ -138,7 +138,7 @@ public class Sql<T> {
     }
 
     public void update(T item, String statement) {
-        try (final Connection conn = dataSource.getConnection()) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction tran = new Transaction(conn)) {
             insertOrUpdate(conn, item, UPDATE + statement);
             if (!conn.getAutoCommit()) {
                 conn.commit();
@@ -222,10 +222,9 @@ public class Sql<T> {
                     setParams(ps, object);
                     ps.addBatch();
                 }
-                return ps.executeBatch();
-            } finally {
-                conn.commit();
-                conn.setAutoCommit(true);
+                final int[] result = ps.executeBatch();
+                tran.commit();
+                return result;
             }
         } catch (SQLException e) {
             throw new StorageException(e);

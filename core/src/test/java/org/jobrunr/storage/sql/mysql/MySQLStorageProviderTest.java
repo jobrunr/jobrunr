@@ -12,7 +12,7 @@ class MySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new MysqlDataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useSSL=false");
             dataSource.setUser(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
         }

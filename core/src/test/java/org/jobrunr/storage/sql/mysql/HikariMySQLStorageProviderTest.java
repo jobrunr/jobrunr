@@ -16,7 +16,7 @@ class HikariMySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
             HikariConfig config = new HikariConfig();
 
             config.setDriverClassName("com.mysql.jdbc.Driver");
-            config.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            config.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useSSL=false");
             config.setUsername(sqlContainer.getUsername());
             config.setPassword(sqlContainer.getPassword());
             dataSource = new HikariDataSource(config);

@@ -4,6 +4,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
+import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.testcontainers.containers.JdbcDatabaseContainer;
@@ -33,6 +34,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
     protected static void printSqlContainerDetails(JdbcDatabaseContainer<?> sqlContainer, Duration duration) {
         System.out.println("=========================================================");
+        System.out.println(" java version: " + System.getProperty("java.version"));
         System.out.println("   connection: " + sqlContainer.getJdbcUrl());
         System.out.println("         user: " + sqlContainer.getUsername());
         System.out.println("     password: " + sqlContainer.getPassword());
@@ -53,12 +55,12 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
     }
 
     private void drop(DataSource dataSource, String name) {
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setAutoCommit(true);
-            try (Statement statement = connection.createStatement()) {
-                statement.executeUpdate("drop " + name);
-                System.out.println("Dropped " + name);
-            }
+        try (final Connection connection = dataSource.getConnection();
+             final Transaction tran = new Transaction(connection);
+             final Statement statement = connection.createStatement()) {
+            statement.executeUpdate("drop " + name);
+            System.out.println("Dropped " + name);
+            tran.commit();
         } catch (SQLException e) {
             if (canNotIgnoreException(e)) {
                 System.out.println("Error dropping " + name);

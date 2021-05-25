@@ -11,7 +11,7 @@ class TomcatJdbcPoolMySQLStorageProviderTest extends AbstractMySQLStorageProvide
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new DataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useSSL=false");
             dataSource.setUsername(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
         }

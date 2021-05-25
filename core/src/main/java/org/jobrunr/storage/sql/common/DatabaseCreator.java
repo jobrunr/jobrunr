@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,24 +61,24 @@ public class DatabaseCreator {
     public void runMigrations() {
         getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
-                .sorted(comparing(migration -> migration.getFileName()))
+                .sorted(comparing(SqlMigration::getFileName))
                 .filter(this::isNewMigration)
                 .forEach(this::runMigration);
     }
 
     public void validateTables() {
         String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
-        try (Connection conn = getConnection()) {
-            conn.setAutoCommit(true);
-            try (Statement pSt = conn.createStatement()) {
-                for (String table : tables) {
-                    try (ResultSet rs = pSt.executeQuery("select count(*) from " + table)) {
-                        if (rs.next()) {
-                            int count = rs.getInt(1);
-                        }
+        try (final Connection conn = getConnection();
+             final Transaction tran = new Transaction(conn);
+             final Statement pSt = conn.createStatement()) {
+            for (String table : tables) {
+                try (ResultSet rs = pSt.executeQuery("select count(*) from " + table)) {
+                    if (rs.next()) {
+                        int count = rs.getInt(1);
                     }
                 }
             }
+            tran.commit();
         } catch (Exception becauseTableDoesNotExist) {
             throw new JobRunrException("Not all required tables are available by JobRunr!");
         }
@@ -89,12 +90,12 @@ public class DatabaseCreator {
 
     protected void runMigration(SqlMigration migration) {
         LOGGER.info("Running migration {}", migration);
-        try (Connection conn = getConnection()) {
-            conn.setAutoCommit(true);
+        try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
             if (!isEmptyMigration(migration)) {
                 runMigrationStatement(conn, migration);
             }
             updateMigrationsTable(conn, migration);
+            tran.commit();
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error running database migration " + migration.getFileName(), e));
         }
@@ -128,17 +129,18 @@ public class DatabaseCreator {
     }
 
     protected boolean isMigrationApplied(SqlMigration migration) {
-        try (Connection conn = getConnection()) {
-            conn.setAutoCommit(true);
-            try (PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
-                pSt.setString(1, migration.getFileName());
-                try (ResultSet rs = pSt.executeQuery()) {
-                    if (rs.next()) {
-                        return rs.getInt(1) == 1;
-                    }
-                    return false;
+        try (final Connection conn = getConnection();
+             final Transaction tran = new Transaction(conn);
+             final PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
+            boolean result = false;
+            pSt.setString(1, migration.getFileName());
+            try (ResultSet rs = pSt.executeQuery()) {
+                if (rs.next()) {
+                    result = rs.getInt(1) == 1;
                 }
             }
+            tran.commit();
+            return result;
         } catch (Exception becauseTableDoesNotExist) {
             return false;
         }
