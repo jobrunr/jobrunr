@@ -26,23 +26,37 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 /**
- * The main class to cofigure JobRunr
+ * The main class to configure JobRunr
  */
 public class JobRunrConfiguration {
 
+    JobActivator jobActivator;
     final JsonMapper jsonMapper;
     final JobMapper jobMapper;
     final List<JobFilter> jobFilters;
     StorageProvider storageProvider;
     BackgroundJobServer backgroundJobServer;
     JobRunrDashboardWebServer dashboardWebServer;
-    JobActivator jobActivator;
     JobRunrJMXExtensions jmxExtension;
 
     JobRunrConfiguration() {
         this.jsonMapper = determineJsonMapper();
         this.jobMapper = new JobMapper(jsonMapper);
         this.jobFilters = new ArrayList<>();
+    }
+
+    /**
+     * The {@link JobActivator} is used to resolve jobs from the IoC framework
+     *
+     * @param jobActivator the {@link JobActivator} to use
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useJobActivator(JobActivator jobActivator) {
+        if (this.backgroundJobServer != null) {
+            throw new IllegalStateException("Please configure the JobActivator before the BackgroundJobServer.");
+        }
+        this.jobActivator = jobActivator;
+        return this;
     }
 
     /**
@@ -222,20 +236,6 @@ public class JobRunrConfiguration {
             this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, configuration);
             this.dashboardWebServer.start();
         }
-        return this;
-    }
-
-    /**
-     * The {@link JobActivator} is used to resolve jobs from the IoC framework
-     *
-     * @param jobActivator the {@link JobActivator} to use
-     * @return the same configuration instance which provides a fluent api
-     */
-    public JobRunrConfiguration useJobActivator(JobActivator jobActivator) {
-        if (this.backgroundJobServer != null) {
-            throw new IllegalStateException("Please configure the JobActivator before the BackgroundJobServer.");
-        }
-        this.jobActivator = jobActivator;
         return this;
     }
 

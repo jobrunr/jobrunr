@@ -31,6 +31,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
@@ -231,7 +232,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public JobRunrMetadata getMetadata(String name, String owner) {
         try (final Jedis jedis = getJedis()) {
-            Map<String, String> fieldMap = jedis.hgetAll(metadataKey(keyPrefix, JobRunrMetadata.toId(name, owner)));
+            Map<String, String> fieldMap = jedis.hgetAll(metadataKey(keyPrefix, toId(name, owner)));
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
                     fieldMap.get(Metadata.FIELD_OWNER),

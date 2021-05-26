@@ -59,6 +59,7 @@ import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDI
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
@@ -232,7 +233,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public JobRunrMetadata getMetadata(String name, String owner) {
         try {
-            GetResponse response = client.get(new GetRequest(metadataIndexName(), JobRunrMetadata.toId(name, owner)), RequestOptions.DEFAULT);
+            GetResponse response = client.get(new GetRequest(metadataIndexName(), toId(name, owner)), RequestOptions.DEFAULT);
             return elasticSearchDocumentMapper.toMetadata(response);
         } catch (IOException e) {
             throw new StorageException(e);

@@ -2,8 +2,8 @@ package org.jobrunr.dashboard;
 
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
-import org.jobrunr.dashboard.server.TeenyHttpHandler;
-import org.jobrunr.dashboard.server.TeenyWebServer;
+import org.jobrunr.dashboard.server.HttpExchangeHandler;
+import org.jobrunr.dashboard.server.WebServer;
 import org.jobrunr.dashboard.server.http.RedirectHttpHandler;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
@@ -31,7 +31,7 @@ public class JobRunrDashboardWebServer {
     private final int port;
     private final BasicAuthenticator basicAuthenticator;
 
-    private TeenyWebServer teenyWebServer;
+    private WebServer webServer;
 
     public static void main(String[] args) {
         new JobRunrDashboardWebServer(null, new JacksonJsonMapper());
@@ -62,30 +62,30 @@ public class JobRunrDashboardWebServer {
         JobRunrApiHandler dashboardHandler = createApiHandler(storageProvider, jsonMapper);
         JobRunrSseHandler sseHandler = createSSeHandler(storageProvider, jsonMapper);
 
-        teenyWebServer = new TeenyWebServer(port);
+        webServer = new WebServer(port);
         registerContext(redirectHttpHandler);
         registerSecuredContext(staticFileHandler);
         registerSecuredContext(dashboardHandler);
         registerSecuredContext(sseHandler);
-        teenyWebServer.start();
+        webServer.start();
 
         LOGGER.info("JobRunr Dashboard started at http://{}:{}/dashboard",
-                teenyWebServer.getWebServerHostAddress(),
-                teenyWebServer.getWebServerHostPort());
+                webServer.getWebServerHostAddress(),
+                webServer.getWebServerHostPort());
     }
 
     public void stop() {
-        if (teenyWebServer == null) return;
-        teenyWebServer.stop();
+        if (webServer == null) return;
+        webServer.stop();
         LOGGER.info("JobRunr dashboard stopped");
-        teenyWebServer = null;
+        webServer = null;
     }
 
-    HttpContext registerContext(TeenyHttpHandler httpHandler) {
-        return teenyWebServer.createContext(httpHandler);
+    HttpContext registerContext(HttpExchangeHandler httpHandler) {
+        return webServer.createContext(httpHandler);
     }
 
-    HttpContext registerSecuredContext(TeenyHttpHandler httpHandler) {
+    HttpContext registerSecuredContext(HttpExchangeHandler httpHandler) {
         HttpContext httpContext = registerContext(httpHandler);
         if (basicAuthenticator != null) {
             httpContext.setAuthenticator(basicAuthenticator);

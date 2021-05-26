@@ -1,21 +1,19 @@
 package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
+import org.jobrunr.dashboard.server.AbstractHttpExchangeHandler;
 import org.jobrunr.dashboard.server.http.handlers.ExceptionHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestMethodHandlers;
-import org.jobrunr.dashboard.server.http.url.TeenyMatchUrl;
+import org.jobrunr.dashboard.server.http.url.MatchUrl;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.*;
-
-public class RestHttpHandler extends AbstractTeenyHttpHandler {
+public class RestHttpHandler extends AbstractHttpExchangeHandler {
 
     private final String contextPath;
     private final JsonMapper jsonMapper;
@@ -35,24 +33,23 @@ public class RestHttpHandler extends AbstractTeenyHttpHandler {
     }
 
     public void get(String url, HttpRequestHandler httpRequestHandler) {
-        requestHandlers.get(GET).put(url, httpRequestHandler);
+        requestHandlers.get(url, httpRequestHandler);
     }
 
     public void put(String url, HttpRequestHandler httpRequestHandler) {
-        requestHandlers.get(PUT).put(url, httpRequestHandler);
+        requestHandlers.put(url, httpRequestHandler);
     }
 
     public void post(String url, HttpRequestHandler httpRequestHandler) {
-        requestHandlers.get(POST).put(url, httpRequestHandler);
+        requestHandlers.post(url, httpRequestHandler);
     }
 
     public void delete(String url, HttpRequestHandler httpRequestHandler) {
-        requestHandlers.get(OPTIONS).put(url, HttpRequestHandlers.ok);
-        requestHandlers.get(DELETE).put(url, httpRequestHandler);
+        requestHandlers.delete(url, httpRequestHandler);
     }
 
     public void head(String url, HttpRequestHandler httpRequestHandler) {
-        requestHandlers.get(HEAD).put(url, httpRequestHandler);
+        requestHandlers.head(url, httpRequestHandler);
     }
 
     public <T extends Exception> void withExceptionMapping(Class<T> clazz, ExceptionHandler<T> exceptionHandler) {
@@ -61,9 +58,9 @@ public class RestHttpHandler extends AbstractTeenyHttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) {
-        TeenyMatchUrl actualUrl = new TeenyMatchUrl(httpExchange.getRequestURI().toString().replace(contextPath, ""));
+        MatchUrl actualUrl = new MatchUrl(httpExchange.getRequestURI().toString().replace(contextPath, ""));
 
-        HttpRequestMethodHandlers httpRequestMethodHandlers = requestHandlers.get(httpExchange.getRequestMethod());
+        HttpRequestMethodHandlers httpRequestMethodHandlers = requestHandlers.getAllRequestMethodHandlers(httpExchange.getRequestMethod());
         Optional<String> matchingUrl = httpRequestMethodHandlers.findMatchingUrl(actualUrl);
         if (matchingUrl.isPresent()) {
             matchingUrl

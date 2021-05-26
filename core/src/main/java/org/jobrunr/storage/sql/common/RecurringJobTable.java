@@ -9,6 +9,8 @@ import javax.sql.DataSource;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_ID;
+import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_JOB_AS_JSON;
 
 public class RecurringJobTable extends Sql<RecurringJob> {
 
@@ -18,11 +20,11 @@ public class RecurringJobTable extends Sql<RecurringJob> {
         this.jobMapper = jobMapper;
         this
                 .using(dataSource)
-                .with("jobAsJson", jobMapper::serializeRecurringJob);
+                .with(FIELD_JOB_AS_JSON, jobMapper::serializeRecurringJob);
     }
 
     public RecurringJobTable withId(String id) {
-        with("id", id);
+        with(FIELD_ID, id);
         return this;
     }
 
@@ -49,6 +51,6 @@ public class RecurringJobTable extends Sql<RecurringJob> {
     }
 
     private RecurringJob toRecurringJob(SqlResultSet resultSet) {
-        return jobMapper.deserializeRecurringJob(resultSet.asString("jobAsJson"));
+        return jobMapper.deserializeRecurringJob(resultSet.asString(FIELD_JOB_AS_JSON));
     }
 }

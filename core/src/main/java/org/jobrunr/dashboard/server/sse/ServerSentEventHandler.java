@@ -1,13 +1,13 @@
 package org.jobrunr.dashboard.server.sse;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
+import org.jobrunr.dashboard.server.AbstractHttpExchangeHandler;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class ServerSentEventHandler extends AbstractTeenyHttpHandler {
+public abstract class ServerSentEventHandler extends AbstractHttpExchangeHandler {
 
     private final String contextPath;
     private final Set<SseExchange> sseExchanges;

@@ -2,11 +2,24 @@ package org.jobrunr.storage.nosql.mongo.mapper;
 
 import org.bson.Document;
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 
 import java.time.Duration;
 import java.util.Date;
 
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_WORKER_POOL_SIZE;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.getIdAsUUID;
 
 public class BackgroundJobServerStatusDocumentMapper {
@@ -14,31 +27,31 @@ public class BackgroundJobServerStatusDocumentMapper {
     public Document toInsertDocument(BackgroundJobServerStatus serverStatus) {
         final Document document = new Document();
         document.put("_id", serverStatus.getId());
-        document.put(BackgroundJobServers.FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
-        document.put(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
-        document.put(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter().toString());
-        document.put(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER, serverStatus.getPermanentlyDeleteDeletedJobsAfter().toString());
-        document.put(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, serverStatus.getFirstHeartbeat());
-        document.put(BackgroundJobServers.FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
-        document.put(BackgroundJobServers.FIELD_IS_RUNNING, serverStatus.isRunning());
-        document.put(BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, serverStatus.getSystemTotalMemory());
-        document.put(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
-        document.put(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
-        document.put(BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, serverStatus.getProcessMaxMemory());
-        document.put(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
-        document.put(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory());
-        document.put(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad());
+        document.put(FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
+        document.put(FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
+        document.put(FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter().toString());
+        document.put(FIELD_DELETE_DELETED_JOBS_AFTER, serverStatus.getPermanentlyDeleteDeletedJobsAfter().toString());
+        document.put(FIELD_FIRST_HEARTBEAT, serverStatus.getFirstHeartbeat());
+        document.put(FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
+        document.put(FIELD_IS_RUNNING, serverStatus.isRunning());
+        document.put(FIELD_SYSTEM_TOTAL_MEMORY, serverStatus.getSystemTotalMemory());
+        document.put(FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
+        document.put(FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
+        document.put(FIELD_PROCESS_MAX_MEMORY, serverStatus.getProcessMaxMemory());
+        document.put(FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
+        document.put(FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory());
+        document.put(FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad());
         return document;
     }
 
     public Document toUpdateDocument(BackgroundJobServerStatus serverStatus) {
         final Document document = new Document();
-        document.put(BackgroundJobServers.FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
-        document.put(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
-        document.put(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
-        document.put(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
-        document.put(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory());
-        document.put(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad());
+        document.put(FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
+        document.put(FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
+        document.put(FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
+        document.put(FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
+        document.put(FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory());
+        document.put(FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad());
 
         return new Document("$set", document);
     }
@@ -47,20 +60,20 @@ public class BackgroundJobServerStatusDocumentMapper {
 
         return new BackgroundJobServerStatus(
                 getIdAsUUID(document),
-                document.getInteger(BackgroundJobServers.FIELD_WORKER_POOL_SIZE),
-                document.getInteger(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS),
-                Duration.parse(document.getString(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),
-                Duration.parse(document.getString(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER)),
-                document.get(BackgroundJobServers.FIELD_FIRST_HEARTBEAT, Date.class).toInstant(),
-                document.get(BackgroundJobServers.FIELD_LAST_HEARTBEAT, Date.class).toInstant(),
-                document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING),
-                document.getLong(BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY),
-                document.getLong(BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY),
-                document.getDouble(BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD),
-                document.getLong(BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY),
-                document.getLong(BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY),
-                document.getLong(BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY),
-                document.getDouble(BackgroundJobServers.FIELD_PROCESS_CPU_LOAD)
+                document.getInteger(FIELD_WORKER_POOL_SIZE),
+                document.getInteger(FIELD_POLL_INTERVAL_IN_SECONDS),
+                Duration.parse(document.getString(FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),
+                Duration.parse(document.getString(FIELD_DELETE_DELETED_JOBS_AFTER)),
+                document.get(FIELD_FIRST_HEARTBEAT, Date.class).toInstant(),
+                document.get(FIELD_LAST_HEARTBEAT, Date.class).toInstant(),
+                document.getBoolean(FIELD_IS_RUNNING),
+                document.getLong(FIELD_SYSTEM_TOTAL_MEMORY),
+                document.getLong(FIELD_SYSTEM_FREE_MEMORY),
+                document.getDouble(FIELD_SYSTEM_CPU_LOAD),
+                document.getLong(FIELD_PROCESS_MAX_MEMORY),
+                document.getLong(FIELD_PROCESS_FREE_MEMORY),
+                document.getLong(FIELD_PROCESS_ALLOCATED_MEMORY),
+                document.getDouble(FIELD_PROCESS_CPU_LOAD)
         );
     }
 }

@@ -11,13 +11,15 @@ nexusPublishing {
     }
 }
 
+subprojects {
+    group = 'org.jobrunr'
+    version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
+}
+
 configure(subprojects.findAll {it.name != 'platform'}) {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
-
-    group = 'org.jobrunr'
-    version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -47,6 +49,7 @@ configure(subprojects.findAll {it.name != 'platform'}) {
     }
 
     test {
+        finalizedBy jacocoTestReport
         reports.junitXml.destination = file("/tmp/reports/$project.name")
         reports.html.destination = file("/tmp/reports/$project.name")
 
@@ -60,8 +63,9 @@ configure(subprojects.findAll {it.name != 'platform'}) {
     jacoco {
         toolVersion = "0.8.7"
     }
-    tasks['jacocoTestReport'].dependsOn test
+
     jacocoTestReport {
+        dependsOn test
         reports {
             xml.enabled true
         }

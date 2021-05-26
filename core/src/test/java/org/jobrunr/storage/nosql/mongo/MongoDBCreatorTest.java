@@ -14,7 +14,6 @@ import org.jobrunr.storage.nosql.mongo.migrations.M001_CreateJobCollection;
 import org.jobrunr.storage.nosql.mongo.migrations.M002_CreateRecurringJobCollection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -32,12 +31,9 @@ class MongoDBCreatorTest {
     @Container
     private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
 
-    @Mock
-    private MongoDBStorageProvider mongoDBStorageProviderMock;
-
     @Test
     public void testMigrationsHappyPath() {
-        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoDBStorageProviderMock, mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME);
+        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME);
 
         assertThat(mongoDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_CreateJobCollection.class))).isTrue();
         assertThat(mongoDBCreator.isNewMigration(new NoSqlMigrationByClass(M002_CreateRecurringJobCollection.class))).isTrue();
@@ -51,7 +47,7 @@ class MongoDBCreatorTest {
 
     @Test
     public void testMigrationsConcurrent() {
-        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoDBStorageProviderMock, mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME) {
+        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME) {
             @Override
             protected boolean isNewMigration(NoSqlMigration noSqlMigration) {
                 return true;

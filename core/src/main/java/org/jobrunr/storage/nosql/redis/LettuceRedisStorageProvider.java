@@ -36,6 +36,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
@@ -249,7 +250,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public JobRunrMetadata getMetadata(String name, String owner) {
         try (final StatefulRedisConnection connection = getConnection()) {
             RedisCommands commands = connection.sync();
-            Map<String, String> fieldMap = commands.hgetall(metadataKey(keyPrefix, JobRunrMetadata.toId(name, owner)));
+            Map<String, String> fieldMap = commands.hgetall(metadataKey(keyPrefix, toId(name, owner)));
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
                     fieldMap.get(Metadata.FIELD_OWNER),

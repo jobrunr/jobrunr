@@ -14,12 +14,14 @@ public abstract class NoSqlDatabaseCreator<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NoSqlDatabaseCreator.class);
 
-    private final NoSqlStorageProvider noSqlStorageProvider;
     private final NoSqlDatabaseMigrationsProvider databaseMigrationsProvider;
 
     protected NoSqlDatabaseCreator(NoSqlStorageProvider noSqlStorageProvider) {
-        this.noSqlStorageProvider = noSqlStorageProvider;
-        this.databaseMigrationsProvider = new NoSqlDatabaseMigrationsProvider(this.noSqlStorageProvider.getClass());
+        this(noSqlStorageProvider.getClass());
+    }
+
+    public NoSqlDatabaseCreator(Class<? extends NoSqlStorageProvider> noSqlStorageProviderClass) {
+        this.databaseMigrationsProvider = new NoSqlDatabaseMigrationsProvider(noSqlStorageProviderClass);
     }
 
     public void runMigrations() {

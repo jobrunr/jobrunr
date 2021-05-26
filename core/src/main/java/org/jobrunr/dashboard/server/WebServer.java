@@ -13,15 +13,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class TeenyWebServer {
+public class WebServer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TeenyWebServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebServer.class);
 
     private final HttpServer httpServer;
     private final ExecutorService executorService;
-    private final Set<TeenyHttpHandler> httpHandlers;
+    private final Set<HttpExchangeHandler> httpHandlers;
 
-    public TeenyWebServer(int port) {
+    public WebServer(int port) {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(port), 0);
             executorService = Executors.newCachedThreadPool();
@@ -32,7 +32,7 @@ public class TeenyWebServer {
         }
     }
 
-    public HttpContext createContext(TeenyHttpHandler httpHandler) {
+    public HttpContext createContext(HttpExchangeHandler httpHandler) {
         httpHandlers.add(httpHandler);
         return httpServer.createContext(httpHandler.getContextPath(), httpHandler);
     }
@@ -66,7 +66,7 @@ public class TeenyWebServer {
         return httpServer.getAddress().getPort();
     }
 
-    private void closeHttpHandler(TeenyHttpHandler httpHandler) {
+    private void closeHttpHandler(HttpExchangeHandler httpHandler) {
         try {
             httpHandler.close();
         } catch (Exception shouldNotHappen) {

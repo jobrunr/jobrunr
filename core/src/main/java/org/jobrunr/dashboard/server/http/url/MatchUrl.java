@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class TeenyMatchUrl {
+public class MatchUrl {
 
     private final String url;
     private final List<UrlPathPart> pathParts;
 
-    public TeenyMatchUrl(String url) {
+    public MatchUrl(String url) {
         this.url = url;
         String path = url;
         if (path.indexOf('?') > -1) path = path.substring(0, path.indexOf('?'));
@@ -33,7 +33,7 @@ public class TeenyMatchUrl {
     public boolean matches(String matchUrl) {
         if (url.equals(matchUrl)) return true;
 
-        Iterator<UrlPathPart> iter1 = new TeenyMatchUrl(matchUrl).pathParts.iterator();
+        Iterator<UrlPathPart> iter1 = new MatchUrl(matchUrl).pathParts.iterator();
         Iterator<UrlPathPart> iter2 = pathParts.iterator();
         while (iter1.hasNext() && iter2.hasNext())
             if (!(iter1.next().matches(iter2.next()))) return false;
@@ -41,9 +41,9 @@ public class TeenyMatchUrl {
         return !iter1.hasNext() && !iter2.hasNext();
     }
 
-    public TeenyRequestUrl toRequestUrl(String matchUrl) {
+    public RequestUrl toRequestUrl(String matchUrl) {
         Map<String, String> params = new HashMap<>();
-        Iterator<UrlPathPart> iter1 = new TeenyMatchUrl(matchUrl).pathParts.iterator();
+        Iterator<UrlPathPart> iter1 = new MatchUrl(matchUrl).pathParts.iterator();
         Iterator<UrlPathPart> iter2 = pathParts.iterator();
         while (iter1.hasNext() && iter2.hasNext()) {
             UrlPathPart matchUrlPathPart = iter1.next();
@@ -52,6 +52,6 @@ public class TeenyMatchUrl {
                 params.put(matchUrlPathPart.part(), actualUrlPathPart.part());
             }
         }
-        return new TeenyRequestUrl(url, params);
+        return new RequestUrl(url, params);
     }
 }

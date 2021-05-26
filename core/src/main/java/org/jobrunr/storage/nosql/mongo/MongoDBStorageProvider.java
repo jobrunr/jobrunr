@@ -69,6 +69,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
@@ -198,7 +199,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public JobRunrMetadata getMetadata(String name, String owner) {
-        Document document = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), JobRunrMetadata.toId(name, owner))).first();
+        Document document = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), toId(name, owner))).first();
         return metadataDocumentMapper.toJobRunrMetadata(document);
     }
 
@@ -451,7 +452,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     private void runMigrations(MongoClient mongoClient, String dbName) {
-        new MongoDBCreator(this, mongoClient, dbName).runMigrations();
+        new MongoDBCreator(mongoClient, dbName).runMigrations();
     }
 
     // used to perform query analysis for performance tuning

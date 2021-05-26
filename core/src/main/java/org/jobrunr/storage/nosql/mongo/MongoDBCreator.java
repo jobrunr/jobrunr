@@ -22,8 +22,8 @@ public class MongoDBCreator extends NoSqlDatabaseCreator<MongoMigration> {
 
     private final MongoCollection<Document> migrationCollection;
 
-    public MongoDBCreator(MongoDBStorageProvider mongoDBStorageProvider, MongoClient mongoClient, String dbName) {
-        super(mongoDBStorageProvider);
+    public MongoDBCreator(MongoClient mongoClient, String dbName) {
+        super(MongoDBStorageProvider.class);
         this.jobrunrDatabase = mongoClient.getDatabase(dbName);
         this.migrationCollection = jobrunrDatabase.getCollection(Migrations.NAME);
     }

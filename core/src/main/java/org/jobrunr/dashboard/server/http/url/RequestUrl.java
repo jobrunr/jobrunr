@@ -13,12 +13,12 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-public class TeenyRequestUrl {
+public class RequestUrl {
     private final String url;
     private final Map<String, String> params;
     private final Map<String, List<String>> queryParams;
 
-    public TeenyRequestUrl(String url, Map<String, String> params) {
+    public RequestUrl(String url, Map<String, String> params) {
         this.url = url;
         this.params = params;
         this.queryParams = initQueryParams(url);

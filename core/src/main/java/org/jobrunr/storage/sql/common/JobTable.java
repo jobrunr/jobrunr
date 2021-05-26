@@ -29,10 +29,12 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
@@ -58,27 +60,17 @@ public class JobTable extends Sql<Job> {
     }
 
     public JobTable withId(UUID id) {
-        with("id", id);
+        with(FIELD_ID, id);
         return this;
     }
 
     public JobTable withState(StateName state) {
-        with("state", state);
-        return this;
-    }
-
-    public JobTable withPriority(int priority) {
-        with("priority", priority);
-        return this;
-    }
-
-    public JobTable withAwaitingOn(UUID awaitingOn) {
-        with("awaitingOn", awaitingOn);
+        with(FIELD_STATE, state);
         return this;
     }
 
     public JobTable withScheduledAt(Instant scheduledBefore) {
-        with("scheduledAt", scheduledBefore);
+        with(FIELD_SCHEDULED_AT, scheduledBefore);
         return this;
     }
 
@@ -133,12 +125,6 @@ public class JobTable extends Sql<Job> {
     public long countJobs(StateName state) {
         return withState(state)
                 .selectCount("from jobrunr_jobs where state = :state");
-    }
-
-    public long countJobs(StateName state, int queuePriority) {
-        return withState(state)
-                .withPriority(queuePriority)
-                .selectCount("from jobrunr_jobs where state = :state and priority = :priority");
     }
 
     public List<Job> selectJobsByState(StateName state, PageRequest pageRequest) {

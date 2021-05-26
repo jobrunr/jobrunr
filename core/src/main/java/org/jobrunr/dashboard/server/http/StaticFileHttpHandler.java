@@ -1,7 +1,7 @@
 package org.jobrunr.dashboard.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jobrunr.dashboard.server.AbstractTeenyHttpHandler;
+import org.jobrunr.dashboard.server.AbstractHttpExchangeHandler;
 import org.jobrunr.utils.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-public class StaticFileHttpHandler extends AbstractTeenyHttpHandler {
+public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StaticFileHttpHandler.class);
 

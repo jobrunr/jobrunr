@@ -1,12 +1,12 @@
 package org.jobrunr.dashboard.server.http;
 
-import org.jobrunr.dashboard.server.http.url.TeenyRequestUrl;
+import org.jobrunr.dashboard.server.http.url.RequestUrl;
 
 public class HttpRequest {
 
-    private final TeenyRequestUrl requestUrl;
+    private final RequestUrl requestUrl;
 
-    public HttpRequest(TeenyRequestUrl requestUrl) {
+    public HttpRequest(RequestUrl requestUrl) {
         this.requestUrl = requestUrl;
     }
 

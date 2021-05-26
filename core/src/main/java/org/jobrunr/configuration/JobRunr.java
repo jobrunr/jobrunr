@@ -10,14 +10,14 @@ import org.jobrunr.server.BackgroundJobServer;
  * <h5>An example:</h5>
  * <pre>
  *      JobRunr.configure()
- *                 .useJobStorageProvider(jobStorageProvider)
  *                 .useJobActivator(jobActivator)
- *                 .useDefaultBackgroundJobServer()
+ *                 .useJobStorageProvider(jobStorageProvider)
+ *                 .useBackgroundJobServer()
  *                 .useJmxExtensions()
  *                 .useDashboard()
  *                 .initialize();
  * </pre>
- *
+ * <p>
  * Both the backgroundJobServer and the dashboard fluent API allow to be enabled or disabled using ENV variables which
  * is handy in docker containers.
  * <h5>An example:</h5>
@@ -27,7 +27,7 @@ import org.jobrunr.server.BackgroundJobServer;
  *     JobRunr.configure()
  *                 .useJobStorageProvider(jobStorageProvider)
  *                 .useJobActivator(jobActivator)
- *                 .useDefaultBackgroundJobServerIf(isBackgroundJobServerEnabled)
+ *                 .useBackgroundJobServerIf(isBackgroundJobServerEnabled)
  *                 .useDashboardIf(isDashboardEnabled)
  *                 .useJmxExtensions()
  *                 .initialize();
