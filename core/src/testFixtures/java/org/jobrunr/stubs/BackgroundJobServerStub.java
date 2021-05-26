@@ -5,17 +5,18 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 public class BackgroundJobServerStub extends BackgroundJobServer {
 
-    public BackgroundJobServerStub(StorageProvider storageProvider) {
-        this(storageProvider, usingStandardBackgroundJobServerConfiguration());
+    public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper) {
+        this(storageProvider, jsonMapper, usingStandardBackgroundJobServerConfiguration());
     }
 
-    public BackgroundJobServerStub(StorageProvider storageProvider, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        super(storageProvider, null, backgroundJobServerConfiguration);
+    public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        super(storageProvider, jsonMapper, null, backgroundJobServerConfiguration);
     }
 
     @Override

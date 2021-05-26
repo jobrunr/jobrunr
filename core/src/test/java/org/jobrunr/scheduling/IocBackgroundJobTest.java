@@ -56,13 +56,12 @@ public class IocBackgroundJobTest {
         testServiceForIoC = new TestServiceForIoC("a constructor arg");
         testServiceInterface = testServiceForIoC;
         SimpleJobActivator jobActivator = new SimpleJobActivator(testServiceForIoC, new TestService());
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
-                .useStorageProvider(storageProvider)
                 .useJobActivator(jobActivator)
-                .useBackgroundJobServer(backgroundJobServer)
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
                 .initialize();
-        backgroundJobServer.start();
+        backgroundJobServer = JobRunr.getBackgroundJobServer();
     }
 
     @AfterEach

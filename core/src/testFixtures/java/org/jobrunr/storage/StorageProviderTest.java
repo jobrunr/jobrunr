@@ -73,10 +73,11 @@ public abstract class StorageProviderTest {
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
         cleanup();
+        final JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
         JobRunr.configure();
         storageProvider = getStorageProvider();
-        backgroundJobServer = new BackgroundJobServerStub(storageProvider);
-        jobMapper = new JobMapper(new JacksonJsonMapper());
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper);
+        jobMapper = new JobMapper(jsonMapper);
     }
 
     @AfterEach

@@ -1,12 +1,8 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
 import java.util.Calendar;
 
 import static java.util.Arrays.asList;
@@ -35,16 +31,12 @@ public abstract class AbstractMain {
 
     private void startBackgroundJobServer(boolean startRunning) throws Exception {
         StorageProvider storageProvider = initStorageProvider();
-        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider);
         JobRunr
                 .configure()
                 .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(backgroundJobServer)
+                .useBackgroundJobServerIf(startRunning)
                 .useDashboard()
                 .initialize();
-        if (startRunning) {
-            backgroundJobServer.start();
-        }
 
         logStartWaitForeverAndAddShutdownHook();
     }

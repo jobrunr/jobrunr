@@ -4,6 +4,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,8 +40,9 @@ class ServerZooKeeperTest {
     @BeforeEach
     void setUp() {
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
-        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        backgroundJobServer = new BackgroundJobServer(storageProvider, null, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5).andWorkerCount(10));
+        final JsonMapper jsonMapper = new JacksonJsonMapper();
+        storageProvider.setJobMapper(new JobMapper(jsonMapper));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5).andWorkerCount(10));
     }
 
     @AfterEach

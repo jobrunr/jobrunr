@@ -15,6 +15,7 @@ import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,29 +40,31 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private final BackgroundJobServerStatus serverStatus;
     private final StorageProvider storageProvider;
+    private final JsonMapper jsonMapper;
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
+    private final JobDefaultFilters jobDefaultFilters;
     private volatile Boolean isMaster;
 
     private ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
-    private JobDefaultFilters jobDefaultFilters;
 
-    public BackgroundJobServer(StorageProvider storageProvider) {
-        this(storageProvider, null);
+    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
+        this(storageProvider, jsonMapper, null);
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator) {
-        this(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration());
+    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
+        this(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration());
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
+    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null)
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
 
         this.serverStatus = new BackgroundJobServerStatus(configuration.backgroundJobServerWorkerPolicy.getWorkerCount(), configuration.pollIntervalInSeconds, configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter);
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
+        this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
         this.serverZooKeeper = createServerZooKeeper();
@@ -73,11 +76,17 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public synchronized void start() {
-        if (isStarted()) return;
-        serverStatus.start();
-        startZooKeepers();
-        startWorkers();
-        runStartupTasks();
+        start(true);
+    }
+
+    public synchronized void start(boolean guard) {
+        if (guard) {
+            if (isStarted()) return;
+            serverStatus.start();
+            startZooKeepers();
+            startWorkers();
+            runStartupTasks();
+        }
     }
 
     public synchronized void pauseProcessing() {
@@ -142,8 +151,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return storageProvider;
     }
 
+    public JsonMapper getJsonMapper() {
+        return jsonMapper;
+    }
+
     public void setJobFilters(List<JobFilter> jobFilters) {
-        this.jobDefaultFilters = new JobDefaultFilters(jobFilters);
+        this.jobDefaultFilters.addAll(jobFilters);
     }
 
     JobDefaultFilters getJobFilters() {

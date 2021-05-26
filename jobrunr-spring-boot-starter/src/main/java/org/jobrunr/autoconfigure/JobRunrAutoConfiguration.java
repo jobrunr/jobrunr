@@ -49,8 +49,8 @@ public class JobRunrAutoConfiguration {
     @Bean(destroyMethod = "stop")
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
-    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, backgroundJobServerConfiguration);
+    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, backgroundJobServerConfiguration);
         backgroundJobServer.start();
         return backgroundJobServer;
     }

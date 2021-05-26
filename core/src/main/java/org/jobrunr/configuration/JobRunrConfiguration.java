@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
@@ -75,8 +76,8 @@ public class JobRunrConfiguration {
      *
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useDefaultBackgroundJobServer() {
-        return useDefaultBackgroundJobServerIf(true);
+    public JobRunrConfiguration useBackgroundJobServer() {
+        return useBackgroundJobServerIf(true);
     }
 
     /**
@@ -85,12 +86,8 @@ public class JobRunrConfiguration {
      * @param guard whether to start a BackgroundJobServer or not.
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useDefaultBackgroundJobServerIf(boolean guard) {
-        if (guard) {
-            this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator));
-            this.backgroundJobServer.start();
-        }
-        return this;
+    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard) {
+        return useBackgroundJobServerIf(guard, usingStandardBackgroundJobServerConfiguration());
     }
 
     /**
@@ -99,10 +96,9 @@ public class JobRunrConfiguration {
      * @param workerCount the number of worker threads to use
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useDefaultBackgroundJobServer(int workerCount) {
-        return useDefaultBackgroundJobServerIf(true, workerCount);
+    public JobRunrConfiguration useBackgroundJobServer(int workerCount) {
+        return useBackgroundJobServerIf(true, workerCount);
     }
-
 
     /**
      * Provides a default {@link BackgroundJobServer} if the guard is true and that is configured using a given number of threads.
@@ -111,8 +107,8 @@ public class JobRunrConfiguration {
      * @param workerCount the number of worker threads to use
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useDefaultBackgroundJobServerIf(boolean guard, int workerCount) {
-        return useDefaultBackgroundJobServerIf(guard, usingStandardBackgroundJobServerConfiguration().andWorkerCount(workerCount));
+    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, int workerCount) {
+        return useBackgroundJobServerIf(guard, usingStandardBackgroundJobServerConfiguration().andWorkerCount(workerCount));
     }
 
     /**
@@ -121,8 +117,19 @@ public class JobRunrConfiguration {
      * @param configuration the configuration for the backgroundJobServer to use
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useDefaultBackgroundJobServer(BackgroundJobServerConfiguration configuration) {
-        return useDefaultBackgroundJobServerIf(true, configuration);
+    public JobRunrConfiguration useBackgroundJobServer(BackgroundJobServerConfiguration configuration) {
+        return useBackgroundJobServerIf(true, configuration);
+    }
+
+    /**
+     * Provides a default {@link BackgroundJobServer} that is configured using the given {@link BackgroundJobServerConfiguration}
+     *
+     * @param configuration            the configuration for the backgroundJobServer to use
+     * @param startBackgroundJobServer whether to start the background job server immediately
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useBackgroundJobServer(BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServer) {
+        return useBackgroundJobServerIf(true, configuration, startBackgroundJobServer);
     }
 
     /**
@@ -132,35 +139,23 @@ public class JobRunrConfiguration {
      * @param configuration the configuration for the backgroundJobServer to use
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useDefaultBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration) {
-        if (guard) {
-            this.useBackgroundJobServer(new BackgroundJobServer(storageProvider, jobActivator, configuration));
-            this.backgroundJobServer.start();
-        }
-        return this;
+    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration) {
+        return useBackgroundJobServerIf(guard, configuration, true);
     }
 
     /**
-     * Provides JobRunr with the given {@link BackgroundJobServer}
+     * Provides a default {@link BackgroundJobServer} if the guard is true and that is configured using the given {@link BackgroundJobServerConfiguration}
      *
-     * @param backgroundJobServer the backgroundJobServer to use
+     * @param guard                    whether to create a BackgroundJobServer or not.
+     * @param configuration            the configuration for the backgroundJobServer to use
+     * @param startBackgroundJobServer whether to start the background job server immediately
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useBackgroundJobServer(BackgroundJobServer backgroundJobServer) {
-        return useBackgroundJobServerIf(true, backgroundJobServer);
-    }
-
-    /**
-     * Provides JobRunr with the given {@link BackgroundJobServer} if the guard is true
-     *
-     * @param guard               whether to start a BackgroundJobServer or not.
-     * @param backgroundJobServer the backgroundJobServer to use
-     * @return the same configuration instance which provides a fluent api
-     */
-    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServer backgroundJobServer) {
+    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServer) {
         if (guard) {
-            this.backgroundJobServer = backgroundJobServer;
+            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, configuration);
             this.backgroundJobServer.setJobFilters(jobFilters);
+            this.backgroundJobServer.start(startBackgroundJobServer);
         }
         return this;
     }
@@ -181,11 +176,7 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useDashboardIf(boolean guard) {
-        if (guard) {
-            this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper);
-            this.dashboardWebServer.start();
-        }
-        return this;
+        return useDashboardIf(guard, usingStandardDashboardConfiguration());
     }
 
     /**
@@ -206,11 +197,7 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useDashboardIf(boolean guard, int dashboardPort) {
-        if (guard) {
-            this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, dashboardPort);
-            this.dashboardWebServer.start();
-        }
-        return this;
+        return useDashboardIf(guard, usingStandardDashboardConfiguration().andPort(dashboardPort));
     }
 
     /**
@@ -245,6 +232,9 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useJobActivator(JobActivator jobActivator) {
+        if (this.backgroundJobServer != null) {
+            throw new IllegalStateException("Please configure the JobActivator before the BackgroundJobServer.");
+        }
         this.jobActivator = jobActivator;
         return this;
     }

@@ -5,6 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.jobrunr.utils.Stopwatch;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class LoadTest {
         try (Stopwatch start = stopwatch.start()) {
             List<BackgroundJobServer> backgroundJobServerList = new ArrayList<>();
             for (int i = 0; i < amountOfServers; i++) {
-                final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(jobStorageProvider, null, usingStandardBackgroundJobServerConfiguration().andWorkerCount(10));
+                final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(jobStorageProvider, new JacksonJsonMapper(), null, usingStandardBackgroundJobServerConfiguration().andWorkerCount(10));
                 backgroundJobServerList.add(backgroundJobServer);
                 backgroundJobServer.start();
                 Thread.sleep(1000L);

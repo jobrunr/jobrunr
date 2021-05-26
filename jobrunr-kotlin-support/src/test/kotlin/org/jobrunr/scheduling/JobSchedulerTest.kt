@@ -28,7 +28,7 @@ class JobSchedulerTest {
         .useJobActivator(object : JobActivator {
             override fun <T : Any> activateJob(type: Class<T>): T? = get(type)
         })
-        .useDefaultBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
+        .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
         .initialize()
 
     private fun <T> get(type: Class<T>): T? {

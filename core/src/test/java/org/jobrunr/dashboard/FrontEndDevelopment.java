@@ -7,7 +7,6 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.SevereExceptionManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -44,19 +43,17 @@ public class FrontEndDevelopment {
         storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, DAYS))).build());
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, DAYS))).build());
 
-        BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider);
         JobRunr
                 .configure()
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
-                .useBackgroundJobServer(backgroundJobServer)
+                .useBackgroundJobServer()
                 .initialize();
 
-        backgroundJobServer.start();
         BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(11, 42), ZoneId.of("America/New_York"),
                 x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        SevereExceptionManager severeExceptionManager = new SevereExceptionManager(backgroundJobServer);
+        SevereExceptionManager severeExceptionManager = new SevereExceptionManager(JobRunr.getBackgroundJobServer());
         new Timer().schedule(new TimerTask() {
                                  @Override
                                  public void run() {

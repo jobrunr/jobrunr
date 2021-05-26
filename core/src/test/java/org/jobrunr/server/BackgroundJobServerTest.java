@@ -71,12 +71,13 @@ class BackgroundJobServerTest {
         testServiceForIoC.reset();
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
         jobActivator = new SimpleJobActivator(testServiceForIoC);
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jobActivator, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
-        logger = LoggerAssert.initFor(backgroundJobServer);
         JobRunr.configure()
+                .useJobActivator(jobActivator)
                 .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(backgroundJobServer)
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5), false)
                 .initialize();
+        backgroundJobServer = JobRunr.getBackgroundJobServer();
+        logger = LoggerAssert.initFor(backgroundJobServer);
     }
 
     @AfterEach

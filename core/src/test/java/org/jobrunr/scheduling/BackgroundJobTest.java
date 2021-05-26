@@ -65,13 +65,12 @@ public class BackgroundJobTest {
         testService = new TestService();
         testService.reset();
         storageProvider = new InMemoryStorageProvider();
-        backgroundJobServer = new BackgroundJobServer(storageProvider, null, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5));
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(backgroundJobServer)
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
                 .initialize();
 
-        backgroundJobServer.start();
+        backgroundJobServer = JobRunr.getBackgroundJobServer();
     }
 
     @AfterEach
