@@ -28,6 +28,8 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
@@ -338,9 +340,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 order = PageRequest.Order.valueOf(sortAndOrder[1].toUpperCase());
             }
             Comparator<Job> comparator = null;
-            if (sortField.equalsIgnoreCase("createdAt")) {
+            if (sortField.equalsIgnoreCase(FIELD_CREATED_AT)) {
                 comparator = Comparator.comparing(Job::getCreatedAt);
-            } else if (sortField.equalsIgnoreCase("updatedAt")) {
+            } else if (sortField.equalsIgnoreCase(FIELD_UPDATED_AT)) {
                 comparator = Comparator.comparing(Job::getUpdatedAt);
             } else {
                 throw new IllegalStateException("An unsupported sortOrder was requested: " + sortField);

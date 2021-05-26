@@ -5,13 +5,16 @@ import org.jobrunr.storage.PageRequest;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+
 public class SqlPageRequestMapper {
 
     private static final Set<String> allowedSortColumns = new HashSet<>();
 
     static {
-        allowedSortColumns.add("createdAt");
-        allowedSortColumns.add("updatedAt");
+        allowedSortColumns.add(FIELD_CREATED_AT);
+        allowedSortColumns.add(FIELD_UPDATED_AT);
     }
 
     public String map(PageRequest pageRequest) {

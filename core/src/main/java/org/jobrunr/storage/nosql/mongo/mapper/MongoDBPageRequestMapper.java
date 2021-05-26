@@ -11,14 +11,16 @@ import java.util.Set;
 
 import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 
 public class MongoDBPageRequestMapper {
 
     private static final Set<String> allowedSortColumns = new HashSet<>();
 
     static {
-        allowedSortColumns.add("createdAt");
-        allowedSortColumns.add("updatedAt");
+        allowedSortColumns.add(FIELD_CREATED_AT);
+        allowedSortColumns.add(FIELD_UPDATED_AT);
     }
 
     public Bson map(PageRequest pageRequest) {
