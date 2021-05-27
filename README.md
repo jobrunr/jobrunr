@@ -120,7 +120,7 @@ Installation
 <dependency>
     <groupId>org.jobrunr</groupId>
     <artifactId>jobrunr</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```
  
@@ -128,7 +128,7 @@ Installation
  
 Just add the dependency to JobRunr:
  ```groovy
-implementation 'org.jobrunr:jobrunr:3.0.0'
+implementation 'org.jobrunr:jobrunr:3.0.1'
 ```
 
 Configuration
@@ -159,10 +159,10 @@ public class JobRunrApplication {
     @Bean
     public JobScheduler initJobRunr(DataSource dataSource, JobActivator jobActivator) {
         return JobRunr.configure()
+                .useJobActivator(jobActivator)
                 .useStorageProvider(SqlStorageProviderFactory
                           .using(dataSource))
-                .useJobActivator(jobActivator)
-                .useDefaultBackgroundJobServer()
+                .useBackgroundJobServer()
                 .useDashboard()
                 .initialize();
     }
