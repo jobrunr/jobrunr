@@ -64,7 +64,7 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(Gson.class))
-                .run((context) -> assertThat(context).getBean("jsonMapper").isInstanceOf(JacksonJsonMapper.class));
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(JacksonJsonMapper.class));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(ObjectMapper.class))
-                .run((context) -> assertThat(context).getBean("jsonMapper").isInstanceOf(GsonJsonMapper.class));
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(GsonJsonMapper.class));
     }
 
     @Test
