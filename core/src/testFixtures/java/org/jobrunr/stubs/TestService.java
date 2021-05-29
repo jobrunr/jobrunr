@@ -28,6 +28,10 @@ public class TestService implements TestServiceInterface {
         return processedJobs;
     }
 
+    public void doWork(Runnable runnable) throws Exception {
+        runnable.run();
+    }
+
     public void doWorkWithCommand(Command command) throws Exception {
         System.out.println("Doing some work... ");
         command.doWork();

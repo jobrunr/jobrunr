@@ -59,8 +59,13 @@ public class JobDetailsGeneratorUtils {
     public static Object createObjectViaMethod(Object objectWithMethodToInvoke, String methodName, Class<?>[] paramTypes, Object[] parameters) {
         try {
             Class<?> clazz = objectWithMethodToInvoke.getClass();
+            if (clazz.isSynthetic())
+                throw new IllegalArgumentException("You are passing another (nested) Java 8 lambda to JobRunr - this is not supported. Try to convert your lambda to a class or a method.");
             Method method = getMethod(clazz, methodName, paramTypes);
+            method.setAccessible(true);
             return method.invoke(objectWithMethodToInvoke, parameters);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
         }

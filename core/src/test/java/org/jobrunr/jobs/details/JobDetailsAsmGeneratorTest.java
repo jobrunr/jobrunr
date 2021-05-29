@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -98,6 +99,22 @@ class JobDetailsAsmGeneratorTest {
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("You are passing null to your background job - JobRunr prevents this to fail fast.");
+    }
+
+    @Test
+    void testJobLambdaCallInstanceMethod_OtherLambda() {
+        Supplier<Boolean> supplier = () -> {
+            System.out.println("Dit is een test");
+            return true;
+        };
+        JobLambda job = () -> {
+            if (supplier.get()) {
+                System.out.println("In nested lambda");
+            }
+        };
+        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("You are passing another (nested) Java 8 lambda to JobRunr - this is not supported. Try to convert your lambda to a class or a method.");
     }
 
     @Test
