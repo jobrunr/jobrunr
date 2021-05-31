@@ -3,6 +3,7 @@ package org.jobrunr.dashboard;
 import org.jobrunr.dashboard.server.http.RestHttpHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandler;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
+import org.jobrunr.dashboard.ui.model.VersionUIModel;
 import org.jobrunr.dashboard.ui.model.problems.ProblemsManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
@@ -40,6 +41,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         post("/recurring-jobs/:id/trigger", triggerRecurringJob());
 
         get("/servers", getBackgroundJobServers());
+        get("/version", getVersion());
 
         withExceptionMapping(JobNotFoundException.class, (exc, resp) -> resp.statusCode(404));
     }
@@ -120,5 +122,9 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler getBackgroundJobServers() {
         return (request, response) -> response.asJson(storageProvider.getBackgroundJobServers());
+    }
+
+    private HttpRequestHandler getVersion() {
+        return (request, response) -> response.asJson(new VersionUIModel());
     }
 }

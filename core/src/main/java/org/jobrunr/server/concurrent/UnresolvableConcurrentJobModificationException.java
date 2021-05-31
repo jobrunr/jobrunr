@@ -33,7 +33,7 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
         diagnostics
                 .withLine("Job id: " + localJob.getId())
                 .withIndentedLine("Local version: " + localJob.getVersion() + "; Storage version: " + jobFromStorage.getVersion())
-                .withIndentedLine("Local state: " + localJob.getState() + "; Storage state: " + jobFromStorage.getState())
-                .withIndentedLine("Local last updated: " + localJob.getUpdatedAt() + "; Storage last updated: " + jobFromStorage.getUpdatedAt());
+                .withIndentedLine("Local state: " + localJob.getState() + " (at " + localJob.getUpdatedAt() + ") <- " + localJob.getJobState(-1).getName() + " (at " + localJob.getJobState(-1).getUpdatedAt() + ") <- " + localJob.getJobState(-2).getName() + " (at " + localJob.getJobState(-2).getUpdatedAt() + ")")
+                .withIndentedLine("Storage state: " + jobFromStorage.getState() + " (at " + jobFromStorage.getUpdatedAt() + ") <- " + jobFromStorage.getJobState(-1).getName() + " (at " + jobFromStorage.getJobState(-1).getUpdatedAt() + ") <- " + jobFromStorage.getJobState(-2).getName() + " (at " + jobFromStorage.getJobState(-2).getUpdatedAt() + ")");
     }
 }
