@@ -49,8 +49,8 @@ public class JobRunrAutoConfiguration {
     @Bean(destroyMethod = "stop")
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
-    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, backgroundJobServerConfiguration);
+    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
         backgroundJobServer.start();
         return backgroundJobServer;
     }
@@ -74,8 +74,8 @@ public class JobRunrAutoConfiguration {
     @Bean(destroyMethod = "stop")
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.dashboard", name = "enabled", havingValue = "true")
-    public JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration) {
-        JobRunrDashboardWebServer dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, dashboardWebServerConfiguration);
+    public JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration) {
+        JobRunrDashboardWebServer dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jobRunrJsonMapper, dashboardWebServerConfiguration);
         dashboardWebServer.start();
         return dashboardWebServer;
     }
@@ -98,15 +98,15 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JobMapper jobMapper(JsonMapper jsonMapper) {
-        return new JobMapper(jsonMapper);
+    public JobMapper jobMapper(JsonMapper jobRunrJsonMapper) {
+        return new JobMapper(jobRunrJsonMapper);
     }
 
     @Configuration
     @ConditionalOnClass(Gson.class)
     public class JobRunrGsonAutoConfiguration {
 
-        @Bean(name = "jsonMapper")
+        @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
         public JsonMapper gsonJsonMapper() {
             return new GsonJsonMapper();
@@ -117,7 +117,7 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnClass(ObjectMapper.class)
     public class JobRunrJacksonAutoConfiguration {
 
-        @Bean(name = "jsonMapper")
+        @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
         public JsonMapper jacksonJsonMapper() {
             return new JacksonJsonMapper();
@@ -130,7 +130,7 @@ public class JobRunrAutoConfiguration {
             "classpath:META-INF/services/javax.json.spi.JsonProvider"})
     public class JobRunrJsonbAutoConfiguration {
 
-        @Bean(name = "jsonMapper")
+        @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
         public JsonMapper jsonbJsonMapper() {
             return new JsonbJsonMapper();
