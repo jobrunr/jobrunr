@@ -217,10 +217,4 @@ public class JobTable extends Sql<Job> {
     private Job toJob(SqlResultSet resultSet) {
         return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
     }
-
-    private static void setId(Job job) {
-        if (job.getId() == null) {
-            job.setId(UUID.randomUUID());
-        }
-    }
 }
