@@ -358,7 +358,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     public JobStats getJobStats() {
         Instant instant = Instant.now();
         final Document succeededJobStats = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID)).first();
-        final long succeededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
+        final long allTimeSucceededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
         final List<Document> aggregates = jobCollection.aggregate(asList(
                 match(ne(Jobs.FIELD_STATE, null)),
@@ -371,7 +371,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         Long enqueued = getCount(ENQUEUED, aggregates);
         Long processing = getCount(PROCESSING, aggregates);
         Long failed = getCount(FAILED, aggregates);
-        Long succeeded = getCount(SUCCEEDED, aggregates) + succeededCount;
+        Long succeeded = getCount(SUCCEEDED, aggregates);
         Long deleted = getCount(DELETED, aggregates);
 
         final int recurringJobCount = (int) recurringJobCollection.countDocuments();
@@ -386,6 +386,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                 processing,
                 failed,
                 succeeded,
+                allTimeSucceededCount,
                 deleted,
                 recurringJobCount,
                 backgroundJobServerCount

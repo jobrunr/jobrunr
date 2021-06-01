@@ -33,9 +33,9 @@ public class StubDataProvider {
             storageProvider.save(jobs);
         }
         storageProvider.save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
-        storageProvider.save(aSucceededJob().withoutId().build());
-        storageProvider.save(aFailedJobWithRetries().withoutId().build());
-        storageProvider.save(aFailedJobThatEventuallySucceeded().withoutId().build());
+        storageProvider.save(aSucceededJob().build());
+        storageProvider.save(aFailedJobWithRetries().build());
+        storageProvider.save(aFailedJobThatEventuallySucceeded().build());
         return this;
     }
 

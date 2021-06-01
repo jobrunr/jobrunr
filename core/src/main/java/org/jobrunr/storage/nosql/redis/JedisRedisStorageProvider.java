@@ -511,7 +511,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             final Long scheduledCount = scheduledResponse.get();
             final Long enqueuedCount = enqueuedResponse.get();
             final Long processingCount = processingResponse.get();
-            final Long succeededCount = succeededResponse.get() + parseLong(totalAmountSucceeded.get() != null ? totalAmountSucceeded.get() : "0");
+            final Long succeededCount = succeededResponse.get();
+            final Long allTimeSucceededCount = parseLong(totalAmountSucceeded.get() != null ? totalAmountSucceeded.get() : "0");
             final Long failedCount = failedResponse.get();
             final Long deletedCount = deletedResponse.get();
             final Long total = scheduledCount + enqueuedCount + processingCount + succeededResponse.get() + failedCount;
@@ -526,6 +527,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     processingCount,
                     failedCount,
                     succeededCount,
+                    allTimeSucceededCount,
                     deletedCount,
                     recurringJobsCount.intValue(),
                     backgroundJobServerCount.intValue()

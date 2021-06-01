@@ -287,7 +287,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),
                 getJobsStream(FAILED).count(),
-                getJobsStream(SUCCEEDED).count() + getMetadata(STATS_NAME, STATS_OWNER).getValueAsLong(),
+                getJobsStream(SUCCEEDED).count(),
+                getMetadata(STATS_NAME, STATS_OWNER).getValueAsLong(),
                 getJobsStream(DELETED).count(),
                 recurringJobs.size(),
                 backgroundJobServers.size()

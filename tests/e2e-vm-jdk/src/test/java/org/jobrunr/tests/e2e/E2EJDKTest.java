@@ -31,7 +31,7 @@ public class E2EJDKTest {
                 .useStorageProvider(new InMemoryStorageProvider())
                 .useJobActivator(this::jobActivator)
                 .useDashboard()
-                .useDefaultBackgroundJobServer()
+                .useBackgroundJobServer()
                 .initialize();
     }
 

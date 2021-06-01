@@ -13,6 +13,7 @@ import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import LoadingIndicator from "../LoadingIndicator";
 import Problems from "./problems/problems-notifications";
+import VersionFooter from "../utils/version-footer";
 
 const useStyles = makeStyles(theme => ({
     alert: {
@@ -92,6 +93,7 @@ const Overview = () => {
                 }
             </div>
             <RealtimeGraph/>
+            <VersionFooter/>
         </div>
     );
 };

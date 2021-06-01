@@ -18,6 +18,7 @@ import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
+import VersionFooter from "../utils/version-footer";
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -104,69 +105,72 @@ const Servers = React.memo(() => {
             </Box>
             {isLoading
                 ? <LoadingIndicator/>
-                : <Paper className={classes.paper}>
-                    {servers.length < 1
-                        ? <Typography variant="body1" className={classes.noItemsFound}>No servers found</Typography>
-                        : <>
-                            <TableContainer>
-                                <Table className={classes.table} aria-label="servers overview">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className={classes.idColumn}>Id</TableCell>
-                                            <TableCell>Workers</TableCell>
-                                            <TableCell>Created</TableCell>
-                                            <TableCell>Last heartbeat</TableCell>
-                                            <TableCell>Free memory</TableCell>
-                                            <TableCell>Cpu load</TableCell>
-                                            <TableCell>Running?</TableCell>
-                                            {/*<TableCell>Actions</TableCell>*/}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {servers.map(server => (
-                                            <TableRow key={server.id}>
-                                                <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                    <Link color="initial" onClick={() => handleOpen(server.id)}>
-                                                        {server.id}
-                                                    </Link>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {server.workerPoolSize}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <TimeAgo date={new Date(server.firstHeartbeat)}
-                                                             title={new Date(server.firstHeartbeat).toString()}/>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <TimeAgo date={new Date(server.lastHeartbeat)}
-                                                             title={new Date(server.lastHeartbeat).toString()}/>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {humanFileSize(server.processFreeMemory, true)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {(server.systemCpuLoad * 100).toFixed(2)} %
-                                                </TableCell>
-                                                <TableCell>
-                                                    {server.running
-                                                        ? <CogClockwise className={classes.spin}/>
-                                                        : <NotInterestedIcon/>
-                                                    }
-                                                </TableCell>
-                                                {/*<TableCell>*/}
-                                                {/*    {server.running*/}
-                                                {/*        ? <Pause />*/}
-                                                {/*        : <Play />*/}
-                                                {/*    }*/}
-                                                {/*</TableCell>*/}
+                : <>
+                    <Paper className={classes.paper}>
+                        {servers.length < 1
+                            ? <Typography variant="body1" className={classes.noItemsFound}>No servers found</Typography>
+                            : <>
+                                <TableContainer>
+                                    <Table className={classes.table} aria-label="servers overview">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell className={classes.idColumn}>Id</TableCell>
+                                                <TableCell>Workers</TableCell>
+                                                <TableCell>Created</TableCell>
+                                                <TableCell>Last heartbeat</TableCell>
+                                                <TableCell>Free memory</TableCell>
+                                                <TableCell>Cpu load</TableCell>
+                                                <TableCell>Running?</TableCell>
+                                                {/*<TableCell>Actions</TableCell>*/}
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </>
-                    }
-                </Paper>
+                                        </TableHead>
+                                        <TableBody>
+                                            {servers.map(server => (
+                                                <TableRow key={server.id}>
+                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                        <Link color="initial" onClick={() => handleOpen(server.id)}>
+                                                            {server.id}
+                                                        </Link>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {server.workerPoolSize}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TimeAgo date={new Date(server.firstHeartbeat)}
+                                                                 title={new Date(server.firstHeartbeat).toString()}/>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TimeAgo date={new Date(server.lastHeartbeat)}
+                                                                 title={new Date(server.lastHeartbeat).toString()}/>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {humanFileSize(server.processFreeMemory, true)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {(server.systemCpuLoad * 100).toFixed(2)} %
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {server.running
+                                                            ? <CogClockwise className={classes.spin}/>
+                                                            : <NotInterestedIcon/>
+                                                        }
+                                                    </TableCell>
+                                                    {/*<TableCell>*/}
+                                                    {/*    {server.running*/}
+                                                    {/*        ? <Pause />*/}
+                                                    {/*        : <Play />*/}
+                                                    {/*    }*/}
+                                                    {/*</TableCell>*/}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </>
+                        }
+                    </Paper>
+                    <VersionFooter/>
+                </>
             }
 
             {serverRef.current &&

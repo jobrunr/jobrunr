@@ -15,7 +15,7 @@ compileTestJava {
 }
 
 dependencies {
-    implementation 'org.jobrunr:jobrunr:[0.+,1.+]'
+    implementation 'org.jobrunr:jobrunr:3.0.0'
     implementation 'org.slf4j:slf4j-simple:1.7.30'
 
     testImplementation 'org.jobrunr:jobrunr:[0.+,1.+]:test-fixtures'

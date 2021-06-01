@@ -548,7 +548,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                     buckets.stream().filter(bucket -> StateName.ENQUEUED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     buckets.stream().filter(bucket -> StateName.PROCESSING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     buckets.stream().filter(bucket -> StateName.FAILED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
-                    buckets.stream().filter(bucket -> StateName.SUCCEEDED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L) + (int) getResponse.getSource().getOrDefault(FIELD_VALUE, 0L),
+                    buckets.stream().filter(bucket -> StateName.SUCCEEDED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
+                    ((Number) getResponse.getSource().getOrDefault(FIELD_VALUE, 0L)).longValue(),
                     buckets.stream().filter(bucket -> StateName.DELETED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     (int) client.count(new CountRequest(recurringJobIndexName()), RequestOptions.DEFAULT).getCount(),
                     (int) client.count(new CountRequest(backgroundJobServerIndexName()), RequestOptions.DEFAULT).getCount()

@@ -637,7 +637,8 @@ public abstract class StorageProviderTest {
         assertThat(jobStats.getEnqueued()).isEqualTo(3);
         assertThat(jobStats.getProcessing()).isEqualTo(1);
         assertThat(jobStats.getFailed()).isEqualTo(2);
-        assertThat(jobStats.getSucceeded()).isEqualTo(6);
+        assertThat(jobStats.getSucceeded()).isEqualTo(1);
+        assertThat(jobStats.getAllTimeSucceeded()).isEqualTo(5);
         assertThat(jobStats.getDeleted()).isEqualTo(1);
         assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);

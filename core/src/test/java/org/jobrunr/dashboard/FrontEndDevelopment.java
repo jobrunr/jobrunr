@@ -36,7 +36,7 @@ public class FrontEndDevelopment {
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
 
         StubDataProvider.using(storageProvider)
-                //.addALotOfEnqueuedJobsThatTakeSomeTime()
+                .addALotOfEnqueuedJobsThatTakeSomeTime()
                 //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 .addSomeRecurringJobs();
 

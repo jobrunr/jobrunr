@@ -549,7 +549,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             final Long scheduledCount = getCounterValue(scheduledResponse);
             final Long enqueuedCount = getCounterValue(enqueuedResponse);
             final Long processingCount = getCounterValue(processingResponse);
-            final Long succeededCount = getCounterValue(succeededResponse, totalSucceededAmountCounterResponse);
+            final Long succeededCount = getCounterValue(succeededResponse);
+            final Long allTimeSucceededCount = getAllTimeSucceededCounterValue(totalSucceededAmountCounterResponse);
             final Long failedCount = getCounterValue(failedResponse);
             final Long deletedCount = getCounterValue(deletedResponse);
             final Long total = scheduledCount + enqueuedCount + processingCount + succeededCount + failedCount;
@@ -564,6 +565,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                     processingCount,
                     failedCount,
                     succeededCount,
+                    allTimeSucceededCount,
                     deletedCount,
                     recurringJobsCount.intValue(),
                     backgroundJobServerCount.intValue()
@@ -645,9 +647,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         }
     }
 
-    private Long getCounterValue(RedisFuture<Long> countResponse, RedisFuture<String> totalSucceededAmountCounterResponse) {
+    private long getAllTimeSucceededCounterValue(RedisFuture<String> allTimeSucceededAmountCounterResponse) {
         try {
-            return getCounterValue(countResponse) + parseLong(totalSucceededAmountCounterResponse.get());
+            return parseLong(allTimeSucceededAmountCounterResponse.get());
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             return 0L;

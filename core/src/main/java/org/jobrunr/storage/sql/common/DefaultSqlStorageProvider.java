@@ -257,10 +257,10 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
                 resultSet.asLong("processing"),
                 resultSet.asLong("failed"),
                 resultSet.asLong("succeeded"),
+                resultSet.asLong("allTimeSucceeded"),
                 resultSet.asLong("deleted"),
                 resultSet.asInt("nbrOfRecurringJobs"),
                 resultSet.asInt("nbrOfBackgroundJobServers")
-
         );
     }
 

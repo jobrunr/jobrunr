@@ -7,6 +7,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import LoadingIndicator from "../LoadingIndicator";
 import JobsTable from "../utils/jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
+import VersionFooter from "../utils/version-footer";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -80,12 +81,16 @@ const JobsView = (props) => {
             </Box>
             {isLoading
                 ? <LoadingIndicator/>
-                : <Paper>
-                    <JobsTable jobPage={jobPage} jobState={jobState}/>
-                </Paper>
+                :
+                <>
+                    <Paper>
+                        <JobsTable jobPage={jobPage} jobState={jobState}/>
+                    </Paper>
+                    <VersionFooter/>
+                </>
             }
         </main>
     );
-}
+};
 
 export default JobsView;

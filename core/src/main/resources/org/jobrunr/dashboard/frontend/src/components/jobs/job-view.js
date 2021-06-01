@@ -27,6 +27,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import SucceededNotification from "./notifications/succeeded-notification";
 import DeletedNotification from "./notifications/deleted-notification";
+import VersionFooter from "../utils/version-footer";
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -262,6 +263,7 @@ const JobView = (props) => {
                 }
                 </>
             }
+            <VersionFooter/>
         </main>
     );
 };
