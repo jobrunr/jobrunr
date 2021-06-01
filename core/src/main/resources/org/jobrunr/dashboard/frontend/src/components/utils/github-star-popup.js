@@ -61,14 +61,15 @@ export default function GithubStarPopup() {
                 <DialogContentText id="github-dialog-description">
                     You've been using JobRunr for about a week now - I hope you like it! <br/><br/>
                     If JobRunr makes your life easier, could you please <a
-                    href="https://github.com/jobrunr/jobrunr/stargazers" target="_blank" rel="noopener">star the project
+                    href="https://github.com/jobrunr/jobrunr/stargazers" target="_blank" rel="noreferrer">star the
+                    project
                     on Github</a> (if you have not done so already) or write a small success story in the <a
                     href="https://github.com/jobrunr/jobrunr/discussions/categories/show-and-tell">Show and
                     tell</a> category of <a href="https://github.com/jobrunr/jobrunr/discussions" target="_blank"
-                                            rel="noopener">Github discussions</a>? <em>You would do me a huge
+                                            rel="noreferrer">Github discussions</a>? <em>You would do me a huge
                     favor!</em><br/><br/>
                     If not, can you please start a <a href="https://github.com/jobrunr/jobrunr/discussions"
-                                                      target="_blank" rel="noopener">Github discussion</a> and tell me
+                                                      target="_blank" rel="noreferrer">Github discussion</a> and tell me
                     what's giving you a hard time?<br/><br/>
                     Thanks for your support!
                 </DialogContentText>
