@@ -14,7 +14,6 @@ const useStyles = makeStyles(theme => ({
 export default function VersionFooter() {
 
     const classes = useStyles();
-    const [isLoading, setIsLoading] = React.useState(true);
     const stats = statsState.getStats();
 
     const [jobRunrInfo, setJobRunrInfo] = React.useState({version: '0.0.0-SNAPSHOT', succeededJobs: 0});
@@ -25,7 +24,6 @@ export default function VersionFooter() {
             .then(res => res.json())
             .then(response => {
                 setJobRunrInfo(response);
-                setIsLoading(false);
             })
             .catch(error => console.log(error));
     }, []);
