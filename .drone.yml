@@ -183,26 +183,20 @@ steps:
       - name: maven-local
         path: /root/.m2
 
-  - name: update readme
+  - name: update and push readme
     image: jobrunr.io/build-container:1.0
+    environment:
+      GITHUB_PAT:
+        from_secret: GITHUB_TOKEN
     commands:
       - rm -f *.hprof
       - sed -i "s@<version>.*</version>@<version>${DRONE_TAG}</version>@g" README.md # replace version in README
       - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:${DRONE_TAG}'@g" README.md # replace version in README
-      - git config --global --add url."git@github.com:".insteadOf "https://github.com/"
-
-  - name: push updated readme
-    image: appleboy/drone-git-push
-    settings:
-      branch: master
-      remote_name: origin
-      ssh_key:
-        from_secret: GITHUB_SSH_KEY
-      force: false
-      commit: true
-      commit_message: "Update readme to new version [CI SKIP]"
-      author_name: drone-bot
-      author_email: drone-bot@jobrunr.io
+      - git config --global user.email "drone-bot@jobrunr.io"
+      - git config --global user.name "drone-bot"
+      - git add README.md
+      - git commit -m "Update readme to version ${DRONE_TAG} [CI SKIP]"
+      - git push https://$(GITHUB_PAT)@github.com/jobrunr/jobrunr.git
 
   - name: slack
     image: plugins/slack
