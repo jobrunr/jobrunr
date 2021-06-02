@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 
 class JobDetailsAsmGeneratorTest {
 
@@ -342,7 +343,7 @@ class JobDetailsAsmGeneratorTest {
                 .hasMethodName("println")
                 .hasArg(obj -> obj.toString().startsWith("This is a test: ")
                         && obj.toString().contains(" 6; 5.3; 5.3; 3; true; Value1;")
-                        && obj.toString().contains(LocalDateTime.now().withNano(0).toString()));
+                        && obj.toString().contains(substringBeforeLast(LocalDateTime.now().toString(), ":")));
     }
 
     @Test

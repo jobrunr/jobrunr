@@ -12,6 +12,7 @@ import org.jobrunr.jobs.lambdas.JobLambda
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream
 import org.jobrunr.stubs.TestService
 import org.jobrunr.stubs.TestServiceInterface
+import org.jobrunr.utils.StringUtils.substringBeforeLast
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Path
@@ -269,7 +270,7 @@ class JobDetailsAsmGeneratorForKotlinTest {
                 .hasArg { obj: Any ->
                     (obj.toString().startsWith("This is a test: ")
                             && obj.toString().contains(" 6; 5.3; 5.3; 3; true; Value1;")
-                            && obj.toString().contains(LocalDateTime.now().withNano(0).toString()))
+                            && obj.toString().contains(substringBeforeLast(LocalDateTime.now().toString(), ":")))
                 }
     }
 
