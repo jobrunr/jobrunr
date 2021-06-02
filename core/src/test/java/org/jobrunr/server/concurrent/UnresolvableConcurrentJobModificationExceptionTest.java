@@ -21,8 +21,8 @@ class UnresolvableConcurrentJobModificationExceptionTest {
 
         final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().AsMarkDown();
         assertThat(markDown)
-                .containsPattern("SUCCEEDED (.*) <- PROCESSING (.*) <- ENQUEUED")
-                .containsPattern("FAILED (.*) <- PROCESSING (.*) <- ENQUEUED");
+                .containsPattern("SUCCEEDED (.*) ← PROCESSING (.*) ← ENQUEUED")
+                .containsPattern("FAILED (.*) ← PROCESSING (.*) ← ENQUEUED");
     }
 
     @Test
@@ -36,7 +36,7 @@ class UnresolvableConcurrentJobModificationExceptionTest {
         final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().AsMarkDown();
         assertThat(markDown)
                 .containsPattern("ENQUEUED")
-                .containsPattern("FAILED (.*) <- PROCESSING (.*) <- ENQUEUED");
+                .containsPattern("FAILED (.*) ← PROCESSING (.*) ← ENQUEUED");
     }
 
 }

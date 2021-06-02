@@ -43,7 +43,7 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
         for (int i = 1; i <= jobStatesToShow; i++) {
             result.append(job.getJobState(-i).getName() + " (at " + job.getJobState(-i).getUpdatedAt() + ")");
             if (i < jobStatesToShow) {
-                result.append(" <- ");
+                result.append(" ← ");
             }
         }
         return result.toString();
