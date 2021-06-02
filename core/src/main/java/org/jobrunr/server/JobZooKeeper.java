@@ -72,16 +72,9 @@ public class JobZooKeeper implements Runnable {
             runStartTime = System.currentTimeMillis();
             if (backgroundJobServer.isUnAnnounced()) return;
 
-            if (canOnboardNewWork()) {
-                if (backgroundJobServer.isMaster()) {
-                    runMasterTasks();
-                }
-
-                updateJobsThatAreBeingProcessed();
-                checkForEnqueuedJobs();
-            } else {
-                updateJobsThatAreBeingProcessed();
-            }
+            updateJobsThatAreBeingProcessed();
+            runMasterTasksIfCurrentServerIsMaster();
+            onboardNewWorkIfPossible();
         } catch (Exception e) {
             if (e instanceof SevereJobRunrException) {
                 severeExceptionManager.handle((SevereJobRunrException) e);
@@ -95,12 +88,14 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    void runMasterTasks() {
-        checkForRecurringJobs();
-        checkForScheduledJobs();
-        checkForOrphanedJobs();
-        checkForSucceededJobsThanCanGoToDeletedState();
-        checkForJobsThatCanBeDeleted();
+    void runMasterTasksIfCurrentServerIsMaster() {
+        if (backgroundJobServer.isMaster()) {
+            checkForRecurringJobs();
+            checkForScheduledJobs();
+            checkForOrphanedJobs();
+            checkForSucceededJobsThanCanGoToDeletedState();
+            checkForJobsThatCanBeDeleted();
+        }
     }
 
     boolean canOnboardNewWork() {
@@ -150,6 +145,13 @@ public class JobZooKeeper implements Runnable {
     void updateJobsThatAreBeingProcessed() {
         LOGGER.debug("Updating currently processed jobs... ");
         processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), Job::updateProcessing);
+    }
+
+    void onboardNewWorkIfPossible() {
+        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
+        if (canOnboardNewWork()) {
+            checkForEnqueuedJobs();
+        }
     }
 
     void checkForEnqueuedJobs() {
