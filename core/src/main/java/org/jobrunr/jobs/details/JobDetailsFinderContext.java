@@ -4,10 +4,14 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.details.instructions.AbstractJVMInstruction;
+import org.jobrunr.jobs.details.postprocess.CGLibPostProcessor;
+import org.jobrunr.jobs.details.postprocess.JobDetailsPostProcessor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public abstract class JobDetailsFinderContext {
 
@@ -18,6 +22,7 @@ public abstract class JobDetailsFinderContext {
     private String jobDetailsStaticFieldName;
     private String jobDetailsMethodName;
     private List<JobParameter> jobDetailsJobParameters;
+    private List<JobDetailsPostProcessor> jobDetailsPostProcessors;
 
     protected JobDetailsFinderContext(List<Object> localVariables) {
         this(localVariables, null, null);
@@ -31,6 +36,7 @@ public abstract class JobDetailsFinderContext {
         setClassName(className);
         setMethodName(methodName);
         setJobParameters(new ArrayList<>());
+        jobDetailsPostProcessors = singletonList(new CGLibPostProcessor());
     }
 
     public void pushInstructionOnStack(AbstractJVMInstruction jvmInstruction) {
@@ -62,7 +68,16 @@ public abstract class JobDetailsFinderContext {
 
     public JobDetails getJobDetails() {
         invokeInstructions();
-        return new JobDetails(jobDetailsClassName, jobDetailsStaticFieldName, jobDetailsMethodName, jobDetailsJobParameters);
+        final JobDetails jobDetails = new JobDetails(jobDetailsClassName, jobDetailsStaticFieldName, jobDetailsMethodName, jobDetailsJobParameters);
+        return postProcessJobDetails(jobDetails);
+    }
+
+    private JobDetails postProcessJobDetails(JobDetails jobDetails) {
+        JobDetails currentJobDetails = jobDetails;
+        for (JobDetailsPostProcessor postProcessor : getJobDetailsPostProcessors()) {
+            currentJobDetails = postProcessor.postProcess(currentJobDetails);
+        }
+        return currentJobDetails;
     }
 
     private void invokeInstructions() {
@@ -96,5 +111,9 @@ public abstract class JobDetailsFinderContext {
 
     public void setJobParameters(List<JobParameter> jobParameters) {
         jobDetailsJobParameters = jobParameters;
+    }
+
+    List<JobDetailsPostProcessor> getJobDetailsPostProcessors() {
+        return jobDetailsPostProcessors;
     }
 }
