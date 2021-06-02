@@ -55,7 +55,7 @@ export default function GithubStarPopup() {
             aria-describedby="github-dialog-description"
         >
             <DialogTitle id="github-dialog-title">
-                Can I ask you something?
+                👋 Can I ask you something?
             </DialogTitle>
             <DialogContent dividers>
                 <DialogContentText id="github-dialog-description">
@@ -66,8 +66,8 @@ export default function GithubStarPopup() {
                     on Github</a> (if you have not done so already) or write a small success story in the <a
                     href="https://github.com/jobrunr/jobrunr/discussions/categories/show-and-tell">Show and
                     tell</a> category of <a href="https://github.com/jobrunr/jobrunr/discussions" target="_blank"
-                                            rel="noreferrer">Github discussions</a>? <em>You would do me a huge
-                    favor!</em><br/><br/>
+                                            rel="noreferrer">Github discussions</a>? <em>I would really appreciate
+                    it!</em> 🙏<br/><br/>
                     If not, can you please start a <a href="https://github.com/jobrunr/jobrunr/discussions"
                                                       target="_blank" rel="noreferrer">Github discussion</a> and tell me
                     what's giving you a hard time?<br/><br/>
