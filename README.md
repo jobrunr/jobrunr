@@ -10,6 +10,7 @@ Open and free for commercial use.
 <br/>
 
 
+
 <p align="center">
     <a href="https://search.maven.org/artifact/org.jobrunr/jobrunr"><img src="https://maven-badges.herokuapp.com/maven-central/org.jobrunr/jobrunr/badge.svg"></a>&nbsp;
     <img alt="Drone Build" src="https://build.jobrunr.io/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
