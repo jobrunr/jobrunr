@@ -52,7 +52,6 @@ public class HttpRequestHandlers {
     }
 
     public HttpRequestMethodHandlers getAllRequestMethodHandlers(String method) {
-        requestHandlers.computeIfAbsent(method.toUpperCase(), m -> new HttpRequestMethodHandlers());
-        return requestHandlers.get(method.toUpperCase());
+        return requestHandlers.computeIfAbsent(method.toUpperCase(), m -> new HttpRequestMethodHandlers());
     }
 }
