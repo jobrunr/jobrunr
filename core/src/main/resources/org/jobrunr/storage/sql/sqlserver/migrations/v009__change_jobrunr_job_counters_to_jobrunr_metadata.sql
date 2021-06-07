@@ -1,11 +1,11 @@
 CREATE TABLE jobrunr_metadata
 (
-    id        varchar(156) PRIMARY KEY,
-    name      varchar(92) NOT NULL,
-    owner     varchar(64) NOT NULL,
-    value     text        NOT NULL,
-    createdAt DATETIME2   NOT NULL,
-    updatedAt DATETIME2   NOT NULL
+    id        VARCHAR(156) PRIMARY KEY,
+    name      VARCHAR(92)   NOT NULL,
+    owner     VARCHAR(64)   NOT NULL,
+    value     NVARCHAR(MAX) NOT NULL,
+    createdAt DATETIME2     NOT NULL,
+    updatedAt DATETIME2     NOT NULL
 );
 
 INSERT INTO jobrunr_metadata (id, name, owner, value, createdAt, updatedAt)

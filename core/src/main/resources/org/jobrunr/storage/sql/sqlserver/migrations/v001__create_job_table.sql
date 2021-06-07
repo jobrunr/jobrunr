@@ -1,12 +1,12 @@
 CREATE TABLE jobrunr_jobs
 (
     id           NCHAR(36) PRIMARY KEY,
-    version      int          NOT NULL,
-    jobAsJson    text         NOT NULL,
-    jobSignature VARCHAR(512) NOT NULL,
-    state        VARCHAR(36)  NOT NULL,
-    createdAt    DATETIME2    NOT NULL,
-    updatedAt    DATETIME2    NOT NULL,
+    version      int           NOT NULL,
+    jobAsJson    NVARCHAR(MAX) NOT NULL,
+    jobSignature NVARCHAR(512) NOT NULL,
+    state        VARCHAR(36)   NOT NULL,
+    createdAt    DATETIME2     NOT NULL,
+    updatedAt    DATETIME2     NOT NULL,
     scheduledAt  DATETIME2
 );
 CREATE INDEX jobrunr_state_idx ON jobrunr_jobs (state);
