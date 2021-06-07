@@ -144,7 +144,7 @@ public class JobZooKeeper implements Runnable {
 
     void updateJobsThatAreBeingProcessed() {
         LOGGER.debug("Updating currently processed jobs... ");
-        processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), Job::updateProcessing);
+        processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), this::updateCurrentlyProcessingJob);
     }
 
     void onboardNewWorkIfPossible() {
@@ -239,6 +239,14 @@ public class JobZooKeeper implements Runnable {
         this.occupiedWorkers.decrementAndGet();
         if (workDistributionStrategy.canOnboardNewWork()) {
             checkForEnqueuedJobs();
+        }
+    }
+
+    private void updateCurrentlyProcessingJob(Job job) {
+        try {
+            job.updateProcessing();
+        } catch (ClassCastException e) {
+            // why: because of thread context switching there is a really small chance that the job has succeeded
         }
     }
 

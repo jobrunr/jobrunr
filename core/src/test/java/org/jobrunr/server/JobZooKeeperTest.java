@@ -229,6 +229,22 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void noExceptionIsThrownIfAJobHasSucceededWhileUpdateProcessingIsCalled() {
+        // GIVEN
+        final Job job = anEnqueuedJob().withId().build();
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job, mock(Thread.class));
+
+        // WHEN
+        job.succeeded();
+        jobZooKeeper.run();
+
+        // THEN
+        assertThat(logger).hasNoWarnLogMessages();
+        verify(storageProvider).save(singletonList(job));
+    }
+
+    @Test
     void evenWhenNoWorkCanBeOnboardedJobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
         backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withWorkerSize(0).build();
         jobZooKeeper = initializeJobZooKeeper();
