@@ -23,7 +23,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock reentrantLock;
-    private Timer timer;
+    private volatile Timer timer;
 
     public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
@@ -160,12 +160,10 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     void stopTimerToSendUpdates() {
         if (timer != null) {
-            try {
-                if (reentrantLock.tryLock() && timer != null) {
-                    timer.cancel();
-                    timer = null;
-                }
-            } finally {
+            boolean canCancelTimer = timer != null && reentrantLock.tryLock();
+            if (canCancelTimer) {
+                timer.cancel();
+                timer = null;
                 reentrantLock.unlock();
             }
         }
