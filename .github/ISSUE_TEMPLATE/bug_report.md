@@ -14,7 +14,7 @@ If no, please first upgrade to the latest JobRunr version and check whether the 
 A clear and concise description of what the bug is.
 
 **Environment**
-I'm using version: <your JobRunr version>
+I'm using JobRunr version: <your JobRunr version>
 I'm running on JRE / JDK (e.g. OpenJDK 1.8.0_292): <your jre/jdk version> 
 I'm using the following StorageProvider (e.g. Oracle / MongoDB / ...): <your storageprovider> 
 
