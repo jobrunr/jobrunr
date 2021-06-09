@@ -6,7 +6,7 @@ labels: ''
 assignees: ''
 
 ---
-**Are you running the latest version of JobRunr**
+**Are you running the latest version of JobRunr?**
 Yes / No
 If no, please first upgrade to the latest JobRunr version and check whether the issue still exists.
 
