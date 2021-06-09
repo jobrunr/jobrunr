@@ -1,13 +1,26 @@
 package org.jobrunr.storage.sql.mariadb;
 
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
 
 import javax.sql.DataSource;
 
 public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
 
     public MariaDbStorageProvider(DataSource dataSource) {
-        super(dataSource);
+        this(dataSource, DatabaseOptions.CREATE);
+    }
+
+    public MariaDbStorageProvider(DataSource dataSource, String schemaName) {
+        this(dataSource, schemaName, DatabaseOptions.CREATE);
+    }
+
+    public MariaDbStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
+        super(dataSource, new AnsiDialect(), databaseOptions);
+    }
+
+    public MariaDbStorageProvider(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
+        super(dataSource, new AnsiDialect(), schemaName, databaseOptions);
     }
 
 }

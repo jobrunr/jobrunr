@@ -3,7 +3,7 @@ package org.jobrunr.autoconfigure.storage;
 import org.jobrunr.autoconfigure.JobRunrProperties;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -24,14 +24,10 @@ public class JobRunrSqlStorageAutoConfiguration {
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider sqlStorageProvider(DataSource dataSource, JobMapper jobMapper, JobRunrProperties properties) {
-        if (properties.getDatabase().isSkipCreate()) {
-            DefaultSqlStorageProvider storageProvider = new DefaultSqlStorageProvider(dataSource, DefaultSqlStorageProvider.DatabaseOptions.SKIP_CREATE);
-            storageProvider.setJobMapper(jobMapper);
-            return storageProvider;
-        } else {
-            StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource);
-            storageProvider.setJobMapper(jobMapper);
-            return storageProvider;
-        }
+        String schemaName = properties.getDatabase().getSchemaName();
+        DatabaseOptions databaseOptions = properties.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
+        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, schemaName, databaseOptions);
+        storageProvider.setJobMapper(jobMapper);
+        return storageProvider;
     }
 }

@@ -4,8 +4,10 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
+import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
@@ -14,10 +16,17 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
+import java.util.Map;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public abstract class SqlStorageProviderTest extends StorageProviderTest {
+
+    @BeforeAll
+    static void clearParsedStatementCache() {
+        final Map<?, ?> parsedStatementCache = Whitebox.getInternalState(Sql.forType(null), "parsedStatementCache");
+        parsedStatementCache.clear();
+    }
 
     @Override
     public void cleanup() {
@@ -54,7 +63,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
         drop(dataSource, "table jobrunr_metadata");
     }
 
-    private void drop(DataSource dataSource, String name) {
+    protected void drop(DataSource dataSource, String name) {
         try (final Connection connection = dataSource.getConnection();
              final Transaction tran = new Transaction(connection);
              final Statement statement = connection.createStatement()) {

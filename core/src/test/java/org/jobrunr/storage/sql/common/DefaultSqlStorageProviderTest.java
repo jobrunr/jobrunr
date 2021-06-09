@@ -5,6 +5,8 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions;
+import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,8 +36,6 @@ class DefaultSqlStorageProviderTest {
     @Mock
     private Connection connection;
     @Mock
-    private DatabaseMetaData databaseMetadata;
-    @Mock
     private Statement statement;
     @Mock
     private PreparedStatement preparedStatement;
@@ -46,15 +46,13 @@ class DefaultSqlStorageProviderTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        when(connection.getMetaData()).thenReturn(databaseMetadata);
-        when(databaseMetadata.getURL()).thenReturn("postgres://");
         when(connection.createStatement()).thenReturn(statement);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);
         when(datasource.getConnection()).thenReturn(connection);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
-        jobStorageProvider = new DefaultSqlStorageProvider(datasource);
+        jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE);
         jobStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
     }
 

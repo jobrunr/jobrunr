@@ -13,6 +13,7 @@ import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
 import org.jobrunr.storage.sql.common.db.Transaction;
+import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import org.jobrunr.utils.JobUtils;
 
 import javax.sql.DataSource;
@@ -47,11 +48,11 @@ public class JobTable extends Sql<Job> {
     private final JobMapper jobMapper;
     private static final SqlPageRequestMapper pageRequestMapper = new SqlPageRequestMapper();
 
-    public JobTable(DataSource dataSource, JobMapper jobMapper) {
+    public JobTable(DataSource dataSource, Dialect dialect, String schemaName, JobMapper jobMapper) {
         this.dataSource = dataSource;
         this.jobMapper = jobMapper;
         this
-                .using(dataSource)
+                .using(dataSource, dialect, schemaName, "jobrunr_jobs")
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)

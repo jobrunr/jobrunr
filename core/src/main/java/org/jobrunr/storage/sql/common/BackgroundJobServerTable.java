@@ -5,6 +5,7 @@ import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
+import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 
 import javax.sql.DataSource;
 import java.time.Instant;
@@ -31,9 +32,9 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 
 public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
-    public BackgroundJobServerTable(DataSource dataSource) {
+    public BackgroundJobServerTable(DataSource dataSource, Dialect dialect, String schemaName) {
         this
-                .using(dataSource)
+                .using(dataSource, dialect, schemaName, "jobrunr_backgroundjobservers")
                 .with(FIELD_ID, BackgroundJobServerStatus::getId)
                 .with(FIELD_WORKER_POOL_SIZE, BackgroundJobServerStatus::getWorkerPoolSize)
                 .with(FIELD_POLL_INTERVAL_IN_SECONDS, BackgroundJobServerStatus::getPollIntervalInSeconds)

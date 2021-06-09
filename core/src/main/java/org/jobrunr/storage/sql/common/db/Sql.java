@@ -2,13 +2,13 @@ package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
-import org.jobrunr.storage.sql.common.db.dialect.DialectFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -16,6 +16,7 @@ import java.util.stream.StreamSupport;
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
 
@@ -29,7 +30,11 @@ public class Sql<T> {
     private final Map<String, Function> paramSuppliers;
     private DataSource dataSource;
     private Dialect dialect;
+    private String schema = "";
     private String suffix = "";
+
+    private volatile static Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
+    private String tableName;
 
     protected Sql() {
         paramNames = new ArrayList<>();
@@ -45,9 +50,11 @@ public class Sql<T> {
         return new Sql<>();
     }
 
-    public Sql<T> using(DataSource dataSource) {
+    public Sql<T> using(DataSource dataSource, Dialect dialect, String schema, String tableName) {
         this.dataSource = dataSource;
-        this.dialect = DialectFactory.forDataSource(dataSource);
+        this.dialect = dialect;
+        this.schema = isNullOrEmpty(schema) ? "" : schema + ".";
+        this.tableName = tableName;
         return this;
     }
 
@@ -273,6 +280,18 @@ public class Sql<T> {
     }
 
     final String parse(String query) {
+        final ParsedStatement parsedStatement = parsedStatementCache.computeIfAbsent(query.hashCode(), hash -> createParsedStatement(query));
+        paramNames.clear();
+        paramNames.addAll(parsedStatement.paramNames);
+        return parsedStatement.sqlStatement;
+    }
+
+    final ParsedStatement createParsedStatement(String query) {
+        final String parsedStatement = parseStatement(query);
+        return new ParsedStatement(parsedStatement, new ArrayList<>(paramNames));
+    }
+
+    final String parseStatement(String query) {
         paramNames.clear();
         // I was originally using regular expressions, but they didn't work well for ignoring
         // parameter-like strings inside quotes.
@@ -311,6 +330,17 @@ public class Sql<T> {
             }
             parsedQuery.append(c);
         }
-        return parsedQuery.toString();
+        return parsedQuery.toString()
+                .replace(tableName, schema + tableName);
+    }
+
+    private static class ParsedStatement {
+        private final String sqlStatement;
+        private final List<String> paramNames;
+
+        public ParsedStatement(String sqlStatement, List<String> paramNames) {
+            this.sqlStatement = sqlStatement;
+            this.paramNames = paramNames;
+        }
     }
 }

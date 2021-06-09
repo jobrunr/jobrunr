@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.common;
 
+import org.h2.jdbcx.JdbcDataSource;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.storage.sql.common.migrations.DefaultSqlMigrationProvider;
@@ -58,6 +59,32 @@ class DatabaseCreatorTest {
     void testValidateWithoutTables() {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB2));
         assertThatThrownBy(databaseCreator::validateTables).isInstanceOf(JobRunrException.class);
+    }
+
+    @Test
+    void testH2MigrationsWithSchema() {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS the_schema");
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "the_schema");
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThatCode(databaseCreator::validateTables).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testH2ValidateWithTablesInWrongSchema() {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
+        final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1");
+        databaseCreatorForSchema1.runMigrations();
+        final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2");
+        assertThatThrownBy(databaseCreatorForSchema2::validateTables).isInstanceOf(JobRunrException.class);
+        ;
+    }
+
+    private JdbcDataSource createH2DataSource(String url) {
+        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource.setURL(url);
+        dataSource.setUser("sa");
+        dataSource.setPassword("sa");
+        return dataSource;
     }
 
     private static SQLiteDataSource createDataSource(String url) {

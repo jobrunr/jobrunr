@@ -9,6 +9,7 @@ import org.jobrunr.storage.*;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
+import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
@@ -26,24 +27,33 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     public enum DatabaseOptions {
         CREATE,
-        SKIP_CREATE
+        SKIP_CREATE;
+
     }
 
-    protected final DataSource dataSource;
-    protected final DatabaseOptions databaseOptions;
-    protected JobMapper jobMapper;
+    private final DataSource dataSource;
+    private final Dialect dialect;
+    private final String schemaName;
+    private final DatabaseOptions databaseOptions;
+    private JobMapper jobMapper;
 
-    public DefaultSqlStorageProvider(DataSource dataSource) {
-        this(dataSource, CREATE, rateLimit().at1Request().per(SECOND));
+    public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, DatabaseOptions databaseOptions) {
+        this(dataSource, dialect, databaseOptions, rateLimit().at1Request().per(SECOND));
     }
 
-    public DefaultSqlStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        this(dataSource, databaseOptions, rateLimit().at1Request().per(SECOND));
+    public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, String schemaName, DatabaseOptions databaseOptions) {
+        this(dataSource, dialect, schemaName, databaseOptions, rateLimit().at1Request().per(SECOND));
     }
 
-    DefaultSqlStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+    public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+        this(dataSource, dialect, null, databaseOptions, changeListenerNotificationRateLimit);
+    }
+
+    DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, String schemaName, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.dataSource = dataSource;
+        this.dialect = dialect;
+        this.schemaName = schemaName;
         this.databaseOptions = databaseOptions;
         createDBIfNecessary();
     }
@@ -59,7 +69,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     protected DatabaseCreator getDatabaseCreator() {
-        return new DatabaseCreator(dataSource, getClass());
+        return new DatabaseCreator(dataSource, schemaName, getClass());
     }
 
     @Override
@@ -229,7 +239,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public JobStats getJobStats() {
         Instant instant = Instant.now();
         return Sql.forType(JobStats.class)
-                .using(dataSource)
+                .using(dataSource, dialect, schemaName, "jobrunr_jobs_stats")
                 .withOrderLimitAndOffset("total ASC", 1, 0)
                 .select("* from jobrunr_jobs_stats")
                 .map(resultSet -> toJobStats(resultSet, instant))
@@ -240,7 +250,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
         Sql.withoutType()
-                .using(dataSource)
+                .using(dataSource, dialect, schemaName, "jobrunr_metadata")
                 .with("id", "succeeded-jobs-counter-cluster")
                 .with("amount", amount)
                 .update("jobrunr_metadata set value = cast((cast(cast(value as char(10)) as decimal) + :amount) as char(10)) where id = :id");
@@ -265,19 +275,19 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     protected JobTable jobTable() {
-        return new JobTable(dataSource, jobMapper);
+        return new JobTable(dataSource, dialect, schemaName, jobMapper);
     }
 
     protected RecurringJobTable recurringJobTable() {
-        return new RecurringJobTable(dataSource, jobMapper);
+        return new RecurringJobTable(dataSource, dialect, schemaName, jobMapper);
     }
 
     protected BackgroundJobServerTable backgroundJobServerTable() {
-        return new BackgroundJobServerTable(dataSource);
+        return new BackgroundJobServerTable(dataSource, dialect, schemaName);
     }
 
     protected MetadataTable metadataTable() {
-        return new MetadataTable(dataSource);
+        return new MetadataTable(dataSource, dialect, schemaName);
     }
 
 }

@@ -3,6 +3,7 @@ package org.jobrunr.storage.sql.common;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
+import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 
 import javax.sql.DataSource;
 import java.time.Instant;
@@ -18,9 +19,9 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 
 public class MetadataTable extends Sql<JobRunrMetadata> {
 
-    public MetadataTable(DataSource dataSource) {
+    public MetadataTable(DataSource dataSource, Dialect dialect, String schemaName) {
         this
-                .using(dataSource)
+                .using(dataSource, dialect, schemaName, "jobrunr_metadata")
                 .with(FIELD_ID, JobRunrMetadata::getId)
                 .with(FIELD_NAME, JobRunrMetadata::getName)
                 .with(FIELD_OWNER, JobRunrMetadata::getOwner)

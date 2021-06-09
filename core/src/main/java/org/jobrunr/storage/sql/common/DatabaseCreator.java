@@ -17,24 +17,30 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
+    private static final String[] jobrunr_tables = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
+    ;
+
 
     private final ConnectionProvider connectionProvider;
+    private final String schemaName;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
 
     public static void main(String[] args) {
         String url = args[0];
         String userName = args[1];
         String password = args[2];
+        String schemaName = args.length >= 4 ? args[3] : null;
 
         try {
             System.out.println("==========================================================");
             System.out.println("================== JobRunr Table Creator =================");
             System.out.println("==========================================================");
-            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), new SqlStorageProviderFactory().getStorageProviderClassByJdbcUrl(url)).runMigrations();
+            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), schemaName, new SqlStorageProviderFactory().getStorageProviderClassByJdbcUrl(url)).runMigrations();
             System.out.println("Successfully created all tables!");
         } catch (Exception e) {
             System.out.println("An error occurred: ");
@@ -46,15 +52,24 @@ public class DatabaseCreator {
     }
 
     protected DatabaseCreator(DataSource dataSource) {
-        this(dataSource, null);
+        this(dataSource, null, null);
+    }
+
+    protected DatabaseCreator(DataSource dataSource, String schemaName) {
+        this(dataSource, schemaName, null);
     }
 
     public DatabaseCreator(DataSource dataSource, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
-        this(dataSource::getConnection, sqlStorageProviderClass);
+        this(dataSource::getConnection, null, sqlStorageProviderClass);
     }
 
-    public DatabaseCreator(ConnectionProvider connectionProvider, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+    public DatabaseCreator(DataSource dataSource, String schemaName, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        this(dataSource::getConnection, schemaName, sqlStorageProviderClass);
+    }
+
+    public DatabaseCreator(ConnectionProvider connectionProvider, String schemaName, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         this.connectionProvider = connectionProvider;
+        this.schemaName = schemaName;
         this.databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
     }
 
@@ -67,12 +82,11 @@ public class DatabaseCreator {
     }
 
     public void validateTables() {
-        String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
         try (final Connection conn = getConnection();
              final Transaction tran = new Transaction(conn);
              final Statement pSt = conn.createStatement()) {
-            for (String table : tables) {
-                try (ResultSet rs = pSt.executeQuery("select count(*) from " + table)) {
+            for (String table : jobrunr_tables) {
+                try (ResultSet rs = pSt.executeQuery("select count(*) from " + getFQTableName(table))) {
                     if (rs.next()) {
                         int count = rs.getInt(1);
                     }
@@ -110,13 +124,13 @@ public class DatabaseCreator {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";")) {
             try (final Statement stmt = connection.createStatement()) {
-                stmt.execute(statement);
+                stmt.execute(updateStatementWithSchemaName(statement));
             }
         }
     }
 
     protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
-        try (PreparedStatement pSt = connection.prepareStatement("insert into jobrunr_migrations values (?, ?, ?)")) {
+        try (PreparedStatement pSt = connection.prepareStatement("insert into " + getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
             pSt.setString(3, LocalDateTime.now().toString());
@@ -131,7 +145,7 @@ public class DatabaseCreator {
     protected boolean isMigrationApplied(SqlMigration migration) {
         try (final Connection conn = getConnection();
              final Transaction tran = new Transaction(conn);
-             final PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
+             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + getFQTableName("jobrunr_migrations") + " where script = ?")) {
             boolean result = false;
             pSt.setString(1, migration.getFileName());
             try (ResultSet rs = pSt.executeQuery()) {
@@ -144,6 +158,21 @@ public class DatabaseCreator {
         } catch (Exception becauseTableDoesNotExist) {
             return false;
         }
+    }
+
+    private String updateStatementWithSchemaName(String statement) {
+        if (isNullOrEmpty(schemaName)) {
+            return statement;
+        }
+        final String updatedStatement = statement.replace("jobrunr_", schemaName + ".jobrunr_");
+        return updatedStatement;
+    }
+
+    private String getFQTableName(String tableName) {
+        if (isNullOrEmpty(schemaName)) {
+            return tableName;
+        }
+        return schemaName + "." + tableName;
     }
 
     private Connection getConnection() {

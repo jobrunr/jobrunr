@@ -202,12 +202,25 @@ public class JobRunrProperties {
          */
         private boolean skipCreate = false;
 
+        /**
+         * Allows to set the schema name used by JobRunr
+         */
+        private String schemaName;
+
         public void setSkipCreate(boolean skipCreate) {
             this.skipCreate = skipCreate;
         }
 
         public boolean isSkipCreate() {
             return skipCreate;
+        }
+
+        public String getSchemaName() {
+            return schemaName;
+        }
+
+        public void setSchemaName(String schemaName) {
+            this.schemaName = schemaName;
         }
     }
 }

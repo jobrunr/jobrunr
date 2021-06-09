@@ -4,6 +4,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
+import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -16,10 +17,10 @@ public class RecurringJobTable extends Sql<RecurringJob> {
 
     private final JobMapper jobMapper;
 
-    public RecurringJobTable(DataSource dataSource, JobMapper jobMapper) {
+    public RecurringJobTable(DataSource dataSource, Dialect dialect, String schemaName, JobMapper jobMapper) {
         this.jobMapper = jobMapper;
         this
-                .using(dataSource)
+                .using(dataSource, dialect, schemaName, "jobrunr_recurring_jobs")
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeRecurringJob);
     }
 

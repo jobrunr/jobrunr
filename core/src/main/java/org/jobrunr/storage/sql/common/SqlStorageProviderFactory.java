@@ -3,6 +3,7 @@ package org.jobrunr.storage.sql.common;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;
@@ -17,22 +18,26 @@ public class SqlStorageProviderFactory {
     }
 
     public static StorageProvider using(DataSource dataSource) {
-        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
-        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource);
+        return using(dataSource, null, DatabaseOptions.CREATE);
     }
 
-    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource) {
+    public static StorageProvider using(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
+        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
+        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource, schemaName, databaseOptions);
+    }
+
+    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
         try (Connection connection = dataSource.getConnection()) {
             String jdbcUrl = connection.getMetaData().getURL();
-            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource);
+            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource, schemaName, databaseOptions);
         } catch (SQLException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
     }
 
-    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource) {
+    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
         final Class<SqlStorageProvider> storageProviderClassByJdbcUrl = getStorageProviderClassByJdbcUrl(jdbcUrl);
-        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource);
+        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource, schemaName, databaseOptions);
     }
 
     Class<SqlStorageProvider> getStorageProviderClassByJdbcUrl(String jdbcUrl) {
@@ -54,10 +59,10 @@ public class SqlStorageProviderFactory {
         throw unsupportedDataSourceException(jdbcUrl);
     }
 
-    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource) {
+    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
         try {
-            final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class);
-            return (StorageProvider) declaredConstructor.newInstance(dataSource);
+            final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class, String.class, DatabaseOptions.class);
+            return (StorageProvider) declaredConstructor.newInstance(dataSource, schemaName, databaseOptions);
         } catch (ReflectiveOperationException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
