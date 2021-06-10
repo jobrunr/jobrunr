@@ -11,6 +11,7 @@ import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.storage.*;
+import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
@@ -203,6 +205,30 @@ class JobZooKeeperTest {
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
         assertThat(logAllStateChangesFilter.processingPassed).isFalse();
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+    }
+
+    @Test
+    void checkForSucceededJobsCanGoToDeletedStateAlsoWorksForInterfacesWithMethodsThatDontExistAnymore() {
+        // GIVEN
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
+                .thenReturn(
+                        asList(aSucceededJob()
+                                .withJobDetails(jobDetails()
+                                        .withClassName(TestServiceInterface.class)
+                                        .withMethodName("methodThatDoesNotExist")
+                                        .build())
+                                .build()),
+                        emptyJobList()
+                );
+
+        // WHEN
+        jobZooKeeper.run();
+
+        // THEN
+        assertThat(logger).hasNoWarnLogMessages();
+
+        verify(storageProvider).save(anyList());
+        verify(storageProvider).publishTotalAmountOfSucceededJobs(1);
     }
 
     @Test

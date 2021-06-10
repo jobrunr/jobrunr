@@ -5,9 +5,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,6 +81,21 @@ class ReflectionUtilsTest {
         assertThat(ReflectionUtils.autobox(clob, String.class)).isEqualTo(result);
     }
 
+    @Test
+    void testFindMethodOnInterface() {
+        final Optional<Method> doWork = ReflectionUtils.findMethod(TestInterface.class, "doWork");
+        assertThat(doWork).isPresent();
+    }
+
+    @Test
+    void testFindMethodOnSuperInterface() {
+        final Optional<Method> doWorkFromParentInterfaceA = ReflectionUtils.findMethod(TestInterface.class, "doWorkFromParentInterfaceA");
+        assertThat(doWorkFromParentInterfaceA).isPresent();
+
+        final Optional<Method> doWorkFromParentInterfaceB = ReflectionUtils.findMethod(TestInterface.class, "doWorkFromParentInterfaceB");
+        assertThat(doWorkFromParentInterfaceB).isPresent();
+    }
+
     public static class TestObject {
 
         private final String field;
@@ -95,5 +112,23 @@ class ReflectionUtilsTest {
     public enum TestEnum {
         A,
         B
+    }
+
+    public interface TestInterface extends TestInterfaceParentA, TestInterfaceParentB {
+
+        void doWork();
+
+    }
+
+    public interface TestInterfaceParentA {
+
+        void doWorkFromParentInterfaceA();
+
+    }
+
+    public interface TestInterfaceParentB {
+
+        void doWorkFromParentInterfaceB();
+
     }
 }

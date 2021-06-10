@@ -178,6 +178,12 @@ public class ReflectionUtils {
                 .findFirst();
         if (optionalMethod.isPresent()) {
             return optionalMethod;
+        } else if (clazz.isInterface()) {
+            return Stream.of(clazz.getInterfaces())
+                    .map(superInterface -> findMethod(superInterface, predicate))
+                    .filter(Optional::isPresent)
+                    .findFirst()
+                    .orElse(Optional.empty());
         } else if (!Object.class.equals(clazz.getSuperclass())) {
             return findMethod(clazz.getSuperclass(), predicate);
         } else {
