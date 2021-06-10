@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 
 class JobDetailsAsmGeneratorTest {
@@ -56,9 +57,9 @@ class JobDetailsAsmGeneratorTest {
     @Disabled
     void logByteCode() {
         String name = this.getClass().getName();
-        //String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
 
-        String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/jobrunr-kotlin-support/build/classes/kotlin/test/org/jobrunr/jobs/details/JobDetailsAsmGeneratorForKotlinTest$testMethodReferenceJobLambdaInSameClass$jobDetails$1.class";
+        //String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/jobrunr-kotlin-support/build/classes/kotlin/test/org/jobrunr/jobs/details/JobDetailsAsmGeneratorForKotlinTest$testMethodReferenceJobLambdaInSameClass$jobDetails$1.class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 
@@ -175,6 +176,54 @@ class JobDetailsAsmGeneratorTest {
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
                 .hasArgs(3.3);
+    }
+
+    @Test
+    void testJobLambdaWithSum() {
+        int a = 6;
+        int b = 3;
+        JobLambda job = () -> testService.doWork(a + b);
+
+        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
+                .hasRootCauseMessage("You are summing two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+    }
+
+    @Test
+    void testJobLambdaWithSubtraction() {
+        int a = 6;
+        int b = 3;
+        JobLambda job = () -> testService.doWork(a - b);
+
+        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
+                .hasRootCauseMessage("You are subtracting two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+    }
+
+    @Test
+    void testJobLambdaWithMultiplication() {
+        int a = 6;
+        int b = 3;
+        JobLambda job = () -> testService.doWork(a * b);
+
+        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
+                .hasRootCauseMessage("You are multiplying two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+    }
+
+    @Test
+    void testJobLambdaWithDivision() {
+        int a = 6;
+        int b = 3;
+        JobLambda job = () -> testService.doWork(a / b);
+
+        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
+                .hasRootCauseMessage("You are dividing two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
     }
 
     @Test
