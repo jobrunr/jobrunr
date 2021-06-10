@@ -20,6 +20,15 @@ public class CollectionUtils {
         return collection.isEmpty();
     }
 
+    public static <T> boolean isNotNullOrEmpty(T[] someArray) {
+        return !isNullOrEmpty(someArray);
+    }
+
+    public static <T> boolean isNullOrEmpty(T[] someArray) {
+        if (someArray == null) return true;
+        return someArray.length < 1;
+    }
+
     public static <T> List<T> asList(T[] array, T... params) {
         List<T> result = new ArrayList<>();
         result.addAll(Arrays.asList(array));
