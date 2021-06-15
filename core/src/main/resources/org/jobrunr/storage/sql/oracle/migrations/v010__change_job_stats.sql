@@ -15,5 +15,5 @@ select count(*)                                                                 
        (select count(*) from jobrunr_jobs jobs where jobs.state = 'DELETED')    as deleted,
        (select count(*) from jobrunr_backgroundjobservers)                      as nbrOfBackgroundJobServers,
        (select count(*) from jobrunr_recurring_jobs)                            as nbrOfRecurringJobs
-from jobrunr_jobs j;
---group by j.id;
+from jobrunr_jobs j
+group by j.id;
