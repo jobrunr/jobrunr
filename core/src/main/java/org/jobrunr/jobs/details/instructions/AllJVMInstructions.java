@@ -8,11 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import static java.util.Arrays.asList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class AllJVMInstructions {
 
     private static final Map<Integer, Function<JobDetailsFinderContext, AbstractJVMInstruction>> instructions = new HashMap<>();
+    private static final Map<Integer, String> unsupportedInstructions = new HashMap<>();
 
     static {
         instructions.put(Opcodes.AASTORE, AAStoreInstruction::new);
@@ -52,6 +54,18 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.GETSTATIC, GetStaticInstruction::new);
         instructions.put(Opcodes.RETURN, ReturnOperandInstruction::new);
         instructions.put(Opcodes.SIPUSH, SingleIntOperandInstruction::new);
+
+        String mathematicalPerformanceSuffix = " - for performance reasons it is better to do the calculation outside of the job lambda";
+        asList(Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD)
+                .forEach(instr -> unsupportedInstructions.put(instr, "You are summing two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+        asList(Opcodes.ISUB, Opcodes.LSUB, Opcodes.FSUB, Opcodes.DSUB)
+                .forEach(instr -> unsupportedInstructions.put(instr, "You are subtracting two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+        asList(Opcodes.IMUL, Opcodes.LMUL, Opcodes.FMUL, Opcodes.DMUL)
+                .forEach(instr -> unsupportedInstructions.put(instr, "You are multiplying two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+        asList(Opcodes.IDIV, Opcodes.LDIV, Opcodes.FDIV, Opcodes.DDIV)
+                .forEach(instr -> unsupportedInstructions.put(instr, "You are dividing two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+        asList(Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM)
+                .forEach(instr -> unsupportedInstructions.put(instr, "You are calculating the remainder (%) for two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
     }
 
     private AllJVMInstructions() {
@@ -61,6 +75,9 @@ public class AllJVMInstructions {
     public static <T extends AbstractJVMInstruction> T get(int opcode, JobDetailsFinderContext jobDetailsBuilder) {
         final Function<JobDetailsFinderContext, AbstractJVMInstruction> instructionBuilder = instructions.get(opcode);
         if (instructionBuilder == null) {
+            if (unsupportedInstructions.containsKey(opcode)) {
+                throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(unsupportedInstructions.get(opcode)));
+            }
             throw JobRunrException.shouldNotHappenException(new IllegalArgumentException("Instruction " + opcode + " not found"));
         }
         return cast(instructionBuilder.apply(jobDetailsBuilder));

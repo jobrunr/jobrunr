@@ -22,13 +22,13 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test:2.4.4'
-    testCompile 'com.fasterxml.jackson.core:jackson-databind'
-    testCompile 'com.google.code.gson:gson'
-    testCompile 'redis.clients:jedis'
-    testCompile 'io.lettuce:lettuce-core'
-    testCompile 'org.mongodb:mongodb-driver-sync'
-    testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testCompileOnly 'org.springframework.boot:spring-boot-starter-test:2.4.4'
+    testCompileOnly 'com.fasterxml.jackson.core:jackson-databind'
+    testCompileOnly 'com.google.code.gson:gson'
+    testCompileOnly 'redis.clients:jedis'
+    testCompileOnly 'io.lettuce:lettuce-core'
+    testCompileOnly 'org.mongodb:mongodb-driver-sync'
+    testCompileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 }
 
 java {
