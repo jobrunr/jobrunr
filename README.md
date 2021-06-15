@@ -178,3 +178,18 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 * Join the discussion on [Github discussion](https://github.com/jobrunr/jobrunr/discussions) - we won't be using Gitter anymore.
 * Answer questions on [issues](https://github.com/jobrunr/jobrunr/issues).
 * Fix bugs reported on [issues](https://github.com/jobrunr/jobrunr/issues), and send us pull request.
+
+### How to build?
+* `git clone https://github.com/jobrunr/jobrunr.git`
+* `cd jobrunr`
+* `cd core/src/main/resources/org/jobrunr/dashboard/frontend`
+* `npm i`
+* `npm run build`
+* `cd -`
+* `./gradlew :core:publishToMavenLocal`
+* `./gradlew :jobrunr-kotlin-support:publishToMavenLocal`
+* `./gradlew :jobrunr-spring-boot-starter:publishToMavenLocal`
+* `./gradlew :platform:publishToMavenLocal`
+
+Then, in your own project you can depend on `org.jobrunr:jobrunr:1.0.0-SNAPSHOT`.
+* 
