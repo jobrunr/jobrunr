@@ -160,8 +160,11 @@ public class Job extends AbstractJob {
     public String toString() {
         return "Job{" +
                 "id=" + id +
+                ", version='" + getVersion() + '\'' +
+                ", identity='" + System.identityHashCode(this) + '\'' +
                 ", jobSignature='" + getJobSignature() + '\'' +
                 ", jobName='" + getJobName() + '\'' +
+                ", jobState='" + getState() + '\'' +
                 ", updatedAt='" + getUpdatedAt() + '\'' +
                 '}';
     }

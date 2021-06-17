@@ -297,6 +297,9 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(job1);
         assertThatThrownBy(() -> storageProvider.save(job2)).isInstanceOf(ConcurrentJobModificationException.class);
+
+        assertThat(job1).hasVersion(2);
+        assertThat(job2).hasVersion(1);
     }
 
     @Test
@@ -318,6 +321,7 @@ public abstract class StorageProviderTest {
         Job createdJob4 = storageProvider.save(aCopyOf(job).withId().build());
 
         storageProvider.save(aCopyOf(createdJob2).withSucceededState().build());
+        storageProvider.save(aCopyOf(createdJob3).withDeletedState().build());
 
         createdJob1.updateProcessing();
         createdJob2.updateProcessing();
@@ -326,7 +330,11 @@ public abstract class StorageProviderTest {
 
         assertThatThrownBy(() -> storageProvider.save(asList(createdJob1, createdJob2, createdJob3, createdJob4)))
                 .isInstanceOf(ConcurrentJobModificationException.class)
-                .has(failedJob(createdJob2));
+                .has(failedJob(createdJob2))
+                .has(failedJob(createdJob3));
+
+        assertThat(asList(createdJob1, createdJob4)).allMatch(dbJob -> dbJob.getVersion() == 2);
+        assertThat(asList(createdJob2, createdJob3)).allMatch(dbJob -> dbJob.getVersion() == 1);
     }
 
     @Test

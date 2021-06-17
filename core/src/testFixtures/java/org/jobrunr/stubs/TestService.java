@@ -11,6 +11,7 @@ import org.jobrunr.scheduling.BackgroundJob;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -159,6 +160,37 @@ public class TestService implements TestServiceInterface {
         } catch (InterruptedException e) {
             System.out.println("Thread has been interrupted");
             throw e;
+        }
+    }
+
+    public void doWorkThatTakesLongInterruptThread(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+            System.out.println("WORK IS DONE!!!!!!!!");
+        } catch (InterruptedException e) {
+            System.out.println("Thread has been interrupted");
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void doWorkThatTakesLongCatchInterruptException(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+            System.out.println("WORK IS DONE!!!!!!!!");
+        } catch (InterruptedException e) {
+            System.out.println("Thread has been interrupted - not rethrowing nor interrupting again");
+        }
+    }
+
+    public void doWorkThatCannotBeInterrupted(int seconds) throws InterruptedException {
+        final Instant start = Instant.now();
+        long initialNbr = 0;
+        while (start.plusSeconds(seconds).isAfter(Instant.now())) {
+            if (Thread.interrupted()) throw new InterruptedException();
+            if (Duration.between(start, Instant.now()).getSeconds() > initialNbr) {
+                System.out.println("WORK IS BEING DONE: " + Duration.between(start, Instant.now()).getSeconds());
+                initialNbr = Duration.between(start, Instant.now()).getSeconds();
+            }
         }
     }
 
