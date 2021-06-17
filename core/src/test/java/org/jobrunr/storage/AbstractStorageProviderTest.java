@@ -10,7 +10,6 @@ import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -25,7 +24,6 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.Mockito.times;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
-@Disabled
 class AbstractStorageProviderTest {
 
     public static final String SOME_METADATA_NAME = "some-metadata-name";
