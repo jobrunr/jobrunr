@@ -7,7 +7,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.JobRunrMetadata;
@@ -170,9 +169,8 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testGetBackgroundJobServers() {
-        final BackgroundJobServerStatus serverStatus = aDefaultBackgroundJobServerStatus().build();
-        serverStatus.start();
-        storageProvider.announceBackgroundJobServer(new ServerZooKeeper.BackgroundJobServerStatusWriteModel(serverStatus));
+        final BackgroundJobServerStatus serverStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
+        storageProvider.announceBackgroundJobServer(serverStatus);
 
         HttpResponse<String> getResponse = http.get("/api/servers");
         assertThat(getResponse)

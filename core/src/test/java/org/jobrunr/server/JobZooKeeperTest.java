@@ -10,6 +10,7 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
+import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.*;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
@@ -72,6 +73,8 @@ class JobZooKeeperTest {
     private StorageProvider storageProvider;
     @Mock
     private BackgroundJobServer backgroundJobServer;
+    @Mock
+    private WorkDistributionStrategy workDistributionStrategy;
     @Captor
     private ArgumentCaptor<List<Job>> jobsToSaveArgumentCaptor;
     @Captor
@@ -143,7 +146,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForEnqueuedJobsNotDoneIfRequestedStateIsStopped() {
-        backgroundJobServerStatus.pause();
+        //backgroundJobServer.pause();
 
         jobZooKeeper.run();
 
@@ -381,7 +384,10 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
+        when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(workDistributionStrategy);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
+        lenient().when(workDistributionStrategy.canOnboardNewWork()).thenReturn(true);
+        lenient().when(workDistributionStrategy.getWorkPageRequest()).thenReturn(ascOnUpdatedAt(10));
         lenient().when(backgroundJobServer.isAnnounced()).thenReturn(true);
         lenient().when(backgroundJobServer.isMaster()).thenReturn(true);
         return new JobZooKeeper(backgroundJobServer);

@@ -196,8 +196,7 @@ class ServerZooKeeperTest {
     }
 
     private BackgroundJobServerStatus anotherServer() {
-        final BackgroundJobServerStatus masterBackgroundJobServerStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aFastBackgroundJobServerStatus().build());
-        masterBackgroundJobServerStatus.start();
+        final BackgroundJobServerStatus masterBackgroundJobServerStatus = aFastBackgroundJobServerStatus().withIsStarted().build();
         return masterBackgroundJobServerStatus;
     }
 

@@ -2,12 +2,12 @@ package org.jobrunr.stubs;
 
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 
 public class BackgroundJobServerStub extends BackgroundJobServer {
 
@@ -21,8 +21,6 @@ public class BackgroundJobServerStub extends BackgroundJobServer {
 
     @Override
     public BackgroundJobServerStatus getServerStatus() {
-        final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(super.getServerStatus());
-        serverStatus.start();
-        return serverStatus;
+        return aDefaultBackgroundJobServerStatus().withIsStarted().build();
     }
 }

@@ -1,5 +1,9 @@
 package org.jobrunr.server.configuration;
 
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
+import org.jobrunr.server.strategy.WorkDistributionStrategy;
+
 public class FixedSizeBackgroundJobServerWorkerPolicy implements BackgroundJobServerWorkerPolicy {
 
     private final int workerCount;
@@ -9,7 +13,7 @@ public class FixedSizeBackgroundJobServerWorkerPolicy implements BackgroundJobSe
     }
 
     @Override
-    public int getWorkerCount() {
-        return workerCount;
+    public WorkDistributionStrategy toWorkDistributionStrategy(BackgroundJobServer backgroundJobServer) {
+        return new BasicWorkDistributionStrategy(backgroundJobServer, workerCount);
     }
 }

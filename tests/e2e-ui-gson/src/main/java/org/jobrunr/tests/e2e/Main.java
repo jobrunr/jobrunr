@@ -37,7 +37,6 @@ public class Main extends AbstractMain {
     // see https://github.com/eclipse/buildship/issues/991
     public void addDefaultData(StorageProvider storageProvider) {
         final BackgroundJobServerStatus backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withPollIntervalInSeconds(10).build();
-        backgroundJobServerStatus.start();
         storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);
         for (int i = 0; i < 33; i++) {
             storageProvider.save(anEnqueuedJob().build());
