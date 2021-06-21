@@ -17,6 +17,7 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
 
     public void run(Job job) throws Exception {
         getBackgroundJobWorker(job).run();
+        if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
     }
 
     protected static class BackgroundJobWorker {

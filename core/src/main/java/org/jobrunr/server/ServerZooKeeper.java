@@ -1,7 +1,5 @@
 package org.jobrunr.server;
 
-import org.jobrunr.server.jmx.JobServerStats;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -17,7 +15,6 @@ public class ServerZooKeeper implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
 
     private final BackgroundJobServer backgroundJobServer;
-    private final BackgroundJobServerStatusWriteModel backgroundJobServerStatus;
     private final StorageProvider storageProvider;
     private final Duration timeoutDuration;
     private final AtomicInteger restartAttempts;
@@ -26,9 +23,8 @@ public class ServerZooKeeper implements Runnable {
 
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
-        this.backgroundJobServerStatus = getBackgroundJobServerStatusWriteModel(backgroundJobServer);
         this.storageProvider = backgroundJobServer.getStorageProvider();
-        this.timeoutDuration = Duration.ofSeconds(backgroundJobServerStatus.getPollIntervalInSeconds()).multipliedBy(4);
+        this.timeoutDuration = Duration.ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4);
         this.restartAttempts = new AtomicInteger();
         this.lastServerTimeoutCheck = Instant.now();
     }
@@ -50,25 +46,21 @@ public class ServerZooKeeper implements Runnable {
 
     public synchronized void stop() {
         try {
-            storageProvider.signalBackgroundJobServerStopped(backgroundJobServerStatus);
+            storageProvider.signalBackgroundJobServerStopped(backgroundJobServer.getServerStatus());
             masterId = null;
         } catch (Exception e) {
             LOGGER.error("Error when signalling that BackgroundJobServer stopped", e);
         }
     }
 
-    protected BackgroundJobServerStatusWriteModel getBackgroundJobServerStatusWriteModel(BackgroundJobServer backgroundJobServer) {
-        return new BackgroundJobServerStatusWriteModel(backgroundJobServer.getServerStatus());
-    }
-
     private void announceBackgroundJobServer() {
-        storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);
+        storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
         determineIfCurrentBackgroundJobServerIsMaster();
     }
 
     private void signalBackgroundJobServerAliveAndDoZooKeeping() {
         try {
-            final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(backgroundJobServerStatus);
+            final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(backgroundJobServer.getServerStatus());
             deleteServersThatTimedOut();
             determineIfCurrentBackgroundJobServerIsMaster();
             // TODO: stop server if requested?
@@ -98,7 +90,7 @@ public class ServerZooKeeper implements Runnable {
         UUID longestRunningBackgroundJobServerId = storageProvider.getLongestRunningBackgroundJobServerId();
         if (this.masterId == null || !masterId.equals(longestRunningBackgroundJobServerId)) {
             this.masterId = longestRunningBackgroundJobServerId;
-            if (masterId.equals(backgroundJobServerStatus.getId())) {
+            if (masterId.equals(backgroundJobServer.getId())) {
                 backgroundJobServer.setIsMaster(true);
                 LOGGER.info("Server {} is master (this BackgroundJobServer)", masterId);
             } else {
@@ -115,113 +107,5 @@ public class ServerZooKeeper implements Runnable {
 
     private void stopServer() {
         backgroundJobServer.stop();
-    }
-
-
-    public static class BackgroundJobServerStatusWriteModel extends BackgroundJobServerStatus {
-
-        private final JobServerStats jobServerStats;
-        private final BackgroundJobServerStatus serverStatusDelegate;
-
-        public BackgroundJobServerStatusWriteModel(BackgroundJobServerStatus serverStatusDelegate) {
-            super(serverStatusDelegate.getWorkerPoolSize(), serverStatusDelegate.getPollIntervalInSeconds(), serverStatusDelegate.getDeleteSucceededJobsAfter(), serverStatusDelegate.getPermanentlyDeleteDeletedJobsAfter());
-            this.jobServerStats = new JobServerStats();
-            this.serverStatusDelegate = serverStatusDelegate;
-        }
-
-        @Override
-        public UUID getId() {
-            return serverStatusDelegate.getId();
-        }
-
-        @Override
-        public int getWorkerPoolSize() {
-            return serverStatusDelegate.getWorkerPoolSize();
-        }
-
-        @Override
-        public int getPollIntervalInSeconds() {
-            return serverStatusDelegate.getPollIntervalInSeconds();
-        }
-
-        @Override
-        public Duration getDeleteSucceededJobsAfter() {
-            return serverStatusDelegate.getDeleteSucceededJobsAfter();
-        }
-
-        @Override
-        public Duration getPermanentlyDeleteDeletedJobsAfter() {
-            return serverStatusDelegate.getPermanentlyDeleteDeletedJobsAfter();
-        }
-
-        @Override
-        public Instant getFirstHeartbeat() {
-            return serverStatusDelegate.getFirstHeartbeat();
-        }
-
-        @Override
-        public Instant getLastHeartbeat() {
-            return Instant.now();
-        }
-
-        @Override
-        public void start() {
-            serverStatusDelegate.start();
-        }
-
-        @Override
-        public void pause() {
-            serverStatusDelegate.pause();
-        }
-
-        @Override
-        public void resume() {
-            serverStatusDelegate.resume();
-        }
-
-        @Override
-        public void stop() {
-            serverStatusDelegate.stop();
-        }
-
-        @Override
-        public boolean isRunning() {
-            return serverStatusDelegate.isRunning();
-        }
-
-        @Override
-        public Long getSystemTotalMemory() {
-            return jobServerStats.getSystemTotalMemory();
-        }
-
-        @Override
-        public Long getSystemFreeMemory() {
-            return jobServerStats.getSystemFreeMemory();
-        }
-
-        @Override
-        public Double getSystemCpuLoad() {
-            return jobServerStats.getSystemCpuLoad();
-        }
-
-        @Override
-        public Long getProcessMaxMemory() {
-            return jobServerStats.getProcessMaxMemory();
-        }
-
-        @Override
-        public Long getProcessFreeMemory() {
-            return jobServerStats.getProcessFreeMemory();
-        }
-
-        @Override
-        public Long getProcessAllocatedMemory() {
-            return jobServerStats.getProcessAllocatedMemory();
-        }
-
-        @Override
-        public Double getProcessCpuLoad() {
-            return jobServerStats.getProcessCpuLoad();
-        }
     }
 }

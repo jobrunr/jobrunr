@@ -16,6 +16,11 @@ public abstract class AbstractBackgroundJobSqlContainer extends AbstractBackgrou
 
     @Override
     public void start() {
+        setupContainer();
+        super.start();
+    }
+
+    protected void setupContainer() {
         this
                 .dependsOn(sqlContainer)
                 .withEnv("JOBRUNR_JDBC_URL", sqlContainer.getJdbcUrl())
@@ -23,7 +28,6 @@ public abstract class AbstractBackgroundJobSqlContainer extends AbstractBackgrou
                 .withEnv("JOBRUNR_JDBC_PASSWORD", sqlContainer.getPassword())
                 .withNetworkMode("host")
                 .waitingFor(Wait.forLogMessage(".*Background Job server is ready *\\n", 1));
-        super.start();
     }
 
     public StorageProvider getStorageProviderForClient() {

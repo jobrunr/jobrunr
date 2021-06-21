@@ -1,5 +1,6 @@
 package org.jobrunr.storage.nosql.redis;
 
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
@@ -36,6 +37,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
+import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
@@ -309,10 +311,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
             try (final Jedis jedis = getJedis(); Transaction p = jedis.multi()) {
-                for (Job jobToSave : jobs) {
-                    jobToSave.increaseVersion();
-                    saveJob(p, jobToSave);
-                }
+                jobs.stream()
+                        .peek(AbstractJob::increaseVersion)
+                        .forEach(jobToSave -> saveJob(p, jobToSave));
                 p.exec();
             }
         } else {
@@ -320,8 +321,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
             try (final Jedis jedis = getJedis()) {
-                for (Job job : jobs) {
-                    updateJob(job, jedis);
+                final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, (job) -> updateJob(job, jedis));
+                if (!concurrentModifiedJobs.isEmpty()) {
+                    throw new ConcurrentJobModificationException(concurrentModifiedJobs);
                 }
             }
         }

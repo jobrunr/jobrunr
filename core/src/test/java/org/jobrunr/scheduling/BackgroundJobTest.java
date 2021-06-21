@@ -344,7 +344,7 @@ public class BackgroundJobTest {
     }
 
     @Test
-    void jobCanBeDeletedDuringProcessingState() {
+    void jobCanBeDeletedDuringProcessingState_jobRethrowsInterruptedException() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
@@ -353,6 +353,62 @@ public class BackgroundJobTest {
         await().atMost(6, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
+        });
+
+        await().during(6, SECONDS).atMost(12, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
+        });
+    }
+
+    @Test
+    void jobCanBeDeletedDuringProcessingState_jobInterruptCurrentThread() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongInterruptThread(12));
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+
+        BackgroundJob.delete(jobId);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
+        });
+
+        await().during(12, SECONDS).atMost(18, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
+        });
+    }
+
+    @Test
+    void jobCanBeDeletedDuringProcessingState_InterruptedExceptionCatched() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongCatchInterruptException(12));
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+
+        BackgroundJob.delete(jobId);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
+        });
+
+        await().during(12, SECONDS).atMost(18, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
+        });
+    }
+
+
+    @Test
+    void jobCanBeDeletedDuringProcessingStateIfUninterruptible() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatCannotBeInterrupted(12));
+        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+
+        BackgroundJob.delete(jobId);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
+        });
+
+        await().during(12, SECONDS).atMost(18, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
         });
     }
 

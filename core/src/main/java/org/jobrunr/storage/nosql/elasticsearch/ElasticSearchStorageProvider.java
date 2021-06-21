@@ -272,6 +272,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             return job;
         } catch (ElasticsearchStatusException e) {
             if (e.status().getStatus() == 409) {
+                job.decreaseVersion();
                 throw new ConcurrentJobModificationException(job);
             }
             throw e;
@@ -331,8 +332,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                     .forEach(bulkRequest::add);
 
             BulkResponse bulk = client.bulk(bulkRequest, RequestOptions.DEFAULT);
-            List<Job> concurrentModifiedJobs = Stream.of(bulk.getItems()).filter(item -> item.isFailed() && item.status().getStatus() == 409).map(item -> jobs.get(item.getItemId())).collect(toList());
+            List<Job> concurrentModifiedJobs = Stream.of(bulk.getItems())
+                    .filter(item -> item.isFailed() && item.status().getStatus() == 409)
+                    .map(item -> jobs.get(item.getItemId()))
+                    .collect(toList());
             if (!concurrentModifiedJobs.isEmpty()) {
+                concurrentModifiedJobs.forEach(AbstractJob::decreaseVersion);
                 throw new ConcurrentJobModificationException(concurrentModifiedJobs);
             }
             notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());

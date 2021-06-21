@@ -33,6 +33,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_UPDATED_AT
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
+import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
@@ -172,8 +173,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        jobs
-                .forEach(this::saveJob);
+        final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, this::saveJob);
+        if (!concurrentModifiedJobs.isEmpty()) {
+            throw new ConcurrentJobModificationException(concurrentModifiedJobs);
+        }
         notifyJobStatsOnChangeListeners();
         return jobs;
     }
@@ -325,7 +328,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         }
 
         job.increaseVersion();
-
         jobQueue.put(job.getId(), deepClone(job));
     }
 

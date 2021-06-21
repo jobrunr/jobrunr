@@ -9,7 +9,6 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.ServerZooKeeper;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.stubs.BackgroundJobServerStub;
@@ -58,6 +57,7 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aBackgroundJobServerStatusBasedOn;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.storage.PageRequest.descOnUpdatedAt;
@@ -91,19 +91,17 @@ public abstract class StorageProviderTest {
 
     @Test
     void testAnnounceAndListBackgroundJobServers() {
-        final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aDefaultBackgroundJobServerStatus().build());
-        serverStatus1.start();
+        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus1);
         sleep(100);
 
-        final BackgroundJobServerStatus serverStatus2 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aDefaultBackgroundJobServerStatus().build());
-        serverStatus2.start();
+        final BackgroundJobServerStatus serverStatus2 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus2);
         sleep(100);
 
-        storageProvider.signalBackgroundJobServerAlive(serverStatus2);
+        storageProvider.signalBackgroundJobServerAlive(aBackgroundJobServerStatusBasedOn(serverStatus2).withLastHeartbeat(Instant.now()).build());
         sleep(10);
-        storageProvider.signalBackgroundJobServerAlive(serverStatus1);
+        storageProvider.signalBackgroundJobServerAlive(aBackgroundJobServerStatusBasedOn(serverStatus1).withLastHeartbeat(Instant.now()).build());
 
         final List<BackgroundJobServerStatus> backgroundJobServers = storageProvider.getBackgroundJobServers();
 
@@ -126,15 +124,13 @@ public abstract class StorageProviderTest {
 
     @Test
     void testRemoveTimedOutBackgroundJobServers() {
-        final BackgroundJobServerStatus serverStatus1 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aDefaultBackgroundJobServerStatus().build());
-        serverStatus1.start();
+        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus1);
         sleep(50);
         Instant deleteServersWithHeartbeatOlderThanThis = now();
         sleep(50);
 
-        final BackgroundJobServerStatus serverStatus2 = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aDefaultBackgroundJobServerStatus().build());
-        serverStatus2.start();
+        final BackgroundJobServerStatus serverStatus2 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus2);
 
         final int deletedServers = storageProvider.removeTimedOutBackgroundJobServers(deleteServersWithHeartbeatOlderThanThis);
@@ -145,8 +141,7 @@ public abstract class StorageProviderTest {
 
     @Test
     void ifServerHasTimedOutAndSignalsItsAliveAnExceptionIsThrown() {
-        final BackgroundJobServerStatus serverStatus = new ServerZooKeeper.BackgroundJobServerStatusWriteModel(aDefaultBackgroundJobServerStatus().build());
-        serverStatus.start();
+        final BackgroundJobServerStatus serverStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus);
         sleep(100);
 
@@ -297,6 +292,9 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(job1);
         assertThatThrownBy(() -> storageProvider.save(job2)).isInstanceOf(ConcurrentJobModificationException.class);
+
+        assertThat(job1).hasVersion(2);
+        assertThat(job2).hasVersion(1);
     }
 
     @Test
@@ -318,6 +316,7 @@ public abstract class StorageProviderTest {
         Job createdJob4 = storageProvider.save(aCopyOf(job).withId().build());
 
         storageProvider.save(aCopyOf(createdJob2).withSucceededState().build());
+        storageProvider.save(aCopyOf(createdJob3).withDeletedState().build());
 
         createdJob1.updateProcessing();
         createdJob2.updateProcessing();
@@ -326,7 +325,11 @@ public abstract class StorageProviderTest {
 
         assertThatThrownBy(() -> storageProvider.save(asList(createdJob1, createdJob2, createdJob3, createdJob4)))
                 .isInstanceOf(ConcurrentJobModificationException.class)
-                .has(failedJob(createdJob2));
+                .has(failedJob(createdJob2))
+                .has(failedJob(createdJob3));
+
+        assertThat(asList(createdJob1, createdJob4)).allMatch(dbJob -> dbJob.getVersion() == 2);
+        assertThat(asList(createdJob2, createdJob3)).allMatch(dbJob -> dbJob.getVersion() == 1);
     }
 
     @Test

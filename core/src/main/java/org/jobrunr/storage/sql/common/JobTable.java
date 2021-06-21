@@ -90,6 +90,7 @@ public class JobTable extends Sql<Job> {
                 updateOneJob(jobToSave);
             }
         } catch (ConcurrentSqlModificationException e) {
+            jobToSave.decreaseVersion();
             throw new ConcurrentJobModificationException(jobToSave);
         }
         return jobToSave;
@@ -207,7 +208,12 @@ public class JobTable extends Sql<Job> {
 
     void updateAllJobs(List<Job> jobs) {
         jobs.forEach(AbstractJob::increaseVersion);
-        updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        try {
+            updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        } catch (ConcurrentSqlModificationException e) {
+            e.getFailedItems().forEach(job -> ((AbstractJob) job).decreaseVersion());
+            throw e;
+        }
     }
 
     private Stream<Job> selectJobs(String statement) {

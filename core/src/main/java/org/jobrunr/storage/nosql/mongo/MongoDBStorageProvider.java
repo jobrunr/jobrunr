@@ -43,7 +43,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.mongodb.client.model.Aggregates.group;
@@ -224,6 +223,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
             final UpdateOneModel<Document> updateModel = jobDocumentMapper.toUpdateOneModel(job);
             final UpdateResult updateResult = jobCollection.updateOne(updateModel.getFilter(), updateModel.getUpdate());
             if (updateResult.getModifiedCount() < 1) {
+                job.decreaseVersion();
                 throw new ConcurrentJobModificationException(job);
             }
         }
@@ -274,13 +274,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                         .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
                         .projection(include(Jobs.FIELD_JOB_AS_JSON))
                         .map(jobDocumentMapper::toJob)
-                        .forEach((Consumer<Job>) job -> mongoDbDocuments.put(job.getId(), job));
+                        .forEach(job -> mongoDbDocuments.put(job.getId(), job));
 
                 final List<Job> concurrentModifiedJobs = jobs.stream()
                         .filter(job -> !job.getUpdatedAt().equals(mongoDbDocuments.get(job.getId()).getUpdatedAt()))
                         .collect(toList());
+                concurrentModifiedJobs.forEach(AbstractJob::decreaseVersion);
                 throw new ConcurrentJobModificationException(concurrentModifiedJobs);
-
             }
         }
         notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());

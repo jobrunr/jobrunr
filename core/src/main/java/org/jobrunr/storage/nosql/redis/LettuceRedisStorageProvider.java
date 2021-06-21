@@ -7,6 +7,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
@@ -42,6 +43,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
+import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
@@ -332,10 +334,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             try (final StatefulRedisConnection connection = getConnection()) {
                 RedisCommands commands = connection.sync();
                 commands.multi();
-                for (Job jobToSave : jobs) {
-                    jobToSave.increaseVersion();
-                    saveJob(commands, jobToSave);
-                }
+                jobs.stream()
+                        .peek(AbstractJob::increaseVersion)
+                        .forEach(jobToSave -> saveJob(commands, jobToSave));
                 commands.exec();
             }
         } else {
@@ -344,8 +345,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             }
             try (final StatefulRedisConnection connection = getConnection()) {
                 RedisCommands commands = connection.sync();
-                for (Job job : jobs) {
-                    updateJob(job, commands);
+                final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, (job) -> updateJob(job, commands));
+                if (!concurrentModifiedJobs.isEmpty()) {
+                    throw new ConcurrentJobModificationException(concurrentModifiedJobs);
                 }
             }
         }

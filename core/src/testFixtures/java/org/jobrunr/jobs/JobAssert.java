@@ -37,6 +37,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert doesNotHaveState(StateName stateName) {
+        Assertions.assertThat(actual.getState()).isNotEqualTo(stateName);
+        return this;
+    }
+
     public JobAssert hasStates(StateName... state) {
         List<StateName> jobStates = actual.getJobStates().stream().map(JobState::getName).collect(Collectors.toList());
         Assertions.assertThat(jobStates).containsExactly(state);
@@ -53,6 +58,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasVersion(int version) {
+        Assertions.assertThat(actual.getVersion()).isEqualTo(version);
+        return this;
+    }
+
     public JobAssert isEqualTo(Job otherJob) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
@@ -61,4 +71,5 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
                 .isEqualTo(otherJob);
         return this;
     }
+
 }

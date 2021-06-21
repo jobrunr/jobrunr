@@ -8,7 +8,6 @@ import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
-import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
@@ -55,9 +54,9 @@ public class JobZooKeeper implements Runnable {
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
+        this.workDistributionStrategy = backgroundJobServer.getWorkDistributionStrategy();
         this.severeExceptionManager = new SevereExceptionManager(backgroundJobServer);
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
-        this.workDistributionStrategy = createWorkDistributionStrategy();
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();
         this.durationPollIntervalTimeBox = Duration.ofSeconds((long) (backgroundJobServerStatus().getPollIntervalInSeconds() - (backgroundJobServerStatus().getPollIntervalInSeconds() * 0.05)));
@@ -258,10 +257,6 @@ public class JobZooKeeper implements Runnable {
             LOGGER.debug("JobRunr is passing the poll interval in seconds timebox because of too many tasks.");
         }
         return runTimeBoxIsPassed;
-    }
-
-    BasicWorkDistributionStrategy createWorkDistributionStrategy() {
-        return new BasicWorkDistributionStrategy(backgroundJobServer, this);
     }
 
     ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {

@@ -44,6 +44,10 @@ public abstract class AbstractJob implements Lockable {
         return version++;
     }
 
+    public int decreaseVersion() {
+        return version--;
+    }
+
     public String getJobSignature() {
         return jobSignature;
     }

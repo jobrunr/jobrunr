@@ -3,7 +3,11 @@ package org.jobrunr.storage;
 import org.jobrunr.jobs.Job;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.JobUtils.isNew;
 
 public class StorageProviderUtils {
@@ -115,4 +119,23 @@ public class StorageProviderUtils {
 
     }
 
+    public static List<Job> returnConcurrentModifiedJobs(List<Job> jobs, Consumer<Job> consumer) {
+        return jobs.stream()
+                .map(toConcurrentJobModificationExceptionIfFailed(consumer))
+                .filter(Objects::nonNull)
+                .map(ConcurrentJobModificationException.class::cast)
+                .flatMap(ex -> ex.getConcurrentUpdatedJobs().stream())
+                .collect(toList());
+    }
+
+    public static Function<Job, Exception> toConcurrentJobModificationExceptionIfFailed(Consumer<Job> test) {
+        return job -> {
+            try {
+                test.accept(job);
+                return null;
+            } catch (ConcurrentJobModificationException e) {
+                return e;
+            }
+        };
+    }
 }

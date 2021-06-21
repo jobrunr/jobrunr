@@ -13,9 +13,9 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final int pollIntervalInSeconds;
     private final Duration deleteSucceededJobsAfter;
     private final Duration permanentlyDeleteDeletedJobsAfter;
-    private volatile Instant firstHeartbeat;
-    private volatile Instant lastHeartbeat;
-    private volatile Boolean running;
+    private final Instant firstHeartbeat;
+    private final Instant lastHeartbeat;
+    private final Boolean running;
     private final Long systemTotalMemory;
     private final Long systemFreeMemory;
     private final Double systemCpuLoad;
@@ -84,28 +84,6 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     @Override
     public boolean isRunning() {
         return running;
-    }
-
-    @Override
-    public void start() {
-        firstHeartbeat = Instant.now();
-        running = true;
-    }
-
-    @Override
-    public void pause() {
-        running = false;
-    }
-
-    @Override
-    public void resume() {
-        running = true;
-    }
-
-    @Override
-    public void stop() {
-        running = false;
-        firstHeartbeat = null;
     }
 
     @Override
