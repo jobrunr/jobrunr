@@ -32,9 +32,9 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 
 public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
-    public BackgroundJobServerTable(DataSource dataSource, Dialect dialect, String schemaName) {
+    public BackgroundJobServerTable(DataSource dataSource, Dialect dialect, String tablePrefix) {
         this
-                .using(dataSource, dialect, schemaName, "jobrunr_backgroundjobservers")
+                .using(dataSource, dialect, tablePrefix, "jobrunr_backgroundjobservers")
                 .with(FIELD_ID, BackgroundJobServerStatus::getId)
                 .with(FIELD_WORKER_POOL_SIZE, BackgroundJobServerStatus::getWorkerPoolSize)
                 .with(FIELD_POLL_INTERVAL_IN_SECONDS, BackgroundJobServerStatus::getPollIntervalInSeconds)

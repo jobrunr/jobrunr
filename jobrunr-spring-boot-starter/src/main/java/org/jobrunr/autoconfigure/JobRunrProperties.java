@@ -203,9 +203,9 @@ public class JobRunrProperties {
         private boolean skipCreate = false;
 
         /**
-         * Allows to set the schema name used by JobRunr
+         * Allows to set the table prefix used by JobRunr
          */
-        private String schemaName;
+        private String tablePrefix;
 
         public void setSkipCreate(boolean skipCreate) {
             this.skipCreate = skipCreate;
@@ -215,12 +215,12 @@ public class JobRunrProperties {
             return skipCreate;
         }
 
-        public String getSchemaName() {
-            return schemaName;
+        public String getTablePrefix() {
+            return tablePrefix;
         }
 
-        public void setSchemaName(String schemaName) {
-            this.schemaName = schemaName;
+        public void setTablePrefix(String tablePrefix) {
+            this.tablePrefix = tablePrefix;
         }
     }
 }

@@ -30,7 +30,7 @@ public class Sql<T> {
     private final Map<String, Function> paramSuppliers;
     private DataSource dataSource;
     private Dialect dialect;
-    private String schema = "";
+    private String tablePrefix = "";
     private String suffix = "";
 
     private volatile static Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
@@ -50,10 +50,10 @@ public class Sql<T> {
         return new Sql<>();
     }
 
-    public Sql<T> using(DataSource dataSource, Dialect dialect, String schema, String tableName) {
+    public Sql<T> using(DataSource dataSource, Dialect dialect, String tablePrefix, String tableName) {
         this.dataSource = dataSource;
         this.dialect = dialect;
-        this.schema = isNullOrEmpty(schema) ? "" : schema + ".";
+        this.tablePrefix = tablePrefix == null ? "" : tablePrefix;
         this.tableName = tableName;
         return this;
     }
@@ -331,7 +331,7 @@ public class Sql<T> {
             parsedQuery.append(c);
         }
         return parsedQuery.toString()
-                .replace(tableName, schema + tableName);
+                .replace(tableName, tablePrefix + tableName);
     }
 
     private static class ParsedStatement {

@@ -19,9 +19,9 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 
 public class MetadataTable extends Sql<JobRunrMetadata> {
 
-    public MetadataTable(DataSource dataSource, Dialect dialect, String schemaName) {
+    public MetadataTable(DataSource dataSource, Dialect dialect, String tablePrefix) {
         this
-                .using(dataSource, dialect, schemaName, "jobrunr_metadata")
+                .using(dataSource, dialect, tablePrefix, "jobrunr_metadata")
                 .with(FIELD_ID, JobRunrMetadata::getId)
                 .with(FIELD_NAME, JobRunrMetadata::getName)
                 .with(FIELD_OWNER, JobRunrMetadata::getOwner)

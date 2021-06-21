@@ -17,10 +17,10 @@ public class RecurringJobTable extends Sql<RecurringJob> {
 
     private final JobMapper jobMapper;
 
-    public RecurringJobTable(DataSource dataSource, Dialect dialect, String schemaName, JobMapper jobMapper) {
+    public RecurringJobTable(DataSource dataSource, Dialect dialect, String tablePrefix, JobMapper jobMapper) {
         this.jobMapper = jobMapper;
         this
-                .using(dataSource, dialect, schemaName, "jobrunr_recurring_jobs")
+                .using(dataSource, dialect, tablePrefix, "jobrunr_recurring_jobs")
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeRecurringJob);
     }
 

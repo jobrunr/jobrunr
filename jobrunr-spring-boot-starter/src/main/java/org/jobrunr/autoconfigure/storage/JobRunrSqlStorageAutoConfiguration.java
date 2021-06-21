@@ -24,9 +24,9 @@ public class JobRunrSqlStorageAutoConfiguration {
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
     public StorageProvider sqlStorageProvider(DataSource dataSource, JobMapper jobMapper, JobRunrProperties properties) {
-        String schemaName = properties.getDatabase().getSchemaName();
+        String tablePrefix = properties.getDatabase().getTablePrefix();
         DatabaseOptions databaseOptions = properties.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
-        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, schemaName, databaseOptions);
+        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
     }

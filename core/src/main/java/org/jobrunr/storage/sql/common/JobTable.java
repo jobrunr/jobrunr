@@ -48,11 +48,11 @@ public class JobTable extends Sql<Job> {
     private final JobMapper jobMapper;
     private static final SqlPageRequestMapper pageRequestMapper = new SqlPageRequestMapper();
 
-    public JobTable(DataSource dataSource, Dialect dialect, String schemaName, JobMapper jobMapper) {
+    public JobTable(DataSource dataSource, Dialect dialect, String tablePrefix, JobMapper jobMapper) {
         this.dataSource = dataSource;
         this.jobMapper = jobMapper;
         this
-                .using(dataSource, dialect, schemaName, "jobrunr_jobs")
+                .using(dataSource, dialect, tablePrefix, "jobrunr_jobs")
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)

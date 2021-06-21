@@ -23,24 +23,22 @@ public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
     private static final String[] jobrunr_tables = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
-    ;
-
 
     private final ConnectionProvider connectionProvider;
-    private final String schemaName;
+    private final String tablePrefix;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
 
     public static void main(String[] args) {
         String url = args[0];
         String userName = args[1];
         String password = args[2];
-        String schemaName = args.length >= 4 ? args[3] : null;
+        String tablePrefix = args.length >= 4 ? args[3] : null;
 
         try {
             System.out.println("==========================================================");
             System.out.println("================== JobRunr Table Creator =================");
             System.out.println("==========================================================");
-            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), schemaName, new SqlStorageProviderFactory().getStorageProviderClassByJdbcUrl(url)).runMigrations();
+            new DatabaseCreator(() -> DriverManager.getConnection(url, userName, password), tablePrefix, new SqlStorageProviderFactory().getStorageProviderClassByJdbcUrl(url)).runMigrations();
             System.out.println("Successfully created all tables!");
         } catch (Exception e) {
             System.out.println("An error occurred: ");
@@ -55,21 +53,21 @@ public class DatabaseCreator {
         this(dataSource, null, null);
     }
 
-    protected DatabaseCreator(DataSource dataSource, String schemaName) {
-        this(dataSource, schemaName, null);
+    protected DatabaseCreator(DataSource dataSource, String tablePrefix) {
+        this(dataSource, tablePrefix, null);
     }
 
     public DatabaseCreator(DataSource dataSource, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         this(dataSource::getConnection, null, sqlStorageProviderClass);
     }
 
-    public DatabaseCreator(DataSource dataSource, String schemaName, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
-        this(dataSource::getConnection, schemaName, sqlStorageProviderClass);
+    public DatabaseCreator(DataSource dataSource, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        this(dataSource::getConnection, tablePrefix, sqlStorageProviderClass);
     }
 
-    public DatabaseCreator(ConnectionProvider connectionProvider, String schemaName, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+    public DatabaseCreator(ConnectionProvider connectionProvider, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         this.connectionProvider = connectionProvider;
-        this.schemaName = schemaName;
+        this.tablePrefix = tablePrefix;
         this.databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
     }
 
@@ -161,18 +159,17 @@ public class DatabaseCreator {
     }
 
     private String updateStatementWithSchemaName(String statement) {
-        if (isNullOrEmpty(schemaName)) {
+        if (isNullOrEmpty(tablePrefix)) {
             return statement;
         }
-        final String updatedStatement = statement.replace("jobrunr_", schemaName + ".jobrunr_");
-        return updatedStatement;
+        return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
     }
 
     private String getFQTableName(String tableName) {
-        if (isNullOrEmpty(schemaName)) {
+        if (isNullOrEmpty(tablePrefix)) {
             return tableName;
         }
-        return schemaName + "." + tableName;
+        return tablePrefix + tableName;
     }
 
     private Connection getConnection() {
