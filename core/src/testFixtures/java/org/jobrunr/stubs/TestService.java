@@ -182,11 +182,11 @@ public class TestService implements TestServiceInterface {
         }
     }
 
-    public void doWorkThatCannotBeInterrupted(int seconds) throws InterruptedException {
+    public void doWorkThatCanBeInterrupted(int seconds) throws InterruptedException {
         final Instant start = Instant.now();
         long initialNbr = 0;
         while (start.plusSeconds(seconds).isAfter(Instant.now())) {
-            if (Thread.interrupted()) throw new InterruptedException();
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
             if (Duration.between(start, Instant.now()).getSeconds() > initialNbr) {
                 System.out.println("WORK IS BEING DONE: " + Duration.between(start, Instant.now()).getSeconds());
                 initialNbr = Duration.between(start, Instant.now()).getSeconds();
