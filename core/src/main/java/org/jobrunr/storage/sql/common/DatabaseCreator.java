@@ -69,7 +69,7 @@ public class DatabaseCreator {
     public void validateTables() {
         String[] tables = {"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
         try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn);
+             final Transaction tran = new Transaction(conn, false);
              final Statement pSt = conn.createStatement()) {
             for (String table : tables) {
                 try (ResultSet rs = pSt.executeQuery("select count(*) from " + table)) {
@@ -90,7 +90,7 @@ public class DatabaseCreator {
 
     protected void runMigration(SqlMigration migration) {
         LOGGER.info("Running migration {}", migration);
-        try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
+        try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn, false)) {
             if (!isEmptyMigration(migration)) {
                 runMigrationStatement(conn, migration);
             }
@@ -130,7 +130,7 @@ public class DatabaseCreator {
 
     protected boolean isMigrationApplied(SqlMigration migration) {
         try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn);
+             final Transaction tran = new Transaction(conn, false);
              final PreparedStatement pSt = conn.prepareStatement("select count(*) from jobrunr_migrations where script = ?")) {
             boolean result = false;
             pSt.setString(1, migration.getFileName());

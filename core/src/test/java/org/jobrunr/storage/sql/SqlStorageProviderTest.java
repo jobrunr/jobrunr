@@ -4,20 +4,19 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
-import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Duration;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public abstract class SqlStorageProviderTest extends StorageProviderTest {
+
+    private static Class<? extends SqlStorageProviderTest> currentTestClass;
+    private static int testMethodIndex;
 
     @Override
     public void cleanup() {
@@ -45,35 +44,22 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
     protected abstract DataSource getDataSource();
 
     protected void cleanupDatabase(DataSource dataSource) {
-        drop(dataSource, "view jobrunr_jobs_stats");
-        drop(dataSource, "table jobrunr_recurring_jobs");
-        drop(dataSource, "table jobrunr_job_counters");
-        drop(dataSource, "table jobrunr_jobs");
-        drop(dataSource, "table jobrunr_backgroundjobservers");
-        drop(dataSource, "table jobrunr_migrations");
-        drop(dataSource, "table jobrunr_metadata");
-    }
-
-    private void drop(DataSource dataSource, String name) {
-        try (final Connection connection = dataSource.getConnection();
-             final Transaction tran = new Transaction(connection);
-             final Statement statement = connection.createStatement()) {
-            statement.executeUpdate("drop " + name);
-            System.out.println("Dropped " + name);
-            tran.commit();
-        } catch (SQLException e) {
-            if (canNotIgnoreException(e)) {
-                System.out.println("Error dropping " + name);
-                e.printStackTrace();
-            }
+        if (getTestMethodIndex() < 3) {
+            getDatabaseCleaner(dataSource).dropAllTablesAndViews();
+        } else {
+            getDatabaseCleaner(dataSource).deleteAllDataInTables();
         }
     }
 
-    private boolean canNotIgnoreException(SQLException e) {
-        return !canIgnoreException(e);
+    protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
+        return new DatabaseCleaner(dataSource);
     }
 
-    protected boolean canIgnoreException(SQLException e) {
-        return true;
+    private int getTestMethodIndex() {
+        if (currentTestClass != this.getClass()) {
+            testMethodIndex = 0;
+        }
+        currentTestClass = this.getClass();
+        return testMethodIndex++;
     }
 }
