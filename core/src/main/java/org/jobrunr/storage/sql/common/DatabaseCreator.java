@@ -11,7 +11,12 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -162,7 +167,24 @@ public class DatabaseCreator {
         if (isNullOrEmpty(tablePrefix)) {
             return statement;
         }
+        if (isCrateIndex(statement)) {
+            return updateStatementForCreateIndex(statement);
+        }
         return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
+    }
+
+    private boolean isCrateIndex(String statement){
+        return statement.contains("CREATE INDEX ");
+    }
+
+    private String updateStatementForCreateIndex(String statement) {
+        return statement
+                .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + getIndexPrefix() + "jobrunr_")
+                .replace("ON jobrunr_", "ON " + tablePrefix + "jobrunr_");
+    }
+
+    private String getIndexPrefix() {
+        return tablePrefix.substring(tablePrefix.lastIndexOf('.') + 1);
     }
 
     private String getFQTableName(String tableName) {
