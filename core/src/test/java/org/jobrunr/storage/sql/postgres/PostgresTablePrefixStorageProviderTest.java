@@ -80,7 +80,7 @@ public class PostgresTablePrefixStorageProviderTest extends AbstractPostgresStor
                     allTables.add(tableSchema + "." + tableName);
                 }
 
-                assertThat(allTables).areAtLeast(5, new Condition<>(name -> name.startsWith("SOME_SCHEMA.SOME_PREFIX_JOBRUNR_"), ""));
+                assertThat(allTables).areAtLeast(5, new Condition<>(name -> name.toUpperCase().startsWith("SOME_SCHEMA.SOME_PREFIX_JOBRUNR_"), ""));
             }
 
             try (ResultSet rs = statement.executeQuery("SELECT indexname FROM pg_indexes")) {
