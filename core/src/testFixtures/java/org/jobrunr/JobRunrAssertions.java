@@ -8,12 +8,14 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
+import org.assertj.db.DatabaseAssertions;
 import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
 import org.jobrunr.jobs.*;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;
 
+import javax.sql.DataSource;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -55,6 +57,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static LoggerAssert assertThat(ListAppender<ILoggingEvent> listAppender) {
         return LoggerAssert.assertThat(listAppender);
+    }
+
+    public static DatabaseAssertions assertThat(DataSource dataSource) {
+        return DatabaseAssertions.assertThat(dataSource);
     }
 
     public static String contentOfResource(String resourceName) {

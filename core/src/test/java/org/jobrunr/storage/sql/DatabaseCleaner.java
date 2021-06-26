@@ -8,36 +8,48 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.util.function.Function;
 
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+
 public class DatabaseCleaner {
 
     private final DataSource dataSource;
+    private final String tableNamePrefix;
     private final Function<Exception, Boolean> canIgnoreException;
 
     public DatabaseCleaner(DataSource dataSource) {
-        this(dataSource, null);
+        this(dataSource, null, null);
+    }
+
+    public DatabaseCleaner(DataSource dataSource, String tableNamePrefix) {
+        this(dataSource, tableNamePrefix, null);
     }
 
     public DatabaseCleaner(DataSource dataSource, Function<Exception, Boolean> canIgnoreException) {
+        this(dataSource, null, canIgnoreException);
+    }
+
+    public DatabaseCleaner(DataSource dataSource, String tableNamePrefix, Function<Exception, Boolean> canIgnoreException) {
         this.dataSource = dataSource;
+        this.tableNamePrefix = isNotNullOrEmpty(tableNamePrefix) ? tableNamePrefix : "";
         this.canIgnoreException = canIgnoreException;
     }
 
     public void dropAllTablesAndViews() {
-        drop("view jobrunr_jobs_stats");
-        drop("table jobrunr_recurring_jobs");
-        drop("table jobrunr_job_counters");
-        drop("table jobrunr_jobs");
-        drop("table jobrunr_backgroundjobservers");
-        drop("table jobrunr_metadata");
-        drop("table jobrunr_migrations");
+        drop("view " + tableNamePrefix + "jobrunr_jobs_stats");
+        drop("table " + tableNamePrefix + "jobrunr_recurring_jobs");
+        drop("table " + tableNamePrefix + "jobrunr_job_counters");
+        drop("table " + tableNamePrefix + "jobrunr_jobs");
+        drop("table " + tableNamePrefix + "jobrunr_backgroundjobservers");
+        drop("table " + tableNamePrefix + "jobrunr_metadata");
+        drop("table " + tableNamePrefix + "jobrunr_migrations");
     }
 
     public void deleteAllDataInTables() {
-        delete("from jobrunr_recurring_jobs");
-        delete("from jobrunr_job_counters");
-        delete("from jobrunr_jobs");
-        delete("from jobrunr_backgroundjobservers");
-        delete("from jobrunr_metadata");
+        delete("from " + tableNamePrefix + "jobrunr_recurring_jobs");
+        delete("from " + tableNamePrefix + "jobrunr_job_counters");
+        delete("from " + tableNamePrefix + "jobrunr_jobs");
+        delete("from " + tableNamePrefix + "jobrunr_backgroundjobservers");
+        delete("from " + tableNamePrefix + "jobrunr_metadata");
         insertInitialData();
     }
 
@@ -51,7 +63,7 @@ public class DatabaseCleaner {
 
     private void insertInitialData() {
         doInTransaction(statement -> statement
-                        .executeUpdate("insert into jobrunr_metadata values ('succeeded-jobs-counter-cluster', 'succeeded-jobs-counter', 'cluster', '0', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"),
+                        .executeUpdate("insert into " + tableNamePrefix + "jobrunr_metadata values ('succeeded-jobs-counter-cluster', 'succeeded-jobs-counter', 'cluster', '0', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"),
                 "Error inserting initial data");
     }
 
