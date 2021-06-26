@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.oracle;
 
+import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.extension.AfterAllSubclasses;
@@ -7,7 +8,7 @@ import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.OracleContainer;
 
-import java.sql.SQLException;
+import javax.sql.DataSource;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -36,7 +37,11 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
     }
 
     @Override
-    protected boolean canIgnoreException(SQLException e) {
+    protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
+        return new DatabaseCleaner(dataSource, this::canIgnoreException);
+    }
+
+    private boolean canIgnoreException(Exception e) {
         return e.getMessage().contains("ORA-00942");
     }
 }

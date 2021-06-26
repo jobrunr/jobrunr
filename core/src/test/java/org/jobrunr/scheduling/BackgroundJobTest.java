@@ -378,8 +378,8 @@ public class BackgroundJobTest {
     }
 
     @Test
-    void jobCanBeDeletedDuringProcessingState_InterruptedExceptionCatched() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongCatchInterruptException(12));
+    void jobCanBeDeletedDuringProcessingStateIfInterruptible() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatCanBeInterrupted(12));
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
         BackgroundJob.delete(jobId);
@@ -394,10 +394,9 @@ public class BackgroundJobTest {
         });
     }
 
-
     @Test
-    void jobCanBeDeletedDuringProcessingStateIfUninterruptible() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatCannotBeInterrupted(12));
+    void jobCanBeDeletedDuringProcessingState_InterruptedExceptionCatched() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongCatchInterruptException(12));
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
         BackgroundJob.delete(jobId);
