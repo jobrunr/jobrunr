@@ -3,7 +3,7 @@ package org.jobrunr.tests.fromhost;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.executioncondition.RunTestBetween;
+import org.testcontainers.images.PullPolicy;
 
 import java.time.Duration;
 
@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 // we do not want to run this test within the docker container itself as it would otherwise run recursively
 // once inside the docker build, the ENV variable JDK_TEST is set
 // the end result is that only the tests inside org.jobrunr.tests.e2e must run (on the correct JDK)
-@RunTestBetween(from = "00:00", to = "03:00")
+//@RunTestBetween(from = "00:00", to = "03:00")
 @DisabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
 public class JdkTest {
 
@@ -34,7 +34,7 @@ public class JdkTest {
 
     @Test
     void jdk8GraalVM() {
-        assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java8")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java8-21.1.0")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
@@ -59,7 +59,7 @@ public class JdkTest {
 
     @Test
     void jdk11GraalVM() {
-        assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java11")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java11-21.1.0")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
@@ -96,7 +96,8 @@ public class JdkTest {
     private String buildAndTestOnImage(String dockerfile) {
         final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
         buildAndTestContainer
-                .withStartupTimeout(Duration.ofMinutes(5))
+                .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
+                .withStartupTimeout(Duration.ofMinutes(1))
                 .start();
         System.out.println(buildAndTestContainer.getLogs());
         return buildAndTestContainer.getLogs();
