@@ -64,12 +64,13 @@ public class DatabaseAssertions extends AbstractAssert<DatabaseAssertions, DataS
     private List<String> allTables() {
         if (tablenames == null) {
             try (final Connection connection = actual.getConnection(); final Statement statement = connection.createStatement()) {
-                try (ResultSet rs = statement.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TABLES")) {
+                final DatabaseQueries databaseQueries = getDatabaseQueries(connection);
+
+                try (ResultSet rs = statement.executeQuery(databaseQueries.getAllTablesQuery())) {
                     tablenames = new ArrayList<>();
                     while (rs.next()) {
-                        String tableCatalog = rs.getString(1);
-                        String tableSchema = rs.getString(2);
-                        String tableName = rs.getString(3);
+                        String tableSchema = rs.getString("table_schema");
+                        String tableName = rs.getString("table_name");
 
                         tablenames.add((tableSchema + "." + tableName).toUpperCase());
                     }
@@ -84,11 +85,11 @@ public class DatabaseAssertions extends AbstractAssert<DatabaseAssertions, DataS
     private List<String> allIndices() {
         if (indices == null) {
             try (final Connection connection = actual.getConnection(); final Statement statement = connection.createStatement()) {
-                String indexQuery = getIndexQuery(connection);
-                try (ResultSet rs = statement.executeQuery(indexQuery)) {
+                final DatabaseQueries databaseQueries = getDatabaseQueries(connection);
+                try (ResultSet rs = statement.executeQuery(databaseQueries.getAllIndicesQuery())) {
                     indices = new ArrayList<>();
                     while (rs.next()) {
-                        indices.add(rs.getString("indexname").toUpperCase());
+                        indices.add(rs.getString("index_name").toUpperCase());
                     }
                 }
             } catch (SQLException e) {
@@ -98,27 +99,8 @@ public class DatabaseAssertions extends AbstractAssert<DatabaseAssertions, DataS
         return indices;
     }
 
-    private String getIndexQuery(Connection connection) throws SQLException {
+    private DatabaseQueries getDatabaseQueries(Connection connection) throws SQLException {
         String databaseName = connection.getMetaData().getDatabaseProductName();
-        switch (databaseName) {
-            case "Microsoft SQL Server":
-                return "SELECT idx.name as indexname FROM sys.indexes idx WHERE idx.name IS NOT NULL";
-            case "Oracle":
-                throw new UnsupportedOperationException("Implement me");
-            case "PostgreSQL":
-                return "SELECT indexname FROM pg_indexes";
-            case "H2":
-            case "HSQL Database Engine":
-                return "SELECT distinct index_name as indexname FROM information_schema.indexes";
-            case "MySQL":
-            case "MariaDB":
-                return "SELECT indexname FROM INFORMATION_SCHEMA.STATISTICS";
-            case "SQLite":
-                return "SELECT name FROM sqlite_master WHERE type = 'index'";
-            case "DB2":
-                throw new UnsupportedOperationException("Implement me");
-            default: // SQL Standard
-                throw new UnsupportedOperationException("Implement me");
-        }
+        return DatabaseQueriesByProvider.getFor(databaseName);
     }
 }

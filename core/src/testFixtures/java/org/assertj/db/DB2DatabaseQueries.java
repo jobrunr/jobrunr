@@ -1,0 +1,13 @@
+package org.assertj.db;
+
+public class DB2DatabaseQueries implements DatabaseQueries {
+    @Override
+    public String getAllTablesQuery() {
+        return "SELECT TABSCHEMA as table_schema, TABNAME as table_name FROM SYSCAT.TABLES WHERE TYPE = 'T'";
+    }
+
+    @Override
+    public String getAllIndicesQuery() {
+        return "select INDNAME as index_name from syscat.indexes";
+    }
+}
