@@ -5,9 +5,9 @@ import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
+import org.jobrunr.tests.e2e.services.Work;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -17,7 +17,6 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
 
-@Disabled("Re-enable me after release (breaking change)")
 public class E2EJDKTest {
 
     private TestService testService;
@@ -43,7 +42,7 @@ public class E2EJDKTest {
 
     @Test
     void usingLambdaWithIoCLookupUsingInstance() {
-        BackgroundJob.enqueue(() -> testService.doWork(UUID.randomUUID()));
+        BackgroundJob.enqueue(() -> testService.doWork(new Work(1, "Foo", 2L, UUID.randomUUID())));
 
         await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -52,7 +51,7 @@ public class E2EJDKTest {
 
     @Test
     void usingLambdaWithIoCLookupWithoutInstance() {
-        BackgroundJob.<TestService>enqueue(x -> x.doWork(UUID.randomUUID()));
+        BackgroundJob.<TestService>enqueue(x -> x.doWork(new Work(1, "Foo", 2L, UUID.randomUUID())));
 
         await()
                 .atMost(30, TimeUnit.SECONDS)

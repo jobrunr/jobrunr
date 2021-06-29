@@ -30,6 +30,6 @@ public class BuildAndTestContainer extends GenericContainer<BuildAndTestContaine
         this
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
                 .withCommand("./gradlew", "build")
-                .waitingFor(Wait.forLogMessage(".*BUILD SUCCESSFUL.*", 1));
+                .waitingFor(Wait.forLogMessage(".*BUILD SUCCESSFUL.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*", 1));
     }
 }

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.executioncondition.RunTestBetween;
+import org.testcontainers.images.PullPolicy;
 
 import java.time.Duration;
 
@@ -34,7 +35,7 @@ public class JdkTest {
 
     @Test
     void jdk8GraalVM() {
-        assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java8")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java8-21.1.0")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
@@ -59,7 +60,12 @@ public class JdkTest {
 
     @Test
     void jdk11GraalVM() {
-        assertThat(buildAndTestOnImage("oracle/graalvm-ce:20.1.0-java11")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java11-21.1.0")).contains("BUILD SUCCESSFUL");
+    }
+
+    @Test
+    void jdk11AmazonCorretto() {
+        assertThat(buildAndTestOnImage("amazoncorretto:11")).contains("BUILD SUCCESSFUL");
     }
 
     @Test
@@ -91,8 +97,10 @@ public class JdkTest {
     private String buildAndTestOnImage(String dockerfile) {
         final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
         buildAndTestContainer
-                .withStartupTimeout(Duration.ofMinutes(5))
+                .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
+                .withStartupTimeout(Duration.ofMinutes(1))
                 .start();
+        System.out.println(buildAndTestContainer.getLogs());
         return buildAndTestContainer.getLogs();
     }
 }

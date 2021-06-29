@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 
 public class JavaJobDetailsFinderContext extends JobDetailsFinderContext {
@@ -18,11 +19,11 @@ public class JavaJobDetailsFinderContext extends JobDetailsFinderContext {
 
     protected static List<Object> initLocalVariables(SerializedLambda serializedLambda, Object[] params) {
         List<Object> result = new ArrayList<>();
+        final Class<?>[] paramTypesFromDescriptor = findParamTypesFromDescriptorAsArray(serializedLambda.getImplMethodSignature());
         for (int i = 0; i < serializedLambda.getCapturedArgCount(); i++) {
             final Object capturedArg = serializedLambda.getCapturedArg(i);
             result.add(capturedArg);
-            //why: If the local variable at index is of type double or long, it occupies both index and index + 1. See https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
-            if (capturedArg instanceof Long || capturedArg instanceof Double) {
+            if (isPrimitiveLongOrDouble(paramTypesFromDescriptor, i, capturedArg)) { //why: If the local variable at index is of type double or long, it occupies both index and index + 1. See https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
                 result.add(null);
             }
         }
@@ -33,4 +34,7 @@ public class JavaJobDetailsFinderContext extends JobDetailsFinderContext {
         return result;
     }
 
+    private static boolean isPrimitiveLongOrDouble(Class<?>[] paramTypesFromDescriptor, int i, Object capturedArg) {
+        return i > 1 && paramTypesFromDescriptor[i - 1].isPrimitive() && (capturedArg instanceof Long || capturedArg instanceof Double);
+    }
 }
