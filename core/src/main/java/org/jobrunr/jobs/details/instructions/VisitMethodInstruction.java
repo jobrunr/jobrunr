@@ -36,7 +36,7 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
         LinkedList<Class<?>> paramTypes = new LinkedList<>(Arrays.asList(paramTypesAsArray));
         List<Object> result = new ArrayList<>();
         while (!paramTypes.isEmpty()) {
-            Class<?> paramType = paramTypes.pollLast();// not interested in this
+            Class<?> paramType = paramTypes.pollLast();
             result.add(0, autobox(jobDetailsBuilder.getStack().pollLast(), paramType));
         }
         return result;

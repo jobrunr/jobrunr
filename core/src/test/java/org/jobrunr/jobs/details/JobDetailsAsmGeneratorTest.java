@@ -10,8 +10,8 @@ import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -54,7 +54,7 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-    @Disabled
+        //@Disabled
     void logByteCode() {
         String name = this.getClass().getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
@@ -620,6 +620,24 @@ class JobDetailsAsmGeneratorTest {
             final long finalL = 5L + i;
             final float finalF = 3.3F + i;
             final double finalD = 2.3D + i;
+            IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(finalB, finalI, finalL, finalF, finalD);
+            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            assertThat(jobDetails)
+                    .hasClass(TestService.class)
+                    .hasMethodName("doWork")
+                    .hasArgs(i % 2 == 0, finalI, 5L + i, 3.3F + i, 2.3D + i);
+        }
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/158")
+    void testIocJobLambdaWithPrimitiveWrappers_LOAD() {
+        for (int i = 0; i < 3; i++) {
+            final Boolean finalB = i % 2 == 0;
+            final Integer finalI = i;
+            final Long finalL = 5L + i;
+            final Float finalF = 3.3F + i;
+            final Double finalD = 2.3D + i;
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(finalB, finalI, finalL, finalF, finalD);
             JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
             assertThat(jobDetails)
