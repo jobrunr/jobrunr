@@ -76,7 +76,6 @@ class DatabaseCreatorTest {
         databaseCreatorForSchema1.runMigrations();
         final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2");
         assertThatThrownBy(databaseCreatorForSchema2::validateTables).isInstanceOf(JobRunrException.class);
-        ;
     }
 
     private JdbcDataSource createH2DataSource(String url) {

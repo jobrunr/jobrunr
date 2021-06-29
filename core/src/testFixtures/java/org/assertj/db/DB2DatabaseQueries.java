@@ -8,6 +8,6 @@ public class DB2DatabaseQueries implements DatabaseQueries {
 
     @Override
     public String getAllIndicesQuery() {
-        return "select INDNAME as index_name from syscat.indexes";
+        return "select CONCAT(CONCAT(INDSCHEMA, '.'), INDNAME) as index_name from syscat.indexes";
     }
 }

@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.substringAfterLast;
 
 public class DatabaseCreator {
 
@@ -25,7 +26,7 @@ public class DatabaseCreator {
     private static final String[] jobrunr_tables = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
 
     private final ConnectionProvider connectionProvider;
-    private final String tablePrefix;
+    private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
 
     public static void main(String[] args) {
@@ -67,7 +68,7 @@ public class DatabaseCreator {
 
     public DatabaseCreator(ConnectionProvider connectionProvider, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         this.connectionProvider = connectionProvider;
-        this.tablePrefix = tablePrefix;
+        this.tablePrefixStatementUpdater = getStatementUpdater(tablePrefix, connectionProvider);
         this.databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
     }
 
@@ -84,7 +85,7 @@ public class DatabaseCreator {
              final Transaction tran = new Transaction(conn, false);
              final Statement pSt = conn.createStatement()) {
             for (String table : jobrunr_tables) {
-                try (ResultSet rs = pSt.executeQuery("select count(*) from " + getFQTableName(table))) {
+                try (ResultSet rs = pSt.executeQuery("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(table))) {
                     if (rs.next()) {
                         int count = rs.getInt(1);
                     }
@@ -122,13 +123,13 @@ public class DatabaseCreator {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";")) {
             try (final Statement stmt = connection.createStatement()) {
-                stmt.execute(updateStatementWithSchemaName(statement));
+                stmt.execute(tablePrefixStatementUpdater.updateStatement(statement).trim());
             }
         }
     }
 
     protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
-        try (PreparedStatement pSt = connection.prepareStatement("insert into " + getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
+        try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
             pSt.setString(3, LocalDateTime.now().toString());
@@ -143,7 +144,7 @@ public class DatabaseCreator {
     protected boolean isMigrationApplied(SqlMigration migration) {
         try (final Connection conn = getConnection();
              final Transaction tran = new Transaction(conn, false);
-             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + getFQTableName("jobrunr_migrations") + " where script = ?")) {
+             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
             boolean result = false;
             pSt.setString(1, migration.getFileName());
             try (ResultSet rs = pSt.executeQuery()) {
@@ -156,40 +157,6 @@ public class DatabaseCreator {
         } catch (Exception becauseTableDoesNotExist) {
             return false;
         }
-    }
-
-    private String updateStatementWithSchemaName(String statement) {
-        if (isNullOrEmpty(tablePrefix)) {
-            return statement;
-        }
-//        if (isCreateIndex(statement)) {
-//            return updateStatementWithSchemaNameForCreateIndexStatement(statement);
-//        }
-        return updateStatementWithSchemaNameForOtherStatements(statement);
-    }
-
-    private boolean isCreateIndex(String statement) {
-        return statement.contains("CREATE INDEX ");
-    }
-
-    private String updateStatementWithSchemaNameForCreateIndexStatement(String statement) {
-        return statement
-                .replace("ON jobrunr_", "ON " + tablePrefix + "jobrunr_");
-    }
-
-    private String updateStatementWithSchemaNameForOtherStatements(String statement) {
-        return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
-    }
-
-    private String getIndexPrefix() {
-        return tablePrefix.substring(tablePrefix.lastIndexOf('.') + 1);
-    }
-
-    private String getFQTableName(String tableName) {
-        if (isNullOrEmpty(tablePrefix)) {
-            return tableName;
-        }
-        return tablePrefix + tableName;
     }
 
     private Connection getConnection() {
@@ -207,4 +174,105 @@ public class DatabaseCreator {
 
     }
 
+
+    private TablePrefixStatementUpdater getStatementUpdater(String tablePrefix, ConnectionProvider connectionProvider) {
+        try {
+            if (isNullOrEmpty(tablePrefix)) {
+                return new NoOpTablePrefixStatementUpdater();
+            } else {
+                final String databaseProductName = connectionProvider.getConnection().getMetaData().getDatabaseProductName();
+                if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
+                    return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
+                } else {
+                    return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
+                }
+            }
+        } catch (SQLException e) {
+            throw JobRunrException.shouldNotHappenException(e);
+        }
+    }
+
+    private interface TablePrefixStatementUpdater {
+
+        String updateStatement(String statement);
+
+        String getFQTableName(String tableName);
+
+    }
+
+    private static class NoOpTablePrefixStatementUpdater implements TablePrefixStatementUpdater {
+
+        @Override
+        public String updateStatement(String statement) {
+            return statement;
+        }
+
+        @Override
+        public String getFQTableName(String tableName) {
+            return tableName;
+        }
+
+
+    }
+
+    private static class OracleAndDB2TablePrefixStatementUpdater implements TablePrefixStatementUpdater {
+
+        private final String tablePrefix;
+
+        public OracleAndDB2TablePrefixStatementUpdater(String tablePrefix) {
+            this.tablePrefix = tablePrefix;
+        }
+
+        @Override
+        public String updateStatement(String statement) {
+            return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
+        }
+
+        @Override
+        public String getFQTableName(String tableName) {
+            return tablePrefix + tableName;
+        }
+    }
+
+    private static class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixStatementUpdater {
+
+        private final String tablePrefix;
+        private final String indexPrefix;
+
+        public AnsiDatabaseTablePrefixStatementUpdater(String tablePrefix) {
+            this.tablePrefix = tablePrefix;
+            this.indexPrefix = getIndexPrefix(tablePrefix);
+        }
+
+        @Override
+        public String updateStatement(String statement) {
+            if (isCreateIndex(statement)) {
+                return updateStatementWithSchemaNameForCreateIndexStatement(statement);
+            }
+            return updateStatementWithSchemaNameForOtherStatements(statement);
+        }
+
+        @Override
+        public String getFQTableName(String tableName) {
+            return tablePrefix + tableName;
+        }
+
+        private boolean isCreateIndex(String statement) {
+            return statement.contains("CREATE INDEX ");
+        }
+
+        private String updateStatementWithSchemaNameForCreateIndexStatement(String statement) {
+            return statement
+                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + indexPrefix + "jobrunr_")
+                    .replace("ON jobrunr_", "ON " + tablePrefix + "jobrunr_");
+        }
+
+        private String updateStatementWithSchemaNameForOtherStatements(String statement) {
+            return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
+        }
+
+        private String getIndexPrefix(String tablePrefix) {
+            return substringAfterLast(tablePrefix, ".");
+        }
+    }
 }

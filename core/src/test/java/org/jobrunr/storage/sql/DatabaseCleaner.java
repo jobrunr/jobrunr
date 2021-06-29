@@ -1,10 +1,8 @@
 package org.jobrunr.storage.sql;
 
-import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.utils.exceptions.Exceptions;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.Statement;
 import java.util.function.Function;
 
@@ -12,16 +10,18 @@ import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
 public class DatabaseCleaner {
 
+    public static final Function<Exception, Boolean> ignoreExceptions = exception -> true;
+
     private final DataSource dataSource;
     private final String tableNamePrefix;
     private final Function<Exception, Boolean> canIgnoreException;
 
     public DatabaseCleaner(DataSource dataSource) {
-        this(dataSource, null, null);
+        this(dataSource, null, ignoreExceptions);
     }
 
     public DatabaseCleaner(DataSource dataSource, String tableNamePrefix) {
-        this(dataSource, tableNamePrefix, null);
+        this(dataSource, tableNamePrefix, ignoreExceptions);
     }
 
     public DatabaseCleaner(DataSource dataSource, Function<Exception, Boolean> canIgnoreException) {
@@ -68,27 +68,11 @@ public class DatabaseCleaner {
     }
 
     private void doInTransaction(Exceptions.ThrowingConsumer<Statement> inTransaction, String errorMsg) {
-        try (final Connection connection = dataSource.getConnection();
-             final Transaction tran = new Transaction(connection);
-             final Statement statement = connection.createStatement()) {
-            inTransaction.accept(statement);
-            tran.commit();
+        try {
+            SqlTestUtils.doInTransaction(dataSource, inTransaction, ignoreExceptions);
         } catch (Exception e) {
-            if (canNotIgnoreException(e)) {
-                System.out.println(errorMsg);
-                e.printStackTrace();
-            }
+            System.out.println(errorMsg);
+            e.printStackTrace();
         }
-    }
-
-    private boolean canNotIgnoreException(Exception e) {
-        return !canIgnoreException(e);
-    }
-
-    protected boolean canIgnoreException(Exception e) {
-        if (this.canIgnoreException != null) {
-            return this.canIgnoreException.apply(e);
-        }
-        return true;
     }
 }

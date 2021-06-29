@@ -15,7 +15,7 @@ import static java.time.Instant.now;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractMariaDbStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static MariaDBContainer sqlContainer = new MariaDBContainer<>().withEnv("TZ", "UTC");
+    protected static MariaDBContainer sqlContainer = new MariaDBContainer<>("mariadb").withEnv("TZ", "UTC");
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {

@@ -15,7 +15,7 @@ import static java.time.Instant.now;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractDB2StorageProviderTest extends SqlStorageProviderTest {
 
-    protected static final Db2Container sqlContainer = new Db2Container().acceptLicense();
+    protected static final Db2Container sqlContainer = new Db2Container("ibmcom/db2").acceptLicense();
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {

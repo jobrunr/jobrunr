@@ -9,6 +9,6 @@ public class OracleDatabaseQueries extends DefaultDatabaseQueries {
 
     @Override
     public String getAllIndicesQuery() {
-        return "select index_name from sys.all_indexes";
+        return "select CONCAT(CONCAT(owner, '.'), index_name) as index_name from sys.all_indexes";
     }
 }

@@ -12,13 +12,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.testcontainers.ext.ScriptUtils;
-import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -28,10 +27,9 @@ public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerSt
 
     @BeforeAll
     void runInitScript() {
-        String packageName = SQLServerTablePrefixStorageProviderTest.class.getPackageName();
-        String initScriptPath = packageName.replaceAll("\\.", "/") + "/init_with_schema.sql";
-        JdbcDatabaseDelegate containerDelegate = new JdbcDatabaseDelegate(sqlContainer, "");
-        ScriptUtils.runInitScript(containerDelegate, initScriptPath);
+        doInTransaction(getDataSource(),
+                statement -> statement.execute("create schema SOME_SCHEMA;"),
+                "Error creating schema");
     }
 
     @Override

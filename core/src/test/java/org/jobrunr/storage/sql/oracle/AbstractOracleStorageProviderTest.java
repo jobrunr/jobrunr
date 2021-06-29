@@ -9,6 +9,7 @@ import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.OracleContainer;
 
 import javax.sql.DataSource;
+import java.time.Duration;
 import java.time.Instant;
 
 import static java.time.Instant.now;
@@ -26,13 +27,13 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
     @BeforeAllSubclasses
     public static void startSqlContainer() {
         Instant before = now();
-//        sqlContainer.start();
-//        printSqlContainerDetails(sqlContainer, Duration.between(before, now()));
+        sqlContainer.start();
+        printSqlContainerDetails(sqlContainer, Duration.between(before, now()));
     }
 
     @AfterAllSubclasses
     public static void stopSqlContainer() {
-//        sqlContainer.stop();
+        sqlContainer.stop();
     }
 
     @Override

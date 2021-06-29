@@ -7,19 +7,16 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
-import org.jobrunr.storage.sql.postgres.PostgresTablePrefixStorageProviderTest;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.testcontainers.ext.ScriptUtils;
-import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -43,10 +40,9 @@ public class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProvide
 
     @BeforeAll
     void runInitScript() {
-        String packageName = PostgresTablePrefixStorageProviderTest.class.getPackageName();
-        String initScriptPath = packageName.replaceAll("\\.", "/") + "/init_with_schema.sql";
-        JdbcDatabaseDelegate containerDelegate = new JdbcDatabaseDelegate(sqlContainer, "");
-        ScriptUtils.runInitScript(containerDelegate, initScriptPath);
+        doInTransaction(getDataSource(),
+                statement -> statement.execute("create schema SOME_SCHEMA;"),
+                "Error creating schema");
     }
 
     @Override
@@ -63,13 +59,12 @@ public class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProvide
     }
 
     @AfterEach
-    void checkTablesCreatedWithCorrectPrefix() throws SQLException {
+    void checkTablesCreatedWithCorrectPrefix() {
         assertThat(dataSource)
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_MIGRATIONS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_METADATA")
-                .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_PREFIX_JOBRUNR_"), "Index matches"));
+                .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_SCHEMA.SOME_PREFIX_JOBRUNR_"), "Index matches"));
     }
-
 }
