@@ -4,7 +4,7 @@ public class OracleDatabaseQueries extends DefaultDatabaseQueries {
 
     @Override
     public String getAllTablesQuery() {
-        return "SELECT table_name, owner as table_schema FROM user_tables";
+        return "SELECT table_name, owner as table_schema FROM all_tables";
     }
 
     @Override

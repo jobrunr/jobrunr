@@ -162,9 +162,9 @@ public class DatabaseCreator {
         if (isNullOrEmpty(tablePrefix)) {
             return statement;
         }
-        if (isCreateIndex(statement)) {
-            return updateStatementWithSchemaNameForCreateIndexStatement(statement);
-        }
+//        if (isCreateIndex(statement)) {
+//            return updateStatementWithSchemaNameForCreateIndexStatement(statement);
+//        }
         return updateStatementWithSchemaNameForOtherStatements(statement);
     }
 
@@ -174,7 +174,6 @@ public class DatabaseCreator {
 
     private String updateStatementWithSchemaNameForCreateIndexStatement(String statement) {
         return statement
-                .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + getIndexPrefix() + "jobrunr_")
                 .replace("ON jobrunr_", "ON " + tablePrefix + "jobrunr_");
     }
 
