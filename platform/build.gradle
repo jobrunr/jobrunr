@@ -27,7 +27,7 @@ dependencies {
         api 'org.mariadb.jdbc:mariadb-java-client:2.7.3'
         api 'mysql:mysql-connector-java:8.0.25'
         api 'com.microsoft.sqlserver:mssql-jdbc:9.2.1.jre8'
-        api 'com.ibm.db2.jcc:db2jcc:db2jcc4'
+        api 'com.ibm.db2:jcc:11.5.5.0'
         api 'com.zaxxer:HikariCP:4.0.3'
         api 'org.apache.commons:commons-dbcp2:2.8.0'
         api 'com.mchange:c3p0:0.9.5.5'

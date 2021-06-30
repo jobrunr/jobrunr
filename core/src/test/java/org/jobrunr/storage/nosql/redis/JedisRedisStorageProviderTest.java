@@ -4,6 +4,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -17,6 +18,8 @@ public class JedisRedisStorageProviderTest extends StorageProviderTest {
 
     @Container
     private static final GenericContainer redisContainer = new GenericContainer("redis").withExposedPorts(6379);
+
+    private static JedisPool jedisPool;
 
     @Override
     protected void cleanup() {
@@ -32,7 +35,15 @@ public class JedisRedisStorageProviderTest extends StorageProviderTest {
         return jedisRedisStorageProvider;
     }
 
-    private JedisPool getJedisPool() {
-        return new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379));
+    @AfterAll
+    public static void shutdownJedisPool() {
+        getJedisPool().close();
+    }
+
+    private static JedisPool getJedisPool() {
+        if (jedisPool == null) {
+            jedisPool = new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379));
+        }
+        return jedisPool;
     }
 }

@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.oracle;
 
+import oracle.jdbc.driver.OracleDriver;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.executioncondition.RunTestBetween;
@@ -17,7 +18,7 @@ class TomcatJdbcPoolOracleStorageProviderTest extends AbstractOracleStorageProvi
     protected DataSource getDataSource() {
         if (dataSource == null) {
 //            dataSource = new DataSource();
-//
+//            dataSource.setDriverClassName(OracleDriver.class.getName());
 //            dataSource.setUrl("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"));
 //            dataSource.setUsername("system");
 //            dataSource.setPassword("oracle");
@@ -26,7 +27,7 @@ class TomcatJdbcPoolOracleStorageProviderTest extends AbstractOracleStorageProvi
             System.out.println("==========================================================================================");
 
             dataSource = new DataSource();
-
+            dataSource.setDriverClassName(OracleDriver.class.getName());
             dataSource.setUrl(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
             dataSource.setUsername(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());

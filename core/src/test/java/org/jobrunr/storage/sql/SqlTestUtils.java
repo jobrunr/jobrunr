@@ -34,7 +34,7 @@ public class SqlTestUtils {
 
     public static void doInTransaction(DataSource dataSource, Exceptions.ThrowingConsumer<Statement> inTransaction) throws Exception {
         try (final Connection connection = dataSource.getConnection();
-             final Transaction tran = new Transaction(connection);
+             final Transaction tran = new Transaction(connection, false);
              final Statement statement = connection.createStatement()) {
             inTransaction.accept(statement);
             tran.commit();

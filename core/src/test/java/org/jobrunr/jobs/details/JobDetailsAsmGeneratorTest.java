@@ -12,6 +12,7 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -54,7 +55,7 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
-        //@Disabled
+    @Disabled
     void logByteCode() {
         String name = this.getClass().getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";

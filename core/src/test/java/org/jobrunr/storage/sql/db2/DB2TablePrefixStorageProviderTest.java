@@ -20,7 +20,7 @@ import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
+class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
 
     private static DB2SimpleDataSource dataSource;
 

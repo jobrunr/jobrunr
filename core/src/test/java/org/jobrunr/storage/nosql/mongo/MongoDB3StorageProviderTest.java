@@ -57,11 +57,11 @@ public class MongoDB3StorageProviderTest extends StorageProviderTest {
     }
 
     private MongoClient mongoClient() {
-        CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
-                CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
-                MongoClientSettings.getDefaultCodecRegistry()
-        );
         if (mongoClient == null) {
+            CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
+                    CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
+                    MongoClientSettings.getDefaultCodecRegistry()
+            );
             mongoClient = MongoClients.create(
                     MongoClientSettings.builder()
                             .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoContainer.getContainerIpAddress(), mongoContainer.getMappedPort(27017)))))
