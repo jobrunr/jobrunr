@@ -29,7 +29,6 @@ class OracleStorageProviderTest extends AbstractOracleStorageProviderTest {
                 System.out.println("==========================================================================================");
 
                 dataSource = new OracleDataSource();
-
                 dataSource.setURL(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
                 dataSource.setUser(sqlContainer.getUsername());
                 dataSource.setPassword(sqlContainer.getPassword());

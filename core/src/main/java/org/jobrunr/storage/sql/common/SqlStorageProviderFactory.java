@@ -21,23 +21,27 @@ public class SqlStorageProviderFactory {
         return using(dataSource, null, DatabaseOptions.CREATE);
     }
 
-    public static StorageProvider using(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
-        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
-        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource, schemaName, databaseOptions);
+    public static StorageProvider using(DataSource dataSource, String tablePrefix) {
+        return using(dataSource, tablePrefix, DatabaseOptions.CREATE);
     }
 
-    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
+    public static StorageProvider using(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
+        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource, tablePrefix, databaseOptions);
+    }
+
+    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         try (Connection connection = dataSource.getConnection()) {
             String jdbcUrl = connection.getMetaData().getURL();
-            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource, schemaName, databaseOptions);
+            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource, tablePrefix, databaseOptions);
         } catch (SQLException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
     }
 
-    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
+    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         final Class<SqlStorageProvider> storageProviderClassByJdbcUrl = getStorageProviderClassByJdbcUrl(jdbcUrl);
-        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource, schemaName, databaseOptions);
+        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource, tablePrefix, databaseOptions);
     }
 
     Class<SqlStorageProvider> getStorageProviderClassByJdbcUrl(String jdbcUrl) {
