@@ -71,7 +71,7 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
                 .update("jobrunr_metadata set value = cast((cast(cast(value as char(10)) as decimal) + :amount) as char(10)) where id = :id");
     }
 
-    public int deleteByKey(String name) throws SQLException {
+    public int deleteByName(String name) throws SQLException {
         return with(FIELD_NAME, name)
                 .delete("from jobrunr_metadata where name = :name");
     }

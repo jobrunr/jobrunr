@@ -150,27 +150,27 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public List<JobRunrMetadata> getMetadata(String key) {
+    public List<JobRunrMetadata> getMetadata(String name) {
         try (final Connection conn = dataSource.getConnection()) {
-            return metadataTable(conn).getAll(key);
+            return metadataTable(conn).getAll(name);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public JobRunrMetadata getMetadata(String key, String owner) {
+    public JobRunrMetadata getMetadata(String name, String owner) {
         try (final Connection conn = dataSource.getConnection()) {
-            return metadataTable(conn).get(key, owner);
+            return metadataTable(conn).get(name, owner);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public void deleteMetadata(String key) {
+    public void deleteMetadata(String name) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
-            final int amountDeleted = metadataTable(conn).deleteByKey(key);
+            final int amountDeleted = metadataTable(conn).deleteByName(name);
             transaction.commit();
             notifyMetadataChangeListeners(amountDeleted > 0);
         } catch (SQLException e) {
@@ -226,6 +226,15 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, pageRequest);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn).selectJobsByState(state, pageRequest);
@@ -239,15 +248,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn).selectJobsByState(state, updatedBefore, pageRequest);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, pageRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

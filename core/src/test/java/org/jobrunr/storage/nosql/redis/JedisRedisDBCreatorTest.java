@@ -2,6 +2,8 @@ package org.jobrunr.storage.nosql.redis;
 
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationByClass;
 import org.jobrunr.storage.nosql.redis.migrations.M001_JedisRemoveJobStatsAndUseMetadata;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,10 +26,22 @@ class JedisRedisDBCreatorTest {
     @Mock
     private JedisRedisStorageProvider jedisRedisStorageProviderMock;
 
+    private JedisPool jedisConnectionPool;
+    private JedisRedisDBCreator jedisRedisDBCreator;
+
+    @BeforeEach
+    public void setupDBCreator() {
+        jedisConnectionPool = getJedisPool();
+        jedisRedisDBCreator = new JedisRedisDBCreator(jedisRedisStorageProviderMock, jedisConnectionPool, "");
+    }
+
+    @AfterEach
+    public void teardownPool() {
+        jedisConnectionPool.close();
+    }
+
     @Test
     public void testMigrationsHappyPath() {
-        JedisRedisDBCreator jedisRedisDBCreator = new JedisRedisDBCreator(jedisRedisStorageProviderMock, getJedisPool(), "");
-
         assertThat(jedisRedisDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_JedisRemoveJobStatsAndUseMetadata.class))).isTrue();
 
         assertThatCode(jedisRedisDBCreator::runMigrations).doesNotThrowAnyException();

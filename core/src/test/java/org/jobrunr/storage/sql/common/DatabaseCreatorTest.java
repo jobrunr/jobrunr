@@ -64,7 +64,7 @@ class DatabaseCreatorTest {
     @Test
     void testH2MigrationsWithSchema() {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS the_schema");
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "the_schema");
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "the_schema.prefix_");
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
         assertThatCode(databaseCreator::validateTables).doesNotThrowAnyException();
     }
@@ -72,9 +72,9 @@ class DatabaseCreatorTest {
     @Test
     void testH2ValidateWithTablesInWrongSchema() {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
-        final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1");
+        final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1.prefix_");
         databaseCreatorForSchema1.runMigrations();
-        final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2");
+        final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2.prefix_");
         assertThatThrownBy(databaseCreatorForSchema2::validateTables).isInstanceOf(JobRunrException.class);
     }
 

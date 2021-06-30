@@ -8,6 +8,8 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationByClass;
 import org.jobrunr.storage.nosql.redis.migrations.M001_JedisRemoveJobStatsAndUseMetadata;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -28,17 +30,29 @@ class LettuceRedisDBCreatorTest {
 
     @Mock
     private LettuceRedisStorageProvider lettuceRedisStorageProviderMock;
+    private GenericObjectPool redisConnectionPool;
+    private LettuceRedisDBCreator lettuceRedisDBCreator;
+
+    @BeforeEach
+    public void setupDBCreator() {
+        redisConnectionPool = redisConnectionPool();
+        lettuceRedisDBCreator = new LettuceRedisDBCreator(lettuceRedisStorageProviderMock, redisConnectionPool, "");
+    }
+
+    @AfterEach
+    public void teardownPool() {
+        redisConnectionPool.close();
+    }
 
     @Test
     public void testMigrationsHappyPath() {
-        LettuceRedisDBCreator lettuceRedisDBCreator = new LettuceRedisDBCreator(lettuceRedisStorageProviderMock, redisConnectionPool(), "");
-
         assertThat(lettuceRedisDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_JedisRemoveJobStatsAndUseMetadata.class))).isTrue();
 
         assertThatCode(lettuceRedisDBCreator::runMigrations).doesNotThrowAnyException();
         assertThatCode(lettuceRedisDBCreator::runMigrations).doesNotThrowAnyException();
 
         assertThat(lettuceRedisDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_JedisRemoveJobStatsAndUseMetadata.class))).isTrue();
+
     }
 
     private GenericObjectPool redisConnectionPool() {

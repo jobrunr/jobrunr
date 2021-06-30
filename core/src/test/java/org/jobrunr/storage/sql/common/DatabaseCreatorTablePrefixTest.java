@@ -1,7 +1,9 @@
 package org.jobrunr.storage.sql.common;
 
 import org.assertj.core.api.Condition;
+import org.jobrunr.storage.sql.db2.DB2StorageProvider;
 import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
+import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +74,7 @@ public class DatabaseCreatorTablePrefixTest {
         when(connection.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getDatabaseProductName()).thenReturn("DB2");
 
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", OracleStorageProvider.class);
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", DB2StorageProvider.class);
         databaseCreator.runMigrations();
 
         assertThat(getAllExecutedStatements())
@@ -85,7 +87,7 @@ public class DatabaseCreatorTablePrefixTest {
         when(connection.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getDatabaseProductName()).thenReturn("SQL Server");
 
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", OracleStorageProvider.class);
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", SQLServerStorageProvider.class);
         databaseCreator.runMigrations();
 
         assertThat(getAllExecutedStatements())
