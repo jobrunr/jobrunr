@@ -65,6 +65,7 @@ class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_METADATA")
+                .hasView("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_JOBS_STATS")
                 .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_SCHEMA.SOME_PREFIX_JOBRUNR_"), "Index matches"));
     }
 }

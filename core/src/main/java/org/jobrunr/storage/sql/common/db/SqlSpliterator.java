@@ -4,7 +4,6 @@ import org.jobrunr.storage.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,16 +15,15 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlSpliterator.class);
 
-    private final DataSource dataSource;
+    private final Connection connection;
     private final String sqlStatement;
     private final Consumer<PreparedStatement> paramsSetter;
-    private Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
     private boolean hasMore;
 
-    public SqlSpliterator(DataSource dataSource, String sqlStatement, Consumer<PreparedStatement> paramsSetter) {
-        this.dataSource = dataSource;
+    public SqlSpliterator(Connection connection, String sqlStatement, Consumer<PreparedStatement> paramsSetter) {
+        this.connection = connection;
         this.sqlStatement = sqlStatement;
         this.paramsSetter = paramsSetter;
     }
@@ -55,8 +53,7 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
 
     private void init() {
         try {
-            conn = dataSource.getConnection();
-            ps = conn.prepareStatement(sqlStatement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ps = connection.prepareStatement(sqlStatement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             ps.setFetchSize(100);
             paramsSetter.accept(ps);
             rs = ps.executeQuery();
@@ -70,7 +67,6 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
     public void close() {
         close(rs);
         close(ps);
-        close(conn);
     }
 
     private void close(AutoCloseable closeable) {

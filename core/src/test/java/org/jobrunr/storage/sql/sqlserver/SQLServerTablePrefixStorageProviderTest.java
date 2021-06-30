@@ -14,7 +14,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
@@ -57,12 +56,13 @@ public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerSt
     }
 
     @AfterEach
-    void checkTablesCreatedWithCorrectPrefix() throws SQLException {
+    void checkTablesCreatedWithCorrectPrefix() {
         assertThat(dataSource)
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_MIGRATIONS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_METADATA")
+                .hasView("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_JOBS_STATS")
                 .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_PREFIX_JOBRUNR_"), "Index matches"));
     }
 }

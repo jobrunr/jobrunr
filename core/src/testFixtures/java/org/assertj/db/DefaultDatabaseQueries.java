@@ -1,6 +1,6 @@
 package org.assertj.db;
 
-public class DefaultDatabaseQueries implements DatabaseQueries {
+public abstract class DefaultDatabaseQueries implements DatabaseQueries {
 
     @Override
     public String getAllTablesQuery() {

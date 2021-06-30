@@ -17,6 +17,7 @@ public class DatabaseAssertions extends AbstractAssert<DatabaseAssertions, DataS
 
     private List<String> tablenames;
     private List<String> indices;
+    private List<String> views;
 
     private DatabaseAssertions(DataSource dataSource) {
         super(dataSource, DatabaseAssertions.class);
@@ -36,13 +37,13 @@ public class DatabaseAssertions extends AbstractAssert<DatabaseAssertions, DataS
         return this;
     }
 
-    public DatabaseAssertions hasView(String tableName) {
-        Assertions.assertThat(allTables()).anyMatch(someTableName -> someTableName.toUpperCase().contains(tableName.toUpperCase()));
+    public DatabaseAssertions hasView(String viewName) {
+        Assertions.assertThat(allViews()).anyMatch(someTableName -> someTableName.toUpperCase().contains(viewName.toUpperCase()));
         return this;
     }
 
-    public DatabaseAssertions hasView(String schema, String tableName) {
-        Assertions.assertThat(allTables()).contains((schema + "." + tableName).toUpperCase());
+    public DatabaseAssertions hasView(String schema, String viewName) {
+        Assertions.assertThat(allViews()).contains((schema + "." + viewName).toUpperCase());
         return this;
     }
 
@@ -97,6 +98,23 @@ public class DatabaseAssertions extends AbstractAssert<DatabaseAssertions, DataS
             }
         }
         return indices;
+    }
+
+    private List<String> allViews() {
+        if (views == null) {
+            try (final Connection connection = actual.getConnection(); final Statement statement = connection.createStatement()) {
+                final DatabaseQueries databaseQueries = getDatabaseQueries(connection);
+                try (ResultSet rs = statement.executeQuery(databaseQueries.getAllViewsQuery())) {
+                    views = new ArrayList<>();
+                    while (rs.next()) {
+                        views.add(rs.getString("view_name").toUpperCase());
+                    }
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return views;
     }
 
     private DatabaseQueries getDatabaseQueries(Connection connection) throws SQLException {

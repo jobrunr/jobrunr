@@ -30,7 +30,7 @@ public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageP
     private static OracleDataSource dataSource;
 
     @BeforeAll
-    void runInitScript() throws Exception {
+    void runInitScript() {
         doInTransaction(getDataSource(), statement -> {
             statement.addBatch("alter session set \"_ORACLE_SCRIPT\"=true");
             statement.addBatch("create user SOME_USER identified by SOME_USER");
@@ -80,12 +80,13 @@ public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageP
     }
 
     @AfterEach
-    void checkTablesCreatedWithCorrectPrefix() throws SQLException {
+    void checkTablesCreatedWithCorrectPrefix() {
         assertThat(dataSource)
                 .hasTable("SOME_USER", "JOBRUNR_MIGRATIONS")
                 .hasTable("SOME_USER", "JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_USER", "JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_USER", "JOBRUNR_METADATA")
+                .hasView("SOME_USER", "JOBRUNR_JOBS_STATS")
                 .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_USER.JOBRUNR_"), "Index matches"));
     }
 }

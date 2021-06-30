@@ -3,11 +3,13 @@ package org.jobrunr.storage.sql.common;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 
-import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -32,9 +34,9 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 
 public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
 
-    public BackgroundJobServerTable(DataSource dataSource, Dialect dialect, String tablePrefix) {
+    public BackgroundJobServerTable(Connection connection, Dialect dialect, String tablePrefix) {
         this
-                .using(dataSource, dialect, tablePrefix, "jobrunr_backgroundjobservers")
+                .using(connection, dialect, tablePrefix, "jobrunr_backgroundjobservers")
                 .with(FIELD_ID, BackgroundJobServerStatus::getId)
                 .with(FIELD_WORKER_POOL_SIZE, BackgroundJobServerStatus::getWorkerPoolSize)
                 .with(FIELD_POLL_INTERVAL_IN_SECONDS, BackgroundJobServerStatus::getPollIntervalInSeconds)
@@ -52,7 +54,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .with(FIELD_PROCESS_CPU_LOAD, BackgroundJobServerStatus::getProcessCpuLoad);
     }
 
-    public void announce(BackgroundJobServerStatus serverStatus) {
+    public void announce(BackgroundJobServerStatus serverStatus) throws SQLException {
         this
                 .with(FIELD_ID, serverStatus.getId())
                 .delete("from jobrunr_backgroundjobservers where id = :id");
@@ -60,7 +62,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .insert(serverStatus, "into jobrunr_backgroundjobservers values (:id, :workerPoolSize, :pollIntervalInSeconds, :firstHeartbeat, :lastHeartbeat, :running, :systemTotalMemory, :systemFreeMemory, :systemCpuLoad, :processMaxMemory, :processFreeMemory, :processAllocatedMemory, :processCpuLoad, :deleteSucceededJobsAfter, :permanentlyDeleteJobsAfter)");
     }
 
-    public boolean signalServerAlive(BackgroundJobServerStatus serverStatus) {
+    public boolean signalServerAlive(BackgroundJobServerStatus serverStatus) throws SQLException {
         try {
             this
                     .with(FIELD_ID, serverStatus.getId())
@@ -71,14 +73,14 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                     .with(FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory())
                     .with(FIELD_PROCESS_CPU_LOAD, serverStatus.getSystemCpuLoad())
                     .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad where id = :id");
-
-            return select("running from jobrunr_backgroundjobservers where id = :id")
-                    .map(sqlResultSet -> sqlResultSet.asBoolean(FIELD_IS_RUNNING))
-                    .findFirst()
-                    .orElseThrow(() -> new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found"));
-        } catch (StorageException e) {
-            throw new ServerTimedOutException(serverStatus, e);
+        } catch (ConcurrentSqlModificationException e) {
+            throw new ServerTimedOutException(serverStatus, new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found"));
         }
+
+        return select("running from jobrunr_backgroundjobservers where id = :id")
+                .map(sqlResultSet -> sqlResultSet.asBoolean(FIELD_IS_RUNNING))
+                .findFirst()
+                .orElseThrow(() -> new ServerTimedOutException(serverStatus, new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found")));
     }
 
     public void signalServerStopped(BackgroundJobServerStatus serverStatus) {
@@ -86,12 +88,12 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
             this
                     .with(FIELD_ID, serverStatus.getId())
                     .delete("from jobrunr_backgroundjobservers where id = :id");
-        } catch (StorageException notImportant) {
+        } catch (SQLException notImportant) {
             // this is not important
         }
     }
 
-    public int removeAllWithLastHeartbeatOlderThan(Instant heartbeatOlderThan) {
+    public int removeAllWithLastHeartbeatOlderThan(Instant heartbeatOlderThan) throws SQLException {
         return with("heartbeatOlderThan", heartbeatOlderThan)
                 .delete("from jobrunr_backgroundjobservers where lastHeartbeat < :heartbeatOlderThan");
     }
