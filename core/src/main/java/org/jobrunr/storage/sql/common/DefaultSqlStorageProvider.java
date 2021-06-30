@@ -179,17 +179,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public Job getJobById(UUID id) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn)
-                    .selectJobById(id)
-                    .orElseThrow(() -> new JobNotFoundException(id));
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public Job save(Job jobToSave) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final Job savedJob = jobTable(conn).save(jobToSave);
@@ -202,24 +191,32 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public int deletePermanently(UUID id) {
-        try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
-            final int amountDeleted = jobTable(conn).deletePermanently(id);
-            transaction.commit();
-            notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
-            return amountDeleted;
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public List<Job> save(List<Job> jobs) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final List<Job> savedJobs = jobTable(conn).save(jobs);
             transaction.commit();
             notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
             return savedJobs;
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public Long countJobs(StateName state) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).countJobs(state);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public Job getJobById(UUID id) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn)
+                    .selectJobById(id)
+                    .orElseThrow(() -> new JobNotFoundException(id));
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -254,15 +251,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).countJobs(state);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
         try (final Connection conn = dataSource.getConnection()) {
             long count = jobTable(conn).countJobs(state);
@@ -271,6 +259,18 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
                 return new Page<>(count, jobs, pageRequest);
             }
             return new Page<>(0, new ArrayList<>(), pageRequest);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public int deletePermanently(UUID id) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
+            final int amountDeleted = jobTable(conn).deletePermanently(id);
+            transaction.commit();
+            notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
+            return amountDeleted;
         } catch (SQLException e) {
             throw new StorageException(e);
         }
