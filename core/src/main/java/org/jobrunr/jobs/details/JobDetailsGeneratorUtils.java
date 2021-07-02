@@ -1,7 +1,6 @@
 package org.jobrunr.jobs.details;
 
 import org.jobrunr.JobRunrException;
-import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -15,6 +14,7 @@ import java.util.regex.Pattern;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getField;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getMethod;
 import static org.jobrunr.utils.reflection.ReflectionUtils.loadClass;
+import static org.jobrunr.utils.reflection.ReflectionUtils.makeAccessible;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsGeneratorUtils {
@@ -62,7 +62,7 @@ public class JobDetailsGeneratorUtils {
             if (clazz.isSynthetic())
                 throw new IllegalArgumentException("You are passing another (nested) Java 8 lambda to JobRunr - this is not supported. Try to convert your lambda to a class or a method.");
             Method method = getMethod(clazz, methodName, paramTypes);
-            method.setAccessible(true);
+            makeAccessible(method);
             return method.invoke(objectWithMethodToInvoke, parameters);
         } catch (IllegalArgumentException e) {
             throw e;
@@ -85,7 +85,7 @@ public class JobDetailsGeneratorUtils {
         try {
             Class<?> clazz = loadClass(fqClassName);
             Field field = getField(clazz, fieldName);
-            ReflectionUtils.makeAccessible(field);
+            makeAccessible(field);
             return field.get(null);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
@@ -96,7 +96,7 @@ public class JobDetailsGeneratorUtils {
         try {
             Class<?> clazz = object.getClass();
             Field field = getField(clazz, fieldName);
-            ReflectionUtils.makeAccessible(field);
+            makeAccessible(field);
             return field.get(object);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);

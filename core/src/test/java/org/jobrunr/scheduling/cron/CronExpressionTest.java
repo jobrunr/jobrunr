@@ -136,8 +136,9 @@ class CronExpressionTest {
         CronExpression cronExpression1 = CronExpression.create(Cron.minutely());
         CronExpression cronExpression2 = CronExpression.create(Cron.minutely());
 
-        assertThat(cronExpression1).isEqualTo(cronExpression2);
-        assertThat(cronExpression1).hasSameHashCodeAs(cronExpression2);
+        assertThat(cronExpression1)
+                .isEqualTo(cronExpression2)
+                .hasSameHashCodeAs(cronExpression2);
     }
 
     @Test
@@ -180,7 +181,6 @@ class CronExpressionTest {
                 arguments("2020-02-28 23:59:59", "* * * * * *", "2020-02-29 00:00:00"),
 
                 // Minute resolution all asterisks
-
                 arguments("2019-01-01 00:00:00", "* * * * *", "2019-01-01 00:01:00"),
                 arguments("2019-01-01 00:09:00", "* * * * *", "2019-01-01 00:10:00"),
                 arguments("2019-01-01 00:29:00", "* * * * *", "2019-01-01 00:30:00"),
@@ -530,6 +530,7 @@ class CronExpressionTest {
                 // test months
 
                 // Restricted month
+                arguments("2019-01-01 00:00:00", "* * * * Apr *", "2019-04-01 00:00:00"),
                 arguments("2019-01-01 00:00:00", "* * * * 4 *", "2019-04-01 00:00:00"),
                 arguments("2019-01-01 00:09:00", "* * * * 2 *", "2019-02-01 00:00:00"),
                 arguments("2019-01-04 02:40:00", "0 39 5 3 7 *", "2019-07-03 05:39:00"),
@@ -543,7 +544,7 @@ class CronExpressionTest {
                 arguments("2019-10-01 23:05:11", "0 0 1 1-8 *", "2020-01-01 00:00:00"),
 
                 // test months list
-                arguments("2019-01-01 00:03:00", "0 0 1 1,5,8 *", "2019-05-01 00:00:00"),
+                arguments("2019-01-01 00:03:00", "0 0 1 Jan,May,August *", "2019-05-01 00:00:00"),
                 arguments("2019-02-01 01:00:04", "0 0 1 1,5,8 *", "2019-05-01 00:00:00"),
                 arguments("2019-05-01 05:08:40", "0 0 1 1,5,8 *", "2019-08-01 00:00:00"),
                 arguments("2019-08-01 22:00:09", "0 0 1 1,5,8 *", "2020-01-01 00:00:00"),
@@ -665,7 +666,7 @@ class CronExpressionTest {
                 arguments("2017-02-28 00:00:00", "0 0 0 28 2 *", "2018-02-28 00:00:00"),
 
                 // day of week tests
-                arguments("2019-01-12 00:00:00", "0 0 6 * * 0", "2019-01-13 06:00:00"),
+                arguments("2019-01-12 00:00:00", "0 0 6 * * Sun", "2019-01-13 06:00:00"),
                 arguments("2019-01-12 00:00:00", "0 0 6 * * 1", "2019-01-14 06:00:00"),
                 arguments("2019-01-12 00:00:00", "0 0 6 * * 2", "2019-01-15 06:00:00"),
                 arguments("2019-01-12 00:00:00", "0 0 12 * * 3", "2019-01-16 12:00:00"),

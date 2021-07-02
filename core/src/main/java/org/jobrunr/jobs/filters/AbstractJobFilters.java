@@ -22,7 +22,7 @@ public abstract class AbstractJobFilters {
     protected final AbstractJob job;
     protected final List<JobFilter> jobFilters;
 
-    public AbstractJobFilters(AbstractJob job, JobDefaultFilters jobDefaultFilters) {
+    protected AbstractJobFilters(AbstractJob job, JobDefaultFilters jobDefaultFilters) {
         this.job = job;
         this.jobFilters = initJobFilters(job, jobDefaultFilters.getFilters());
     }

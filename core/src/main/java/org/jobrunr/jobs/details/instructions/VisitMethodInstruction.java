@@ -16,7 +16,7 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
     protected String descriptor;
     protected boolean isInterface;
 
-    public VisitMethodInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitMethodInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

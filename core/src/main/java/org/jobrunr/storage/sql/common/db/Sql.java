@@ -24,13 +24,13 @@ public class Sql<T> {
 
     private final List<String> paramNames;
     private final Map<String, Object> params;
-    private final Map<String, Function> paramSuppliers;
+    private final Map<String, Function<T, ?>> paramSuppliers;
 
     private Dialect dialect;
     private String tablePrefix = "";
     private String suffix = "";
 
-    private final static Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
+    private static final Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
     private String tableName;
     private Connection connection;
 
@@ -41,10 +41,6 @@ public class Sql<T> {
     }
 
     public static <T> Sql<T> forType(Class<T> tClass) {
-        return new Sql<>();
-    }
-
-    public static Sql<?> withoutType() {
         return new Sql<>();
     }
 

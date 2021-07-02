@@ -7,7 +7,6 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
@@ -69,7 +68,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public static final String JOBRUNR_DEFAULT_PREFIX = "";
 
     private final RedisClient redisClient;
-    private final GenericObjectPool<StatefulRedisConnection> pool;
+    private final GenericObjectPool<StatefulRedisConnection<String, String>> pool;
     private final String keyPrefix;
     private JobMapper jobMapper;
 
@@ -85,7 +84,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         super(changeListenerNotificationRateLimit);
         this.redisClient = redisClient;
         this.keyPrefix = keyPrefix;
-        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig());
+        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig<StatefulRedisConnection<String, String>>());
 
         new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
@@ -97,7 +96,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
@@ -123,7 +122,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             final Map<String, String> valueMap = commands.hgetall(backgroundJobServerKey(keyPrefix, serverStatus));
             if (valueMap.isEmpty())
@@ -146,7 +145,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.del(backgroundJobServerKey(keyPrefix, serverStatus.getId()));
@@ -158,7 +157,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<String> zrange = commands.zrange(backgroundJobServersCreatedKey(keyPrefix), 0, Integer.MAX_VALUE);
             return new LettuceRedisPipelinedStream<>(zrange, connection)
@@ -187,9 +186,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public UUID getLongestRunningBackgroundJobServerId() {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
-            return ((List<String>) commands.zrange(backgroundJobServersCreatedKey(keyPrefix), 0, 1)).stream()
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            return (commands.zrange(backgroundJobServersCreatedKey(keyPrefix), 0, 1)).stream()
                     .map(UUID::fromString)
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("No servers available?!"));
@@ -198,8 +197,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
             final List<String> backgroundJobServers = commands.zrangebyscore(backgroundJobServersUpdatedKey(keyPrefix), Range.create(0, toMicroSeconds(heartbeatOlderThan)));
             commands.multi();
             backgroundJobServers.forEach(backgroundJobServerId -> {
@@ -214,8 +213,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_ID, metadata.getId());
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_NAME, metadata.getName());
@@ -231,12 +230,12 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<JobRunrMetadata> getMetadata(String name) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
 
-            return ((Set<String>) commands.smembers(metadatasKey(keyPrefix))).stream()
+            return (commands.smembers(metadatasKey(keyPrefix))).stream()
                     .filter(metadataName -> metadataName.startsWith(metadataKey(keyPrefix, name + "-")))
-                    .map(metadataName -> (Map<String, String>) commands.hgetall(metadataName))
+                    .map(commands::hgetall)
                     .map(fieldMap -> new JobRunrMetadata(
                             fieldMap.get(Metadata.FIELD_NAME),
                             fieldMap.get(Metadata.FIELD_OWNER),
@@ -250,8 +249,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public JobRunrMetadata getMetadata(String name, String owner) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
             Map<String, String> fieldMap = commands.hgetall(metadataKey(keyPrefix, toId(name, owner)));
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
@@ -265,9 +264,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public void deleteMetadata(String name) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
-            List<String> metadataToDelete = ((Set<String>) commands.smembers(metadatasKey(keyPrefix))).stream()
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            List<String> metadataToDelete = (commands.smembers(metadatasKey(keyPrefix))).stream()
                     .filter(metadataName -> metadataName.startsWith(metadataKey(keyPrefix, name + "-")))
                     .collect(toList());
 
@@ -285,8 +284,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public Job save(Job jobToSave) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
             if (isNew(jobToSave)) {
                 insertJob(jobToSave, commands);
             } else {
@@ -300,8 +299,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     @Override
     public int deletePermanently(UUID id) {
         Job job = getJobById(id);
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.del(jobKey(keyPrefix, job));
             commands.del(jobVersionKey(keyPrefix, job));
@@ -315,8 +314,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public Job getJobById(UUID id) {
-        try (final StatefulRedisConnection connection = getConnection()) {
-            RedisCommands commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
             final Object serializedJob = commands.get(jobKey(keyPrefix, id));
             if (serializedJob == null) throw new JobNotFoundException(id);
             return jobMapper.deserializeJob(serializedJob.toString());
@@ -331,21 +330,19 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             if (notAllJobsAreNew(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            try (final StatefulRedisConnection connection = getConnection()) {
-                RedisCommands commands = connection.sync();
+            try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+                RedisCommands<String, String> commands = connection.sync();
                 commands.multi();
-                jobs.stream()
-                        .peek(AbstractJob::increaseVersion)
-                        .forEach(jobToSave -> saveJob(commands, jobToSave));
+                jobs.forEach(jobToSave -> saveJob(commands, jobToSave));
                 commands.exec();
             }
         } else {
             if (notAllJobsAreExisting(jobs)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
-            try (final StatefulRedisConnection connection = getConnection()) {
-                RedisCommands commands = connection.sync();
-                final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, (job) -> updateJob(job, commands));
+            try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+                RedisCommands<String, String> commands = connection.sync();
+                final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, job -> updateJob(job, commands));
                 if (!concurrentModifiedJobs.isEmpty()) {
                     throw new ConcurrentJobModificationException(concurrentModifiedJobs);
                 }
@@ -357,7 +354,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<String> jobsByState;
             if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
@@ -377,7 +374,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             return new LettuceRedisPipelinedStream<>(commands.zrangebyscore(scheduledJobsKey(keyPrefix), Range.create(0, toMicroSeconds(now())), Limit.create(pageRequest.getOffset(), pageRequest.getLimit())), connection)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
@@ -389,7 +386,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public Long countJobs(StateName state) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             return commands.zcount(jobQueueForStateKey(keyPrefix, state), unbounded());
         }
@@ -397,7 +394,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<String> jobsByState;
             // we only support what is used by frontend
@@ -429,7 +426,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         int amount = 0;
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<String> zrangeToInspect = commands.zrange(jobQueueForStateKey(keyPrefix, state), 0, 1000);
             outerloop:
@@ -456,7 +453,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public Set<String> getDistinctJobSignatures(StateName... states) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<Set<String>> jobSignatures = stream(states)
                     .map(stateName -> commands.smembers(jobDetailsKey(keyPrefix, stateName)))
@@ -467,7 +464,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public boolean exists(JobDetails jobDetails, StateName... states) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<Boolean> existsJob = stream(states)
                     .map(stateName -> commands.sismember(jobDetailsKey(keyPrefix, stateName), getJobSignature(jobDetails)))
@@ -478,7 +475,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<Boolean> existsJob = stream(states)
                     .map(stateName -> commands.sismember(recurringJobKey(keyPrefix, stateName), recurringJobId))
@@ -489,7 +486,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
@@ -501,7 +498,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<RecurringJob> getRecurringJobs() {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             return commands.smembers(recurringJobsKey(keyPrefix))
                     .stream()
@@ -513,7 +510,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public int deleteRecurringJob(String id) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.del(recurringJobKey(keyPrefix, id));
@@ -527,7 +524,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     @Override
     public JobStats getJobStats() {
         Instant instant = Instant.now();
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             connection.setAutoFlushCommands(false);
             RedisAsyncCommands<String, String> commands = connection.async();
             final RedisFuture<String> totalSucceededAmountCounterResponse = commands.hget(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE);
@@ -577,7 +574,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
-        try (final StatefulRedisConnection connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             commands.hincrby(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);
         }
@@ -589,19 +586,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         pool.close();
     }
 
-    private void insertJob(Job jobToSave, RedisCommands commands) {
+    private void insertJob(Job jobToSave, RedisCommands<String, String> commands) {
         if (commands.exists(jobKey(keyPrefix, jobToSave)) > 0) throw new ConcurrentJobModificationException(jobToSave);
-        jobToSave.increaseVersion();
         commands.multi();
         saveJob(commands, jobToSave);
         commands.exec();
     }
 
-    private void updateJob(Job jobToSave, RedisCommands commands) {
+    private void updateJob(Job jobToSave, RedisCommands<String, String> commands) {
         commands.watch(jobVersionKey(keyPrefix, jobToSave));
-        final int version = Integer.parseInt(commands.get(jobVersionKey(keyPrefix, jobToSave)).toString());
+        final int version = Integer.parseInt(commands.get(jobVersionKey(keyPrefix, jobToSave)));
         if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave);
-        jobToSave.increaseVersion();
         commands.multi();
         saveJob(commands, jobToSave);
         TransactionResult result = commands.exec();
@@ -609,9 +604,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave);
     }
 
-    private void saveJob(RedisCommands commands, Job jobToSave) {
+    private void saveJob(RedisCommands<String, String> commands, Job jobToSave) {
         deleteJobMetadataForUpdate(commands, jobToSave);
-        commands.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.getVersion()));
+        commands.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.increaseVersion()));
         commands.set(jobKey(keyPrefix, jobToSave), jobMapper.serializeJob(jobToSave));
         commands.zadd(jobQueueForStateKey(keyPrefix, jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
         commands.sadd(jobDetailsKey(keyPrefix, jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));
@@ -621,7 +616,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         jobToSave.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> commands.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
     }
 
-    private void deleteJobMetadataForUpdate(RedisCommands commands, Job job) {
+    private void deleteJobMetadataForUpdate(RedisCommands<String, String> commands, Job job) {
         String id = job.getId().toString();
         commands.zrem(scheduledJobsKey(keyPrefix), id);
         Stream.of(StateName.values()).forEach(stateName -> commands.zrem(jobQueueForStateKey(keyPrefix, stateName), id));
@@ -633,7 +628,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> commands.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
     }
 
-    private void deleteJobMetadata(RedisCommands commands, Job job) {
+    private void deleteJobMetadata(RedisCommands<String, String> commands, Job job) {
         String id = job.getId().toString();
         commands.zrem(scheduledJobsKey(keyPrefix), id);
         Stream.of(StateName.values()).forEach(stateName -> commands.zrem(jobQueueForStateKey(keyPrefix, stateName), id));
@@ -658,9 +653,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         }
     }
 
-    protected StatefulRedisConnection getConnection() {
+    protected StatefulRedisConnection<String, String> getConnection() {
         try {
-            StatefulRedisConnection statefulRedisConnection = pool.borrowObject();
+            StatefulRedisConnection<String, String> statefulRedisConnection = pool.borrowObject();
             statefulRedisConnection.setAutoFlushCommands(true);
             return statefulRedisConnection;
         } catch (Exception e) {
@@ -668,7 +663,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         }
     }
 
-    StatefulRedisConnection createConnection() {
+    StatefulRedisConnection<String, String> createConnection() {
         return redisClient.connect();
     }
 }

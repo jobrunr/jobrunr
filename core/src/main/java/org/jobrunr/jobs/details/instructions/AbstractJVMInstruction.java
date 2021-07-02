@@ -4,7 +4,7 @@ import org.jobrunr.jobs.details.JobDetailsFinderContext;
 
 public abstract class AbstractJVMInstruction {
 
-    public static Object DO_NOT_PUT_ON_STACK = new Object();
+    public static final Object DO_NOT_PUT_ON_STACK = new Object();
 
     protected final JobDetailsFinderContext jobDetailsBuilder;
 

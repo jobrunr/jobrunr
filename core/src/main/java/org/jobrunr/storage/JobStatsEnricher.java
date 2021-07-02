@@ -38,19 +38,17 @@ public class JobStatsEnricher {
     }
 
     private void setFirstRelevantJobStats(JobStats jobStats) {
-        if (firstRelevantJobStats == null) {
-            firstRelevantJobStats = jobStats;
-        } else if (jobStats.getEnqueued() < 1 && jobStats.getProcessing() < 1) {
-            firstRelevantJobStats = jobStats;
-        } else if (jobStats.getEnqueued() > firstRelevantJobStats.getEnqueued()) {
+        if (firstRelevantJobStats == null
+                || (jobStats.getEnqueued() < 1 && jobStats.getProcessing() < 1)
+                || (jobStats.getEnqueued() > firstRelevantJobStats.getEnqueued())) {
             firstRelevantJobStats = jobStats;
         }
     }
 
     private void setJobStatsExtended(JobStats jobStats) {
-        JobStats previousJobStats = this.previousJobStats != null ? this.previousJobStats : this.firstRelevantJobStats;
-        Long amountSucceeded = jobStats.getSucceeded() - previousJobStats.getSucceeded();
-        Long amountFailed = jobStats.getFailed() - previousJobStats.getFailed();
+        JobStats actualPreviousJobStats = this.previousJobStats != null ? this.previousJobStats : this.firstRelevantJobStats;
+        Long amountSucceeded = jobStats.getSucceeded() - actualPreviousJobStats.getSucceeded();
+        Long amountFailed = jobStats.getFailed() - actualPreviousJobStats.getFailed();
         Instant estimatedProcessingFinishedInstant = estimatedProcessingFinishedInstant(firstRelevantJobStats, jobStats);
         if (estimatedProcessingFinishedInstant != null) {
             jobStatsExtended = new JobStatsExtended(jobStats, amountSucceeded, amountFailed, estimatedProcessingFinishedInstant);

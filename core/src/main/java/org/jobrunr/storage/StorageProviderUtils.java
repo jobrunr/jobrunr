@@ -1,6 +1,7 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.utils.JobUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -18,11 +19,11 @@ public class StorageProviderUtils {
     private static final String FIELD_ID = "id";
 
     public static boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> !isNew(job));
+        return jobs.stream().noneMatch(JobUtils::isNew);
     }
 
     public static boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(job -> isNew(job));
+        return jobs.stream().anyMatch(JobUtils::isNew);
     }
 
     public static boolean areNewJobs(List<Job> jobs) {
@@ -88,10 +89,10 @@ public class StorageProviderUtils {
         public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
     }
 
-    @Deprecated
     /**
      * @deprecated Is not used anymore in StorageProviders and will be removed
      */
+    @Deprecated
     public static final class JobStats {
         private JobStats() {
         }

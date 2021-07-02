@@ -38,10 +38,10 @@ public abstract class AbstractJob implements Lockable {
     /**
      * Increases the version of this Job instance
      *
-     * @return the version before it was increased
+     * @return the version after it was increased
      */
     public int increaseVersion() {
-        return version++;
+        return ++version;
     }
 
     public int decreaseVersion() {

@@ -4,7 +4,7 @@ import org.jobrunr.jobs.details.JobDetailsFinderContext;
 
 public abstract class ZeroOperandInstruction extends AbstractJVMInstruction {
 
-    public ZeroOperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected ZeroOperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

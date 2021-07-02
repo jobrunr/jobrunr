@@ -25,7 +25,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final ReentrantLock reentrantLock;
     private volatile Timer timer;
 
-    public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
+    protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;

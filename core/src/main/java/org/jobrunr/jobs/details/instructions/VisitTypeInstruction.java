@@ -6,7 +6,7 @@ public abstract class VisitTypeInstruction extends AbstractJVMInstruction {
 
     protected String type;
 
-    public VisitTypeInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitTypeInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

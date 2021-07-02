@@ -48,7 +48,7 @@ public class SevereExceptionManager {
                 .withEmptyLine()
                 .withSubTitle("Exception")
                 .withException(e)
-                .AsMarkDown();
+                .asMarkDown();
 
         return new JobRunrMetadata(SevereJobRunrException.class.getSimpleName(), id, diagnosticsInfo);
     }

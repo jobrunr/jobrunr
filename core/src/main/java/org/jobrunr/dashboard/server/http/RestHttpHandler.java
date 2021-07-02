@@ -52,7 +52,7 @@ public class RestHttpHandler extends AbstractHttpExchangeHandler {
         requestHandlers.head(url, httpRequestHandler);
     }
 
-    public <T extends Exception> void withExceptionMapping(Class<T> clazz, ExceptionHandler<T> exceptionHandler) {
+    public <T extends Exception> void withExceptionMapping(Class<T> clazz, ExceptionHandler exceptionHandler) {
         exceptionHandlers.put(clazz, exceptionHandler);
     }
 

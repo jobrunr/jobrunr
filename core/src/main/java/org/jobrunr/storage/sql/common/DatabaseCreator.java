@@ -23,7 +23,8 @@ import static org.jobrunr.utils.StringUtils.substringAfterLast;
 public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
-    private static final String[] jobrunr_tables = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
+    private static final String DEFAULT_PREFIX = "jobrunr_";
+    private static final String[] JOBRUNR_TABLES = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
 
     private final ConnectionProvider connectionProvider;
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
@@ -84,7 +85,7 @@ public class DatabaseCreator {
         try (final Connection conn = getConnection();
              final Transaction tran = new Transaction(conn, false);
              final Statement pSt = conn.createStatement()) {
-            for (String table : jobrunr_tables) {
+            for (String table : JOBRUNR_TABLES) {
                 try (ResultSet rs = pSt.executeQuery("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(table))) {
                     if (rs.next()) {
                         int count = rs.getInt(1);
@@ -225,7 +226,7 @@ public class DatabaseCreator {
 
         @Override
         public String updateStatement(String statement) {
-            return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
+            return statement.replace(DEFAULT_PREFIX, tablePrefix + DEFAULT_PREFIX);
         }
 
         @Override
@@ -263,12 +264,12 @@ public class DatabaseCreator {
 
         private String updateStatementWithSchemaNameForCreateIndexStatement(String statement) {
             return statement
-                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + indexPrefix + "jobrunr_")
-                    .replace("ON jobrunr_", "ON " + tablePrefix + "jobrunr_");
+                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + indexPrefix + DEFAULT_PREFIX)
+                    .replace("ON jobrunr_", "ON " + tablePrefix + DEFAULT_PREFIX);
         }
 
         private String updateStatementWithSchemaNameForOtherStatements(String statement) {
-            return statement.replace("jobrunr_", tablePrefix + "jobrunr_");
+            return statement.replace(DEFAULT_PREFIX, tablePrefix + DEFAULT_PREFIX);
         }
 
         private String getIndexPrefix(String tablePrefix) {

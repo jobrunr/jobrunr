@@ -17,20 +17,20 @@ import static java.util.stream.Collectors.toList;
 
 public class LettuceRedisPipelinedStream<T> extends AbstractPipelinedStream<T> {
 
-    private final StatefulRedisConnection connection;
+    private final StatefulRedisConnection<String, String> connection;
 
-    public LettuceRedisPipelinedStream(Collection<T> initial, StatefulRedisConnection connection) {
+    public LettuceRedisPipelinedStream(Collection<T> initial, StatefulRedisConnection<String, String> connection) {
         this(initial.stream(), connection);
     }
 
-    public LettuceRedisPipelinedStream(Stream<T> initialStream, StatefulRedisConnection connection) {
+    public LettuceRedisPipelinedStream(Stream<T> initialStream, StatefulRedisConnection<String, String> connection) {
         super(initialStream);
         this.connection = connection;
     }
 
     public <R> LettuceRedisPipelinedStream<R> mapUsingPipeline(BiFunction<RedisAsyncCommands, T, R> biFunction) {
         connection.setAutoFlushCommands(false);
-        RedisAsyncCommands redisAsyncCommands = connection.async();
+        RedisAsyncCommands<String, String> redisAsyncCommands = connection.async();
         List<R> collect = initialStream
                 .map(item -> biFunction.apply(redisAsyncCommands, item))
                 .collect(toList()); // must collect otherwise map is not executed

@@ -20,6 +20,9 @@ public class RedisUtilities {
 
     }
 
+    /**
+     * @deprecated: still in use for Migrations
+     */
     @Deprecated
     public static String jobCounterKey(StateName stateName) {
         return "counter:jobs:" + stateName;

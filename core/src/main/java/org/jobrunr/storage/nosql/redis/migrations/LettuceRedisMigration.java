@@ -6,5 +6,5 @@ import java.io.IOException;
 
 public abstract class LettuceRedisMigration {
 
-    public abstract void runMigration(StatefulRedisConnection connection, String keyPrefix) throws IOException;
+    public abstract void runMigration(StatefulRedisConnection<String, String> connection, String keyPrefix) throws IOException;
 }

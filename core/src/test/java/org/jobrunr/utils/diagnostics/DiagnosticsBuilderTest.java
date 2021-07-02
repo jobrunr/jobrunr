@@ -13,14 +13,16 @@ class DiagnosticsBuilderTest {
                 .withTitle("Title")
                 .withSubTitle("Subtitle")
                 .withLine("A line")
+                .withIndentedLine("An indented line")
                 .withBulletedLine("bulleted line")
-                .AsMarkDown();
+                .asMarkDown();
 
         assertThat(diagnostics)
                 .isNotEmpty()
                 .contains("## Title")
                 .contains("### Subtitle")
                 .contains("A line")
+                .contains("\tAn indented line")
                 .contains("- bulleted line");
     }
 }

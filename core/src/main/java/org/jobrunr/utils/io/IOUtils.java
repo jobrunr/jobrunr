@@ -4,6 +4,9 @@ import java.io.*;
 
 public class IOUtils {
 
+    private IOUtils() {
+    }
+
     public static void copyStreamNoException(InputStream input, Writer output) {
         try {
             copyStream(input, output);

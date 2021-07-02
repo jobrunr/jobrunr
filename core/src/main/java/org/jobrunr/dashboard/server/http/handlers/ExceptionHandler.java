@@ -4,5 +4,5 @@ import org.jobrunr.dashboard.server.http.HttpResponse;
 
 import java.util.function.BiConsumer;
 
-public interface ExceptionHandler<T extends Exception> extends BiConsumer<T, HttpResponse> {
+public interface ExceptionHandler extends BiConsumer<Exception, HttpResponse> {
 }

@@ -10,7 +10,7 @@ public interface JobDetailsGenerator {
 
     JobDetails toJobDetails(JobLambda lambda);
 
-    JobDetails toJobDetails(IocJobLambda lambda);
+    JobDetails toJobDetails(IocJobLambda<?> lambda);
 
     <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda);
 
