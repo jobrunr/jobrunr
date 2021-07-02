@@ -6,7 +6,7 @@ import java.sql.SQLException;
 public class Transaction implements AutoCloseable {
 
     private final Connection conn;
-    private final Boolean originalAutoCommit;
+    private final boolean originalAutoCommit;
     private final Boolean enableAutocommit;
     private boolean committed;
 

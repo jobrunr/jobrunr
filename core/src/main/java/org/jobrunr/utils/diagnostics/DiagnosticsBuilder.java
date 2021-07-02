@@ -115,7 +115,7 @@ public class DiagnosticsBuilder {
         return this;
     }
 
-    public String AsMarkDown() {
+    public String asMarkDown() {
         StringBuilder result = new StringBuilder();
         diagnosticsItems.forEach(diagnosticsItem -> result.append(diagnosticsItem.toMarkdown()));
         return result.toString();

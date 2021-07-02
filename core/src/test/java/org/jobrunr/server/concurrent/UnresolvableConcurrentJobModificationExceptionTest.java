@@ -19,7 +19,7 @@ class UnresolvableConcurrentJobModificationExceptionTest {
         final ConcurrentJobModificationResolveResult resolveResult = ConcurrentJobModificationResolveResult.failed(localJob, jobFromStorage);
         final UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException = new UnresolvableConcurrentJobModificationException(singletonList(resolveResult));
 
-        final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().AsMarkDown();
+        final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().asMarkDown();
         assertThat(markDown)
                 .containsPattern("SUCCEEDED (.*) ← PROCESSING (.*) ← ENQUEUED")
                 .containsPattern("FAILED (.*) ← PROCESSING (.*) ← ENQUEUED");
@@ -33,7 +33,7 @@ class UnresolvableConcurrentJobModificationExceptionTest {
         final ConcurrentJobModificationResolveResult resolveResult = ConcurrentJobModificationResolveResult.failed(localJob, jobFromStorage);
         final UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException = new UnresolvableConcurrentJobModificationException(singletonList(resolveResult));
 
-        final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().AsMarkDown();
+        final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().asMarkDown();
         assertThat(markDown)
                 .containsPattern("ENQUEUED")
                 .containsPattern("FAILED (.*) ← PROCESSING (.*) ← ENQUEUED");

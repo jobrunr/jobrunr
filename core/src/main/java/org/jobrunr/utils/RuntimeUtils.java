@@ -4,6 +4,9 @@ import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class RuntimeUtils {
 
+    private RuntimeUtils() {
+    }
+
     public static int getJvmVersion() {
         String version = System.getProperty("java.version");
         if (version.startsWith("1.")) {

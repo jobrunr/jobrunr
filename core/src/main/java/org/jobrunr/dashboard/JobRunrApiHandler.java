@@ -76,9 +76,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private HttpRequestHandler getProblems() {
-        return (request, response) -> {
-            response.asJson(problemsManager.getProblems());
-        };
+        return (request, response) -> response.asJson(problemsManager.getProblems());
     }
 
     private HttpRequestHandler deleteProblemByType() {

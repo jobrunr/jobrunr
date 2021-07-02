@@ -1,5 +1,7 @@
 package org.jobrunr.utils.diagnostics;
 
+import static java.util.stream.IntStream.range;
+
 public class DiagnosticsLine implements DiagnosticsItem {
 
     private final int indentation;
@@ -17,12 +19,9 @@ public class DiagnosticsLine implements DiagnosticsItem {
 
     @Override
     public String toMarkdown() {
-        String indentationResult = "";
-        int actualIndentation = indentation;
-        while (actualIndentation > 0) {
-            indentationResult += "\t";
-            actualIndentation--;
-        }
-        return indentationResult + line + "\n";
+        StringBuilder result = new StringBuilder();
+        range(0, indentation).forEach(i -> result.append("\t"));
+        result.append(line).append("\n");
+        return result.toString();
     }
 }

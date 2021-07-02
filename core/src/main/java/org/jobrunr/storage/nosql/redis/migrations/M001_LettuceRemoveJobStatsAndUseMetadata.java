@@ -16,8 +16,8 @@ import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 public class M001_LettuceRemoveJobStatsAndUseMetadata extends LettuceRedisMigration {
 
     @Override
-    public void runMigration(StatefulRedisConnection connection, String keyPrefix) throws IOException {
-        RedisCommands commands = connection.sync();
+    public void runMigration(StatefulRedisConnection<String, String> connection, String keyPrefix) throws IOException {
+        RedisCommands<String, String> commands = connection.sync();
 
         if (commands.hget(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE) != null) return;
 

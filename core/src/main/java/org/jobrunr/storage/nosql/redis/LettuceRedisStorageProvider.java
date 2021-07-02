@@ -84,7 +84,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         super(changeListenerNotificationRateLimit);
         this.redisClient = redisClient;
         this.keyPrefix = keyPrefix;
-        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig());
+        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig<StatefulRedisConnection<String, String>>());
 
         new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
@@ -235,7 +235,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
             return (commands.smembers(metadatasKey(keyPrefix))).stream()
                     .filter(metadataName -> metadataName.startsWith(metadataKey(keyPrefix, name + "-")))
-                    .map(metadataName -> commands.hgetall(metadataName))
+                    .map(commands::hgetall)
                     .map(fieldMap -> new JobRunrMetadata(
                             fieldMap.get(Metadata.FIELD_NAME),
                             fieldMap.get(Metadata.FIELD_OWNER),

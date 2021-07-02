@@ -31,7 +31,7 @@ public class LettuceRedisDBCreator extends NoSqlDatabaseCreator<LettuceRedisMigr
 
     @Override
     protected void runMigration(LettuceRedisMigration noSqlMigration) throws Exception {
-        try (StatefulRedisConnection connection = getConnection()) {
+        try (StatefulRedisConnection<String, String> connection = getConnection()) {
             noSqlMigration.runMigration(connection, keyPrefix);
         }
     }
@@ -41,9 +41,9 @@ public class LettuceRedisDBCreator extends NoSqlDatabaseCreator<LettuceRedisMigr
         return true;
     }
 
-    protected StatefulRedisConnection getConnection() {
+    protected StatefulRedisConnection<String, String> getConnection() {
         try {
-            StatefulRedisConnection statefulRedisConnection = pool.borrowObject();
+            StatefulRedisConnection<String, String> statefulRedisConnection = pool.borrowObject();
             statefulRedisConnection.setAutoFlushCommands(true);
             return statefulRedisConnection;
         } catch (Exception e) {

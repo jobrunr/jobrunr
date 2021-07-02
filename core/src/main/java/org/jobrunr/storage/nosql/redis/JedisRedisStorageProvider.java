@@ -218,7 +218,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             return jedis.smembers(metadatasKey(keyPrefix)).stream()
                     .filter(metadataName -> metadataName.startsWith(metadataKey(keyPrefix, name + "-")))
-                    .map(metadataName -> jedis.hgetAll(metadataName))
+                    .map(jedis::hgetAll)
                     .map(fieldMap -> new JobRunrMetadata(
                             fieldMap.get(Metadata.FIELD_NAME),
                             fieldMap.get(Metadata.FIELD_OWNER),

@@ -4,61 +4,61 @@ import java.util.BitSet;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static java.lang.Integer.parseInt;
+
 class CronFieldParser {
 
     private static final String INVALID_FIELD = "invalid %s field: \"%s\".";
 
-    private static Map<String, Integer> MONTHS_NAMES;
-    private static Map<String, Integer> DAYS_OF_WEEK_NAMES;
+    private static final Map<String, Integer> MONTHS_NAMES = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, Integer> DAYS_OF_WEEK_NAMES = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     static {
-        CronFieldParser.MONTHS_NAMES = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        CronFieldParser.MONTHS_NAMES.put("January", 1);
-        CronFieldParser.MONTHS_NAMES.put("Jan", 1);
-        CronFieldParser.MONTHS_NAMES.put("February", 2);
-        CronFieldParser.MONTHS_NAMES.put("Feb", 2);
-        CronFieldParser.MONTHS_NAMES.put("March", 3);
-        CronFieldParser.MONTHS_NAMES.put("Mar", 3);
-        CronFieldParser.MONTHS_NAMES.put("April", 4);
-        CronFieldParser.MONTHS_NAMES.put("Apr", 4);
-        CronFieldParser.MONTHS_NAMES.put("May", 5);
-        CronFieldParser.MONTHS_NAMES.put("June", 6);
-        CronFieldParser.MONTHS_NAMES.put("Jun", 6);
-        CronFieldParser.MONTHS_NAMES.put("July", 7);
-        CronFieldParser.MONTHS_NAMES.put("Jul", 7);
-        CronFieldParser.MONTHS_NAMES.put("August", 8);
-        CronFieldParser.MONTHS_NAMES.put("Aug", 8);
-        CronFieldParser.MONTHS_NAMES.put("September", 9);
-        CronFieldParser.MONTHS_NAMES.put("Sep", 9);
-        CronFieldParser.MONTHS_NAMES.put("October", 10);
-        CronFieldParser.MONTHS_NAMES.put("Oct", 10);
-        CronFieldParser.MONTHS_NAMES.put("November", 11);
-        CronFieldParser.MONTHS_NAMES.put("Nov", 11);
-        CronFieldParser.MONTHS_NAMES.put("December", 12);
-        CronFieldParser.MONTHS_NAMES.put("Dec", 12);
+        MONTHS_NAMES.put("January", 1);
+        MONTHS_NAMES.put("Jan", 1);
+        MONTHS_NAMES.put("February", 2);
+        MONTHS_NAMES.put("Feb", 2);
+        MONTHS_NAMES.put("March", 3);
+        MONTHS_NAMES.put("Mar", 3);
+        MONTHS_NAMES.put("April", 4);
+        MONTHS_NAMES.put("Apr", 4);
+        MONTHS_NAMES.put("May", 5);
+        MONTHS_NAMES.put("June", 6);
+        MONTHS_NAMES.put("Jun", 6);
+        MONTHS_NAMES.put("July", 7);
+        MONTHS_NAMES.put("Jul", 7);
+        MONTHS_NAMES.put("August", 8);
+        MONTHS_NAMES.put("Aug", 8);
+        MONTHS_NAMES.put("September", 9);
+        MONTHS_NAMES.put("Sep", 9);
+        MONTHS_NAMES.put("October", 10);
+        MONTHS_NAMES.put("Oct", 10);
+        MONTHS_NAMES.put("November", 11);
+        MONTHS_NAMES.put("Nov", 11);
+        MONTHS_NAMES.put("December", 12);
+        MONTHS_NAMES.put("Dec", 12);
 
-        CronFieldParser.DAYS_OF_WEEK_NAMES = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Sunday", 0);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Sun", 0);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Monday", 1);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Mon", 1);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Tuesday", 2);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Tue", 2);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Wednesday", 3);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Wed", 3);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Thursday", 4);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Thu", 4);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Friday", 5);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Fri", 5);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("Saturday", 6);
-        CronFieldParser.DAYS_OF_WEEK_NAMES.put("sat", 6);
+        DAYS_OF_WEEK_NAMES.put("Sunday", 0);
+        DAYS_OF_WEEK_NAMES.put("Sun", 0);
+        DAYS_OF_WEEK_NAMES.put("Monday", 1);
+        DAYS_OF_WEEK_NAMES.put("Mon", 1);
+        DAYS_OF_WEEK_NAMES.put("Tuesday", 2);
+        DAYS_OF_WEEK_NAMES.put("Tue", 2);
+        DAYS_OF_WEEK_NAMES.put("Wednesday", 3);
+        DAYS_OF_WEEK_NAMES.put("Wed", 3);
+        DAYS_OF_WEEK_NAMES.put("Thursday", 4);
+        DAYS_OF_WEEK_NAMES.put("Thu", 4);
+        DAYS_OF_WEEK_NAMES.put("Friday", 5);
+        DAYS_OF_WEEK_NAMES.put("Fri", 5);
+        DAYS_OF_WEEK_NAMES.put("Saturday", 6);
+        DAYS_OF_WEEK_NAMES.put("sat", 6);
     }
 
     private final CronFieldType fieldType;
+    private final String fieldName;
     private final int length;
     private final int maxAllowedValue;
     private final int minAllowedValue;
-    private final String fieldName;
 
     CronFieldParser(CronFieldType fieldType) {
         this.fieldType = fieldType;
@@ -70,7 +70,7 @@ class CronFieldParser {
 
     private boolean isInteger(String str) {
         try {
-            Integer.parseInt(str);
+            parseInt(str);
             return true;
         } catch (NumberFormatException ex) {
             return false;
@@ -78,7 +78,13 @@ class CronFieldParser {
     }
 
     private int parseValue(String token) {
-        return Integer.parseInt(token);
+        if (this.isInteger(token)) {
+            return parseInt(token);
+        } else {
+            if (fieldType == CronFieldType.MONTH) return MONTHS_NAMES.getOrDefault(token, -1);
+            if (fieldType == CronFieldType.DAY_OF_WEEK) return DAYS_OF_WEEK_NAMES.getOrDefault(token, -1);
+            return -1;
+        }
     }
 
     public BitSet parse(String token) {

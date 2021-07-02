@@ -38,7 +38,7 @@ public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
         JsonToken token = in.peek();
         switch (token) {
             case BEGIN_ARRAY:
-                List<Object> list = new ArrayList();
+                List<Object> list = new ArrayList<>();
                 in.beginArray();
 
                 while (in.hasNext()) {
@@ -50,11 +50,10 @@ public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
             case BEGIN_OBJECT:
                 final JsonObject o = gson.fromJson(in, TypeToken.get(JsonObject.class).getType());
                 if (o.has(TYPE_FIELD_NAME)) {
-                    final Object o1 = gson.fromJson(o, TypeToken.get(toClass(o.get(TYPE_FIELD_NAME).getAsString())).getType());
-                    return o1;
+                    return gson.fromJson(o, TypeToken.get(toClass(o.get(TYPE_FIELD_NAME).getAsString())).getType());
                 } else {
                     try (final JsonReader jsonReader = gson.newJsonReader(new StringReader(o.getAsString()))) {
-                        Map<String, Object> map = new LinkedTreeMap();
+                        Map<String, Object> map = new LinkedTreeMap<>();
                         jsonReader.beginObject();
 
                         while (jsonReader.hasNext()) {
