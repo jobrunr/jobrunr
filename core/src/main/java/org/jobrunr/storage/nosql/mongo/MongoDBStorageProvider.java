@@ -212,7 +212,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public Job save(Job job) {
         if (isNew(job)) {
-            job.increaseVersion();
             try {
                 jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
             } catch (MongoWriteException e) {
@@ -255,7 +254,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
             final List<Document> jobsToInsert = jobs.stream()
-                    .peek(AbstractJob::increaseVersion)
                     .map(job -> jobDocumentMapper.toInsertDocument(job))
                     .collect(toList());
             jobCollection.insertMany(jobsToInsert);

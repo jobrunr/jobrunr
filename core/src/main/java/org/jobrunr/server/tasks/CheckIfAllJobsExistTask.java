@@ -30,7 +30,7 @@ public class CheckIfAllJobsExistTask implements Runnable {
             Set<String> jobsThatCannotBeFound = distinctJobSignatures.stream().filter(job -> !jobExists(job)).collect(toSet());
             if (!jobsThatCannotBeFound.isEmpty()) {
                 LOGGER.warn("JobRunr found SCHEDULED jobs that do not exist anymore in your code. These jobs will fail with a JobNotFoundException (due to a ClassNotFoundException or a MethodNotFoundException)." +
-                        "\n\tBelow you can find the method signatures of the jobs that cannot be found anymore: " +
+                                "\n\tBelow you can find the method signatures of the jobs that cannot be found anymore: {}",
                         jobsThatCannotBeFound.stream().map(sign -> "\n\t" + sign + ",").collect(Collectors.joining())
                 );
             }

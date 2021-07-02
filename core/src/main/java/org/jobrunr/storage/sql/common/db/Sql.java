@@ -30,7 +30,7 @@ public class Sql<T> {
     private String tablePrefix = "";
     private String suffix = "";
 
-    private final static Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
+    private static final Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
     private String tableName;
     private Connection connection;
 

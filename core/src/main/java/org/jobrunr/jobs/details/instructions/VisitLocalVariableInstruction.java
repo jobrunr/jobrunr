@@ -6,12 +6,12 @@ public abstract class VisitLocalVariableInstruction extends AbstractJVMInstructi
 
     protected int variable;
 
-    public VisitLocalVariableInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitLocalVariableInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 
-    public void load(int var) {
-        this.variable = var;
+    public void load(int variable) {
+        this.variable = variable;
         jobDetailsBuilder.pushInstructionOnStack(this);
     }
 

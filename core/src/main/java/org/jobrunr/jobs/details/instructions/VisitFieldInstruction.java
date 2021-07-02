@@ -8,7 +8,7 @@ public abstract class VisitFieldInstruction extends AbstractJVMInstruction {
     protected String name;
     protected String descriptor;
 
-    public VisitFieldInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitFieldInstruction(JobDetailsFinderContext jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

@@ -88,10 +88,10 @@ public class StorageProviderUtils {
         public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
     }
 
-    @Deprecated
     /**
      * @deprecated Is not used anymore in StorageProviders and will be removed
      */
+    @Deprecated
     public static final class JobStats {
         private JobStats() {
         }

@@ -134,7 +134,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
         private void getJobDetailsFromKotlinFunction(Field field) {
             Object function = getValueFromField(field, jobRunrJob);
-            //Field owner = ReflectionUtils.getField(function.getClass(), "owner");
             Field receiver = ReflectionUtils.getField(function.getClass(), "receiver");
             Field name = ReflectionUtils.getField(function.getClass(), "name");
             Class<?> receiverClass = getValueFromField(receiver, function).getClass();
@@ -193,9 +192,9 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
                     }
 
                     @Override
-                    public void visitVarInsn(int opcode, int var) {
+                    public void visitVarInsn(int opcode, int variable) {
                         VisitLocalVariableInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
-                        instruction.load(var);
+                        instruction.load(variable);
                     }
 
                     @Override

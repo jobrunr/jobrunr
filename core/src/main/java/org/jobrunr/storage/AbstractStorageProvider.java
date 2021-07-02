@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -22,10 +23,11 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final Set<StorageProviderChangeListener> onChangeListeners;
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
+    private final AtomicReference<Timer> timerAtomicReference = new AtomicReference<>();
     private final ReentrantLock reentrantLock;
     private volatile Timer timer;
 
-    public AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
+    protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;

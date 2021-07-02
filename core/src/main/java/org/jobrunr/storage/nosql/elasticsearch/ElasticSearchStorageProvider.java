@@ -324,10 +324,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
             BulkRequest bulkRequest = new BulkRequest(jobIndexName()).setRefreshPolicy(IMMEDIATE);
             jobs.stream()
-                    .peek(AbstractJob::increaseVersion)
                     .map(job -> new IndexRequest().id(job.getId().toString())
                             .versionType(VersionType.EXTERNAL)
-                            .version(job.getVersion())
+                            .version(job.increaseVersion())
                             .source(elasticSearchDocumentMapper.toXContentBuilder(job)))
                     .forEach(bulkRequest::add);
 

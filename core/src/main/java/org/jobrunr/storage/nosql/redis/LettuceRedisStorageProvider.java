@@ -7,7 +7,6 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
@@ -334,9 +333,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             try (final StatefulRedisConnection connection = getConnection()) {
                 RedisCommands commands = connection.sync();
                 commands.multi();
-                jobs.stream()
-                        .peek(AbstractJob::increaseVersion)
-                        .forEach(jobToSave -> saveJob(commands, jobToSave));
+                jobs.forEach(jobToSave -> saveJob(commands, jobToSave));
                 commands.exec();
             }
         } else {
@@ -345,7 +342,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             }
             try (final StatefulRedisConnection connection = getConnection()) {
                 RedisCommands commands = connection.sync();
-                final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, (job) -> updateJob(job, commands));
+                final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, job -> updateJob(job, commands));
                 if (!concurrentModifiedJobs.isEmpty()) {
                     throw new ConcurrentJobModificationException(concurrentModifiedJobs);
                 }
@@ -591,7 +588,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     private void insertJob(Job jobToSave, RedisCommands commands) {
         if (commands.exists(jobKey(keyPrefix, jobToSave)) > 0) throw new ConcurrentJobModificationException(jobToSave);
-        jobToSave.increaseVersion();
         commands.multi();
         saveJob(commands, jobToSave);
         commands.exec();
@@ -601,7 +597,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         commands.watch(jobVersionKey(keyPrefix, jobToSave));
         final int version = Integer.parseInt(commands.get(jobVersionKey(keyPrefix, jobToSave)).toString());
         if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave);
-        jobToSave.increaseVersion();
         commands.multi();
         saveJob(commands, jobToSave);
         TransactionResult result = commands.exec();
@@ -611,7 +606,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     private void saveJob(RedisCommands commands, Job jobToSave) {
         deleteJobMetadataForUpdate(commands, jobToSave);
-        commands.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.getVersion()));
+        commands.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.increaseVersion()));
         commands.set(jobKey(keyPrefix, jobToSave), jobMapper.serializeJob(jobToSave));
         commands.zadd(jobQueueForStateKey(keyPrefix, jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
         commands.sadd(jobDetailsKey(keyPrefix, jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));
