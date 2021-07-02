@@ -12,6 +12,7 @@ import java.lang.annotation.Annotation;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
@@ -26,7 +27,12 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public JobDetails toJobDetails(JobLambda lambda) {
         if (isKotlinLambda(lambda)) {
-            return new KotlinJobDetailsFinder(lambda).getJobDetails();
+            if(isKotlin14Lambda(lambda)) {
+                System.out.println("Is kotlin 1.4 lambda");
+            } else if (isKotlin15Lambda(lambda)) {
+                System.out.println("Is kotlin 1.5 lambda");
+            }
+            return new KotlinJobDetailsFinder(isKotlin15Lambda(lambda), lambda).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
         }
@@ -35,7 +41,12 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public JobDetails toJobDetails(IocJobLambda lambda) {
         if (isKotlinLambda(lambda)) {
-            return new KotlinJobDetailsFinder(lambda, new Object()).getJobDetails();
+            if(isKotlin14Lambda(lambda)) {
+                System.out.println("Is kotlin 1.4 lambda");
+            } else if (isKotlin15Lambda(lambda)) {
+                System.out.println("Is kotlin 1.5 lambda");
+            }
+            return new KotlinJobDetailsFinder(isKotlin15Lambda(lambda), lambda, new Object()).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
         }
@@ -44,7 +55,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
         if (isKotlinLambda(lambda)) {
-            return new KotlinJobDetailsFinder(lambda, itemFromStream).getJobDetails();
+            return new KotlinJobDetailsFinder(isKotlin15Lambda(lambda), lambda, itemFromStream).getJobDetails();
         } else {
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), itemFromStream).getJobDetails();
         }
@@ -54,7 +65,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
         if (isKotlinLambda(lambda)) {
             // why new Object(): it represents the item injected when we run the IocJobLambdaFromStream function
-            return new KotlinJobDetailsFinder(lambda, new Object(), itemFromStream).getJobDetails();
+            return new KotlinJobDetailsFinder(isKotlin15Lambda(lambda), lambda, new Object(), itemFromStream).getJobDetails();
         } else {
             // why null: it represents the item injected when we run the IocJobLambdaFromStream function
             return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), null, itemFromStream).getJobDetails();
@@ -63,6 +74,16 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     private <T extends JobRunrJob> boolean isKotlinLambda(T lambda) {
         return !lambda.getClass().isSynthetic() && stream(lambda.getClass().getAnnotations()).map(Annotation::annotationType).anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
+    }
+
+    private <T extends JobRunrJob> boolean isKotlin14Lambda(T lambda) {
+        final Annotation annotation = stream(lambda.getClass().getAnnotations()).filter(a -> a.annotationType().getName().equals("kotlin.Metadata")).findFirst().orElseThrow(() -> new IllegalStateException("Did not find kotlin metadata annotation"));
+        return annotation.toString().contains("mv={1, 4");
+    }
+
+    private <T extends JobRunrJob> boolean isKotlin15Lambda(T lambda) {
+        final Annotation annotation = stream(lambda.getClass().getAnnotations()).filter(a -> a.annotationType().getName().equals("kotlin.Metadata")).findFirst().orElseThrow(() -> new IllegalStateException("Did not find kotlin metadata annotation"));
+        return annotation.toString().contains("mv={1, 5");
     }
 
     private static class JavaJobDetailsFinder extends JobDetailsFinder {
@@ -91,12 +112,14 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     private static class KotlinJobDetailsFinder extends JobDetailsFinder {
 
         private int methodCounter = 0;
+        private boolean oneFive;
         private JobRunrJob jobRunrJob;
 
         private String nestedKotlinClassWithMethodReference;
 
-        private KotlinJobDetailsFinder(JobRunrJob jobRunrJob, Object... params) {
+        private KotlinJobDetailsFinder(boolean oneFive, JobRunrJob jobRunrJob, Object... params) {
             super(new KotlinJobDetailsFinderContext(jobRunrJob, params));
+            this.oneFive = oneFive;
             this.jobRunrJob = jobRunrJob;
             parse(getClassContainingLambdaAsInputStream());
         }
@@ -106,7 +129,11 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
             if (name.equals("accept") || name.equals("invoke")) {
                 methodCounter++;
             }
-            return name.equals("run") || ((name.equals("accept") || name.equals("invoke")) && methodCounter == 2);
+            if(oneFive) {
+                return name.equals("run") || ((name.equals("accept") || name.equals("invoke")) && methodCounter == 1);
+            } else {
+                return name.equals("run") || ((name.equals("accept") || name.equals("invoke")) && methodCounter == 2);
+            }
         }
 
         @Override

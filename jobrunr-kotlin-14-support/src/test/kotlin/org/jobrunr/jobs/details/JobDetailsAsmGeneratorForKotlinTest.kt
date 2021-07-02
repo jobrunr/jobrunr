@@ -375,11 +375,11 @@ class JobDetailsAsmGeneratorForKotlinTest {
 
     @Test
     fun testIocJobLambdaWithDouble() {
-        val jobDetails = toJobDetails<TestService> { it.doWork(3.3) }
+        val jobDetails = toJobDetails<TestService> { it.doWork(3456.3) }
         assertThat(jobDetails)
                 .hasClass(TestService::class.java)
                 .hasMethodName("doWork")
-                .hasArgs(3.3)
+                .hasArgs(3456.3)
     }
 
     @Test

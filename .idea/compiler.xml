@@ -85,6 +85,7 @@
       <module name="JangFire.tests.main" target="1.8" />
       <module name="JangFire.tests.test" target="11" />
       <module name="JangFire.tests.testFixtures" target="1.8" />
+      <module name="JobRunr.jobrunr-kotlin-support.test" target="11" />
       <module name="JobRunr.kotlin-support.test" target="11" />
       <module name="JobRunr.platform.test" target="11" />
       <module name="JobRunr.pro.test" target="11" />
