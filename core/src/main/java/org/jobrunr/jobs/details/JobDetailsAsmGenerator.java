@@ -49,6 +49,6 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     }
 
     private <T extends JobRunrJob> boolean isKotlinLambda(T lambda) {
-        return !lambda.getClass().isSynthetic() && stream(lambda.getClass().getAnnotations()).map(Annotation::annotationType).anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
+        return stream(lambda.getClass().getAnnotations()).map(Annotation::annotationType).anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
     }
 }
