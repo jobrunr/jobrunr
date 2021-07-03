@@ -2,12 +2,15 @@ package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -50,7 +53,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     String getClassName() {
         String className = toFQClassName(owner);
         if (jobDetailsBuilder.getStack().isEmpty()) {
-            return className;
+            return findInheritedClassName(className).orElse(className);
         }
 
         Object jobOnStack = jobDetailsBuilder.getStack().getLast();
@@ -65,6 +68,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         return className;
     }
 
+
     String getMethodName() {
         return name;
     }
@@ -77,6 +81,17 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
 
     private boolean isLastInstruction() {
         return jobDetailsBuilder.getInstructions().isEmpty();
+    }
+
+    private Optional<String> findInheritedClassName(String className) {
+        if (jobDetailsBuilder.getLocalVariable(0) != null) {
+            final Field declaredField = jobDetailsBuilder.getLocalVariable(0).getClass().getDeclaredFields()[0];
+            final Object valueFromField = ReflectionUtils.getValueFromField(declaredField, jobDetailsBuilder.getLocalVariable(0));
+            if (toClass(className).isAssignableFrom(valueFromField.getClass())) {
+                return Optional.of(valueFromField.getClass().getName());
+            }
+        }
+        return Optional.empty();
     }
 
     private List<JobParameter> getJobParameters() {
