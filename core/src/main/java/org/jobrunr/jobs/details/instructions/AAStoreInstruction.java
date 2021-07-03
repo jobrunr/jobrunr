@@ -9,12 +9,11 @@ public class AAStoreInstruction extends ZeroOperandInstruction {
     }
 
     @Override
-    public void load() {
-        // not needed
-    }
-
-    @Override
     public Object invokeInstruction() {
-        return null;
+        Object value = jobDetailsBuilder.getStack().pollLast();
+        int index = (int) jobDetailsBuilder.getStack().pollLast();
+        Object[] array = (Object[]) jobDetailsBuilder.getStack().pollLast();
+        array[index] = value;
+        return DO_NOT_PUT_ON_STACK;
     }
 }

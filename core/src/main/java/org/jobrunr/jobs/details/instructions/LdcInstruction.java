@@ -10,13 +10,13 @@ public class LdcInstruction extends AbstractJVMInstruction {
         super(jobDetailsBuilder);
     }
 
-    @Override
-    public Object invokeInstruction() {
-        return value;
-    }
-
     public void load(Object value) {
         this.value = value;
         jobDetailsBuilder.pushInstructionOnStack(this);
+    }
+
+    @Override
+    public Object invokeInstruction() {
+        return value;
     }
 }
