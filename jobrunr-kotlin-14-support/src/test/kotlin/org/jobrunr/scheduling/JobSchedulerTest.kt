@@ -137,6 +137,25 @@ class JobSchedulerTest {
         )
     }
 
+    @Test
+    fun `test enqueue with top level function`() {
+        jobScheduler.enqueue { doSomething() }
+
+        await().until {
+            storageProvider.countJobs(SUCCEEDED) == 1L
+        }
+        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        assertThat(job.jobStates.map { it.name }).containsExactly(
+            ENQUEUED,
+            PROCESSING,
+            SUCCEEDED
+        )
+    }
+
+    fun doSomething() {
+        println("hello")
+    }
+
     class TestLambdaContainer {
         private val foo = 2
         private val bar = "foo"
