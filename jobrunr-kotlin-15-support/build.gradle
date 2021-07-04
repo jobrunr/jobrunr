@@ -1,6 +1,6 @@
 plugins {
   id 'java-library'
-  //id 'maven-publish'
+  id 'maven-publish'
   id 'signing'
   id 'org.jetbrains.kotlin.jvm' version '1.5.20'
 }
@@ -25,56 +25,56 @@ nexusPublishing {
   packageGroup = "org.jobrunr.jobrunr-kotlin-support"
 }
 
-//publishing {
-//  publications {
-//    mavenJava(MavenPublication) {
-//      groupId = 'org.jobrunr'
-//      artifactId = 'jobrunr-kotlin-1.5-support'
-//      version = project.version.replace("v", "")
-//      from components.java
-//
-//      pom {
-//        name = 'JobRunr Kotlin 1.5 Support'
-//        description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
-//        url = 'https://github.com/jobrunr/jobrunr'
-//        licenses {
-//          license {
-//            name = 'Multi licensed'
-//            url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
-//          }
-//        }
-//        developers {
-//          developer {
-//            id = 'rdehuyss'
-//            name = 'Ronald Dehuysser'
-//            email = 'ronald.dehuysser@gmail.com'
-//          }
-//        }
-//        scm {
-//          connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
-//          developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
-//          url = 'https://github.com/jobrunr/jobrunr.git'
-//        }
-//
-//        versionMapping {
-//          usage('java-runtime'){
-//            fromResolutionResult()
-//          }
-//        }
-//
-//        withXml {
-//          def pomNode = asNode()
-//          pomNode.remove(pomNode.dependencyManagement)
-//          pomNode.dependencies.'*'.findAll() {
-//            it.optional.text() == 'true'
-//          }.each() {
-//            it.parent().remove(it)
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      groupId = 'org.jobrunr'
+      artifactId = 'jobrunr-kotlin-1.5-support'
+      version = project.version.replace("v", "")
+      from components.java
+
+      pom {
+        name = 'JobRunr Kotlin 1.5 Support'
+        description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
+        url = 'https://github.com/jobrunr/jobrunr'
+        licenses {
+          license {
+            name = 'Multi licensed'
+            url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+          }
+        }
+        developers {
+          developer {
+            id = 'rdehuyss'
+            name = 'Ronald Dehuysser'
+            email = 'ronald.dehuysser@gmail.com'
+          }
+        }
+        scm {
+          connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+          developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+          url = 'https://github.com/jobrunr/jobrunr.git'
+        }
+
+        versionMapping {
+          usage('java-runtime') {
+            fromResolutionResult()
+          }
+        }
+
+        withXml {
+          def pomNode = asNode()
+          pomNode.remove(pomNode.dependencyManagement)
+          pomNode.dependencies.'*'.findAll() {
+            it.optional.text() == 'true'
+          }.each() {
+            it.parent().remove(it)
+          }
+        }
+      }
+    }
+  }
+}
 
 signing {
   String base64Key = System.getenv('SIGNING_KEY')
