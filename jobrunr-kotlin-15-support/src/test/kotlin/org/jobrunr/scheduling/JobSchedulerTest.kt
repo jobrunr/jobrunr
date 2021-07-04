@@ -44,7 +44,7 @@ class JobSchedulerTest {
     fun `test enqueue simple lambda`() {
         val jobId = jobScheduler.enqueue { println("foo") }
 
-        await().atMost(Durations.FIVE_SECONDS).until {
+        await().atMost(Durations.TEN_SECONDS).until {
             storageProvider.getJobById(jobId).state == SUCCEEDED
         }
 
@@ -61,7 +61,7 @@ class JobSchedulerTest {
 
         val jobId = jobScheduler.enqueue { testService.doWork(input) }
 
-        await().atMost(Durations.FIVE_SECONDS).until {
+        await().atMost(Durations.TEN_SECONDS).until {
             storageProvider.getJobById(jobId).state == SUCCEEDED
         }
 
@@ -77,7 +77,7 @@ class JobSchedulerTest {
 
         val jobId = jobScheduler.enqueue(container::lambdaMethod)
 
-        await().atMost(Durations.FIVE_SECONDS).until {
+        await().atMost(Durations.TEN_SECONDS).until {
             storageProvider.getJobById(jobId).state == SUCCEEDED
         }
 
@@ -93,7 +93,7 @@ class JobSchedulerTest {
         val text = "foo"
         val jobId = jobScheduler.enqueue { println("$text: $amount") }
 
-        await().atMost(Durations.FIVE_SECONDS).until {
+        await().atMost(Durations.TEN_SECONDS).until {
             storageProvider.getJobById(jobId).state == SUCCEEDED
         }
 
