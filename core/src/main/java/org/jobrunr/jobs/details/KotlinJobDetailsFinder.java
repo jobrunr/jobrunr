@@ -27,7 +27,7 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
     private String nestedKotlinClassWithMethodReference;
 
     KotlinJobDetailsFinder(JobRunrJob jobRunrJob, Object... params) {
-        super(new KotlinJobDetailsFinderContext(jobRunrJob, params));
+        super(new KotlinJobDetailsBuilder(jobRunrJob, params));
         this.jobRunrJob = jobRunrJob;
         parse(getClassContainingLambdaAsInputStream());
     }
@@ -92,16 +92,16 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
         Field name = ReflectionUtils.getField(function.getClass(), "name");
         Class<?> receiverClass = getValueFromField(receiver, function).getClass();
         String methodName = cast(getValueFromField(name, function));
-        jobDetailsFinderContext.setClassName(receiverClass.getName());
-        jobDetailsFinderContext.setMethodName(methodName);
+        jobDetailsBuilder.setClassName(receiverClass.getName());
+        jobDetailsBuilder.setMethodName(methodName);
     }
 
     private void parseNestedClassIfItIsAMethodReference() {
         if (nestedKotlinClassWithMethodReference != null) {
             String location = "/" + nestedKotlinClassWithMethodReference + ".class";
             super.parse(jobRunrJob.getClass().getResourceAsStream(location));
-            while (jobDetailsFinderContext.getInstructions().size() > 1) {
-                jobDetailsFinderContext.pollFirstInstruction();
+            while (jobDetailsBuilder.getInstructions().size() > 1) {
+                jobDetailsBuilder.pollFirstInstruction();
             }
         }
     }

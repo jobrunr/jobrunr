@@ -32,7 +32,7 @@ class MongoDBCreatorTest {
     private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
 
     @Test
-    public void testMigrationsHappyPath() {
+    void testMigrationsHappyPath() {
         MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME);
 
         assertThat(mongoDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_CreateJobCollection.class))).isTrue();
@@ -46,7 +46,7 @@ class MongoDBCreatorTest {
     }
 
     @Test
-    public void testMigrationsConcurrent() {
+    void testMigrationsConcurrent() {
         MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME) {
             @Override
             protected boolean isNewMigration(NoSqlMigration noSqlMigration) {

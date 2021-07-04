@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-public abstract class JobDetailsFinderContext {
+public abstract class JobDetailsBuilder {
 
     private final LinkedList<AbstractJVMInstruction> instructions;
     private final LinkedList<Object> stack;
@@ -24,11 +24,11 @@ public abstract class JobDetailsFinderContext {
     private List<JobParameter> jobDetailsJobParameters;
     private List<JobDetailsPostProcessor> jobDetailsPostProcessors;
 
-    protected JobDetailsFinderContext(List<Object> localVariables) {
+    protected JobDetailsBuilder(List<Object> localVariables) {
         this(localVariables, null, null);
     }
 
-    protected JobDetailsFinderContext(List<Object> localVariables, String className, String methodName) {
+    protected JobDetailsBuilder(List<Object> localVariables, String className, String methodName) {
         this.instructions = new LinkedList<>();
         this.stack = new LinkedList<>();
         this.localVariables = localVariables;

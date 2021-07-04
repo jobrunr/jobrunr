@@ -1,13 +1,13 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getObjectViaStaticField;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 
 public class GetStaticInstruction extends VisitFieldInstruction {
 
-    public GetStaticInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public GetStaticInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

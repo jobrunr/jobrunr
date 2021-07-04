@@ -1,10 +1,10 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public class FStoreInstruction extends StoreVariableInstruction {
 
-    public FStoreInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public FStoreInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

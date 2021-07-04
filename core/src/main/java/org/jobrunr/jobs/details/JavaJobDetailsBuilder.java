@@ -4,18 +4,17 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 
 import java.lang.invoke.SerializedLambda;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 
-public class JavaJobDetailsFinderContext extends JobDetailsFinderContext {
+public class JavaJobDetailsBuilder extends JobDetailsBuilder {
 
-    public JavaJobDetailsFinderContext(SerializedLambda serializedLambda, Object... params) {
+    public JavaJobDetailsBuilder(SerializedLambda serializedLambda, Object... params) {
         super(initLocalVariables(serializedLambda, params), toFQClassName(serializedLambda.getImplClass()), serializedLambda.getImplMethodName());
     }
-
 
     protected static List<Object> initLocalVariables(SerializedLambda serializedLambda, Object[] params) {
         List<Object> result = new ArrayList<>();
@@ -27,7 +26,7 @@ public class JavaJobDetailsFinderContext extends JobDetailsFinderContext {
                 result.add(null);
             }
         }
-        result.addAll(Arrays.asList(params));
+        result.addAll(asList(params));
         if (IocJobLambda.class.getName().equals(toFQClassName(serializedLambda.getFunctionalInterfaceClass()))) {
             result.add(null); // will be injected by IoC
         }

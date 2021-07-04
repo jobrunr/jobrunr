@@ -30,7 +30,7 @@ class LettuceRedisDBCreatorTest {
 
     @Mock
     private LettuceRedisStorageProvider lettuceRedisStorageProviderMock;
-    private GenericObjectPool redisConnectionPool;
+    private GenericObjectPool<StatefulRedisConnection<String, String>> redisConnectionPool;
     private LettuceRedisDBCreator lettuceRedisDBCreator;
 
     @BeforeEach
@@ -45,7 +45,7 @@ class LettuceRedisDBCreatorTest {
     }
 
     @Test
-    public void testMigrationsHappyPath() {
+    void testMigrationsHappyPath() {
         assertThat(lettuceRedisDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_JedisRemoveJobStatsAndUseMetadata.class))).isTrue();
 
         assertThatCode(lettuceRedisDBCreator::runMigrations).doesNotThrowAnyException();
@@ -55,7 +55,7 @@ class LettuceRedisDBCreatorTest {
 
     }
 
-    private GenericObjectPool redisConnectionPool() {
+    private GenericObjectPool<StatefulRedisConnection<String, String>> redisConnectionPool() {
         return ConnectionPoolSupport.createGenericObjectPool(() -> createConnection(getRedisClient()), new GenericObjectPoolConfig());
     }
 
@@ -63,7 +63,7 @@ class LettuceRedisDBCreatorTest {
         return RedisClient.create(RedisURI.create(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379)));
     }
 
-    StatefulRedisConnection createConnection(RedisClient redisClient) {
+    StatefulRedisConnection<String, String> createConnection(RedisClient redisClient) {
         return redisClient.connect();
     }
 }

@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 // the end result is that only the tests inside org.jobrunr.tests.e2e must run (on the correct JDK)
 @RunTestBetween(from = "00:00", to = "03:00")
 @DisabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
-public class JdkTest {
+class JdkTest {
 
     @Test
     void jdk8OpenJdk() {

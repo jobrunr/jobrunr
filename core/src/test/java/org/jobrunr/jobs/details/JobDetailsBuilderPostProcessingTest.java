@@ -23,10 +23,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JobDetailsFinderContextPostProcessingTest {
+class JobDetailsBuilderPostProcessingTest {
 
     @Spy
-    private JobDetailsFinderContext jobDetailsFinderContext = getJobDetailsFinderContext();
+    private JobDetailsBuilder jobDetailsBuilder = getJobDetailsBuilder();
 
     @Mock
     private JobDetailsPostProcessor jobDetailsPostProcessor;
@@ -38,22 +38,22 @@ class JobDetailsFinderContextPostProcessingTest {
 
     @Test
     void assertPostProcessorsAreCalled() {
-        new ALoadOperandInstruction(jobDetailsFinderContext).load(1);
-        new InvokeSpecialInstruction(jobDetailsFinderContext).load("java/lang/StringBuilder", "<init>", "()V", false);
-        new LdcInstruction(jobDetailsFinderContext).load("Hello ");
-        new InvokeVirtualInstruction(jobDetailsFinderContext).load("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-        new ALoadOperandInstruction(jobDetailsFinderContext).load(0);
-        new InvokeVirtualInstruction(jobDetailsFinderContext).load("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-        new InvokeVirtualInstruction(jobDetailsFinderContext).load("java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
-        new InvokeVirtualInstruction(jobDetailsFinderContext).load("org/jobrunr/stubs/TestService", "doWork", "(Ljava/lang/String;)V", false);
+        new ALoadOperandInstruction(jobDetailsBuilder).load(1);
+        new InvokeSpecialInstruction(jobDetailsBuilder).load("java/lang/StringBuilder", "<init>", "()V", false);
+        new LdcInstruction(jobDetailsBuilder).load("Hello ");
+        new InvokeVirtualInstruction(jobDetailsBuilder).load("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        new ALoadOperandInstruction(jobDetailsBuilder).load(0);
+        new InvokeVirtualInstruction(jobDetailsBuilder).load("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        new InvokeVirtualInstruction(jobDetailsBuilder).load("java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+        new InvokeVirtualInstruction(jobDetailsBuilder).load("org/jobrunr/stubs/TestService", "doWork", "(Ljava/lang/String;)V", false);
 
-        final JobDetails jobDetails = jobDetailsFinderContext.getJobDetails();
+        final JobDetails jobDetails = jobDetailsBuilder.getJobDetails();
 
         verify(jobDetailsPostProcessor).postProcess(jobDetails);
     }
 
-    private JobDetailsFinderContext getJobDetailsFinderContext() {
-        return new JobDetailsFinderContext(Arrays.asList("World", null), toFQClassName("org/jobrunr/examples/webapp/api/JobController"), "lambda$simpleJob$4ffb5ff$1") {
+    private JobDetailsBuilder getJobDetailsBuilder() {
+        return new JobDetailsBuilder(Arrays.asList("World", null), toFQClassName("org/jobrunr/examples/webapp/api/JobController"), "lambda$simpleJob$4ffb5ff$1") {
 
             @Override
             List<JobDetailsPostProcessor> getJobDetailsPostProcessors() {

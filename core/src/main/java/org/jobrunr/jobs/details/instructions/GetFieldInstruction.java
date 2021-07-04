@@ -1,12 +1,12 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getObjectViaField;
 
 public class GetFieldInstruction extends VisitFieldInstruction {
 
-    public GetFieldInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public GetFieldInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

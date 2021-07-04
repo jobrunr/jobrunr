@@ -1,12 +1,12 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public abstract class VisitLocalVariableInstruction extends AbstractJVMInstruction {
 
     protected int variable;
 
-    protected VisitLocalVariableInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitLocalVariableInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

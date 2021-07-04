@@ -29,7 +29,7 @@ class ElasticSearchDBCreatorTest {
     private ElasticSearchStorageProvider elasticSearchStorageProviderMock;
 
     @Test
-    public void testMigrations() {
+    void testMigrations() {
         ElasticSearchDBCreator elasticSearchDBCreator = new ElasticSearchDBCreator(elasticSearchStorageProviderMock, elasticSearchClient());
 
         assertThat(elasticSearchDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_CreateJobsIndex.class))).isTrue();
@@ -43,7 +43,7 @@ class ElasticSearchDBCreatorTest {
     }
 
     @Test
-    public void testMigrationsConcurrent() {
+    void testMigrationsConcurrent() {
         ElasticSearchDBCreator elasticSearchDBCreator = new ElasticSearchDBCreator(elasticSearchStorageProviderMock, elasticSearchClient()) {
             @Override
             protected boolean isNewMigration(NoSqlMigration noSqlMigration) {

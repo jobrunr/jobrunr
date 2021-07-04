@@ -1,14 +1,14 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public abstract class AbstractJVMInstruction {
 
     public static final Object DO_NOT_PUT_ON_STACK = new Object();
 
-    protected final JobDetailsFinderContext jobDetailsBuilder;
+    protected final JobDetailsBuilder jobDetailsBuilder;
 
-    protected AbstractJVMInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected AbstractJVMInstruction(JobDetailsBuilder jobDetailsBuilder) {
         this.jobDetailsBuilder = jobDetailsBuilder;
     }
 

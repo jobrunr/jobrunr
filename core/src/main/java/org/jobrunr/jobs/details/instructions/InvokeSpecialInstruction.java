@@ -1,7 +1,7 @@
 package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.JobRunrException;
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -15,7 +15,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class InvokeSpecialInstruction extends VisitMethodInstruction {
 
-    public InvokeSpecialInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public InvokeSpecialInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

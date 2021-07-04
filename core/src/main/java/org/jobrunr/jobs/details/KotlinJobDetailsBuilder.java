@@ -7,9 +7,9 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class KotlinJobDetailsFinderContext extends JobDetailsFinderContext {
+public class KotlinJobDetailsBuilder extends JobDetailsBuilder {
 
-    public KotlinJobDetailsFinderContext(JobRunrJob jobRunrJob, Object... params) {
+    public KotlinJobDetailsBuilder(JobRunrJob jobRunrJob, Object... params) {
         super(getLocalVariables(jobRunrJob, params));
     }
 

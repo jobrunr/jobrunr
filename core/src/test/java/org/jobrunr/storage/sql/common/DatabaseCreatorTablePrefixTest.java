@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class DatabaseCreatorTablePrefixTest {
+class DatabaseCreatorTablePrefixTest {
 
     @Mock
     private DataSource dataSource;

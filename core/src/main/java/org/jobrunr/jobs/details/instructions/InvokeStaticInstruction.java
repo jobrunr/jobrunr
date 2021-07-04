@@ -1,6 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 
 public class InvokeStaticInstruction extends VisitMethodInstruction {
 
-    public InvokeStaticInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public InvokeStaticInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

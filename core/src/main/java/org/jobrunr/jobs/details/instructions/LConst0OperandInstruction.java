@@ -1,10 +1,10 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public class LConst0OperandInstruction extends ZeroOperandInstruction {
 
-    public LConst0OperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public LConst0OperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

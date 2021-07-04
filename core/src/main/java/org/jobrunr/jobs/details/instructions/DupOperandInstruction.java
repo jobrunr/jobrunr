@@ -1,10 +1,10 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public class DupOperandInstruction extends ZeroOperandInstruction {
 
-    public DupOperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public DupOperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

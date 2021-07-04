@@ -1,6 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 import java.lang.reflect.Array;
 
@@ -9,7 +9,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class ANewArrayOperandInstruction extends VisitTypeInstruction {
 
-    public ANewArrayOperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public ANewArrayOperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

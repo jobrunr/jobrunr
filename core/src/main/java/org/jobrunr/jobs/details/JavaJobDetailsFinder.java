@@ -13,7 +13,7 @@ public class JavaJobDetailsFinder extends AbstractJobDetailsFinder {
     private final SerializedLambda serializedLambda;
 
     JavaJobDetailsFinder(JobRunrJob jobRunrJob, SerializedLambda serializedLambda, Object... params) {
-        super(new JavaJobDetailsFinderContext(serializedLambda, params));
+        super(new JavaJobDetailsBuilder(serializedLambda, params));
         this.jobRunrJob = jobRunrJob;
         this.serializedLambda = serializedLambda;
         parse(getClassContainingLambdaAsInputStream());

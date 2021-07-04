@@ -1,12 +1,12 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public abstract class VisitTypeInstruction extends AbstractJVMInstruction {
 
     protected String type;
 
-    protected VisitTypeInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitTypeInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

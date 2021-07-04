@@ -1,6 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
     protected String descriptor;
     protected boolean isInterface;
 
-    protected VisitMethodInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitMethodInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

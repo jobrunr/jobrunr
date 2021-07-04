@@ -1,8 +1,7 @@
 package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
-import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +18,7 @@ import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaM
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptor;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromField;
 import static org.jobrunr.utils.reflection.ReflectionUtils.isClassAssignableToObject;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
@@ -26,7 +26,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDetailsInstruction.class);
 
-    public JobDetailsInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public JobDetailsInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 
@@ -86,7 +86,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     private Optional<String> findInheritedClassName(String className) {
         if (jobDetailsBuilder.getLocalVariable(0) != null) {
             final Field declaredField = jobDetailsBuilder.getLocalVariable(0).getClass().getDeclaredFields()[0];
-            final Object valueFromField = ReflectionUtils.getValueFromField(declaredField, jobDetailsBuilder.getLocalVariable(0));
+            final Object valueFromField = getValueFromField(declaredField, jobDetailsBuilder.getLocalVariable(0));
             if (toClass(className).isAssignableFrom(valueFromField.getClass())) {
                 return Optional.of(valueFromField.getClass().getName());
             }

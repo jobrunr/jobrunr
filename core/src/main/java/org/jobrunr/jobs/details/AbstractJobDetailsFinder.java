@@ -11,11 +11,11 @@ import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 abstract class AbstractJobDetailsFinder extends ClassVisitor {
 
-    protected final JobDetailsFinderContext jobDetailsFinderContext;
+    protected final JobDetailsBuilder jobDetailsBuilder;
 
-    protected AbstractJobDetailsFinder(JobDetailsFinderContext jobDetailsFinderContext) {
+    protected AbstractJobDetailsFinder(JobDetailsBuilder jobDetailsBuilder) {
         super(Opcodes.ASM7);
-        this.jobDetailsFinderContext = jobDetailsFinderContext;
+        this.jobDetailsBuilder = jobDetailsBuilder;
     }
 
     @Override
@@ -25,49 +25,49 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
 
                 @Override
                 public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-                    VisitFieldInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
+                    VisitFieldInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     instruction.load(owner, name, descriptor);
                 }
 
                 @Override
                 public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-                    InvokeDynamicInstruction instruction = AllJVMInstructions.get(Opcodes.INVOKEDYNAMIC, jobDetailsFinderContext);
+                    InvokeDynamicInstruction instruction = AllJVMInstructions.get(Opcodes.INVOKEDYNAMIC, jobDetailsBuilder);
                     instruction.load(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
                 }
 
                 @Override
                 public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                    VisitMethodInstruction visitMethodInstruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
+                    VisitMethodInstruction visitMethodInstruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     visitMethodInstruction.load(owner, name, descriptor, isInterface);
                 }
 
                 @Override
                 public void visitInsn(int opcode) {
-                    ZeroOperandInstruction zeroOperandInstruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
+                    ZeroOperandInstruction zeroOperandInstruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     zeroOperandInstruction.load();
                 }
 
                 @Override
                 public void visitVarInsn(int opcode, int variable) {
-                    VisitLocalVariableInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
+                    VisitLocalVariableInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     instruction.load(variable);
                 }
 
                 @Override
                 public void visitIntInsn(int opcode, int operand) {
-                    SingleIntOperandInstruction singleIntOperandInstruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
+                    SingleIntOperandInstruction singleIntOperandInstruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     singleIntOperandInstruction.load(operand);
                 }
 
                 @Override
                 public void visitLdcInsn(Object value) {
-                    LdcInstruction ldcInstruction = AllJVMInstructions.get(Opcodes.LDC, jobDetailsFinderContext);
+                    LdcInstruction ldcInstruction = AllJVMInstructions.get(Opcodes.LDC, jobDetailsBuilder);
                     ldcInstruction.load(value);
                 }
 
                 @Override
                 public void visitTypeInsn(int opcode, String type) {
-                    VisitTypeInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsFinderContext);
+                    VisitTypeInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     instruction.load(type);
                 }
             };
@@ -81,7 +81,7 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
     protected abstract InputStream getClassContainingLambdaAsInputStream();
 
     public JobDetails getJobDetails() {
-        return jobDetailsFinderContext.getJobDetails();
+        return jobDetailsBuilder.getJobDetails();
     }
 
     protected void parse(InputStream inputStream) {

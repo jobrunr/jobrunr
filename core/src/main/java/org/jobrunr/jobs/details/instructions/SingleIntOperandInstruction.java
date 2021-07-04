@@ -1,12 +1,12 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public class SingleIntOperandInstruction extends AbstractJVMInstruction {
 
     private int intValue;
 
-    public SingleIntOperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public SingleIntOperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

@@ -1,10 +1,10 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public class CheckCastOperandInstruction extends VisitTypeInstruction {
 
-    public CheckCastOperandInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public CheckCastOperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

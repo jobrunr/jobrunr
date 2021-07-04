@@ -1,10 +1,10 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public class StoreVariableInstruction extends VisitLocalVariableInstruction {
 
-    public StoreVariableInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    public StoreVariableInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

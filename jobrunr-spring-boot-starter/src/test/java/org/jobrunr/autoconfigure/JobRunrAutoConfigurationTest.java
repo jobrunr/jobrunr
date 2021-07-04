@@ -60,7 +60,7 @@ public class JobRunrAutoConfigurationTest {
             ));
 
     @Test
-    public void gsonIsIgnoredIfLibraryIsNotPresent() {
+    void gsonIsIgnoredIfLibraryIsNotPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(Gson.class))
@@ -68,7 +68,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void jacksonIsIgnoredIfLibraryIsNotPresent() {
+    void jacksonIsIgnoredIfLibraryIsNotPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(ObjectMapper.class))
@@ -76,7 +76,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void dashboardAutoConfiguration() {
+    void dashboardAutoConfiguration() {
         this.contextRunner.withPropertyValues("org.jobrunr.dashboard.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
             assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
@@ -84,7 +84,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void backgroundJobServerAutoConfiguration() {
+    void backgroundJobServerAutoConfiguration() {
         this.contextRunner.withPropertyValues("org.jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(BackgroundJobServer.class);
             assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
@@ -92,7 +92,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void inMemoryStorageProviderAutoConfiguration() {
+    void inMemoryStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(InMemoryStorageProvider.class);
             assertThat(context).hasSingleBean(JobScheduler.class);
@@ -100,7 +100,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void sqlStorageProviderAutoConfiguration() {
+    void sqlStorageProviderAutoConfiguration() {
         this.contextRunner.withPropertyValues("org.jobrunr.database.skip-create=true").withUserConfiguration(SqlDataSourceConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
@@ -109,7 +109,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void mongoDBStorageProviderAutoConfiguration() {
+    void mongoDBStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(MongoDBStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(MongoDBStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobDocumentMapper").isNotNull();
@@ -119,7 +119,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     @Disabled("see https://github.com/elastic/elasticsearch/issues/40534")
-    public void elasticSearchStorageProviderAutoConfiguration() {
+    void elasticSearchStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(ElasticSearchStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(ElasticSearchStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("elasticSearchDocumentMapper").isNotNull();
@@ -128,7 +128,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void jedisStorageProviderAutoConfiguration() {
+    void jedisStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(JedisStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(JedisRedisStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
@@ -137,7 +137,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    public void lettuceStorageProviderAutoConfiguration() {
+    void lettuceStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(LettuceStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();

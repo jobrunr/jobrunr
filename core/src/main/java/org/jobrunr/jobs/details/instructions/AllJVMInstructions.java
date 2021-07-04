@@ -1,7 +1,7 @@
 package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.JobRunrException;
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.objectweb.asm.Opcodes;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class AllJVMInstructions {
 
-    private static final Map<Integer, Function<JobDetailsFinderContext, AbstractJVMInstruction>> instructions = new HashMap<>();
+    private static final Map<Integer, Function<JobDetailsBuilder, AbstractJVMInstruction>> instructions = new HashMap<>();
     private static final Map<Integer, String> unsupportedInstructions = new HashMap<>();
 
     static {
@@ -72,8 +72,8 @@ public class AllJVMInstructions {
 
     }
 
-    public static <T extends AbstractJVMInstruction> T get(int opcode, JobDetailsFinderContext jobDetailsBuilder) {
-        final Function<JobDetailsFinderContext, AbstractJVMInstruction> instructionBuilder = instructions.get(opcode);
+    public static <T extends AbstractJVMInstruction> T get(int opcode, JobDetailsBuilder jobDetailsBuilder) {
+        final Function<JobDetailsBuilder, AbstractJVMInstruction> instructionBuilder = instructions.get(opcode);
         if (instructionBuilder == null) {
             if (unsupportedInstructions.containsKey(opcode)) {
                 throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(unsupportedInstructions.get(opcode)));

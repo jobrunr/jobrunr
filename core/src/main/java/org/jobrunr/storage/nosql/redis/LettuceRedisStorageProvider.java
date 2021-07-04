@@ -62,7 +62,6 @@ import static org.jobrunr.utils.NumberUtils.parseLong;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
-@SuppressWarnings("unchecked")
 public class LettuceRedisStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
     public static final String JOBRUNR_DEFAULT_PREFIX = "";
@@ -84,7 +83,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         super(changeListenerNotificationRateLimit);
         this.redisClient = redisClient;
         this.keyPrefix = keyPrefix;
-        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig<StatefulRedisConnection<String, String>>());
+        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig<>());
 
         new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
@@ -162,7 +161,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             List<String> zrange = commands.zrange(backgroundJobServersCreatedKey(keyPrefix), 0, Integer.MAX_VALUE);
             return new LettuceRedisPipelinedStream<>(zrange, connection)
                     .mapUsingPipeline((p, id) -> p.hgetall(backgroundJobServerKey(keyPrefix, id)))
-                    .mapToValues()
+                    .mapAfterSync(RedisFuture<Map<String, String>>::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
                             UUID.fromString(fieldMap.get(BackgroundJobServers.FIELD_ID)),
                             Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
@@ -544,17 +543,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             LettuceFutures.awaitAll(Duration.ofSeconds(10), totalSucceededAmountCounterResponse, waitingResponse, scheduledResponse,
                     enqueuedResponse, processingResponse, succeededResponse, failedResponse, deletedResponse);
 
-            final Long awaitingCount = getCounterValue(waitingResponse);
-            final Long scheduledCount = getCounterValue(scheduledResponse);
-            final Long enqueuedCount = getCounterValue(enqueuedResponse);
-            final Long processingCount = getCounterValue(processingResponse);
-            final Long succeededCount = getCounterValue(succeededResponse);
-            final Long allTimeSucceededCount = getAllTimeSucceededCounterValue(totalSucceededAmountCounterResponse);
-            final Long failedCount = getCounterValue(failedResponse);
-            final Long deletedCount = getCounterValue(deletedResponse);
-            final Long total = scheduledCount + enqueuedCount + processingCount + succeededCount + failedCount;
-            final Long recurringJobsCount = getCounterValue(recurringJobsResponse);
-            final Long backgroundJobServerCount = getCounterValue(backgroundJobServerResponse);
+            final long awaitingCount = getCounterValue(waitingResponse);
+            final long scheduledCount = getCounterValue(scheduledResponse);
+            final long enqueuedCount = getCounterValue(enqueuedResponse);
+            final long processingCount = getCounterValue(processingResponse);
+            final long succeededCount = getCounterValue(succeededResponse);
+            final long allTimeSucceededCount = getAllTimeSucceededCounterValue(totalSucceededAmountCounterResponse);
+            final long failedCount = getCounterValue(failedResponse);
+            final long deletedCount = getCounterValue(deletedResponse);
+            final long total = scheduledCount + enqueuedCount + processingCount + succeededCount + failedCount;
+            final long recurringJobsCount = getCounterValue(recurringJobsResponse);
+            final long backgroundJobServerCount = getCounterValue(backgroundJobServerResponse);
             return new JobStats(
                     instant,
                     total,
@@ -566,8 +565,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                     succeededCount,
                     allTimeSucceededCount,
                     deletedCount,
-                    recurringJobsCount.intValue(),
-                    backgroundJobServerCount.intValue()
+                    (int) recurringJobsCount,
+                    (int) backgroundJobServerCount
             );
         }
     }

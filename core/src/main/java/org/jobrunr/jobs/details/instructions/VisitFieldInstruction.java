@@ -1,6 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
-import org.jobrunr.jobs.details.JobDetailsFinderContext;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 
 public abstract class VisitFieldInstruction extends AbstractJVMInstruction {
 
@@ -8,7 +8,7 @@ public abstract class VisitFieldInstruction extends AbstractJVMInstruction {
     protected String name;
     protected String descriptor;
 
-    protected VisitFieldInstruction(JobDetailsFinderContext jobDetailsBuilder) {
+    protected VisitFieldInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 

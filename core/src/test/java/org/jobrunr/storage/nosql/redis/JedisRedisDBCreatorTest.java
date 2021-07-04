@@ -41,7 +41,7 @@ class JedisRedisDBCreatorTest {
     }
 
     @Test
-    public void testMigrationsHappyPath() {
+    void testMigrationsHappyPath() {
         assertThat(jedisRedisDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_JedisRemoveJobStatsAndUseMetadata.class))).isTrue();
 
         assertThatCode(jedisRedisDBCreator::runMigrations).doesNotThrowAnyException();

@@ -17,7 +17,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
 
-public class E2EJDKTest {
+class E2EJDKTest {
 
     private TestService testService;
 
