@@ -85,4 +85,3 @@ configure(subprojects.findAll {it.name != 'platform'}) {
         }
     }
 }
-

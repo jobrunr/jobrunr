@@ -34,7 +34,7 @@ publishing {
       from components.java
 
       pom {
-        name = 'JobRunr Kotlin Support'
+        name = 'JobRunr Kotlin 1.4 Support'
         description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
         url = 'https://github.com/jobrunr/jobrunr'
         licenses {
