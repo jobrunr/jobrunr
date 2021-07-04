@@ -35,7 +35,7 @@ class JobSchedulerTest {
         if (type.name == "TestService") {
             return TestService() as T
         } else if (type.name == "org.jobrunr.scheduling.KtJobSchedulerTest\$test enqueue lambda with service dependency\$jobId\$1") {
-            throw IllegalArgumentException("Should be TestService, no?");
+            throw IllegalArgumentException("Should be TestService, no?")
         }
         return null
     }
@@ -122,8 +122,8 @@ class JobSchedulerTest {
 
     @Test
     fun `test schedule with polymorphism`() {
-        val recurringJob = PrintlnRecurringJob();
-        recurringJob.schedule(Cron.minutely());
+        val recurringJob = PrintlnRecurringJob()
+        recurringJob.schedule(Cron.minutely())
 
         await().atMost(65, TimeUnit.SECONDS).until {
             storageProvider.countJobs(SUCCEEDED) == 1L
