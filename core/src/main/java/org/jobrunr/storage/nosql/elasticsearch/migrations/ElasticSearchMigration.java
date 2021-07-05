@@ -72,9 +72,19 @@ public abstract class ElasticSearchMigration {
     }
 
     void deleteIndex(RestHighLevelClient client, String name) throws IOException {
-        client.indices().delete(new DeleteIndexRequest(name), RequestOptions.DEFAULT);
+        try {
+            waitForHealthyCluster(client);
+            client.indices().delete(new DeleteIndexRequest(name), RequestOptions.DEFAULT);
+            waitForHealthyCluster(client);
+        } catch (ElasticsearchStatusException e) {
+            if (e.status().getStatus() == 404) {
+                // index does not exist, so we don't have to delete it
+                return;
+            } else {
+                throw e;
+            }
+        }
     }
-
     protected static Map<String, Object> mapping(BiConsumer<StringBuilder, Map<String, Object>>... consumers) {
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> properties = new HashMap<>();
