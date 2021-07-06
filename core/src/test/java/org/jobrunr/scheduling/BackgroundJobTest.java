@@ -12,7 +12,7 @@ import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProviderForTest;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,14 +57,14 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 public class BackgroundJobTest {
 
     private TestService testService;
-    private StorageProvider storageProvider;
+    private StorageProviderForTest storageProvider;
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
     void setUpTests() {
         testService = new TestService();
         testService.reset();
-        storageProvider = new InMemoryStorageProvider();
+        storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))

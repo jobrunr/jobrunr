@@ -134,8 +134,7 @@ class BackgroundJobServerTest {
         for (int i = 0; i < amountOfJobs; i++) {
             BackgroundJob.enqueue(() -> testService.doWork());
         }
-        await().atMost(TEN_SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == amountOfJobs);
-
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider).hasJobs(SUCCEEDED, amountOfJobs));
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(Thread.getAllStackTraces()).matches(this::containsBackgroundJobThreads));
 
         backgroundJobServer.stop();

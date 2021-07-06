@@ -296,11 +296,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        return jobCollection.countDocuments(eq(Jobs.FIELD_STATE, state.name()));
-    }
-
-    @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         return findJobs(eq(Jobs.FIELD_STATE, state.name()), pageRequest);
     }

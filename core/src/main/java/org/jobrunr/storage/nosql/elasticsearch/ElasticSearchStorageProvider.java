@@ -376,15 +376,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        try {
-            return countJobs(boolQuery().must(matchQuery(Jobs.FIELD_STATE, state)));
-        } catch (IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try {
             BoolQueryBuilder stateQuery = boolQuery().must(matchQuery(Jobs.FIELD_STATE, state));
@@ -399,12 +390,16 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        Long count = countJobs(state);
-        if (count > 0) {
-            List<Job> jobs = getJobs(state, pageRequest);
-            return new Page<>(count, jobs, pageRequest);
+        try {
+            long count = countJobs(boolQuery().must(matchQuery(Jobs.FIELD_STATE, state)));
+            if (count > 0) {
+                List<Job> jobs = getJobs(state, pageRequest);
+                return new Page<>(count, jobs, pageRequest);
+            }
+            return new Page<>(0, new ArrayList<>(), pageRequest);
+        } catch (IOException e) {
+            throw new StorageException(e);
         }
-        return new Page<>(0, new ArrayList<>(), pageRequest);
     }
 
     @Override

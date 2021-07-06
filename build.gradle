@@ -34,7 +34,6 @@ configure(subprojects.findAll {it.name != 'platform'}) {
         mavenLocal()
     }
 
-
     dependencies {
         implementation platform(project(':platform'))
 

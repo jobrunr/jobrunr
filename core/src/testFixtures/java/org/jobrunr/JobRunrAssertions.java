@@ -11,9 +11,7 @@ import org.assertj.core.api.ListAssert;
 import org.assertj.db.DatabaseAssertions;
 import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
 import org.jobrunr.jobs.*;
-import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.storage.JobRunrMetadataAssert;
+import org.jobrunr.storage.*;
 
 import javax.sql.DataSource;
 import java.net.http.HttpResponse;
@@ -45,6 +43,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static JobRunrMetadataAssert assertThat(JobRunrMetadata metadata) {
         return JobRunrMetadataAssert.assertThat(metadata);
+    }
+
+    public static StorageProviderAssert assertThat(StorageProvider storageProvider) {
+        return StorageProviderAssert.assertThat(storageProvider);
     }
 
     public static HttpResponseAssert assertThat(HttpResponse httpResponse) {

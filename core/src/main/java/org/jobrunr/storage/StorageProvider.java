@@ -63,8 +63,6 @@ public interface StorageProvider extends AutoCloseable {
 
     List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest);
 
-    Long countJobs(StateName state);
-
     List<Job> getJobs(StateName state, PageRequest pageRequest);
 
     Page<Job> getJobPage(StateName state, PageRequest pageRequest);

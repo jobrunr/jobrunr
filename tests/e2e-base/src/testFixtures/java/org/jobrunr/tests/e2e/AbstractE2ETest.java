@@ -16,10 +16,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
-import static org.awaitility.Durations.*;
+import static org.awaitility.Durations.FIVE_HUNDRED_MILLISECONDS;
+import static org.awaitility.Durations.FIVE_SECONDS;
+import static org.awaitility.Durations.TEN_SECONDS;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public abstract class AbstractE2ETest {
@@ -75,7 +77,7 @@ public abstract class AbstractE2ETest {
             await()
                     .atMost(TEN_SECONDS)
                     .pollInterval(FIVE_HUNDRED_MILLISECONDS)
-                    .untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5000));
+                    .untilAsserted(() -> assertThat(storageProvider).hasJobs(SUCCEEDED, 5000));
         }
         System.out.println("Time taken to process 5000 jobs: " + stopwatch.duration().getSeconds() + " s");
     }

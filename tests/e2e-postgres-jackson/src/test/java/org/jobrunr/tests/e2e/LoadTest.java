@@ -17,13 +17,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.ONE_MINUTE;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJobThatTakesLong;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -65,10 +65,8 @@ public class LoadTest {
                 Thread.sleep(1000L);
             }
 
-            await()
-                    .atMost(1, TimeUnit.HOURS)
-                    .untilAsserted(() -> assertThat(jobStorageProvider.countJobs(ENQUEUED)).isEqualTo(0L));
-            await().atMost(ONE_MINUTE).untilAsserted(() -> assertThat(jobStorageProvider.countJobs(SUCCEEDED)).isEqualTo(amountOfWork));
+            await().atMost(1, HOURS).untilAsserted(() -> assertThat(jobStorageProvider).hasJobs(ENQUEUED, 0));
+            await().atMost(1, MINUTES).untilAsserted(() -> assertThat(jobStorageProvider).hasJobs(SUCCEEDED, amountOfWork));
         }
         System.out.println("Time taken to process " + amountOfWork + " jobs with " + amountOfServers + " servers: " + stopwatch.duration().getSeconds() + " s");
     }

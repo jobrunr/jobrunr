@@ -81,6 +81,11 @@ java {
     withSourcesJar()
 }
 
+compileTestFixturesJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 jar {
     manifest {
         attributes 'Built-By': 'build.jobrunr.io'

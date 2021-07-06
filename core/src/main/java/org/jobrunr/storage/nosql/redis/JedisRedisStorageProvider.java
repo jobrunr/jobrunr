@@ -359,13 +359,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        try (final Jedis jedis = getJedis()) {
-            return jedis.zcount(jobQueueForStateKey(keyPrefix, state), 0, Long.MAX_VALUE);
-        }
-    }
-
-    @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
@@ -387,12 +380,14 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        long count = countJobs(state);
-        if (count > 0) {
-            List<Job> jobs = getJobs(state, pageRequest);
-            return new Page<>(count, jobs, pageRequest);
+        try (final Jedis jedis = getJedis()) {
+            long count = jedis.zcount(jobQueueForStateKey(keyPrefix, state), 0, Long.MAX_VALUE);
+            if (count > 0) {
+                List<Job> jobs = getJobs(state, pageRequest);
+                return new Page<>(count, jobs, pageRequest);
+            }
+            return new Page<>(0, new ArrayList<>(), pageRequest);
         }
-        return new Page<>(0, new ArrayList<>(), pageRequest);
     }
 
     @Override

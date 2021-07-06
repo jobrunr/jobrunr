@@ -430,8 +430,8 @@ public abstract class StorageProviderTest {
                 aJob().withName("3").withEnqueuedState(now().minusSeconds(10)).build());
         final List<Job> savedJobs = storageProvider.save(jobs);
 
-        assertThat(storageProvider.countJobs(ENQUEUED)).isEqualTo(3);
-        assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(0);
+        assertThat(storageProvider).hasJobs(ENQUEUED, 3);
+        assertThat(storageProvider).hasJobs(PROCESSING, 0);
 
         savedJobs.forEach(job -> {
             job.startProcessingOn(backgroundJobServer);
@@ -439,8 +439,8 @@ public abstract class StorageProviderTest {
         });
         storageProvider.save(savedJobs);
 
-        assertThat(storageProvider.countJobs(ENQUEUED)).isEqualTo(0);
-        assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(3);
+        assertThat(storageProvider).hasJobs(ENQUEUED, 0);
+        assertThat(storageProvider).hasJobs(PROCESSING, 3);
 
         List<Job> fetchedJobsAsc = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(100));
         assertThatJobs(fetchedJobsAsc)

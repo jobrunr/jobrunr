@@ -202,11 +202,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        return getJobsStream(state).count();
-    }
-
-    @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         return getJobsStream(state, pageRequest)
                 .skip(pageRequest.getOffset())
@@ -217,7 +212,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        return new Page<>(countJobs(state), getJobs(state, pageRequest),
+        return new Page<>(getJobsStream(state).count(), getJobs(state, pageRequest),
                 pageRequest
         );
     }

@@ -384,14 +384,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
-            RedisCommands<String, String> commands = connection.sync();
-            return commands.zcount(jobQueueForStateKey(keyPrefix, state), unbounded());
-        }
-    }
-
-    @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
@@ -414,12 +406,15 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        long count = countJobs(state);
-        if (count > 0) {
-            List<Job> jobs = getJobs(state, pageRequest);
-            return new Page<>(count, jobs, pageRequest);
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            long count = commands.zcount(jobQueueForStateKey(keyPrefix, state), unbounded());
+            if (count > 0) {
+                List<Job> jobs = getJobs(state, pageRequest);
+                return new Page<>(count, jobs, pageRequest);
+            }
+            return new Page<>(0, new ArrayList<>(), pageRequest);
         }
-        return new Page<>(0, new ArrayList<>(), pageRequest);
     }
 
     @Override

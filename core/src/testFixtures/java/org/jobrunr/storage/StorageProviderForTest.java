@@ -7,19 +7,19 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
-import org.jobrunr.utils.resilience.Lock;
-import org.jobrunr.utils.resilience.MultiLock;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class ThreadSafeStorageProvider implements StorageProvider {
+import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
-    private final StorageProvider storageProvider;
+public class StorageProviderForTest implements StorageProvider {
 
-    public ThreadSafeStorageProvider(StorageProvider storageProvider) {
+    private StorageProvider storageProvider;
+
+    public StorageProviderForTest(StorageProvider storageProvider) {
         this.storageProvider = storageProvider;
     }
 
@@ -74,13 +74,13 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public List<JobRunrMetadata> getMetadata(String key) {
-        return storageProvider.getMetadata(key);
+    public List<JobRunrMetadata> getMetadata(String name) {
+        return storageProvider.getMetadata(name);
     }
 
     @Override
-    public JobRunrMetadata getMetadata(String key, String owner) {
-        return storageProvider.getMetadata(key, owner);
+    public JobRunrMetadata getMetadata(String name, String owner) {
+        return storageProvider.getMetadata(name, owner);
     }
 
     @Override
@@ -90,16 +90,7 @@ public class ThreadSafeStorageProvider implements StorageProvider {
 
     @Override
     public Job save(Job job) {
-        try (Lock lock = job.lock()) {
-            return storageProvider.save(job);
-        }
-    }
-
-    @Override
-    public List<Job> save(List<Job> jobs) {
-        try (MultiLock lock = new MultiLock(jobs)) {
-            return storageProvider.save(jobs);
-        }
+        return storageProvider.save(job);
     }
 
     @Override
@@ -118,6 +109,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public List<Job> save(List<Job> jobs) {
+        return storageProvider.save(jobs);
+    }
+
+    @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         return storageProvider.getJobs(state, updatedBefore, pageRequest);
     }
@@ -125,6 +121,10 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
         return storageProvider.getScheduledJobs(scheduledBefore, pageRequest);
+    }
+
+    public Long countJobs(StateName state) {
+        return storageProvider.getJobPage(state, ascOnUpdatedAt(0)).getTotal();
     }
 
     @Override
@@ -190,9 +190,5 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
-    }
-
-    public StorageProvider getStorageProvider() {
-        return storageProvider;
     }
 }

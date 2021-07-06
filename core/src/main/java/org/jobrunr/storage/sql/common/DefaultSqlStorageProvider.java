@@ -203,15 +203,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public Long countJobs(StateName state) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).countJobs(state);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public Job getJobById(UUID id) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn)
