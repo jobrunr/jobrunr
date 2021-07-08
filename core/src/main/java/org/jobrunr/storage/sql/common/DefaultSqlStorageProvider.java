@@ -245,11 +245,11 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
         try (final Connection conn = dataSource.getConnection()) {
             long count = jobTable(conn).countJobs(state);
-            if (count > 0) {
+            if (count > 0 && pageRequest.getLimit() > 0) {
                 List<Job> jobs = jobTable(conn).selectJobsByState(state, pageRequest);
                 return new Page<>(count, jobs, pageRequest);
             }
-            return new Page<>(0, new ArrayList<>(), pageRequest);
+            return new Page<>(count, new ArrayList<>(), pageRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
