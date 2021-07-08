@@ -246,6 +246,14 @@ public class TestService implements TestServiceInterface {
         System.out.println("Nothing to do");
     }
 
+    public void jobRunBatchWrappers(Long id, Long env, String param, String currentLogin) {
+        System.out.println("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
+    }
+
+    public void jobRunBatchPrimitives(long id, long env, String param, String currentLogin) {
+        System.out.println("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
+    }
+
     public static class Work {
 
         private int workCount;

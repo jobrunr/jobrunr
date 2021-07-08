@@ -648,6 +648,123 @@ class JobDetailsAsmGeneratorTest {
     }
 
     @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testJobLambdaWithPrimitiveParametersAndWrappersInMethod_LOAD() {
+        long id = 1L;
+        long env = 2L;
+        String param = "test";
+
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin()));
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchWrappers")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testIoCJobLambdaWithPrimitiveParametersAndWrappersInMethod_LOAD() {
+        long id = 1L;
+        long env = 2L;
+        String param = "test";
+
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin());
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchWrappers")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testJobLambdaWithPrimitiveParametersAndPrimitivesInMethod_LOAD() {
+        long id = 1L;
+        long env = 2L;
+        String param = "test";
+
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin()));
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchPrimitives")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testIoCJobLambdaWithPrimitiveParametersAndPrimitivesInMethod_LOAD() {
+        long id = 1L;
+        long env = 2L;
+        String param = "test";
+
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin());
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchPrimitives")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testJobLambdaWithCombinationParametersAndPrimitivesInMethod_LOAD() {
+        long id = 1L;
+        Long env = 2L;
+        String param = "test";
+
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin()));
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchPrimitives")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testIoCJobLambdaWithCombinationParametersAndPrimitivesInMethod_LOAD() {
+        long id = 1L;
+        Long env = 2L;
+        String param = "test";
+
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin());
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchPrimitives")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testJobLambdaWithCombinationParametersAndWrappersInMethod_LOAD() {
+        long id = 1L;
+        Long env = 2L;
+        String param = "test";
+
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin()));
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchWrappers")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/165")
+    void testIoCJobLambdaWithCombinationParametersAndWrappersInMethod_LOAD() {
+        long id = 1L;
+        Long env = 2L;
+        String param = "test";
+
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin());
+        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("jobRunBatchPrimitives")
+                .hasArgs(1L, 2L, "test", "Some string");
+    }
+
+    @Test
     void testIocJobLambdaWithUnsupportedPrimitiveTypes() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork((byte) 0x3, (short) 2, 'c');
         assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(iocJobLambda))
@@ -728,5 +845,12 @@ class JobDetailsAsmGeneratorTest {
 
     public void doWorkWithUUID(UUID uuid) {
         System.out.println("Doing some work... " + uuid);
+    }
+
+    public static class TestUtils {
+
+        public static String getCurrentLogin() {
+            return "Some string";
+        }
     }
 }
