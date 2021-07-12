@@ -104,6 +104,20 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void jobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job, mock(Thread.class));
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
     void noExceptionIsThrownIfAJobHasSucceededWhileUpdateProcessingIsCalled() {
         // GIVEN
         final Job job = anEnqueuedJob().withId().build();
@@ -292,20 +306,6 @@ class JobZooKeeperTest {
         jobZooKeeper.run();
 
         verify(storageProvider).deleteJobsPermanently(eq(DELETED), any());
-    }
-
-    @Test
-    void jobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
-        final Job job = anEnqueuedJob().withId().build();
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
-
-        job.startProcessingOn(backgroundJobServer);
-        jobZooKeeper.startProcessing(job, mock(Thread.class));
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(singletonList(job));
-        ProcessingState processingState = job.getJobState();
-        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
     }
 
     @Test
