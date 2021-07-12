@@ -57,13 +57,13 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,163 +98,9 @@ class JobZooKeeperTest {
     void jobZooKeeperDoesNothingIfItIsNotInitialized() {
         when(backgroundJobServer.isUnAnnounced()).thenReturn(true);
 
-        jobZooKeeper = new JobZooKeeper(backgroundJobServer);
-
         jobZooKeeper.run();
 
-        verify(storageProvider, never()).getRecurringJobs();
-        verify(storageProvider, never()).getScheduledJobs(any(), any());
-        verify(storageProvider, never()).getJobs(any(), any());
-        verify(storageProvider, never()).deleteJobsPermanently(any(), any());
-    }
-
-    @Test
-    void checkForRecurringJobs() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
-
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
-
-        jobZooKeeper.run();
-
-        verify(backgroundJobServer).scheduleJob(recurringJob);
-    }
-
-    @Test
-    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
-
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
-        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
-
-        jobZooKeeper.run();
-
-        verify(backgroundJobServer, never()).scheduleJob(recurringJob);
-    }
-
-    @Test
-    void checkForEnqueuedJobsIfJobsPresentSubmitsThemToTheBackgroundJobServer() {
-        final Job enqueuedJob = anEnqueuedJob().build();
-        final List<Job> jobs = List.of(enqueuedJob);
-
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), refEq(ascOnUpdatedAt(10)))).thenReturn(jobs);
-
-        jobZooKeeper.run();
-
-        verify(backgroundJobServer).processJob(enqueuedJob);
-    }
-
-    @Test
-    void checkForEnqueuedJobsNotDoneIfRequestedStateIsStopped() {
-        //backgroundJobServer.pause();
-
-        jobZooKeeper.run();
-
-        verify(storageProvider, never()).getJobs(eq(ENQUEUED), refEq(ascOnUpdatedAt(1)));
-        verify(backgroundJobServer, never()).processJob(any());
-    }
-
-    @Test
-    void checkForEnqueuedJobsIsNotDoneConcurrently() throws InterruptedException {
-        when(storageProvider.getJobs(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
-            sleep(100);
-            return emptyList();
-        });
-
-        CountDownLatch countDownLatch = new CountDownLatch(2);
-        final Thread thread1 = new Thread(() -> {
-            jobZooKeeper.notifyThreadIdle();
-            countDownLatch.countDown();
-        });
-        final Thread thread2 = new Thread(() -> {
-            jobZooKeeper.notifyThreadIdle();
-            countDownLatch.countDown();
-        });
-        thread1.start();
-        thread2.start();
-
-        countDownLatch.await();
-        verify(storageProvider, times(1)).getJobs(eq(ENQUEUED), any());
-    }
-
-    @Test
-    void checkForOrphanedJobs() {
-        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
-        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
-                .thenReturn(
-                        singletonList(orphanedJob),
-                        emptyJobList()
-                );
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
-    }
-
-    @Test
-    void checkForSucceededJobsThanCanGoToDeletedState() {
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
-                .thenReturn(
-                        asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
-                        emptyJobList()
-                );
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(anyList());
-        verify(storageProvider).publishTotalAmountOfSucceededJobs(5);
-
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
-        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
-        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
-    }
-
-    @Test
-    void checkForSucceededJobsCanGoToDeletedStateAlsoWorksForInterfacesWithMethodsThatDontExistAnymore() {
-        // GIVEN
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
-                .thenReturn(
-                        asList(aSucceededJob()
-                                .withJobDetails(jobDetails()
-                                        .withClassName(TestServiceInterface.class)
-                                        .withMethodName("methodThatDoesNotExist")
-                                        .build())
-                                .build()),
-                        emptyJobList()
-                );
-
-        // WHEN
-        jobZooKeeper.run();
-
-        // THEN
-        assertThat(logger).hasNoWarnLogMessages();
-
-        verify(storageProvider).save(anyList());
-        verify(storageProvider).publishTotalAmountOfSucceededJobs(1);
-    }
-
-    @Test
-    void checkForJobsThatCanBeDeleted() {
-        when(storageProvider.deleteJobsPermanently(eq(DELETED), any())).thenReturn(5);
-
-        jobZooKeeper.run();
-
-        verify(storageProvider).deleteJobsPermanently(eq(DELETED), any());
-    }
-
-    @Test
-    void jobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
-        final Job job = anEnqueuedJob().withId().build();
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
-
-        job.startProcessingOn(backgroundJobServer);
-        jobZooKeeper.startProcessing(job, mock(Thread.class));
-        jobZooKeeper.run();
-
-        verify(storageProvider).save(singletonList(job));
-        ProcessingState processingState = job.getJobState();
-        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+        verifyNoInteractions(storageProvider);
     }
 
     @Test
@@ -311,10 +157,162 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void checkForRecurringJobs() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
+
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+
+        jobZooKeeper.run();
+
+        verify(backgroundJobServer).scheduleJob(recurringJob);
+    }
+
+    @Test
+    void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
+
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+
+        jobZooKeeper.run();
+
+        verify(backgroundJobServer, never()).scheduleJob(recurringJob);
+    }
+
+    @Test
+    void checkForScheduledJobsEnqueuesJobsThatNeedToBeEnqueued() {
+        final Job scheduledJob = aScheduledJob().build();
+        final List<Job> jobs = List.of(scheduledJob);
+
+        when(storageProvider.getScheduledJobs(any(), any())).thenReturn(jobs, emptyJobList());
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(SCHEDULED, ENQUEUED);
+    }
+
+    @Test
+    void checkForEnqueuedJobsIfJobsPresentSubmitsThemToTheBackgroundJobServer() {
+        final Job enqueuedJob = anEnqueuedJob().build();
+        final List<Job> jobs = List.of(enqueuedJob);
+
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(emptyList());
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(jobs);
+
+        jobZooKeeper.run();
+
+        verify(backgroundJobServer).processJob(enqueuedJob);
+    }
+
+    @Test
+    void checkForEnqueuedJobsIsNotDoneConcurrently() throws InterruptedException {
+        when(storageProvider.getJobs(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
+            sleep(100);
+            return emptyList();
+        });
+
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+        final Thread thread1 = new Thread(() -> {
+            jobZooKeeper.notifyThreadIdle();
+            countDownLatch.countDown();
+        });
+        final Thread thread2 = new Thread(() -> {
+            jobZooKeeper.notifyThreadIdle();
+            countDownLatch.countDown();
+        });
+        thread1.start();
+        thread2.start();
+
+        countDownLatch.await();
+        verify(storageProvider, times(1)).getJobs(eq(ENQUEUED), any());
+    }
+
+    @Test
+    void checkForOrphanedJobs() {
+        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
+        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
+                .thenReturn(
+                        singletonList(orphanedJob),
+                        emptyJobList()
+                );
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
+    }
+
+    @Test
+    void checkForSucceededJobsThanCanGoToDeletedState() {
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+                .thenReturn(
+                        asList(aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
+                        emptyJobList()
+                );
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(anyList());
+        verify(storageProvider).publishTotalAmountOfSucceededJobs(5);
+
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
+        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
+        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+    }
+
+    @Test
+    void checkForSucceededJobsCanGoToDeletedStateAlsoWorksForInterfacesWithMethodsThatDontExistAnymore() {
+        // GIVEN
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+                .thenReturn(
+                        asList(aSucceededJob()
+                                .withJobDetails(jobDetails()
+                                        .withClassName(TestServiceInterface.class)
+                                        .withMethodName("methodThatDoesNotExist")
+                                        .build())
+                                .build()),
+                        emptyJobList()
+                );
+
+        // WHEN
+        jobZooKeeper.run();
+
+        // THEN
+        assertThat(logger).hasNoWarnLogMessages();
+
+        verify(storageProvider).save(anyList());
+        verify(storageProvider).publishTotalAmountOfSucceededJobs(1);
+    }
+
+    @Test
+    void checkForJobsThatCanBeDeleted() {
+        when(storageProvider.deleteJobsPermanently(eq(DELETED), any())).thenReturn(5);
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).deleteJobsPermanently(eq(DELETED), any());
+    }
+
+    @Test
+    void jobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job, mock(Thread.class));
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+    }
+
+    @Test
     void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = aScheduledJob().build();
 
-        when(storageProvider.getScheduledJobs(any(Instant.class), refEq(ascOnUpdatedAt(1000))))
+        when(storageProvider.getScheduledJobs(any(Instant.class), any()))
                 .thenReturn(
                         singletonList(job),
                         emptyJobList()
@@ -332,7 +330,7 @@ class JobZooKeeperTest {
     void jobNotFoundExceptionsDoNotCauseTheBackgroundJobServerToStop() {
         Job job = aSucceededJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
 
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
                 .thenReturn(
                         singletonList(job),
                         emptyJobList());
@@ -351,7 +349,7 @@ class JobZooKeeperTest {
 
         when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
         when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), refEq(ascOnUpdatedAt(1000))))
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
                 .thenReturn(
                         asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
                         emptyJobList()
