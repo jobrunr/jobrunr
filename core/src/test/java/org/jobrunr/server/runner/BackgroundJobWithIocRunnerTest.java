@@ -63,7 +63,6 @@ class BackgroundJobWithIocRunnerTest {
     @Test
     void runMethodWithJobContext() {
         Job job = anEnqueuedJob()
-                .withId()
                 .withJobDetails(defaultJobDetails()
                         .withJobParameter(JobContext))
                 .build();

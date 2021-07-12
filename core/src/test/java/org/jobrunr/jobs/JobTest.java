@@ -16,6 +16,7 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
@@ -29,6 +30,15 @@ class JobTest {
     private BackgroundJobServer backgroundJobServer;
 
     @Test
+    void ifIdIsNullAnIdIsCreated() {
+        Job jobWithoutIdProvided = new Job(jobDetails().build());
+        assertThat(jobWithoutIdProvided.getId()).isNotNull();
+
+        Job jobWithNullIdProvided = new Job(null, jobDetails().build());
+        assertThat(jobWithNullIdProvided.getId()).isNotNull();
+    }
+
+    @Test
     void getJobSignature() {
         Job job = anEnqueuedJob().withJobDetails(systemOutPrintLnJobDetails("some message")).build();
 
@@ -37,7 +47,7 @@ class JobTest {
 
     @Test
     void jobCannotGoToProcessingTwice() {
-        Job job = anEnqueuedJob().withId().build();
+        Job job = anEnqueuedJob().build();
 
         job.startProcessingOn(backgroundJobServer);
         assertThatThrownBy(() -> job.startProcessingOn(backgroundJobServer)).isInstanceOf(ConcurrentJobModificationException.class);
@@ -45,7 +55,7 @@ class JobTest {
 
     @Test
     void updateProcessingOnlyHasEffectIfJobIsInProcessingState() {
-        Job job = anEnqueuedJob().withId().build();
+        Job job = anEnqueuedJob().build();
         job.startProcessingOn(backgroundJobServer);
 
         job.updateProcessing();
@@ -56,14 +66,14 @@ class JobTest {
 
     @Test
     void updateProcessingThrowsExceptionIfJobHasScheduledState() {
-        Job job = aScheduledJob().withId().build();
+        Job job = aScheduledJob().build();
 
         assertThatThrownBy(job::updateProcessing).isInstanceOf(ClassCastException.class);
     }
 
     @Test
     void updateProcessingThrowsExceptionIfJobHasSucceededState() {
-        Job job = aSucceededJob().withId().build();
+        Job job = aSucceededJob().build();
 
         assertThatThrownBy(job::updateProcessing).isInstanceOf(ClassCastException.class);
     }

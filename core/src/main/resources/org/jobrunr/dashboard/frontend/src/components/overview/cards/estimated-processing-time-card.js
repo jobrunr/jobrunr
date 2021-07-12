@@ -25,7 +25,7 @@ const EstimatedProcessingTimeCard = () => {
     const [stats, setStats] = React.useState(statsState.getStats());
     React.useEffect(() => {
         statsState.addListener(setStats);
-        return () => statsState.removeListener(this);
+        return () => statsState.removeListener(setStats);
     }, [])
 
     const processingTimeRef = useRef(<>Calculating...</>);

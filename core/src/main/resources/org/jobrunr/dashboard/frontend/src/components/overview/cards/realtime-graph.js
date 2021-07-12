@@ -15,7 +15,7 @@ const RealtimeGraph = () => {
     const [stats, setStats] = React.useState(statsState.getStats());
     React.useEffect(() => {
         statsState.addListener(setStats);
-        return () => statsState.removeListener(this);
+        return () => statsState.removeListener(setStats);
     }, [])
 
     const [graphState] = useState({
