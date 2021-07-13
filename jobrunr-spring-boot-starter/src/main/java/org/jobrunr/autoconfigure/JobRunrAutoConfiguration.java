@@ -7,6 +7,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.JobScheduler;
+import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
@@ -44,6 +45,11 @@ public class JobRunrAutoConfiguration {
         final JobScheduler jobScheduler = new JobScheduler(storageProvider);
         BackgroundJob.setJobScheduler(jobScheduler);
         return jobScheduler;
+    }
+
+    @Bean
+    public RecurringJobPostProcessor recurringJobPostProcessor(JobScheduler jobScheduler) {
+        return new RecurringJobPostProcessor(jobScheduler);
     }
 
     @Bean(destroyMethod = "stop")

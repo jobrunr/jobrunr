@@ -52,5 +52,4 @@ public @interface Job {
     int retries() default RetryFilter.DEFAULT_NBR_OF_RETRIES;
 
     Class<? extends JobFilter>[] jobFilters() default {};
-
 }
