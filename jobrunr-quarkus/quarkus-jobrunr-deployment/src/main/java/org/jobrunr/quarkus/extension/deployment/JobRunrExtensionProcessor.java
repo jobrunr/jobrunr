@@ -29,6 +29,7 @@ class JobRunrExtensionProcessor {
 
     @Produces
     @DefaultBean
+    //TODO: make it return correct storageprovider based on Extensions (agroal, mongo, redis, elasticsearch)?
     public StorageProvider storageProvider() {
         return new InMemoryStorageProvider();
     }
@@ -41,12 +42,16 @@ class JobRunrExtensionProcessor {
 
     @Produces
     @DefaultBean
+        // TODO: make it conditional based on JobRunrConfiguration using @BuildStep(onlyIf = IsBackgroundJobServerEnabled.class) // see https://quarkus.io/guides/writing-extensions#conditional-step-inclusion
+        // TODO: consume JobRunrConfiguration for custom settings
     BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
         return new BackgroundJobServer(storageProvider, jsonMapper, jobActivator);
     }
 
     @Produces
     @DefaultBean
+        // TODO: make it conditional based on JobRunrConfiguration using @BuildStep(onlyIf = IsDashboardWebServerEnabled.class) // see https://quarkus.io/guides/writing-extensions#conditional-step-inclusion
+        // TODO: consume JobRunrConfiguration for custom settings
     JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrDashboardWebServer(storageProvider, jsonMapper);
     }
@@ -64,6 +69,7 @@ class JobRunrExtensionProcessor {
 
     @Produces
     @DefaultBean
+    //TODO: make it return correct JsonMapper based on what is available (JSONB, Jackson)?
     public JsonMapper jsonMapper() {
         return new JsonbJsonMapper();
     }
