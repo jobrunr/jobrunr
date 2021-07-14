@@ -1,0 +1,99 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api project(':core')
+    implementation enforcedPlatform('io.quarkus:quarkus-bom:2.0.2.Final')
+    implementation 'io.quarkus:quarkus-core-deployment'
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.0.2.Final'
+
+
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    compileOnly 'com.google.code.gson:gson'
+    compileOnly 'org.eclipse:yasson'
+
+    compileOnly 'redis.clients:jedis'
+    compileOnly 'io.lettuce:lettuce-core'
+    compileOnly 'org.mongodb:mongodb-driver-sync'
+    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'com.google.code.gson:gson'
+    testImplementation 'redis.clients:jedis'
+    testImplementation 'io.lettuce:lettuce-core'
+    testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+nexusPublishing {
+    packageGroup = "org.jobrunr.quarkus-jobrunr-deployment"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'quarkus-jobrunr-deployment'
+            version = project.version.replace("v", "")
+            from components.java
+
+            pom {
+                name = 'JobRunr Quarkus Deployment Extension'
+                description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'Multi licensed'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                versionMapping {
+                    usage('java-runtime'){
+                        fromResolutionResult()
+                    }
+                }
+
+                withXml {
+                    def pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}

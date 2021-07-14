@@ -1,0 +1,11 @@
+name: "JobRunr - Distributed Job Scheduler"
+metadata:
+  keywords:
+    - "jobrunr"
+    - "background"
+    - "job"
+    - "cron"
+    - "distributed"
+  guide: "https://www.jobrunr.io/en/documentation/todo"
+  categories:
+    - "data"

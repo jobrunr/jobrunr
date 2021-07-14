@@ -21,6 +21,19 @@
         </processorPath>
         <module name="JobRunr.jobrunr-spring-boot-starter.main" />
       </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.0.2.Final/923463146c65bfd4e90be933feec45d2fc950ad1/quarkus-extension-processor-2.0.2.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.2.Final/e2bdb6460f3ce847867983b1a898ba4d306cd60e/jdeparser-2.0.2.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.12.1/55819a28fc834c2f2bcf4dcdb278524dc3cf088f/jsoup-1.12.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.14.10/8f3759c3860aee511083c6fe824cb19722e4038b/javaparser-core-3.14.10.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.12.4/752cf9a2562ac2c012e48057e3a4c17dad66c66e/jackson-annotations-2.12.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.12.4/6a1bd259b6c4e3f9219ec8ec0be55ed11eed0c/jackson-core-2.12.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.12.4/69206e02e6a696034f06a59d3ddbfbba5a4cd81/jackson-databind-2.12.4.jar" />
+        </processorPath>
+        <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-deployment.main" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
       <module name="JangFire.backgroundjob-server.main" target="1.8" />
@@ -85,7 +98,11 @@
       <module name="JangFire.tests.main" target="1.8" />
       <module name="JangFire.tests.test" target="11" />
       <module name="JangFire.tests.testFixtures" target="1.8" />
+      <module name="JobRunr.jobrunr-kotlin-15-support.test" target="11" />
       <module name="JobRunr.jobrunr-kotlin-support.test" target="11" />
+      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-extension-deployment.test" target="11" />
+      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-extension.test" target="11" />
+      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr.test" target="11" />
       <module name="JobRunr.kotlin-support.test" target="11" />
       <module name="JobRunr.platform.test" target="11" />
       <module name="JobRunr.pro.test" target="11" />
