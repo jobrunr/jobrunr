@@ -1,7 +1,7 @@
 License
 ========
 
-Copyright © 2019-2020 Ronald Dehuysser
+Copyright © 2019-2021 Ronald Dehuysser
 
 JobRunr software is an open-source software that is multi-licensed under the terms of the licenses listed in this file. Recipients may choose the terms under which they are want to use or distribute the software, when all the preconditions of a chosen license are satisfied.
 
