@@ -12,30 +12,30 @@ public class BackgroundJobServerConfiguration {
      * Enables the background processing of jobs.
      */
     @ConfigItem(defaultValue = "false")
-    boolean enabled;
+    public boolean enabled;
 
     /**
      * Sets the workerCount for the BackgroundJobServer which defines the maximum number of jobs that will be run in parallel.
      * By default, this will be determined by the amount of available processor.
      */
     @ConfigItem
-    Integer workerCount;
+    public Integer workerCount;
 
     /**
      * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
      */
     @ConfigItem(defaultValue = "15")
-    Integer pollIntervalInSeconds;
+    public Integer pollIntervalInSeconds;
 
     /**
      * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
      */
     @ConfigItem(defaultValue = "36")
-    Duration deleteSucceededJobsAfter;
+    public Duration deleteSucceededJobsAfter;
 
     /**
      * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
      */
     @ConfigItem(defaultValue = "36")
-    Duration permanentlyDeleteDeletedJobsAfter;
+    public Duration permanentlyDeleteDeletedJobsAfter;
 }

@@ -10,12 +10,13 @@ import org.jobrunr.quarkus.configuation.JobSchedulerConfiguration;
 @ConfigRoot(name = "jobrunr", phase = ConfigPhase.RUN_TIME)
 public class JobRunrConfiguration {
 
-    DatabaseConfiguration database;
+    public DatabaseConfiguration database;
 
-    JobSchedulerConfiguration jobScheduler;
+    public JobSchedulerConfiguration jobScheduler;
 
-    BackgroundJobServerConfiguration backgroundJobServer;
+    public BackgroundJobServerConfiguration backgroundJobServer;
 
-    DashboardConfiguration dashboard;
+    public DashboardConfiguration dashboard;
+
 }
 

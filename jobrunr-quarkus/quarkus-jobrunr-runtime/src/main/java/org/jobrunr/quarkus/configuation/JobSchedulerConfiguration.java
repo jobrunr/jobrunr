@@ -7,14 +7,8 @@ import io.quarkus.runtime.annotations.ConfigItem;
 public class JobSchedulerConfiguration {
 
     /**
-     * Allows to skip the creation of the tables - this means you should add them manually or by database migration tools like FlywayDB or Liquibase.
+     * Enables the scheduling of jobs.
      */
-    @ConfigItem(defaultValue = "false")
-    boolean skipCreate;
-
-    /**
-     * Allows to set the table prefix used by JobRunr
-     */
-    @ConfigItem
-    String tablePrefix;
+    @ConfigItem(defaultValue = "true")
+    public boolean enabled;
 }

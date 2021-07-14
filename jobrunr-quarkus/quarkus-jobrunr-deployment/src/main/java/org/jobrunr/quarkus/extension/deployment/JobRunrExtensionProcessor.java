@@ -15,6 +15,7 @@ import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.CDI;
+import java.util.function.BooleanSupplier;
 
 class JobRunrExtensionProcessor {
 
@@ -27,6 +28,7 @@ class JobRunrExtensionProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+
     @Produces
     @DefaultBean
     //TODO: make it return correct storageprovider based on Extensions (agroal, mongo, redis, elasticsearch)?
@@ -36,22 +38,23 @@ class JobRunrExtensionProcessor {
 
     @Produces
     @DefaultBean
+    @BuildStep(onlyIf = IsJobSchedulerEnabled.class)
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         return new JobScheduler(storageProvider);
     }
 
+    // TODO: consume JobRunrConfiguration for custom settings
     @Produces
     @DefaultBean
-        // TODO: make it conditional based on JobRunrConfiguration using @BuildStep(onlyIf = IsBackgroundJobServerEnabled.class) // see https://quarkus.io/guides/writing-extensions#conditional-step-inclusion
-        // TODO: consume JobRunrConfiguration for custom settings
+    @BuildStep(onlyIf = IsBackgroundJobServerEnabled.class)
     BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
         return new BackgroundJobServer(storageProvider, jsonMapper, jobActivator);
     }
 
+    // TODO: consume JobRunrConfiguration for custom settings
     @Produces
     @DefaultBean
-        // TODO: make it conditional based on JobRunrConfiguration using @BuildStep(onlyIf = IsDashboardWebServerEnabled.class) // see https://quarkus.io/guides/writing-extensions#conditional-step-inclusion
-        // TODO: consume JobRunrConfiguration for custom settings
+    @BuildStep(onlyIf = IsDashboardWebServerEnabled.class)
     JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
         return new JobRunrDashboardWebServer(storageProvider, jsonMapper);
     }
@@ -72,5 +75,29 @@ class JobRunrExtensionProcessor {
     //TODO: make it return correct JsonMapper based on what is available (JSONB, Jackson)?
     public JsonMapper jsonMapper() {
         return new JsonbJsonMapper();
+    }
+
+    static class IsBackgroundJobServerEnabled implements BooleanSupplier {
+        JobRunrConfiguration jobRunrConfiguration;
+
+        public boolean getAsBoolean() {
+            return jobRunrConfiguration.backgroundJobServer.enabled;
+        }
+    }
+
+    static class IsJobSchedulerEnabled implements BooleanSupplier {
+        JobRunrConfiguration jobRunrConfiguration;
+
+        public boolean getAsBoolean() {
+            return jobRunrConfiguration.jobScheduler.enabled;
+        }
+    }
+
+    static class IsDashboardWebServerEnabled implements BooleanSupplier {
+        JobRunrConfiguration jobRunrConfiguration;
+
+        public boolean getAsBoolean() {
+            return jobRunrConfiguration.dashboard.enabled;
+        }
     }
 }
