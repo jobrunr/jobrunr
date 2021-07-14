@@ -17,6 +17,5 @@ public class JobRunrConfiguration {
     BackgroundJobServerConfiguration backgroundJobServer;
 
     DashboardConfiguration dashboard;
-
 }
 
