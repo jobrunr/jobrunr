@@ -63,10 +63,10 @@ public class SqlStorageProviderFactory {
         throw unsupportedDataSourceException(jdbcUrl);
     }
 
-    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
+    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         try {
             final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class, String.class, DatabaseOptions.class);
-            return (StorageProvider) declaredConstructor.newInstance(dataSource, schemaName, databaseOptions);
+            return (StorageProvider) declaredConstructor.newInstance(dataSource, tablePrefix, databaseOptions);
         } catch (ReflectiveOperationException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }

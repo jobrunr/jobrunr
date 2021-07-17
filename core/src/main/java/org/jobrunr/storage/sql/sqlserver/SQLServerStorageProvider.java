@@ -11,16 +11,16 @@ public class SQLServerStorageProvider extends DefaultSqlStorageProvider {
         this(dataSource, DatabaseOptions.CREATE);
     }
 
-    public SQLServerStorageProvider(DataSource dataSource, String schemaName) {
-        this(dataSource, schemaName, DatabaseOptions.CREATE);
+    public SQLServerStorageProvider(DataSource dataSource, String tablePrefix) {
+        this(dataSource, tablePrefix, DatabaseOptions.CREATE);
     }
 
     public SQLServerStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
         super(dataSource, new SQLServerDialect(), databaseOptions);
     }
 
-    public SQLServerStorageProvider(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
-        super(dataSource, new SQLServerDialect(), schemaName, databaseOptions);
+    public SQLServerStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+        super(dataSource, new SQLServerDialect(), tablePrefix, databaseOptions);
     }
 
 }
