@@ -31,9 +31,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         SKIP_CREATE
     }
 
-    private final DataSource dataSource;
-    private final Dialect dialect;
-    private final String tablePrefix;
+    protected final DataSource dataSource;
+    protected final Dialect dialect;
+    protected final String tablePrefix;
     private final DatabaseOptions databaseOptions;
     private JobMapper jobMapper;
 
