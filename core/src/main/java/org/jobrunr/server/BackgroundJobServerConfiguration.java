@@ -55,7 +55,14 @@ public class BackgroundJobServerConfiguration {
         return this;
     }
 
-    public BackgroundJobServerConfiguration andWorkerCountPolicy(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
+    /**
+     * Allows to set the backgroundJobServerWorkerPolicy for the BackgroundJobServer. The backgroundJobServerWorkerPolicy will determine
+     * the final WorkDistributionStrategy used by the BackgroundJobServer.
+     *
+     * @param backgroundJobServerWorkerPolicy the backgroundJobServerWorkerPolicy
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andBackgroundJobServerWorkerPolicy(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
         this.backgroundJobServerWorkerPolicy = backgroundJobServerWorkerPolicy;
         return this;
     }
