@@ -116,8 +116,12 @@ publishing {
                 url = 'https://github.com/jobrunr/jobrunr'
                 licenses {
                     license {
-                        name = 'Multi licensed'
-                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
                     }
                 }
                 developers {
