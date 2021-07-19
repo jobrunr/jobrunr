@@ -17,4 +17,6 @@ Please see License-lgpl.md file for details.
 Commercial License
 ------------------
 
-Subject to the purchase of a corresponding subscription (pricing to be announced), you may distribute JobRunr under the terms of commercial license, that allows you to distribute private forks and modifications. Please see License-standard.md and License-royaltyfree.md files for details.
+Subject to the purchase of a corresponding subscription (see https://www.jobrunr.io/en/pricing/), you may distribute
+JobRunr under the terms of commercial license, that allows you to distribute private forks and modifications. Please see
+License-standard.md and License-royaltyfree.md files for details.
