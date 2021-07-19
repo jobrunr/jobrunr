@@ -11,16 +11,16 @@ public class PostgresStorageProvider extends DefaultSqlStorageProvider {
         this(dataSource, DatabaseOptions.CREATE);
     }
 
-    public PostgresStorageProvider(DataSource dataSource, String schemaName) {
-        this(dataSource, schemaName, DatabaseOptions.CREATE);
+    public PostgresStorageProvider(DataSource dataSource, String tablePrefix) {
+        this(dataSource, tablePrefix, DatabaseOptions.CREATE);
     }
 
     public PostgresStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
         super(dataSource, new AnsiDialect(), databaseOptions);
     }
 
-    public PostgresStorageProvider(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
-        super(dataSource, new AnsiDialect(), schemaName, databaseOptions);
+    public PostgresStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+        super(dataSource, new AnsiDialect(), tablePrefix, databaseOptions);
     }
 
 }

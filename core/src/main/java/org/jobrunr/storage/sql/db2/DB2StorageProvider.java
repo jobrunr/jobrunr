@@ -11,16 +11,16 @@ public class DB2StorageProvider extends DefaultSqlStorageProvider {
         this(dataSource, DatabaseOptions.CREATE);
     }
 
-    public DB2StorageProvider(DataSource dataSource, String schemaName) {
-        this(dataSource, schemaName, DatabaseOptions.CREATE);
+    public DB2StorageProvider(DataSource dataSource, String tablePrefix) {
+        this(dataSource, tablePrefix, DatabaseOptions.CREATE);
     }
 
     public DB2StorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
         super(dataSource, new AnsiDialect(), databaseOptions);
     }
 
-    public DB2StorageProvider(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
-        super(dataSource, new AnsiDialect(), schemaName, databaseOptions);
+    public DB2StorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+        super(dataSource, new AnsiDialect(), tablePrefix, databaseOptions);
     }
 
 }

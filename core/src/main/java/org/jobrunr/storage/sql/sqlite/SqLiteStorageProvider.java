@@ -13,9 +13,9 @@ public class SqLiteStorageProvider extends DefaultSqlStorageProvider {
         this(dataSource, DatabaseOptions.CREATE);
     }
 
-    public SqLiteStorageProvider(DataSource dataSource, String schemaName) {
+    public SqLiteStorageProvider(DataSource dataSource, String tablePrefix) {
         this(dataSource, DatabaseOptions.CREATE);
-        if (isNotNullOrEmpty(schemaName)) {
+        if (isNotNullOrEmpty(tablePrefix)) {
             throw new IllegalArgumentException("SqLite does not support schema's.");
         }
     }
@@ -24,9 +24,9 @@ public class SqLiteStorageProvider extends DefaultSqlStorageProvider {
         super(dataSource, new AnsiDialect(), databaseOptions);
     }
 
-    public SqLiteStorageProvider(DataSource dataSource, String schemaName, DatabaseOptions databaseOptions) {
+    public SqLiteStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         super(dataSource, new AnsiDialect(), databaseOptions);
-        if (isNotNullOrEmpty(schemaName)) {
+        if (isNotNullOrEmpty(tablePrefix)) {
             throw new IllegalArgumentException("SqLite does not support schema's.");
         }
     }
