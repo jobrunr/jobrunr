@@ -4,8 +4,11 @@ import org.jobrunr.annotations.Recurring;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringValueResolver;
 
 import java.lang.reflect.Method;
 import java.time.ZoneId;
@@ -13,13 +16,14 @@ import java.util.ArrayList;
 
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
-public class RecurringJobPostProcessor implements BeanPostProcessor {
+public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedValueResolverAware, InitializingBean {
 
-    private final RecurringJobFinderMethodCallback recurringJobFinderMethodCallback;
+    private final JobScheduler jobScheduler;
+    private StringValueResolver embeddedValueResolver;
+    private RecurringJobFinderMethodCallback recurringJobFinderMethodCallback;
 
     public RecurringJobPostProcessor(JobScheduler jobScheduler) {
-        this.recurringJobFinderMethodCallback = new RecurringJobFinderMethodCallback(jobScheduler);
-
+        this.jobScheduler = jobScheduler;
     }
 
     @Override
@@ -28,12 +32,24 @@ public class RecurringJobPostProcessor implements BeanPostProcessor {
         return bean;
     }
 
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        this.embeddedValueResolver = resolver;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        this.recurringJobFinderMethodCallback = new RecurringJobFinderMethodCallback(jobScheduler, embeddedValueResolver);
+    }
+
     private static class RecurringJobFinderMethodCallback implements ReflectionUtils.MethodCallback {
 
         private final JobScheduler jobScheduler;
+        private final StringValueResolver embeddedValueResolver;
 
-        public RecurringJobFinderMethodCallback(JobScheduler jobScheduler) {
+        public RecurringJobFinderMethodCallback(JobScheduler jobScheduler, StringValueResolver resolver) {
             this.jobScheduler = jobScheduler;
+            this.embeddedValueResolver = resolver;
         }
 
         @Override
@@ -55,7 +71,8 @@ public class RecurringJobPostProcessor implements BeanPostProcessor {
         }
 
         private String getId(Recurring recurringAnnotation) {
-            return isNullOrEmpty(recurringAnnotation.id()) ? null : recurringAnnotation.id();
+            String id = resolveStringValue(recurringAnnotation.id());
+            return isNullOrEmpty(id) ? null : id;
         }
 
         private JobDetails getJobDetails(Method method) {
@@ -68,11 +85,20 @@ public class RecurringJobPostProcessor implements BeanPostProcessor {
         }
 
         private CronExpression getCronExpression(Recurring recurringAnnotation) {
-            return CronExpression.create(recurringAnnotation.cron());
+            String cron = resolveStringValue(recurringAnnotation.cron());
+            return CronExpression.create(cron);
         }
 
         private ZoneId getZoneId(Recurring recurringAnnotation) {
-            return isNullOrEmpty(recurringAnnotation.zoneId()) ? ZoneId.systemDefault() : ZoneId.of(recurringAnnotation.zoneId());
+            String zoneId = resolveStringValue(recurringAnnotation.zoneId());
+            return isNullOrEmpty(zoneId) ? ZoneId.systemDefault() : ZoneId.of(zoneId);
+        }
+
+        private String resolveStringValue(String value) {
+            if (embeddedValueResolver != null && value != null) {
+                value = embeddedValueResolver.resolveStringValue(value);
+            }
+            return value;
         }
     }
 }
