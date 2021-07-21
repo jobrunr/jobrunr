@@ -3,10 +3,7 @@ package org.jobrunr.jobs.annotations;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.RetryFilter;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Allows to add a specific name to a job that will be used in the dashboard as well as extra jobFilters that will be used for the job.
@@ -45,6 +42,8 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
 public @interface Job {
 
     String name() default "";
