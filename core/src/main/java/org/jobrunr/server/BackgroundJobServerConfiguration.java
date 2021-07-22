@@ -61,6 +61,19 @@ public class BackgroundJobServerConfiguration {
      *
      * @param backgroundJobServerWorkerPolicy the backgroundJobServerWorkerPolicy
      * @return the same configuration instance which provides a fluent api
+     * @deprecated Use {@link #andBackgroundJobServerWorkerPolicy} instead.
+     */
+    @Deprecated
+    public BackgroundJobServerConfiguration andWorkerCountPolicy(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
+        return andBackgroundJobServerWorkerPolicy(backgroundJobServerWorkerPolicy);
+    }
+
+    /**
+     * Allows to set the backgroundJobServerWorkerPolicy for the BackgroundJobServer. The backgroundJobServerWorkerPolicy will determine
+     * the final WorkDistributionStrategy used by the BackgroundJobServer.
+     *
+     * @param backgroundJobServerWorkerPolicy the backgroundJobServerWorkerPolicy
+     * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andBackgroundJobServerWorkerPolicy(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
         this.backgroundJobServerWorkerPolicy = backgroundJobServerWorkerPolicy;
