@@ -31,7 +31,7 @@ dependencies {
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
-    testImplementation 'io.micrometer:micrometer-registry-prometheus:1.7.2'
+    testImplementation 'io.micrometer:micrometer-core:1.7.2'
 }
 
 java {

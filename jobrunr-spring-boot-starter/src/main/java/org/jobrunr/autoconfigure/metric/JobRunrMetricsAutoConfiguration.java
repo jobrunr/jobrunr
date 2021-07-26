@@ -1,6 +1,5 @@
 package org.jobrunr.autoconfigure.metric;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import org.jobrunr.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.metric.BackgroundJobServerMetricsBinder;
 import org.jobrunr.metric.StorageProviderMetricsBinder;
@@ -14,20 +13,20 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnClass(
-        name = {"io.micrometer.core.instrument.MeterRegistry"}
+        name = {"io.micrometer.core.instrument.Metrics"}
 )
 @AutoConfigureAfter({JobRunrAutoConfiguration.class})
 public class JobRunrMetricsAutoConfiguration {
 
     @Bean
     @ConditionalOnBean({StorageProvider.class})
-    public StorageProviderMetricsBinder storageProviderMetricsBinder(MeterRegistry registry, StorageProvider storageProvider) {
-        return new StorageProviderMetricsBinder(registry, storageProvider);
+    public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider) {
+        return new StorageProviderMetricsBinder(storageProvider);
     }
 
     @Bean
     @ConditionalOnBean({BackgroundJobServer.class})
-    public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(MeterRegistry registry, BackgroundJobServer backgroundJobServer) {
-        return new BackgroundJobServerMetricsBinder(registry, backgroundJobServer);
+    public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer) {
+        return new BackgroundJobServerMetricsBinder(backgroundJobServer);
     }
 }
