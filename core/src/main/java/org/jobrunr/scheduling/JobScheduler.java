@@ -591,7 +591,7 @@ public class JobScheduler {
         return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
     }
 
-    String scheduleRecurrently(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
+    public String scheduleRecurrently(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
         jobFilterUtils.runOnCreatingFilter(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
