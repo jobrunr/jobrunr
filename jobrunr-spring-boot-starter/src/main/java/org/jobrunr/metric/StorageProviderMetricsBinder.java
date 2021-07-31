@@ -1,6 +1,6 @@
 package org.jobrunr.metric;
 
-import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.JobStats;
@@ -8,18 +8,24 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class StorageProviderMetricsBinder implements JobStatsChangeListener {
 
     private final StorageProvider storageProvider;
-    private final Map<StateName, AtomicInteger> atomics = new HashMap<>();
+    private final MeterRegistry meterRegistry;
+    private final AtomicLong scheduledGauge = new AtomicLong(0);
+    private final AtomicLong enqueuedGauge = new AtomicLong(0);
+    private final AtomicLong processingGauge = new AtomicLong(0);
+    private final AtomicLong failedGauge = new AtomicLong(0);
+    private final AtomicLong succeededGauge = new AtomicLong(0);
+    private final AtomicLong allTimeSucceededGauge = new AtomicLong(0);
+    private final AtomicLong deletedGauge = new AtomicLong(0);
 
-    public StorageProviderMetricsBinder(StorageProvider storageProvider) {
+
+    public StorageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         this.storageProvider = storageProvider;
+        this.meterRegistry = meterRegistry;
     }
 
     @PostConstruct
@@ -28,24 +34,33 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener {
     }
 
     private void registryStorageProvider() {
-        String PREFIX = "jobrunr_";
-        String jobs = PREFIX + "jobs";
-
-        Arrays.stream(StateName.values()).forEach((state) ->
-                atomics.put(state, Metrics.gauge(jobs, Tags.of("state", state.toString()), new AtomicInteger(0)))
-        );
+        registerGauge(StateName.SCHEDULED, scheduledGauge);
+        registerGauge(StateName.ENQUEUED, enqueuedGauge);
+        registerGauge(StateName.PROCESSING, processingGauge);
+        registerGauge(StateName.FAILED, failedGauge);
+        registerGauge(StateName.SUCCEEDED, succeededGauge);
+        registerGauge("all-time-succeeded", allTimeSucceededGauge);
+        registerGauge(StateName.DELETED, deletedGauge);
 
         this.storageProvider.addJobStorageOnChangeListener(this);
     }
 
+    private void registerGauge(StateName stateName, AtomicLong number) {
+        registerGauge(stateName.toString(), number);
+    }
+
+    private void registerGauge(String stateName, AtomicLong number) {
+        meterRegistry.gauge("jobrunr.jobs", Tags.of("state", stateName), number);
+    }
+
     @Override
     public void onChange(JobStats jobStats) {
-        atomics.get(StateName.AWAITING).set(jobStats.getAwaiting().intValue());
-        atomics.get(StateName.SCHEDULED).set(jobStats.getScheduled().intValue());
-        atomics.get(StateName.ENQUEUED).set(jobStats.getEnqueued().intValue());
-        atomics.get(StateName.PROCESSING).set(jobStats.getProcessing().intValue());
-        atomics.get(StateName.FAILED).set(jobStats.getFailed().intValue());
-        atomics.get(StateName.SUCCEEDED).set(jobStats.getSucceeded().intValue());
-        atomics.get(StateName.DELETED).set(jobStats.getDeleted().intValue());
+        scheduledGauge.set(jobStats.getScheduled());
+        enqueuedGauge.set(jobStats.getEnqueued());
+        processingGauge.set(jobStats.getProcessing());
+        failedGauge.set(jobStats.getFailed());
+        succeededGauge.set(jobStats.getSucceeded());
+        allTimeSucceededGauge.set(jobStats.getAllTimeSucceeded());
+        deletedGauge.set(jobStats.getDeleted());
     }
 }

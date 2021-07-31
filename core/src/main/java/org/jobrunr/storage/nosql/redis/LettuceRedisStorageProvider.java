@@ -29,7 +29,6 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -523,7 +522,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisAsyncCommands<String, String> commands = connection.async();
             final RedisFuture<String> totalSucceededAmountCounterResponse = commands.hget(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE);
 
-            final RedisFuture<Long> waitingResponse = commands.zcount(jobQueueForStateKey(keyPrefix, AWAITING), unbounded());
             final RedisFuture<Long> scheduledResponse = commands.zcount(jobQueueForStateKey(keyPrefix, SCHEDULED), unbounded());
             final RedisFuture<Long> enqueuedResponse = commands.zcount(jobQueueForStateKey(keyPrefix, ENQUEUED), unbounded());
             final RedisFuture<Long> processingResponse = commands.zcount(jobQueueForStateKey(keyPrefix, PROCESSING), unbounded());
@@ -535,10 +533,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(backgroundJobServersUpdatedKey(keyPrefix), unbounded());
 
             connection.flushCommands();
-            LettuceFutures.awaitAll(Duration.ofSeconds(10), totalSucceededAmountCounterResponse, waitingResponse, scheduledResponse,
+            LettuceFutures.awaitAll(Duration.ofSeconds(10), totalSucceededAmountCounterResponse, scheduledResponse,
                     enqueuedResponse, processingResponse, succeededResponse, failedResponse, deletedResponse);
 
-            final long awaitingCount = getCounterValue(waitingResponse);
             final long scheduledCount = getCounterValue(scheduledResponse);
             final long enqueuedCount = getCounterValue(enqueuedResponse);
             final long processingCount = getCounterValue(processingResponse);
@@ -552,7 +549,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             return new JobStats(
                     instant,
                     total,
-                    awaitingCount,
                     scheduledCount,
                     enqueuedCount,
                     processingCount,

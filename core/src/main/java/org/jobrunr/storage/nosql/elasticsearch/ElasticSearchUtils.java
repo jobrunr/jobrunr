@@ -24,7 +24,6 @@ public class ElasticSearchUtils {
         try {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
-            builder.field(StateName.AWAITING.name(), 0L);
             builder.field(StateName.SCHEDULED.name(), 0L);
             builder.field(StateName.ENQUEUED.name(), 0L);
             builder.field(StateName.PROCESSING.name(), 0L);

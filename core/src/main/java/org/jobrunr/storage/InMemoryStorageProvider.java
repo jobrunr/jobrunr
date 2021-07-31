@@ -21,7 +21,6 @@ import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -280,7 +279,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         return new JobStats(
                 Instant.now(),
                 (long) jobQueue.size(),
-                getJobsStream(AWAITING).count(),
                 getJobsStream(SCHEDULED).count(),
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),

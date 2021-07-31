@@ -24,7 +24,6 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -488,7 +487,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             final Response<String> totalAmountSucceeded = p.hget(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE);
 
-            final Response<Long> waitingResponse = p.zcount(jobQueueForStateKey(keyPrefix, AWAITING), 0, Long.MAX_VALUE);
             final Response<Long> scheduledResponse = p.zcount(jobQueueForStateKey(keyPrefix, SCHEDULED), 0, Long.MAX_VALUE);
             final Response<Long> enqueuedResponse = p.zcount(jobQueueForStateKey(keyPrefix, ENQUEUED), 0, Long.MAX_VALUE);
             final Response<Long> processingResponse = p.zcount(jobQueueForStateKey(keyPrefix, PROCESSING), 0, Long.MAX_VALUE);
@@ -501,7 +499,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
             p.sync();
 
-            final Long awaitingCount = waitingResponse.get();
             final Long scheduledCount = scheduledResponse.get();
             final Long enqueuedCount = enqueuedResponse.get();
             final Long processingCount = processingResponse.get();
@@ -515,7 +512,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             return new JobStats(
                     instant,
                     total,
-                    awaitingCount,
                     scheduledCount,
                     enqueuedCount,
                     processingCount,
