@@ -9,9 +9,9 @@ import java.nio.file.Paths;
 
 import static java.nio.file.Files.exists;
 
-public class BuildAndTestContainer extends GenericContainer<BuildAndTestContainer> {
+public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTestContainer> {
 
-    public BuildAndTestContainer(String fromDockerImage) {
+    public MavenBuildAndTestContainer(String fromDockerImage) {
         super(new ImageFromDockerfile()
                 .withDockerfileFromBuilder(builder ->
                         builder
@@ -24,12 +24,12 @@ public class BuildAndTestContainer extends GenericContainer<BuildAndTestContaine
                     .withFileSystemBind(Paths.get("/tmp/jobrunr/cache/gradle-wrapper").toString(), "/root/.gradle/wrapper/dists");
         } else {
             this
-                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".gradle", "wrapper", "dists").toString(), "/root/.gradle/wrapper/dists");
+                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".m2").toString(), "/root/.m2");
         }
 
         this
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
-                .withCommand("./gradlew", "build")
-                .waitingFor(Wait.forLogMessage(".*BUILD SUCCESSFUL.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*", 1));
+                .withCommand("./mvnw", "clean", "install")
+                .waitingFor(Wait.forLogMessage(".*BUILD SUCCESS.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*", 1));
     }
 }

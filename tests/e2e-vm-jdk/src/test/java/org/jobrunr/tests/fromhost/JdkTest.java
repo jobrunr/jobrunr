@@ -1,9 +1,7 @@
 package org.jobrunr.tests.fromhost;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.testcontainers.images.PullPolicy;
 
 import java.time.Duration;
@@ -20,82 +18,86 @@ class JdkTest {
 
     @Test
     void jdk8OpenJdk() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk8OpenJ9() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-openj9")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-openj9")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk8Zulu() {
-        assertThat(buildAndTestOnImage("azul/zulu-openjdk:8")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("azul/zulu-openjdk:8")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk8GraalVM() {
-        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java8-21.1.0")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java8-21.1.0")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk8Ibm() {
-        assertThat(buildAndTestOnImage("ibmcom/ibmjava:8-sdk-alpine")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ibmcom/ibmjava:8-sdk-alpine")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11OpenJdk() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-hotspot")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-hotspot")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11OpenJ9() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-openj9")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-openj9")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11Zulu() {
-        assertThat(buildAndTestOnImage("azul/zulu-openjdk:11")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("azul/zulu-openjdk:11")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11GraalVM() {
-        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java11-21.1.0")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-ce:java11-21.1.0")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11AmazonCorretto() {
-        assertThat(buildAndTestOnImage("amazoncorretto:11")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("amazoncorretto:11")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk14OpenJdk() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:14-jdk-hotspot")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("adoptopenjdk:14-jdk-hotspot")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk14OpenJ9() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:14-jdk-openj9")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("adoptopenjdk:14-jdk-openj9")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk14Zulu() {
-        assertThat(buildAndTestOnImage("azul/zulu-openjdk:14")).contains("BUILD SUCCESSFUL");
+        assertThat(buildAndTestOnImage("azul/zulu-openjdk:14")).contains("BUILD SUCCESS");
     }
 
     @Test
-    void jdk15OpenJDKEA() {
-        assertThat(buildAndTestOnImage("amd64/openjdk:15-ea-jdk")).contains("BUILD SUCCESSFUL");
+    void jdk15OpenJDK() {
+        assertThat(buildAndTestOnImage("amd64/openjdk:15")).contains("BUILD SUCCESS");
     }
 
-    @Disabled("Not yet working due to gradle")
     @Test
-    void jdk16OpenJDKEA() {
-        assertThat(buildAndTestOnImage("amd64/openjdk:16-ea-jdk")).contains("BUILD SUCCESSFUL");
+    void jdk16OpenJDK() {
+        assertThat(buildAndTestOnImage("amd64/openjdk:16")).contains("BUILD SUCCESS");
+    }
+
+    @Test
+    void jdk17OpenJDK() {
+        assertThat(buildAndTestOnImage("amd64/openjdk:17")).contains("BUILD SUCCESS");
     }
 
     private String buildAndTestOnImage(String dockerfile) {
-        final BuildAndTestContainer buildAndTestContainer = new BuildAndTestContainer(dockerfile);
+        final MavenBuildAndTestContainer buildAndTestContainer = new MavenBuildAndTestContainer(dockerfile);
         buildAndTestContainer
                 .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
                 .withStartupTimeout(Duration.ofMinutes(1))
