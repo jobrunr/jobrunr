@@ -24,7 +24,7 @@ public class Transaction implements AutoCloseable {
     }
 
     public void commit() throws SQLException {
-        if (!originalAutoCommit || (enableAutocommit != null && !enableAutocommit)) {
+        if (isAutoCommitDisabled()) {
             conn.commit();
         }
         committed = true;
@@ -32,12 +32,16 @@ public class Transaction implements AutoCloseable {
 
     @Override
     public void close() throws SQLException {
-        if (!committed) {
+        if (!committed && isAutoCommitDisabled()) {
             conn.rollback();
         }
         // we messed with autocommit, restore original value
         if (enableAutocommit != null) {
             conn.setAutoCommit(originalAutoCommit);
         }
+    }
+
+    private boolean isAutoCommitDisabled() {
+        return !originalAutoCommit || (enableAutocommit != null && !enableAutocommit);
     }
 }

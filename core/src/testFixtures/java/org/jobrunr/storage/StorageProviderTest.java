@@ -635,7 +635,6 @@ public abstract class StorageProviderTest {
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id2").build());
 
         final JobStats jobStats = storageProvider.getJobStats();
-        assertThat(jobStats.getAwaiting()).isEqualTo(0);
         assertThat(jobStats.getScheduled()).isEqualTo(1);
         assertThat(jobStats.getEnqueued()).isEqualTo(3);
         assertThat(jobStats.getProcessing()).isEqualTo(1);

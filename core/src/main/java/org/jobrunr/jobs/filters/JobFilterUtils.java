@@ -29,11 +29,19 @@ public class JobFilterUtils {
         jobs.forEach(this::runOnCreatedFilter);
     }
 
+    public void runOnStateElectionFilter(Job job) {
+        new JobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
+    }
+
+    public void runOnStateAppliedFilters(Job job) {
+        new JobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+    }
+
     public void runOnStateElectionFilter(List<Job> jobs) {
-        jobs.forEach(job -> new JobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter());
+        jobs.forEach(this::runOnStateElectionFilter);
     }
 
     public void runOnStateAppliedFilters(List<Job> jobs) {
-        jobs.forEach(job -> new JobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters());
+        jobs.forEach(this::runOnStateAppliedFilters);
     }
 }

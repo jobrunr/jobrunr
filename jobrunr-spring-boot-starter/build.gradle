@@ -22,6 +22,8 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
+    compileOnly 'io.micrometer:micrometer-core:1.7.2'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.1'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
@@ -29,6 +31,7 @@ dependencies {
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testImplementation 'io.micrometer:micrometer-core:1.7.2'
 }
 
 java {
@@ -54,8 +57,12 @@ publishing {
                 url = 'https://github.com/jobrunr/jobrunr'
                 licenses {
                     license {
-                        name = 'Multi licensed'
-                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
                     }
                 }
                 developers {

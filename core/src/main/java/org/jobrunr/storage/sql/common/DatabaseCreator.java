@@ -248,9 +248,9 @@ public class DatabaseCreator {
         @Override
         public String updateStatement(String statement) {
             if (isCreateIndex(statement)) {
-                return updateStatementWithSchemaNameForCreateIndexStatement(statement);
+                return updateStatementWithTablePrefixForCreateIndexStatement(statement);
             }
-            return updateStatementWithSchemaNameForOtherStatements(statement);
+            return updateStatementWithTablePrefixForOtherStatements(statement);
         }
 
         @Override
@@ -262,13 +262,13 @@ public class DatabaseCreator {
             return statement.contains("CREATE INDEX ");
         }
 
-        private String updateStatementWithSchemaNameForCreateIndexStatement(String statement) {
+        private String updateStatementWithTablePrefixForCreateIndexStatement(String statement) {
             return statement
                     .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + indexPrefix + DEFAULT_PREFIX)
                     .replace("ON jobrunr_", "ON " + tablePrefix + DEFAULT_PREFIX);
         }
 
-        private String updateStatementWithSchemaNameForOtherStatements(String statement) {
+        private String updateStatementWithTablePrefixForOtherStatements(String statement) {
             return statement.replace(DEFAULT_PREFIX, tablePrefix + DEFAULT_PREFIX);
         }
 

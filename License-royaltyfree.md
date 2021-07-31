@@ -47,7 +47,11 @@ We or a certified auditor acting on Our behalf, may, upon its reasonable request
 
 9. THIRD PARTY SOFTWARE
 
-The Software may contain third party open source software which requires notices and/or additional terms and conditions. Such required third party software notices and/or additional terms and conditions are located in the NOTICES file accompanying the Software distribution (also available at https://www.jobrunr.io/documentation/credits-to/), and are made a part of and incorporated by reference into this Agreement. By accepting this Agreement, you are also accepting the additional terms and conditions, if any, set forth therein.
+The Software may contain third party open-source software which requires notices and/or additional terms and conditions.
+Such required third party software notices and/or additional terms and conditions are located in the NOTICES file
+accompanying the Software distribution (also available at https://www.jobrunr.io/documentation/credits-to/), and are
+made a part of and incorporated by reference into this Agreement. By accepting this Agreement, you are also accepting
+the additional terms and conditions, if any, set forth therein.
 
 10. PAYMENT AND TAXES
 

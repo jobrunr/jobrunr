@@ -61,7 +61,6 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -354,33 +353,32 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         final long allTimeSucceededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
         final List<Document> aggregates = jobCollection.aggregate(asList(
-                match(ne(Jobs.FIELD_STATE, null)),
-                group("$state", Accumulators.sum(Jobs.FIELD_STATE, 1)),
-                limit(10)))
+                        match(ne(Jobs.FIELD_STATE, null)),
+                        group("$state", Accumulators.sum(Jobs.FIELD_STATE, 1)),
+                        limit(10)))
                 .into(new ArrayList<>());
 
-        Long awaiting = getCount(AWAITING, aggregates);
-        Long scheduled = getCount(SCHEDULED, aggregates);
-        Long enqueued = getCount(ENQUEUED, aggregates);
-        Long processing = getCount(PROCESSING, aggregates);
-        Long failed = getCount(FAILED, aggregates);
-        Long succeeded = getCount(SUCCEEDED, aggregates);
-        Long deleted = getCount(DELETED, aggregates);
+        Long scheduledCount = getCount(SCHEDULED, aggregates);
+        Long enqueuedCount = getCount(ENQUEUED, aggregates);
+        Long processingCount = getCount(PROCESSING, aggregates);
+        Long succeededCount = getCount(SUCCEEDED, aggregates);
+        Long failedCount = getCount(FAILED, aggregates);
+        Long deletedCount = getCount(DELETED, aggregates);
 
+        final long total = scheduledCount + enqueuedCount + processingCount + succeededCount + failedCount;
         final int recurringJobCount = (int) recurringJobCollection.countDocuments();
         final int backgroundJobServerCount = (int) backgroundJobServerCollection.countDocuments();
 
         return new JobStats(
                 instant,
-                7L,
-                awaiting,
-                scheduled,
-                enqueued,
-                processing,
-                failed,
-                succeeded,
+                total,
+                scheduledCount,
+                enqueuedCount,
+                processingCount,
+                failedCount,
+                succeededCount,
                 allTimeSucceededCount,
-                deleted,
+                deletedCount,
                 recurringJobCount,
                 backgroundJobServerCount
         );

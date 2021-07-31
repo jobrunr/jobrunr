@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.time.ZoneId;
 
@@ -26,6 +27,7 @@ class RecurringJobPostProcessorTest {
     void beansWithoutMethodsAnnotatedWithRecurringAnnotationWillNotBeHandled() {
         // GIVEN
         final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobScheduler);
+        recurringJobPostProcessor.afterPropertiesSet();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithoutRecurringAnnotation(), "not important");
@@ -37,6 +39,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationWillAutomaticallyBeRegistered() {
         final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobScheduler);
+        recurringJobPostProcessor.afterPropertiesSet();
 
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJob(), "not important");
 
@@ -44,8 +47,24 @@ class RecurringJobPostProcessorTest {
     }
 
     @Test
+    void beansWithMethodsAnnotatedWithRecurringAnnotationContainingPropertyPlaceholdersWillBeResolved() {
+        new ApplicationContextRunner()
+                .withBean(RecurringJobPostProcessor.class, jobScheduler)
+                .withPropertyValues("my-job.id=my-recurring-job")
+                .withPropertyValues("my-job.cron=0 0/15 * * *")
+                .withPropertyValues("my-job.zone-id=Asia/Taipei")
+                .run(context -> {
+                    context.getBean(RecurringJobPostProcessor.class)
+                    .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
+
+                    verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), eq(ZoneId.of("Asia/Taipei")));
+                });
+    }
+
+    @Test
     void beansWithUnsupportedMethodsAnnotatedWithRecurringAnnotationWillThrowException() {
         final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobScheduler);
+        recurringJobPostProcessor.afterPropertiesSet();
 
         assertThatThrownBy(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MyUnsupportedService(), "not important"))
                 .isInstanceOf(IllegalStateException.class)
@@ -72,6 +91,14 @@ class RecurringJobPostProcessorTest {
         @Recurring(id = "my-recurring-job", cron = "0 0/15 * * *")
         public void myRecurringMethod(String parameter) {
             System.out.print("My unsupported recurring job method");
+        }
+    }
+
+    public static class MyServiceWithRecurringAnnotationContainingPropertyPlaceholder {
+
+        @Recurring(id = "${my-job.id}", cron = "${my-job.cron}", zoneId = "${my-job.zone-id}")
+        public void myRecurringMethod() {
+            System.out.print("My recurring job method");
         }
     }
 }

@@ -21,11 +21,6 @@ public class DisplayNameFilter implements JobClientFilter {
         }
     }
 
-    @Override
-    public void onCreated(AbstractJob job) {
-        // nothing to do
-    }
-
     private Optional<String> getJobNameFromAnnotation(JobDetails jobDetails) {
         Optional<org.jobrunr.jobs.annotations.Job> jobAnnotation = JobUtils.getJobAnnotation(jobDetails);
         return jobAnnotation

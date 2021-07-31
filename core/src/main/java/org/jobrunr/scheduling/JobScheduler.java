@@ -440,19 +440,24 @@ public class JobScheduler {
     }
 
     /**
+     * @see #delete(UUID)
+     */
+    public void delete(JobId jobId) {
+        this.delete(jobId.asUUID());
+    }
+
+    /**
      * Deletes a job and sets it's state to DELETED. If the job is being processed, it will be interrupted.
      *
      * @param id the id of the job
      */
     public void delete(UUID id) {
-        storageProvider.delete(id);
-    }
-
-    /**
-     * @see #delete(UUID)
-     */
-    public void delete(JobId jobId) {
-        storageProvider.delete(jobId.asUUID());
+        final Job jobToDelete = storageProvider.getJobById(id);
+        jobToDelete.delete();
+        jobFilterUtils.runOnStateElectionFilter(jobToDelete);
+        final Job deletedJob = storageProvider.save(jobToDelete);
+        jobFilterUtils.runOnStateAppliedFilters(deletedJob);
+        LOGGER.debug("Deleted Job with id {}", deletedJob.getId());
     }
 
     /**
