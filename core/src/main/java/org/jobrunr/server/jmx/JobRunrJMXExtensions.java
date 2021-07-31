@@ -49,11 +49,6 @@ public class JobRunrJMXExtensions implements JobStatsChangeListener, JobStatsMBe
     }
 
     @Override
-    public Long getAwaiting() {
-        return jobStats.getAwaiting();
-    }
-
-    @Override
     public Long getScheduled() {
         return jobStats.getScheduled();
     }

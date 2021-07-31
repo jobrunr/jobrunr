@@ -3,4 +3,5 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.jobrunr.autoc
   org.jobrunr.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration,\
   org.jobrunr.autoconfigure.storage.JobRunrLettuceStorageAutoConfiguration,\
   org.jobrunr.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration,\
-  org.jobrunr.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration
+  org.jobrunr.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration, \
+  org.jobrunr.autoconfigure.metric.JobRunrMetricsAutoConfiguration

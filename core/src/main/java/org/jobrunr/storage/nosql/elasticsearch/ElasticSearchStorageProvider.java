@@ -542,7 +542,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             return new JobStats(
                     Instant.now(),
                     0L,
-                    buckets.stream().filter(bucket -> StateName.AWAITING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     buckets.stream().filter(bucket -> StateName.SCHEDULED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     buckets.stream().filter(bucket -> StateName.ENQUEUED.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
                     buckets.stream().filter(bucket -> StateName.PROCESSING.name().equals(bucket.getKeyAsString())).map(MultiBucketsAggregation.Bucket::getDocCount).findFirst().orElse(0L),
