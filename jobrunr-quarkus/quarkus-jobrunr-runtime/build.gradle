@@ -14,10 +14,12 @@ processResources {
 
 dependencies {
     api platform(project(':platform'))
-    api project(':core')
-    implementation enforcedPlatform('io.quarkus:quarkus-bom:2.0.2.Final')
-    implementation 'io.quarkus:quarkus-core-deployment'
+    api platform('io.quarkus:quarkus-bom:2.1.0.Final')
 
+    api project(':core')
+    implementation 'io.quarkus:quarkus-core-deployment'
+    implementation 'io.quarkus:quarkus-arc-deployment'
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.1.0.Final'
 
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'

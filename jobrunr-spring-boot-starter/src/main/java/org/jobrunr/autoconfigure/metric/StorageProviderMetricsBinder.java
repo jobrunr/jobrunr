@@ -1,4 +1,4 @@
-package org.jobrunr.metric;
+package org.jobrunr.autoconfigure.metric;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;

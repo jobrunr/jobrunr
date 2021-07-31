@@ -1,103 +1,70 @@
 package org.jobrunr.quarkus.extension.deployment;
 
-import io.quarkus.arc.DefaultBean;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import org.jobrunr.dashboard.JobRunrDashboardWebServer;
-import org.jobrunr.quarkus.JobRunrConfiguration;
-import org.jobrunr.scheduling.JobScheduler;
-import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.JobActivator;
-import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
+import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrElasticSearchStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.CDI;
-import java.util.function.BooleanSupplier;
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 class JobRunrExtensionProcessor {
 
-    private static final String FEATURE = "jobrunr-extension";
-
-    JobRunrConfiguration configuration;
+    private static final String FEATURE = "jobrunr";
 
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
     }
 
+    @BuildStep
+    AdditionalBeanBuildItem produce(Capabilities capabilities, CombinedIndexBuildItem index) {
+        Set<Class> beanClasses = new HashSet<>();
+        beanClasses.add(JobRunrProducer.class);
+        beanClasses.add(JobRunrStarter.class);
+        beanClasses.add(storageProviderClass(capabilities));
+        beanClasses.add(jsonMapperClass(capabilities));
 
-    @Produces
-    @DefaultBean
-    //TODO: make it return correct storageprovider based on Extensions (agroal, mongo, redis, elasticsearch)?
-    public StorageProvider storageProvider() {
-        return new InMemoryStorageProvider();
+        System.out.println("========================================================");
+        System.out.println(capabilities.getCapabilities());
+        System.out.println(beanClasses);
+        System.out.println(index.getIndex().getKnownClasses());
+
+        System.out.println("========================================================");
+
+        return AdditionalBeanBuildItem.builder()
+                .setUnremovable()
+                .addBeanClasses(beanClasses.stream().map(Class::getName).collect(toSet()))
+                .build();
     }
 
-    @Produces
-    @DefaultBean
-    @BuildStep(onlyIf = IsJobSchedulerEnabled.class)
-    public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        return new JobScheduler(storageProvider);
-    }
-
-    // TODO: consume JobRunrConfiguration for custom settings
-    @Produces
-    @DefaultBean
-    @BuildStep(onlyIf = IsBackgroundJobServerEnabled.class)
-    BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
-        return new BackgroundJobServer(storageProvider, jsonMapper, jobActivator);
-    }
-
-    // TODO: consume JobRunrConfiguration for custom settings
-    @Produces
-    @DefaultBean
-    @BuildStep(onlyIf = IsDashboardWebServerEnabled.class)
-    JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
-        return new JobRunrDashboardWebServer(storageProvider, jsonMapper);
-    }
-
-    @Produces
-    @DefaultBean
-    public JobActivator jobActivator() {
-        return new JobActivator() {
-            @Override
-            public <T> T activateJob(Class<T> aClass) {
-                return CDI.current().select(aClass).get();
-            }
-        };
-    }
-
-    @Produces
-    @DefaultBean
-    //TODO: make it return correct JsonMapper based on what is available (JSONB, Jackson)?
-    public JsonMapper jsonMapper() {
-        return new JsonbJsonMapper();
-    }
-
-    static class IsBackgroundJobServerEnabled implements BooleanSupplier {
-        JobRunrConfiguration jobRunrConfiguration;
-
-        public boolean getAsBoolean() {
-            return jobRunrConfiguration.backgroundJobServer.enabled;
+    private Class<?> jsonMapperClass(Capabilities capabilities) {
+        if (capabilities.isPresent("io.quarkus.jsonb")) {
+            return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
+        } else if (capabilities.isPresent("io.quarkus.jackson")) {
+            return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
         }
+        throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
     }
 
-    static class IsJobSchedulerEnabled implements BooleanSupplier {
-        JobRunrConfiguration jobRunrConfiguration;
-
-        public boolean getAsBoolean() {
-            return jobRunrConfiguration.jobScheduler.enabled;
-        }
-    }
-
-    static class IsDashboardWebServerEnabled implements BooleanSupplier {
-        JobRunrConfiguration jobRunrConfiguration;
-
-        public boolean getAsBoolean() {
-            return jobRunrConfiguration.dashboard.enabled;
+    private Class<?> storageProviderClass(Capabilities capabilities) {
+        if (capabilities.isPresent("io.quarkus.agroal")) {
+            return JobRunrSqlStorageProviderProducer.class;
+        } else if (capabilities.isPresent("io.quarkus.mongodb-client")) {
+            return JobRunrMongoDBStorageProviderProducer.class;
+        } else if (capabilities.isPresent("io.quarkus.elasticsearch-rest-high-level-client")) {
+            return JobRunrElasticSearchStorageProviderProducer.class;
+        } else {
+            return JobRunrInMemoryStorageProviderProducer.class;
         }
     }
 }

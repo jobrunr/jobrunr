@@ -5,8 +5,6 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.jobrunr.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
-import org.jobrunr.metric.BackgroundJobServerMetricsBinder;
-import org.jobrunr.metric.StorageProviderMetricsBinder;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
