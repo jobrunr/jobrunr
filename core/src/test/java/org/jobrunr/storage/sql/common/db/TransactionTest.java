@@ -62,8 +62,7 @@ class TransactionTest {
 
         //THEN
         verify(connection, never()).commit();
-        // not 100 % sure about this one since autocommit is true.
-        verify(connection).rollback();
+        verify(connection, never()).rollback();
         verify(connection, never()).setAutoCommit(anyBoolean());
     }
 
