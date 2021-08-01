@@ -25,7 +25,6 @@ import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProduc
 import org.jobrunr.scheduling.JobRunrRecorder;
 import org.jobrunr.scheduling.cron.CronExpression;
 
-import java.time.ZoneId;
 import java.util.*;
 
 import static java.util.stream.Collectors.toSet;
@@ -80,10 +79,10 @@ class JobRunrExtensionProcessor {
             if (AnnotationTarget.Kind.METHOD.equals(annotationTarget.kind())) {
                 final String id = getId(recurringJobAnnotation);
                 final JobDetails jobDetails = getJobDetails(recurringJobAnnotation);
-                final CronExpression cron = getCronExpression(recurringJobAnnotation);
-                final ZoneId zoneId = getZoneId(recurringJobAnnotation);
+                final String cron = getCron(recurringJobAnnotation);
+                final String zoneId = getZoneId(recurringJobAnnotation);
                 System.out.println("===========================================");
-                System.out.println("Found recurring job: " + id + "; " + cron.getExpression() + "; " + jobDetails);
+                System.out.println("Found recurring job: " + id + "; " + cron + "; " + jobDetails);
                 System.out.println("===========================================");
 
                 recorder.schedule(beanContainer.getValue(), id, jobDetails, cron, zoneId);
@@ -111,15 +110,15 @@ class JobRunrExtensionProcessor {
         );
     }
 
-    private ZoneId getZoneId(AnnotationInstance recurringJobAnnotation) {
+    private String getZoneId(AnnotationInstance recurringJobAnnotation) {
         if (recurringJobAnnotation.value("zoneId") != null) {
-            return ZoneId.of(recurringJobAnnotation.value("zoneId").asString());
+            return recurringJobAnnotation.value("zoneId").asString();
         }
-        return ZoneId.systemDefault();
+        return null;
     }
 
-    private CronExpression getCronExpression(AnnotationInstance recurringJobAnnotation) {
-        return CronExpression.create(recurringJobAnnotation.value("cron").asString());
+    private String getCron(AnnotationInstance recurringJobAnnotation) {
+        return recurringJobAnnotation.value("cron").asString();
     }
 
     private Class<?> jsonMapperClass(Capabilities capabilities) {

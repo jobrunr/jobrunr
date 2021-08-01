@@ -96,7 +96,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
 
         private String resolveStringValue(String value) {
             if (embeddedValueResolver != null && value != null) {
-                value = embeddedValueResolver.resolveStringValue(value);
+                return embeddedValueResolver.resolveStringValue(value);
             }
             return value;
         }

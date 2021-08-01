@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="1">
+    <list size="2">
       <item index="0" class="java.lang.String" itemvalue="com.tngtech.archunit.junit.ArchTest" />
+      <item index="1" class="java.lang.String" itemvalue="io.quarkus.deployment.annotations.BuildStep" />
     </list>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
