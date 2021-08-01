@@ -1,4 +1,4 @@
-package org.jobrunr.spring.autoconfigure.metric;
+package org.jobrunr.spring.autoconfigure.metrics;
 
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Gauge;
@@ -19,11 +19,7 @@ public class BackgroundJobServerMetricsBinder {
     }
 
     @PostConstruct
-    public void setUpMetrics() {
-        this.registerBackgroundJobServerMetrics();
-    }
-
-    private void registerBackgroundJobServerMetrics() {
+    public void registerBackgroundJobServerMetrics() {
         registerFunction("poll-interval-in-seconds", (bgJobServer) -> (double) bgJobServer.getServerStatus().getPollIntervalInSeconds());
         registerFunction("worker-pool-size", (bgJobServer) -> (double) bgJobServer.getServerStatus().getWorkerPoolSize());
 

@@ -1,4 +1,4 @@
-package org.jobrunr.spring.autoconfigure.metric;
+package org.jobrunr.spring.autoconfigure.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
@@ -29,17 +29,13 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener {
     }
 
     @PostConstruct
-    public void setUpMetrics() {
-        this.registryStorageProvider();
-    }
-
-    private void registryStorageProvider() {
+    public void registerStorageProviderMetrics() {
         registerGauge(StateName.SCHEDULED, scheduledGauge);
         registerGauge(StateName.ENQUEUED, enqueuedGauge);
         registerGauge(StateName.PROCESSING, processingGauge);
         registerGauge(StateName.FAILED, failedGauge);
         registerGauge(StateName.SUCCEEDED, succeededGauge);
-        registerGauge("all-time-succeeded", allTimeSucceededGauge);
+        registerGauge("ALL_TIME_SUCCEEDED", allTimeSucceededGauge);
         registerGauge(StateName.DELETED, deletedGauge);
 
         this.storageProvider.addJobStorageOnChangeListener(this);
@@ -50,7 +46,7 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener {
     }
 
     private void registerGauge(String stateName, AtomicLong number) {
-        meterRegistry.gauge("jobrunr.jobs", Tags.of("state", stateName), number);
+        meterRegistry.gauge("jobrunr.jobs." + stateName.toLowerCase(), Tags.of("state", stateName), number);
     }
 
     @Override

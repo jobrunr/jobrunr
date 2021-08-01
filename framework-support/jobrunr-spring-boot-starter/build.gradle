@@ -6,12 +6,14 @@ plugins {
 
 dependencies {
     api platform(project(':platform'))
+    api platform('org.springframework.boot:spring-boot-dependencies:2.5.3')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.5.3')
     api project(':core')
 
-    api 'org.springframework.boot:spring-boot-starter:2.5.1'
-    api 'org.springframework.boot:spring-boot-starter-actuator:2.5.1'
-    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor:2.5.1'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.5.1'
+    api 'org.springframework.boot:spring-boot-starter'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -22,17 +24,16 @@ dependencies {
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'io.micrometer:micrometer-core'
 
-    compileOnly 'io.micrometer:micrometer-core:1.7.2'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.1'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
-    testImplementation 'io.micrometer:micrometer-core:1.7.2'
+    testImplementation 'io.micrometer:micrometer-core'
 }
 
 java {
