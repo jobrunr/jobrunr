@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure;
+package org.jobrunr.spring.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;

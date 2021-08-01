@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure.metric;
+package org.jobrunr.spring.autoconfigure.metric;
 
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Gauge;

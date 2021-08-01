@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure;
+package org.jobrunr.spring.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;

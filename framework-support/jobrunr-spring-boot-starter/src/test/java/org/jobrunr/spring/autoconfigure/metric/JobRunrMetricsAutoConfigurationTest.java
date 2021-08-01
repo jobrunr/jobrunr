@@ -1,10 +1,10 @@
-package org.jobrunr.autoconfigure.metric;
+package org.jobrunr.spring.autoconfigure.metric;
 
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.jobrunr.autoconfigure.JobRunrAutoConfiguration;
-import org.jobrunr.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;

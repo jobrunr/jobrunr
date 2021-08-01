@@ -1,8 +1,8 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.annotations.Recurring;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.spring.annotations.Recurring;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;

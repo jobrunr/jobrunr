@@ -1,8 +1,8 @@
-package org.jobrunr.autoconfigure.metric;
+package org.jobrunr.spring.autoconfigure.metric;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import org.jobrunr.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

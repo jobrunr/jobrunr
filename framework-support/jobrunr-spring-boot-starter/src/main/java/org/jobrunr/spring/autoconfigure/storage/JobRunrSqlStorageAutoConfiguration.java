@@ -1,7 +1,7 @@
-package org.jobrunr.autoconfigure.storage;
+package org.jobrunr.spring.autoconfigure.storage;
 
-import org.jobrunr.autoconfigure.JobRunrProperties;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;

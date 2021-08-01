@@ -1,4 +1,4 @@
-package org.jobrunr.annotations;
+package org.jobrunr.spring.annotations;
 
 import java.lang.annotation.*;
 

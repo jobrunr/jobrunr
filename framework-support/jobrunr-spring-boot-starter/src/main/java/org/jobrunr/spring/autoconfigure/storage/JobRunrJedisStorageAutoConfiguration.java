@@ -1,4 +1,4 @@
-package org.jobrunr.autoconfigure.storage;
+package org.jobrunr.spring.autoconfigure.storage;
 
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
