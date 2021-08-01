@@ -12,7 +12,7 @@ public class BackgroundJobWithoutIocRunner extends AbstractBackgroundJobRunner {
     public boolean supports(Job job) {
         JobDetails jobDetails = job.getJobDetails();
         assertJobExists(jobDetails);
-        return !jobDetails.getStaticFieldName().isPresent() && hasDefaultNoArgConstructor(jobDetails.getClassName());
+        return !jobDetails.hasStaticFieldName() && hasDefaultNoArgConstructor(jobDetails.getClassName());
     }
 
     @Override

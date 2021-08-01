@@ -23,7 +23,6 @@ public class CronExpression implements Comparable<CronExpression> {
 
     private enum DaysAndDaysOfWeekRelation {
         INTERSECT, UNION
-
     }
 
     private static final CronFieldParser SECONDS_FIELD_PARSER = new CronFieldParser(CronFieldType.SECOND);

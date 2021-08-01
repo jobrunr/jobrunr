@@ -122,7 +122,7 @@ public class JobUtils {
 
     private static String getJobClassAndMethodName(JobDetails jobDetails) {
         String result = jobDetails.getClassName();
-        Optional<String> staticFieldName = jobDetails.getStaticFieldName();
+        Optional<String> staticFieldName = Optional.ofNullable(jobDetails.getStaticFieldName());
         if (staticFieldName.isPresent()) result += "." + staticFieldName.get();
         result += "." + jobDetails.getMethodName();
         return result;

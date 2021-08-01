@@ -28,7 +28,7 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
     }
 
     public JobDetailsAssert hasStaticFieldName(String staticFieldName) {
-        Assertions.assertThat(actual.getStaticFieldName()).hasValue(staticFieldName);
+        Assertions.assertThat(actual.getStaticFieldName()).isEqualTo(staticFieldName);
         return this;
     }
 

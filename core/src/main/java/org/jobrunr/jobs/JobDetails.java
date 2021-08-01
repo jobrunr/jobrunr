@@ -4,9 +4,9 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Collections.unmodifiableList;
+import static org.jobrunr.utils.CollectionUtils.asArrayList;
 
 public class JobDetails {
 
@@ -23,15 +23,19 @@ public class JobDetails {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
-        this.jobParameters = new ArrayList<>(jobParameters);
+        this.jobParameters = asArrayList(jobParameters);
     }
 
     public String getClassName() {
         return className;
     }
 
-    public Optional<String> getStaticFieldName() {
-        return Optional.ofNullable(staticFieldName);
+    public String getStaticFieldName() {
+        return staticFieldName;
+    }
+
+    public boolean hasStaticFieldName() {
+        return staticFieldName != null;
     }
 
     public String getMethodName() {

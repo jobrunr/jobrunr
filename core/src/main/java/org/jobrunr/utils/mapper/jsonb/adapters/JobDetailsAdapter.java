@@ -35,7 +35,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
 
         return nullSafeJsonObjectBuilder()
                 .add(FIELD_CLASS_NAME, jobDetails.getClassName())
-                .add(FIELD_STATIC_FIELD_NAME, jobDetails.getStaticFieldName().orElse(null))
+                .add(FIELD_STATIC_FIELD_NAME, jobDetails.getStaticFieldName())
                 .add(FIELD_METHOD_NAME, jobDetails.getMethodName())
                 .add(FIELD_JOB_PARAMETERS, parametersJsonArray.build())
                 .build();

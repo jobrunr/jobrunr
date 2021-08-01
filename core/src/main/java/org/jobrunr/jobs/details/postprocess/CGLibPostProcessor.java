@@ -11,7 +11,7 @@ public class CGLibPostProcessor implements JobDetailsPostProcessor {
         if (jobDetails.getClassName().matches("(.*)\\$\\$EnhancerBy(.*)CGLIB(.*)")) {
             return new JobDetails(
                     substringBefore(jobDetails.getClassName(), "$$EnhancerBy"),
-                    jobDetails.getStaticFieldName().orElse(null),
+                    jobDetails.getStaticFieldName(),
                     jobDetails.getMethodName(),
                     jobDetails.getJobParameters()
             );

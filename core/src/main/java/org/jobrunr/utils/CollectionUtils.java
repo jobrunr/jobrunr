@@ -36,4 +36,12 @@ public class CollectionUtils {
         result.addAll(Arrays.asList(params));
         return result;
     }
+
+    public static <T> ArrayList<T> asArrayList(Collection<T> existingCollection) {
+        ArrayList<T> result = new ArrayList<>();
+        if (existingCollection != null) {
+            result.addAll(existingCollection);
+        }
+        return result;
+    }
 }
