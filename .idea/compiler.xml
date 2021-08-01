@@ -19,7 +19,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.5.1/8b1b60e70c35f1cbce4e1820fd6bbd1154004cc4/spring-boot-autoconfigure-processor-2.5.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.5.1/2a5077776e83fe3ed7a454d5483076edf6f7081d/spring-boot-configuration-processor-2.5.1.jar" />
         </processorPath>
-        <module name="JobRunr.jobrunr-spring-boot-starter.main" />
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -32,8 +32,8 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.12.4/6a1bd259b6c4e3f9219ec8ec0be55ed11eed0c/jackson-core-2.12.4.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.12.4/69206e02e6a696034f06a59d3ddbfbba5a4cd81/jackson-databind-2.12.4.jar" />
         </processorPath>
-        <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-deployment.main" />
-        <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-runtime.main" />
+        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
+        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
@@ -99,7 +99,12 @@
       <module name="JangFire.tests.main" target="1.8" />
       <module name="JangFire.tests.test" target="11" />
       <module name="JangFire.tests.testFixtures" target="1.8" />
+      <module name="JobRunr.jobrunr-kotlin-15-support.test" target="11" />
       <module name="JobRunr.jobrunr-kotlin-support.test" target="11" />
+      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-deployment.test" target="11" />
+      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-runtime.test" target="11" />
+      <module name="JobRunr.jobrunr-quarkus.test" target="11" />
+      <module name="JobRunr.jobrunr-spring-boot-starter.test" target="11" />
       <module name="JobRunr.kotlin-support.test" target="11" />
       <module name="JobRunr.platform.test" target="11" />
       <module name="JobRunr.pro.test" target="11" />
@@ -135,6 +140,7 @@
       <module name="org.jangfire.JangFire.storage.core.main" target="1.8" />
       <module name="org.jangfire.JangFire.storage.core.test" target="1.8" />
       <module name="org.jangfire.JangFire.storage.core.testFixtures" target="1.8" />
+      <module name="org.jobrunr.JobRunr.jobrunr-kotlin-14-support.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
