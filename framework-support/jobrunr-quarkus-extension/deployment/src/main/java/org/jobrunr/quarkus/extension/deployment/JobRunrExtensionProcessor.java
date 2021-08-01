@@ -3,20 +3,24 @@ package org.jobrunr.quarkus.extension.deployment;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.recording.RecorderContext;
+import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.quarkus.annotations.Recurring;
+import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
+import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrElasticSearchStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
@@ -85,6 +89,23 @@ class JobRunrExtensionProcessor {
                 recorder.schedule(beanContainer.getValue(), id, jobDetails, cron, zoneId);
             }
         }
+    }
+
+    // when adding healthcheck, usage fails because of java.lang.ClassNotFoundException: io.quarkus.smallrye.health.deployment.spi.HealthBuildItem
+    // generated deployment pom contains compile dependency to
+    //    <dependency>
+    //      <groupId>io.quarkus</groupId>
+    //      <artifactId>quarkus-smallrye-health-spi</artifactId>
+    //      <version>2.1.0.Final</version>
+    //      <scope>compile</scope>
+    //    </dependency>
+    @BuildStep
+    //@Record(ExecutionTime.STATIC_INIT)
+    HealthBuildItem addHealthCheck(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
+        if (capabilities.isPresent(Capability.SMALLRYE_HEALTH)) {
+            return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrConfiguration.healthEnabled);
+        }
+        return null;
     }
 
     private Class<?> jsonMapperClass(Capabilities capabilities) {

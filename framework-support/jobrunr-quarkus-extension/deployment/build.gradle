@@ -7,29 +7,24 @@ plugins {
 dependencies {
     api platform(project(':platform'))
     api platform('io.quarkus:quarkus-bom:2.1.0.Final')
-
-    api project(':core')
-    implementation project(':framework-support:jobrunr-quarkus-extension:runtime') // why: https://quarkus.io/guides/building-my-first-extension
-    implementation 'io.quarkus:quarkus-core-deployment'
-    implementation 'io.quarkus:quarkus-arc-deployment'
     annotationProcessor 'io.quarkus:quarkus-extension-processor:2.1.0.Final'
 
+    api project(':core')
+    api project(':framework-support:jobrunr-quarkus-extension:runtime') // why: https://quarkus.io/guides/building-my-first-extension
+    api 'io.quarkus:quarkus-core-deployment'
+    api 'io.quarkus:quarkus-arc-deployment'
+    api 'io.quarkus:quarkus-smallrye-health-spi'
 
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
 
-    compileOnly 'redis.clients:jedis'
-    compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
     testImplementation 'io.quarkus:quarkus-junit5-internal'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-    testImplementation 'com.google.code.gson:gson'
-    testImplementation 'redis.clients:jedis'
-    testImplementation 'io.lettuce:lettuce-core'
+    testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 }

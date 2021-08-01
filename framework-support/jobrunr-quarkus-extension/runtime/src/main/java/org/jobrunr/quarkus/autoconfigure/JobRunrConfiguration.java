@@ -8,7 +8,7 @@ import io.quarkus.runtime.annotations.ConfigRoot;
 import java.time.Duration;
 import java.util.Optional;
 
-@ConfigRoot(name = "jobrunr", phase = ConfigPhase.RUN_TIME)
+@ConfigRoot(name = "jobrunr", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public class JobRunrConfiguration {
 
     public DatabaseConfiguration database;
@@ -19,6 +19,11 @@ public class JobRunrConfiguration {
 
     public DashboardConfiguration dashboard;
 
+    /**
+     * Whether or not an health check is published in case the smallrye-health extension is present.
+     */
+    @ConfigItem(name = "health.enabled", defaultValue = "true")
+    public boolean healthEnabled;
 
     @ConfigGroup
     public static class DatabaseConfiguration {
