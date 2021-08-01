@@ -11,11 +11,14 @@ import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,6 +37,7 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 /**
  * A Spring Boot AutoConfiguration class for JobRunr
  */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @EnableConfigurationProperties(JobRunrProperties.class)
 public class JobRunrAutoConfiguration {
@@ -101,7 +105,6 @@ public class JobRunrAutoConfiguration {
         return applicationContext::getBean;
     }
 
-
     @Bean
     @ConditionalOnMissingBean
     public JobMapper jobMapper(JsonMapper jobRunrJsonMapper) {
@@ -110,7 +113,7 @@ public class JobRunrAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(Gson.class)
-    public class JobRunrGsonAutoConfiguration {
+    public static class JobRunrGsonAutoConfiguration {
 
         @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
@@ -121,7 +124,7 @@ public class JobRunrAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(ObjectMapper.class)
-    public class JobRunrJacksonAutoConfiguration {
+    public static class JobRunrJacksonAutoConfiguration {
 
         @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
@@ -134,12 +137,23 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnClass(Jsonb.class)
     @ConditionalOnResource(resources = {"classpath:META-INF/services/javax.json.bind.spi.JsonbProvider",
             "classpath:META-INF/services/javax.json.spi.JsonProvider"})
-    public class JobRunrJsonbAutoConfiguration {
+    public static class JobRunrJsonbAutoConfiguration {
 
         @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
         public JsonMapper jsonbJsonMapper() {
             return new JsonbJsonMapper();
+        }
+    }
+
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Configuration
+    @ConditionalOnClass(HealthIndicator.class)
+    public static class JobRunrHealthIndicatorAutoConfiguration {
+
+        @Bean
+        public HealthIndicator healthIndicator(JobRunrProperties properties, ObjectProvider<BackgroundJobServer> backgroundJobServerProvider) {
+            return new JobRunrHealthIndicator(properties, backgroundJobServerProvider);
         }
     }
 

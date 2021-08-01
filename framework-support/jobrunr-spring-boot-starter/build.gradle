@@ -9,6 +9,7 @@ dependencies {
     api project(':core')
 
     api 'org.springframework.boot:spring-boot-starter:2.5.1'
+    api 'org.springframework.boot:spring-boot-starter-actuator:2.5.1'
     annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor:2.5.1'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.5.1'
 
