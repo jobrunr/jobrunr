@@ -155,6 +155,18 @@ public class JobRunrAutoConfigurationTest {
         });
     }
 
+    @Test
+    void jobRunrHealthIndicatorAutoConfigurationHealthIndicatorDisabled() {
+        this.contextRunner
+                .withPropertyValues(
+                        "org.jobrunr.background-job-server.enabled=true",
+                        "management.health.jobrunr.enabled=false"
+                )
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).doesNotHaveBean(JobRunrHealthIndicator.class);
+                });
+    }
+
     @Configuration
     static class InMemoryStorageProviderConfiguration {
         @Bean
