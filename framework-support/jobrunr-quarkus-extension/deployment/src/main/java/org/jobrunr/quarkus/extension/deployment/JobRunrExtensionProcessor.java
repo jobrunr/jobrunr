@@ -17,13 +17,11 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
-import org.jobrunr.quarkus.autoconfigure.recording.CronExpressionSubstitution;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrElasticSearchStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecorder;
-import org.jobrunr.scheduling.cron.CronExpression;
 
 import java.util.*;
 
@@ -72,7 +70,6 @@ class JobRunrExtensionProcessor {
                 jobDetails.getMethodName(),
                 jobDetails.getJobParameters()
         ));
-        recorderContext.registerSubstitution(CronExpression.class, String.class, CronExpressionSubstitution.class);
 
         for (AnnotationInstance recurringJobAnnotation : index.getIndex().getAnnotations(DotName.createSimple(Recurring.class.getName()))) {
             AnnotationTarget annotationTarget = recurringJobAnnotation.target();
@@ -87,6 +84,27 @@ class JobRunrExtensionProcessor {
 
                 recorder.schedule(beanContainer.getValue(), id, jobDetails, cron, zoneId);
             }
+        }
+    }
+
+    private Class<?> jsonMapperClass(Capabilities capabilities) {
+        if (capabilities.isPresent("io.quarkus.jsonb")) {
+            return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
+        } else if (capabilities.isPresent("io.quarkus.jackson")) {
+            return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
+        }
+        throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
+    }
+
+    private Class<?> storageProviderClass(Capabilities capabilities) {
+        if (capabilities.isPresent("io.quarkus.agroal")) {
+            return JobRunrSqlStorageProviderProducer.class;
+        } else if (capabilities.isPresent("io.quarkus.mongodb-client")) {
+            return JobRunrMongoDBStorageProviderProducer.class;
+        } else if (capabilities.isPresent("io.quarkus.elasticsearch-rest-high-level-client")) {
+            return JobRunrElasticSearchStorageProviderProducer.class;
+        } else {
+            return JobRunrInMemoryStorageProviderProducer.class;
         }
     }
 
@@ -119,26 +137,5 @@ class JobRunrExtensionProcessor {
 
     private String getCron(AnnotationInstance recurringJobAnnotation) {
         return recurringJobAnnotation.value("cron").asString();
-    }
-
-    private Class<?> jsonMapperClass(Capabilities capabilities) {
-        if (capabilities.isPresent("io.quarkus.jsonb")) {
-            return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
-        } else if (capabilities.isPresent("io.quarkus.jackson")) {
-            return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
-        }
-        throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
-    }
-
-    private Class<?> storageProviderClass(Capabilities capabilities) {
-        if (capabilities.isPresent("io.quarkus.agroal")) {
-            return JobRunrSqlStorageProviderProducer.class;
-        } else if (capabilities.isPresent("io.quarkus.mongodb-client")) {
-            return JobRunrMongoDBStorageProviderProducer.class;
-        } else if (capabilities.isPresent("io.quarkus.elasticsearch-rest-high-level-client")) {
-            return JobRunrElasticSearchStorageProviderProducer.class;
-        } else {
-            return JobRunrInMemoryStorageProviderProducer.class;
-        }
     }
 }
