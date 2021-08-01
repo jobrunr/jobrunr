@@ -16,9 +16,9 @@ public class JobContext {
     private JobDashboardLogger jobDashboardLogger;
     private JobDashboardProgressBar jobDashboardProgressBar;
 
-    private JobContext() {
-        // Needed for deserialization
-        this.job = null;
+    protected JobContext() {
+        // Needed for JSON-B deserialization
+        this(null);
     }
 
     /**

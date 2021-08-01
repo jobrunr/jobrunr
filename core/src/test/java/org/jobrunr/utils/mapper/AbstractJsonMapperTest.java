@@ -2,6 +2,7 @@ package org.jobrunr.utils.mapper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
@@ -53,6 +54,19 @@ public abstract class AbstractJsonMapperTest {
 
         final String jobAsString = jsonMapper.serialize(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-custom-object-parameter.json"));
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
+    void testSerializeAndDeserializeWithJobContext() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWork(5, JobContext.Null))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-null-jobcontext.json"));
 
         final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isEqualTo(job);
