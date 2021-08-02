@@ -36,6 +36,7 @@ java {
 
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    //systemProperty "maven.settings", "/home/ronald/.m2/settings.xml" does not help for Failed to create the application model for null
     //systemProperty "maven.home", "~/.m2/" -> does not help for Failed to create the application model for null
 }
 
