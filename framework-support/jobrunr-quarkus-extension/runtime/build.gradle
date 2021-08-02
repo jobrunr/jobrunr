@@ -12,6 +12,12 @@ processResources {
     ]
 }
 
+java {
+    registerFeature('metrics') {
+        usingSourceSet(sourceSets.main)
+    }
+}
+
 dependencies {
     api platform(project(':platform'))
     api platform('io.quarkus:quarkus-bom:2.1.0.Final')
@@ -21,7 +27,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-core-deployment'
     implementation 'io.quarkus:quarkus-arc-deployment'
 
-    compileOnly 'io.quarkus:quarkus-smallrye-health'
+    metricsApi 'io.quarkus:quarkus-smallrye-health'
 
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -85,11 +91,11 @@ publishing {
                 withXml {
                     def pomNode = asNode()
                     pomNode.remove(pomNode.dependencyManagement)
-                    pomNode.dependencies.'*'.findAll() {
-                        it.optional.text() == 'true'
-                    }.each() {
-                        it.parent().remove(it)
-                    }
+//                    pomNode.dependencies.'*'.findAll() {
+//                        it.optional.text() == 'true'
+//                    }.each() {
+//                        it.parent().remove(it)
+//                    }
                 }
             }
         }

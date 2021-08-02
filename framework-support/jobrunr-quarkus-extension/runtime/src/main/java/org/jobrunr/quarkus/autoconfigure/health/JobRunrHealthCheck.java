@@ -8,8 +8,8 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
-import java.util.Optional;
 
 @Readiness
 @ApplicationScoped
@@ -17,10 +17,6 @@ public class JobRunrHealthCheck implements HealthCheck {
 
     @Inject
     JobRunrConfiguration configuration;
-
-    @Inject
-    Optional<BackgroundJobServer> backgroundJobServer;
-
 
     @Override
     public HealthCheckResponse call() {
@@ -30,7 +26,7 @@ public class JobRunrHealthCheck implements HealthCheck {
                     .up()
                     .withData("backgroundJobServer", "disabled");
         } else {
-            final BackgroundJobServer backgroundJobServer = this.backgroundJobServer.get();
+            final BackgroundJobServer backgroundJobServer = CDI.current().select(BackgroundJobServer.class).get();
             if (backgroundJobServer.isRunning()) {
                 healthResponseBuilder
                         .up()

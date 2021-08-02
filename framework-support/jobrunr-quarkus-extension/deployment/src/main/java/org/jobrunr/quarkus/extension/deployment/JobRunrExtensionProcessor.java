@@ -91,16 +91,7 @@ class JobRunrExtensionProcessor {
         }
     }
 
-    // when adding healthcheck, usage fails because of java.lang.ClassNotFoundException: io.quarkus.smallrye.health.deployment.spi.HealthBuildItem
-    // generated deployment pom contains compile dependency to
-    //    <dependency>
-    //      <groupId>io.quarkus</groupId>
-    //      <artifactId>quarkus-smallrye-health-spi</artifactId>
-    //      <version>2.1.0.Final</version>
-    //      <scope>compile</scope>
-    //    </dependency>
     @BuildStep
-    //@Record(ExecutionTime.STATIC_INIT)
     HealthBuildItem addHealthCheck(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
         if (capabilities.isPresent(Capability.SMALLRYE_HEALTH)) {
             return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrConfiguration.healthEnabled);
