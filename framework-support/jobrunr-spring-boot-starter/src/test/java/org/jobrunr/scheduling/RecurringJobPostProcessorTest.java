@@ -38,11 +38,14 @@ class RecurringJobPostProcessorTest {
 
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationWillAutomaticallyBeRegistered() {
+        // GIVEN
         final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobScheduler);
         recurringJobPostProcessor.afterPropertiesSet();
 
+        // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJob(), "not important");
 
+        // THEN
         verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
     }
 

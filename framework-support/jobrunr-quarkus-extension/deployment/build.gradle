@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    //id 'io.quarkus' version '2.1.0.Final' //results in Execution failed for task ':framework-support:jobrunr-quarkus-extension:deployment:quarkusGenerateCode'. > argument type mismatch
     id 'maven-publish'
     id 'signing'
 }
@@ -22,7 +23,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
-    testImplementation 'io.quarkus:quarkus-junit5-internal'
+    testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
@@ -36,13 +37,14 @@ java {
 
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    systemProperty "platform.quarkus.native.builder-image", false
     //systemProperty "maven.settings", "/home/ronald/.m2/settings.xml" does not help for Failed to create the application model for null
     //systemProperty "maven.home", "~/.m2/" -> does not help for Failed to create the application model for null
 }
 
-nexusPublishing {
-    packageGroup = "org.jobrunr.quarkus-jobrunr-deployment"
-}
+//nexusPublishing {
+//    packageGroup = "org.jobrunr.quarkus-jobrunr-deployment"
+//}
 
 publishing {
     publications {

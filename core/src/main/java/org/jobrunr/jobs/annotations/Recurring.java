@@ -1,9 +1,9 @@
-package org.jobrunr.spring.annotations;
+package org.jobrunr.jobs.annotations;
 
 import java.lang.annotation.*;
 
 /**
- * Allows to recurrently schedule a method from a Micronaut bean using JobRunr.
+ * Allows to recurrently schedule a method from a Spring Service bean using JobRunr.
  *
  * <em>Note that methods annotated with the &commat;Recurring annotation may not have any parameters.</em>
  *

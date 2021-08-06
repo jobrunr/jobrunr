@@ -47,9 +47,9 @@ java {
     withSourcesJar()
 }
 
-nexusPublishing {
-    packageGroup = "org.jobrunr.quarkus-jobrunr"
-}
+//nexusPublishing {
+//    packageGroup = "org.jobrunr.quarkus-jobrunr"
+//}
 
 publishing {
     publications {

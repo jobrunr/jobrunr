@@ -9,7 +9,6 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
-import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -108,18 +107,6 @@ public class JobRunrProducer {
     @Singleton
     public JobMapper jobMapper(JsonMapper jobRunrJsonMapper) {
         return new JobMapper(jobRunrJsonMapper);
-    }
-
-    public static class InMemoryStorageProviderProducer {
-
-
-        @Produces
-        @DefaultBean
-        @Singleton
-        //TODO: make it return correct storageprovider based on Extensions (agroal, mongo, redis, elasticsearch)?
-        public StorageProvider storageProvider() {
-            return new InMemoryStorageProvider();
-        }
     }
 
 

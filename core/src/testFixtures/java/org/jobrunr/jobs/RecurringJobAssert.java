@@ -13,6 +13,16 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
         return new RecurringJobAssert(recurringJob);
     }
 
+    public RecurringJobAssert hasJobName(String name) {
+        Assertions.assertThat(actual.getJobName()).isEqualTo(name);
+        return this;
+    }
+
+    public RecurringJobAssert hasCronExpression(String cronExpression) {
+        Assertions.assertThat(actual.getCronExpression()).isEqualTo(cronExpression);
+        return this;
+    }
+
     public RecurringJobAssert isEqualTo(RecurringJob otherRecurringJob) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()

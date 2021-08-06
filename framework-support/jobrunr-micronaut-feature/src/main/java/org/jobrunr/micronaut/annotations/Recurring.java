@@ -1,4 +1,6 @@
-package org.jobrunr.spring.annotations;
+package org.jobrunr.micronaut.annotations;
+
+import io.micronaut.context.annotation.Executable;
 
 import java.lang.annotation.*;
 
@@ -23,6 +25,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
+@Executable(processOnStartup = true)
 @Documented
 public @interface Recurring {
 

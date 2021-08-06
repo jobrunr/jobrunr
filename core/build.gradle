@@ -98,9 +98,9 @@ jar {
     }
 }
 
-nexusPublishing {
-    packageGroup = "org.jobrunr.jobrunr"
-}
+//nexusPublishing {
+//    packageGroup = "org.jobrunr.jobrunr"
+//}
 
 publishing {
     publications {

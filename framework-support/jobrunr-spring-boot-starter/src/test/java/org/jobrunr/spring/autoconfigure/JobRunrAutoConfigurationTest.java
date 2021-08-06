@@ -9,6 +9,9 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.client.ClusterClient;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -28,7 +31,6 @@ import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -120,7 +122,6 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    @Disabled("see https://github.com/elastic/elasticsearch/issues/40534")
     void elasticSearchStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(ElasticSearchStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(ElasticSearchStorageProvider.class);
@@ -228,8 +229,14 @@ public class JobRunrAutoConfigurationTest {
         public RestHighLevelClient restHighLevelClient() throws IOException {
             RestHighLevelClient restHighLevelClientMock = mock(RestHighLevelClient.class);
             IndicesClient indicesClientMock = mock(IndicesClient.class);
+            ClusterClient clusterClientMock = mock(ClusterClient.class);
             when(restHighLevelClientMock.indices()).thenReturn(indicesClientMock);
+            when(restHighLevelClientMock.cluster()).thenReturn(clusterClientMock);
             when(indicesClientMock.exists(any(GetIndexRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(true);
+
+            GetResponse getResponse = mock(GetResponse.class);
+            when(getResponse.isExists()).thenReturn(true);
+            when(restHighLevelClientMock.get(any(GetRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(getResponse);
             return restHighLevelClientMock;
         }
     }
