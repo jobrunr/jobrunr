@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/jobrunr-kotlin-14-support/JobRunr.jobrunr-kotlin-14-support.test.iml" filepath="$PROJECT_DIR$/.idea/modules/jobrunr-kotlin-14-support/JobRunr.jobrunr-kotlin-14-support.test.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/jobrunr.iml" filepath="$PROJECT_DIR$/.idea/jobrunr.iml" />
     </modules>
   </component>
 </project>
