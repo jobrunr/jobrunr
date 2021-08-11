@@ -31,6 +31,8 @@ public class ServerZooKeeper implements Runnable {
 
     @Override
     public void run() {
+        if (backgroundJobServer.isStopped()) return;
+
         try {
             if (backgroundJobServer.isUnAnnounced()) {
                 announceBackgroundJobServer();
@@ -70,7 +72,8 @@ public class ServerZooKeeper implements Runnable {
                 new Thread(this::resetServer).start();
             } else {
                 LOGGER.error("FATAL - Server restarted 3 times but still times out by other servers. Shutting down.");
-                new Thread(this::stopServer).start();
+                //new Thread(this::stopServer).start();
+                stopServer();
             }
         }
     }

@@ -1,9 +1,13 @@
 package org.jobrunr.server;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.GCUtils;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +29,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_HUNDRED_MILLISECONDS;
 import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TWO_SECONDS;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
@@ -31,9 +38,11 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 class ServerZooKeeperTest {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeperTest.class);
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
 
@@ -195,9 +204,26 @@ class ServerZooKeeperTest {
         await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
     }
 
+    @Test
+    //@RepeatedIfExceptionsTest(repeats = 3, exceptions = AssertionError.class)
+    public void testStopByZookeeperDoesCorrectLogging() throws InterruptedException {
+        final Object serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
+        ListAppender<ILoggingEvent> zookeeperLogger = LoggerAssert.initFor(serverZooKeeper);
+        ListAppender<ILoggingEvent> backgroundJobServerLogger = LoggerAssert.initFor(backgroundJobServer);
+        backgroundJobServer.start();
+        LOGGER.info("Let JobRunr startup");
+        Thread.sleep(2000);
+
+        LOGGER.info("Simulating stop the world GC");
+        GCUtils.simulateStopTheWorldGC(25000);
+
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasErrorMessage("An unrecoverable error occurred. Shutting server down..."));
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(backgroundJobServerLogger).hasInfoMessageContaining("BackgroundJobPerformers started successfully", 1));
+        await().atMost(20, TimeUnit.SECONDS).untilAsserted(() -> assertThat(backgroundJobServerLogger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1));
+    }
+
     private BackgroundJobServerStatus anotherServer() {
         final BackgroundJobServerStatus masterBackgroundJobServerStatus = aFastBackgroundJobServerStatus().withIsStarted().build();
         return masterBackgroundJobServerStatus;
     }
-
 }

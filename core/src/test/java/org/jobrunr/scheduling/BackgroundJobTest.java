@@ -17,6 +17,8 @@ import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -55,6 +57,8 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
  * Must be public as used as a background job
  */
 public class BackgroundJobTest {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(BackgroundJobTest.class);
 
     private TestService testService;
     private StorageProviderForTest storageProvider;
@@ -444,6 +448,36 @@ public class BackgroundJobTest {
     void testJobInheritance() {
         SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
         assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void test() throws InterruptedException {
+        LOGGER.info("Scheduling job 1");
+        BackgroundJob.enqueue(() -> System.out.println("Running job 1"));
+        LOGGER.info("Letting job 1 execute");
+        Thread.sleep(2000);
+
+        LOGGER.info("Scheduling job 2");
+        BackgroundJob.enqueue(() -> System.out.println("Running job 2"));
+        LOGGER.info("Stopping the world");
+        stopTheWorld(15000);
+        stopTheWorld(15000);
+
+        LOGGER.info("Letting JobRunr to recover after stop the world");
+        Thread.sleep(10000);
+        LOGGER.info("Scheduling job 3");
+        BackgroundJob.enqueue(() -> System.out.println("Running job 3"));
+
+        LOGGER.info("Final wait");
+        Thread.sleep(120000);
+        LOGGER.info("Exiting");
+    }
+
+    public static void stopTheWorld(long millis) {
+        long timestamp = System.currentTimeMillis();
+        while (timestamp + millis > System.currentTimeMillis()) {
+            System.gc();
+        }
     }
 
     interface SomeJobInterface {

@@ -38,6 +38,7 @@ configure(subprojects.findAll {it.name != 'platform'}) {
         implementation platform(project(':platform'))
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
+        testImplementation 'io.github.artsok:rerunner-jupiter'
         testImplementation 'org.awaitility:awaitility'
         testImplementation 'org.assertj:assertj-core'
         testImplementation 'com.tngtech.archunit:archunit-junit5'
