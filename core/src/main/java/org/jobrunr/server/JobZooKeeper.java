@@ -8,6 +8,7 @@ import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
@@ -40,7 +41,7 @@ public class JobZooKeeper implements Runnable {
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
-    private final SevereExceptionManager severeExceptionManager;
+    private final DashboardNotificationManager dashboardNotificationManager;
     private final JobFilterUtils jobFilterUtils;
     private final WorkDistributionStrategy workDistributionStrategy;
     private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
@@ -55,7 +56,7 @@ public class JobZooKeeper implements Runnable {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.workDistributionStrategy = backgroundJobServer.getWorkDistributionStrategy();
-        this.severeExceptionManager = new SevereExceptionManager(backgroundJobServer);
+        this.dashboardNotificationManager = backgroundJobServer.getDashboardExceptionManager();
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();
@@ -75,9 +76,7 @@ public class JobZooKeeper implements Runnable {
             runMasterTasksIfCurrentServerIsMaster();
             onboardNewWorkIfPossible();
         } catch (Exception e) {
-            if (e instanceof SevereJobRunrException) {
-                severeExceptionManager.handle((SevereJobRunrException) e);
-            }
+            dashboardNotificationManager.handle(e);
             if (exceptionCount.getAndIncrement() < 5) {
                 LOGGER.warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);
             } else {

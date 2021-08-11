@@ -7,7 +7,8 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.server.SevereExceptionManager;
+import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StubDataProvider;
@@ -53,11 +54,12 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(11, 42), ZoneId.of("America/New_York"),
                 x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        SevereExceptionManager severeExceptionManager = new SevereExceptionManager(JobRunr.getBackgroundJobServer());
+        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {
                                  @Override
                                  public void run() {
-                                     severeExceptionManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
+                                     dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
+                                     dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
                                      System.out.println("Saved ServerJobRunrException");
                                  }
                              },

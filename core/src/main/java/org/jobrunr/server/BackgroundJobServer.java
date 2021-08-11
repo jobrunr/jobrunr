@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
 import org.jobrunr.server.runner.BackgroundJobRunner;
@@ -45,6 +46,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final UUID backgroundJobServerId;
     private final BackgroundJobServerConfiguration configuration;
     private final StorageProvider storageProvider;
+    private final DashboardNotificationManager dashboardNotificationManager;
     private final JsonMapper jsonMapper;
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final JobDefaultFilters jobDefaultFilters;
@@ -74,6 +76,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.backgroundJobServerId = UUID.randomUUID();
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
+        this.dashboardNotificationManager = new DashboardNotificationManager(backgroundJobServerId, storageProvider);
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
@@ -184,6 +187,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public StorageProvider getStorageProvider() {
         return storageProvider;
+    }
+
+    public DashboardNotificationManager getDashboardExceptionManager() {
+        return dashboardNotificationManager;
     }
 
     public JsonMapper getJsonMapper() {

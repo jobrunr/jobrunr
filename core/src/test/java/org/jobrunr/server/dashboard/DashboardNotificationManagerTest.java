@@ -1,4 +1,4 @@
-package org.jobrunr.server;
+package org.jobrunr.server.dashboard;
 
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.storage.JobRunrMetadata;
@@ -18,13 +18,11 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.SevereJobRunrException.DiagnosticsAware;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SevereExceptionManagerTest {
+class DashboardNotificationManagerTest {
 
-    @Mock
-    private BackgroundJobServer backgroundJobServerMock;
+    private UUID backgroundJobServerId;
 
     @Mock
     private StorageProvider storageProviderMock;
@@ -32,25 +30,23 @@ class SevereExceptionManagerTest {
     @Captor
     private ArgumentCaptor<JobRunrMetadata> jobRunrMetadataToSaveArgumentCaptor;
 
-    private SevereExceptionManager severeExceptionManager;
+    private DashboardNotificationManager dashboardNotificationManager;
 
     @BeforeEach
     void setUp() {
-        when(backgroundJobServerMock.getId()).thenReturn(UUID.randomUUID());
-        when(backgroundJobServerMock.getStorageProvider()).thenReturn(storageProviderMock);
-
-        severeExceptionManager = new SevereExceptionManager(backgroundJobServerMock);
+        backgroundJobServerId = UUID.randomUUID();
+        dashboardNotificationManager = new DashboardNotificationManager(backgroundJobServerId, storageProviderMock);
     }
 
     @Test
     void handleShouldSaveJobRunrMetadataToStorageProvider() {
-        severeExceptionManager.handle(new SevereJobRunrException("Severe exception occurred", new SomeException()));
+        dashboardNotificationManager.handle(new SevereJobRunrException("Severe exception occurred", new SomeException()));
 
         verify(storageProviderMock).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
 
         assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
                 .hasName(SevereJobRunrException.class.getSimpleName())
-                .hasOwner("BackgroundJobServer " + backgroundJobServerMock.getId().toString())
+                .hasOwner("BackgroundJobServer " + backgroundJobServerId.toString())
                 .valueContains("Runtime information")
                 .valueContains("Timestamp")
                 .valueContains("JobRunr Version")
@@ -60,6 +56,18 @@ class SevereExceptionManagerTest {
                 .valueContains("### Title from inner exception")
                 .valueContains("#### Title from inner exception")
                 .valueContains("Line from inner exception");
+    }
+
+    @Test
+    void notifyShouldSaveJobRunrMetadataToStorageProvider() {
+        dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(11));
+
+        verify(storageProviderMock).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
+
+        assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
+                .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
+                .hasOwner("BackgroundJobServer " + backgroundJobServerId.toString())
+                .valueContains("11");
     }
 
     private static class SomeException extends Exception implements DiagnosticsAware {

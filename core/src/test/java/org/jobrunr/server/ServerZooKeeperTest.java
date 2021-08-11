@@ -4,8 +4,10 @@ import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.GCUtils;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -13,8 +15,12 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +46,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
+@ExtendWith(MockitoExtension.class)
 class ServerZooKeeperTest {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeperTest.class);
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
+    @Captor
+    private ArgumentCaptor<JobRunrMetadata> jobRunrMetadataToSaveArgumentCaptor;
 
     @BeforeEach
     void setUp() {
@@ -206,18 +215,24 @@ class ServerZooKeeperTest {
 
     @Test
     public void testStopByServerZookeeperDoesCorrectLogging() throws InterruptedException {
+        // GIVEN
         final Object serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
         ListAppender<ILoggingEvent> zookeeperLogger = LoggerAssert.initFor(serverZooKeeper);
-        ListAppender<ILoggingEvent> backgroundJobServerLogger = LoggerAssert.initFor(backgroundJobServer);
         backgroundJobServer.start();
         LOGGER.info("Let JobRunr startup");
         Thread.sleep(2000);
 
+        // WHEN
         GCUtils.simulateStopTheWorldGC(25000);
-
         LOGGER.info("Let JobRunr recover");
         Thread.sleep(2000);
-        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasNoErrorMessageContaining("An unrecoverable error occurred. Shutting server down..."));
+
+        // THEN
+        await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasNoErrorMessageContaining("An unrecoverable error occurred. Shutting server down..."));
+        verify(storageProvider).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
+        assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
+                .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
+                .hasOwner("BackgroundJobServer " + backgroundJobServer.getId().toString());
     }
 
     private BackgroundJobServerStatus anotherServer() {
