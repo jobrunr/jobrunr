@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ public class ServerZooKeeper implements Runnable {
     private final Duration timeoutDuration;
     private final AtomicInteger restartAttempts;
     private UUID masterId;
+    private Instant lastSignalAlive;
     private Instant lastServerTimeoutCheck;
 
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
@@ -26,6 +28,7 @@ public class ServerZooKeeper implements Runnable {
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.timeoutDuration = Duration.ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4);
         this.restartAttempts = new AtomicInteger();
+        this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();
     }
 
@@ -56,16 +59,17 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private void announceBackgroundJobServer() {
-        storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
+        final BackgroundJobServerStatus serverStatus = backgroundJobServer.getServerStatus();
+        storageProvider.announceBackgroundJobServer(serverStatus);
         determineIfCurrentBackgroundJobServerIsMaster();
+        lastSignalAlive = serverStatus.getLastHeartbeat();
     }
 
     private void signalBackgroundJobServerAliveAndDoZooKeeping() {
         try {
-            final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(backgroundJobServer.getServerStatus());
+            signalBackgroundJobServerAlive();
             deleteServersThatTimedOut();
             determineIfCurrentBackgroundJobServerIsMaster();
-            // TODO: stop server if requested?
         } catch (ServerTimedOutException e) {
             if (restartAttempts.getAndIncrement() < 3) {
                 LOGGER.error("SEVERE ERROR - Server timed out while it's still alive. Are all servers using NTP and in the same timezone? Restart attempt {} out of 3", restartAttempts);
@@ -77,9 +81,18 @@ public class ServerZooKeeper implements Runnable {
         }
     }
 
+    private void signalBackgroundJobServerAlive() {
+        // TODO: stop server if requested?
+        final BackgroundJobServerStatus serverStatus = backgroundJobServer.getServerStatus();
+        final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(serverStatus);
+        lastSignalAlive = serverStatus.getLastHeartbeat();
+        // TODO: if big difference between now, previousSignalAlive or lastSignalAlive, there are GC problems. Show message in UI?
+        //LOGGER.info("setting lastSignalAlive to {};", lastSignalAlive);
+    }
+
     private void deleteServersThatTimedOut() {
         if (Instant.now().isAfter(this.lastServerTimeoutCheck.plus(timeoutDuration))) {
-            final Instant timedOutInstant = Instant.now().minus(timeoutDuration);
+            final Instant timedOutInstant = lastSignalAlive.minusSeconds(1);
             final int amountOfServersThatTimedOut = storageProvider.removeTimedOutBackgroundJobServers(timedOutInstant);
             if (amountOfServersThatTimedOut > 0) {
                 LOGGER.info("Removed {} server(s) that timed out", amountOfServersThatTimedOut);

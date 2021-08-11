@@ -1,11 +1,18 @@
 package org.jobrunr.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class GCUtils {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(GCUtils.class);
+
     public static void simulateStopTheWorldGC(long howLongInMillis) {
+        LOGGER.info("Simulating stop the world GC for {} sec", TimeUnit.MILLISECONDS.toSeconds(howLongInMillis));
         new MemoryExhauster(howLongInMillis - 500).start();
         callFullGCFor(howLongInMillis);
     }
@@ -46,7 +53,7 @@ public class GCUtils {
                     allocations.add(part);
                 }
             } catch (OutOfMemoryError e) {
-                System.out.println("catch expected exception: " + e.getMessage());
+                LOGGER.debug("Out of memory exception happened", e);
             }
         }
     }
