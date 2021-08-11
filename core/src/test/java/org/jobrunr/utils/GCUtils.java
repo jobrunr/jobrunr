@@ -6,7 +6,7 @@ import java.util.List;
 public class GCUtils {
 
     public static void simulateStopTheWorldGC(long howLongInMillis) {
-        new MemoryExhauster(howLongInMillis).start();
+        new MemoryExhauster(howLongInMillis - 500).start();
         callFullGCFor(howLongInMillis);
     }
 

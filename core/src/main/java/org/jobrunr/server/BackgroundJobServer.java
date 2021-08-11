@@ -95,7 +95,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public void start(boolean guard) {
         if (guard) {
             if (isStarted()) return;
-            lifecycleLock.lock();
             try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
                 firstHeartbeat = Instant.now();
                 isRunning = true;
@@ -129,6 +128,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public void stop() {
         if (isStopped()) return;
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            isMaster = null;
             stopWorkers();
             stopZooKeepers();
             isRunning = false;
@@ -242,8 +242,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void startZooKeepers() {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
-        zookeeperThreadPool.scheduleAtFixedRate(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleAtFixedRate(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
+        // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
+        // and all will be launched one after another
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
     }
 
     private void stopZooKeepers() {
@@ -319,13 +321,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         public BackgroundJobServerLifecycleLock lock() {
             if (reentrantLock.isHeldByCurrentThread()) return this;
 
+//            System.out.println("LifecycleLock trylock");
             reentrantLock.lock();
+//            System.out.println("LifecycleLock locked");
             return this;
         }
 
         @Override
         public void close() {
             reentrantLock.unlock();
+//            System.out.println("LifecycleLock unlocked");
         }
     }
 }

@@ -41,7 +41,7 @@ public class ServerZooKeeper implements Runnable {
             }
         } catch (Exception shouldNotHappen) {
             LOGGER.error("An unrecoverable error occurred. Shutting server down...", shouldNotHappen);
-            backgroundJobServer.setIsMaster(null);
+            if (masterId == null) backgroundJobServer.setIsMaster(null);
             new Thread(this::stopServer).start();
         }
     }
@@ -72,8 +72,7 @@ public class ServerZooKeeper implements Runnable {
                 new Thread(this::resetServer).start();
             } else {
                 LOGGER.error("FATAL - Server restarted 3 times but still times out by other servers. Shutting down.");
-                //new Thread(this::stopServer).start();
-                stopServer();
+                new Thread(this::stopServer).start();
             }
         }
     }

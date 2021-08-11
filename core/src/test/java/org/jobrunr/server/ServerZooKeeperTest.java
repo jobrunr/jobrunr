@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -204,9 +205,8 @@ class ServerZooKeeperTest {
         await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
     }
 
-    @Test
-    //@RepeatedIfExceptionsTest(repeats = 3, exceptions = AssertionError.class)
-    public void testStopByZookeeperDoesCorrectLogging() throws InterruptedException {
+    @RepeatedIfExceptionsTest(repeats = 3, exceptions = Throwable.class)
+    public void testStopByServerZookeeperDoesCorrectLogging() throws InterruptedException {
         final Object serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
         ListAppender<ILoggingEvent> zookeeperLogger = LoggerAssert.initFor(serverZooKeeper);
         ListAppender<ILoggingEvent> backgroundJobServerLogger = LoggerAssert.initFor(backgroundJobServer);
@@ -217,13 +217,14 @@ class ServerZooKeeperTest {
         LOGGER.info("Simulating stop the world GC");
         GCUtils.simulateStopTheWorldGC(25000);
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasErrorMessage("An unrecoverable error occurred. Shutting server down..."));
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(backgroundJobServerLogger).hasInfoMessageContaining("BackgroundJobPerformers started successfully", 1));
+        LOGGER.info("Let JobRunr recover");
+        Thread.sleep(2000);
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasErrorMessage("An unrecoverable error occurred. Shutting server down..."));
         await().atMost(20, TimeUnit.SECONDS).untilAsserted(() -> assertThat(backgroundJobServerLogger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1));
+        await().atMost(10, TimeUnit.SECONDS).during(1, TimeUnit.SECONDS).untilAsserted(() -> assertThat(backgroundJobServerLogger).hasInfoMessageContaining("BackgroundJobPerformers started successfully", 1));
     }
 
     private BackgroundJobServerStatus anotherServer() {
-        final BackgroundJobServerStatus masterBackgroundJobServerStatus = aFastBackgroundJobServerStatus().withIsStarted().build();
-        return masterBackgroundJobServerStatus;
+        return aFastBackgroundJobServerStatus().withIsStarted().build();
     }
 }
