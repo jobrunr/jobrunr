@@ -32,14 +32,29 @@ public @interface Recurring {
      * This is primarily meant for use with <code>${...}</code> placeholders,
      * allowing for external disabling of corresponding recurring methods.
      * <p>
-     * This mechanism was borrowed from {@code @Scheduled} from Spring Framework.
+     * This mechanism was borrowed from {@code @Scheduled} in Spring Framework.
      */
     String CRON_DISABLED = "-";
 
+    /**
+     * @return The id of this recurring job which can be used to alter or delete it.
+     */
     String id() default "";
 
+    /**
+     * The cron expression defining when to run this recurring job.
+     * <p>
+     * The special value {@link #CRON_DISABLED "-"} indicates a disabled cron
+     * trigger, primarily meant for externally specified values resolved by a
+     * <code>${...}</code> placeholder.
+     *
+     * @return An expression that can be parsed to a cron schedule.
+     */
     String cron();
 
+    /**
+     * @return The zoneId (timezone) of when to run this recurring job.
+     */
     String zoneId() default "";
 
 }
