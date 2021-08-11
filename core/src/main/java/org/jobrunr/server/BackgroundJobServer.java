@@ -321,16 +321,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         public BackgroundJobServerLifecycleLock lock() {
             if (reentrantLock.isHeldByCurrentThread()) return this;
 
-//            System.out.println("LifecycleLock trylock");
             reentrantLock.lock();
-//            System.out.println("LifecycleLock locked");
             return this;
         }
 
         @Override
         public void close() {
             reentrantLock.unlock();
-//            System.out.println("LifecycleLock unlocked");
         }
     }
 }
