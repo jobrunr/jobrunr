@@ -26,6 +26,16 @@ import java.lang.annotation.*;
 @Documented
 public @interface Recurring {
 
+    /**
+     * A special cron expression value that indicates a disabled trigger: {@value}.
+     * <p>
+     * This is primarily meant for use with <code>${...}</code> placeholders,
+     * allowing for external disabling of corresponding recurring methods.
+     * <p>
+     * This mechanism was borrowed from {@code @Scheduled} from Spring Framework.
+     */
+    String CRON_DISABLED = "-";
+
     String id() default "";
 
     String cron();
