@@ -17,10 +17,15 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class StorageProviderForTest implements StorageProvider {
 
-    private StorageProvider storageProvider;
+    private final StorageProvider storageProvider;
 
     public StorageProviderForTest(StorageProvider storageProvider) {
         this.storageProvider = storageProvider;
+    }
+
+    @Override
+    public String getName() {
+        return storageProvider.getName();
     }
 
     @Override

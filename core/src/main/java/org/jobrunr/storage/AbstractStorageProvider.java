@@ -33,6 +33,11 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
+    }
+
+    @Override
     public int delete(UUID id) {
         final Job jobToDelete = getJobById(id);
         jobToDelete.delete();

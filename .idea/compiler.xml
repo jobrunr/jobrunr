@@ -125,6 +125,7 @@
       <module name="JangFire.tests.test" target="11" />
       <module name="JangFire.tests.testFixtures" target="1.8" />
       <module name="JobRunr.framework-support.jobrunr-micronaut-project.test" target="11" />
+      <module name="JobRunr.jobrunr-kotlin-14-support.test" target="11" />
       <module name="JobRunr.jobrunr-kotlin-15-support.test" target="11" />
       <module name="JobRunr.jobrunr-kotlin-support.test" target="11" />
       <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-deployment.test" target="11" />
