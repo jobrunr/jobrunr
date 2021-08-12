@@ -229,7 +229,7 @@ class ServerZooKeeperTest {
 
         // THEN
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasNoErrorMessageContaining("An unrecoverable error occurred. Shutting server down..."));
-        verify(storageProvider).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
+        verify(storageProvider, atLeastOnce()).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
         assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
                 .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServer.getId().toString());

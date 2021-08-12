@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -96,12 +97,16 @@ public class ServerZooKeeper implements Runnable {
 
     private void deleteServersThatTimedOut() {
         if (Instant.now().isAfter(this.lastServerTimeoutCheck.plus(timeoutDuration))) {
-            final Instant timedOutInstant = lastSignalAlive.minusSeconds(1);
+            final Instant now = Instant.now();
+            final Instant defaultTimeoutInstant = now.minus(timeoutDuration);
+            final Instant timedOutInstantUsingLastSignalAlive = lastSignalAlive.minusMillis(500);
+            final Instant timedOutInstant = min(defaultTimeoutInstant, timedOutInstantUsingLastSignalAlive);
+
             final int amountOfServersThatTimedOut = storageProvider.removeTimedOutBackgroundJobServers(timedOutInstant);
             if (amountOfServersThatTimedOut > 0) {
                 LOGGER.info("Removed {} server(s) that timed out", amountOfServersThatTimedOut);
             }
-            this.lastServerTimeoutCheck = Instant.now();
+            this.lastServerTimeoutCheck = now;
         }
     }
 
@@ -126,6 +131,12 @@ public class ServerZooKeeper implements Runnable {
 
     private void stopServer() {
         backgroundJobServer.stop();
+    }
+
+    private static Instant min(Instant instant1, Instant instant2) {
+        Instant[] instants = new Instant[]{instant1, instant2};
+        Arrays.sort(instants);
+        return instants[0];
     }
 
     private Optional<Integer> cpuAllocationIrregularity(Instant lastSignalAlive, Instant lastHeartbeat) {
