@@ -254,6 +254,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
     }
 
+    public static void doWorkInStaticMethod(UUID id) {
+        System.out.println("Doing work in static method:" + id);
+    }
+
     public static class Work {
 
         private int workCount;
