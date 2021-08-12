@@ -7,7 +7,7 @@ public class ScheduledJobsNotFoundProblem extends Problem {
 
     public static final String PROBLEM_TYPE = "jobs-not-found";
 
-    private HashSet<String> jobsNotFound;
+    private final HashSet<String> jobsNotFound;
 
     public ScheduledJobsNotFoundProblem(Set<String> jobsNotFound) {
         super(PROBLEM_TYPE);

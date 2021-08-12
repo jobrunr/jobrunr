@@ -1,10 +1,11 @@
 package org.jobrunr;
 
+import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 
 import java.io.Serializable;
 
-public class SevereJobRunrException extends JobRunrException {
+public class SevereJobRunrException extends JobRunrException implements DashboardNotification {
 
     private final DiagnosticsAware diagnosticsAware;
 

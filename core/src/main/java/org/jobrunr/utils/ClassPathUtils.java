@@ -58,7 +58,6 @@ public class ClassPathUtils {
         } catch (IOException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
-
     }
 
     private static Path toPath(URL url) {

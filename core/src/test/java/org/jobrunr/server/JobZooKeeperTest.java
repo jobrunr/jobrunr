@@ -10,6 +10,7 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.*;
 import org.jobrunr.stubs.TestServiceInterface;
@@ -379,11 +380,13 @@ class JobZooKeeperTest {
     }
 
     private JobZooKeeper initializeJobZooKeeper() {
-        when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
+        UUID backgroundJobServerId = UUID.randomUUID();
+        lenient().when(backgroundJobServer.getId()).thenReturn(backgroundJobServerId);
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(workDistributionStrategy);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
+        when(backgroundJobServer.getDashboardExceptionManager()).thenReturn(new DashboardNotificationManager(backgroundJobServerId, storageProvider));
         lenient().when(workDistributionStrategy.canOnboardNewWork()).thenReturn(true);
         lenient().when(workDistributionStrategy.getWorkPageRequest()).thenReturn(ascOnUpdatedAt(10));
         lenient().when(backgroundJobServer.isAnnounced()).thenReturn(true);

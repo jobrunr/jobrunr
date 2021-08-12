@@ -11,6 +11,10 @@ public class JobRunrMetadata {
     private final Instant updatedAt;
     private String value;
 
+    public JobRunrMetadata(String name, String owner, Object value) {
+        this(name, owner, value.toString());
+    }
+
     public JobRunrMetadata(String name, String owner, String value) {
         this(name, owner, value, Instant.now(), Instant.now());
     }
