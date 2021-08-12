@@ -49,7 +49,7 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 @ExtendWith(MockitoExtension.class)
 class ServerZooKeeperTest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeperTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeperTest.class);
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
     @Captor
@@ -214,7 +214,7 @@ class ServerZooKeeperTest {
     }
 
     @Test
-    public void testStopByServerZookeeperDoesCorrectLogging() throws InterruptedException {
+    public void testLongGCDoesNotStopJobRunr() throws InterruptedException {
         // GIVEN
         final Object serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
         ListAppender<ILoggingEvent> zookeeperLogger = LoggerAssert.initFor(serverZooKeeper);
