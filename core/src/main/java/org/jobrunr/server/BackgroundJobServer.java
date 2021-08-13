@@ -323,7 +323,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 .orElse(new ScheduledThreadPoolJobRunrExecutor(workDistributionStrategy.getWorkerCount(), "backgroundjob-worker-pool"));
     }
 
-    private class BackgroundJobServerLifecycleLock implements AutoCloseable {
+    private static class BackgroundJobServerLifecycleLock implements AutoCloseable {
         private final ReentrantLock reentrantLock = new ReentrantLock();
 
         public BackgroundJobServerLifecycleLock lock() {
