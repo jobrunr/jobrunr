@@ -294,6 +294,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+                LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most 10 seconds)");
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
