@@ -77,6 +77,28 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     @Test
+    void testJobLambdaContainingTwoStaticJobsShouldFailWithNiceException() {
+        final JobLambda jobLambda = () -> {
+            System.out.println("This is a test!");
+            System.out.println("This is a test!");
+        };
+        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(jobLambda))
+                .isInstanceOf(JobRunrException.class)
+                .hasMessage("JobRunr only supports enqueueing/scheduling of one method");
+    }
+
+    @Test
+    void testJobLambdaContainingTwoJobsShouldFailWithNiceException() {
+        final JobLambda jobLambda = () -> {
+            testService.doWork();
+            testService.doWork();
+        };
+        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(jobLambda))
+                .isInstanceOf(JobRunrException.class)
+                .hasMessage("JobRunr only supports enqueueing/scheduling of one method");
+    }
+
+    @Test
     @Disabled("Static methods aren't working yet - waiting for Bug Report to see whether someone tries that")
     void testJobLambdaCallingStaticMethod() {
         UUID id = UUID.randomUUID();

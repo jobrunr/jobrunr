@@ -33,13 +33,25 @@ class JobDetailsAsmGeneratorForKotlinTest {
     }
 
     @Test
+    fun testMultipleJobsShowsNiceException() {
+        assertThatThrownBy {
+            toJobDetails {
+                doWorkWithUUID()
+                doWorkWithUUID()
+            }
+        }
+            .isInstanceOf(JobRunrException::class.java)
+            .hasMessage("JobRunr only supports enqueueing/scheduling of one method")
+    }
+
+    @Test
     fun testJobLambdaCallingStaticMethod() {
         val jobDetails = toJobDetails { println("This is a test!") }
         assertThat(jobDetails)
-                .hasClass(System::class.java)
-                .hasStaticFieldName("out")
-                .hasMethodName("println")
-                .hasArgs("This is a test!")
+            .hasClass(System::class.java)
+            .hasStaticFieldName("out")
+            .hasMethodName("println")
+            .hasArgs("This is a test!")
     }
 
     @Test
