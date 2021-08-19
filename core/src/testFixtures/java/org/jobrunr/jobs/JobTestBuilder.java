@@ -1,6 +1,7 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
@@ -186,12 +187,12 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withJobDetails(JobLambda jobLambda) {
-        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
+        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;
     }
 
     public JobTestBuilder withJobDetails(IocJobLambda jobLambda) {
-        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
+        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;
     }
 

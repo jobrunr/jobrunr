@@ -15,6 +15,7 @@ public class JsonMapperUtils {
         private Json() {
         }
 
+        public static final String FIELD_CACHEABLE = "cacheable";
         public static final String FIELD_CLASS_NAME = "className";
         public static final String FIELD_ACTUAL_CLASS_NAME = "actualClassName";
         public static final String FIELD_STATIC_FIELD_NAME = "staticFieldName";

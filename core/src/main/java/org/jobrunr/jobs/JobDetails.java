@@ -10,12 +10,14 @@ import static java.util.Collections.unmodifiableList;
 
 public class JobDetails {
 
-    private String className;
-    private String staticFieldName;
-    private String methodName;
-    private ArrayList<JobParameter> jobParameters;
+    private final String className;
+    private final String staticFieldName;
+    private final String methodName;
+    private final ArrayList<JobParameter> jobParameters;
+    private Boolean cacheable;
 
     private JobDetails() {
+        this(null, null, null, null);
         // used for deserialization
     }
 
@@ -23,7 +25,7 @@ public class JobDetails {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
-        this.jobParameters = new ArrayList<>(jobParameters);
+        this.jobParameters = jobParameters != null ? new ArrayList<>(jobParameters) : new ArrayList<>();
     }
 
     public String getClassName() {
@@ -53,5 +55,13 @@ public class JobDetails {
         return jobParameters.stream()
                 .map(JobParameter::getObject)
                 .toArray();
+    }
+
+    public Boolean getCacheable() {
+        return cacheable;
+    }
+
+    public void setCacheable(Boolean cacheable) {
+        this.cacheable = cacheable;
     }
 }

@@ -5,6 +5,7 @@
     "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
     "jobName": "Import sales data",
     "jobDetails": {
+      "cacheable": true,
       "className": "org.jobrunr.stubs.TestService",
       "staticFieldName": null,
       "methodName": "doWork",
@@ -27,6 +28,7 @@
     "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
     "jobName": "Generate sales reports",
     "jobDetails": {
+      "cacheable": true,
       "className": "org.jobrunr.stubs.TestService",
       "staticFieldName": null,
       "methodName": "doWork",

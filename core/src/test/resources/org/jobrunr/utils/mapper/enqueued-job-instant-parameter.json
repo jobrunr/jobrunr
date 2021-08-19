@@ -3,6 +3,7 @@
   "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.util.UUID,java.lang.Integer,java.time.Instant)",
   "jobName": "an enqueued job",
   "jobDetails": {
+    "cacheable": true,
     "className": "org.jobrunr.stubs.TestService",
     "staticFieldName": null,
     "methodName": "doWork",
