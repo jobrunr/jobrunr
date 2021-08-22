@@ -19,18 +19,7 @@ dependencies {
     api 'io.quarkus:quarkus-arc-deployment'
     api 'io.quarkus:quarkus-smallrye-health-spi'
 
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
-    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compileOnly 'org.eclipse:yasson'
-
-    compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
-
-    testImplementation 'io.quarkus:quarkus-junit5'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-    testImplementation 'org.eclipse:yasson'
-    testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'io.quarkus:quarkus-resteasy-jsonb'
 }
 
 java {
