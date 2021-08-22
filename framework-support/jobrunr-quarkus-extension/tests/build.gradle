@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+    id 'io.quarkus' version '2.1.0.Final'
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api platform('io.quarkus:quarkus-bom:2.1.0.Final')
+
+    api project(':framework-support:jobrunr-quarkus-extension:runtime')
+    implementation 'io.quarkus:quarkus-core-deployment'
+    implementation 'io.quarkus:quarkus-arc-deployment'
+    implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-resteasy-jsonb'
+
+    //testImplementation testFixtures(project(":core"))
+    testImplementation 'io.quarkus:quarkus-junit5'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}

@@ -2,9 +2,13 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'java-library'
+    id 'io.quarkus' version '2.1.0.Final'
     id 'maven-publish'
     id 'signing'
 }
+
+quarkusGenerateCode.enabled = false
+quarkusGenerateCodeTests.enabled = false
 
 processResources {
     filter ReplaceTokens, tokens: [
