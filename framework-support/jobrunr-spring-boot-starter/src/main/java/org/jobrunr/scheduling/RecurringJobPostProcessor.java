@@ -3,6 +3,8 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.spring.annotations.Recurring;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedValueResolverAware, InitializingBean {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecurringJobPostProcessor.class);
 
     private final JobScheduler jobScheduler;
     private StringValueResolver embeddedValueResolver;
@@ -64,13 +68,13 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
             final Recurring recurringAnnotation = method.getAnnotation(Recurring.class);
             String id = getId(recurringAnnotation);
             String cron = resolveStringValue(recurringAnnotation.cron());
+
             if (Recurring.CRON_DISABLED.equals(cron)) {
                 if (id == null) {
-                    // nothing to do here
+                    LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
                     jobScheduler.delete(id);
                 }
-
             } else {
                 JobDetails jobDetails = getJobDetails(method);
                 CronExpression cronExpression = CronExpression.create(cron);

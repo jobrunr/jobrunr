@@ -3,6 +3,7 @@ package org.jobrunr.micronaut.autoconfigure.storage;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -26,7 +27,7 @@ class SqlStorageProviderJobRunrFactoryTest {
 
     @BeforeEach
     void setupDataSource() throws SQLException {
-        context.registerSingleton(dataSource());
+        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("default"));
     }
 
     @Test

@@ -79,8 +79,8 @@ class JobRunrExtensionProcessor {
             AnnotationTarget annotationTarget = recurringJobAnnotation.target();
             if (AnnotationTarget.Kind.METHOD.equals(annotationTarget.kind())) {
                 final String id = getId(recurringJobAnnotation);
-                final JobDetails jobDetails = getJobDetails(recurringJobAnnotation);
                 final String cron = getCron(recurringJobAnnotation);
+                final JobDetails jobDetails = getJobDetails(recurringJobAnnotation);
                 final String zoneId = getZoneId(recurringJobAnnotation);
                 System.out.println("===========================================");
                 System.out.println("Found recurring job: " + id + "; " + cron + "; " + jobDetails);
