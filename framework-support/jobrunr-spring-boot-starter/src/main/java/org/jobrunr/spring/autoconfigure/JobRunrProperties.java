@@ -9,11 +9,21 @@ import java.time.temporal.ChronoUnit;
 @ConfigurationProperties(prefix = "org.jobrunr")
 public class JobRunrProperties {
 
+    private JobScheduler jobScheduler = new JobScheduler();
+
     private Dashboard dashboard = new Dashboard();
 
     private BackgroundJobServer backgroundJobServer = new BackgroundJobServer();
 
     private Database database = new Database();
+
+    public JobScheduler getJobScheduler() {
+        return jobScheduler;
+    }
+
+    public void setJobScheduler(JobScheduler jobScheduler) {
+        this.jobScheduler = jobScheduler;
+    }
 
     public Dashboard getDashboard() {
         return dashboard;

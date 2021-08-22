@@ -63,11 +63,21 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
 
             final Recurring recurringAnnotation = method.getAnnotation(Recurring.class);
             String id = getId(recurringAnnotation);
-            JobDetails jobDetails = getJobDetails(method);
-            CronExpression cronExpression = getCronExpression(recurringAnnotation);
-            ZoneId zoneId = getZoneId(recurringAnnotation);
+            String cron = resolveStringValue(recurringAnnotation.cron());
+            if (Recurring.CRON_DISABLED.equals(cron)) {
+                if (id == null) {
+                    // nothing to do here
+                } else {
+                    jobScheduler.delete(id);
+                }
 
-            jobScheduler.scheduleRecurrently(id, jobDetails, cronExpression, zoneId);
+            } else {
+                JobDetails jobDetails = getJobDetails(method);
+                CronExpression cronExpression = CronExpression.create(cron);
+                ZoneId zoneId = getZoneId(recurringAnnotation);
+
+                jobScheduler.scheduleRecurrently(id, jobDetails, cronExpression, zoneId);
+            }
         }
 
         private String getId(Recurring recurringAnnotation) {

@@ -14,8 +14,7 @@ import java.time.ZoneId;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringJobPostProcessorTest {
@@ -61,6 +60,36 @@ class RecurringJobPostProcessorTest {
                     .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
 
                     verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), eq(ZoneId.of("Asia/Taipei")));
+                });
+    }
+
+    @Test
+    void beansWithMethodsAnnotatedWithRecurringAnnotationHasDisabledCronExpressionValueShouldBeDeleted() {
+        new ApplicationContextRunner()
+                .withBean(RecurringJobPostProcessor.class, jobScheduler)
+                .withPropertyValues("my-job.id=my-recurring-job-to-be-deleted")
+                .withPropertyValues("my-job.cron=-")
+                .withPropertyValues("my-job.zone-id=Asia/Taipei")
+                .run(context -> {
+                    context.getBean(RecurringJobPostProcessor.class)
+                            .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
+
+                    verify(jobScheduler).delete("my-recurring-job-to-be-deleted");
+                });
+    }
+
+    @Test
+    void beansWithMethodsAnnotatedWithRecurringAnnotationHasDisabledCronExpressionButNotSpecifiedIdShouldBeOmitted() {
+        new ApplicationContextRunner()
+                .withBean(RecurringJobPostProcessor.class, jobScheduler)
+                .withPropertyValues("my-job.id=")
+                .withPropertyValues("my-job.cron=-")
+                .withPropertyValues("my-job.zone-id=Asia/Taipei")
+                .run(context -> {
+                    context.getBean(RecurringJobPostProcessor.class)
+                            .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
+
+                    verifyNoInteractions(jobScheduler);
                 });
     }
 
