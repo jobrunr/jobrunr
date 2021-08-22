@@ -38,6 +38,11 @@ public interface JobRunrConfiguration {
          * Allows to set the table prefix used by JobRunr
          */
         Optional<String> getTablePrefix();
+
+        /**
+         * An optional named datasource to use. Defaults to the 'default' datasource.
+         */
+        Optional<String> getDatasource();
     }
 
     @ConfigurationProperties("jobScheduler")

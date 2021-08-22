@@ -25,6 +25,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
@@ -111,7 +112,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {DataSource.class})
-    public StorageProvider sqlStorageProvider(DataSource dataSource, JobMapper jobMapper) {
+    public StorageProvider sqlStorageProvider(@Named("${jobrunr.database.datasource:default}") DataSource dataSource, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         DefaultSqlStorageProvider.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DefaultSqlStorageProvider.DatabaseOptions.SKIP_CREATE : DefaultSqlStorageProvider.DatabaseOptions.CREATE;
         StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
