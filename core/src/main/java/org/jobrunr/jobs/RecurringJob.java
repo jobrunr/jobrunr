@@ -67,4 +67,15 @@ public class RecurringJob extends AbstractJob {
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "RecurringJob{" +
+                "id=" + id +
+                ", version='" + getVersion() + '\'' +
+                ", identity='" + System.identityHashCode(this) + '\'' +
+                ", jobSignature='" + getJobSignature() + '\'' +
+                ", jobName='" + getJobName() + '\'' +
+                '}';
+    }
 }

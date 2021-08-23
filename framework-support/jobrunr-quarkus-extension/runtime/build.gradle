@@ -24,8 +24,8 @@ dependencies {
     annotationProcessor 'io.quarkus:quarkus-extension-processor:2.1.0.Final'
 
     api project(':core')
-    implementation 'io.quarkus:quarkus-core-deployment'
-    implementation 'io.quarkus:quarkus-arc-deployment'
+    implementation 'io.quarkus:quarkus-core'
+    implementation 'io.quarkus:quarkus-arc'
 
     metricsApi 'io.quarkus:quarkus-smallrye-health'
 

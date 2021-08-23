@@ -9,10 +9,10 @@ dependencies {
 
     api project(':framework-support:jobrunr-quarkus-extension:runtime')
     api project(':framework-support:jobrunr-quarkus-extension:deployment')
-    implementation 'io.quarkus:quarkus-core-deployment'
-    implementation 'io.quarkus:quarkus-arc-deployment'
+    implementation 'io.quarkus:quarkus-core'
+    implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-resteasy'
-    implementation 'io.quarkus:quarkus-resteasy-jsonb'
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'io.quarkus:quarkus-junit5'

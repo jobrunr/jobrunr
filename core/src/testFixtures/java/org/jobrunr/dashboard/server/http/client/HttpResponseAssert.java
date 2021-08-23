@@ -39,4 +39,12 @@ public class HttpResponseAssert extends AbstractAssert<HttpResponseAssert, HttpR
         Assertions.assertThat(actualResponseAsString).startsWith(expected);
         return this;
     }
+
+    public HttpResponseAssert hasBodyContaining(String... expected) {
+        final String actualResponseAsString = actual.body().toString();
+        for (String string : expected) {
+            Assertions.assertThat(actualResponseAsString).contains(string);
+        }
+        return this;
+    }
 }
