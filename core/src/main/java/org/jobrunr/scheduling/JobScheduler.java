@@ -63,8 +63,9 @@ public class JobScheduler {
         this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
     }
 
-    JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
-        if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
+    public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
+        if (storageProvider == null) throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
+        if (jobDetailsGenerator == null) throw new IllegalArgumentException("A JobDetailsGenerator is required to use the JobScheduler.");
         this.storageProvider = storageProvider;
         this.jobDetailsGenerator = jobDetailsGenerator;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));

@@ -3,6 +3,8 @@ package org.jobrunr.quarkus.autoconfigure;
 import io.quarkus.arc.DefaultBean;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.JobScheduler;
@@ -19,8 +21,12 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import java.util.Collections;
+
+import static java.util.Collections.emptyList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 @Singleton
 public class JobRunrProducer {
@@ -31,9 +37,18 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
+    public Object someObject() {
+        return new Object();
+    }
+
+
+    @Produces
+    @DefaultBean
+    @Singleton
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         if (configuration.jobScheduler.enabled) {
-            final JobScheduler jobScheduler = new JobScheduler(storageProvider);
+            final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.jobScheduler.jobDetailsGenerator.orElse(CachingJobDetailsGenerator.class.getName()));
+            final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
             BackgroundJob.setJobScheduler(jobScheduler);
             return jobScheduler;
         }

@@ -43,7 +43,7 @@ public class JobRunrFunctionalityTest {
         final HttpResponse<String> response = dashboardApi.get("/api/recurring-jobs");
         assertThat(response)
                 .hasStatusCode(200)
-                .hasJsonBody("[{\"@class\":\"${json-unit.ignore}\",\"cronExpression\":\"*/15 * * * *\",\"id\":\"my-recurring-job\",\"jobDetails\":{\"className\":\"org.jobrunr.quarkus.it.TestService\",\"jobParameters\":[],\"methodName\":\"aRecurringJob\",\"staticFieldName\":null},\"jobName\":\"Doing some work\",\"jobSignature\":\"org.jobrunr.quarkus.it.TestService.aRecurringJob()\",\"nextRun\":\"${json-unit.ignore}\",\"version\":0,\"zoneId\":\"Europe/Brussels\"}]");
+                .hasJsonBody("[{\"@class\":\"${json-unit.ignore}\",\"cronExpression\":\"*/15 * * * *\",\"id\":\"my-recurring-job\",\"jobDetails\":{\"className\":\"org.jobrunr.quarkus.it.TestService\",\"jobParameters\":[],\"methodName\":\"aRecurringJob\",\"staticFieldName\":null,\"cacheable\":null},\"jobName\":\"Doing some work\",\"jobSignature\":\"org.jobrunr.quarkus.it.TestService.aRecurringJob()\",\"nextRun\":\"${json-unit.ignore}\",\"version\":0,\"zoneId\":\"Europe/Brussels\"}]");
     }
 
     @Test
@@ -53,5 +53,14 @@ public class JobRunrFunctionalityTest {
                 .hasStatusCode(200)
                 .hasJsonBody(json -> json.inPath("checks[0].name").isEqualTo("JobRunr"))
                 .hasJsonBody(json -> json.inPath("checks[0].status").isEqualTo("UP"));
+    }
+
+    @Test
+    public void testJobRunrMetrics() {
+        final HttpResponse<String> response = restApi.get("/q/metrics");
+        assertThat(response)
+                .hasStatusCode(200)
+                .hasBodyContaining("jobrunr_jobs_succeeded")
+                .hasBodyContaining("jobrunr_jobs_enqueued");
     }
 }

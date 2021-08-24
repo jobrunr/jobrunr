@@ -12,10 +12,17 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
 public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
     private final JobDetailsGenerator delegate;
     private final Map<Class, CacheableJobDetails> cache;
+
+    public CachingJobDetailsGenerator() {
+        this(new JobDetailsAsmGenerator());
+    }
 
     public CachingJobDetailsGenerator(JobDetailsGenerator delegate) {
         this.delegate = delegate;
@@ -48,6 +55,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
     private static class CacheableJobDetails {
 
+        private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
         private final JobDetailsGenerator jobDetailsGeneratorDelegate;
         private JobDetails jobDetails;
         private List<JobParameterRetriever> jobParameterRetrievers;
@@ -57,91 +65,105 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
         }
 
         public JobDetails getJobDetails(JobLambda lambda) {
-            if (jobDetails == null || !jobDetails.getCacheable()) {
+            if (jobDetails == null) {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
                 return jobDetails;
-            } else {
+            } else if (jobDetails.getCacheable()) {
                 return getCachedJobDetails(lambda, Optional.empty());
+            } else {
+                return jobDetailsGeneratorDelegate.toJobDetails(lambda);
             }
         }
 
         public JobDetails getJobDetails(IocJobLambda lambda) {
-            if (jobDetails == null || !jobDetails.getCacheable()) {
+            if (jobDetails == null) {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
                 return jobDetails;
-            } else {
+            } else if (jobDetails.getCacheable()) {
                 return getCachedJobDetails(lambda, Optional.empty());
+            } else {
+                return jobDetailsGeneratorDelegate.toJobDetails(lambda);
             }
         }
 
         public <T> JobDetails getJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
-            if (jobDetails == null || !jobDetails.getCacheable()) {
+            if (jobDetails == null) {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
                 return jobDetails;
-            } else {
+            } else if (jobDetails.getCacheable()) {
                 return getCachedJobDetails(lambda, Optional.of(itemFromStream));
+            } else {
+                return jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
             }
         }
 
         public <S, T> JobDetails getJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-            if (jobDetails == null || !jobDetails.getCacheable()) {
+            if (jobDetails == null) {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
                 return jobDetails;
-            } else {
+            } else if (jobDetails.getCacheable()) {
                 return getCachedJobDetails(lambda, Optional.of(itemFromStream));
+            } else {
+                return jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
             }
         }
 
         private static <T> List<JobParameterRetriever> initJobParameterRetrievers(JobDetails jobDetails, JobRunrJob jobRunrJob, Optional<T> itemFromStream) {
-            List<JobParameterRetriever> parameterRetrievers = new ArrayList<>();
-            MethodHandles.Lookup lookup = MethodHandles.lookup();
-            Field[] declaredFields = jobRunrJob.getClass().getDeclaredFields();
-            List<JobParameter> jobParameters = jobDetails.getJobParameters();
+            try {
+                List<JobParameterRetriever> parameterRetrievers = new ArrayList<>();
+                List<Field> declaredFields = new ArrayList<>(asList(jobRunrJob.getClass().getDeclaredFields()));
+                List<JobParameter> jobParameters = jobDetails.getJobParameters();
 
-            int amountOfFieldsToHandle = (jobRunrJob instanceof JobLambda || jobRunrJob instanceof JobLambdaFromStream) ? declaredFields.length - 1 : declaredFields.length;
-            if (amountOfFieldsToHandle < 0) amountOfFieldsToHandle = 0;
-            int amountOfFieldsHandled = 0;
-            for (JobParameter jp : jobParameters) {
-                JobParameterRetriever jobParameterRetriever = new FixedJobParameterRetriever(jp);
-                if (itemFromStream.isPresent() && jp.getObject().equals(itemFromStream.get())) {
-                    jobParameterRetriever = new ItemFromStreamJobParameterRetriever(jp);
-                } else {
-                    for (Field f : declaredFields) {
-                        Object valueFromField = ReflectionUtils.getValueFromField(f, jobRunrJob);
-                        if (jp.getObject().equals(valueFromField)) {
-                            try {
-                                MethodHandle e = lookup.unreflectGetter(f);
-                                jobParameterRetriever = new MethodHandleJobParameterRetriever(jp, e.asType(e.type().generic()));
-                                amountOfFieldsHandled++;
-                                break;
-                            } catch (IllegalAccessException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                if (!declaredFields.isEmpty() && (jobRunrJob instanceof JobLambda || jobRunrJob instanceof JobLambdaFromStream))
+                    declaredFields.remove(0);
+
+                for (JobParameter jp : jobParameters) {
+                    parameterRetrievers.add(createJobParameterRetriever(jp, jobRunrJob, itemFromStream, declaredFields));
+                }
+
+                jobDetails.setCacheable(declaredFields.isEmpty() && jobParameters.size() == parameterRetrievers.size());
+                return parameterRetrievers;
+            } catch (Exception e) {
+                jobDetails.setCacheable(false);
+                return emptyList();
+            }
+        }
+
+        private static <T> JobParameterRetriever createJobParameterRetriever(JobParameter jp, JobRunrJob jobRunrJob, Optional<T> itemFromStream, List<Field> declaredFields) throws IllegalAccessException {
+            JobParameterRetriever jobParameterRetriever = new FixedJobParameterRetriever(jp);
+            if (itemFromStream.isPresent() && jp.getObject().equals(itemFromStream.get())) {
+                jobParameterRetriever = new ItemFromStreamJobParameterRetriever(jp);
+            } else {
+                final ListIterator<Field> fieldIterator = declaredFields.listIterator();
+                while (fieldIterator.hasNext()) {
+                    Field f = fieldIterator.next();
+                    Object valueFromField = ReflectionUtils.getValueFromField(f, jobRunrJob);
+                    if (jp.getObject().equals(valueFromField)) {
+                        MethodHandle e = lookup.unreflectGetter(f);
+                        jobParameterRetriever = new MethodHandleJobParameterRetriever(jp, e.asType(e.type().generic()));
+                        fieldIterator.remove();
+                        break;
                     }
                 }
-                parameterRetrievers.add(jobParameterRetriever);
             }
-            if (jobParameters.size() != parameterRetrievers.size()) {
-                throw new IllegalStateException("Not enough ParameterHandles");
-            }
-            jobDetails.setCacheable(amountOfFieldsToHandle == amountOfFieldsHandled);
-            return parameterRetrievers;
+            return jobParameterRetriever;
         }
 
         private <T> JobDetails getCachedJobDetails(JobRunrJob job, Optional<T> itemFromStream) {
-            return new JobDetails(
-                    jobDetails.getClassName(),
-                    jobDetails.getStaticFieldName().orElse(null),
-                    jobDetails.getMethodName(),
+            final JobDetails jobDetails = new JobDetails(
+                    this.jobDetails.getClassName(),
+                    this.jobDetails.getStaticFieldName(),
+                    this.jobDetails.getMethodName(),
                     jobParameterRetrievers.stream()
                             .map(jobParameterRetriever -> jobParameterRetriever.getJobParameter(job, itemFromStream))
                             .collect(Collectors.toList())
             );
+            jobDetails.setCacheable(true);
+            return jobDetails;
         }
     }
 

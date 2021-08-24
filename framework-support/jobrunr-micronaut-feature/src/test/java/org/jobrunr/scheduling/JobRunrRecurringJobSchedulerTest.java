@@ -22,17 +22,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MicronautSchedulerTest {
+class JobRunrRecurringJobSchedulerTest {
 
     @Mock
     JobScheduler jobScheduler;
 
 
-    MicronautScheduler micronautScheduler;
+    JobRunrRecurringJobScheduler jobRunrRecurringJobScheduler;
 
     @BeforeEach
     void setUpMicronautScheduler() {
-        micronautScheduler = new MicronautScheduler(jobScheduler);
+        jobRunrRecurringJobScheduler = new JobRunrRecurringJobScheduler(jobScheduler);
     }
 
     @Test
@@ -45,7 +45,7 @@ class MicronautSchedulerTest {
         when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.of("*/15 * * * *"));
         when(executableMethod.stringValue(Recurring.class, "zone")).thenReturn(Optional.empty());
 
-        micronautScheduler.schedule(executableMethod);
+        jobRunrRecurringJobScheduler.schedule(executableMethod);
 
         verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
     }
@@ -56,7 +56,7 @@ class MicronautSchedulerTest {
         final Method method = getRequiredMethod(MyUnsupportedService.class, "myRecurringMethod", String.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
-        assertThatThrownBy(() -> micronautScheduler.schedule(executableMethod)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> jobRunrRecurringJobScheduler.schedule(executableMethod)).isInstanceOf(IllegalStateException.class);
     }
 
     public static class MyServiceWithRecurringJob {

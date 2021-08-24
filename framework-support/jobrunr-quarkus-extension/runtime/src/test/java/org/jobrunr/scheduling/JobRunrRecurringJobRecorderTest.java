@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JobRunrRecorderTest {
+class JobRunrRecurringJobRecorderTest {
 
     @Mock
     BeanContainer beanContainer;
@@ -33,11 +33,11 @@ class JobRunrRecorderTest {
     @Mock
     Config config;
 
-    JobRunrRecorder jobRunrRecorder;
+    JobRunrRecurringJobRecorder jobRunrRecurringJobRecorder;
 
     @BeforeEach
     void setUpJobRunrRecorder() {
-        jobRunrRecorder = new JobRunrRecorder();
+        jobRunrRecurringJobRecorder = new JobRunrRecurringJobRecorder();
         when(beanContainer.instance(JobScheduler.class)).thenReturn(jobScheduler);
 
         ConfigProviderResolver.setInstance(configProviderResolver);
@@ -51,7 +51,7 @@ class JobRunrRecorderTest {
         final String cron = "*/15 * * * *";
         final String zoneId = null;
 
-        jobRunrRecorder.schedule(beanContainer, id, jobDetails, cron, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, zoneId);
 
         verify(jobScheduler).scheduleRecurrently(id, jobDetails, CronExpression.create(cron), ZoneId.systemDefault());
     }
@@ -63,7 +63,7 @@ class JobRunrRecorderTest {
         final String cron = "-";
         final String zoneId = null;
 
-        jobRunrRecorder.schedule(beanContainer, id, jobDetails, cron, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, zoneId);
 
         verify(jobScheduler).delete(id);
     }
@@ -77,7 +77,7 @@ class JobRunrRecorderTest {
         final String cron = "${my-cron-job.cron-expression}";
         final String zoneId = null;
 
-        jobRunrRecorder.schedule(beanContainer, id, jobDetails, cron, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, zoneId);
 
         verify(jobScheduler).scheduleRecurrently(id, jobDetails, CronExpression.create("*/15 * * * *"), ZoneId.systemDefault());
     }

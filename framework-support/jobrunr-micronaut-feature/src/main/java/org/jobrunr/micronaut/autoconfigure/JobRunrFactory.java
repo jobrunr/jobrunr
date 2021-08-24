@@ -9,6 +9,8 @@ import io.micronaut.context.annotation.Requires;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
@@ -29,8 +31,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
+import static java.util.Collections.emptyList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 @Factory
 public class JobRunrFactory {
@@ -45,7 +49,8 @@ public class JobRunrFactory {
     @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        return new JobScheduler(storageProvider);
+        final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
+        return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
     @Singleton

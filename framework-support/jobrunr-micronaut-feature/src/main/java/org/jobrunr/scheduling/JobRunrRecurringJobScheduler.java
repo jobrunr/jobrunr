@@ -11,13 +11,13 @@ import java.time.ZoneId;
 
 import static java.util.Collections.emptyList;
 
-public class MicronautScheduler {
+public class JobRunrRecurringJobScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MicronautScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrRecurringJobScheduler.class);
 
     private final JobScheduler jobScheduler;
 
-    public MicronautScheduler(JobScheduler jobScheduler) {
+    public JobRunrRecurringJobScheduler(JobScheduler jobScheduler) {
         this.jobScheduler = jobScheduler;
     }
 

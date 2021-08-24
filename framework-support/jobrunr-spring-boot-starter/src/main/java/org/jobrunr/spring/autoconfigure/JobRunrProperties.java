@@ -1,5 +1,6 @@
 package org.jobrunr.spring.autoconfigure;
 
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 
@@ -59,12 +60,26 @@ public class JobRunrProperties {
          */
         private boolean enabled = true;
 
+        /**
+         * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
+         * JobDetailsGenerator, and it should have a default no-argument constructor.
+         */
+        private String jobDetailsGenerator = CachingJobDetailsGenerator.class.getName();
+
         public boolean isEnabled() {
             return enabled;
         }
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
+        }
+
+        public String getJobDetailsGenerator() {
+            return jobDetailsGenerator;
+        }
+
+        public void setJobDetailsGenerator(String jobDetailsGenerator) {
+            this.jobDetailsGenerator = jobDetailsGenerator;
         }
     }
 

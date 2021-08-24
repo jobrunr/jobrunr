@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.JobScheduler;
@@ -20,10 +21,7 @@ import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
+import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.ApplicationContext;
@@ -32,8 +30,10 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.json.bind.Jsonb;
 
+import static java.util.Collections.emptyList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 /**
  * A Spring Boot AutoConfiguration class for JobRunr
@@ -46,13 +46,15 @@ public class JobRunrAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider);
+    public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
+        final JobDetailsGenerator jobDetailsGenerator = newInstance(properties.getJobScheduler().getJobDetailsGenerator());
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         BackgroundJob.setJobScheduler(jobScheduler);
         return jobScheduler;
     }
 
     @Bean
+    @ConditionalOnBean(JobScheduler.class)
     public RecurringJobPostProcessor recurringJobPostProcessor(JobScheduler jobScheduler) {
         return new RecurringJobPostProcessor(jobScheduler);
     }

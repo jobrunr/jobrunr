@@ -18,9 +18,9 @@ import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 @Recorder
-public class JobRunrRecorder {
+public class JobRunrRecurringJobRecorder {
 
-    private static final Logger LOGGER = Logger.getLogger(JobRunrRecorder.class);
+    private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
     public void schedule(BeanContainer container, String id, JobDetails jobDetails, String cron, String zoneId) {
         JobScheduler scheduler = container.instance(JobScheduler.class);

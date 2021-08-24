@@ -18,11 +18,12 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
+import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrElasticSearchStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
-import org.jobrunr.scheduling.JobRunrRecorder;
+import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
 import java.util.Optional;
 
@@ -43,14 +44,32 @@ class JobRunrExtensionProcessor {
                         JobRunrProducer.class,
                         JobRunrStarter.class,
                         storageProvider(capabilities),
-                        jsonMapper(capabilities)
+                        jsonMapper(capabilities),
+                        JobRunrMetricsProducer.StorageProviderMetricsProducer.class
                 )
                 .build();
     }
 
-    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
-    void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecorder recorder) throws Exception {
+    AdditionalBeanBuildItem addMetrics(Optional<MetricsCapabilityBuildItem> metricsCapability, JobRunrConfiguration jobRunrConfiguration) {
+        if (metricsCapability.isPresent() && metricsCapability.get().metricsSupported(MetricsFactory.MICROMETER)) {
+            final AdditionalBeanBuildItem.Builder additionalBeanBuildItemBuilder = AdditionalBeanBuildItem.builder()
+                    .setUnremovable()
+                    .addBeanClasses(JobRunrMetricsStarter.class)
+                    .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
+
+            if (jobRunrConfiguration.backgroundJobServer.enabled) {
+                additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
+            }
+            return additionalBeanBuildItemBuilder
+                    .build();
+        }
+        return null;
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder) throws Exception {
         new RecurringJobsFinder(recorderContext, index, beanContainer, recorder).findRecurringJobsAndScheduleThem();
     }
 
@@ -62,23 +81,7 @@ class JobRunrExtensionProcessor {
         return null;
     }
 
-    @BuildStep
-    AdditionalBeanBuildItem addMetrics(Optional<MetricsCapabilityBuildItem> metricsCapability, JobRunrConfiguration jobRunrConfiguration) {
-        System.out.println("Running Buildstep metrics " + metricsCapability);
-        if (metricsCapability.isPresent() && metricsCapability.get().metricsSupported(MetricsFactory.MICROMETER)) {
-            System.out.println("StorageProviderMetrics Metrics enabled");
-            final AdditionalBeanBuildItem.Builder additionalBeanBuildItemBuilder = AdditionalBeanBuildItem.builder()
-                    .setUnremovable()
-                    .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
 
-            if (jobRunrConfiguration.backgroundJobServer.enabled) {
-                additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
-            }
-            return additionalBeanBuildItemBuilder
-                    .build();
-        }
-        return null;
-    }
 
     private Class<?> jsonMapper(Capabilities capabilities) {
         if (capabilities.isPresent(Capability.JSONB)) {

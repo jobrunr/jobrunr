@@ -1,22 +1,24 @@
 package org.jobrunr.micronaut.autoconfigure;
 
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.processor.ExecutableMethodProcessor;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.JobScheduler;
-import org.jobrunr.scheduling.MicronautScheduler;
+import org.jobrunr.scheduling.JobRunrRecurringJobScheduler;
 
 import javax.inject.Singleton;
 
 
 @Singleton
+@Requires(beans = {JobScheduler.class})
 public class RecurringMethodProcessor implements ExecutableMethodProcessor<Recurring> {
 
-    private final MicronautScheduler jobScheduler;
+    private final JobRunrRecurringJobScheduler jobScheduler;
 
     public RecurringMethodProcessor(JobScheduler jobScheduler) {
-        this.jobScheduler = new MicronautScheduler(jobScheduler);
+        this.jobScheduler = new JobRunrRecurringJobScheduler(jobScheduler);
     }
 
     @Override

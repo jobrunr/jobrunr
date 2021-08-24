@@ -14,6 +14,7 @@ import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -55,10 +56,19 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     protected abstract JobDetailsGenerator getJobDetailsGenerator();
 
+
+    protected JobDetails toJobDetails(JobLambda job) {
+        return jobDetailsGenerator.toJobDetails(job);
+    }
+
+    protected JobDetails toJobDetails(IocJobLambda<TestService> iocJobLambda) {
+        return jobDetailsGenerator.toJobDetails(iocJobLambda);
+    }
+
     @Test
     void testJobLambdaCallingSystemOutPrintln() {
         JobLambda job = () -> System.out.println("This is a test!");
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(System.class)
                 .hasStaticFieldName("out")
@@ -68,7 +78,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     void testJobLambdaCallingInlineSystemOutPrintln() {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> System.out.println("This is a test!"));
+        JobDetails jobDetails = toJobDetails((JobLambda) () -> System.out.println("This is a test!"));
         assertThat(jobDetails)
                 .hasClass(System.class)
                 .hasStaticFieldName("out")
@@ -82,7 +92,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             System.out.println("This is a test!");
             System.out.println("This is a test!");
         };
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(jobLambda))
+        assertThatThrownBy(() -> toJobDetails(jobLambda))
                 .isInstanceOf(JobRunrException.class)
                 .hasMessage("JobRunr only supports enqueueing/scheduling of one method");
     }
@@ -93,7 +103,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             testService.doWork();
             testService.doWork();
         };
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(jobLambda))
+        assertThatThrownBy(() -> toJobDetails(jobLambda))
                 .isInstanceOf(JobRunrException.class)
                 .hasMessage("JobRunr only supports enqueueing/scheduling of one method");
     }
@@ -103,7 +113,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testJobLambdaCallingStaticMethod() {
         UUID id = UUID.randomUUID();
         JobLambda job = () -> TestService.doWorkInStaticMethod(id);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasStaticFieldName("out")
@@ -114,7 +124,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     @Disabled("Static methods aren't working yet - waiting for Bug Report to see whether someone tries that")
     void testJobLambdaCallingInlineStaticMethod() {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> TestService.doWorkInStaticMethod(UUID.randomUUID()));
+        JobDetails jobDetails = toJobDetails((JobLambda) () -> TestService.doWorkInStaticMethod(UUID.randomUUID()));
         assertThat(jobDetails)
                 .hasClass(System.class)
                 .hasStaticFieldName("out")
@@ -125,7 +135,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaCallMethodReference() {
         JobLambda job = testService::doWork;
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -136,7 +146,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testJobLambdaCallInstanceMethod_Null() {
         TestService.Work work = null;
         JobLambda job = () -> testService.doWork(work);
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatThrownBy(() -> toJobDetails(job))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("You are passing null to your background job - JobRunr prevents this to fail fast.");
     }
@@ -152,7 +162,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 System.out.println("In nested lambda");
             }
         };
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatThrownBy(() -> toJobDetails(job))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("You are passing another (nested) Java 8 lambda to JobRunr - this is not supported. Try to convert your lambda to a class or a method.");
     }
@@ -160,7 +170,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaCallInstanceMethod_BIPUSH() {
         JobLambda job = () -> testService.doWork(5);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -170,7 +180,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaCallInstanceMethod_SIPUSH() {
         JobLambda job = () -> testService.doWorkThatTakesLong(500);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWorkThatTakesLong")
@@ -180,7 +190,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaCallInstanceMethod_LCONST() {
         JobLambda job = () -> testService.doWorkThatTakesLong(1L);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWorkThatTakesLong")
@@ -189,7 +199,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     void testInlineJobLambdaCallInstanceMethod() {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testService.doWork());
+        JobDetails jobDetails = toJobDetails((JobLambda) () -> testService.doWork());
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -199,7 +209,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWithIntegerAndJobContext() {
         JobLambda job = () -> testService.doWork(3, JobContext.Null);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -209,7 +219,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWithDouble() {
         JobLambda job = () -> testService.doWork(3.3);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -222,7 +232,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a + b);
 
-        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatCode(() -> toJobDetails(job))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasRootCauseInstanceOf(UnsupportedOperationException.class)
                 .hasRootCauseMessage("You are summing two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
@@ -234,7 +244,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a - b);
 
-        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatCode(() -> toJobDetails(job))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasRootCauseInstanceOf(UnsupportedOperationException.class)
                 .hasRootCauseMessage("You are subtracting two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
@@ -246,7 +256,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a * b);
 
-        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatCode(() -> toJobDetails(job))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasRootCauseInstanceOf(UnsupportedOperationException.class)
                 .hasRootCauseMessage("You are multiplying two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
@@ -258,7 +268,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a / b);
 
-        assertThatCode(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatCode(() -> toJobDetails(job))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasRootCauseInstanceOf(UnsupportedOperationException.class)
                 .hasRootCauseMessage("You are dividing two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
@@ -267,7 +277,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWithMultipleInts() {
         JobLambda job = () -> testService.doWork(3, 97693);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -281,7 +291,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             Instant now = Instant.now();
             JobLambda job = () -> testService.doWork("some string", finalI, now);
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+            JobDetails jobDetails = toJobDetails(job);
             assertThat(jobDetails)
                     .hasClass(TestService.class)
                     .hasMethodName("doWork")
@@ -295,7 +305,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             int finalI = i;
             JobLambda job = () -> testService.doWork(new TestService.Work(finalI, "a String", UUID.randomUUID()));
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+            JobDetails jobDetails = toJobDetails(job);
             assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
             JobParameter jobParameter = jobDetails.getJobParameters().get(0);
             Assertions.assertThat(jobParameter.getClassName()).isEqualTo(TestService.Work.class.getName());
@@ -311,7 +321,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testJobLambdaWithFile() {
         JobLambda job = () -> testService.doWorkWithFile(new File("/tmp/file.txt"));
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithFile");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(File.class.getName());
@@ -325,7 +335,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         Path path = Paths.get("/tmp/file.txt");
         JobLambda job = () -> testService.doWorkWithPath(path);
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
@@ -338,7 +348,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testJobLambdaWithPathsGetInLambda() {
         JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp/file.txt"));
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
@@ -353,7 +363,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             final Path path = Paths.get("/tmp/file" + i + ".txt");
             JobLambda job = () -> testService.doWorkWithPath(path);
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+            JobDetails jobDetails = toJobDetails(job);
             assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
             JobParameter jobParameter = jobDetails.getJobParameters().get(0);
             Assertions.assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
@@ -367,7 +377,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testJobLambdaWithPathsGetMultiplePartsInLambda() {
         JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp", "folder", "subfolder", "file.txt"));
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
@@ -380,7 +390,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testJobLambdaWithPathOfInLambda() {
         JobLambda job = () -> testService.doWorkWithPath(Paths.get("/tmp/file.txt"));
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
@@ -395,7 +405,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             TestService.Work work = new TestService.Work(i, "a String", UUID.randomUUID());
             JobLambda job = () -> testService.doWork(work);
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+            JobDetails jobDetails = toJobDetails(job);
             assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
             JobParameter jobParameter = jobDetails.getJobParameters().get(0);
             Assertions.assertThat(jobParameter.getClassName()).isEqualTo(TestService.Work.class.getName());
@@ -410,7 +420,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWithSupportedPrimitiveTypes() {
         JobLambda job = () -> testService.doWork(true, 3, 5L, 3.3F, 2.3D);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -420,7 +430,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWithUnsupportedPrimitiveTypes() {
         JobLambda job = () -> testService.doWork((byte) 0x3, (short) 2, 'c');
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(job))
+        assertThatThrownBy(() -> toJobDetails(job))
                 .isInstanceOf(JobRunrException.class)
                 .hasMessage("Error parsing lambda")
                 .hasCauseInstanceOf(IllegalArgumentException.class);
@@ -435,7 +445,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 int someInt = 6;
                 testService.doWork(id, someInt, now);
             };
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+            JobDetails jobDetails = toJobDetails(job);
             assertThat(jobDetails)
                     .hasClass(TestService.class)
                     .hasMethodName("doWork")
@@ -458,7 +468,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 SomeEnum someEnum = SomeEnum.Value1;
                 System.out.println("This is a test: " + testId + "; " + someInt + "; " + someDouble + "; " + someFloat + "; " + someLong + "; " + someBoolean + "; " + someEnum + "; " + now);
             };
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+            JobDetails jobDetails = toJobDetails(job);
             assertThat(jobDetails)
                     .hasClass(System.class)
                     .hasStaticFieldName("out")
@@ -476,7 +486,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             testService.doWork(testId);
         };
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -492,7 +502,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWithStaticMethodInLambda() {
         JobLambda jobLambda = () -> testService.doWork(TestService.Work.from(2, "a String", UUID.randomUUID()));
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+        final JobDetails jobDetails = toJobDetails(jobLambda);
 
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
@@ -507,7 +517,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testJobLambdaWhichReturnsSomething() {
         JobLambda jobLambda = () -> testService.doWorkAndReturnResult("someString");
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+        JobDetails jobDetails = toJobDetails(jobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWorkAndReturnResult")
@@ -588,7 +598,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambda() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork();
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -607,7 +617,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambdaWithIntegerAndJobContext() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, JobContext.Null);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -617,7 +627,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambdaWithDouble() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3.3);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -627,7 +637,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambdaWithMultipleInts() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, 97693);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -641,7 +651,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             Instant now = Instant.now();
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork("some string", finalI, now);
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            JobDetails jobDetails = toJobDetails(iocJobLambda);
             assertThat(jobDetails)
                     .hasClass(TestService.class)
                     .hasMethodName("doWork")
@@ -655,7 +665,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             int finalI = i;
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(new TestService.Work(finalI, "a String", UUID.randomUUID()));
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            JobDetails jobDetails = toJobDetails(iocJobLambda);
             assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
             JobParameter jobParameter = jobDetails.getJobParameters().get(0);
             Assertions.assertThat(jobParameter.getClassName()).isEqualTo(TestService.Work.class.getName());
@@ -671,7 +681,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     void testIoCJobLambdaWithFile() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkWithFile(new File("/tmp/file.txt"));
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithFile");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(File.class.getName());
@@ -685,7 +695,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         Path path = Paths.get("/tmp/file.txt");
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkWithPath(path);
 
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWorkWithPath");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
         Assertions.assertThat(jobParameter.getClassName()).isEqualTo(Path.class.getName());
@@ -700,7 +710,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             TestService.Work work = new TestService.Work(i, "a String", UUID.randomUUID());
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(work);
 
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            JobDetails jobDetails = toJobDetails(iocJobLambda);
             assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
             JobParameter jobParameter = jobDetails.getJobParameters().get(0);
             Assertions.assertThat(jobParameter.getClassName()).isEqualTo(TestService.Work.class.getName());
@@ -715,7 +725,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambdaWithSupportedPrimitiveTypes() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(true, 3, 5L, 3.3F, 2.3D);
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -731,7 +741,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             final float finalF = 3.3F + i;
             final double finalD = 2.3D + i;
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(finalB, finalI, finalL, finalF, finalD);
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            JobDetails jobDetails = toJobDetails(iocJobLambda);
             assertThat(jobDetails)
                     .hasClass(TestService.class)
                     .hasMethodName("doWork")
@@ -749,7 +759,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             final Float finalF = 3.3F + i;
             final Double finalD = 2.3D + i;
             IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(finalB, finalI, finalL, finalF, finalD);
-            JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+            JobDetails jobDetails = toJobDetails(iocJobLambda);
             assertThat(jobDetails)
                     .hasClass(TestService.class)
                     .hasMethodName("doWork")
@@ -764,7 +774,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         long env = 2L;
         String param = "test";
 
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin()));
+        final JobDetails jobDetails = toJobDetails(() -> testService.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin()));
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchWrappers")
@@ -779,7 +789,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         String param = "test";
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin());
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        final JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchWrappers")
@@ -793,7 +803,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         long env = 2L;
         String param = "test";
 
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin()));
+        final JobDetails jobDetails = toJobDetails(() -> testService.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin()));
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchPrimitives")
@@ -808,7 +818,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         String param = "test";
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin());
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        final JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchPrimitives")
@@ -822,7 +832,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         Long env = 2L;
         String param = "test";
 
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin()));
+        final JobDetails jobDetails = toJobDetails(() -> testService.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin()));
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchPrimitives")
@@ -837,7 +847,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         String param = "test";
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin());
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        final JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchPrimitives")
@@ -852,7 +862,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         Long env = 2L;
         String param = "test";
 
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(() -> testService.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin()));
+        final JobDetails jobDetails = toJobDetails(() -> testService.jobRunBatchWrappers(id, env, param, TestUtils.getCurrentLogin()));
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchWrappers")
@@ -867,7 +877,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         String param = "test";
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.jobRunBatchPrimitives(id, env, param, TestUtils.getCurrentLogin());
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        final JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("jobRunBatchPrimitives")
@@ -877,7 +887,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambdaWithUnsupportedPrimitiveTypes() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork((byte) 0x3, (short) 2, 'c');
-        assertThatThrownBy(() -> jobDetailsGenerator.toJobDetails(iocJobLambda))
+        assertThatThrownBy(() -> toJobDetails(iocJobLambda))
                 .isInstanceOf(JobRunrException.class)
                 .hasMessage("Error parsing lambda")
                 .hasCauseInstanceOf(IllegalArgumentException.class);
@@ -892,7 +902,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIocJobLambdaWhichReturnsSomething() {
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWorkAndReturnResult("someString");
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJobLambda);
+        JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWorkAndReturnResult")
@@ -953,7 +963,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     void testIoCJobLambdaWithStaticMethodInLambda() {
         IocJobLambda<TestService> jobLambda = x -> x.doWork(TestService.Work.from(2, "a String", UUID.randomUUID()));
-        final JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+        final JobDetails jobDetails = toJobDetails(jobLambda);
 
         assertThat(jobDetails).hasClass(TestService.class).hasMethodName("doWork");
         JobParameter jobParameter = jobDetails.getJobParameters().get(0);
@@ -967,7 +977,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     void testInlineJobLambdaFromInterface() {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testServiceInterface.doWork());
+        JobDetails jobDetails = toJobDetails((JobLambda) () -> testServiceInterface.doWork());
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
@@ -976,7 +986,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     void testMethodReferenceJobLambdaFromInterface() {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) testServiceInterface::doWork);
+        JobDetails jobDetails = toJobDetails((JobLambda) testServiceInterface::doWork);
         assertThat(jobDetails)
                 .hasClass(TestServiceInterface.class)
                 .hasMethodName("doWork")

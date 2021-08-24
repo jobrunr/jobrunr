@@ -80,6 +80,24 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void jobSchedulerEnabledAutoConfiguration() {
+        this.contextRunner.withPropertyValues("org.jobrunr.job-scheduler.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+            assertThat(context).hasSingleBean(JobScheduler.class);
+            assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
+            assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
+        });
+    }
+
+    @Test
+    void jobSchedulerDisabledAutoConfiguration() {
+        this.contextRunner.withPropertyValues("org.jobrunr.job-scheduler.enabled=false").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+            assertThat(context).doesNotHaveBean(JobScheduler.class);
+            assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
+            assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
+        });
+    }
+
+    @Test
     void dashboardAutoConfiguration() {
         this.contextRunner.withPropertyValues("org.jobrunr.dashboard.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);

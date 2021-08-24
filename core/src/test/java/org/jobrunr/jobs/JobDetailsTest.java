@@ -18,7 +18,7 @@ class JobDetailsTest {
 
         assertThat(jobDetails.getClassName()).isEqualTo(TestService.class.getName());
         assertThat(jobDetails.getMethodName()).isEqualTo("doWork");
-        assertThat(jobDetails.getStaticFieldName()).isEmpty();
+        assertThat(jobDetails.getStaticFieldName()).isNull();
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{Integer.class});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{5});
     }
@@ -32,7 +32,7 @@ class JobDetailsTest {
 
         assertThat(jobDetails.getClassName()).isEqualTo(TestService.class.getName());
         assertThat(jobDetails.getMethodName()).isEqualTo("doWork");
-        assertThat(jobDetails.getStaticFieldName()).isEmpty();
+        assertThat(jobDetails.getStaticFieldName()).isNull();
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{});
     }

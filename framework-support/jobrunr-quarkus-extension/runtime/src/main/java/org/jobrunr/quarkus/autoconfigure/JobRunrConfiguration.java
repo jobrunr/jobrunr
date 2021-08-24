@@ -56,6 +56,14 @@ public class JobRunrConfiguration {
          */
         @ConfigItem(defaultValue = "true")
         public boolean enabled;
+
+
+        /**
+         * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
+         * JobDetailsGenerator, and it should have a default no-argument constructor.
+         */
+        @ConfigItem
+        public Optional<String> jobDetailsGenerator;
     }
 
     @ConfigGroup

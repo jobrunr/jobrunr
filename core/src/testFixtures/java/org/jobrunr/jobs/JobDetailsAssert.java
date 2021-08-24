@@ -4,6 +4,7 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.context.JobContext;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -15,6 +16,16 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
 
     public static JobDetailsAssert assertThat(JobDetails jobDetails) {
         return new JobDetailsAssert(jobDetails);
+    }
+
+    public JobDetailsAssert isCacheable() {
+        Assertions.assertThat(actual.getCacheable()).isTrue();
+        return this;
+    }
+
+    public JobDetailsAssert isCacheable(Function<JobDetails, Boolean> condition) {
+        Assertions.assertThat(actual.getCacheable()).isEqualTo(condition.apply(actual));
+        return this;
     }
 
     public JobDetailsAssert hasClass(Class<?> clazz) {

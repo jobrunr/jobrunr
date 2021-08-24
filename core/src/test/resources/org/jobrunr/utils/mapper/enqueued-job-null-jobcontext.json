@@ -7,6 +7,7 @@
     "@class": "java.util.concurrent.ConcurrentHashMap"
   },
   "jobDetails": {
+    "cacheable":true,
     "className": "org.jobrunr.stubs.TestService",
     "staticFieldName": null,
     "methodName": "doWork",

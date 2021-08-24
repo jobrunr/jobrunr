@@ -3,6 +3,7 @@ package org.jobrunr.micronaut.autoconfigure;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.core.bind.annotation.Bindable;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
@@ -53,6 +54,12 @@ public interface JobRunrConfiguration {
          */
         @Bindable(defaultValue = "true")
         boolean isEnabled();
+
+        /**
+         * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
+         * JobDetailsGenerator, and it should have a default no-argument constructor.
+         */
+        Optional<String> getJobDetailsGenerator();
 
     }
 

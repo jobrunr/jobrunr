@@ -9,7 +9,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.quarkus.annotations.Recurring;
-import org.jobrunr.scheduling.JobRunrRecorder;
+import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,9 +20,9 @@ public class RecurringJobsFinder {
     private final RecorderContext recorderContext;
     private final CombinedIndexBuildItem index;
     private final BeanContainerBuildItem beanContainer;
-    private final JobRunrRecorder recorder;
+    private final JobRunrRecurringJobRecorder recorder;
 
-    public RecurringJobsFinder(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecorder recorder) throws NoSuchMethodException {
+    public RecurringJobsFinder(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder) throws NoSuchMethodException {
         this.recorderContext = recorderContext;
         this.index = index;
         this.beanContainer = beanContainer;
