@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CACHEABLE;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETERS;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
@@ -34,6 +35,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
         }
 
         return nullSafeJsonObjectBuilder()
+                .add(FIELD_CACHEABLE, jobDetails.getCacheable())
                 .add(FIELD_CLASS_NAME, jobDetails.getClassName())
                 .add(FIELD_STATIC_FIELD_NAME, jobDetails.getStaticFieldName())
                 .add(FIELD_METHOD_NAME, jobDetails.getMethodName())
@@ -43,12 +45,14 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
 
     @Override
     public JobDetails adaptFromJson(JsonObject jsonObject) throws Exception {
-        return new JobDetails(
+        final JobDetails jobDetails = new JobDetails(
                 jsonObject.getString(FIELD_CLASS_NAME),
                 jsonObject.isNull(FIELD_STATIC_FIELD_NAME) ? null : jsonObject.getString(FIELD_STATIC_FIELD_NAME),
                 jsonObject.getString(FIELD_METHOD_NAME),
                 getJobDetailsParameters(jsonObject.getJsonArray(FIELD_JOB_PARAMETERS))
         );
+        jobDetails.setCacheable(jsonObject.getBoolean(FIELD_CACHEABLE));
+        return jobDetails;
     }
 
     private List<JobParameter> getJobDetailsParameters(JsonArray jobParameters) {
