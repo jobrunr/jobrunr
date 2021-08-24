@@ -2,6 +2,9 @@ package org.jobrunr.scheduling;
 
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
+import io.smallrye.common.expression.Expression;
+import io.smallrye.common.expression.ResolveContext;
+import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
@@ -9,11 +12,12 @@ import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 
 import java.time.ZoneId;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.substringBetween;
 
 @Recorder
 public class JobRunrRecorder {
@@ -35,25 +39,38 @@ public class JobRunrRecorder {
         }
     }
 
-    private String getId(String id) {
+    private static String getId(String id) {
         return resolveStringValue(id);
     }
 
-    private String getCronExpression(String cron) {
+    private static String getCronExpression(String cron) {
         return resolveStringValue(cron);
     }
 
-    private ZoneId getZoneId(String zoneId) {
+    private static ZoneId getZoneId(String zoneId) {
         return isNullOrEmpty(zoneId) ? ZoneId.systemDefault() : ZoneId.of(resolveStringValue(zoneId));
     }
 
-    private String resolveStringValue(String value) {
-        if (isNotNullOrEmpty(value)) {
-            return Optional
-                    .ofNullable(substringBetween(value, "${", "}"))
-                    .map(propertyKey -> value.replace("${" + propertyKey + "}", ConfigProvider.getConfig().getValue(propertyKey, String.class)))
-                    .orElse(value);
+    private static String resolveStringValue(String expr) {
+        if (isNotNullOrEmpty(expr)) {
+            final Config config = ConfigProvider.getConfig();
+            final Expression expression = Expression.compile(expr);
+            final String expanded = expression.evaluate(new BiConsumer<ResolveContext<RuntimeException>, StringBuilder>() {
+                @Override
+                public void accept(ResolveContext<RuntimeException> resolveContext, StringBuilder stringBuilder) {
+                    final Optional<String> resolve = config.getOptionalValue(resolveContext.getKey(), String.class);
+                    if (resolve.isPresent()) {
+                        stringBuilder.append(resolve.get());
+                    } else if (resolveContext.hasDefault()) {
+                        resolveContext.expandDefault();
+                    } else {
+                        throw new NoSuchElementException(String.format("Could not expand value %s in property %s",
+                                resolveContext.getKey(), expr));
+                    }
+                }
+            });
+            return expanded;
         }
-        return value;
+        return expr;
     }
 }

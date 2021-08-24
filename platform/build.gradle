@@ -17,6 +17,7 @@ dependencies {
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3'
         api 'com.google.code.gson:gson:2.8.7'
         api 'org.eclipse:yasson:1.0.9' //todo upgrade
+        api 'io.micrometer:micrometer-core:1.7.3'
         api 'io.insert-koin:koin-core:2.2.2'
 
         api 'org.xerial:sqlite-jdbc:3.34.0'

@@ -1,18 +1,12 @@
-package org.jobrunr.micronaut.autoconfigure.metrics;
+package org.jobrunr.server.metrics;
 
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micronaut.context.annotation.Requires;
 import org.jobrunr.server.BackgroundJobServer;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
 import java.util.function.ToDoubleFunction;
 
-@Singleton
-@Requires(classes = MeterRegistry.class)
-@Requires(beans = BackgroundJobServer.class)
 public class BackgroundJobServerMetricsBinder {
 
     private final BackgroundJobServer backgroundJobServer;
@@ -21,9 +15,9 @@ public class BackgroundJobServerMetricsBinder {
     public BackgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
         this.backgroundJobServer = backgroundJobServer;
         this.meterRegistry = meterRegistry;
+        registerBackgroundJobServerMetrics();
     }
 
-    @PostConstruct
     public void registerBackgroundJobServerMetrics() {
         registerFunction("poll-interval-in-seconds", (bgJobServer) -> (double) bgJobServer.getServerStatus().getPollIntervalInSeconds());
         registerFunction("worker-pool-size", (bgJobServer) -> (double) bgJobServer.getServerStatus().getWorkerPoolSize());

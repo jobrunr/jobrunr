@@ -1,20 +1,14 @@
-package org.jobrunr.micronaut.autoconfigure.metrics;
+package org.jobrunr.storage.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import io.micronaut.context.annotation.Requires;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Singleton
-@Requires(classes = MeterRegistry.class)
-@Requires(beans = StorageProvider.class)
 public class StorageProviderMetricsBinder implements JobStatsChangeListener {
 
     private final StorageProvider storageProvider;
@@ -31,9 +25,9 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener {
     public StorageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         this.storageProvider = storageProvider;
         this.meterRegistry = meterRegistry;
+        registerStorageProviderMetrics();
     }
 
-    @PostConstruct
     public void registerStorageProviderMetrics() {
         registerGauge(StateName.SCHEDULED, scheduledGauge);
         registerGauge(StateName.ENQUEUED, enqueuedGauge);

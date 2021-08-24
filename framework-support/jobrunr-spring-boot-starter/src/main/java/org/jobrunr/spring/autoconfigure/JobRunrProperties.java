@@ -217,6 +217,11 @@ public class JobRunrProperties {
          */
         private String tablePrefix;
 
+        /**
+         * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
+         */
+        private String datasource;
+
         public void setSkipCreate(boolean skipCreate) {
             this.skipCreate = skipCreate;
         }
@@ -231,6 +236,14 @@ public class JobRunrProperties {
 
         public void setTablePrefix(String tablePrefix) {
             this.tablePrefix = tablePrefix;
+        }
+
+        public String getDatasource() {
+            return datasource;
+        }
+
+        public void setDatasource(String datasource) {
+            this.datasource = datasource;
         }
     }
 }

@@ -3,12 +3,12 @@ package org.jobrunr.spring.autoconfigure.metric;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
-import org.jobrunr.spring.autoconfigure.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.spring.autoconfigure.metrics.JobRunrMetricsAutoConfiguration;
-import org.jobrunr.spring.autoconfigure.metrics.StorageProviderMetricsBinder;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;

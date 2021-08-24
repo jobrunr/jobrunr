@@ -31,6 +31,7 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
+    compileOnly 'io.micrometer:micrometer-core'
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
     compileOnly 'redis.clients:jedis'

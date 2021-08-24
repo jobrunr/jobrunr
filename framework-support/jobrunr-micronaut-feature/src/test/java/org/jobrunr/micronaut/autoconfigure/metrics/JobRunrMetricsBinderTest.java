@@ -6,6 +6,8 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
+import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;

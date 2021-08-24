@@ -40,7 +40,7 @@ public interface JobRunrConfiguration {
         Optional<String> getTablePrefix();
 
         /**
-         * An optional named datasource to use. Defaults to the 'default' datasource.
+         * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
          */
         Optional<String> getDatasource();
     }

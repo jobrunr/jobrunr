@@ -40,6 +40,12 @@ public class JobRunrConfiguration {
         @ConfigItem
         public Optional<String> tablePrefix;
 
+        /**
+         * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
+         */
+        @ConfigItem
+        public Optional<String> datasource;
+
     }
 
     @ConfigGroup

@@ -2,6 +2,8 @@ package org.jobrunr.micronaut.autoconfigure.metrics;
 
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
+import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
+import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

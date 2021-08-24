@@ -45,4 +45,13 @@ public class JobRunrFunctionalityTest {
                 .hasStatusCode(200)
                 .hasJsonBody("[{\"@class\":\"${json-unit.ignore}\",\"cronExpression\":\"*/15 * * * *\",\"id\":\"my-recurring-job\",\"jobDetails\":{\"className\":\"org.jobrunr.quarkus.it.TestService\",\"jobParameters\":[],\"methodName\":\"aRecurringJob\",\"staticFieldName\":null},\"jobName\":\"Doing some work\",\"jobSignature\":\"org.jobrunr.quarkus.it.TestService.aRecurringJob()\",\"nextRun\":\"${json-unit.ignore}\",\"version\":0,\"zoneId\":\"Europe/Brussels\"}]");
     }
+
+    @Test
+    public void testJobRunrHealthCheck() {
+        final HttpResponse<String> response = restApi.get("/q/health/ready");
+        assertThat(response)
+                .hasStatusCode(200)
+                .hasJsonBody(json -> json.inPath("checks[0].name").isEqualTo("JobRunr"))
+                .hasJsonBody(json -> json.inPath("checks[0].status").isEqualTo("UP"));
+    }
 }
