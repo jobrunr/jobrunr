@@ -36,6 +36,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
+    testImplementation testFixtures(project(":core"))
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'

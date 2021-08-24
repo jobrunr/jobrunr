@@ -37,6 +37,7 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener {
         registerGauge("ALL_TIME_SUCCEEDED", allTimeSucceededGauge);
         registerGauge(StateName.DELETED, deletedGauge);
 
+        onChange(this.storageProvider.getJobStats());
         this.storageProvider.addJobStorageOnChangeListener(this);
     }
 

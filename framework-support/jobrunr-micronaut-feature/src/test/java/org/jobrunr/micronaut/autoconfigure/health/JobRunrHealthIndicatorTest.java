@@ -1,37 +1,75 @@
 package org.jobrunr.micronaut.autoconfigure.health;
 
-
-import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.annotation.Property;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.micronaut.health.HealthStatus;
+import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
+import org.jobrunr.server.BackgroundJobServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
+@ExtendWith(MockitoExtension.class)
+public class JobRunrHealthIndicatorTest {
 
-@MicronautTest(rebuildContext = true)
-class JobRunrHealthIndicatorTest {
+    @Mock
+    private JobRunrConfiguration jobRunrConfiguration;
 
-    @Inject
-    ApplicationContext context;
+    @Mock
+    private JobRunrConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
-    @Test
-    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
-    void jobRunrHealthIndicatorEnabledAutoConfiguration() {
-        assertThat(context).hasSingleBean(JobRunrHealthIndicator.class);
+    @Mock
+    private BackgroundJobServer backgroundJobServer;
+
+    private TestableJobRunrHealthIndicator jobRunrHealthIndicator;
+
+    @BeforeEach
+    void setUpHealthIndicator() {
+        when(jobRunrConfiguration.getBackgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
+
+        jobRunrHealthIndicator = new TestableJobRunrHealthIndicator(backgroundJobServer, jobRunrConfiguration);
     }
 
     @Test
-    @Property(name = "jobrunr.background-job-server.enabled", value = "false")
-    void jobRunrHealthIndicatorEnabledButBackgroundJobServerDisabledAutoConfiguration() {
-        assertThat(context).doesNotHaveBean(JobRunrHealthIndicator.class);
+    void givenDisabledBackgroundJobServer_ThenHealthIsOutOfService() {
+        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(false);
+
+        jobRunrHealthIndicator.getHealthInformation();
+
+        assertThat(jobRunrHealthIndicator.getHealthStatus().getName()).isEqualTo("OUT_OF_SERVICE");
     }
 
     @Test
-    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
-    @Property(name = "jobrunr.health.enabled", value = "false")
-    void jobRunrHealthIndicatorDisabledAutoConfiguration() {
-        assertThat(context).doesNotHaveBean(JobRunrHealthIndicator.class);
+    void givenEnabledBackgroundJobServerAndBackgroundJobServerRunning_ThenHealthIsUp() {
+        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(true);
+        when(backgroundJobServer.isRunning()).thenReturn(true);
+
+        jobRunrHealthIndicator.getHealthInformation();
+
+        assertThat(jobRunrHealthIndicator.getHealthStatus()).isEqualTo(HealthStatus.UP);
+    }
+
+    @Test
+    void givenEnabledBackgroundJobServerAndBackgroundJobServerStopped_ThenHealthIsDown() {
+        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(true);
+        when(backgroundJobServer.isRunning()).thenReturn(false);
+
+        jobRunrHealthIndicator.getHealthInformation();
+
+        assertThat(jobRunrHealthIndicator.getHealthStatus()).isEqualTo(HealthStatus.DOWN);
+    }
+
+    static class TestableJobRunrHealthIndicator extends JobRunrHealthIndicator {
+
+        public TestableJobRunrHealthIndicator(BackgroundJobServer backgroundJobServer, JobRunrConfiguration configuration) {
+            super(backgroundJobServer, configuration);
+        }
+
+        public HealthStatus getHealthStatus() {
+            return healthStatus;
+        }
     }
 }

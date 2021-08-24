@@ -16,6 +16,7 @@ dependencies {
     api 'io.quarkus:quarkus-smallrye-health-spi'
 
     compileOnly 'io.quarkus:quarkus-resteasy-jsonb'
+    testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 
 java {

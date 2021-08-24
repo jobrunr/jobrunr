@@ -8,7 +8,6 @@ import io.micronaut.management.health.indicator.annotation.Readiness;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +18,7 @@ import java.util.Map;
 @Readiness
 public class JobRunrHealthIndicator extends AbstractHealthIndicator<Map<String, String>> {
 
-    @Inject
     private final BackgroundJobServer backgroundJobServer;
-    @Inject
     private final JobRunrConfiguration configuration;
 
     public JobRunrHealthIndicator(BackgroundJobServer backgroundJobServer, JobRunrConfiguration configuration) {

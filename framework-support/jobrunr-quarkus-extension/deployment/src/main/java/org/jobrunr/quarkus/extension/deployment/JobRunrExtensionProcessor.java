@@ -24,9 +24,7 @@ import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderPr
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecorder;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 class JobRunrExtensionProcessor {
 
@@ -38,7 +36,7 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem produce(Capabilities capabilities, CombinedIndexBuildItem index) {
+    AdditionalBeanBuildItem produce(Capabilities capabilities) {
         return AdditionalBeanBuildItem.builder()
                 .setUnremovable()
                 .addBeanClasses(
@@ -69,15 +67,14 @@ class JobRunrExtensionProcessor {
         System.out.println("Running Buildstep metrics " + metricsCapability);
         if (metricsCapability.isPresent() && metricsCapability.get().metricsSupported(MetricsFactory.MICROMETER)) {
             System.out.println("StorageProviderMetrics Metrics enabled");
-            Set<Class> metricsBinders = new HashSet<>();
-            metricsBinders.add(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
-            if (jobRunrConfiguration.backgroundJobServer.enabled) {
-                System.out.println("BackgroundJobServerMetrics Metrics enabled");
-                metricsBinders.add(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
-            }
-            return AdditionalBeanBuildItem.builder()
+            final AdditionalBeanBuildItem.Builder additionalBeanBuildItemBuilder = AdditionalBeanBuildItem.builder()
                     .setUnremovable()
-                    .addBeanClasses(metricsBinders.stream().toArray(Class[]::new))
+                    .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
+
+            if (jobRunrConfiguration.backgroundJobServer.enabled) {
+                additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
+            }
+            return additionalBeanBuildItemBuilder
                     .build();
         }
         return null;

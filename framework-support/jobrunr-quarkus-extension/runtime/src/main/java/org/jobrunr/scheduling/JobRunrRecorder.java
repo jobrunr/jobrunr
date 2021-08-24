@@ -3,7 +3,6 @@ package org.jobrunr.scheduling;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
 import io.smallrye.common.expression.Expression;
-import io.smallrye.common.expression.ResolveContext;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
@@ -14,7 +13,6 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import java.time.ZoneId;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -55,18 +53,14 @@ public class JobRunrRecorder {
         if (isNotNullOrEmpty(expr)) {
             final Config config = ConfigProvider.getConfig();
             final Expression expression = Expression.compile(expr);
-            final String expanded = expression.evaluate(new BiConsumer<ResolveContext<RuntimeException>, StringBuilder>() {
-                @Override
-                public void accept(ResolveContext<RuntimeException> resolveContext, StringBuilder stringBuilder) {
-                    final Optional<String> resolve = config.getOptionalValue(resolveContext.getKey(), String.class);
-                    if (resolve.isPresent()) {
-                        stringBuilder.append(resolve.get());
-                    } else if (resolveContext.hasDefault()) {
-                        resolveContext.expandDefault();
-                    } else {
-                        throw new NoSuchElementException(String.format("Could not expand value %s in property %s",
-                                resolveContext.getKey(), expr));
-                    }
+            final String expanded = expression.evaluate((resolveContext, stringBuilder) -> {
+                final Optional<String> resolve = config.getOptionalValue(resolveContext.getKey(), String.class);
+                if (resolve.isPresent()) {
+                    stringBuilder.append(resolve.get());
+                } else if (resolveContext.hasDefault()) {
+                    resolveContext.expandDefault();
+                } else {
+                    throw new NoSuchElementException(String.format("Could not expand value %s in property %s", resolveContext.getKey(), expr));
                 }
             });
             return expanded;
