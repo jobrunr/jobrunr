@@ -4,6 +4,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.result.InsertOneResult;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -12,8 +13,6 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

@@ -2,13 +2,13 @@ package org.jobrunr.micronaut.autoconfigure.metrics;
 
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.Optional;
 
 @Singleton

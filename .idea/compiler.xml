@@ -16,39 +16,6 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.5.3/241d0706ca71df8696f266957bcf313524e73060/spring-boot-autoconfigure-processor-2.5.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.5.3/dbcb7b9aa82f98f4d079a2d3d7d1dc8a0dd171b1/spring-boot-configuration-processor-2.5.3.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <option name="micronaut.processing.annotations" value="org.jobrunr.*" />
-        <option name="micronaut.processing.group" value="org.jobrunr" />
-        <option name="micronaut.processing.incremental" value="true" />
-        <option name="micronaut.processing.module" value="jobrunr-micronaut-feature" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject-java/2.5.11/25b9cf40a31a7287b7ea461586d26b56849f5ad3/micronaut-inject-java-2.5.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-validation/2.5.11/5730203691afd2e021e82c3bd938394ee863afeb/micronaut-validation-2.5.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-aop/2.5.11/ce1fd85fe96cdc05e7189b4e6bb6e0d5f76cddb0/micronaut-aop-2.5.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject/2.5.11/464d7c58eb46e36fbbce88ce218b3f92d165d1cc/micronaut-inject-2.5.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-reactive/2.5.11/a691727d84d695bea04ab4aa06eadf7e571f9e87/micronaut-core-reactive-2.5.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core/2.5.11/4726192c232724eb7f434922e1a088e4a30f32e5/micronaut-core-2.5.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/934c04d3cfef185a8008e7bf34331b79730a9d43/javax.annotation-api-1.3.2.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.spotbugs/spotbugs-annotations/4.0.3/755cc5d84d32b31beeaf8597181f0fc4eac98e16/spotbugs-annotations-4.0.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.2/25ea2e8b0c338a877313bd4672d3fe056ea78f0d/jsr305-3.0.2.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/1.26/a78a8747147d2c5807683e76ec2b633e95c14fe9/snakeyaml-1.26.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.26/77100a62c2e6f04b53977b9f541044d7d722693d/slf4j-api-1.7.26.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.reactivestreams/reactive-streams/1.0.3/d9fb7a7926ffa635b3dcaa5049fb2bfa25b3e7d0/reactive-streams-1.0.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.validation/validation-api/2.0.1.Final/cb855558e6271b1b32e716d24cb85c7f583ce09e/validation-api-2.0.1.Final.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.inject/javax.inject/1/6975da39a7040257bd51d21a231b76c915872d38/javax.inject-1.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
-        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.1.3.Final/c2718cd79b041801aec72888ded37a0d4073b721/quarkus-extension-processor-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.2.Final/e2bdb6460f3ce847867983b1a898ba4d306cd60e/jdeparser-2.0.2.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.12.1/55819a28fc834c2f2bcf4dcdb278524dc3cf088f/jsoup-1.12.1.jar" />
@@ -66,8 +33,9 @@
           <entry name="$PROJECT_DIR$/framework-support/jobrunr-quarkus-extension/deployment/build/libs/deployment-v1.0.0-SNAPSHOT.jar" />
           <entry name="$PROJECT_DIR$/framework-support/jobrunr-quarkus-extension/runtime/build/libs/runtime-v1.0.0-SNAPSHOT.jar" />
           <entry name="$PROJECT_DIR$/core/build/libs/core-v1.0.0-SNAPSHOT.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-micrometer/2.1.3.Final/ffeef5d9998204b7983b8609e3ac062f2821903/quarkus-micrometer-2.1.3.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-micrometer-registry-prometheus/2.1.3.Final/341a7eb9694dc42d4c375fc400735e446bf63e19/quarkus-micrometer-registry-prometheus-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-arc-deployment/2.1.3.Final/f2b8b7852032a8871b3f22177352254ce1e6f91d/quarkus-arc-deployment-2.1.3.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-micrometer/2.1.3.Final/ffeef5d9998204b7983b8609e3ac062f2821903/quarkus-micrometer-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-resteasy-jackson/2.1.3.Final/70d8d8b8cce832f03baff0c4878bad62cbbd0fb1/quarkus-resteasy-jackson-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-jackson/2.1.3.Final/6032677052fe87dc2aef29366de1bf1cf16e4e69/quarkus-jackson-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-resteasy/2.1.3.Final/84f6bb08b0dcf32b67d27bc0d04bed930709ba00/quarkus-resteasy-2.1.3.Final.jar" />
@@ -89,13 +57,13 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-core/2.1.3.Final/bda5c22a3dbfc8ca87bd31019c38dbc329d83d8/quarkus-core-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-bootstrap-core/2.1.3.Final/4bfb7689ccbf051cda3aa73b55bc48bfcc1f233e/quarkus-bootstrap-core-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-bootstrap-maven-resolver/2.1.3.Final/f486a654f05b16bfb3857eb4c2a43499f901d8e8/quarkus-bootstrap-maven-resolver-2.1.3.Final.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.31/9545c9cb71de4c18d97a91e32ef0be6f3f6661b7/slf4j-api-1.7.31.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.32/cdcff33940d9f2de763bc41ea05a0be5941176c3/slf4j-api-1.7.32.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus.arc/arc-processor/2.1.3.Final/43ee0b2018861538dfa6a22780891dc7abcb9066/arc-processor-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus.gizmo/gizmo/1.0.9.Final/c0374a10aa6930da59fff20e337e09fc2522a91a/gizmo-1.0.9.Final.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.1/36464a45d871779f3383a8a9aba2b26562a86729/asm-util-9.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.1/4f61b83b81d8b659958f4bcc48907e93ecea55a0/asm-analysis-9.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.1/c333f2a855069cb8eb17a40a3eb8b1b67755d0eb/asm-tree-9.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.1/a99500cf6eea30535eeac6be73899d048f8d12a8/asm-9.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-util/9.2/fbc178fc5ba3dab50fd7e8a5317b8b647c8e8946/asm-util-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-analysis/9.2/7487dd756daf96cab9986e44b9d7bcb796a61c10/asm-analysis-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.2/d96c99a30f5e1a19b0e609dbb19a44d8518ac01e/asm-tree-9.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.2/81a03f76019c67362299c40e0ba13405f5467bff/asm-9.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.resteasy/resteasy-jackson2-provider/4.7.0.Final/b32441de50622f29a5ed59c7be539325bf25d74f/resteasy-jackson2-provider-4.7.0.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.datatype/jackson-datatype-jdk8/2.12.4/858a1e1b677cbafd3b100d5154f491a7051401c/jackson-datatype-jdk8-2.12.4.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.module/jackson-module-parameter-names/2.12.4/87c4e9a3302f0fafe4e5587f9c27d22847d8fe00/jackson-module-parameter-names-2.12.4.jar" />
@@ -113,6 +81,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.java-json-tools/json-patch/1.13/c8b72249e50fe778e7df223e5b1fed1931a4a688/json-patch-1.13.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.java-json-tools/jackson-coreutils/2.0/6374371261b91b829d10f21256b2feefdf8f0a78/jackson-coreutils-2.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.12.4/69206e02e6a696034f06a59d3ddbfbba5a4cd81/jackson-databind-2.12.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micrometer/micrometer-registry-prometheus/1.7.2/f768d2da1d3b9a9d6d9dbe2b5165a25e57edb70a/micrometer-registry-prometheus-1.7.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micrometer/micrometer-core/1.7.3/9186e4011b1208b2e33182b54cfb58e9ec57501c/micrometer-core-1.7.3.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/1.7.2/9bcb72e95d291c9ff45c3f8c0a054abc764b4205/junit-platform-launcher-1.7.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-params/5.7.2/685f832f8c54dd40100f646d61aca88ed9545421/junit-jupiter-params-5.7.2.jar" />
@@ -214,13 +183,15 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss/jandex/2.3.0.Final/696fc851fa6eec6a5e5816ed669c26c06fc99c03/jandex-2.3.0.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.reactivestreams/reactive-streams/1.0.3/d9fb7a7926ffa635b3dcaa5049fb2bfa25b3e7d0/reactive-streams-1.0.3.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.wildfly.common/wildfly-common/1.5.4.Final-format-001/d600b29d51306b30b29e7de64f6fedf61beb1808/wildfly-common-1.5.4.Final-format-001.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.hdrhistogram/HdrHistogram/2.1.12/6eb7552156e0d517ae80cc2247be1427c8d90452/HdrHistogram-2.1.12.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.latencyutils/LatencyUtils/2.0.3/769c0b82cb2421c8256300e907298a9410a2a3d3/LatencyUtils-2.0.3.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-devtools-utilities/2.1.3.Final/2da6e8c1b3274df25a8ec3c0e431705cc3b5e9d5/quarkus-devtools-utilities-2.1.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.el/jakarta.el-api/3.0.3/f311ab94bb1d4380690a53d737226a6b879dd4f1/jakarta.el-api-3.0.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.prometheus/simpleclient_common/0.10.0/407f8e2ec94ff29ff6b76715a1c427145d31fdc4/simpleclient_common-0.10.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.microprofile.health/microprofile-health-api/3.1/3add01d04b7d84d54dbcf1e88c58ef6eaacc611b/microprofile-health-api-3.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.fusesource.jansi/jansi/1.18/d9205bbcd4b5f9cd1effe752d18f73bd942d783f/jansi-1.18.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apiguardian/apiguardian-api/1.1.0/fc9dff4bb36d627bdc553de77e1f17efd790876c/apiguardian-api-1.1.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.hdrhistogram/HdrHistogram/2.1.12/6eb7552156e0d517ae80cc2247be1427c8d90452/HdrHistogram-2.1.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.latencyutils/LatencyUtils/2.0.3/769c0b82cb2421c8256300e907298a9410a2a3d3/LatencyUtils-2.0.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.prometheus/simpleclient/0.10.0/8d51b0acb3a56aac96da7c990638eccf624a1abe/simpleclient-0.10.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.java-json-tools/msg-simple/1.2/a06afa2d5d75c98e54ab370107930978fc3f9937/msg-simple-1.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.2.0/28c11eb91f9b6d8e200631d46e20a7f407f2a046/opentest4j-1.2.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.java-json-tools/btf/1.3/6cf5405e214cbc83337a107cdef8401fb6aa6383/btf-1.3.jar" />
@@ -241,6 +212,39 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/aopalliance/aopalliance/1.0/235ba8b489512805ac13a8f9ea77a1ca5ebe3e8/aopalliance-1.0.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.tests.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="micronaut.processing.annotations" value="org.jobrunr.*" />
+        <option name="micronaut.processing.group" value="org.jobrunr" />
+        <option name="micronaut.processing.incremental" value="true" />
+        <option name="micronaut.processing.module" value="jobrunr-micronaut-feature" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject-java/3.0.0/2a1169cd0291379e08c6eaafc99b543eafc042d9/micronaut-inject-java-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-validation/3.0.0/d78a927b206ae9737cb4f73bd5d53680c1d6af72/micronaut-validation-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-aop/3.0.0/1ee344a121aa6fdcf970a977b775bd6e8812bbdb/micronaut-aop-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject/3.0.0/ef8a14900fc9dc854f59b98688b4fdd8d34454a5/micronaut-inject-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-reactive/3.0.0/13f549b3cba6090004c807b02f856a3e4126b6c7/micronaut-core-reactive-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core/3.0.0/bdbdd7a15f0e3589e17a54fa7b7284fa0be6a5e/micronaut-core-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/934c04d3cfef185a8008e7bf34331b79730a9d43/javax.annotation-api-1.3.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/2.0.0/f3cd84cc45f583a0fdc42a8156d6c5b98d625c1a/jakarta.annotation-api-2.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/1.29/6d0cdafb2010f1297e574656551d7145240f6e25/snakeyaml-1.29.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.29/e56bf4473a4c6b71c7dd397a833dce86d1993d9d/slf4j-api-1.7.29.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.projectreactor/reactor-core/3.4.8/a654cf9f8f29f09339d80cc30a925f69137de258/reactor-core-3.4.8.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.reactivestreams/reactive-streams/1.0.3/d9fb7a7926ffa635b3dcaa5049fb2bfa25b3e7d0/reactive-streams-1.0.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.validation/validation-api/2.0.1.Final/cb855558e6271b1b32e716d24cb85c7f583ce09e/validation-api-2.0.1.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.inject/jakarta.inject-api/2.0.0/46fc8560b6fd17b78396d88f39c1a730457671f0/jakarta.inject-api-2.0.0.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
+        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.5.4/dc40b41ed09d6ff837ada5ee7f92c8363cf6d9a2/spring-boot-autoconfigure-processor-2.5.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.5.4/aaddc23ff2517732cbafb9dafbfe30a6714112b0/spring-boot-configuration-processor-2.5.4.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">

@@ -4,6 +4,7 @@ package org.jobrunr.micronaut.autoconfigure;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
@@ -11,8 +12,6 @@ import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-
-import javax.inject.Inject;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 

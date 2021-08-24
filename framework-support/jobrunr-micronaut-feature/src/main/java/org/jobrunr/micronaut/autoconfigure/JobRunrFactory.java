@@ -3,9 +3,13 @@ package org.jobrunr.micronaut.autoconfigure;
 import com.mongodb.client.MongoClient;
 import io.lettuce.core.RedisClient;
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.context.BeanContext;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Requires;
+import io.micronaut.inject.qualifiers.Qualifiers;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
@@ -26,9 +30,6 @@ import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.sql.DataSource;
 
 import static java.util.Collections.emptyList;
@@ -117,7 +118,10 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {DataSource.class})
-    public StorageProvider sqlStorageProvider(@Named("${jobrunr.database.datasource:default}") DataSource dataSource, JobMapper jobMapper) {
+    public StorageProvider sqlStorageProvider(BeanContext beanContext, JobMapper jobMapper) {
+        DataSource dataSource = configuration.getDatabase().getDatasource()
+                .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
+                .orElse(beanContext.getBean(DataSource.class));
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         DefaultSqlStorageProvider.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DefaultSqlStorageProvider.DatabaseOptions.SKIP_CREATE : DefaultSqlStorageProvider.DatabaseOptions.CREATE;
         StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);

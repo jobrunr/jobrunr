@@ -5,13 +5,13 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.sql.*;
 
@@ -27,7 +27,8 @@ class SqlStorageProviderJobRunrFactoryTest {
 
     @BeforeEach
     void setupDataSource() throws SQLException {
-        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("default"));
+        context.registerSingleton(dataSource());
+        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("jobrunr"));
     }
 
     @Test

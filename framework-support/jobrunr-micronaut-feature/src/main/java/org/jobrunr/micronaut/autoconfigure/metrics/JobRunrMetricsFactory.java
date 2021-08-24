@@ -3,12 +3,11 @@ package org.jobrunr.micronaut.autoconfigure.metrics;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Requires;
+import jakarta.inject.Singleton;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
-
-import javax.inject.Singleton;
 
 @Factory
 @Requires(classes = MeterRegistry.class)

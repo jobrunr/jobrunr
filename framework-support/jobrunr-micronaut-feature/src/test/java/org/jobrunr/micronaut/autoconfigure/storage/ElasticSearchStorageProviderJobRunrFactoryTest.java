@@ -2,6 +2,7 @@ package org.jobrunr.micronaut.autoconfigure.storage;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.ClusterClient;
@@ -15,7 +16,6 @@ import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
 import java.io.IOException;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;

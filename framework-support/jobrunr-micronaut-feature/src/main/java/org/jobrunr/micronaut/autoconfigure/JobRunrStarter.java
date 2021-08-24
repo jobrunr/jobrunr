@@ -3,12 +3,12 @@ package org.jobrunr.micronaut.autoconfigure;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerShutdownEvent;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.Optional;
 
 @Singleton

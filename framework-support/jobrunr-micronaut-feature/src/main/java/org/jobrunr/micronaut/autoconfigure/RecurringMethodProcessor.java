@@ -4,11 +4,10 @@ import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.processor.ExecutableMethodProcessor;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.inject.ExecutableMethod;
+import jakarta.inject.Singleton;
 import org.jobrunr.micronaut.annotations.Recurring;
-import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.scheduling.JobRunrRecurringJobScheduler;
-
-import javax.inject.Singleton;
+import org.jobrunr.scheduling.JobScheduler;
 
 
 @Singleton

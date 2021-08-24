@@ -16,7 +16,7 @@ compileTestJava {
 
 dependencies {
     implementation 'org.jobrunr:jobrunr:3.1.0'
-    implementation 'org.slf4j:slf4j-simple:1.7.30'
+    implementation 'org.slf4j:slf4j-simple:1.7.32'
 
     testImplementation 'org.jobrunr:jobrunr:[3.1.0]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.8.7'
@@ -25,8 +25,8 @@ dependencies {
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.27.0'
     testImplementation 'org.awaitility:awaitility:4.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
-    testImplementation 'org.testcontainers:testcontainers:1.15.3'
-    testImplementation 'org.testcontainers:junit-jupiter:1.15.3'
+    testImplementation 'org.testcontainers:testcontainers:1.16.0'
+    testImplementation 'org.testcontainers:junit-jupiter:1.16.0'
 }
 
 test {

@@ -5,10 +5,10 @@ import io.micronaut.health.HealthStatus;
 import io.micronaut.management.health.indicator.AbstractHealthIndicator;
 import io.micronaut.management.health.indicator.HealthIndicator;
 import io.micronaut.management.health.indicator.annotation.Readiness;
+import jakarta.inject.Singleton;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 
-import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
 

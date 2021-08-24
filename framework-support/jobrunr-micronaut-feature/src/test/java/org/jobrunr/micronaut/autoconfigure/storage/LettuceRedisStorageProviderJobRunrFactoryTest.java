@@ -5,13 +5,12 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 import static org.mockito.Mockito.mock;
