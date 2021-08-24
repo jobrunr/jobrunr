@@ -7,10 +7,7 @@ import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
-import org.jobrunr.server.runner.BackgroundJobRunner;
-import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
-import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
-import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
+import org.jobrunr.server.runner.*;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
@@ -38,6 +35,7 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -210,6 +208,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     BackgroundJobRunner getBackgroundJobRunner(Job job) {
+        assertJobExists(job.getJobDetails());
         return backgroundJobRunners.stream()
                 .filter(jobRunner -> jobRunner.supports(job))
                 .findFirst()
@@ -283,9 +282,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private List<BackgroundJobRunner> initializeBackgroundJobRunners(JobActivator jobActivator) {
         return asList(
-                new BackgroundStaticJobWithoutIocRunner(),
                 new BackgroundJobWithIocRunner(jobActivator),
-                new BackgroundJobWithoutIocRunner()
+                new BackgroundJobWithoutIocRunner(),
+                new BackgroundStaticJobWithoutIocRunner(),
+                new BackgroundStaticFieldJobWithoutIocRunner()
         );
     }
 

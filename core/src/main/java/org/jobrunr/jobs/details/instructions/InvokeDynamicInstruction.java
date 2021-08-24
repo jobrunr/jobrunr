@@ -56,7 +56,7 @@ public class InvokeDynamicInstruction extends AbstractJVMInstruction {
             }
             return result;
         }
-        throw JobRunrException.shouldNotHappenException("");
+        throw JobRunrException.shouldNotHappenException("Unknown INVOKEDYNAMIC instruction: " + name);
     }
 
     public static String replaceLast(String text, String regex, String replacement) {

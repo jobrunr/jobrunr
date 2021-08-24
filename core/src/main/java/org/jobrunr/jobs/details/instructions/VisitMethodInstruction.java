@@ -32,6 +32,10 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
         return descriptor.endsWith(")V");
     }
 
+    protected boolean isLastInstruction() {
+        return jobDetailsBuilder.getInstructions().isEmpty();
+    }
+
     protected List<Object> getParametersUsingParamTypes(Class<?>[] paramTypesAsArray) {
         LinkedList<Class<?>> paramTypes = new LinkedList<>(Arrays.asList(paramTypesAsArray));
         List<Object> result = new ArrayList<>();

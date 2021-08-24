@@ -13,9 +13,8 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.objectweb.asm.util.Textifier;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,6 +34,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 
 public abstract class AbstractJobDetailsGeneratorTest {
 
@@ -56,13 +56,22 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     protected abstract JobDetailsGenerator getJobDetailsGenerator();
 
-
     protected JobDetails toJobDetails(JobLambda job) {
         return jobDetailsGenerator.toJobDetails(job);
     }
 
     protected JobDetails toJobDetails(IocJobLambda<TestService> iocJobLambda) {
         return jobDetailsGenerator.toJobDetails(iocJobLambda);
+    }
+
+    @Test
+        //@Disabled
+    void logByteCode() {
+        String name = AbstractJobDetailsGeneratorTest.class.getName();
+        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+
+        //String location = "/home/ronald/Projects/Personal/JobRunr/jobrunr/jobrunr-kotlin-15-support/build/classes/kotlin/test/org/jobrunr/jobs/details/JobDetailsAsmGeneratorForKotlinTest$testMethodReferenceJobLambdaInSameClass$jobDetails$1.class";
+        assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 
     @Test
@@ -109,27 +118,24 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     @Test
-    @Disabled("Static methods aren't working yet - waiting for Bug Report to see whether someone tries that")
     void testJobLambdaCallingStaticMethod() {
         UUID id = UUID.randomUUID();
         JobLambda job = () -> TestService.doWorkInStaticMethod(id);
         JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
-                .hasStaticFieldName("out")
                 .hasMethodName("doWorkInStaticMethod")
                 .hasArgs(id);
     }
 
     @Test
-    @Disabled("Static methods aren't working yet - waiting for Bug Report to see whether someone tries that")
     void testJobLambdaCallingInlineStaticMethod() {
-        JobDetails jobDetails = toJobDetails((JobLambda) () -> TestService.doWorkInStaticMethod(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        JobDetails jobDetails = toJobDetails(() -> TestService.doWorkInStaticMethod(id));
         assertThat(jobDetails)
-                .hasClass(System.class)
-                .hasStaticFieldName("out")
-                .hasMethodName("println")
-                .hasArgs("This is a test!");
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkInStaticMethod")
+                .hasArgs(id);
     }
 
     @Test

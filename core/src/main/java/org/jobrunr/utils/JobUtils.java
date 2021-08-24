@@ -52,7 +52,8 @@ public class JobUtils {
     }
 
     public static void assertJobExists(JobDetails jobDetails) {
-        if (getJobMethod(jobDetails) == null) throw new IllegalStateException("Job does not exist");
+        if (!jobDetails.hasStaticFieldName() && getJobMethod(jobDetails) == null)
+            throw new IllegalStateException("Job does not exist");
     }
 
     public static boolean jobExists(String jobSignature) {

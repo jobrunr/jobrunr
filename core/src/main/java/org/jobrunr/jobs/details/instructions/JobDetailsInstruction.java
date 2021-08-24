@@ -82,10 +82,6 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         return createObjectViaMethod(ownerObject, name, paramTypes, getParametersUsingParamTypes(paramTypes).toArray());
     }
 
-    private boolean isLastInstruction() {
-        return jobDetailsBuilder.getInstructions().isEmpty();
-    }
-
     private Optional<String> findInheritedClassName(String className) {
         if (jobDetailsBuilder.getLocalVariable(0) != null) {
             final Field declaredField = jobDetailsBuilder.getLocalVariable(0).getClass().getDeclaredFields()[0];

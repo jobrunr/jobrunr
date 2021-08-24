@@ -29,6 +29,10 @@ public class TestService implements TestServiceInterface {
         return processedJobs;
     }
 
+    public static void doStaticWork() {
+        System.out.println("Doing some work from a static method... ");
+    }
+
     public void doWork(Runnable runnable) throws Exception {
         runnable.run();
     }
