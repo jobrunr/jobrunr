@@ -154,7 +154,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         JobLambda job = () -> testService.doWork(work);
         assertThatThrownBy(() -> toJobDetails(job))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("You are passing null to your background job - JobRunr prevents this to fail fast.");
+                .hasMessage("You are passing null as a parameter to your background job for type org.jobrunr.stubs.TestService$Work - JobRunr prevents this to fail fast.");
     }
 
     @Test
