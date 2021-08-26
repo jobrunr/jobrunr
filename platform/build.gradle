@@ -44,7 +44,7 @@ dependencies {
         api 'org.assertj:assertj-core:3.20.2'
         api 'com.tngtech.archunit:archunit-junit5:0.21.0'
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.28.0'
-        api 'org.mockito:mockito-core:3.12.3'
+        api 'org.mockito:mockito-inline:3.12.4'
         api 'org.mockito:mockito-junit-jupiter:3.12.3'
         api 'ch.qos.logback:logback-classic:1.2.5'
         api 'org.testcontainers:testcontainers:1.16.0'

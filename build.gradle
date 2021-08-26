@@ -56,7 +56,7 @@ configure(subprojects.findAll {it.name != 'platform'}) {
         testImplementation 'com.tngtech.archunit:archunit-junit5'
         testImplementation 'net.javacrumbs.json-unit:json-unit-assertj'
         testImplementation 'ch.qos.logback:logback-classic'
-        testImplementation 'org.mockito:mockito-core'
+        testImplementation 'org.mockito:mockito-inline'
         testImplementation 'org.mockito:mockito-junit-jupiter'
     }
 

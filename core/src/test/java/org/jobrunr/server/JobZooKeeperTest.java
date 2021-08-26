@@ -386,7 +386,7 @@ class JobZooKeeperTest {
         when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(workDistributionStrategy);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
-        when(backgroundJobServer.getDashboardExceptionManager()).thenReturn(new DashboardNotificationManager(backgroundJobServerId, storageProvider));
+        when(backgroundJobServer.getDashboardNotificationManager()).thenReturn(new DashboardNotificationManager(backgroundJobServerId, storageProvider));
         lenient().when(workDistributionStrategy.canOnboardNewWork()).thenReturn(true);
         lenient().when(workDistributionStrategy.getWorkPageRequest()).thenReturn(ascOnUpdatedAt(10));
         lenient().when(backgroundJobServer.isAnnounced()).thenReturn(true);

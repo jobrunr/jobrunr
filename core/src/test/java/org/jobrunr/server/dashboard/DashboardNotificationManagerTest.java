@@ -39,7 +39,7 @@ class DashboardNotificationManagerTest {
     }
 
     @Test
-    void handleShouldSaveJobRunrMetadataToStorageProvider() {
+    void handleSupportsSevereJobRunrExceptionAndShouldSaveJobRunrMetadataToStorageProvider() {
         dashboardNotificationManager.handle(new SevereJobRunrException("Severe exception occurred", new SomeException()));
 
         verify(storageProviderMock).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
@@ -59,7 +59,7 @@ class DashboardNotificationManagerTest {
     }
 
     @Test
-    void notifyShouldSaveJobRunrMetadataToStorageProvider() {
+    void notifyForCpuAllocationIrregularityShouldSaveJobRunrMetadataToStorageProvider() {
         dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(11));
 
         verify(storageProviderMock).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
@@ -68,6 +68,18 @@ class DashboardNotificationManagerTest {
                 .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServerId.toString())
                 .valueContains("11");
+    }
+
+    @Test
+    void notifyForNewJobRunrVersionShouldSaveJobRunrMetadataToStorageProvider() {
+        dashboardNotificationManager.notify(new NewJobRunrVersionNotification("4.0.0"));
+
+        verify(storageProviderMock).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
+
+        assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
+                .hasName(NewJobRunrVersionNotification.class.getSimpleName())
+                .hasOwner("cluster")
+                .valueContains("4.0.0");
     }
 
     private static class SomeException extends Exception implements DiagnosticsAware {

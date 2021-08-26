@@ -9,6 +9,7 @@ import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
 import org.jobrunr.server.runner.*;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
@@ -187,7 +188,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return storageProvider;
     }
 
-    public DashboardNotificationManager getDashboardExceptionManager() {
+    public DashboardNotificationManager getDashboardNotificationManager() {
         return dashboardNotificationManager;
     }
 
@@ -252,6 +253,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 1, TimeUnit.DAYS);
     }
 
     private void stopZooKeepers() {
@@ -273,7 +275,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void runStartupTasks() {
         try {
-            List<Runnable> startupTasks = asList(new CheckIfAllJobsExistTask(this));
+            List<Runnable> startupTasks = asList(
+                    new CheckIfAllJobsExistTask(this),
+                    new CheckForNewJobRunrVersion(this));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
             // server is shut down immediately

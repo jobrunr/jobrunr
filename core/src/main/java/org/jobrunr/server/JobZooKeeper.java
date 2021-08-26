@@ -56,7 +56,7 @@ public class JobZooKeeper implements Runnable {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.workDistributionStrategy = backgroundJobServer.getWorkDistributionStrategy();
-        this.dashboardNotificationManager = backgroundJobServer.getDashboardExceptionManager();
+        this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.currentlyProcessedJobs = new ConcurrentHashMap<>();

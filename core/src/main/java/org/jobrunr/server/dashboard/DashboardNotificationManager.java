@@ -2,6 +2,7 @@ package org.jobrunr.server.dashboard;
 
 import org.jobrunr.server.dashboard.mappers.CpuAllocationIrregularityNotificationMapper;
 import org.jobrunr.server.dashboard.mappers.DashboardNotificationMapper;
+import org.jobrunr.server.dashboard.mappers.NewJobRunrVersionNotificationMapper;
 import org.jobrunr.server.dashboard.mappers.SevereJobRunrExceptionNotificationMapper;
 import org.jobrunr.storage.StorageProvider;
 
@@ -20,7 +21,8 @@ public class DashboardNotificationManager {
         this.storageProvider = storageProvider;
         this.notificationMappers = new HashSet<>(asList(
                 new SevereJobRunrExceptionNotificationMapper(backgroundJobServerId, storageProvider),
-                new CpuAllocationIrregularityNotificationMapper(backgroundJobServerId)
+                new CpuAllocationIrregularityNotificationMapper(backgroundJobServerId),
+                new NewJobRunrVersionNotificationMapper()
         ));
     }
 
@@ -35,5 +37,9 @@ public class DashboardNotificationManager {
                 .filter(notificationMapper -> notificationMapper.supports(e))
                 .map(notificationMapper -> notificationMapper.map(e))
                 .forEach(storageProvider::saveMetadata);
+    }
+
+    public void deleteNotification(Class<? extends DashboardNotification> notificationToDelete) {
+        storageProvider.deleteMetadata(notificationToDelete.getSimpleName());
     }
 }
