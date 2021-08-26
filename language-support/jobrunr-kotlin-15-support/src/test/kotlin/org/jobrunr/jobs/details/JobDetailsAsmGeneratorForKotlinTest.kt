@@ -67,8 +67,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
     fun testJobLambdaCallInstanceMethod_Null() {
         val work: TestService.Work? = null
         assertThatThrownBy { toJobDetails { testService.doWork(work) } }
-                .isInstanceOf(NullPointerException::class.java)
-                .hasMessage("You are passing null to your background job - JobRunr prevents this to fail fast.")
+            .isInstanceOf(NullPointerException::class.java)
+            .hasMessage("You are passing null as a parameter to your background job for type org.jobrunr.stubs.TestService\$Work - JobRunr prevents this to fail fast.");
     }
 
     @Test
