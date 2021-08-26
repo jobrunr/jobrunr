@@ -21,8 +21,6 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import java.util.Collections;
-
 import static java.util.Collections.emptyList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -33,14 +31,6 @@ public class JobRunrProducer {
 
     @Inject
     JobRunrConfiguration configuration;
-
-    @Produces
-    @DefaultBean
-    @Singleton
-    public Object someObject() {
-        return new Object();
-    }
-
 
     @Produces
     @DefaultBean
