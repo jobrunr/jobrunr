@@ -1,18 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <wildcardResourcePatterns>
-      <entry name="!?*.java" />
-      <entry name="!?*.form" />
-      <entry name="!?*.class" />
-      <entry name="!?*.groovy" />
-      <entry name="!?*.scala" />
-      <entry name="!?*.flex" />
-      <entry name="!?*.kt" />
-      <entry name="!?*.clj" />
-      <entry name="!?*.aj!?*.sql" />
-    </wildcardResourcePatterns>
     <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="micronaut.processing.annotations" value="org.jobrunr.*" />
+        <option name="micronaut.processing.group" value="org.jobrunr" />
+        <option name="micronaut.processing.incremental" value="true" />
+        <option name="micronaut.processing.module" value="jobrunr-micronaut-feature" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject-java/3.0.0/2a1169cd0291379e08c6eaafc99b543eafc042d9/micronaut-inject-java-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-validation/3.0.0/d78a927b206ae9737cb4f73bd5d53680c1d6af72/micronaut-validation-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-aop/3.0.0/1ee344a121aa6fdcf970a977b775bd6e8812bbdb/micronaut-aop-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject/3.0.0/ef8a14900fc9dc854f59b98688b4fdd8d34454a5/micronaut-inject-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-reactive/3.0.0/13f549b3cba6090004c807b02f856a3e4126b6c7/micronaut-core-reactive-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core/3.0.0/bdbdd7a15f0e3589e17a54fa7b7284fa0be6a5e/micronaut-core-3.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/934c04d3cfef185a8008e7bf34331b79730a9d43/javax.annotation-api-1.3.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/2.0.0/f3cd84cc45f583a0fdc42a8156d6c5b98d625c1a/jakarta.annotation-api-2.0.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/1.29/6d0cdafb2010f1297e574656551d7145240f6e25/snakeyaml-1.29.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.29/e56bf4473a4c6b71c7dd397a833dce86d1993d9d/slf4j-api-1.7.29.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.projectreactor/reactor-core/3.4.8/a654cf9f8f29f09339d80cc30a925f69137de258/reactor-core-3.4.8.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.reactivestreams/reactive-streams/1.0.3/d9fb7a7926ffa635b3dcaa5049fb2bfa25b3e7d0/reactive-streams-1.0.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.validation/validation-api/2.0.1.Final/cb855558e6271b1b32e716d24cb85c7f583ce09e/validation-api-2.0.1.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.inject/jakarta.inject-api/2.0.0/46fc8560b6fd17b78396d88f39c1a730457671f0/jakarta.inject-api-2.0.0.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
+        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.5.4/dc40b41ed09d6ff837ada5ee7f92c8363cf6d9a2/spring-boot-autoconfigure-processor-2.5.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.5.4/aaddc23ff2517732cbafb9dafbfe30a6714112b0/spring-boot-configuration-processor-2.5.4.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
+      </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
@@ -213,148 +235,7 @@
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.tests.main" />
       </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <option name="micronaut.processing.annotations" value="org.jobrunr.*" />
-        <option name="micronaut.processing.group" value="org.jobrunr" />
-        <option name="micronaut.processing.incremental" value="true" />
-        <option name="micronaut.processing.module" value="jobrunr-micronaut-feature" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject-java/3.0.0/2a1169cd0291379e08c6eaafc99b543eafc042d9/micronaut-inject-java-3.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-validation/3.0.0/d78a927b206ae9737cb4f73bd5d53680c1d6af72/micronaut-validation-3.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-aop/3.0.0/1ee344a121aa6fdcf970a977b775bd6e8812bbdb/micronaut-aop-3.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject/3.0.0/ef8a14900fc9dc854f59b98688b4fdd8d34454a5/micronaut-inject-3.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-reactive/3.0.0/13f549b3cba6090004c807b02f856a3e4126b6c7/micronaut-core-reactive-3.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core/3.0.0/bdbdd7a15f0e3589e17a54fa7b7284fa0be6a5e/micronaut-core-3.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/934c04d3cfef185a8008e7bf34331b79730a9d43/javax.annotation-api-1.3.2.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/2.0.0/f3cd84cc45f583a0fdc42a8156d6c5b98d625c1a/jakarta.annotation-api-2.0.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/1.29/6d0cdafb2010f1297e574656551d7145240f6e25/snakeyaml-1.29.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.29/e56bf4473a4c6b71c7dd397a833dce86d1993d9d/slf4j-api-1.7.29.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.projectreactor/reactor-core/3.4.8/a654cf9f8f29f09339d80cc30a925f69137de258/reactor-core-3.4.8.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.reactivestreams/reactive-streams/1.0.3/d9fb7a7926ffa635b3dcaa5049fb2bfa25b3e7d0/reactive-streams-1.0.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.validation/validation-api/2.0.1.Final/cb855558e6271b1b32e716d24cb85c7f583ce09e/validation-api-2.0.1.Final.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.inject/jakarta.inject-api/2.0.0/46fc8560b6fd17b78396d88f39c1a730457671f0/jakarta.inject-api-2.0.0.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
-        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.5.4/dc40b41ed09d6ff837ada5ee7f92c8363cf6d9a2/spring-boot-autoconfigure-processor-2.5.4.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.5.4/aaddc23ff2517732cbafb9dafbfe30a6714112b0/spring-boot-configuration-processor-2.5.4.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
-      </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
-      <module name="JangFire.backgroundjob-server.main" target="1.8" />
-      <module name="JangFire.backgroundjob-server.test" target="1.8" />
-      <module name="JangFire.backgroundjob-server.testFixtures" target="1.8" />
-      <module name="JangFire.core.main" target="1.8" />
-      <module name="JangFire.core.test" target="11" />
-      <module name="JangFire.core.testFixtures" target="1.8" />
-      <module name="JangFire.e2e-base.main" target="1.8" />
-      <module name="JangFire.e2e-base.test" target="11" />
-      <module name="JangFire.e2e-base.testFixtures" target="1.8" />
-      <module name="JangFire.e2e-mariadb.main" target="1.8" />
-      <module name="JangFire.e2e-mariadb.test" target="11" />
-      <module name="JangFire.e2e-mariadb.testFixtures" target="1.8" />
-      <module name="JangFire.main" target="11" />
-      <module name="JangFire.org.jangfire.storage.core-org.jangfire.storage.main" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.core-org.jangfire.storage.test" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.core-org.jangfire.storage.testFixtures" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.main" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.sql.main" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.sql.test" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.sql.testFixtures" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.test" target="1.8" />
-      <module name="JangFire.org.jangfire.storage.testFixtures" target="1.8" />
-      <module name="JangFire.storage-sql.main" target="11" />
-      <module name="JangFire.storage-sql.test" target="11" />
-      <module name="JangFire.storage-sql.testFixtures" target="11" />
-      <module name="JangFire.storage.base.main" target="1.8" />
-      <module name="JangFire.storage.base.test" target="11" />
-      <module name="JangFire.storage.base.testFixtures" target="1.8" />
-      <module name="JangFire.storage.core-storage.main" target="1.8" />
-      <module name="JangFire.storage.core-storage.test" target="1.8" />
-      <module name="JangFire.storage.core-storage.testFixtures" target="1.8" />
-      <module name="JangFire.storage.core.main" target="1.8" />
-      <module name="JangFire.storage.core.test" target="1.8" />
-      <module name="JangFire.storage.core.testFixtures" target="1.8" />
-      <module name="JangFire.storage.main" target="1.8" />
-      <module name="JangFire.storage.sql.main" target="1.8" />
-      <module name="JangFire.storage.sql.test" target="11" />
-      <module name="JangFire.storage.sql.testFixtures" target="1.8" />
-      <module name="JangFire.storage.test" target="11" />
-      <module name="JangFire.storage.testFixtures" target="1.8" />
-      <module name="JangFire.test" target="11" />
-      <module name="JangFire.tests.backgroundjob-server-jackson.main" target="1.8" />
-      <module name="JangFire.tests.backgroundjob-server-jackson.test" target="11" />
-      <module name="JangFire.tests.backgroundjob-server-jackson.testFixtures" target="1.8" />
-      <module name="JangFire.tests.backgroundjob-server.main" target="11" />
-      <module name="JangFire.tests.backgroundjob-server.test" target="11" />
-      <module name="JangFire.tests.backgroundjob-server.testFixtures" target="11" />
-      <module name="JangFire.tests.e2e-base.main" target="1.8" />
-      <module name="JangFire.tests.e2e-base.test" target="11" />
-      <module name="JangFire.tests.e2e-base.testFixtures" target="1.8" />
-      <module name="JangFire.tests.e2e-jackson-postgres.main" target="1.8" />
-      <module name="JangFire.tests.e2e-jackson-postgres.test" target="11" />
-      <module name="JangFire.tests.e2e-jackson-postgres.testFixtures" target="1.8" />
-      <module name="JangFire.tests.e2e-mariadb.main" target="1.8" />
-      <module name="JangFire.tests.e2e-mariadb.test" target="11" />
-      <module name="JangFire.tests.e2e-mariadb.testFixtures" target="1.8" />
-      <module name="JangFire.tests.e2e-postgres.main" target="1.8" />
-      <module name="JangFire.tests.e2e-postgres.test" target="11" />
-      <module name="JangFire.tests.e2e-postgres.testFixtures" target="1.8" />
-      <module name="JangFire.tests.main" target="1.8" />
-      <module name="JangFire.tests.test" target="11" />
-      <module name="JangFire.tests.testFixtures" target="1.8" />
-      <module name="JobRunr.framework-support.jobrunr-micronaut-project.test" target="11" />
-      <module name="JobRunr.jobrunr-kotlin-14-support.test" target="11" />
-      <module name="JobRunr.jobrunr-kotlin-15-support.test" target="11" />
-      <module name="JobRunr.jobrunr-kotlin-support.test" target="11" />
-      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-deployment.test" target="11" />
-      <module name="JobRunr.jobrunr-quarkus.quarkus-jobrunr-runtime.test" target="11" />
-      <module name="JobRunr.jobrunr-quarkus.test" target="11" />
-      <module name="JobRunr.jobrunr-spring-boot-starter.test" target="11" />
-      <module name="JobRunr.kotlin-support.test" target="11" />
-      <module name="JobRunr.platform.test" target="11" />
-      <module name="JobRunr.pro.test" target="11" />
-      <module name="JobRunr.tests.e2e-jdk-8-graalvm.test" target="11" />
-      <module name="JobRunr.tests.e2e-jdk-8-openj9.test" target="11" />
-      <module name="JobRunr.tests.e2e-jdk-8-openjdk.test" target="11" />
-      <module name="JobRunr.tests.e2e-jdk-openjdk8.test" target="11" />
-      <module name="JobRunr.tests.e2e-jdk.e2e-jdk-openjdk.test" target="11" />
-      <module name="JobRunr.tests.e2e-mariadb-gson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-mariadb-jack.main" target="1.8" />
-      <module name="JobRunr.tests.e2e-mariadb-jack.test" target="11" />
-      <module name="JobRunr.tests.e2e-mariadb-jack.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-mariadb-jackson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-mariadb.main" target="1.8" />
-      <module name="JobRunr.tests.e2e-mariadb.test" target="11" />
-      <module name="JobRunr.tests.e2e-mariadb.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-oracle-gson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-oracle-jackson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-postgres-gso.main" target="1.8" />
-      <module name="JobRunr.tests.e2e-postgres-gso.test" target="11" />
-      <module name="JobRunr.tests.e2e-postgres-gso.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-postgres-gson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-postgres-jackson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-postgres.main" target="1.8" />
-      <module name="JobRunr.tests.e2e-postgres.test" target="11" />
-      <module name="JobRunr.tests.e2e-postgres.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-ui-gson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-ui-jackson.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.e2e-ui.main" target="1.8" />
-      <module name="JobRunr.tests.e2e-ui.test" target="11" />
-      <module name="JobRunr.tests.e2e-ui.testFixtures" target="1.8" />
-      <module name="JobRunr.tests.testFixtures" target="1.8" />
-      <module name="org.jangfire.JangFire.storage.core.main" target="1.8" />
-      <module name="org.jangfire.JangFire.storage.core.test" target="1.8" />
-      <module name="org.jangfire.JangFire.storage.core.testFixtures" target="1.8" />
-      <module name="org.jobrunr.JobRunr.framework-support.jobrunr-quarkus-extension.test.test" target="11" />
-      <module name="org.jobrunr.JobRunr.jobrunr-kotlin-14-support.test" target="11" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8" />
   </component>
 </project>
