@@ -1,0 +1,95 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api platform('io.quarkus:quarkus-bom:2.1.3.Final')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.1.3.Final'
+
+    api project(':core')
+    api project(':framework-support:jobrunr-quarkus-extension:runtime') // why: https://quarkus.io/guides/building-my-first-extension
+    api 'io.quarkus:quarkus-core-deployment'
+    api 'io.quarkus:quarkus-arc-deployment'
+    api 'io.quarkus:quarkus-smallrye-health-spi'
+
+    compileOnly 'io.quarkus:quarkus-resteasy-jsonb'
+    testImplementation 'io.quarkus:quarkus-smallrye-health'
+}
+
+java {
+    //withJavadocJar()
+    withSourcesJar()
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    systemProperty "platform.quarkus.native.builder-image", false
+    //systemProperty "maven.settings", "/home/ronald/.m2/settings.xml" does not help for Failed to create the application model for null
+    //systemProperty "maven.home", "~/.m2/" -> does not help for Failed to create the application model for null
+}
+
+//nexusPublishing {
+//    packageGroup = "org.jobrunr.quarkus-jobrunr-deployment"
+//}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'quarkus-jobrunr-deployment'
+            version = project.version.replace("v", "")
+            from components.java
+
+            pom {
+                name = 'JobRunr Quarkus Deployment Extension'
+                description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'Multi licensed'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                versionMapping {
+                    usage('java-runtime'){
+                        fromResolutionResult()
+                    }
+                }
+
+                withXml {
+                    def pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}

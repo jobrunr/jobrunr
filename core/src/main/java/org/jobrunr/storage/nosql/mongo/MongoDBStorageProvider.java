@@ -34,7 +34,6 @@ import org.jobrunr.storage.nosql.mongo.mapper.BackgroundJobServerStatusDocumentM
 import org.jobrunr.storage.nosql.mongo.mapper.JobDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MetadataDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MongoDBPageRequestMapper;
-import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.lang.reflect.InvocationTargetException;
@@ -73,6 +72,7 @@ import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
 import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.JobUtils.isNew;
+import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -426,7 +426,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     private void validateMongoClient(MongoClient mongoClient) {
-        Optional<Method> codecRegistryGetter = ReflectionUtils.findMethod(mongoClient, "getCodecRegistry");
+        Optional<Method> codecRegistryGetter = findMethod(mongoClient, "getCodecRegistry");
         if (codecRegistryGetter.isPresent()) {
             try {
                 CodecRegistry codecRegistry = (CodecRegistry) codecRegistryGetter.get().invoke(mongoClient);

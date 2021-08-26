@@ -22,14 +22,15 @@ public class StringUtils {
 
     public static String substringBefore(String s, String splitter) {
         int endIndex = s.indexOf(splitter);
-        if (endIndex > 0) {
+        if (endIndex >= 0) {
             return s.substring(0, endIndex);
         }
         return s;
     }
 
     public static String substringAfter(String s, String splitter) {
-        return s.substring(s.indexOf(splitter) + 1);
+        final int indexOf = s.indexOf(splitter);
+        return indexOf >= 0 ? s.substring(indexOf + splitter.length()) : s;
     }
 
     public static String substringBeforeLast(String s, String splitter) {
@@ -38,6 +39,13 @@ public class StringUtils {
 
     public static String substringAfterLast(String s, String splitter) {
         return s.substring(s.lastIndexOf(splitter) + 1);
+    }
+
+    public static String substringBetween(String s, String open, String close) {
+        if (s.contains(open) && s.contains(close)) {
+            return substringBefore(substringAfter(s, open), close);
+        }
+        return null;
     }
 
     public static String urlEncode(String string) {

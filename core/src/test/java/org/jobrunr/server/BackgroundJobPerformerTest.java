@@ -2,7 +2,7 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
-import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
+import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class BackgroundJobPerformerTest {
     void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = anEnqueuedJob().build();
 
-        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(new BackgroundStaticJobWithoutIocRunner());
+        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(new BackgroundStaticFieldJobWithoutIocRunner());
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         backgroundJobPerformer.run();

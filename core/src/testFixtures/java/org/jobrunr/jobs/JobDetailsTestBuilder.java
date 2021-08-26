@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class JobDetailsTestBuilder {
 
+    private boolean isCacheable;
     private String className;
     private String staticFieldName;
     private String methodName;
@@ -20,6 +21,7 @@ public class JobDetailsTestBuilder {
 
     public static JobDetailsTestBuilder defaultJobDetails() {
         return jobDetails()
+                .withCacheable(true)
                 .withClassName(TestService.class)
                 .withMethodName("doWork")
                 .withJobParameter(5);
@@ -27,6 +29,7 @@ public class JobDetailsTestBuilder {
 
     public static JobDetailsTestBuilder systemOutPrintLnJobDetails(String message) {
         return jobDetails()
+                .withCacheable(true)
                 .withClassName(System.class)
                 .withStaticFieldName("out")
                 .withMethodName("println")
@@ -45,6 +48,11 @@ public class JobDetailsTestBuilder {
                 .withClassName(TestService.class)
                 .withMethodName("doWorkThatDoesNotExist")
                 .withJobParameter(5);
+    }
+
+    private JobDetailsTestBuilder withCacheable(boolean isCacheable) {
+        this.isCacheable = isCacheable;
+        return this;
     }
 
     public JobDetailsTestBuilder withClassName(Class clazz) {
@@ -83,7 +91,9 @@ public class JobDetailsTestBuilder {
     }
 
     public JobDetails build() {
-        return new JobDetails(className, staticFieldName, methodName, jobParameters);
+        final JobDetails jobDetails = new JobDetails(className, staticFieldName, methodName, jobParameters);
+        jobDetails.setCacheable(isCacheable);
+        return jobDetails;
     }
 
 }

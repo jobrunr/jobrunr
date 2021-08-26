@@ -29,6 +29,10 @@ public class TestService implements TestServiceInterface {
         return processedJobs;
     }
 
+    public static void doStaticWork() {
+        System.out.println("Doing some work from a static method... ");
+    }
+
     public void doWork(Runnable runnable) throws Exception {
         runnable.run();
     }
@@ -252,6 +256,10 @@ public class TestService implements TestServiceInterface {
 
     public void jobRunBatchPrimitives(long id, long env, String param, String currentLogin) {
         System.out.println("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
+    }
+
+    public static void doWorkInStaticMethod(UUID id) {
+        System.out.println("Doing work in static method:" + id);
     }
 
     public static class Work {

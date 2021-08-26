@@ -1,0 +1,20 @@
+---
+name: "JobRunr Extension"
+metadata:
+  keywords:
+    - "jobrunr"
+    - "scheduler"
+    - "cron"
+    - "distributed background jobs"
+  guide: "https://www.jobrunr.io/en/documentation/todo"
+  categories:
+    - "miscellaneous"
+    - "data"
+  status: "experimental"
+  description: "Integrates JobRunr, a distributed background job scheduler"
+  built-with-quarkus-core: "2.1.0.Final"
+  extension-dependencies:
+    - "io.quarkus:quarkus-arc::jar"
+    - "io.quarkus:quarkus-core::jar"
+artifact: "org.jobrunr:quarkus-jobrunr::jar:@version@"
+description: "Integrates JobRunr, a distributed background job scheduler"

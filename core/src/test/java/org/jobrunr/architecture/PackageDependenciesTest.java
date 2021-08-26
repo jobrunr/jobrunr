@@ -69,8 +69,10 @@ class PackageDependenciesTest {
 
     @ArchTest
     ArchRule jobRunrServerClassesDependenciesTest = classes()
-                .that().resideInAPackage("org.jobrunr.server..").and().resideOutsideOfPackage("org.jobrunr.server.jmx..")
-                .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "org.slf4j..", "java..");
+                .that().resideInAPackage("org.jobrunr.server..")
+                .and().resideOutsideOfPackage("org.jobrunr.server.jmx..")
+                .and().resideOutsideOfPackage("org.jobrunr.server.metrics..")
+                    .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "org.slf4j..", "java..");
 
     @ArchTest
     ArchRule jobRunrServerJmxClassesDependenciesTest = classes()

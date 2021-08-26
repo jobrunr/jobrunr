@@ -1,0 +1,39 @@
+{
+  "id": "${json-unit.ignore}",
+  "jobName": "an enqueued job",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer,org.jobrunr.jobs.context.JobContext)",
+  "version": 0,
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  },
+  "jobDetails": {
+    "cacheable":true,
+    "className": "org.jobrunr.stubs.TestService",
+    "staticFieldName": null,
+    "methodName": "doWork",
+    "jobParameters": [
+      {
+        "actualClassName": "java.lang.Integer",
+        "className": "java.lang.Integer",
+        "object": 5
+      },
+      {
+        "actualClassName": "org.jobrunr.jobs.context.JobContext",
+        "className": "org.jobrunr.jobs.context.JobContext",
+        "object": {
+          "@class": "${json-unit.ignore-element}",
+          "job": null,
+          "jobDashboardLogger": null,
+          "jobDashboardProgressBar": null
+        }
+      }
+    ]
+  },
+  "jobHistory": [
+    {
+      "createdAt": "${json-unit.ignore}",
+      "state": "ENQUEUED",
+      "@class": "org.jobrunr.jobs.states.EnqueuedState"
+    }
+  ]
+}

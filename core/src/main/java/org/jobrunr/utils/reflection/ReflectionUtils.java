@@ -214,8 +214,6 @@ public class ReflectionUtils {
     }
 
     public static boolean isClassAssignableToObject(Class<?> clazz, Object object) {
-        if (object == null)
-            throw new NullPointerException("You are passing null to your background job - JobRunr prevents this to fail fast.");
         return isClassAssignable(clazz, object.getClass());
     }
 

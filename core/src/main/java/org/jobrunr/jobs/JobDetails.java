@@ -4,18 +4,20 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Collections.unmodifiableList;
+import static org.jobrunr.utils.CollectionUtils.asArrayList;
 
 public class JobDetails {
 
-    private String className;
-    private String staticFieldName;
-    private String methodName;
-    private ArrayList<JobParameter> jobParameters;
+    private final String className;
+    private final String staticFieldName;
+    private final String methodName;
+    private final ArrayList<JobParameter> jobParameters;
+    private Boolean cacheable;
 
     private JobDetails() {
+        this(null, null, null, null);
         // used for deserialization
     }
 
@@ -23,15 +25,19 @@ public class JobDetails {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
-        this.jobParameters = new ArrayList<>(jobParameters);
+        this.jobParameters = asArrayList(jobParameters);
     }
 
     public String getClassName() {
         return className;
     }
 
-    public Optional<String> getStaticFieldName() {
-        return Optional.ofNullable(staticFieldName);
+    public String getStaticFieldName() {
+        return staticFieldName;
+    }
+
+    public boolean hasStaticFieldName() {
+        return staticFieldName != null;
     }
 
     public String getMethodName() {
@@ -53,5 +59,13 @@ public class JobDetails {
         return jobParameters.stream()
                 .map(JobParameter::getObject)
                 .toArray();
+    }
+
+    public Boolean getCacheable() {
+        return cacheable;
+    }
+
+    public void setCacheable(Boolean cacheable) {
+        this.cacheable = cacheable;
     }
 }

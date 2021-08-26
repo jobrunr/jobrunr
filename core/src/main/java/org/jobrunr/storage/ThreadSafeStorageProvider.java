@@ -24,6 +24,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public String getName() {
+        return storageProvider.getName();
+    }
+
+    @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         storageProvider.addJobStorageOnChangeListener(listener);
     }

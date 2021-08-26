@@ -1,0 +1,106 @@
+plugins {
+    id 'java-library'
+    id 'io.micronaut.library' version '2.0.3'
+    id 'maven-publish'
+    id 'signing'
+}
+
+micronaut {
+    version '3.0.0'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+dependencies {
+    api platform(project(':platform'))
+    annotationProcessor 'io.micronaut:micronaut-inject-java'
+
+    api project(':core')
+    implementation 'io.micronaut:micronaut-validation'
+    implementation 'io.micronaut:micronaut-runtime'
+    implementation 'io.micronaut:micronaut-management'
+    compileOnly 'redis.clients:jedis'
+    compileOnly 'io.lettuce:lettuce-core'
+    compileOnly 'org.mongodb:mongodb-driver-sync'
+    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'io.micrometer:micrometer-core'
+
+    testImplementation testFixtures(project(":core"))
+    testImplementation 'io.micronaut.test:micronaut-test-junit5'
+
+    testImplementation 'redis.clients:jedis'
+    testImplementation 'io.lettuce:lettuce-core'
+    testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testImplementation 'io.micrometer:micrometer-core'
+}
+
+//nexusPublishing {
+//    packageGroup = "org.jobrunr.jobrunr-spring-boot-starter"
+//}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-micronaut-feature'
+            version = project.version.replace("v", "")
+            from components.java
+
+            pom {
+                name = 'JobRunr Micronaut Feature'
+                description = 'An easy way to perform background processing in Micronaut. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                versionMapping {
+                    usage('java-runtime'){
+                        fromResolutionResult()
+                    }
+                }
+
+                withXml {
+                    def pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}

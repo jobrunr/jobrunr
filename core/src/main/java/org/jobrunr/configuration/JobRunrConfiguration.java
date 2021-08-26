@@ -2,6 +2,9 @@ package org.jobrunr.configuration;
 
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
@@ -34,6 +37,7 @@ public class JobRunrConfiguration {
     final JsonMapper jsonMapper;
     final JobMapper jobMapper;
     final List<JobFilter> jobFilters;
+    JobDetailsGenerator jobDetailsGenerator;
     StorageProvider storageProvider;
     BackgroundJobServer backgroundJobServer;
     JobRunrDashboardWebServer dashboardWebServer;
@@ -42,6 +46,7 @@ public class JobRunrConfiguration {
     JobRunrConfiguration() {
         this.jsonMapper = determineJsonMapper();
         this.jobMapper = new JobMapper(jsonMapper);
+        this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
     }
 
@@ -266,13 +271,24 @@ public class JobRunrConfiguration {
     }
 
     /**
+     * Specifies which {@link JobDetailsGenerator} to use.
+     *
+     * @param jobDetailsGenerator the JobDetailsGenerator to use.
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useJobDetailsGenerator(JobDetailsGenerator jobDetailsGenerator) {
+        this.jobDetailsGenerator = jobDetailsGenerator;
+        return this;
+    }
+
+    /**
      * Initializes JobRunr and returns a {@link JobScheduler} which can then be used to register in the IoC framework
      * or to enqueue/schedule some Jobs.
      *
      * @return a JobScheduler to enqueue/schedule new jobs
      */
     public JobScheduler initialize() {
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobFilters);
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
         BackgroundJob.setJobScheduler(jobScheduler);
         return jobScheduler;
     }

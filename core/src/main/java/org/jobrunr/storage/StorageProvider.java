@@ -18,6 +18,8 @@ import java.util.UUID;
  */
 public interface StorageProvider extends AutoCloseable {
 
+    String getName();
+
     void addJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
     void removeJobStorageOnChangeListener(StorageProviderChangeListener listener);
@@ -90,4 +92,6 @@ public interface StorageProvider extends AutoCloseable {
     }
 
     void close();
+
+
 }

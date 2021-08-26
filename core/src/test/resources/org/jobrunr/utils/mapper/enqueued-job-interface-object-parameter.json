@@ -3,6 +3,7 @@
   "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithCommand(org.jobrunr.stubs.TestService$SimpleCommand)",
   "jobName": "an enqueued job",
   "jobDetails": {
+    "cacheable": true,
     "className": "org.jobrunr.stubs.TestService",
     "staticFieldName": null,
     "methodName": "doWorkWithCommand",

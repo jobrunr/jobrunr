@@ -33,4 +33,24 @@ public class HttpResponseAssert extends AbstractAssert<HttpResponseAssert, HttpR
         JsonAssertions.assertThatJson(actualResponseAsString).isEqualTo(bodyAsString);
         return this;
     }
+
+    public HttpResponseAssert hasJsonBody(JsonAssertions.JsonAssertionCallback... callbacks) {
+        final String actualResponseAsString = actual.body().toString();
+        JsonAssertions.assertThatJson(actualResponseAsString, callbacks);
+        return this;
+    }
+
+    public HttpResponseAssert hasBodyStartingWith(String expected) {
+        final String actualResponseAsString = actual.body().toString();
+        Assertions.assertThat(actualResponseAsString).startsWith(expected);
+        return this;
+    }
+
+    public HttpResponseAssert hasBodyContaining(String... expected) {
+        final String actualResponseAsString = actual.body().toString();
+        for (String string : expected) {
+            Assertions.assertThat(actualResponseAsString).contains(string);
+        }
+        return this;
+    }
 }

@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.details.instructions;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.slf4j.Logger;
@@ -32,7 +33,9 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
 
     @Override
     public Object invokeInstruction() {
-        if (isLastInstruction()) {
+        if (!isLastInstruction() && isVoidInstruction()) {
+            throw new JobRunrException("JobRunr only supports enqueueing/scheduling of one method");
+        } else if (isLastInstruction()) {
             jobDetailsBuilder.setClassName(getClassName());
             jobDetailsBuilder.setMethodName(getMethodName());
             jobDetailsBuilder.setJobParameters(getJobParameters());
@@ -43,7 +46,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
             final long before = System.nanoTime();
             final Object result = getObject();
             final long after = System.nanoTime();
-            if ((after - before) > 5_000_000) {
+            if ((after - before) > 3_000_000) {
                 LOGGER.warn("You are using a custom method ({}.{}({})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/en/documentation/background-methods/best-practices/ on how to use JobRunr effectively.", getClassName(), getMethodName(), Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
             }
             return result;
@@ -79,10 +82,6 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         return createObjectViaMethod(ownerObject, name, paramTypes, getParametersUsingParamTypes(paramTypes).toArray());
     }
 
-    private boolean isLastInstruction() {
-        return jobDetailsBuilder.getInstructions().isEmpty();
-    }
-
     private Optional<String> findInheritedClassName(String className) {
         if (jobDetailsBuilder.getLocalVariable(0) != null) {
             final Field declaredField = jobDetailsBuilder.getLocalVariable(0).getClass().getDeclaredFields()[0];
@@ -106,6 +105,10 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     }
 
     private JobParameter toJobParameter(Class<?> paramType, Object param) {
+        if (param == null) {
+            throw new NullPointerException("You are passing null as a parameter to your background job for type " + paramType.getName() + " - JobRunr prevents this to fail fast.");
+        }
+
         if (isClassAssignableToObject(paramType, param)) {
             if (boolean.class.equals(paramType) && Integer.class.equals(param.getClass()))
                 return new JobParameter(paramType, ((Integer) param) > 0);
