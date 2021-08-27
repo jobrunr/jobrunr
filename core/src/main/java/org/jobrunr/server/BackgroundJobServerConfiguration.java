@@ -40,6 +40,8 @@ public class BackgroundJobServerConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andPollIntervalInSeconds(int pollIntervalInSeconds) {
+        if (pollIntervalInSeconds < 5)
+            throw new IllegalArgumentException("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
         this.pollIntervalInSeconds = pollIntervalInSeconds;
         return this;
     }

@@ -74,4 +74,10 @@ class RecurringJobTest {
         Instant nextRun = recurringJob.getNextRun();
         assertThat(nextRun).isAfter(Instant.now());
     }
+
+    @Test
+    void smallestIntervalForRecurringJobIs5Seconds() {
+        assertThatThrownBy(() -> aDefaultRecurringJob().withCronExpression("* * * * * *").build()).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build()).doesNotThrowAnyException();
+    }
 }

@@ -143,7 +143,7 @@ public class CronExpression implements Comparable<CronExpression> {
                 : DaysAndDaysOfWeekRelation.UNION;
 
         if (!cronExpression.canScheduleActuallyOccur())
-            throw new InvalidCronExpressionException("schedule can not occur. the specified months do not have the day 30th or the day 31st");
+            throw new InvalidCronExpressionException("Cron expression not valid. The specified months do not have the day 30th or the day 31st");
         cronExpression.expression = expression.trim();
         return cronExpression;
     }
