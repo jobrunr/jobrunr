@@ -48,6 +48,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
     static String getLatestVersion() throws IOException {
         URL url = new URL("https://api.github.com/repos/jobrunr/jobrunr/releases/latest");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestProperty("User-Agent", "JobRunr " + getActualVersion());
         con.setRequestMethod("GET");
         con.setConnectTimeout(2000);
         con.setReadTimeout(2000);
