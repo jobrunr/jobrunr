@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,7 +41,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
             }
         } catch (IOException e) {
-            LOGGER.info("Unable to check for new JobRunr version...");
+            LOGGER.info("Unable to check for new JobRunr version:\n {}", e.getMessage());
         }
     }
 
@@ -55,7 +56,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
             String inputLine;
-            StringBuffer content = new StringBuffer();
+            StringBuilder content = new StringBuilder();
             while ((inputLine = in.readLine()) != null) {
                 content.append(inputLine);
             }
@@ -65,6 +66,17 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 return matcher.group(1).replace("v", "");
             } else {
                 throw new IOException("Github API has changed?");
+            }
+        } catch (UnknownHostException e) {
+            throw e;
+        } catch (IOException e) {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getErrorStream()))) {
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                throw new IOException(content.toString());
             }
         }
     }
