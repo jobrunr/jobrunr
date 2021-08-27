@@ -107,6 +107,8 @@ public class StorageProviderUtils {
         private Metadata() {
         }
 
+        public static final String METADATA_OWNER_CLUSTER = "cluster";
+
         public static final String NAME = "metadata";
         public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String STATS_ID = "succeeded-jobs-counter-cluster";

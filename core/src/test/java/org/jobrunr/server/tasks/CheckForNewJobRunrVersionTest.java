@@ -16,7 +16,9 @@ import java.io.IOException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CheckForNewJobRunrVersionTest {
@@ -40,12 +42,54 @@ class CheckForNewJobRunrVersionTest {
     }
 
     @Test
-    void createsNotificationIfNewVersionIsFound() {
+    void onFirstRunDoesNotContactGithubApiToNotSpamGithubApiFromDeveloperPC_NoPreviousNotificationStored() {
+        final CheckForNewJobRunrVersion checkForNewJobRunrVersion = new CheckForNewJobRunrVersion(backgroundJobServer);
+        when(dashboardNotificationManager.getDashboardNotification(NewJobRunrVersionNotification.class)).thenReturn(null);
+
+        checkForNewJobRunrVersion.run();
+
+        verify(dashboardNotificationManager, never()).notify(any(NewJobRunrVersionNotification.class));
+    }
+
+    @Test
+    void onFirstRunDoesNotContactGithubApiToNotSpamGithubApiFromDeveloperPC_PreviousNotificationStoredAndLocalVersionNotUpdated() {
         try (MockedStatic<CheckForNewJobRunrVersion> checkForNewJobRunrVersionStaticMock = Mockito.mockStatic(CheckForNewJobRunrVersion.class)) {
+            checkForNewJobRunrVersionStaticMock.when(CheckForNewJobRunrVersion::getActualVersion).thenReturn("3.0.0");
+
             final CheckForNewJobRunrVersion checkForNewJobRunrVersion = new CheckForNewJobRunrVersion(backgroundJobServer);
+            when(dashboardNotificationManager.getDashboardNotification(NewJobRunrVersionNotification.class)).thenReturn(new NewJobRunrVersionNotification("4.0.0"));
+
+            checkForNewJobRunrVersion.run();
+
+            verify(dashboardNotificationManager, never()).notify(any(NewJobRunrVersionNotification.class));
+            verify(dashboardNotificationManager, never()).deleteNotification(NewJobRunrVersionNotification.class);
+        }
+    }
+
+    @Test
+    void onFirstRunDoesNotContactGithubApiToNotSpamGithubApiFromDeveloperPC_PreviousNotificationStoredAndLocalVersionUpdated() {
+        try (MockedStatic<CheckForNewJobRunrVersion> checkForNewJobRunrVersionStaticMock = Mockito.mockStatic(CheckForNewJobRunrVersion.class)) {
+            checkForNewJobRunrVersionStaticMock.when(CheckForNewJobRunrVersion::getActualVersion).thenReturn("4.0.0");
+
+            final CheckForNewJobRunrVersion checkForNewJobRunrVersion = new CheckForNewJobRunrVersion(backgroundJobServer);
+            when(dashboardNotificationManager.getDashboardNotification(NewJobRunrVersionNotification.class)).thenReturn(new NewJobRunrVersionNotification("4.0.0"));
+
+            checkForNewJobRunrVersion.run();
+
+            verify(dashboardNotificationManager, never()).notify(any(NewJobRunrVersionNotification.class));
+            verify(dashboardNotificationManager).deleteNotification(NewJobRunrVersionNotification.class);
+        }
+    }
+
+    @Test
+    void onSubsequentRunsCreatesNotificationIfNewVersionIsFound() {
+        try (MockedStatic<CheckForNewJobRunrVersion> checkForNewJobRunrVersionStaticMock = Mockito.mockStatic(CheckForNewJobRunrVersion.class)) {
             checkForNewJobRunrVersionStaticMock.when(CheckForNewJobRunrVersion::getLatestVersion).thenReturn("4.0.0");
             checkForNewJobRunrVersionStaticMock.when(CheckForNewJobRunrVersion::getActualVersion).thenReturn("3.0.0");
 
+            final CheckForNewJobRunrVersion checkForNewJobRunrVersion = new CheckForNewJobRunrVersion(backgroundJobServer);
+
+            checkForNewJobRunrVersion.run();
             checkForNewJobRunrVersion.run();
 
             verify(dashboardNotificationManager).notify(any(NewJobRunrVersionNotification.class));
@@ -53,12 +97,13 @@ class CheckForNewJobRunrVersionTest {
     }
 
     @Test
-    void deletedNotificationIfLatestVersionIsInstalled() {
+    void onSubsequentRunsDeletesNotificationIfLatestVersionIsInstalled() {
         try (MockedStatic<CheckForNewJobRunrVersion> checkForNewJobRunrVersionStaticMock = Mockito.mockStatic(CheckForNewJobRunrVersion.class)) {
             final CheckForNewJobRunrVersion checkForNewJobRunrVersion = new CheckForNewJobRunrVersion(backgroundJobServer);
             checkForNewJobRunrVersionStaticMock.when(CheckForNewJobRunrVersion::getLatestVersion).thenReturn("4.0.0");
             checkForNewJobRunrVersionStaticMock.when(CheckForNewJobRunrVersion::getActualVersion).thenReturn("4.0.0");
 
+            checkForNewJobRunrVersion.run();
             checkForNewJobRunrVersion.run();
 
             verify(dashboardNotificationManager).deleteNotification(NewJobRunrVersionNotification.class);

@@ -21,28 +21,42 @@ import java.util.regex.Pattern;
 public class CheckForNewJobRunrVersion implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckForNewJobRunrVersion.class);
-
     private static final Pattern versionPattern = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^,]*)\",");
+
     private final DashboardNotificationManager dashboardNotificationManager;
+    private static boolean isFirstRun;
 
     public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer) {
         dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
+        this.isFirstRun = true;
     }
 
     @Override
     public void run() {
-        try {
-            String latestVersion = getLatestVersion();
-            String actualVersion = getActualVersion();
-            if (latestVersion.compareTo(actualVersion) > 0) {
-                dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion));
-                LOGGER.info("JobRunr version " + latestVersion + " is available.");
-            } else {
-                dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
+        if (isFirstRun) {
+            final NewJobRunrVersionNotification newJobRunrVersionNotification = dashboardNotificationManager.getDashboardNotification(NewJobRunrVersionNotification.class);
+            if (newJobRunrVersionNotification != null) {
+                String actualVersion = getActualVersion();
+                String latestVersion = newJobRunrVersionNotification.getLatestVersion();
+                if (actualVersion.equals(latestVersion)) {
+                    dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
+                }
             }
-        } catch (IOException e) {
-            LOGGER.info("Unable to check for new JobRunr version:\n {}", e.getMessage());
+        } else {
+            try {
+                String latestVersion = getLatestVersion();
+                String actualVersion = getActualVersion();
+                if (latestVersion.compareTo(actualVersion) > 0) {
+                    dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion));
+                    LOGGER.info("JobRunr version " + latestVersion + " is available.");
+                } else {
+                    dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
+                }
+            } catch (IOException e) {
+                LOGGER.info("Unable to check for new JobRunr version:\n {}", e.getMessage());
+            }
         }
+        isFirstRun = false;
     }
 
     @VisibleFor("testing")

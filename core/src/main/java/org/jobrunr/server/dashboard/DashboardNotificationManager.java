@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 public class DashboardNotificationManager {
 
@@ -41,5 +42,14 @@ public class DashboardNotificationManager {
 
     public void deleteNotification(Class<? extends DashboardNotification> notificationToDelete) {
         storageProvider.deleteMetadata(notificationToDelete.getSimpleName());
+    }
+
+    public <T extends DashboardNotification> T getDashboardNotification(Class<T> notificationClass) {
+        return storageProvider
+                .getMetadata(notificationClass.getSimpleName())
+                .stream()
+                .map(metadata -> newInstance(notificationClass, metadata))
+                .findFirst()
+                .orElse(null);
     }
 }
