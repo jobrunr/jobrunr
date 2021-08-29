@@ -43,7 +43,7 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
-public class IocBackgroundJobTest {
+public class BackgroundJobByIoCJobLambdaTest {
 
     private StorageProviderForTest storageProvider;
     private BackgroundJobServer backgroundJobServer;

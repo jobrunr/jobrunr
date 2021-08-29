@@ -6,7 +6,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
@@ -48,9 +48,14 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(properties.getJobScheduler().getJobDetailsGenerator());
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
-        BackgroundJob.setJobScheduler(jobScheduler);
-        return jobScheduler;
+        return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
+        return new JobRequestScheduler(storageProvider, emptyList());
     }
 
     @Bean

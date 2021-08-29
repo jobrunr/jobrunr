@@ -1,9 +1,11 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.stubs.TestJobRequest;
+import org.jobrunr.stubs.TestJobRequestHandler;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 
 class JobDetailsTest {
@@ -16,9 +18,12 @@ class JobDetailsTest {
                 .withJobParameter(5)
                 .build();
 
-        assertThat(jobDetails.getClassName()).isEqualTo(TestService.class.getName());
-        assertThat(jobDetails.getMethodName()).isEqualTo("doWork");
-        assertThat(jobDetails.getStaticFieldName()).isNull();
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasStaticFieldName(null)
+                .hasMethodName("doWork")
+                .hasArgs(5);
+
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{Integer.class});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{5});
     }
@@ -30,11 +35,26 @@ class JobDetailsTest {
                 .withMethodName("doWork")
                 .build();
 
-        assertThat(jobDetails.getClassName()).isEqualTo(TestService.class.getName());
-        assertThat(jobDetails.getMethodName()).isEqualTo("doWork");
-        assertThat(jobDetails.getStaticFieldName()).isNull();
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasStaticFieldName(null)
+                .hasMethodName("doWork")
+                .hasNoArgs();
+
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{});
     }
 
+    @Test
+    void testJobDetailsFromJobRequest() {
+        final TestJobRequest jobRequest = new TestJobRequest("some input");
+        JobDetails jobDetails = new JobDetails(jobRequest);
+
+        assertThat(jobDetails)
+                .hasClass(TestJobRequestHandler.class)
+                .hasStaticFieldName(null)
+                .hasMethodName("run")
+                .hasArgs(jobRequest)
+                .isCacheable();
+    }
 }

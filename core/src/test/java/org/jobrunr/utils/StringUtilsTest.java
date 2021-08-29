@@ -52,14 +52,14 @@ class StringUtilsTest {
 
     @Test
     void testSubstringAfterSplitterSingleChar() {
-        assertThat(substringAfter("15", "-")).isEqualTo("15");
+        assertThat(substringAfter("15", "-")).isEqualTo(null);
         assertThat(substringAfter("15-ea", "-")).isEqualTo("ea");
     }
 
     @Test
     void testSubstringAfterSplitterMultiChar() {
         assertThat(substringAfter("this is a test", " is ")).isEqualTo("a test");
-        assertThat(substringAfter("this is a test", " was ")).isEqualTo("this is a test");
+        assertThat(substringAfter("this is a test", " was ")).isEqualTo(null);
     }
 
     @Test

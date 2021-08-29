@@ -18,7 +18,7 @@ public class DeletedWhileProcessingConcurrentStateChange extends AbstractAllowed
 
     @Override
     public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
-        localJob.delete();
+        localJob.delete("Job is already deleted in StorageProvider");
         final Thread threadProcessingJob = jobZooKeeper.getThreadProcessingJob(localJob);
         if (threadProcessingJob != null) {
             threadProcessingJob.interrupt();

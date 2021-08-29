@@ -52,7 +52,9 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler deleteJobById() {
         return (request, response) -> {
-            storageProvider.delete(request.param(":id", UUID.class));
+            final Job job = storageProvider.getJobById(request.param(":id", UUID.class));
+            job.delete("Job deleted via Dashboard");
+            storageProvider.save(job);
             response.statusCode(204);
         };
     }

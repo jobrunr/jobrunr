@@ -124,6 +124,7 @@ abstract class JobMapperTest {
                 .build();
         job.startProcessingOn(backgroundJobServer);
         job.failed("exception", new Exception("Test"));
+        job.enqueue();
         job.succeeded();
 
         String jobAsJson = jobMapper.serializeJob(job);

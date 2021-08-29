@@ -1,6 +1,8 @@
 package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 
@@ -41,7 +43,13 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
         StringBuilder result = new StringBuilder();
         final int jobStatesToShow = Math.min(3, job.getJobStates().size());
         for (int i = 1; i <= jobStatesToShow; i++) {
-            result.append(job.getJobState(-i).getName() + " (at " + job.getJobState(-i).getUpdatedAt() + ")");
+            final JobState jobState = job.getJobState(-i);
+            result.append(jobState.getName());
+            result.append(" (at " + jobState.getUpdatedAt());
+            if (jobState instanceof ProcessingState) {
+                result.append(" on BackgroundJobServer " + ((ProcessingState) jobState).getServerId());
+            }
+            result.append(")");
             if (i < jobStatesToShow) {
                 result.append(" ← ");
             }

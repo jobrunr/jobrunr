@@ -99,11 +99,6 @@ public class StorageProviderForTest implements StorageProvider {
     }
 
     @Override
-    public int delete(UUID id) {
-        return storageProvider.delete(id);
-    }
-
-    @Override
     public int deletePermanently(UUID id) {
         return storageProvider.deletePermanently(id);
     }

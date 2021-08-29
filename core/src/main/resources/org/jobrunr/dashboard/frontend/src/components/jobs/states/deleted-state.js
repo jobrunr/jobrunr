@@ -1,4 +1,5 @@
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
@@ -17,6 +18,9 @@ const useStyles = makeStyles(() => ({
         alignSelf: 'center',
         marginLeft: 'auto',
         backgroundColor: 'inherit'
+    },
+    details: {
+        padding: '24px 0 24px 24px'
     },
     alert: {
         padding: 0
@@ -64,6 +68,12 @@ const Deleted = (props) => {
                     <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
                 </Typography>
             </ExpansionPanelSummary>
+            { jobState.reason &&
+            <ExpansionPanelDetails className={classes.expansionPanel}>
+                <div className={classes.details}>{jobState.reason}</div>
+            </ExpansionPanelDetails>
+            }
+
         </ExpansionPanel>
     )
 };

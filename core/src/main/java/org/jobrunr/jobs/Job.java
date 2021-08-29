@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
+import static org.jobrunr.jobs.states.AllowedStateChanges.isIllegalStateChange;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
@@ -87,6 +88,12 @@ public class Job extends AbstractJob {
         return cast(getJobState(-1));
     }
 
+    public <T extends JobState> T popLastJobState() {
+        final JobState jobState = getJobState();
+        jobHistory.remove(jobState);
+        return cast(jobState);
+    }
+
     public JobState getJobState(int element) {
         if (element >= 0) {
             return jobHistory.get(element);
@@ -100,7 +107,10 @@ public class Job extends AbstractJob {
         return getJobState().getName();
     }
 
-    protected void addJobState(JobState jobState) {
+    public void addJobState(JobState jobState) {
+        if (isIllegalStateChange(getState(), jobState.getName())) {
+            throw new IllegalStateException("A job cannot change state from " + getState() + " to " + jobState.getName() + ".");
+        }
         this.jobHistory.add(jobState);
     }
 
@@ -140,8 +150,8 @@ public class Job extends AbstractJob {
         addJobState(new FailedState(message, exception));
     }
 
-    public void delete() {
-        addJobState(new DeletedState());
+    public void delete(String reason) {
+        addJobState(new DeletedState(reason));
     }
 
     public Instant getCreatedAt() {

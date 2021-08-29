@@ -113,11 +113,6 @@ class DefaultSqlStorageProviderTest {
     }
 
     @Test
-    void delete_WhenJobNotFoundAJobNotFoundExceptionIsThrown() {
-        assertThatThrownBy(() -> jobStorageProvider.delete(randomUUID())).isInstanceOf(JobNotFoundException.class);
-    }
-
-    @Test
     void deletePermanently_WhenSqlExceptionOccursAJobStorageExceptionIsThrown() throws SQLException {
         doThrow(new SQLException("Boem")).when(preparedStatement).executeUpdate();
 

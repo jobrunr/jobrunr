@@ -1,7 +1,6 @@
 package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
@@ -24,7 +23,11 @@ import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ConcurrentJobModificationResolverTest {
@@ -61,8 +64,8 @@ class ConcurrentJobModificationResolverTest {
         final Thread job1Thread = mock(Thread.class);
         final Thread job2Thread = mock(Thread.class);
 
-        when(storageProvider.getJobById(job1.getId())).thenReturn(aCopyOf(job1).withState(new DeletedState()).build());
-        when(storageProvider.getJobById(job2.getId())).thenReturn(aCopyOf(job2).withState(new DeletedState()).build());
+        when(storageProvider.getJobById(job1.getId())).thenReturn(aCopyOf(job1).withDeletedState().build());
+        when(storageProvider.getJobById(job2.getId())).thenReturn(aCopyOf(job2).withDeletedState().build());
 
         when(jobZooKeeper.getThreadProcessingJob(job1)).thenReturn(job1Thread);
         when(jobZooKeeper.getThreadProcessingJob(job2)).thenReturn(job2Thread);

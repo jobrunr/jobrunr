@@ -1,10 +1,12 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.utils.CollectionUtils.asArrayList;
 
@@ -19,6 +21,11 @@ public class JobDetails {
     private JobDetails() {
         this(null, null, null, null);
         // used for deserialization
+    }
+
+    public JobDetails(JobRequest jobRequest) {
+        this(jobRequest.getJobRequestHandler().getName(), null, "run", asList(new JobParameter(jobRequest)));
+        this.cacheable = true;
     }
 
     public JobDetails(String className, String staticFieldName, String methodName, List<JobParameter> jobParameters) {

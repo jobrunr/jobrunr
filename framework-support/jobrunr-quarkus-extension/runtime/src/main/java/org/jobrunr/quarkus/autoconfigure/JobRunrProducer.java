@@ -6,7 +6,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -38,9 +38,17 @@ public class JobRunrProducer {
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         if (configuration.jobScheduler.enabled) {
             final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.jobScheduler.jobDetailsGenerator.orElse(CachingJobDetailsGenerator.class.getName()));
-            final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
-            BackgroundJob.setJobScheduler(jobScheduler);
-            return jobScheduler;
+            return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
+        }
+        return null;
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
+        if (configuration.jobScheduler.enabled) {
+            return new JobRequestScheduler(storageProvider, emptyList());
         }
         return null;
     }

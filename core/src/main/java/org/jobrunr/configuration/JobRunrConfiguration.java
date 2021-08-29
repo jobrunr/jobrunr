@@ -3,11 +3,10 @@ package org.jobrunr.configuration;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
-import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -287,10 +286,10 @@ public class JobRunrConfiguration {
      *
      * @return a JobScheduler to enqueue/schedule new jobs
      */
-    public JobScheduler initialize() {
+    public JobRunrConfigurationResult initialize() {
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
-        BackgroundJob.setJobScheduler(jobScheduler);
-        return jobScheduler;
+        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
+        return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }
 
     private static JsonMapper determineJsonMapper() {
@@ -302,6 +301,25 @@ public class JobRunrConfiguration {
             return new JsonbJsonMapper();
         } else {
             throw new JsonMapperException("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath");
+        }
+    }
+
+    public static class JobRunrConfigurationResult {
+
+        private final JobScheduler jobScheduler;
+        private final JobRequestScheduler jobRequestScheduler;
+
+        public JobRunrConfigurationResult(JobScheduler jobScheduler, JobRequestScheduler jobRequestScheduler) {
+            this.jobScheduler = jobScheduler;
+            this.jobRequestScheduler = jobRequestScheduler;
+        }
+
+        public JobScheduler getJobScheduler() {
+            return jobScheduler;
+        }
+
+        public JobRequestScheduler getJobRequestScheduler() {
+            return jobRequestScheduler;
         }
     }
 }

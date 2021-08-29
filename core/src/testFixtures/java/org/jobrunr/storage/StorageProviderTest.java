@@ -264,8 +264,8 @@ public abstract class StorageProviderTest {
         assertThatJobs(storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000))).contains(savedSucceededJob);
 
         // DELETED
-        final int deletedJobs = storageProvider.delete(createdJob.getId());
-        assertThat(deletedJobs).isEqualTo(1);
+        savedSucceededJob.delete("By test");
+        storageProvider.save(savedSucceededJob);
         Job fetchedDeletedJob = storageProvider.getJobById(createdJob.getId());
         assertThat(fetchedDeletedJob).hasState(DELETED);
         assertThatJobs(storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000))).isEmpty();
@@ -395,7 +395,8 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.exists(jobDetails, ENQUEUED)).isTrue();
         assertThat(storageProvider.exists(jobDetails, PROCESSING, SUCCEEDED)).isFalse();
 
-        storageProvider.delete(scheduledJob.getId());
+        scheduledJob.delete("For test");
+        storageProvider.save(scheduledJob);
         assertThat(storageProvider.exists(jobDetails, SCHEDULED, PROCESSING, SUCCEEDED)).isFalse();
         assertThat(storageProvider.exists(jobDetails, ENQUEUED, DELETED)).isTrue();
     }
@@ -417,7 +418,8 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED)).isTrue();
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isFalse();
 
-        storageProvider.delete(scheduledJob.getId());
+        scheduledJob.delete("For test");
+        storageProvider.save(scheduledJob);
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isFalse();
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED, DELETED)).isTrue();
     }
@@ -583,7 +585,8 @@ public abstract class StorageProviderTest {
         storageProvider.save(job);
         assertThat(onChangeListener.changes).hasSize(1);
 
-        storageProvider.delete(job.getId());
+        job.delete("For test");
+        storageProvider.save(job);
         assertThat(onChangeListener.changes).hasSize(2);
     }
 

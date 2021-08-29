@@ -19,6 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 
 public class TestService implements TestServiceInterface {
@@ -319,7 +321,19 @@ public class TestService implements TestServiceInterface {
 
         @Override
         public void onStateElection(org.jobrunr.jobs.Job job, JobState newState) {
-            job.succeeded();
+            if (ENQUEUED.equals(newState.getName())) {
+                job.succeeded();
+            }
+        }
+    }
+
+    public static class FailedToDeleteElectStateFilter implements ElectStateFilter {
+
+        @Override
+        public void onStateElection(org.jobrunr.jobs.Job job, JobState newState) {
+            if (FAILED.equals(newState.getName())) {
+                job.delete("Because it failed");
+            }
         }
     }
 
@@ -328,7 +342,8 @@ public class TestService implements TestServiceInterface {
         @Override
         public void onStateElection(org.jobrunr.jobs.Job job, JobState newState) {
             if (PROCESSING.equals(newState.getName())) {
-                job.scheduleAt(Instant.now(), "Should not run due to business rule. Will be rescheduled and picked up by other server.");
+                job.delete("Should not run due to business rule.");
+                job.scheduleAt(Instant.now(), "Rescheduled by business rule.");
             }
         }
     }

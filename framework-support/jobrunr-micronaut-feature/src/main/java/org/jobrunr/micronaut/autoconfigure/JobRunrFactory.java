@@ -16,6 +16,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -52,6 +53,12 @@ public class JobRunrFactory {
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
+    }
+
+    @Singleton
+    @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
+    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
+        return new JobRequestScheduler(storageProvider, emptyList());
     }
 
     @Singleton

@@ -1,7 +1,6 @@
 package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +33,7 @@ class DeletedWhileProcessingConcurrentStateChangeTest {
     void ifJobDeletedWhileGoingToProcessing() {
         final Job jobInProgress = aJobInProgress().build();
         final Job jobInProgressWithUpdate = aCopyOf(jobInProgress).withMetadata("extra", "metadata").build();
-        final Job deletedJob = aCopyOf(jobInProgress).withState(new DeletedState()).build();
+        final Job deletedJob = aCopyOf(jobInProgress).withDeletedState().build();
 
         Thread mockThread = mock(Thread.class);
         when(jobZooKeeper.getThreadProcessingJob(jobInProgressWithUpdate)).thenReturn(mockThread);
@@ -48,7 +47,7 @@ class DeletedWhileProcessingConcurrentStateChangeTest {
     void ifJobDeletedWhileGoingToProcessingButThreadIsAlreadyRemoved() {
         final Job jobInProgress = aJobInProgress().build();
         final Job jobInProgressWithUpdate = aCopyOf(jobInProgress).withMetadata("extra", "metadata").build();
-        final Job deletedJob = aCopyOf(jobInProgress).withState(new DeletedState()).build();
+        final Job deletedJob = aCopyOf(jobInProgress).withDeletedState().build();
 
         final ConcurrentJobModificationResolveResult resolveResult = allowedStateChange.resolve(jobInProgressWithUpdate, deletedJob);
         assertThat(resolveResult.failed()).isFalse();

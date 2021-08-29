@@ -30,7 +30,7 @@ public class StringUtils {
 
     public static String substringAfter(String s, String splitter) {
         final int indexOf = s.indexOf(splitter);
-        return indexOf >= 0 ? s.substring(indexOf + splitter.length()) : s;
+        return indexOf >= 0 ? s.substring(indexOf + splitter.length()) : null;
     }
 
     public static String substringBeforeLast(String s, String splitter) {

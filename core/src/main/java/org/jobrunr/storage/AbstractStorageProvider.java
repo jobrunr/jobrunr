@@ -38,14 +38,6 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
-    public int delete(UUID id) {
-        final Job jobToDelete = getJobById(id);
-        jobToDelete.delete();
-        save(jobToDelete);
-        return 1;
-    }
-
-    @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.add(listener);
         startTimerToSendUpdates();

@@ -105,7 +105,7 @@ public class JobTestBuilder {
         return anEnqueuedJob()
                 .withName("a deleted job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
-                .withState(new DeletedState());
+                .withState(new DeletedState("no reason"));
     }
 
     public static JobTestBuilder aFailedJobThatEventuallySucceeded() {
@@ -235,7 +235,7 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withDeletedState() {
-        return withState(new DeletedState());
+        return withState(new DeletedState("no reason"));
     }
 
     public JobTestBuilder withMetadata(String key, Object metadata) {

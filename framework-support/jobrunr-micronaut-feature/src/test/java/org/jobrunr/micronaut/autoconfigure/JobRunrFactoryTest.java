@@ -6,6 +6,7 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
@@ -32,6 +33,7 @@ class JobRunrFactoryTest {
     void jobSchedulerEnabledAutoConfiguration() {
         assertThat(context).hasSingleBean(StorageProvider.class);
         assertThat(context).hasSingleBean(JobScheduler.class);
+        assertThat(context).hasSingleBean(JobRequestScheduler.class);
     }
 
     @Test

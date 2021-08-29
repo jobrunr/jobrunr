@@ -31,6 +31,7 @@ class JobSchedulerTest {
         })
         .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
         .initialize()
+        .jobScheduler
 
     private fun <T> get(type: Class<T>): T? {
         if (type.name == "TestService") {

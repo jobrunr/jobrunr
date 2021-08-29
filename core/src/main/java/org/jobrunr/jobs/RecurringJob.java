@@ -62,7 +62,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     private String validateAndSetId(String input) {
-        String result = Optional.ofNullable(input).orElse(getJobSignature());
+        String result = Optional.ofNullable(input).orElse(getJobSignature().replace("$", "_")); //why: to support inner classes
 
         if (!result.matches("[\\dA-Za-z-_(),.]+")) {
             throw new IllegalArgumentException("The id of a recurring job can only contain letters and numbers.");

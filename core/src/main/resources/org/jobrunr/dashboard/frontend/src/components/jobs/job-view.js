@@ -212,9 +212,11 @@ const JobView = (props) => {
                                             </HtmlTooltip>
                                             }
                                             <ButtonGroup>
+                                                {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                 <Button variant="outlined" color="primary" onClick={requeueJob}>
                                                     Requeue
                                                 </Button>
+                                                }
                                                 {stateBreadcrumb.state !== 'DELETED' &&
                                                 <Button variant="outlined" color="primary" onClick={deleteJob}>
                                                     Delete

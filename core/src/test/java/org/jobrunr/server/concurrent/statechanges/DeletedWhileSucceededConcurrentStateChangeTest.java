@@ -1,7 +1,6 @@
 package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +24,7 @@ class DeletedWhileSucceededConcurrentStateChangeTest {
     void ifJobDeletedWhileGoingToSucceededStateThereIsNoInterruptNeeded() {
         final Job jobInProgress = aJobInProgress().build();
         final Job succeededJob = aCopyOf(jobInProgress).withState(new SucceededState(ofMillis(10), ofMillis(6))).build();
-        final Job deletedJob = aCopyOf(jobInProgress).withState(new DeletedState()).build();
+        final Job deletedJob = aCopyOf(jobInProgress).withDeletedState().build();
 
         final ConcurrentJobModificationResolveResult resolveResult = allowedStateChange.resolve(succeededJob, deletedJob);
         assertThat(resolveResult.failed()).isFalse();

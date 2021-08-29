@@ -18,6 +18,11 @@ import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.substringAfter;
+import static org.jobrunr.utils.StringUtils.substringBefore;
+
 public class CheckForNewJobRunrVersion implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckForNewJobRunrVersion.class);
@@ -36,18 +41,18 @@ public class CheckForNewJobRunrVersion implements Runnable {
         if (isFirstRun) {
             final NewJobRunrVersionNotification newJobRunrVersionNotification = dashboardNotificationManager.getDashboardNotification(NewJobRunrVersionNotification.class);
             if (newJobRunrVersionNotification != null) {
-                String actualVersion = getActualVersion();
-                String latestVersion = newJobRunrVersionNotification.getLatestVersion();
+                VersionNumber actualVersion = new VersionNumber(getActualVersion());
+                VersionNumber latestVersion = new VersionNumber(newJobRunrVersionNotification.getLatestVersion());
                 if (actualVersion.equals(latestVersion)) {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
                 }
             }
         } else {
             try {
-                String latestVersion = getLatestVersion();
-                String actualVersion = getActualVersion();
+                VersionNumber latestVersion = new VersionNumber(getLatestVersion());
+                VersionNumber actualVersion = new VersionNumber(getActualVersion());
                 if (latestVersion.compareTo(actualVersion) > 0) {
-                    dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion));
+                    dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion.getCompleteVersion()));
                     LOGGER.info("JobRunr version " + latestVersion + " is available.");
                 } else {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
@@ -98,5 +103,50 @@ public class CheckForNewJobRunrVersion implements Runnable {
     @VisibleFor("testing")
     static String getActualVersion() {
         return VersionRetriever.getVersion(JobRunr.class);
+    }
+
+    protected static class VersionNumber implements Comparable<VersionNumber> {
+
+        private final String completeVersion;
+        private final String version;
+        private final String qualifier;
+
+        public VersionNumber(String completeVersion) {
+            this.completeVersion = completeVersion;
+            this.version = substringBefore(completeVersion, "-");
+            this.qualifier = substringAfter(completeVersion, "-");
+        }
+
+        public String getCompleteVersion() {
+            return completeVersion;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof VersionNumber) {
+                return completeVersion.equals(((VersionNumber) obj).completeVersion);
+            }
+            return false;
+        }
+
+        @Override
+        public int compareTo(VersionNumber o) {
+            int versionsCompared = this.version.compareTo(o.version);
+            if (versionsCompared == 0) {
+                if (isNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
+                    return 0;
+                } else if (isNullOrEmpty(qualifier) && isNotNullOrEmpty(o.qualifier)) {
+                    return 1;
+                } else if (isNotNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
+                    return -1;
+                } else {
+                    return qualifier.compareTo(o.qualifier);
+                }
+            } else {
+                return versionsCompared;
+            }
+        }
+
+
     }
 }

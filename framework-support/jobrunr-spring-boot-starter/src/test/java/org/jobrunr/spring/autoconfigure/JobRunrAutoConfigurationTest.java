@@ -17,6 +17,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
@@ -83,6 +84,7 @@ public class JobRunrAutoConfigurationTest {
     void jobSchedulerEnabledAutoConfiguration() {
         this.contextRunner.withPropertyValues("org.jobrunr.job-scheduler.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobScheduler.class);
+            assertThat(context).hasSingleBean(JobRequestScheduler.class);
             assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
             assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
         });

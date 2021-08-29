@@ -55,9 +55,13 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
             OptionalInt indexOfJobContext = IntStream.range(0, jobDetails.getJobParameters().size())
                     .filter(i -> jobDetails.getJobParameters().get(i).getClassName().equals(JobContext.class.getName()))
                     .findFirst();
-            indexOfJobContext.ifPresent(index -> jobParameterValues[index] = new RunnerJobContext(job));
+            indexOfJobContext.ifPresent(index -> jobParameterValues[index] = getRunnerJobContext());
 
             jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
+        }
+
+        protected RunnerJobContext getRunnerJobContext() {
+            return new RunnerJobContext(job);
         }
     }
 }

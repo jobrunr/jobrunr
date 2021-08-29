@@ -200,7 +200,7 @@ public class ReflectionUtils {
         return findField(clazz, f -> fieldName.equals(f.getName()));
     }
 
-    private static Optional<Field> findField(Class<?> clazz, Predicate<Field> predicate) {
+    public static Optional<Field> findField(Class<?> clazz, Predicate<Field> predicate) {
         final Optional<Field> optionalField = stream(clazz.getDeclaredFields())
                 .filter(predicate)
                 .findFirst();

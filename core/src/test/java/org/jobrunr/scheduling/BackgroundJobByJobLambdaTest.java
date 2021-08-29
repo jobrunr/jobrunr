@@ -57,9 +57,9 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 /**
  * Must be public as used as a background job
  */
-public class BackgroundJobTest {
+public class BackgroundJobByJobLambdaTest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(BackgroundJobTest.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(BackgroundJobByJobLambdaTest.class);
 
     private TestService testService;
     private StorageProviderForTest storageProvider;
@@ -434,7 +434,7 @@ public class BackgroundJobTest {
         JobId jobId = BackgroundJob.enqueue(() -> testService.tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter());
         await().during(3, SECONDS).atMost(6, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SCHEDULED));
 
-        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SCHEDULED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED, SCHEDULED);
     }
 
     @Test

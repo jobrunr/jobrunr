@@ -7,7 +7,6 @@ import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
-import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
@@ -157,7 +156,7 @@ class JobZooKeeperTest {
         final Job job = anEnqueuedJob().withId().build();
         lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
         doThrow(new ConcurrentJobModificationException(job)).when(storageProvider).save(singletonList(job));
-        when(storageProvider.getJobById(job.getId())).thenReturn(aCopyOf(job).withState(new DeletedState()).build());
+        when(storageProvider.getJobById(job.getId())).thenReturn(aCopyOf(job).withDeletedState().build());
         final Thread threadMock = mock(Thread.class);
 
         job.startProcessingOn(backgroundJobServer);

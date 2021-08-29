@@ -127,7 +127,7 @@ public class JobZooKeeper implements Runnable {
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
-            job.delete();
+            job.delete("JobRunr maintenance - deleting succeeded job");
         });
 
         if (succeededJobsCounter.get() > 0) {

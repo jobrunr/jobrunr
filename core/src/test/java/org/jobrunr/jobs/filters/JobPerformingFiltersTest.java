@@ -15,6 +15,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -50,12 +51,12 @@ class JobPerformingFiltersTest {
 
     @Test
     void ifADefaultElectStateFilterIsProvidedItIsUsed() {
-        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(new TestService.TheSunIsAlwaysShiningElectStateFilter());
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(new TestService.FailedToDeleteElectStateFilter());
         Job aJobWithoutJobFilters = aFailedJob().build();
         jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnStateElectionFilter();
         assertThat(aJobWithoutJobFilters.getJobStates())
                 .extracting("state")
-                .containsExactly(ENQUEUED, PROCESSING, FAILED, SUCCEEDED);
+                .containsExactly(ENQUEUED, PROCESSING, FAILED, DELETED);
     }
 
     @Test

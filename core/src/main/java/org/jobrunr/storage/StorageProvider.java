@@ -48,13 +48,6 @@ public interface StorageProvider extends AutoCloseable {
 
     Job save(Job job);
 
-    /**
-     * This method changes the state of the job to the DeletedState - it does not permanently delete it yet
-     *
-     * @param id the id of the job
-     */
-    int delete(UUID id);
-
     int deletePermanently(UUID id);
 
     Job getJobById(UUID id);
