@@ -6,6 +6,7 @@ plugins {
 }
 
 nexusPublishing {
+    packageGroup = "org.jobrunr"
     repositories {
         sonatype()
     }
