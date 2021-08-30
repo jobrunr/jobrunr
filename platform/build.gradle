@@ -60,10 +60,6 @@ dependencies {
     }
 }
 
-//nexusPublishing {
-//    packageGroup = "org.jobrunr.jobrunr-bom"
-//}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

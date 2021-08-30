@@ -27,6 +27,9 @@ import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
 import java.util.Optional;
 
+/**
+ * Class responsible for creating additional JobRunr beans in Quarkus.
+ */
 class JobRunrExtensionProcessor {
 
     private static final String FEATURE = "jobrunr";
@@ -80,7 +83,6 @@ class JobRunrExtensionProcessor {
         }
         return null;
     }
-
 
 
     private Class<?> jsonMapper(Capabilities capabilities) {

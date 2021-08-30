@@ -41,10 +41,6 @@ java {
     withSourcesJar()
 }
 
-//nexusPublishing {
-//    packageGroup = "org.jobrunr.jobrunr-spring-boot-starter"
-//}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

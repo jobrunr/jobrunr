@@ -99,10 +99,6 @@ jar {
     }
 }
 
-//nexusPublishing {
-//    packageGroup = "org.jobrunr.jobrunr"
-//}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

@@ -21,10 +21,6 @@ java {
   withSourcesJar()
 }
 
-//nexusPublishing {
-//  packageGroup = "org.jobrunr.jobrunr-kotlin-support"
-//}
-
 publishing {
   publications {
     mavenJava(MavenPublication) {

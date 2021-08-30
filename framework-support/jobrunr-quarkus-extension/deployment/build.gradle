@@ -20,20 +20,14 @@ dependencies {
 }
 
 java {
-    //withJavadocJar()
+    withJavadocJar()
     withSourcesJar()
 }
 
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
     systemProperty "platform.quarkus.native.builder-image", false
-    //systemProperty "maven.settings", "/home/ronald/.m2/settings.xml" does not help for Failed to create the application model for null
-    //systemProperty "maven.home", "~/.m2/" -> does not help for Failed to create the application model for null
 }
-
-//nexusPublishing {
-//    packageGroup = "org.jobrunr.quarkus-jobrunr-deployment"
-//}
 
 publishing {
     publications {
