@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -21,6 +22,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.lenient;
@@ -93,8 +95,10 @@ class ConcurrentJobModificationResolverTest {
     }
 
     static Stream<Arguments> getJobsInDifferentStates() {
+        final Job scheduledJob = aScheduledJob().build();
         final Job jobInProgress = aJobInProgress().build();
         return Stream.of(
+                arguments(aCopyOf(scheduledJob).withEnqueuedState(Instant.now()).build(), aCopyOf(scheduledJob).withDeletedState().build()),
                 arguments(aCopyOf(jobInProgress).withSucceededState().build(), aCopyOf(jobInProgress).withDeletedState().build()),
                 arguments(aCopyOf(jobInProgress).withFailedState().build(), aCopyOf(jobInProgress).withDeletedState().build()),
                 arguments(aCopyOf(jobInProgress).withScheduledState().build(), aCopyOf(jobInProgress).withDeletedState().build())

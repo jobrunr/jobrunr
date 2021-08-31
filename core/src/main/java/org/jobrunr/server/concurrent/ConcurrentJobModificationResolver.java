@@ -22,6 +22,7 @@ public class ConcurrentJobModificationResolver {
                 new DeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
                 new DeletedWhileSucceededConcurrentStateChange(),
                 new DeletedWhileFailedConcurrentStateChange(),
+                new DeletedWhileEnqueuedConcurrentStateChange(),
                 new DeletedWhileScheduledConcurrentStateChange()
         );
     }
