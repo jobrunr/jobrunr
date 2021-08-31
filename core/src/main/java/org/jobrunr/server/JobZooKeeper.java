@@ -102,8 +102,8 @@ public class JobZooKeeper implements Runnable {
 
     void checkForRecurringJobs() {
         LOGGER.debug("Looking for recurring jobs... ");
-        List<RecurringJob> enqueuedJobs = storageProvider.getRecurringJobs();
-        processRecurringJobs(enqueuedJobs);
+        List<RecurringJob> recurringJobs = storageProvider.getRecurringJobs();
+        processRecurringJobs(recurringJobs);
     }
 
     void checkForScheduledJobs() {
@@ -177,7 +177,7 @@ public class JobZooKeeper implements Runnable {
     }
 
     boolean mustSchedule(RecurringJob recurringJob) {
-        return recurringJob.getNextRun().isBefore(now().plusSeconds(60))
+        return recurringJob.getNextRun().isBefore(now().plus(durationPollIntervalTimeBox).plusSeconds(1))
                 && !storageProvider.recurringJobExists(recurringJob.getId(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING);
 
     }

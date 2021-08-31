@@ -40,7 +40,6 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .add("jobName", recurringJob.getJobName())
                 .add("jobSignature", recurringJob.getJobSignature())
                 .add("version", recurringJob.getVersion())
-                .add("version", recurringJob.getVersion())
                 .add("cronExpression", recurringJob.getCronExpression())
                 .add("zoneId", recurringJob.getZoneId())
                 .add("jobDetails", jobDetailsAdapter.adaptToJson(recurringJob.getJobDetails()));

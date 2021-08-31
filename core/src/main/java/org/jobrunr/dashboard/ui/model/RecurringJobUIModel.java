@@ -6,7 +6,7 @@ import java.time.Instant;
 
 public class RecurringJobUIModel extends RecurringJob {
 
-    private Instant nextRun;
+    private final Instant nextRun;
 
     public RecurringJobUIModel(RecurringJob recurringJob) {
         super(recurringJob.getId(), recurringJob.getJobDetails(), recurringJob.getCronExpression(), recurringJob.getZoneId());
