@@ -8,7 +8,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.*;
@@ -172,7 +171,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForRecurringJobs() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
 
@@ -183,7 +182,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
         when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
