@@ -250,7 +250,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new recurring job based on the given id, cron expression and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression and jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
@@ -268,7 +268,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new recurring job based on the given id, cron expression, {@code ZoneId} and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@code ZoneId} and jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
