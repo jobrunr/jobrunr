@@ -7,9 +7,9 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
-public class AllowedStateChanges {
+public class AllowedJobStateStateChanges {
 
-    private AllowedStateChanges() {
+    private AllowedJobStateStateChanges() {
 
     }
 

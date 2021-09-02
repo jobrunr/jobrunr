@@ -92,11 +92,11 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     }
 
     private Condition<ILoggingEvent> logsWithLevelAndMessage(Level level, String message) {
-        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && message.equals(e.getMessage()), level + " logs");
+        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").equals(message), level + " logs");
     }
 
     private Condition<ILoggingEvent> logsWithLevelAndMessageContaining(Level level, String message) {
-        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.getMessage().contains(message), level + " logs");
+        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").equals(message), level + " logs");
     }
 
 

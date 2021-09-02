@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.jobrunr.jobs.filters.JobPerformingFilters;
+import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.server.runner.BackgroundJobRunner;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
@@ -88,6 +90,12 @@ public class BackgroundJobPerformer implements Runnable {
             LOGGER.debug("Job(id={}, jobName='{}') processing succeeded", job.getId(), job.getJobName());
             job.succeeded();
             saveAndRunStateRelatedJobFilters(job);
+        } catch (IllegalJobStateChangeException ex) {
+            if (ex.getFrom() == DELETED) {
+                LOGGER.info("Job finished successfully but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo());
+            } else {
+                throw ex;
+            }
         } catch (Exception badException) {
             LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
         }
@@ -98,6 +106,12 @@ public class BackgroundJobPerformer implements Runnable {
             LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
             job.failed(message, e);
             saveAndRunStateRelatedJobFilters(job);
+        } catch (IllegalJobStateChangeException ex) {
+            if (ex.getFrom() == DELETED) {
+                LOGGER.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo());
+            } else {
+                throw ex;
+            }
         } catch (Exception badException) {
             LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }

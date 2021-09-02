@@ -14,11 +14,11 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
-import static org.jobrunr.jobs.states.AllowedStateChanges.isIllegalStateChange;
+import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
- * Defines the job with it's JobDetails, History and Job Metadata
+ * Defines the job with its JobDetails, History and Job Metadata
  */
 public class Job extends AbstractJob {
 
@@ -109,7 +109,7 @@ public class Job extends AbstractJob {
 
     public void addJobState(JobState jobState) {
         if (isIllegalStateChange(getState(), jobState.getName())) {
-            throw new IllegalStateException("A job cannot change state from " + getState() + " to " + jobState.getName() + ".");
+            throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
         this.jobHistory.add(jobState);
     }
@@ -138,8 +138,9 @@ public class Job extends AbstractJob {
 
     public void succeeded() {
         Optional<EnqueuedState> lastEnqueuedState = getLastJobStateOfType(EnqueuedState.class);
-        if (!lastEnqueuedState.isPresent())
+        if (!lastEnqueuedState.isPresent()) {
             throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
+        }
 
         Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());

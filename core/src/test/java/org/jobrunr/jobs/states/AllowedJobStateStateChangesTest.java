@@ -3,8 +3,8 @@ package org.jobrunr.jobs.states;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.states.AllowedStateChanges.isAllowedStateChange;
-import static org.jobrunr.jobs.states.AllowedStateChanges.isIllegalStateChange;
+import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isAllowedStateChange;
+import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -12,7 +12,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
-class AllowedStateChangesTest {
+class AllowedJobStateStateChangesTest {
 
     @Test
     void testAllowedStatesFromScheduled() {
