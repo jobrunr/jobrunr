@@ -27,7 +27,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *            BackgroundJob.enqueue(new MyJobRequest());
+     *            BackgroundJobRequest.enqueue(new MyJobRequest());
      *       }</pre>
      *
      * @param jobRequest the jobRequest which defines the fire-and-forget job.
@@ -43,7 +43,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *            BackgroundJob.enqueueJobRequest(id, new MyJobRequest());
+     *            BackgroundJobRequest.enqueueJobRequest(id, new MyJobRequest());
      *       }</pre>
      *
      * @param id         the uuid with which to save the job
@@ -61,7 +61,7 @@ public class BackgroundJobRequest {
      * <h5>An example:</h5>
      * <pre>{@code
      *      Stream<MyJobRequest> workStream = getWorkStream();
-     *      BackgroundJob.enqueue(workStream);
+     *      BackgroundJobRequest.enqueue(workStream);
      * }</pre>
      *
      * @param input the stream of jobRequests for which to create fire-and-forget jobs
@@ -76,7 +76,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(ZonedDateTime.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(ZonedDateTime.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param zonedDateTime the moment in time at which the job will be enqueued.
@@ -94,7 +94,7 @@ public class BackgroundJobRequest {
      * If a job with that id already exists, JobRunr will not save it again.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(id, ZonedDateTime.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(id, ZonedDateTime.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param id            the uuid with which to save the job
@@ -112,7 +112,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(OffsetDateTime.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(OffsetDateTime.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param offsetDateTime the moment in time at which the job will be enqueued.
@@ -130,7 +130,7 @@ public class BackgroundJobRequest {
      * If a job with that id already exists, JobRunr will not save it again.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(id, OffsetDateTime.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(id, OffsetDateTime.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param id             the uuid with which to save the job
@@ -148,7 +148,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(LocalDateTime.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(LocalDateTime.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
@@ -166,7 +166,7 @@ public class BackgroundJobRequest {
      * If a job with that id already exists, JobRunr will not save it again.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(id, LocalDateTime.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(id, LocalDateTime.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param id            the uuid with which to save the job
@@ -184,7 +184,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(Instant.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(Instant.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param instant    the moment in time at which the job will be enqueued.
@@ -202,7 +202,7 @@ public class BackgroundJobRequest {
      * If a job with that id already exists, JobRunr will not save it again.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.schedule(id, Instant.now().plusHours(5), new MyJobRequest());
+     *      BackgroundJobRequest.schedule(id, Instant.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
@@ -237,7 +237,7 @@ public class BackgroundJobRequest {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently(Cron.daily(), new MyJobRequest());
+     *      BackgroundJobRequest.scheduleRecurrently(Cron.daily(), new MyJobRequest());
      * }</pre>
      *
      * @param cron       The cron expression defining when to run this recurring job
@@ -251,11 +251,11 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new recurring job based on the given id, cron expression and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression and jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Cron.daily(), new MyJobRequest());
+     *      BackgroundJobRequest.scheduleRecurrently("my-recurring-job", Cron.daily(), new MyJobRequest());
      * }</pre>
      *
      * @param id         the id of this recurring job which can be used to alter or delete it
@@ -270,11 +270,11 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new recurring job based on the given id, cron expression, {@code ZoneId} and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@code ZoneId} and jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Cron.daily(), ZoneId.of("Europe/Brussels"), new MyJobRequest());
+     *      BackgroundJobRequest.scheduleRecurrently("my-recurring-job", Cron.daily(), ZoneId.of("Europe/Brussels"), new MyJobRequest());
      * }</pre>
      *
      * @param id         the id of this recurring job which can be used to alter or delete it
@@ -293,7 +293,7 @@ public class BackgroundJobRequest {
      * Deletes the recurring job based on the given id.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.delete("my-recurring-job"));
+     *      BackgroundJobRequest.delete("my-recurring-job"));
      * }</pre>
      *
      * @param id the id of the recurring job to delete
