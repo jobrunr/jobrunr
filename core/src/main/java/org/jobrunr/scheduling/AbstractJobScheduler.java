@@ -67,7 +67,7 @@ public class AbstractJobScheduler {
     }
 
     /**
-     * Deletes a job and sets it's state to DELETED. If the job is being processed, it will be interrupted.
+     * Deletes a job and sets its state to DELETED. If the job is being processed, it will be interrupted.
      *
      * @param id the id of the job
      */
@@ -76,7 +76,7 @@ public class AbstractJobScheduler {
     }
 
     /**
-     * Deletes a job and sets it's state to DELETED. If the job is being processed, it will be interrupted.
+     * Deletes a job and sets its state to DELETED. If the job is being processed, it will be interrupted.
      *
      * @param id     the id of the job
      * @param reason the reason why the job is deleted.
