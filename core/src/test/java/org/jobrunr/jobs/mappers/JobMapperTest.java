@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.mappers;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.RecurringJob;
@@ -8,6 +9,7 @@ import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -131,6 +133,18 @@ abstract class JobMapperTest {
         Job actualJob = jobMapper.deserializeJob(jobAsJson);
 
         assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
+    void onIllegalJobParameterCorrectExceptionIsThrown() {
+        TestService.IllegalWork illegalWork = new TestService.IllegalWork(5);
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doIllegalWork(illegalWork))
+                .build();
+
+        assertThatCode(() -> jobMapper.serializeJob(job))
+                .isInstanceOf(JobParameterJsonMapperException.class)
+                .isNotExactlyInstanceOf(JobRunrException.class);
     }
 
     public static class TestMetadata implements JobContext.Metadata {
