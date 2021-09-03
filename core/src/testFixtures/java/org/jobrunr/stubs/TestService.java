@@ -236,6 +236,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("This should not be executed");
     }
 
+    public void doIllegalWork(IllegalWork illegalWork) {
+        System.out.println("Doing some illegal work:" + illegalWork);
+    }
+
     public void doWorkWithoutParameters() {
         doWork(); // why: for kotlin method resolution
     }
@@ -314,6 +318,24 @@ public class TestService implements TestServiceInterface {
 
         public static Work from(int workCount, String someString, UUID uuid) {
             return new Work(workCount, someString, uuid);
+        }
+    }
+
+    public static class IllegalWork {
+        private long number;
+        private IllegalWork illegalWork;
+
+        public IllegalWork(long number) {
+            this.number = number;
+            this.illegalWork = this;
+        }
+
+        public IllegalWork getIllegalWork() {
+            return illegalWork;
+        }
+
+        public long getNumber() {
+            return number;
         }
     }
 

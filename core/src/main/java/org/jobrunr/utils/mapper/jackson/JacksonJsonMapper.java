@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.jobrunr.JobRunrException;
+import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
 
@@ -38,7 +39,7 @@ public class JacksonJsonMapper implements JsonMapper {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            throw JobRunrException.shouldNotHappenException(e);
+            throw new JobParameterJsonMapperException("The job parameters are not serializable.", e);
         }
     }
 

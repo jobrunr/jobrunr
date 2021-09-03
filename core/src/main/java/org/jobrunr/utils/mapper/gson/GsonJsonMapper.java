@@ -8,6 +8,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.metadata.VersionRetriever;
 import org.jobrunr.utils.reflection.ReflectionUtils;
@@ -46,7 +47,11 @@ public class GsonJsonMapper implements JsonMapper {
 
     @Override
     public String serialize(Object object) {
-        return gson.toJson(object);
+        try {
+            return gson.toJson(object);
+        } catch (Exception e) {
+            throw new JobParameterJsonMapperException("The job parameters are not serializable.", e);
+        }
     }
 
     @Override

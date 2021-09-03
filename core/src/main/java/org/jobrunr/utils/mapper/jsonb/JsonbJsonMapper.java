@@ -1,5 +1,7 @@
 package org.jobrunr.utils.mapper.jsonb;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
@@ -7,6 +9,7 @@ import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
+import javax.json.bind.JsonbException;
 import java.io.OutputStream;
 
 public class JsonbJsonMapper implements JsonMapper {
@@ -21,12 +24,15 @@ public class JsonbJsonMapper implements JsonMapper {
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
                 .withAdapters(new JobAdapter(), new RecurringJobAdapter())
         );
-
     }
 
     @Override
     public String serialize(Object object) {
-        return jsonb.toJson(object);
+        try {
+            return jsonb.toJson(object);
+        } catch (JsonbException e) {
+            throw new JobParameterJsonMapperException("The job parameters are not serializable.", e);
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.jobrunr.utils.mapper.jsonb.adapters;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
 import javax.json.*;
@@ -29,9 +30,13 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
     @Override
     public JsonObject adaptToJson(JobDetails jobDetails) throws Exception {
         final JsonArrayBuilder parametersJsonArray = Json.createArrayBuilder();
-        for (JobParameter jobState : jobDetails.getJobParameters()) {
-            final JsonObject object = nullSafeJsonObjectBuilder(jsonb, jobState).build();
-            parametersJsonArray.add(object);
+        try {
+            for (JobParameter jobState : jobDetails.getJobParameters()) {
+                final JsonObject object = nullSafeJsonObjectBuilder(jsonb, jobState).build();
+                parametersJsonArray.add(object);
+            }
+        } catch (Exception e) {
+            throw new JobParameterJsonMapperException("The job parameters are not serializable.", e);
         }
 
         return nullSafeJsonObjectBuilder()
