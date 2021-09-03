@@ -2,14 +2,9 @@ package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.lambdas.JobContextAware;
 import org.jobrunr.server.JobActivator;
 
-import java.lang.reflect.Field;
-import java.util.Optional;
-
-import static org.jobrunr.utils.reflection.ReflectionUtils.findField;
-import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
@@ -44,8 +39,9 @@ public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
         @Override
         protected Object getJobToPerform(Class<?> jobToPerformClass) {
             final Object object = jobActivator.activateJob(jobToPerformClass);
-            final Optional<Field> jobContextOptional = findField(jobToPerformClass, f -> f.getType().equals(JobContext.class));
-            jobContextOptional.ifPresent(jobContext -> setFieldUsingAutoboxing(jobContext, object, getRunnerJobContext()));
+            if (object instanceof JobContextAware) {
+                ((JobContextAware) object).setJobContext(getRunnerJobContext());
+            }
             return object;
         }
     }

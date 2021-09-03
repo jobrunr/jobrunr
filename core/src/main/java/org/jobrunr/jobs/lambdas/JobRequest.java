@@ -12,14 +12,6 @@ package org.jobrunr.jobs.lambdas;
  */
 public interface JobRequest extends JobRunrJob {
 
-    default String getJobDisplayName() {
-        return null;
-    }
-
-    default Integer getMaxRetryCount() {
-        return null;
-    }
-
     Class<? extends JobRequestHandler> getJobRequestHandler();
 
 }

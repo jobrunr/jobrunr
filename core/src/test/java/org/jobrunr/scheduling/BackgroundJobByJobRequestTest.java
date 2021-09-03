@@ -10,7 +10,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
 import org.jobrunr.stubs.TestJobRequest;
-import org.jobrunr.stubs.TestJobRequestHandler;
+import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static java.time.Duration.ofSeconds;
@@ -28,6 +29,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -62,6 +64,25 @@ public class BackgroundJobByJobRequestTest {
         JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueue"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testEnqueueWithDisplayName() {
+        JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueue", "Some neat Job Display Name"));
+        assertThat(storageProvider.getJobById(jobId))
+                .hasJobName("Some neat Job Display Name");
+    }
+
+    @Test
+    void testEnqueueAlsoTakesIntoAccountJobFilters() {
+        //TODO
+    }
+
+    @Test
+    void testEnqueueOfFailingJobAndRetryCount() {
+        JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueue", true, 2));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == FAILED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED, ENQUEUED, PROCESSING, FAILED);
     }
 
     @Test

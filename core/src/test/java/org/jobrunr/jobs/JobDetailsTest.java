@@ -1,7 +1,7 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.stubs.TestJobRequest;
-import org.jobrunr.stubs.TestJobRequestHandler;
+import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 

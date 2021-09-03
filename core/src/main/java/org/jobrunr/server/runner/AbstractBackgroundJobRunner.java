@@ -2,11 +2,12 @@ package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.JobUtils;
 
 import java.lang.reflect.Method;
-import java.util.OptionalInt;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
@@ -50,12 +51,13 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
         }
 
         protected void invokeJobMethod(Object jobToPerform, Method jobMethodToPerform) throws Exception {
-            Object[] jobParameterValues = jobDetails.getJobParameterValues();
+            final Object[] jobParameterValues = jobDetails.getJobParameterValues();
+            final List<JobParameter> jobParameters = jobDetails.getJobParameters();
 
-            OptionalInt indexOfJobContext = IntStream.range(0, jobDetails.getJobParameters().size())
-                    .filter(i -> jobDetails.getJobParameters().get(i).getClassName().equals(JobContext.class.getName()))
-                    .findFirst();
-            indexOfJobContext.ifPresent(index -> jobParameterValues[index] = getRunnerJobContext());
+            IntStream.range(0, jobParameters.size())
+                    .filter(i -> jobParameters.get(i).getClassName().equals(JobContext.class.getName()))
+                    .findFirst()
+                    .ifPresent(index -> jobParameterValues[index] = getRunnerJobContext());
 
             jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
         }

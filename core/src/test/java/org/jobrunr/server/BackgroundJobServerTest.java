@@ -339,7 +339,9 @@ class BackgroundJobServerTest {
         backgroundJobServer.start();
 
         await().atMost(10, SECONDS)
-                .untilAsserted(() -> assertThat(logger).hasInfoMessageContaining("BackgroundJobPerformers started successfully").hasNoErrorLogMessages());
+                .untilAsserted(() -> assertThat(logger)
+                        .hasInfoMessageContaining("BackgroundJobPerformers started successfully")
+                        .hasNoErrorLogMessages());
     }
 
     @Test
