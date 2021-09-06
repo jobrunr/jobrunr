@@ -3,8 +3,6 @@ package org.jobrunr.server.runner;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 
-import java.lang.reflect.Method;
-
 import static org.jobrunr.utils.reflection.ReflectionUtils.hasDefaultNoArgConstructor;
 
 public class BackgroundJobWithoutIocRunner extends AbstractBackgroundJobRunner {

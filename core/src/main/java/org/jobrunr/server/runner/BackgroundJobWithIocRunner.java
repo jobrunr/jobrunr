@@ -4,8 +4,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.server.JobActivator;
 
-import java.lang.reflect.Method;
-
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class BackgroundJobWithIocRunner extends AbstractBackgroundJobRunner {
