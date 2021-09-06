@@ -2,7 +2,8 @@ package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.lambdas.JobContextAware;
+
+import java.lang.reflect.Method;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.hasDefaultNoArgConstructor;
 
@@ -25,13 +26,5 @@ public class BackgroundJobWithoutIocRunner extends AbstractBackgroundJobRunner {
             super(job);
         }
 
-        @Override
-        protected Object getJobToPerform(Class<?> jobToPerformClass) {
-            final Object object = super.getJobToPerform(jobToPerformClass);
-            if (object instanceof JobContextAware) {
-                ((JobContextAware) object).setJobContext(getRunnerJobContext());
-            }
-            return object;
-        }
     }
 }
