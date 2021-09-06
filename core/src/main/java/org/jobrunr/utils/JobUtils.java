@@ -24,10 +24,6 @@ public class JobUtils {
     private JobUtils() {
     }
 
-    public static boolean isNew(org.jobrunr.jobs.Job job) {
-        return job.getVersion() == 0;
-    }
-
     public static String getReadableNameFromJobDetails(JobDetails jobDetails) {
         String result = getJobClassAndMethodName(jobDetails);
         result += "(" + jobDetails.getJobParameters().stream().map(JobUtils::getJobParameterValue).collect(joining(",")) + ")";

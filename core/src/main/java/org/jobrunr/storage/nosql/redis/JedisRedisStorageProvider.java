@@ -1,8 +1,6 @@
 package org.jobrunr.storage.nosql.redis;
 
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
@@ -12,6 +10,7 @@ import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 import redis.clients.jedis.*;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -24,33 +23,12 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
-import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
-import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -265,13 +243,16 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public Job save(Job jobToSave) {
-        try (final Jedis jedis = getJedis()) {
-            if (isNew(jobToSave)) {
+        try (final Jedis jedis = getJedis(); final JobVersioner jobVersioner = new JobVersioner(jobToSave)) {
+            if (jobVersioner.isNewJob()) {
                 insertJob(jobToSave, jedis);
             } else {
                 updateJob(jobToSave, jedis);
             }
+            jobVersioner.commitVersion();
             notifyJobStatsOnChangeListeners();
+        } catch (JedisException e) {
+            throw new StorageException(e);
         }
         return jobToSave;
     }
@@ -304,27 +285,25 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public List<Job> save(List<Job> jobs) {
         if (jobs.isEmpty()) return jobs;
 
-        if (areNewJobs(jobs)) {
-            if (notAllJobsAreNew(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            try (final Jedis jedis = getJedis(); Transaction p = jedis.multi()) {
-                jobs.forEach(jobToSave -> saveJob(p, jobToSave));
-                p.exec();
-            }
-        } else {
-            if (notAllJobsAreExisting(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            try (final Jedis jedis = getJedis()) {
+        try (final Jedis jedis = getJedis(); final JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
+            if(jobListVersioner.areNewJobs()) {
+                try (Transaction p = jedis.multi()) {
+                    jobs.forEach(jobToSave -> saveJob(p, jobToSave));
+                    p.exec();
+                }
+            } else {
                 final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, job -> updateJob(job, jedis));
                 if (!concurrentModifiedJobs.isEmpty()) {
+                    jobListVersioner.rollbackVersions(concurrentModifiedJobs);
                     throw new ConcurrentJobModificationException(concurrentModifiedJobs);
                 }
             }
+            jobListVersioner.commitVersions();
+            notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
+            return jobs;
+        } catch (JedisException e) {
+            throw new StorageException(e);
         }
-        notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
-        return jobs;
     }
 
     @Override
@@ -547,7 +526,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     private void updateJob(Job jobToSave, Jedis jedis) {
         jedis.watch(jobVersionKey(keyPrefix, jobToSave));
         final int version = Integer.parseInt(jedis.get(jobVersionKey(keyPrefix, jobToSave)));
-        if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave);
+        if (version != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
         try (Transaction transaction = jedis.multi()) {
             saveJob(transaction, jobToSave);
             List<Object> result = transaction.exec();
@@ -558,7 +537,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     private void saveJob(Transaction transaction, Job jobToSave) {
         deleteJobMetadataForUpdate(transaction, jobToSave);
-        transaction.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.increaseVersion()));
+        transaction.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.getVersion()));
         transaction.set(jobKey(keyPrefix, jobToSave), jobMapper.serializeJob(jobToSave));
         transaction.zadd(jobQueueForStateKey(keyPrefix, jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
         transaction.sadd(jobDetailsKey(keyPrefix, jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));

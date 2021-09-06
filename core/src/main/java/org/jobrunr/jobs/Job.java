@@ -88,12 +88,6 @@ public class Job extends AbstractJob {
         return cast(getJobState(-1));
     }
 
-    public <T extends JobState> T popLastJobState() {
-        final JobState jobState = getJobState();
-        jobHistory.remove(jobState);
-        return cast(jobState);
-    }
-
     public JobState getJobState(int element) {
         if (element >= 0) {
             return jobHistory.get(element);

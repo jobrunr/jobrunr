@@ -1,9 +1,6 @@
 package org.jobrunr.storage;
 
-import org.jobrunr.jobs.AbstractJob;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
@@ -21,17 +18,8 @@ import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_CREATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_UPDATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
+import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
@@ -320,8 +308,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
             throw new ConcurrentJobModificationException(job);
         }
 
-        job.increaseVersion();
-        jobQueue.put(job.getId(), deepClone(job));
+        try(JobVersioner jobVersioner = new JobVersioner(job)) {
+            jobQueue.put(job.getId(), deepClone(job));
+            jobVersioner.commitVersion();
+        }
     }
 
     private Comparator<Job> getJobComparator(PageRequest pageRequest) {

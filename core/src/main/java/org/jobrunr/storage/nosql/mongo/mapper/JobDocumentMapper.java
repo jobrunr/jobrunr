@@ -30,7 +30,7 @@ public class JobDocumentMapper {
     public Document toInsertDocument(Job job) {
         final Document document = new Document();
         document.put(toMongoId(Jobs.FIELD_ID), job.getId());
-        document.put(Jobs.FIELD_VERSION, job.increaseVersion());
+        document.put(Jobs.FIELD_VERSION, job.getVersion());
         document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         document.put(Jobs.FIELD_JOB_SIGNATURE, job.getJobSignature());
         document.put(Jobs.FIELD_STATE, job.getState().name());
@@ -45,7 +45,7 @@ public class JobDocumentMapper {
 
     public Document toUpdateDocument(Job job) {
         final Document document = new Document();
-        document.put(Jobs.FIELD_VERSION, job.increaseVersion());
+        document.put(Jobs.FIELD_VERSION, job.getVersion());
         document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
@@ -59,7 +59,7 @@ public class JobDocumentMapper {
     public UpdateOneModel<Document> toUpdateOneModel(Job job) {
         Document filterDocument = new Document();
         filterDocument.append(toMongoId(Jobs.FIELD_ID), job.getId());
-        filterDocument.append(Jobs.FIELD_VERSION, job.getVersion());
+        filterDocument.append(Jobs.FIELD_VERSION, (job.getVersion() -1));
 
         //Update doc
         Document updateDocument = toUpdateDocument(job);

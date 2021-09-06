@@ -1,6 +1,7 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -33,10 +34,7 @@ import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.jobrunr.jobs.AbstractJob;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
@@ -56,20 +54,12 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
-import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.backgroundJobServerIndexName;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.jobIndexName;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.metadataIndexName;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.recurringJobIndexName;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.*;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -259,8 +249,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public Job save(Job job) {
-        try {
-            job.increaseVersion();
+        try(JobVersioner jobVersioner = new JobVersioner(job)) {
             IndexRequest request = new IndexRequest(jobIndexName())
                     .id(job.getId().toString())
                     .versionType(VersionType.EXTERNAL)
@@ -268,14 +257,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                     .setRefreshPolicy(IMMEDIATE)
                     .source(elasticSearchDocumentMapper.toXContentBuilder(job));
             client.index(request, RequestOptions.DEFAULT);
+            jobVersioner.commitVersion();
             notifyJobStatsOnChangeListeners();
             return job;
-        } catch (ElasticsearchStatusException e) {
+        } catch (ElasticsearchException e) {
             if (e.status().getStatus() == 409) {
-                job.decreaseVersion();
                 throw new ConcurrentJobModificationException(job);
             }
-            throw e;
+            throw new StorageException(e);
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -311,22 +300,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        try {
-            if (areNewJobs(jobs)) {
-                if (notAllJobsAreNew(jobs)) {
-                    throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-                }
-            } else {
-                if (notAllJobsAreExisting(jobs)) {
-                    throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-                }
-            }
+        try(JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
+            jobListVersioner.validateJobs();
 
             BulkRequest bulkRequest = new BulkRequest(jobIndexName()).setRefreshPolicy(IMMEDIATE);
             jobs.stream()
                     .map(job -> new IndexRequest().id(job.getId().toString())
                             .versionType(VersionType.EXTERNAL)
-                            .version(job.increaseVersion())
+                            .version(job.getVersion())
                             .source(elasticSearchDocumentMapper.toXContentBuilder(job)))
                     .forEach(bulkRequest::add);
 
@@ -336,11 +317,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                     .map(item -> jobs.get(item.getItemId()))
                     .collect(toList());
             if (!concurrentModifiedJobs.isEmpty()) {
-                concurrentModifiedJobs.forEach(AbstractJob::decreaseVersion);
+                jobListVersioner.rollbackVersions(concurrentModifiedJobs);
                 throw new ConcurrentJobModificationException(concurrentModifiedJobs);
             }
+            jobListVersioner.commitVersions();
             notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
             return jobs;
+        } catch (ElasticsearchException e) {
+            throw new StorageException(e);
         } catch (IOException e) {
             throw new StorageException(e);
         }

@@ -40,12 +40,12 @@ public abstract class AbstractJob implements Lockable {
      *
      * @return the version after it was increased
      */
-    public int increaseVersion() {
+    int increaseVersion() {
         return ++version;
     }
 
-    public int decreaseVersion() {
-        return version--;
+    void setVersion(int version) {
+        this.version = version;
     }
 
     public String getJobSignature() {

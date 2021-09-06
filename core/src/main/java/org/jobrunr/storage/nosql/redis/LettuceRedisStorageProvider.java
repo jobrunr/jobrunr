@@ -7,12 +7,11 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -29,34 +28,11 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
-import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata;
-import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
-import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
+import static org.jobrunr.storage.StorageProviderUtils.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
-import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.NumberUtils.parseLong;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -282,16 +258,19 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public Job save(Job jobToSave) {
-        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection(); JobVersioner jobVersioner = new JobVersioner(jobToSave)) {
             RedisCommands<String, String> commands = connection.sync();
-            if (isNew(jobToSave)) {
+            if (jobVersioner.isNewJob()) {
                 insertJob(jobToSave, commands);
             } else {
                 updateJob(jobToSave, commands);
             }
+            jobVersioner.commitVersion();
             notifyJobStatsOnChangeListeners();
+            return jobToSave;
+        } catch (RedisException e) {
+            throw new StorageException(e);
         }
-        return jobToSave;
     }
 
     @Override
@@ -324,30 +303,25 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public List<Job> save(List<Job> jobs) {
         if (jobs.isEmpty()) return jobs;
 
-        if (areNewJobs(jobs)) {
-            if (notAllJobsAreNew(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            try (final StatefulRedisConnection<String, String> connection = getConnection()) {
-                RedisCommands<String, String> commands = connection.sync();
+        try (final StatefulRedisConnection<String, String> connection = getConnection(); final JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
+            RedisCommands<String, String> commands = connection.sync();
+            if(jobListVersioner.areNewJobs()) {
                 commands.multi();
                 jobs.forEach(jobToSave -> saveJob(commands, jobToSave));
                 commands.exec();
-            }
-        } else {
-            if (notAllJobsAreExisting(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            try (final StatefulRedisConnection<String, String> connection = getConnection()) {
-                RedisCommands<String, String> commands = connection.sync();
+            } else {
                 final List<Job> concurrentModifiedJobs = returnConcurrentModifiedJobs(jobs, job -> updateJob(job, commands));
                 if (!concurrentModifiedJobs.isEmpty()) {
+                    jobListVersioner.rollbackVersions(concurrentModifiedJobs);
                     throw new ConcurrentJobModificationException(concurrentModifiedJobs);
                 }
             }
+            jobListVersioner.commitVersions();
+            notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
+            return jobs;
+        } catch (RedisException e) {
+            throw new StorageException(e);
         }
-        notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
-        return jobs;
     }
 
     @Override
@@ -586,7 +560,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     private void updateJob(Job jobToSave, RedisCommands<String, String> commands) {
         commands.watch(jobVersionKey(keyPrefix, jobToSave));
         final int version = Integer.parseInt(commands.get(jobVersionKey(keyPrefix, jobToSave)));
-        if (version != jobToSave.getVersion()) throw new ConcurrentJobModificationException(jobToSave);
+        if (version != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
         commands.multi();
         saveJob(commands, jobToSave);
         TransactionResult result = commands.exec();
@@ -596,7 +570,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     private void saveJob(RedisCommands<String, String> commands, Job jobToSave) {
         deleteJobMetadataForUpdate(commands, jobToSave);
-        commands.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.increaseVersion()));
+        commands.set(jobVersionKey(keyPrefix, jobToSave), String.valueOf(jobToSave.getVersion()));
         commands.set(jobKey(keyPrefix, jobToSave), jobMapper.serializeJob(jobToSave));
         commands.zadd(jobQueueForStateKey(keyPrefix, jobToSave.getState()), toMicroSeconds(jobToSave.getUpdatedAt()), jobToSave.getId().toString());
         commands.sadd(jobDetailsKey(keyPrefix, jobToSave.getState()), getJobSignature(jobToSave.getJobDetails()));

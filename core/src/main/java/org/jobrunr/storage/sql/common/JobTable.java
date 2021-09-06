@@ -1,8 +1,6 @@
 package org.jobrunr.storage.sql.common;
 
-import org.jobrunr.jobs.AbstractJob;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
@@ -27,15 +25,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
-import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
@@ -76,16 +66,14 @@ public class JobTable extends Sql<Job> {
     }
 
     public Job save(Job jobToSave) throws SQLException {
-        try {
-            boolean isNewJob = JobUtils.isNew(jobToSave);
-            jobToSave.increaseVersion();
-            if (isNewJob) {
+        try(JobVersioner jobVersioner = new JobVersioner(jobToSave)) {
+            if (jobVersioner.isNewJob()) {
                 insertOneJob(jobToSave);
             } else {
                 updateOneJob(jobToSave);
             }
+            jobVersioner.commitVersion();
         } catch (ConcurrentSqlModificationException e) {
-            jobToSave.decreaseVersion();
             throw new ConcurrentJobModificationException(jobToSave);
         }
         return jobToSave;
@@ -94,23 +82,21 @@ public class JobTable extends Sql<Job> {
     public List<Job> save(List<Job> jobs) throws SQLException {
         if (jobs.isEmpty()) return jobs;
 
-        if (areNewJobs(jobs)) {
-            if (notAllJobsAreNew(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            insertAllJobs(jobs);
-        } else {
+        try(JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             try {
-                if (notAllJobsAreExisting(jobs)) {
-                    throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
+                if (jobListVersioner.areNewJobs()) {
+                    insertAllJobs(jobs);
+                } else {
+                    updateAllJobs(jobs);
                 }
-                updateAllJobs(jobs);
+                jobListVersioner.commitVersions();
+                return jobs;
             } catch (ConcurrentSqlModificationException e) {
                 List<Job> concurrentUpdatedJobs = cast(e.getFailedItems());
+                jobListVersioner.rollbackVersions(concurrentUpdatedJobs);
                 throw new ConcurrentJobModificationException(concurrentUpdatedJobs);
             }
         }
-        return jobs;
     }
 
     public Optional<Job> selectJobById(UUID id) {
@@ -187,18 +173,11 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertAllJobs(List<Job> jobs) throws SQLException {
-        jobs.forEach(AbstractJob::increaseVersion);
         insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
     }
 
     void updateAllJobs(List<Job> jobs) throws SQLException {
-        jobs.forEach(AbstractJob::increaseVersion);
-        try {
-            updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
-        } catch (ConcurrentSqlModificationException e) {
-            e.getFailedItems().forEach(job -> ((AbstractJob) job).decreaseVersion());
-            throw e;
-        }
+        updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
     }
 
     private Stream<Job> selectJobs(String statement) {

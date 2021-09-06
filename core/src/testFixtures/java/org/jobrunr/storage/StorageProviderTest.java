@@ -19,8 +19,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 
-import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -61,10 +61,13 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.storage.PageRequest.descOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
+import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public abstract class StorageProviderTest {
 
     protected StorageProvider storageProvider;
+    protected StorageProvider throwingStorageProvider;
     protected BackgroundJobServer backgroundJobServer;
     protected JobMapper jobMapper;
 
@@ -86,6 +89,15 @@ public abstract class StorageProviderTest {
     protected abstract void cleanup();
 
     protected abstract StorageProvider getStorageProvider();
+
+    protected ThrowingStorageProvider makeThrowingStorageProvider(StorageProvider storageProvider) {
+        return new ThrowingStorageProvider(storageProvider, "TODO") {
+            @Override
+            protected void makeStorageProviderThrowException(StorageProvider storageProvider) {
+                throw new UnsupportedOperationException("Implement me!");
+            }
+        };
+    }
 
     @Test
     void testAnnounceAndListBackgroundJobServers() {
@@ -306,6 +318,21 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testExceptionOnSaveJob() {
+        Job job = anEnqueuedJob().build();
+        Job enqueuedJob = storageProvider.save(job);
+
+        job.startProcessingOn(backgroundJobServer);
+        try(ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
+            assertThatThrownBy(() -> storageProvider.save(enqueuedJob))
+                    .isInstanceOf(StorageException.class);
+        }
+
+        job.updateProcessing();
+        storageProvider.save(enqueuedJob);
+    }
+
+    @Test
     void testOptimisticLockingOnSaveJobs() {
         Job job = aJobInProgress().build();
         Job createdJob1 = storageProvider.save(aCopyOf(job).withId().build());
@@ -329,6 +356,8 @@ public abstract class StorageProviderTest {
         assertThat(asList(createdJob1, createdJob4)).allMatch(dbJob -> dbJob.getVersion() == 2);
         assertThat(asList(createdJob2, createdJob3)).allMatch(dbJob -> dbJob.getVersion() == 1);
     }
+
+
 
     @Test
     void testGetDistinctJobSignatures() {
@@ -453,6 +482,25 @@ public abstract class StorageProviderTest {
                 .hasSize(3)
                 .containsAll(savedJobs);
         assertThat(fetchedJobsDesc).extracting("jobName").containsExactly("3", "2", "1");
+    }
+
+
+    @Test
+    void testExceptionOnSaveListOfJobs() {
+        final List<Job> jobs = asList(
+                aJob().withName("1").withEnqueuedState(now().minusSeconds(30)).build(),
+                aJob().withName("2").withEnqueuedState(now().minusSeconds(20)).build(),
+                aJob().withName("3").withEnqueuedState(now().minusSeconds(10)).build());
+        final List<Job> savedJobs = storageProvider.save(jobs);
+        savedJobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
+
+        try(ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
+            assertThatThrownBy(() -> storageProvider.save(savedJobs))
+                    .isInstanceOf(StorageException.class);
+        }
+
+        savedJobs.forEach(Job::updateProcessing);
+        storageProvider.save(savedJobs);
     }
 
     @Test
@@ -648,24 +696,6 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testExceptionOnSaveJob() {
-        Job job = anEnqueuedJob().build();
-        Job createdJob = storageProvider.save(job);
-        //byte[] array = new byte[2*1024*1024]; // OK: With this line uncommented everything works
-        byte[] array = new byte[20*1024*1024]; // FAIL: With this line uncommented a mongo exception is thrown when saving the job (because it is larger than the maximum size of 16MB)
-        new Random().nextBytes(array);
-        String generatedString = new String(array, Charset.forName("UTF-8"));
-        createdJob.getMetadata().put("lots of data", generatedString);
-        try {
-            storageProvider.save(createdJob); // Here the error occurs on the first save, making the version out of sync
-        } catch (Throwable t) {
-            System.out.println("Thrown " + t);
-        }
-        createdJob.getMetadata().put("lots of data", "");
-        storageProvider.save(createdJob); //Now the job could be saved, but it fails due to the out of sync version
-    }
-
-    @Test
     @Disabled
     void testPerformance() {
         int amount = 1000000;
@@ -718,5 +748,40 @@ public abstract class StorageProviderTest {
         public void onChange(List<JobRunrMetadata> metadata) {
             this.changes.add(metadata);
         }
+    }
+
+    public static abstract class ThrowingStorageProvider implements AutoCloseable {
+
+        private final StorageProvider storageProvider;
+        private String fieldNameForReset;
+        private Object originalState;
+
+        public ThrowingStorageProvider(StorageProvider storageProvider, String fieldNameForReset) {
+            this.storageProvider = storageProvider;
+            this.fieldNameForReset = fieldNameForReset;
+
+            try {
+                saveInternalStorageProviderState(storageProvider);
+                makeStorageProviderThrowException(storageProvider);
+            } catch (Exception e) {
+                throw new RuntimeException("Exception setting up ThrowingStorageProvider", e);
+            }
+        }
+
+        public void close() {
+            resetStorageProviderUsingInternalState(storageProvider);
+        }
+
+        protected void saveInternalStorageProviderState(StorageProvider storageProvider) {
+            this.originalState = getInternalState(storageProvider, fieldNameForReset);
+        }
+
+        protected abstract void makeStorageProviderThrowException(StorageProvider storageProvider) throws Exception;
+
+        protected void resetStorageProviderUsingInternalState(StorageProvider storageProvider) {
+            setInternalState(storageProvider, fieldNameForReset, originalState);
+        }
+
+
     }
 }

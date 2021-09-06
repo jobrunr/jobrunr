@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.utils.JobUtils.isNew;
 
 public class StorageProviderUtils {
 
@@ -17,18 +16,6 @@ public class StorageProviderUtils {
     }
 
     private static final String FIELD_ID = "id";
-
-    public static boolean notAllJobsAreNew(List<Job> jobs) {
-        return jobs.stream().noneMatch(JobUtils::isNew);
-    }
-
-    public static boolean notAllJobsAreExisting(List<Job> jobs) {
-        return jobs.stream().anyMatch(JobUtils::isNew);
-    }
-
-    public static boolean areNewJobs(List<Job> jobs) {
-        return isNew(jobs.get(0));
-    }
 
     public static final class Migrations {
         private Migrations() {

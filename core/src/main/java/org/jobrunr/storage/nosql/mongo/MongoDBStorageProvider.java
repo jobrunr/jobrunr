@@ -1,6 +1,7 @@
 package org.jobrunr.storage.nosql.mongo;
 
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.bulk.BulkWriteResult;
@@ -18,10 +19,7 @@ import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.jobrunr.jobs.AbstractJob;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
@@ -44,14 +42,8 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static com.mongodb.client.model.Aggregates.group;
-import static com.mongodb.client.model.Aggregates.limit;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Filters.lt;
-import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.asList;
@@ -60,18 +52,9 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
-import static org.jobrunr.storage.StorageProviderUtils.areNewJobs;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreExisting;
-import static org.jobrunr.storage.StorageProviderUtils.notAllJobsAreNew;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
-import static org.jobrunr.utils.JobUtils.isNew;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -210,20 +193,24 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public Job save(Job job) {
-        if (isNew(job)) {
-            try {
+        try(JobVersioner jobVersioner = new JobVersioner(job)) {
+            if(jobVersioner.isNewJob()) {
                 jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
-            } catch (MongoWriteException e) {
-                if (e.getError().getCode() == 11000) throw new ConcurrentJobModificationException(job);
-                throw e;
+                jobVersioner.commitVersion();
+            } else {
+                final UpdateOneModel<Document> updateModel = jobDocumentMapper.toUpdateOneModel(job);
+                final UpdateResult updateResult = jobCollection.updateOne(updateModel.getFilter(), updateModel.getUpdate());
+                if (updateResult.getModifiedCount() == 1) {
+                    jobVersioner.commitVersion();
+                } else {
+                    throw new ConcurrentJobModificationException(job);
+                }
             }
-        } else {
-            final UpdateOneModel<Document> updateModel = jobDocumentMapper.toUpdateOneModel(job);
-            final UpdateResult updateResult = jobCollection.updateOne(updateModel.getFilter(), updateModel.getUpdate());
-            if (updateResult.getModifiedCount() < 1) {
-                job.decreaseVersion();
-                throw new ConcurrentJobModificationException(job);
-            }
+        } catch (MongoWriteException e) {
+            if (e.getError().getCode() == 11000) throw new ConcurrentJobModificationException(job);
+            throw new StorageException(e);
+        } catch (MongoException e) {
+            throw new StorageException(e);
         }
         notifyJobStatsOnChangeListeners();
         return job;
@@ -248,37 +235,36 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        if (areNewJobs(jobs)) {
-            if (notAllJobsAreNew(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            final List<Document> jobsToInsert = jobs.stream()
-                    .map(job -> jobDocumentMapper.toInsertDocument(job))
-                    .collect(toList());
-            jobCollection.insertMany(jobsToInsert);
-        } else {
-            if (notAllJobsAreExisting(jobs)) {
-                throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
-            }
-            final List<WriteModel<Document>> jobsToUpdate = jobs.stream()
-                    .map(job -> jobDocumentMapper.toUpdateOneModel(job))
-                    .collect(toList());
-            final BulkWriteResult bulkWriteResult = jobCollection.bulkWrite(jobsToUpdate);
-            if (bulkWriteResult.getModifiedCount() != jobs.size()) {
-                //ugly workaround as we do not know which document did not update due to concurrent modification exception. So, we download them all and compare the lastUpdated
-                final Map<UUID, Job> mongoDbDocuments = new HashMap<>();
-                jobCollection
-                        .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
-                        .projection(include(Jobs.FIELD_JOB_AS_JSON))
-                        .map(jobDocumentMapper::toJob)
-                        .forEach(job -> mongoDbDocuments.put(job.getId(), job));
-
-                final List<Job> concurrentModifiedJobs = jobs.stream()
-                        .filter(job -> !job.getUpdatedAt().equals(mongoDbDocuments.get(job.getId()).getUpdatedAt()))
+        try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
+            if(jobListVersioner.areNewJobs()) {
+                final List<Document> jobsToInsert = jobs.stream()
+                        .map(job -> jobDocumentMapper.toInsertDocument(job))
                         .collect(toList());
-                concurrentModifiedJobs.forEach(AbstractJob::decreaseVersion);
-                throw new ConcurrentJobModificationException(concurrentModifiedJobs);
+                jobCollection.insertMany(jobsToInsert);
+            } else {
+                final List<WriteModel<Document>> jobsToUpdate = jobs.stream()
+                        .map(job -> jobDocumentMapper.toUpdateOneModel(job))
+                        .collect(toList());
+                final BulkWriteResult bulkWriteResult = jobCollection.bulkWrite(jobsToUpdate);
+                if (bulkWriteResult.getModifiedCount() != jobs.size()) {
+                    //ugly workaround as we do not know which document did not update due to concurrent modification exception. So, we download them all and compare the lastUpdated
+                    final Map<UUID, Job> mongoDbDocuments = new HashMap<>();
+                    jobCollection
+                            .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
+                            .projection(include(Jobs.FIELD_JOB_AS_JSON))
+                            .map(jobDocumentMapper::toJob)
+                            .forEach(job -> mongoDbDocuments.put(job.getId(), job));
+
+                    final List<Job> concurrentModifiedJobs = jobs.stream()
+                            .filter(job -> !job.getUpdatedAt().equals(mongoDbDocuments.get(job.getId()).getUpdatedAt()))
+                            .collect(toList());
+                    jobListVersioner.rollbackVersions(concurrentModifiedJobs);
+                    throw new ConcurrentJobModificationException(concurrentModifiedJobs);
+                }
             }
+            jobListVersioner.commitVersions();
+        } catch (MongoException e) {
+            throw new StorageException(e);
         }
         notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
         return jobs;

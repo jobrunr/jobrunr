@@ -11,12 +11,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_CREATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_ID;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_NAME;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_OWNER;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_UPDATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
 
 public class MetadataTable extends Sql<JobRunrMetadata> {
 

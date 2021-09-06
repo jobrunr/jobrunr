@@ -34,6 +34,11 @@ configure(subprojects.findAll {it.name != 'platform'}) {
     apply plugin: 'idea'
     apply plugin: 'jacoco'
 
+
+    compileJava.options.encoding = 'UTF-8'
+    compileTestJava.options.encoding = 'UTF-8'
+    javadoc.options.encoding = 'UTF-8'
+
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 
