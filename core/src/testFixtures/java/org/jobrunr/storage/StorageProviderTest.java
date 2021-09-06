@@ -20,13 +20,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -647,6 +645,24 @@ public abstract class StorageProviderTest {
         assertThat(jobStats.getDeleted()).isEqualTo(1);
         assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);
+    }
+
+    @Test
+    void testExceptionOnSaveJob() {
+        Job job = anEnqueuedJob().build();
+        Job createdJob = storageProvider.save(job);
+        //byte[] array = new byte[2*1024*1024]; // OK: With this line uncommented everything works
+        byte[] array = new byte[20*1024*1024]; // FAIL: With this line uncommented a mongo exception is thrown when saving the job (because it is larger than the maximum size of 16MB)
+        new Random().nextBytes(array);
+        String generatedString = new String(array, Charset.forName("UTF-8"));
+        createdJob.getMetadata().put("lots of data", generatedString);
+        try {
+            storageProvider.save(createdJob); // Here the error occurs on the first save, making the version out of sync
+        } catch (Throwable t) {
+            System.out.println("Thrown " + t);
+        }
+        createdJob.getMetadata().put("lots of data", "");
+        storageProvider.save(createdJob); //Now the job could be saved, but it fails due to the out of sync version
     }
 
     @Test

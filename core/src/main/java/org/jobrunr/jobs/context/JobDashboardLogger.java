@@ -6,6 +6,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
@@ -53,18 +55,19 @@ public class JobDashboardLogger {
     }
 
     public static class JobDashboardLogLines implements JobContext.Metadata {
-        /* Must be ArrayList for JSON serialization */
-        private ArrayList<JobDashboardLogLine> logLines;
+
+        /* Must be data structure that can be serialized to json and that allows iteration while being updated */
+        private ConcurrentLinkedQueue<JobDashboardLogLine> logLines;
 
         public JobDashboardLogLines() {
-            this.logLines = new ArrayList<>();
+            this.logLines = new ConcurrentLinkedQueue<>();
         }
 
         public void add(JobDashboardLogLine line) {
             logLines.add(line);
         }
 
-        public List<JobDashboardLogLine> getLogLines() {
+        public Queue<JobDashboardLogLine> getLogLines() {
             return logLines;
         }
     }

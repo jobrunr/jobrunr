@@ -4,6 +4,10 @@ import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.context.JobDashboardLogger.JobDashboardLogLines;
 import org.jobrunr.jobs.context.JobDashboardLogger.Level;
+import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +18,7 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.not;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -184,7 +189,7 @@ class JobRunrDashboardLoggerTest {
     }
 
     @Test
-    void JobRunrDashboardLoggerIsThreadSafe() throws InterruptedException {
+    void JobRunrDashboardLoggerIsThreadSafe1() throws InterruptedException {
         jobRunrDashboardLogger = new JobRunrDashboardLogger(slfLogger);
 
         final Job job1 = aJobInProgress().withName("job1").build();
@@ -197,7 +202,7 @@ class JobRunrDashboardLoggerTest {
         thread1.start();
         thread2.start();
 
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
 
         assertThat(job1)
                 .hasMetadata(InfoLog.withMessage("info from job1"))
@@ -205,6 +210,40 @@ class JobRunrDashboardLoggerTest {
         assertThat(job2)
                 .hasMetadata(not(InfoLog.withMessage("info from job1")))
                 .hasMetadata(InfoLog.withMessage("info from job2"));
+    }
+
+    @Test
+    void JobRunrDashboardLoggerIsThreadSafeUsingJackson() throws InterruptedException {
+        JobRunrDashboardLoggerIsThreadSafeUsing(new JobMapper(new JacksonJsonMapper()));
+    }
+
+    @Test
+    void JobRunrDashboardLoggerIsThreadSafeUsingGson() throws InterruptedException {
+        JobRunrDashboardLoggerIsThreadSafeUsing(new JobMapper(new GsonJsonMapper()));
+    }
+
+    @Test
+    void JobRunrDashboardLoggerIsThreadSafeUsingJsonB() throws InterruptedException {
+        JobRunrDashboardLoggerIsThreadSafeUsing(new JobMapper(new JsonbJsonMapper()));
+    }
+
+    void JobRunrDashboardLoggerIsThreadSafeUsing(JobMapper jobMapper) throws InterruptedException {
+        jobRunrDashboardLogger = new JobRunrDashboardLogger(slfLogger);
+
+        final Job job = aJobInProgress().withName("job1").build();
+
+        final CountDownLatch countDownLatch = new CountDownLatch(2);
+        final Thread thread1 = new Thread(loggingRunnable(job, jobRunrDashboardLogger, countDownLatch));
+        final Thread thread2 = new Thread(serializingRunnable(job, jobRunrDashboardLogger, jobMapper, countDownLatch));
+
+        thread1.start();
+        thread2.start();
+
+        countDownLatch.await(5, TimeUnit.SECONDS);
+
+        assertThat(job)
+                .hasMetadata(InfoLog.withMessage("info from job1"))
+                .hasMetadata(InfoLog.withMessage("successfully serialized job job1 100 times"));
     }
 
     private Runnable loggingRunnable(Job job, JobRunrDashboardLogger logger, CountDownLatch countDownLatch) {
@@ -215,6 +254,22 @@ class JobRunrDashboardLoggerTest {
                     logger.info("info from " + job.getJobName());
                     sleep(5);
                 }
+                countDownLatch.countDown();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private Runnable serializingRunnable(Job job, JobRunrDashboardLogger logger, JobMapper jobMapper, CountDownLatch countDownLatch) {
+        return () -> {
+            try {
+                JobRunrDashboardLogger.setJob(job);
+                for (int i = 0; i < 100; i++) {
+                    jobMapper.serializeJob(job);
+                    sleep(5);
+                }
+                logger.info("successfully serialized job " + job.getJobName() + " 100 times");
                 countDownLatch.countDown();
             } catch (Exception e) {
                 throw new RuntimeException(e);
