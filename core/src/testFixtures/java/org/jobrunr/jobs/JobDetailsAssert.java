@@ -28,6 +28,11 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
         return this;
     }
 
+    public JobDetailsAssert isNotCacheable() {
+        Assertions.assertThat(actual.getCacheable()).isFalse();
+        return this;
+    }
+
     public JobDetailsAssert hasClass(Class<?> clazz) {
         hasClassName(clazz.getName());
         return this;

@@ -7,6 +7,16 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.toMap;
+import static org.jobrunr.jobs.context.JobDashboardLogger.JOBRUNR_LOG_KEY;
+import static org.jobrunr.jobs.context.JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY;
+
+/**
+ * The JobContext class gives access to the Job id, the Job name, the state, ... .
+ * <p>
+ * It also allows to store some data between different job retries.
+ */
 public class JobContext {
 
     public static final JobContext Null = new JobContext(null);
@@ -73,11 +83,55 @@ public class JobContext {
         return jobDashboardProgressBar;
     }
 
+    /**
+     * Gives access to Job Metadata via an UnmodifiableMap. To save Metadata, use the {@link #saveMetadata(String, Object)} method
+     *
+     * @return all user defined metadata about a Job.
+     */
     public Map<String, Object> getMetadata() {
-        return job.getMetadata();
+        return unmodifiableMap(
+                job.getMetadata().entrySet().stream()
+                        .filter(entry -> !entry.getKey().startsWith(JOBRUNR_LOG_KEY))
+                        .filter(entry -> !entry.getKey().startsWith(JOBRUNR_PROGRESSBAR_KEY))
+                        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
     }
 
-    // marker interface for Jackson Serialization
+    /**
+     * Allows saving metadata for a certain Job. The value must either be a simple type (String, UUID, Integers, ...) or implement the Metadata interface for serialization to Json.
+     * Note that it is important that the objects you save are <b>thread-safe</b> (e.g. a CopyOnWriteArrayList, ... ).
+     * <p>
+     * If the key already exists, the metadata is updated.
+     *
+     * @param key      the key to store the metadata
+     * @param metadata the metadata itself
+     */
+    public void saveMetadata(String key, Object metadata) {
+        validateMetadata(metadata);
+        job.getMetadata().put(key, metadata);
+    }
+
+    /**
+     * Allows saving metadata for a certain Job. The value must either be a simple type (String, UUID, Integers, ...) or implement the Metadata interface for serialization to Json.
+     * Note that it is important that the objects you save are <b>thread-safe</b> (e.g. a CopyOnWriteArrayList, ... ).
+     * <p>
+     * If the key already exists, the metadata is NOT updated.
+     *
+     * @param key      the key to store the metadata
+     * @param metadata the metadata itself
+     */
+    public void saveMetadataIfAbsent(String key, Object metadata) {
+        validateMetadata(metadata);
+        job.getMetadata().putIfAbsent(key, metadata);
+    }
+
+    private static void validateMetadata(Object metadata) {
+        if (!(metadata.getClass().getName().startsWith("java.") || metadata instanceof Metadata)) {
+            throw new IllegalArgumentException("All job metadata must either be a simple type (String, UUID, Integers, ...) or implement the Metadata interface for serialization to Json.");
+        }
+    }
+
+    // marker interface for Json Serialization
     public interface Metadata {
 
     }

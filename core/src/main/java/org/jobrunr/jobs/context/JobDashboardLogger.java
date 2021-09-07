@@ -3,8 +3,6 @@ package org.jobrunr.jobs.context;
 import org.jobrunr.jobs.Job;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,7 +15,7 @@ public class JobDashboardLogger {
         INFO, WARN, ERROR
     }
 
-    public static final String JOB_RUNR_LOG_KEY = "jobRunrDashboardLog";
+    public static final String JOBRUNR_LOG_KEY = "jobRunrDashboardLog";
 
     private final JobDashboardLogLines logLines;
 
@@ -51,7 +49,7 @@ public class JobDashboardLogger {
      * @return a log key for the metadata matching the current job state.
      */
     private static String logKey(int jobStateNbr) {
-        return JOB_RUNR_LOG_KEY + "-" + jobStateNbr;
+        return JOBRUNR_LOG_KEY + "-" + jobStateNbr;
     }
 
     public static class JobDashboardLogLines implements JobContext.Metadata {

@@ -26,8 +26,8 @@ public class JobRunrRecurringJobScheduler {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
         }
 
-        String id = method.stringValue(Recurring.class, "id").orElse(null);
-        String cron = method.stringValue(Recurring.class, "cron").orElseThrow(() -> new IllegalArgumentException("Cron attribute is required"));
+        String id = getId(method);
+        String cron = getCron(method);
 
         if (Recurring.CRON_DISABLED.equals(cron)) {
             if (id == null) {
@@ -36,9 +36,27 @@ public class JobRunrRecurringJobScheduler {
                 jobScheduler.delete(id);
             }
         } else {
-            JobDetails jobDetails = new JobDetails(method.getTargetMethod().getDeclaringClass().getName(), null, method.getTargetMethod().getName(), emptyList());
-            ZoneId zoneId = method.stringValue(Recurring.class, "zone").map(ZoneId::of).orElse(ZoneId.systemDefault());
+            JobDetails jobDetails = getJobDetails(method);
+            ZoneId zoneId = getZoneId(method);
             jobScheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
         }
+    }
+
+    private String getId(ExecutableMethod<?, ?> method) {
+        return method.stringValue(Recurring.class, "id").orElse(null);
+    }
+
+    private String getCron(ExecutableMethod<?, ?> method) {
+        return method.stringValue(Recurring.class, "cron").orElseThrow(() -> new IllegalArgumentException("Cron attribute is required"));
+    }
+
+    private JobDetails getJobDetails(ExecutableMethod<?, ?> method) {
+        final JobDetails jobDetails = new JobDetails(method.getTargetMethod().getDeclaringClass().getName(), null, method.getTargetMethod().getName(), emptyList());
+        jobDetails.setCacheable(true);
+        return jobDetails;
+    }
+
+    private ZoneId getZoneId(ExecutableMethod<?, ?> method) {
+        return method.stringValue(Recurring.class, "zone").map(ZoneId::of).orElse(ZoneId.systemDefault());
     }
 }

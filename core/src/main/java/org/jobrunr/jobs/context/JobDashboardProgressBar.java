@@ -8,7 +8,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobDashboardProgressBar {
 
-    public static final String JOB_RUNR_LOG_KEY = "jobRunrDashboardProgressBar";
+    public static final String JOBRUNR_PROGRESSBAR_KEY = "jobRunrDashboardProgressBar";
 
     private final JobDashboardProgress jobDashboardProgress;
 
@@ -46,7 +46,7 @@ public class JobDashboardProgressBar {
      * @return a progress bar key for the metadata matching the current job state.
      */
     private static String progressBarKey(int jobStateNbr) {
-        return JOB_RUNR_LOG_KEY + "-" + jobStateNbr;
+        return JOBRUNR_PROGRESSBAR_KEY + "-" + jobStateNbr;
     }
 
     private static class JobDashboardProgress implements JobContext.Metadata {

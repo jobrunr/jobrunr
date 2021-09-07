@@ -59,9 +59,12 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
                     .findFirst()
                     .ifPresent(index -> jobParameterValues[index] = getRunnerJobContext());
 
-            ThreadLocalJobContext.setJobContext(getRunnerJobContext());
-            jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
-            ThreadLocalJobContext.clear();
+            try {
+                ThreadLocalJobContext.setJobContext(getRunnerJobContext());
+                jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
+            } finally {
+                ThreadLocalJobContext.clear();
+            }
         }
 
         protected RunnerJobContext getRunnerJobContext() {

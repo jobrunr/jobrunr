@@ -19,12 +19,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -693,6 +695,14 @@ public abstract class StorageProviderTest {
         assertThat(jobStats.getDeleted()).isEqualTo(1);
         assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);
+    }
+
+    @Test
+    void testJobSize() {
+        final Job anEnqueuedJob = anEnqueuedJob()
+                .withMetadata("my-key", new byte[1 * 512 * 1024])
+                .build();
+        storageProvider.save(anEnqueuedJob);
     }
 
     @Test

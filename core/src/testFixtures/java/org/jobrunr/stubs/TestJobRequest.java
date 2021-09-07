@@ -1,7 +1,6 @@
 package org.jobrunr.stubs;
 
 import org.jobrunr.jobs.annotations.Job;
-import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 
@@ -43,7 +42,7 @@ public class TestJobRequest implements JobRequest {
         public void run(TestJobRequest jobRequest) {
             if (jobRequest.mustFail()) throw new IllegalArgumentException("it must fail");
             System.out.println("Running simple job request in background: " + jobRequest.getInput());
-            jobContext().getMetadata().put("test", "test");
+            jobContext().saveMetadata("test", "test");
         }
     }
 }

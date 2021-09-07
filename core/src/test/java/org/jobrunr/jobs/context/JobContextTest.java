@@ -54,7 +54,7 @@ public class JobContextTest {
         return () -> {
             try {
                 for (int i = 0; i < 100; i++) {
-                    jobContext.getMetadata().put("key" + i, "value" + i);
+                    jobContext.saveMetadata("key" + i, "value" + i);
                     sleep(5);
                 }
                 countDownLatch.countDown();

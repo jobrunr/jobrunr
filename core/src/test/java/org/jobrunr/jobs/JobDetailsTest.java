@@ -5,10 +5,18 @@ import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
+import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 
 class JobDetailsTest {
+
+    @Test
+    void testJobDetailsDefaultConstructor() {
+        final JobDetails jobDetails = new JobDetails("some.class.Name", null, "run", emptyList());
+
+        assertThat(jobDetails).isNotCacheable();
+    }
 
     @Test
     void testJobDetails() {
@@ -22,7 +30,8 @@ class JobDetailsTest {
                 .hasClass(TestService.class)
                 .hasStaticFieldName(null)
                 .hasMethodName("doWork")
-                .hasArgs(5);
+                .hasArgs(5)
+                .isNotCacheable();
 
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{Integer.class});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{5});
@@ -39,7 +48,8 @@ class JobDetailsTest {
                 .hasClass(TestService.class)
                 .hasStaticFieldName(null)
                 .hasMethodName("doWork")
-                .hasNoArgs();
+                .hasNoArgs()
+                .isNotCacheable();
 
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{});

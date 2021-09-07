@@ -71,7 +71,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         @Recurring(id = "my-recurring-job", cron = "*/15 * * * *")
         public void myRecurringMethod(String parameter) {
-            System.out.print("My unsupported recurring job method");
+            System.out.print("My unsupported recurring job method because of method argument");
         }
     }
 }
