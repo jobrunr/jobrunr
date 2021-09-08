@@ -23,7 +23,7 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
 
     protected static class BackgroundJobWorker {
 
-        private final Job job;
+        protected final Job job;
         protected final JobDetails jobDetails;
 
         public BackgroundJobWorker(Job job) {
@@ -59,7 +59,12 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
                     .findFirst()
                     .ifPresent(index -> jobParameterValues[index] = getRunnerJobContext());
 
-            jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
+            try {
+                ThreadLocalJobContext.setJobContext(getRunnerJobContext());
+                jobMethodToPerform.invoke(jobToPerform, jobParameterValues);
+            } finally {
+                ThreadLocalJobContext.clear();
+            }
         }
 
         protected RunnerJobContext getRunnerJobContext() {

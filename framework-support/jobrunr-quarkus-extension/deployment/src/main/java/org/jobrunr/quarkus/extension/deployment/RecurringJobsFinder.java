@@ -60,17 +60,18 @@ public class RecurringJobsFinder {
         return null;
     }
 
+    private String getCron(AnnotationInstance recurringJobAnnotation) {
+        return recurringJobAnnotation.value("cron").asString();
+    }
+
     private JobDetails getJobDetails(AnnotationInstance recurringJobAnnotation) {
         final MethodInfo methodInfo = recurringJobAnnotation.target().asMethod();
         if (!methodInfo.parameters().isEmpty()) {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
         }
-        return new JobDetails(
-                methodInfo.declaringClass().name().toString(),
-                null,
-                methodInfo.name(),
-                new ArrayList<>()
-        );
+        final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), new ArrayList<>());
+        jobDetails.setCacheable(true);
+        return jobDetails;
     }
 
     private String getZoneId(AnnotationInstance recurringJobAnnotation) {
@@ -78,9 +79,5 @@ public class RecurringJobsFinder {
             return recurringJobAnnotation.value("zoneId").asString();
         }
         return null;
-    }
-
-    private String getCron(AnnotationInstance recurringJobAnnotation) {
-        return recurringJobAnnotation.value("cron").asString();
     }
 }

@@ -69,7 +69,7 @@ public class TestService implements TestServiceInterface {
     public void doWork(Integer count, JobContext jobContext) {
         processedJobs += count;
         System.out.println("Doing some work... " + processedJobs + "; jobId: " + jobContext.getJobId());
-        jobContext.getMetadata().put("test", "test");
+        jobContext.saveMetadata("test", "test");
     }
 
     public void doWork(int countA, int countB) {

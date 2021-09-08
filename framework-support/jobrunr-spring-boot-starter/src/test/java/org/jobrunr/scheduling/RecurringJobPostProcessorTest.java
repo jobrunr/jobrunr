@@ -5,22 +5,29 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.spring.annotations.Recurring;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.time.ZoneId;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringJobPostProcessorTest {
 
     @Mock
     private JobScheduler jobScheduler;
+
+    @Captor
+    private ArgumentCaptor<JobDetails> jobDetailsArgumentCaptor;
 
     @Test
     void beansWithoutMethodsAnnotatedWithRecurringAnnotationWillNotBeHandled() {
@@ -45,7 +52,12 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJob(), "not important");
 
         // THEN
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+
+        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
+        assertThat(actualJobDetails.getClassName()).isEqualTo(MyServiceWithRecurringJob.class.getName());
+        assertThat(actualJobDetails.getMethodName()).isEqualTo("myRecurringMethod");
+        assertThat(actualJobDetails.getCacheable()).isTrue();
     }
 
     @Test

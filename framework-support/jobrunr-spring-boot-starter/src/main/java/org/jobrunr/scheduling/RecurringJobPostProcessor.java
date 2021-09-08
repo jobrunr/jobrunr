@@ -90,17 +90,9 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
         }
 
         private JobDetails getJobDetails(Method method) {
-            return new JobDetails(
-                    method.getDeclaringClass().getName(),
-                    null,
-                    method.getName(),
-                    new ArrayList<>()
-            );
-        }
-
-        private CronExpression getCronExpression(Recurring recurringAnnotation) {
-            String cron = resolveStringValue(recurringAnnotation.cron());
-            return CronExpression.create(cron);
+            final JobDetails jobDetails = new JobDetails(method.getDeclaringClass().getName(), null, method.getName(), new ArrayList<>());
+            jobDetails.setCacheable(true);
+            return jobDetails;
         }
 
         private ZoneId getZoneId(Recurring recurringAnnotation) {

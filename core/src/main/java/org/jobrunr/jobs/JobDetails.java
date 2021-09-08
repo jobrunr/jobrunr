@@ -33,6 +33,7 @@ public class JobDetails {
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
         this.jobParameters = asArrayList(jobParameters);
+        this.cacheable = false;
     }
 
     public String getClassName() {
@@ -72,7 +73,7 @@ public class JobDetails {
         return cacheable;
     }
 
-    public void setCacheable(Boolean cacheable) {
+    public void setCacheable(boolean cacheable) {
         this.cacheable = cacheable;
     }
 }

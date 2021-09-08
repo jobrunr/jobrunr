@@ -54,12 +54,17 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.*;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.backgroundJobServerIndexName;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.jobIndexName;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.metadataIndexName;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.recurringJobIndexName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -323,9 +328,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             jobListVersioner.commitVersions();
             notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
             return jobs;
-        } catch (ElasticsearchException e) {
-            throw new StorageException(e);
-        } catch (IOException e) {
+        } catch (ElasticsearchException | IOException e) {
             throw new StorageException(e);
         }
     }

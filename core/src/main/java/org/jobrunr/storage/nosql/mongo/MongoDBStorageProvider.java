@@ -42,8 +42,14 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.limit;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.lt;
+import static com.mongodb.client.model.Filters.ne;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.asList;
@@ -52,7 +58,12 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
@@ -204,18 +215,16 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public Job save(Job job) {
         try(JobVersioner jobVersioner = new JobVersioner(job)) {
-            if(jobVersioner.isNewJob()) {
+            if (jobVersioner.isNewJob()) {
                 jobCollection.insertOne(jobDocumentMapper.toInsertDocument(job));
-                jobVersioner.commitVersion();
             } else {
                 final UpdateOneModel<Document> updateModel = jobDocumentMapper.toUpdateOneModel(job);
                 final UpdateResult updateResult = jobCollection.updateOne(updateModel.getFilter(), updateModel.getUpdate());
-                if (updateResult.getModifiedCount() == 1) {
-                    jobVersioner.commitVersion();
-                } else {
+                if (updateResult.getModifiedCount() < 1) {
                     throw new ConcurrentJobModificationException(job);
                 }
             }
+            jobVersioner.commitVersion();
         } catch (MongoWriteException e) {
             if (e.getError().getCode() == 11000) throw new ConcurrentJobModificationException(job);
             throw new StorageException(e);
