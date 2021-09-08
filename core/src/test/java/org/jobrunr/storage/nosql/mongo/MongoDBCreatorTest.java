@@ -33,7 +33,7 @@ class MongoDBCreatorTest {
 
     @Test
     void testMigrationsHappyPath() {
-        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME);
+        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME, MongoDBStorageProvider.DEFAULT_PREFIX_PROCESSOR);
 
         assertThat(mongoDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_CreateJobCollection.class))).isTrue();
         assertThat(mongoDBCreator.isNewMigration(new NoSqlMigrationByClass(M002_CreateRecurringJobCollection.class))).isTrue();
@@ -47,7 +47,7 @@ class MongoDBCreatorTest {
 
     @Test
     void testMigrationsConcurrent() {
-        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME) {
+        MongoDBCreator mongoDBCreator = new MongoDBCreator(mongoClient(), MongoDBStorageProvider.DEFAULT_DB_NAME, MongoDBStorageProvider.DEFAULT_PREFIX_PROCESSOR) {
             @Override
             protected boolean isNewMigration(NoSqlMigration noSqlMigration) {
                 return true;

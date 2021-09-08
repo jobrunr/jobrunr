@@ -7,6 +7,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.nosql.mongo.MongoCollectionPrefixProcessor;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Indexes.compoundIndex;
@@ -17,15 +18,16 @@ import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration {
 
     @Override
-    public void runMigration(MongoDatabase jobrunrDatabase) {
-        if (createCollection(jobrunrDatabase, Metadata.NAME)) {
-            MongoCollection<Document> metadataCollection = createMetadataCollection(jobrunrDatabase);
+    public void runMigration(MongoDatabase jobrunrDatabase, MongoCollectionPrefixProcessor collectionPrefixProcessor) {
+        String processedCollectionName = collectionPrefixProcessor.applyCollectionPrefix(Metadata.NAME);
+        if (createCollection(jobrunrDatabase, processedCollectionName)) {
+            MongoCollection<Document> metadataCollection = createMetadataCollection(jobrunrDatabase, processedCollectionName);
             migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(jobrunrDatabase, metadataCollection);
         }
     }
 
-    private MongoCollection<Document> createMetadataCollection(MongoDatabase jobrunrDatabase) {
-        MongoCollection<Document> metadataCollection = jobrunrDatabase.getCollection(Metadata.NAME, Document.class);
+    private MongoCollection<Document> createMetadataCollection(MongoDatabase jobrunrDatabase, String processedMetadataCollectionName) {
+        MongoCollection<Document> metadataCollection = jobrunrDatabase.getCollection(processedMetadataCollectionName, Document.class);
         metadataCollection.createIndex(compoundIndex(Indexes.ascending(Metadata.FIELD_NAME), Indexes.ascending(Metadata.FIELD_OWNER)));
         metadataCollection.insertOne(initialAllTimeSucceededJobCounterDocument());
         return metadataCollection;

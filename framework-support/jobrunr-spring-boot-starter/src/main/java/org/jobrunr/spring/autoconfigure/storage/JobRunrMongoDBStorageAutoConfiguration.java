@@ -2,6 +2,7 @@ package org.jobrunr.spring.autoconfigure.storage;
 
 import com.mongodb.client.MongoClient;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -18,8 +19,8 @@ public class JobRunrMongoDBStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
-    public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper) {
-        MongoDBStorageProvider mongoDBStorageProvider = new MongoDBStorageProvider(mongoClient);
+    public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper, JobRunrProperties properties) {
+        MongoDBStorageProvider mongoDBStorageProvider = new MongoDBStorageProvider(mongoClient, properties.getDatabase().getTablePrefix());
         mongoDBStorageProvider.setJobMapper(jobMapper);
         return mongoDBStorageProvider;
     }

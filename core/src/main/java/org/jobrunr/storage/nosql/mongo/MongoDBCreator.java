@@ -19,13 +19,17 @@ import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 public class MongoDBCreator extends NoSqlDatabaseCreator<MongoMigration> {
 
     private final MongoDatabase jobrunrDatabase;
+    private final MongoCollectionPrefixProcessor collectionPrefixProcessor;
 
     private final MongoCollection<Document> migrationCollection;
 
-    public MongoDBCreator(MongoClient mongoClient, String dbName) {
+    public MongoDBCreator(MongoClient mongoClient, String dbName, MongoCollectionPrefixProcessor collectionPrefixProcessor) {
         super(MongoDBStorageProvider.class);
         this.jobrunrDatabase = mongoClient.getDatabase(dbName);
-        this.migrationCollection = jobrunrDatabase.getCollection(Migrations.NAME);
+        this.collectionPrefixProcessor = collectionPrefixProcessor;
+        this.migrationCollection = jobrunrDatabase.getCollection(
+                this.collectionPrefixProcessor.applyCollectionPrefix(Migrations.NAME)
+        );
     }
 
     @Override
@@ -36,7 +40,7 @@ public class MongoDBCreator extends NoSqlDatabaseCreator<MongoMigration> {
 
     @Override
     protected void runMigration(MongoMigration noSqlMigration) {
-        noSqlMigration.runMigration(jobrunrDatabase);
+        noSqlMigration.runMigration(jobrunrDatabase, collectionPrefixProcessor);
     }
 
     @Override

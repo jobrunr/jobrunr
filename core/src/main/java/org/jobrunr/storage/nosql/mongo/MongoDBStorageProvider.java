@@ -62,6 +62,8 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 public class MongoDBStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
     public static final String DEFAULT_DB_NAME = "jobrunr";
+    public static final MongoCollectionPrefixProcessor DEFAULT_PREFIX_PROCESSOR = new MongoCollectionPrefixProcessor("");
+
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
 
     private final MongoDatabase jobrunrDatabase;
@@ -89,25 +91,33 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         this(mongoClient, rateLimit().at1Request().per(SECOND));
     }
 
+    public MongoDBStorageProvider(MongoClient mongoClient, MongoCollectionPrefixProcessor collectionPrefixProcessor) {
+        this(mongoClient, DEFAULT_DB_NAME, collectionPrefixProcessor);
+    }
+
     public MongoDBStorageProvider(MongoClient mongoClient, String dbName) {
-        this(mongoClient, dbName, rateLimit().at1Request().per(SECOND));
+        this(mongoClient, dbName, DEFAULT_PREFIX_PROCESSOR, rateLimit().at1Request().per(SECOND));
+    }
+
+    public MongoDBStorageProvider(MongoClient mongoClient, String dbName, MongoCollectionPrefixProcessor collectionPrefixProcessor) {
+        this(mongoClient, dbName, collectionPrefixProcessor, rateLimit().at1Request().per(SECOND));
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, RateLimiter changeListenerNotificationRateLimit) {
-        this(mongoClient, DEFAULT_DB_NAME, changeListenerNotificationRateLimit);
+        this(mongoClient, DEFAULT_DB_NAME, DEFAULT_PREFIX_PROCESSOR, changeListenerNotificationRateLimit);
     }
 
-    public MongoDBStorageProvider(MongoClient mongoClient, String dbName, RateLimiter changeListenerNotificationRateLimit) {
+    public MongoDBStorageProvider(MongoClient mongoClient, String dbName, MongoCollectionPrefixProcessor collectionPrefixProcessor, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
 
         validateMongoClient(mongoClient);
-        runMigrations(mongoClient, dbName);
+        runMigrations(mongoClient, dbName, collectionPrefixProcessor);
 
         jobrunrDatabase = mongoClient.getDatabase(dbName);
-        jobCollection = jobrunrDatabase.getCollection(Jobs.NAME, Document.class);
-        recurringJobCollection = jobrunrDatabase.getCollection(RecurringJobs.NAME, Document.class);
-        backgroundJobServerCollection = jobrunrDatabase.getCollection(BackgroundJobServers.NAME, Document.class);
-        metadataCollection = jobrunrDatabase.getCollection(Metadata.NAME, Document.class);
+        jobCollection = jobrunrDatabase.getCollection(collectionPrefixProcessor.applyCollectionPrefix(Jobs.NAME), Document.class);
+        recurringJobCollection = jobrunrDatabase.getCollection(collectionPrefixProcessor.applyCollectionPrefix(RecurringJobs.NAME), Document.class);
+        backgroundJobServerCollection = jobrunrDatabase.getCollection(collectionPrefixProcessor.applyCollectionPrefix(BackgroundJobServers.NAME), Document.class);
+        metadataCollection = jobrunrDatabase.getCollection(collectionPrefixProcessor.applyCollectionPrefix(Metadata.NAME), Document.class);
     }
 
     @Override
@@ -429,8 +439,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         }
     }
 
-    private void runMigrations(MongoClient mongoClient, String dbName) {
-        new MongoDBCreator(mongoClient, dbName).runMigrations();
+    private void runMigrations(MongoClient mongoClient, String dbName, MongoCollectionPrefixProcessor collectionPrefixProcessor) {
+        new MongoDBCreator(mongoClient, dbName, collectionPrefixProcessor).runMigrations();
     }
 
     // used to perform query analysis for performance tuning
