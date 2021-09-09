@@ -1,9 +1,6 @@
 package org.jobrunr.utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 
 public class CollectionUtils {
@@ -40,6 +37,14 @@ public class CollectionUtils {
     public static <T> ArrayList<T> asArrayList(Collection<T> existingCollection) {
         ArrayList<T> result = new ArrayList<>();
         if (existingCollection != null) {
+            result.addAll(existingCollection);
+        }
+        return result;
+    }
+
+    public static <T> Set<T> asSet(Collection<T>... existingCollections) {
+        Set<T> result = new HashSet<>();
+        for (Collection<T> existingCollection : existingCollections) {
             result.addAll(existingCollection);
         }
         return result;

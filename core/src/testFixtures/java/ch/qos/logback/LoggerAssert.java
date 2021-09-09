@@ -63,6 +63,15 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         return this;
     }
 
+    public LoggerAssert hasErrorLogMessage(Class<?> clazz, String message) {
+        Assertions.assertThat(actual.list)
+                .have(errorLogs)
+                .anyMatch(e -> e.getLevel().equals(Level.ERROR)
+                        && e.getLoggerName().equals(clazz.getName())
+                        && e.getFormattedMessage().equals(message));
+        return this;
+    }
+
     public LoggerAssert hasErrorMessage(String message) {
         Assertions.assertThat(actual.list).areAtLeastOne(logsWithLevelAndMessage(ERROR, message));
         return this;
@@ -87,17 +96,24 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         return this;
     }
 
+    public LoggerAssert hasWarningMessageContaining(String message) {
+        return hasWarningMessageContaining(message, 1);
+    }
+
+    public LoggerAssert hasWarningMessageContaining(String message, int times) {
+        Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(WARN, message));
+        return this;
+    }
+
     private Condition<ILoggingEvent> logsWithLevel(Level level) {
         return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level), level + " logs");
     }
 
     private Condition<ILoggingEvent> logsWithLevelAndMessage(Level level, String message) {
-        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").equals(message), level + " logs");
+        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").equals(message), level + " logs with message: " + message);
     }
 
     private Condition<ILoggingEvent> logsWithLevelAndMessageContaining(Level level, String message) {
-        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").contains(message), level + " logs");
+        return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").contains(message), level + " logs with message: " + message);
     }
-
-
 }
