@@ -9,6 +9,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
@@ -42,7 +43,7 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(getElasticSearchClient(), rateLimit().withoutLimits());
+        final ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(getElasticSearchClient(), DatabaseOptions.CREATE, rateLimit().withoutLimits());
         elasticSearchStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         return elasticSearchStorageProvider;
     }

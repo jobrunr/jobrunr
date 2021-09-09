@@ -1,6 +1,9 @@
 package org.jobrunr.utils;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toSet;
 
 
 public class CollectionUtils {
@@ -40,6 +43,10 @@ public class CollectionUtils {
             result.addAll(existingCollection);
         }
         return result;
+    }
+
+    public static <T> Set<T> asSet(T... items) {
+        return Stream.of(items).collect(toSet());
     }
 
     public static <T> Set<T> asSet(Collection<T>... existingCollections) {

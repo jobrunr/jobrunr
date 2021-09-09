@@ -7,21 +7,21 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.nosql.mongo.MongoCollectionPrefixProcessor;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Indexes.compoundIndex;
 import static org.jobrunr.storage.StorageProviderUtils.JobStats;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 
 public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration {
 
     @Override
-    public void runMigration(MongoDatabase jobrunrDatabase, MongoCollectionPrefixProcessor collectionPrefixProcessor) {
-        String processedCollectionName = collectionPrefixProcessor.applyCollectionPrefix(Metadata.NAME);
-        if (createCollection(jobrunrDatabase, processedCollectionName)) {
-            MongoCollection<Document> metadataCollection = createMetadataCollection(jobrunrDatabase, processedCollectionName);
+    public void runMigration(MongoDatabase jobrunrDatabase, String collectionPrefix) {
+        String collectionName = elementPrefixer(collectionPrefix, Metadata.NAME);
+        if (createCollection(jobrunrDatabase, collectionName)) {
+            MongoCollection<Document> metadataCollection = createMetadataCollection(jobrunrDatabase, collectionName);
             migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(jobrunrDatabase, metadataCollection);
         }
     }

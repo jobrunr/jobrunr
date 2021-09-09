@@ -11,7 +11,6 @@ import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -28,18 +27,36 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
-import static org.jobrunr.storage.StorageProviderUtils.*;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata;
+import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.NumberUtils.parseLong;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class LettuceRedisStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
-
-    public static final String JOBRUNR_DEFAULT_PREFIX = "";
 
     private final RedisClient redisClient;
     private final GenericObjectPool<StatefulRedisConnection<String, String>> pool;
@@ -51,13 +68,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     public LettuceRedisStorageProvider(RedisClient redisClient, RateLimiter changeListenerNotificationRateLimit) {
-        this(redisClient, JOBRUNR_DEFAULT_PREFIX, changeListenerNotificationRateLimit);
+        this(redisClient, null, changeListenerNotificationRateLimit);
+    }
+
+    public LettuceRedisStorageProvider(RedisClient redisClient, String keyPrefix) {
+        this(redisClient, keyPrefix, rateLimit().at1Request().per(SECOND));
     }
 
     public LettuceRedisStorageProvider(RedisClient redisClient, String keyPrefix, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.redisClient = redisClient;
-        this.keyPrefix = keyPrefix;
+        this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
         pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig<>());
 
         new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
@@ -305,7 +326,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
         try (final StatefulRedisConnection<String, String> connection = getConnection(); final JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             RedisCommands<String, String> commands = connection.sync();
-            if(jobListVersioner.areNewJobs()) {
+            if (jobListVersioner.areNewJobs()) {
                 commands.multi();
                 jobs.forEach(jobToSave -> saveJob(commands, jobToSave));
                 commands.exec();
@@ -329,9 +350,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<String> jobsByState;
-            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrangebyscore(jobQueueForStateKey(keyPrefix, state), Range.create(0, toMicroSeconds(updatedBefore)), Limit.create(pageRequest.getOffset(), pageRequest.getLimit()));
-            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrevrangebyscore(jobQueueForStateKey(keyPrefix, state), Range.create(0, toMicroSeconds(updatedBefore)), Limit.create(pageRequest.getOffset(), pageRequest.getLimit()));
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
@@ -362,9 +383,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisCommands<String, String> commands = connection.sync();
             List<String> jobsByState;
             // we only support what is used by frontend
-            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrevrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());

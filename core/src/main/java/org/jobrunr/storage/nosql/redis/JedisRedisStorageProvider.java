@@ -23,19 +23,35 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 @Beta
 public class JedisRedisStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
-
-    public static final String JOBRUNR_DEFAULT_PREFIX = "";
 
     private final JedisPool jedisPool;
     private final String keyPrefix;
@@ -49,14 +65,18 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         this(jedisPool, rateLimit().at1Request().per(SECOND));
     }
 
+    public JedisRedisStorageProvider(JedisPool jedisPool, String keyPrefix) {
+        this(jedisPool, keyPrefix, rateLimit().at1Request().per(SECOND));
+    }
+
     public JedisRedisStorageProvider(JedisPool jedisPool, RateLimiter changeListenerNotificationRateLimit) {
-        this(jedisPool, JOBRUNR_DEFAULT_PREFIX, changeListenerNotificationRateLimit);
+        this(jedisPool, null, changeListenerNotificationRateLimit);
     }
 
     public JedisRedisStorageProvider(JedisPool jedisPool, String keyPrefix, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.jedisPool = jedisPool;
-        this.keyPrefix = keyPrefix;
+        this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
         new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
@@ -286,7 +306,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         if (jobs.isEmpty()) return jobs;
 
         try (final Jedis jedis = getJedis(); final JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
-            if(jobListVersioner.areNewJobs()) {
+            if (jobListVersioner.areNewJobs()) {
                 try (Transaction p = jedis.multi()) {
                     jobs.forEach(jobToSave -> saveJob(p, jobToSave));
                     p.exec();
@@ -310,9 +330,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
-            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
-            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0, (int) pageRequest.getOffset(), pageRequest.getLimit());
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
@@ -341,9 +361,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             Set<String> jobsByState;
             // we only support what is used by frontend
-            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrevrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());

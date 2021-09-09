@@ -15,20 +15,22 @@ import java.io.IOException;
 import java.time.Instant;
 
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
-import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.metadataIndexName;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider.DEFAULT_METADATA_INDEX_NAME;
 
 public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchMigration {
 
     public static final String JOBRUNR_JOB_STATS = "jobrunr_job_stats";
 
     @Override
-    public void runMigration(RestHighLevelClient client) throws IOException {
-        createIndex(client, metadataIndex());
+    public void runMigration(RestHighLevelClient client, String indexPrefix) throws IOException {
+        final String metadataIndexName = elementPrefixer(indexPrefix, DEFAULT_METADATA_INDEX_NAME);
+        createIndex(client, metadataIndex(metadataIndexName));
 
-        migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(client);
+        migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(client, metadataIndexName);
     }
 
-    private void migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(RestHighLevelClient client) throws IOException {
+    private void migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(RestHighLevelClient client, String metadataIndexName) throws IOException {
         long totalSucceededAmount = 0;
 
         if (indexExists(client, JOBRUNR_JOB_STATS)) {
@@ -37,10 +39,10 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
             deleteIndex(client, JOBRUNR_JOB_STATS);
         }
 
-        client.index(jobStats(totalSucceededAmount), RequestOptions.DEFAULT);
+        client.index(jobStats(totalSucceededAmount, metadataIndexName), RequestOptions.DEFAULT);
     }
 
-    public static IndexRequest jobStats(long totalSucceededAmount) {
+    public static IndexRequest jobStats(long totalSucceededAmount, String metadataIndexName) {
         try {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
@@ -50,7 +52,7 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
             builder.field(Metadata.FIELD_CREATED_AT, Instant.now());
             builder.field(Metadata.FIELD_UPDATED_AT, Instant.now());
             builder.endObject();
-            return new IndexRequest(metadataIndexName())
+            return new IndexRequest(metadataIndexName)
                     .id(Metadata.STATS_ID)
                     .source(builder);
         } catch (IOException e) {
@@ -59,8 +61,8 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
     }
 
 
-    private static CreateIndexRequest metadataIndex() {
-        return new CreateIndexRequest(metadataIndexName())
+    private static CreateIndexRequest metadataIndex(String metadataIndexName) {
+        return new CreateIndexRequest(metadataIndexName)
                 .mapping(mapping(
                         (sb, map) -> {
                             sb.append(Metadata.FIELD_NAME);

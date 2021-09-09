@@ -23,10 +23,11 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProviderUtils;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
-import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -130,7 +131,7 @@ public class JobRunrFactory {
                 .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
                 .orElse(beanContext.getBean(DataSource.class));
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
-        DefaultSqlStorageProvider.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DefaultSqlStorageProvider.DatabaseOptions.SKIP_CREATE : DefaultSqlStorageProvider.DatabaseOptions.CREATE;
+        DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
         StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
@@ -140,7 +141,10 @@ public class JobRunrFactory {
     @Primary
     @Requires(beans = {MongoClient.class})
     public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper) {
-        MongoDBStorageProvider mongoDBStorageProvider = new MongoDBStorageProvider(mongoClient);
+        String databaseName = configuration.getDatabase().getDatabaseName().orElse(null);
+        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
+        DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
+        MongoDBStorageProvider mongoDBStorageProvider = new MongoDBStorageProvider(mongoClient, databaseName, tablePrefix, databaseOptions);
         mongoDBStorageProvider.setJobMapper(jobMapper);
         return mongoDBStorageProvider;
     }
@@ -149,7 +153,8 @@ public class JobRunrFactory {
     @Primary
     @Requires(beans = {RedisClient.class})
     public StorageProvider lettuceRedisStorageProvider(RedisClient redisClient, JobMapper jobMapper) {
-        LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient);
+        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
+        LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient, tablePrefix);
         lettuceRedisStorageProvider.setJobMapper(jobMapper);
         return lettuceRedisStorageProvider;
     }
@@ -158,7 +163,9 @@ public class JobRunrFactory {
     @Primary
     @Requires(beans = {RestHighLevelClient.class})
     public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
-        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(restHighLevelClient);
+        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
+        StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
+        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(restHighLevelClient, tablePrefix, databaseOptions);
         elasticSearchStorageProvider.setJobMapper(jobMapper);
         return elasticSearchStorageProvider;
     }

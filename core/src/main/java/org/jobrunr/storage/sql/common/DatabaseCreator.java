@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
 
@@ -182,7 +183,7 @@ public class DatabaseCreator {
                 return new NoOpTablePrefixStatementUpdater();
             } else {
                 final String databaseProductName = connectionProvider.getConnection().getMetaData().getDatabaseProductName();
-                if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
+                if ("Oracle" .equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
                     return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
                 } else {
                     return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
@@ -226,12 +227,12 @@ public class DatabaseCreator {
 
         @Override
         public String updateStatement(String statement) {
-            return statement.replace(DEFAULT_PREFIX, tablePrefix + DEFAULT_PREFIX);
+            return statement.replace(DEFAULT_PREFIX, elementPrefixer(tablePrefix, DEFAULT_PREFIX));
         }
 
         @Override
         public String getFQTableName(String tableName) {
-            return tablePrefix + tableName;
+            return elementPrefixer(tablePrefix, tableName);
         }
     }
 
@@ -255,7 +256,7 @@ public class DatabaseCreator {
 
         @Override
         public String getFQTableName(String tableName) {
-            return tablePrefix + tableName;
+            return elementPrefixer(tablePrefix, tableName);
         }
 
         private boolean isCreateIndex(String statement) {
@@ -264,12 +265,12 @@ public class DatabaseCreator {
 
         private String updateStatementWithTablePrefixForCreateIndexStatement(String statement) {
             return statement
-                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + indexPrefix + DEFAULT_PREFIX)
-                    .replace("ON jobrunr_", "ON " + tablePrefix + DEFAULT_PREFIX);
+                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
+                    .replace("ON jobrunr_", "ON " + elementPrefixer(tablePrefix, DEFAULT_PREFIX));
         }
 
         private String updateStatementWithTablePrefixForOtherStatements(String statement) {
-            return statement.replace(DEFAULT_PREFIX, tablePrefix + DEFAULT_PREFIX);
+            return statement.replace(DEFAULT_PREFIX, elementPrefixer(tablePrefix, DEFAULT_PREFIX));
         }
 
         private String getIndexPrefix(String tablePrefix) {

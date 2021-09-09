@@ -6,6 +6,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
@@ -20,16 +21,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class DefaultSqlStorageProvider extends AbstractStorageProvider implements SqlStorageProvider {
-
-    public enum DatabaseOptions {
-        CREATE,
-        SKIP_CREATE
-    }
 
     protected final DataSource dataSource;
     protected final Dialect dialect;

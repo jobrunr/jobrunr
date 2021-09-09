@@ -5,7 +5,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageException;
-import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultSqlStorageProviderTest {
@@ -50,7 +52,7 @@ class DefaultSqlStorageProviderTest {
         when(datasource.getConnection()).thenReturn(connection);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
-        jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE);
+        jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE.CREATE);
         jobStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
     }
 

@@ -13,6 +13,7 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
@@ -27,7 +28,7 @@ public class Sql<T> {
     private final Map<String, Function<T, ?>> paramSuppliers;
 
     private Dialect dialect;
-    private String tablePrefix = "";
+    private String tablePrefix;
     private String suffix = "";
 
     private static final Map<Integer, ParsedStatement> parsedStatementCache = new ConcurrentHashMap<>();
@@ -47,7 +48,7 @@ public class Sql<T> {
     public Sql<T> using(Connection connection, Dialect dialect, String tablePrefix, String tableName) {
         this.connection = connection;
         this.dialect = dialect;
-        this.tablePrefix = tablePrefix == null ? "" : tablePrefix;
+        this.tablePrefix = tablePrefix;
         this.tableName = tableName;
         return this;
     }
@@ -193,7 +194,7 @@ public class Sql<T> {
                 setParam(ps, i + 1, paramSuppliers.get(paramName).apply(object));
             } else if (objectContainsFieldOrProperty(object, paramName)) {
                 setParam(ps, i + 1, getValueFromFieldOrProperty(object, paramName));
-            } else if ("previousVersion".equals(paramName)) {
+            } else if ("previousVersion" .equals(paramName)) {
                 setParam(ps, i + 1, ((int) paramSuppliers.get("version").apply(object)) - 1);
             } else {
                 throw new IllegalArgumentException(String.format("Parameter %s is not known.", paramName));
@@ -278,7 +279,7 @@ public class Sql<T> {
             parsedQuery.append(c);
         }
         return parsedQuery.toString()
-                .replace(tableName, tablePrefix + tableName);
+                .replace(tableName, elementPrefixer(tablePrefix, tableName));
     }
 
     private static class ParsedStatement {

@@ -35,6 +35,12 @@ public class JobRunrConfiguration {
         public boolean skipCreate;
 
         /**
+         * Allows to set the database name to use (only used by MongoDBStorageProvider). By default, it is 'jobrunr'.
+         */
+        @ConfigItem
+        public Optional<String> databaseName;
+
+        /**
          * Allows to set the table prefix used by JobRunr
          */
         @ConfigItem
@@ -45,7 +51,6 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<String> datasource;
-
     }
 
     @ConfigGroup

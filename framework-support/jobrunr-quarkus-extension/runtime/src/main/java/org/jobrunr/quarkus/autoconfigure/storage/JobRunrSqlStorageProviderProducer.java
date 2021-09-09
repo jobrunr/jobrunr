@@ -4,7 +4,7 @@ import io.quarkus.arc.DefaultBean;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 
 import javax.enterprise.inject.Any;
@@ -24,7 +24,7 @@ public class JobRunrSqlStorageProviderProducer {
     @Singleton
     public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrConfiguration configuration) {
         String tablePrefix = configuration.database.tablePrefix.orElse(null);
-        DefaultSqlStorageProvider.DatabaseOptions databaseOptions = configuration.database.skipCreate ? DefaultSqlStorageProvider.DatabaseOptions.SKIP_CREATE : DefaultSqlStorageProvider.DatabaseOptions.CREATE;
+        DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
         StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(dataSources, configuration), tablePrefix, databaseOptions);
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;

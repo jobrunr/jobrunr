@@ -1,7 +1,6 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.utils.JobUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,10 +8,20 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class StorageProviderUtils {
 
     private StorageProviderUtils() {
+    }
+
+    public static String elementPrefixer(String prefix, String element) {
+        return isNullOrEmpty(prefix) ? element : prefix + element;
+    }
+
+    public enum DatabaseOptions {
+        CREATE,
+        SKIP_CREATE
     }
 
     private static final String FIELD_ID = "id";

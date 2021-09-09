@@ -18,7 +18,7 @@ import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.sleep;
 
 public abstract class ElasticSearchMigration {
 
-    public abstract void runMigration(RestHighLevelClient restHighLevelClients) throws IOException;
+    public abstract void runMigration(RestHighLevelClient restHighLevelClients, String indexPrefix) throws IOException;
 
     public static void waitForHealthyCluster(RestHighLevelClient restHighLevelClient) {
         try {

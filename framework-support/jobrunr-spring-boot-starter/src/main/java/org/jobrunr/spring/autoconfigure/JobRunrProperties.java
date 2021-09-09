@@ -219,13 +219,18 @@ public class JobRunrProperties {
     }
 
     /**
-     * JobRunr dashboard related settings
+     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. Redis).
      */
     public static class Database {
         /**
          * Allows to skip the creation of the tables - this means you should add them manually or by database migration tools like FlywayDB.
          */
         private boolean skipCreate = false;
+
+        /**
+         * The name of the database to use (only used by MongoDBStorageProvider). By default, it is 'jobrunr'.
+         */
+        private String databaseName;
 
         /**
          * Allows to set the table prefix used by JobRunr
@@ -251,6 +256,14 @@ public class JobRunrProperties {
 
         public void setTablePrefix(String tablePrefix) {
             this.tablePrefix = tablePrefix;
+        }
+
+        public String getDatabaseName() {
+            return databaseName;
+        }
+
+        public void setDatabaseName(String databaseName) {
+            this.databaseName = databaseName;
         }
 
         public String getDatasource() {

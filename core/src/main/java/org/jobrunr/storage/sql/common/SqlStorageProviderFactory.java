@@ -2,8 +2,8 @@ package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.SqlStorageProvider;
-import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider.DatabaseOptions;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;

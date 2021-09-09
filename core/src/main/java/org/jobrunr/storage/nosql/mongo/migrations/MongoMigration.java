@@ -2,13 +2,12 @@ package org.jobrunr.storage.nosql.mongo.migrations;
 
 import com.mongodb.MongoCommandException;
 import com.mongodb.client.MongoDatabase;
-import org.jobrunr.storage.nosql.mongo.MongoCollectionPrefixProcessor;
 
 import java.util.LinkedList;
 
 public abstract class MongoMigration {
 
-    public abstract void runMigration(MongoDatabase mongoDatabase, MongoCollectionPrefixProcessor collectionPrefixProcessor);
+    public abstract void runMigration(MongoDatabase mongoDatabase, String collectionPrefix);
 
     protected boolean createCollection(MongoDatabase mongoDatabase, String name) {
         try {

@@ -3,7 +3,6 @@ package org.jobrunr.micronaut.autoconfigure;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.core.bind.annotation.Bindable;
-import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
@@ -34,6 +33,11 @@ public interface JobRunrConfiguration {
          */
         @Bindable(defaultValue = "false")
         boolean isSkipCreate();
+
+        /**
+         * The name of the database to use (only used by MongoDBStorageProvider). By default, it is 'jobrunr'.
+         */
+        Optional<String> getDatabaseName();
 
         /**
          * Allows to set the table prefix used by JobRunr

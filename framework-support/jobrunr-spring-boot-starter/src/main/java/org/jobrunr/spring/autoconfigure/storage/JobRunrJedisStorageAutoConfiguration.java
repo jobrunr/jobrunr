@@ -1,6 +1,7 @@
 package org.jobrunr.spring.autoconfigure.storage;
 
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -15,8 +16,8 @@ public class JobRunrJedisStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
-    public StorageProvider jedisStorageProvider(JedisPool jedisPool, JobMapper jobMapper) {
-        JedisRedisStorageProvider jedisRedisStorageProvider = new JedisRedisStorageProvider(jedisPool);
+    public StorageProvider jedisStorageProvider(JedisPool jedisPool, JobMapper jobMapper, JobRunrProperties properties) {
+        JedisRedisStorageProvider jedisRedisStorageProvider = new JedisRedisStorageProvider(jedisPool, properties.getDatabase().getTablePrefix());
         jedisRedisStorageProvider.setJobMapper(jobMapper);
         return jedisRedisStorageProvider;
     }

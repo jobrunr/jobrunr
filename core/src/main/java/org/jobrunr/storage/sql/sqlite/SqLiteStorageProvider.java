@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.sqlite;
 
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
 
