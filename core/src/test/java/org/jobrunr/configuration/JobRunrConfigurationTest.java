@@ -3,6 +3,7 @@ package org.jobrunr.configuration;
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.StorageProvider;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -14,13 +15,18 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
-public class JobRunrConfigurationTest {
+class JobRunrConfigurationTest {
 
     @Mock
     JobActivator jobActivator;
 
     @Mock
     StorageProvider storageProvider;
+
+    @AfterEach
+    void tearDown() {
+        JobRunr.destroy();
+    }
 
     @Test
     void ifJobActivatorIsAddedAfterBackgroundJobServer() {
