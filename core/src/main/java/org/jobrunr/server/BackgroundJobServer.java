@@ -70,7 +70,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null)
-            throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider");
+            throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
 
         this.backgroundJobServerId = UUID.randomUUID();
         this.configuration = configuration;

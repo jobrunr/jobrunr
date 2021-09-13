@@ -30,6 +30,7 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         final Logger logger = Whitebox.getInternalState(object, "LOGGER");
+        logger.setLevel(DEBUG);
         logger.addAppender(listAppender);
         return listAppender;
     }
@@ -96,6 +97,15 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         return this;
     }
 
+    public LoggerAssert hasDebugMessageContaining(String message) {
+        return hasDebugMessageContaining(message, 1);
+    }
+
+    public LoggerAssert hasDebugMessageContaining(String message, int times) {
+        Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(DEBUG, message));
+        return this;
+    }
+
     public LoggerAssert hasWarningMessageContaining(String message) {
         return hasWarningMessageContaining(message, 1);
     }
@@ -116,4 +126,6 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     private Condition<ILoggingEvent> logsWithLevelAndMessageContaining(Level level, String message) {
         return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").contains(message), level + " logs with message: " + message);
     }
+
+
 }

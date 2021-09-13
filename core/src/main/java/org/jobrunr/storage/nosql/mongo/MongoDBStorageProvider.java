@@ -51,6 +51,7 @@ import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
@@ -132,7 +133,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         super(changeListenerNotificationRateLimit);
         validateMongoClient(mongoClient);
 
-        final String database = Optional.ofNullable(dbName).orElse(DEFAULT_DB_NAME);
+        final String database = ofNullable(dbName).orElse(DEFAULT_DB_NAME);
 
         if (CREATE == databaseOptions) {
             runMigrations(mongoClient, database, collectionPrefix);

@@ -13,6 +13,9 @@ import javax.inject.Singleton;
 @Singleton
 public class JobRunrMetricsProducer {
 
+    private JobRunrMetricsProducer() {
+    }
+
     public static class StorageProviderMetricsProducer {
         @Produces
         @DefaultBean

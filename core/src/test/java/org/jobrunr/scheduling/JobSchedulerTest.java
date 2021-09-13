@@ -38,7 +38,7 @@ class JobSchedulerTest {
     private JobClientLogFilter jobClientLogFilter;
 
     @BeforeEach
-    public void setupTestService() {
+    void setupTestService() {
         testService = new TestService();
 
         jobClientLogFilter = new JobClientLogFilter();

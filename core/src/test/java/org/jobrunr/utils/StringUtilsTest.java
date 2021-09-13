@@ -52,14 +52,14 @@ class StringUtilsTest {
 
     @Test
     void testSubstringAfterSplitterSingleChar() {
-        assertThat(substringAfter("15", "-")).isEqualTo(null);
+        assertThat(substringAfter("15", "-")).isNull();
         assertThat(substringAfter("15-ea", "-")).isEqualTo("ea");
     }
 
     @Test
     void testSubstringAfterSplitterMultiChar() {
         assertThat(substringAfter("this is a test", " is ")).isEqualTo("a test");
-        assertThat(substringAfter("this is a test", " was ")).isEqualTo(null);
+        assertThat(substringAfter("this is a test", " was ")).isNull();
     }
 
     @Test
@@ -71,6 +71,6 @@ class StringUtilsTest {
     @Test
     void testSubstringBetween() {
         assertThat(substringBetween("${some.string}", "${", "}")).isEqualTo("some.string");
-        assertThat(substringBetween("some.string", "${", "}")).isEqualTo(null);
+        assertThat(substringBetween("some.string", "${", "}")).isNull();
     }
 }

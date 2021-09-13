@@ -25,13 +25,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
-import static java.util.stream.Collectors.toSet;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
@@ -82,11 +80,6 @@ public class BackgroundJobByJobRequestTest {
         JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueue"));
         assertThat(storageProvider.getJobById(jobId))
                 .hasJobName("Some neat Job Display Name");
-    }
-
-    @Test
-    void testEnqueueAlsoTakesIntoAccountJobFilters() {
-        //TODO
     }
 
     @Test

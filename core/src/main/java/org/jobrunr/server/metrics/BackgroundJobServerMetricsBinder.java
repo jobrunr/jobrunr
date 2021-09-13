@@ -19,22 +19,22 @@ public class BackgroundJobServerMetricsBinder {
     }
 
     public void registerBackgroundJobServerMetrics() {
-        registerFunction("poll-interval-in-seconds", (bgJobServer) -> (double) bgJobServer.getServerStatus().getPollIntervalInSeconds());
-        registerFunction("worker-pool-size", (bgJobServer) -> (double) bgJobServer.getServerStatus().getWorkerPoolSize());
+        registerFunction("poll-interval-in-seconds", bgJobServer -> (double) bgJobServer.getServerStatus().getPollIntervalInSeconds());
+        registerFunction("worker-pool-size", bgJobServer -> (double) bgJobServer.getServerStatus().getWorkerPoolSize());
 
-        registerGauge("process-all-located-memory", (bgJobServer) -> (double) bgJobServer.getServerStatus().getProcessAllocatedMemory());
-        registerGauge("process-free-memory", (bgJobServer) -> (double) bgJobServer.getServerStatus().getProcessFreeMemory());
-        registerGauge("system-free-memory", (bgJobServer) -> (double) bgJobServer.getServerStatus().getSystemFreeMemory());
-        registerGauge("system-total-memory", (bgJobServer) -> (double) bgJobServer.getServerStatus().getSystemTotalMemory());
-        registerGauge("first-heartbeat", (bgJobServer) -> (double) bgJobServer.getServerStatus().getFirstHeartbeat().getEpochSecond());
-        registerGauge("last-heartbeat", (bgJobServer) -> (double) bgJobServer.getServerStatus().getLastHeartbeat().getNano());
+        registerGauge("process-all-located-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getProcessAllocatedMemory());
+        registerGauge("process-free-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getProcessFreeMemory());
+        registerGauge("system-free-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getSystemFreeMemory());
+        registerGauge("system-total-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getSystemTotalMemory());
+        registerGauge("first-heartbeat", bgJobServer -> (double) bgJobServer.getServerStatus().getFirstHeartbeat().getEpochSecond());
+        registerGauge("last-heartbeat", bgJobServer -> (double) bgJobServer.getServerStatus().getLastHeartbeat().getNano());
     }
 
-    private <T> void registerFunction(String name, ToDoubleFunction<BackgroundJobServer> func) {
+    private void registerFunction(String name, ToDoubleFunction<BackgroundJobServer> func) {
         FunctionCounter.builder(toMicroMeterName(name), this.backgroundJobServer, func).tag("id", this.backgroundJobServer.getId().toString()).register(meterRegistry);
     }
 
-    private <T> void registerGauge(String name, ToDoubleFunction<BackgroundJobServer> func) {
+    private void registerGauge(String name, ToDoubleFunction<BackgroundJobServer> func) {
         Gauge.builder(toMicroMeterName(name), this.backgroundJobServer, func).tag("id", this.backgroundJobServer.getId().toString()).register(meterRegistry);
     }
 

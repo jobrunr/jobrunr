@@ -40,7 +40,6 @@ public class JobRunrSqlStorageProviderProducer {
 
     private static Annotation defaultInstance() {
         return new Default() {
-
             @Override
             public Class<? extends Annotation> annotationType() {
                 return Default.class;

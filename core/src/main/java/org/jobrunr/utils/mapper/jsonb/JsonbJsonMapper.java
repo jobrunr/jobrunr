@@ -1,6 +1,5 @@
 package org.jobrunr.utils.mapper.jsonb;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;

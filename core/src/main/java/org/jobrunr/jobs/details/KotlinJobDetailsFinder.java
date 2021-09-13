@@ -15,14 +15,18 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromField;
 
 public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
 
+    private static final String INVOKE = "invoke";
+    private static final String ACCEPT = "accept";
+    private static final String RUN = "run";
+
     private enum KotlinVersion {
-        OneFour,
-        OneFive
+        ONE_FOUR,
+        ONE_FIVE
     }
 
+    private final JobRunrJob jobRunrJob;
     private int methodCounter = 0;
     private KotlinVersion kotlinVersion;
-    private JobRunrJob jobRunrJob;
 
     private String nestedKotlinClassWithMethodReference;
 
@@ -40,9 +44,9 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
                 if ("mv".equals(name)) {
                     int[] version = cast(value);
                     if (version[0] == 1 && version[1] == 4) {
-                        kotlinVersion = KotlinVersion.OneFour;
+                        kotlinVersion = KotlinVersion.ONE_FOUR;
                     } else if (version[0] == 1 && version[1] == 5) {
-                        kotlinVersion = KotlinVersion.OneFive;
+                        kotlinVersion = KotlinVersion.ONE_FIVE;
                     } else {
                         throw new UnsupportedOperationException("The Kotlin version " + version[0] + "." + version[1] + " is unsupported");
                     }
@@ -53,13 +57,13 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
 
     @Override
     protected boolean isLambdaContainingJobDetails(String name) {
-        if (name.equals("accept") || name.equals("invoke")) {
+        if (name.equals(ACCEPT) || name.equals(INVOKE)) {
             methodCounter++;
         }
-        if (KotlinVersion.OneFive.equals(kotlinVersion)) {
-            return name.equals("run") || ((name.equals("accept") || name.equals("invoke")) && methodCounter == 1);
+        if (KotlinVersion.ONE_FIVE.equals(kotlinVersion)) {
+            return name.equals(RUN) || ((name.equals(ACCEPT) || name.equals(INVOKE)) && methodCounter == 1);
         } else {
-            return name.equals("run") || ((name.equals("accept") || name.equals("invoke")) && methodCounter == 2);
+            return name.equals(RUN) || ((name.equals(ACCEPT) || name.equals(INVOKE)) && methodCounter == 2);
         }
     }
 

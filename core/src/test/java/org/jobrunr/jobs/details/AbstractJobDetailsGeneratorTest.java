@@ -66,7 +66,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("to much logging during build")
     void logByteCode() {
         String name = AbstractJobDetailsGeneratorTest.class.getName();
         String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";

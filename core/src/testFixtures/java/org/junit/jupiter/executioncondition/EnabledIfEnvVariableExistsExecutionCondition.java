@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.lang.reflect.AnnotatedElement;
-import java.time.LocalTime;
 import java.util.Optional;
 
 import static org.junit.platform.commons.support.AnnotationSupport.findAnnotation;

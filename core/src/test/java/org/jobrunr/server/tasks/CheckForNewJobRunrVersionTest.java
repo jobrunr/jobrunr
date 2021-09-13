@@ -4,6 +4,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.NewJobRunrVersionNotification;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,11 +31,13 @@ class CheckForNewJobRunrVersionTest {
     DashboardNotificationManager dashboardNotificationManager;
 
     @BeforeEach
-    public void setUpBackgroundJobServer() {
+    public void setUp() {
         lenient().when(backgroundJobServer.getDashboardNotificationManager()).thenReturn(dashboardNotificationManager);
+        CheckForNewJobRunrVersion.resetCheckForNewVersion();
     }
 
     @Test
+    @Disabled("Do not spam GitHub API")
     void testCanGetLatestVersionFromGithubApi() throws IOException {
         final String latestVersion = CheckForNewJobRunrVersion.getLatestVersion();
 

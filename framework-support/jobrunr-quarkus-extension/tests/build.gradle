@@ -24,3 +24,7 @@ java {
     withJavadocJar()
     withSourcesJar()
 }
+
+sonarqube {
+    skipProject = true
+}

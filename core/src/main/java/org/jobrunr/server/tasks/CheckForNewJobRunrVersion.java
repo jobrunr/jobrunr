@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,11 +30,10 @@ public class CheckForNewJobRunrVersion implements Runnable {
     private static final Pattern versionPattern = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^,]*)\",");
 
     private final DashboardNotificationManager dashboardNotificationManager;
-    private static boolean isFirstRun;
+    private static boolean isFirstRun = true;
 
     public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer) {
         dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
-        this.isFirstRun = true;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 VersionNumber actualVersion = new VersionNumber(getActualVersion());
                 if (latestVersion.compareTo(actualVersion) > 0) {
                     dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion.getCompleteVersion()));
-                    LOGGER.info("JobRunr version " + latestVersion + " is available.");
+                    LOGGER.info("JobRunr version {} is available.", latestVersion);
                 } else {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
                 }
@@ -61,7 +61,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 LOGGER.info("Unable to check for new JobRunr version:\n {}", e.getMessage());
             }
         }
-        isFirstRun = false;
+        CheckForNewJobRunrVersion.isFirstRun = false;
     }
 
     @VisibleFor("testing")
@@ -105,6 +105,10 @@ public class CheckForNewJobRunrVersion implements Runnable {
         return VersionRetriever.getVersion(JobRunr.class);
     }
 
+    static void resetCheckForNewVersion() {
+        CheckForNewJobRunrVersion.isFirstRun = true;
+    }
+
     protected static class VersionNumber implements Comparable<VersionNumber> {
 
         private final String completeVersion;
@@ -127,6 +131,11 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 return completeVersion.equals(((VersionNumber) obj).completeVersion);
             }
             return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(completeVersion);
         }
 
         @Override

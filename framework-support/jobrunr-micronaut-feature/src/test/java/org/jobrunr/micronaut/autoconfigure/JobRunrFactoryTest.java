@@ -31,29 +31,33 @@ class JobRunrFactoryTest {
     @Test
     @Property(name = "jobrunr.job-scheduler.enabled", value = "true")
     void jobSchedulerEnabledAutoConfiguration() {
-        assertThat(context).hasSingleBean(StorageProvider.class);
-        assertThat(context).hasSingleBean(JobScheduler.class);
-        assertThat(context).hasSingleBean(JobRequestScheduler.class);
+        assertThat(context)
+                .hasSingleBean(StorageProvider.class)
+                .hasSingleBean(JobScheduler.class)
+                .hasSingleBean(JobRequestScheduler.class);
     }
 
     @Test
     @Property(name = "jobrunr.job-scheduler.enabled", value = "false")
     void jobSchedulerDisabledAutoConfiguration() {
-        assertThat(context).hasSingleBean(StorageProvider.class);
-        assertThat(context).doesNotHaveBean(JobScheduler.class);
+        assertThat(context)
+                .hasSingleBean(StorageProvider.class)
+                .doesNotHaveBean(JobScheduler.class);
     }
 
     @Test
     @Property(name = "jobrunr.dashboard.enabled", value = "true")
     void dashboardAutoConfiguration() {
-        assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
-        assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
+        assertThat(context)
+                .hasSingleBean(JobRunrDashboardWebServer.class)
+                .doesNotHaveBean(BackgroundJobServer.class);
     }
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     void backgroundJobServerAutoConfiguration() {
-        assertThat(context).hasSingleBean(BackgroundJobServer.class);
-        assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
+        assertThat(context)
+                .hasSingleBean(BackgroundJobServer.class)
+                .doesNotHaveBean(JobRunrDashboardWebServer.class);
     }
 }

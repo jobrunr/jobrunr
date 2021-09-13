@@ -1,6 +1,5 @@
 package org.jobrunr.jobs.details;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.lambdas.*;
@@ -12,13 +11,15 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
     private final JobDetailsGenerator delegate;
-    private final Map<Class, CacheableJobDetails> cache;
+    private final Map<Class<?>, CacheableJobDetails> cache;
 
     public CachingJobDetailsGenerator() {
         this(new JobDetailsAsmGenerator());
@@ -36,7 +37,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
     }
 
     @Override
-    public JobDetails toJobDetails(IocJobLambda lambda) {
+    public JobDetails toJobDetails(IocJobLambda<?> lambda) {
         cache.computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate));
         return cache.get(lambda.getClass()).getJobDetails(lambda);
     }
@@ -69,7 +70,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
                 return jobDetails;
-            } else if (jobDetails.getCacheable()) {
+            } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.empty());
             } else {
                 return jobDetailsGeneratorDelegate.toJobDetails(lambda);
@@ -81,7 +82,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
                 return jobDetails;
-            } else if (jobDetails.getCacheable()) {
+            } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.empty());
             } else {
                 return jobDetailsGeneratorDelegate.toJobDetails(lambda);
@@ -93,7 +94,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
                 return jobDetails;
-            } else if (jobDetails.getCacheable()) {
+            } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.of(itemFromStream));
             } else {
                 return jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
@@ -105,7 +106,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
                 jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
                 return jobDetails;
-            } else if (jobDetails.getCacheable()) {
+            } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.of(itemFromStream));
             } else {
                 return jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
@@ -154,7 +155,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
         }
 
         private <T> JobDetails getCachedJobDetails(JobRunrJob job, Optional<T> itemFromStream) {
-            final JobDetails jobDetails = new JobDetails(
+            final JobDetails cachedJobDetails = new JobDetails(
                     this.jobDetails.getClassName(),
                     this.jobDetails.getStaticFieldName(),
                     this.jobDetails.getMethodName(),
@@ -162,8 +163,8 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                             .map(jobParameterRetriever -> jobParameterRetriever.getJobParameter(job, itemFromStream))
                             .collect(Collectors.toList())
             );
-            jobDetails.setCacheable(true);
-            return jobDetails;
+            cachedJobDetails.setCacheable(true);
+            return cachedJobDetails;
         }
     }
 
@@ -201,7 +202,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 Object o = (Object) methodHandle.invokeExact((Object) job);
                 return new JobParameter(jobParameterClassName, o);
             } catch (Throwable throwable) {
-                throw new RuntimeException("Exception", throwable);
+                throw shouldNotHappenException(throwable);
             }
         }
     }
@@ -216,7 +217,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         @Override
         public <T> JobParameter getJobParameter(JobRunrJob job, Optional<T> itemFromStream) {
-            return new JobParameter(jobParameterClassName, itemFromStream.orElseThrow(() -> JobRunrException.shouldNotHappenException("Can not find itemFromStream")));
+            return new JobParameter(jobParameterClassName, itemFromStream.orElseThrow(() -> shouldNotHappenException("Can not find itemFromStream")));
         }
     }
 }

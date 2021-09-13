@@ -47,6 +47,6 @@ public class NewJobRunrVersionProblemHandler implements MetadataChangeListener, 
     }
 
     private boolean isNewJobRunrVersionAvailable(List<JobRunrMetadata> metadataList) {
-        return metadataList.size() > 0 && !isNewVersionAvailable;
+        return !metadataList.isEmpty() && !isNewVersionAvailable;
     }
 }

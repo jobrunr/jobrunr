@@ -50,6 +50,9 @@ public class JobRunrDashboardWebServer {
     }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
+        if (storageProvider == null)
+            throw new IllegalArgumentException("A StorageProvider is required to use a JobRunrDashboardWebServer. Please see the documentation on how to setup a job StorageProvider.");
+
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
         this.port = configuration.port;

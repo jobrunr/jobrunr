@@ -9,8 +9,9 @@ import jakarta.inject.Singleton;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import static org.jobrunr.utils.CollectionUtils.mapOf;
 
 @Singleton
 @Requires(classes = {HealthIndicator.class}, beans = {BackgroundJobServer.class})
@@ -35,22 +36,20 @@ public class JobRunrHealthIndicator extends AbstractHealthIndicator<Map<String, 
     protected Map<String, String> getHealthInformation() {
         if (!configuration.getBackgroundJobServer().isEnabled()) {
             healthStatus = new HealthStatus("OUT_OF_SERVICE");
-            return new HashMap<String, String>() {{
-                put("backgroundJobServer", "disabled");
-            }};
+            return mapOf("backgroundJobServer", "disabled");
         } else {
             if (backgroundJobServer.isRunning()) {
                 healthStatus = HealthStatus.UP;
-                return new HashMap<String, String>() {{
-                    put("backgroundJobServer", "enabled");
-                    put("backgroundJobServerStatus", "running");
-                }};
+                return mapOf(
+                        "backgroundJobServer", "enabled",
+                        "backgroundJobServerStatus", "running"
+                );
             } else {
                 healthStatus = HealthStatus.DOWN;
-                return new HashMap<String, String>() {{
-                    put("backgroundJobServer", "enabled");
-                    put("backgroundJobServerStatus", "stopped");
-                }};
+                return mapOf(
+                        "backgroundJobServer", "enabled",
+                        "backgroundJobServerStatus", "stopped"
+                );
             }
         }
     }

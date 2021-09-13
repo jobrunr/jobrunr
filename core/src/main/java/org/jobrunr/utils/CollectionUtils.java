@@ -56,4 +56,16 @@ public class CollectionUtils {
         }
         return result;
     }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1) {
+        Map<K, V> result = new HashMap<>();
+        result.put(key1, value1);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2) {
+        final Map<K, V> result = mapOf(key1, value1);
+        result.put(key2, value2);
+        return result;
+    }
 }
