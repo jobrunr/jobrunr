@@ -30,10 +30,11 @@ public class CheckForNewJobRunrVersion implements Runnable {
     private static final Pattern versionPattern = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^,]*)\",");
 
     private final DashboardNotificationManager dashboardNotificationManager;
-    private static boolean isFirstRun = true;
+    private static boolean isFirstRun;
 
     public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer) {
         dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
+        isFirstRun = true; // why: otherwise Github is spammed during testing
     }
 
     @Override

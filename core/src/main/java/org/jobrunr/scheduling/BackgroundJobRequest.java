@@ -17,7 +17,7 @@ import static java.time.ZoneId.systemDefault;
  */
 public class BackgroundJobRequest {
 
-    BackgroundJobRequest() {
+    private BackgroundJobRequest() {
     }
 
     private static JobRequestScheduler jobRequestScheduler;

@@ -236,7 +236,6 @@ public class BackgroundJobByIoCJobLambdaTest {
     void testDeleteOfRecurringJob() {
         String jobId = BackgroundJob.<TestService>scheduleRecurrently(Cron.minutely(), x -> x.doWork(5));
         BackgroundJob.delete(jobId);
-        await().atMost(ofSeconds(61)).until(() -> storageProvider.countJobs(ENQUEUED) == 0 && storageProvider.countJobs(SUCCEEDED) == 0);
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
     }
 

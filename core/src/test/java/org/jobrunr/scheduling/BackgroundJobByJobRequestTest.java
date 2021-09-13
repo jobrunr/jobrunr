@@ -30,10 +30,13 @@ import java.util.stream.Stream;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -64,13 +67,27 @@ public class BackgroundJobByJobRequestTest {
 
     @AfterEach
     public void cleanUp() {
-        backgroundJobServer.stop();
-        storageProvider.close();
+        JobRunr.destroy();
+    }
+
+    @Test
+    void ifBackgroundJobIsNotConfiguredCorrectlyAnExceptionIsThrown() {
+        BackgroundJobRequest.setJobRequestScheduler(null);
+        assertThatThrownBy(() -> BackgroundJobRequest.enqueue(new TestJobRequest("not important")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("The JobRequestScheduler has not been initialized. Use the fluent JobRunr.configure() API to setup JobRunr or set the JobRequestScheduler via the static setter method.");
     }
 
     @Test
     void testEnqueue() {
         JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueue"));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testEnqueueWithId() {
+        JobId jobId = BackgroundJobRequest.enqueue(UUID.randomUUID(), new TestJobRequest("from testEnqueue"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
@@ -172,6 +189,24 @@ public class BackgroundJobByJobRequestTest {
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testDeleteOfRecurringJob() {
+        BackgroundJobRequest.scheduleRecurrently("theId", Cron.minutely(), systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
+        BackgroundJob.delete("theId");
+        assertThat(storageProvider.getRecurringJobs()).isEmpty();
+    }
+
+    @Test
+    void jobCanBeDeletedWhenEnqueued() {
+        JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("input"));
+        BackgroundJobRequest.delete(jobId);
+
+        await().atMost(6, SECONDS).untilAsserted(() -> {
+            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
+        });
     }
 
     @Test
