@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -213,7 +214,7 @@ class ServerZooKeeperTest {
         await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest
     public void testLongGCDoesNotStopJobRunr() throws InterruptedException {
         // GIVEN
         final Object serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
