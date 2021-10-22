@@ -77,6 +77,5 @@ public class JacksonJsonMapper implements JsonMapper {
         return modules;
     }
 
-    private Predicate<Module> isJSR310JavaTimeModule = m ->
-            "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule".equals(m.getTypeId());
+    private final Predicate<Module> isJSR310JavaTimeModule = m -> "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule".equals(m.getTypeId());
 }
