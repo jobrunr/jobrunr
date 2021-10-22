@@ -1,8 +1,8 @@
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import TimeAgo from "react-timeago/lib";
@@ -36,14 +36,7 @@ const useStyles = makeStyles(() => ({
         '& div.MuiAlert-standardInfo': {
             color: '#ffe4bf',
             backgroundColor: '#654b3d',
-        },
-        '& > .MuiExpansionPanelSummary-content.Mui-expanded': {
-            margin: '12px 0',
-        },
-        '&$expanded': {
-            margin: 0,
-            minHeight: 56,
-        },
+        }
     }
 }));
 
@@ -54,8 +47,8 @@ const Deleted = (props) => {
     const deletedIcon = <Delete/>
 
     return (
-        <ExpansionPanel>
-            <ExpansionPanelSummary
+        <Accordion>
+            <AccordionSummary
                 className={classes.info}
                 id="deleted-panel-header"
             >
@@ -67,14 +60,14 @@ const Deleted = (props) => {
                 <Typography className={classes.secondaryHeading}>
                     <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
                 </Typography>
-            </ExpansionPanelSummary>
+            </AccordionSummary>
             { jobState.reason &&
-            <ExpansionPanelDetails className={classes.expansionPanel}>
+            <AccordionDetails className={classes.expansionPanel}>
                 <div className={classes.details}>{jobState.reason}</div>
-            </ExpansionPanelDetails>
+            </AccordionDetails>
             }
 
-        </ExpansionPanel>
+        </Accordion>
     )
 };
 

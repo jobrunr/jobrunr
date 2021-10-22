@@ -1,7 +1,7 @@
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import TimeAgo from "react-timeago/lib";
@@ -24,13 +24,6 @@ const useStyles = makeStyles(theme => ({
         color: "rgb(13, 60, 97)",
         backgroundColor: "rgb(232, 244, 253)",
         minHeight: 56,
-        '& > .MuiExpansionPanelSummary-content.Mui-expanded': {
-            margin: '12px 0',
-        },
-        '&$expanded': {
-            margin: 0,
-            minHeight: 56,
-        },
     }
 }));
 
@@ -41,8 +34,8 @@ const Enqueued = (props) => {
     const enqueuedIcon = <TimerSand />
 
     return (
-        <ExpansionPanel>
-            <ExpansionPanelSummary
+        <Accordion>
+            <AccordionSummary
                 className={classes.info}
                 id="enqueued-panel-header"
             >
@@ -54,8 +47,8 @@ const Enqueued = (props) => {
                 <Typography className={classes.secondaryHeading}>
                     <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
                 </Typography>
-            </ExpansionPanelSummary>
-        </ExpansionPanel>
+            </AccordionSummary>
+        </Accordion>
     )
 };
 

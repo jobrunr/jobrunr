@@ -21,6 +21,7 @@ const useStyles = makeStyles(theme => ({
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingRight: theme.spacing(0.5),
+        marginTop: 'auto'
     },
 }));
 
@@ -34,7 +35,7 @@ const WithSidebar = (Sidebar, Component) => {
                 <div className={classes.toolbar}/>
                 <Sidebar {...props} />
                 <div className={classes.toggle}>
-                    <IconButton onClick={() => setCollapsed(!collapsed)}>
+                    <IconButton onClick={() => setCollapsed(!collapsed)} title="Toggle sidebar">
                         {collapsed ? <ChevronRight/> : <ChevronLeft/>}
                     </IconButton>
                 </div>

@@ -67,11 +67,7 @@ const JobView = (props) => {
     const jobId = props.match.params.id;
 
     React.useEffect(() => {
-        if (location.job) {
-            onJob(location.job);
-        } else {
-            getJob(jobId);
-        }
+        getJob(jobId);
 
         const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/jobs/" + jobId);
         eventSource.addEventListener('message', e => onJob(JSON.parse(e.data)));

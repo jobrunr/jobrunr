@@ -1,9 +1,9 @@
 import React from "react";
 import Typography from "@material-ui/core/Typography";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Alert from "@material-ui/lab/Alert";
 import TimeAgo from "react-timeago/lib";
@@ -29,14 +29,7 @@ const useStyles = makeStyles(() => ({
     processing: {
         color: "rgb(102, 60, 0)",
         backgroundColor: "rgb(255, 244, 229)",
-        minHeight: 56,
-        '& > .MuiExpansionPanelSummary-content.Mui-expanded': {
-            margin: '12px 0',
-        },
-        '&$expanded': {
-            margin: 0,
-            minHeight: 56,
-        },
+        minHeight: 56
     },
     details: {
         padding: '24px 0 24px 24px'
@@ -110,8 +103,8 @@ const Processing = (props) => {
     };
 
     return (
-        <ExpansionPanel expanded={expanded} onChange={handleChange}>
-            <ExpansionPanelSummary
+        <Accordion expanded={expanded} onChange={handleChange}>
+            <AccordionSummary
                 className={classes.processing}
                 id="processing-panel-header"
                 expandIcon={<ExpandMore/>}
@@ -125,8 +118,8 @@ const Processing = (props) => {
                 <Typography className={classes.secondaryHeading}>
                     <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
                 </Typography>
-            </ExpansionPanelSummary>
-            <ExpansionPanelDetails className={classes.expansionPanel}>
+            </AccordionSummary>
+            <AccordionDetails className={classes.expansionPanel}>
                 {progressBar &&
                 <ColoredLinearProgress variant="determinate" value={progressBar.progress}/>
                 }
@@ -143,8 +136,8 @@ const Processing = (props) => {
                     ))}
                 </div>
                 }
-            </ExpansionPanelDetails>
-        </ExpansionPanel>
+            </AccordionDetails>
+        </Accordion>
     )
 };
 
