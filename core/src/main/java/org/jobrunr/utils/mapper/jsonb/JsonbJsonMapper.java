@@ -16,13 +16,20 @@ public class JsonbJsonMapper implements JsonMapper {
     private final Jsonb jsonb;
 
     public JsonbJsonMapper() {
-        jsonb = JsonbBuilder.create(new JsonbConfig()
+        this(new JsonbConfig());
+    }
+
+    public JsonbJsonMapper(JsonbConfig jsonbConfig) {
+        this.jsonb = JsonbBuilder.create(initJsonbConfig(jsonbConfig));
+    }
+
+    protected JsonbConfig initJsonbConfig(JsonbConfig jsonbConfig) {
+        return jsonbConfig
                 .withNullValues(true)
                 .withSerializers(new DurationTypeSerializer())
                 .withDeserializers(new DurationTypeDeserializer())
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
-                .withAdapters(new JobAdapter(), new RecurringJobAdapter())
-        );
+                .withAdapters(new JobAdapter(), new RecurringJobAdapter());
     }
 
     @Override
