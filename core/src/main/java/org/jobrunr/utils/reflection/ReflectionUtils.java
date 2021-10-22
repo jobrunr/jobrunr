@@ -104,14 +104,6 @@ public class ReflectionUtils {
         return Class.forName(className);
     }
 
-    public static <T> T newInstanceOrElse(String className, T orElse) {
-        try {
-            return newInstanceCE(toClass(className));
-        } catch (Exception e) {
-            return orElse;
-        }
-    }
-
     public static boolean hasDefaultNoArgConstructor(String clazzName) {
         return Stream.of(toClass(clazzName).getConstructors())
                 .anyMatch(c -> c.getParameterCount() == 0);
