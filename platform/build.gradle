@@ -14,6 +14,7 @@ dependencies {
 
         api 'org.slf4j:slf4j-simple:1.7.32'
         api 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+        api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.12.4'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.4'
         api 'com.google.code.gson:gson:2.8.8'
         api 'org.eclipse:yasson:1.0.9' //todo upgrade after MicroProfile and Quarkus upgraded
