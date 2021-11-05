@@ -106,6 +106,11 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             job.failed(message, e);
             saveAndRunStateRelatedJobFilters(job);
+            if (job.getState() == FAILED) {
+                LOGGER.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
+            } else {
+                LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
+            }
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
                 LOGGER.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo());
@@ -114,12 +119,6 @@ public class BackgroundJobPerformer implements Runnable {
             }
         } catch (Exception badException) {
             LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
-        }
-
-        if (job.getState() == FAILED) {
-            LOGGER.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
-        } else {
-            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
         }
     }
 
