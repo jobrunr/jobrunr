@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,6 +26,7 @@ import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 public class JobRunrSqlStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
+    @DependsOnDatabaseInitialization
     @ConditionalOnMissingBean
     public StorageProvider sqlStorageProvider(BeanFactory beanFactory, JobMapper jobMapper, JobRunrProperties properties) {
         String tablePrefix = properties.getDatabase().getTablePrefix();

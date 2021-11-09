@@ -16,11 +16,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -132,11 +134,30 @@ class BackgroundJobPerformerTest {
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(backgroundJobPerformer);
         backgroundJobPerformer.run();
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED", "FAILED->SCHEDULED");
         assertThat(logAllStateChangesFilter.processingPassed).isTrue();
         assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+        assertThat(logger)
+                .hasNoErrorLogMessages()
+                .hasWarningMessageContaining("processing failed: An exception occurred during the performance of the job");
+    }
+
+    @Test
+    void onFailureAfterAllRetriesExceptionIsLoggedToError() {
+        Job job = aFailedJobWithRetries().withEnqueuedState(Instant.now()).build();
+        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(backgroundJobPerformer);
+        backgroundJobPerformer.run();
+
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED");
+        assertThat(logger)
+                .hasNoWarnLogMessages()
+                .hasErrorMessage(String.format("Job(id=%s, jobName='failed job') processing failed: An exception occurred during the performance of the job", job.getId()));
     }
 
     private void mockBackgroundJobRunner(Job job, Consumer<Job> jobConsumer) throws Exception {

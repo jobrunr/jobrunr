@@ -1,6 +1,6 @@
 context('Actions', () => {
     beforeEach(() => {
-        cy.visit('http://localhost:3000/dashboard/jobs');
+        cy.visit('http://localhost:8000/dashboard/jobs');
         cy.viewport(1280, 800);
         waitForSSE();
     });

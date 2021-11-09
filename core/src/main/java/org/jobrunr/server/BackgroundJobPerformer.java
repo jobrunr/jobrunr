@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
@@ -103,9 +104,13 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToFailedAndRunJobFilters(String message, Exception e) {
         try {
-            LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
             job.failed(message, e);
             saveAndRunStateRelatedJobFilters(job);
+            if (job.getState() == FAILED) {
+                LOGGER.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
+            } else {
+                LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
+            }
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
                 LOGGER.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo());
