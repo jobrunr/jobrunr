@@ -16,7 +16,7 @@ dependencies {
         api 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0'
-        api 'com.google.code.gson:gson:2.8.8'
+        api 'com.google.code.gson:gson:2.8.6'
         api 'org.eclipse:yasson:1.0.9' //todo upgrade after MicroProfile and Quarkus upgraded
         api 'io.micrometer:micrometer-core:1.7.5'
         api 'io.insert-koin:koin-core:2.2.2'
