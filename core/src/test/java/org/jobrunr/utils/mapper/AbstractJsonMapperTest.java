@@ -4,12 +4,14 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
+import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJson;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -165,4 +168,36 @@ public abstract class AbstractJsonMapperTest {
         assertThat(actualRecurringJob).isEqualTo(recurringJob);
     }
 
+    @Test
+    void testSerializeAndDeserializeEnqueuedJobGithubIssue254() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWork(1L))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-github-254.json"));
+    }
+
+    @Test
+    void testSerializeAndDeserializeEnqueuedJobGithubIssue254ComingFrom4Dot0Dot0() {
+        // jobs created in 4.0.1
+        Job job = aJob()
+                .withId(UUID.fromString("8bf98a10-f673-4fd8-9b9c-43ded0030910"))
+                .withName("an enqueued job")
+                .withState(new EnqueuedState(), Instant.parse("2021-11-10T11:37:40.551537Z"))
+                .withJobDetails(() -> testService.doWork(1L))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-github-254.json"));
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+
+        // jobs created in 4.0.0
+        final String jobAsStringFrom4Dot0Dot0 = contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-github-254-input.json");
+
+        final Job actualJobFrom4Dot0Dot0 = jsonMapper.deserialize(jobAsStringFrom4Dot0Dot0, Job.class);
+        assertThat(actualJobFrom4Dot0Dot0).isEqualTo(job);
+    }
 }

@@ -1,0 +1,29 @@
+{
+  "version": 0,
+  "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Long)",
+  "jobName": "an enqueued job",
+  "jobDetails": {
+    "className": "org.jobrunr.stubs.TestService",
+    "staticFieldName": null,
+    "methodName": "doWork",
+    "jobParameters": [
+      {
+        "className": "java.lang.Long",
+        "actualClassName": "java.lang.Long",
+        "object": 1
+      }
+    ],
+    "cacheable": true
+  },
+  "id": "${json-unit.ignore}",
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  }
+}

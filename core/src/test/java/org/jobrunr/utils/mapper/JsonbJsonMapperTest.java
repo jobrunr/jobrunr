@@ -1,6 +1,8 @@
 package org.jobrunr.utils.mapper;
 
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class JsonbJsonMapperTest extends AbstractJsonMapperTest {
 
@@ -9,4 +11,8 @@ public class JsonbJsonMapperTest extends AbstractJsonMapperTest {
         return new JsonbJsonMapper();
     }
 
+    @Test
+    @Disabled("No regression introduced for JsonB coming from 4.0.0")
+    void testSerializeAndDeserializeEnqueuedJobGithubIssue254ComingFrom4Dot0Dot0() {
+    }
 }

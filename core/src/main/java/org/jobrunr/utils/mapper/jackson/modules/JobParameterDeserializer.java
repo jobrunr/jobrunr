@@ -29,6 +29,10 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
         final JsonNode objectJsonNode = node.get("object");
         if (Path.class.getName().equals(methodClassName)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
             return new JobParameter(methodClassName, Paths.get(objectJsonNode.asText().replace("file:", "")));
+        } else if (objectJsonNode.isArray()) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
+            final JsonNode jsonNodeInArray = objectJsonNode.get(1);
+            final Object object = jsonParser.getCodec().treeToValue(jsonNodeInArray, toClass(getActualClassName(methodClassName, actualClassName)));
+            return new JobParameter(methodClassName, object);
         } else {
             final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, toClass(getActualClassName(methodClassName, actualClassName)));
             return new JobParameter(methodClassName, object);
