@@ -49,6 +49,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
@@ -79,7 +80,6 @@ class JobZooKeeperTest {
     @Captor
     private ArgumentCaptor<JobRunrMetadata> jobRunrMetadataArgumentCaptor;
 
-
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
     private BackgroundJobTestFilter logAllStateChangesFilter;
@@ -87,6 +87,7 @@ class JobZooKeeperTest {
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
+        when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
         logAllStateChangesFilter = new BackgroundJobTestFilter();
         backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         jobZooKeeper = initializeJobZooKeeper();

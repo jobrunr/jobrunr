@@ -188,6 +188,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return storageProvider;
     }
 
+    public BackgroundJobServerConfiguration getConfiguration() {
+        return configuration;
+    }
+
     public DashboardNotificationManager getDashboardNotificationManager() {
         return dashboardNotificationManager;
     }

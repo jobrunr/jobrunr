@@ -259,6 +259,7 @@ public class JobZooKeeper implements Runnable {
     }
 
     ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
-        return new ConcurrentJobModificationResolver(storageProvider, this);
+        return backgroundJobServer.getConfiguration()
+                .concurrentJobModificationPolicy.toConcurrentJobModificationResolver(storageProvider, this);
     }
 }

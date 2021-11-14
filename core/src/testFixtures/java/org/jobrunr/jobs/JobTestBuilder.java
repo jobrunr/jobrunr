@@ -222,6 +222,10 @@ public class JobTestBuilder {
         return withState(new ScheduledState(now().minusSeconds(10)));
     }
 
+    public JobTestBuilder withProcessingState() {
+        return withState(new ProcessingState(UUID.randomUUID()));
+    }
+
     public JobTestBuilder withSucceededState() {
         return withState(new SucceededState(ofMillis(10), ofMillis(3)));
     }

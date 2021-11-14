@@ -1,8 +1,6 @@
 package org.jobrunr.server;
 
-import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
-import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
-import org.jobrunr.server.configuration.FixedSizeBackgroundJobServerWorkerPolicy;
+import org.jobrunr.server.configuration.*;
 
 import java.time.Duration;
 
@@ -19,6 +17,7 @@ public class BackgroundJobServerConfiguration {
     Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
     Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
+    ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
 
     private BackgroundJobServerConfiguration() {
 
@@ -81,13 +80,27 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the the duration to wait before permanently deleting succeeded jobs
+     * Allows to set the duration to wait before permanently deleting succeeded jobs
      *
      * @param duration the duration to wait before permanently deleting successful jobs
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andPermanentlyDeleteDeletedJobsAfter(Duration duration) {
         this.permanentlyDeleteDeletedJobsAfter = duration;
+        return this;
+    }
+
+    /**
+     * Allows to set the ConcurrentJobModificationPolicy for the BackgroundJobServer. The ConcurrentJobModificationPolicy will determine
+     * how the BackgroundJobServer will react to concurrent modifications the jobs.
+     * <p>
+     * Use with care.
+     *
+     * @param concurrentJobModificationPolicy the concurrentJobModificationPolicy
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
+        this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
         return this;
     }
 }

@@ -9,8 +9,11 @@ import org.jobrunr.jobs.states.StateName;
 
 import java.time.Instant;
 import java.time.temporal.Temporal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.assertj.core.condition.AnyOf.anyOf;
 
 public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
@@ -34,6 +37,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasState(StateName state) {
         Assertions.assertThat(actual.getState()).isEqualTo(state);
+        return this;
+    }
+
+    public JobAssert hasOneOfTheFollowingStates(StateName... states) {
+        Assertions.assertThat(actual).has(anyOf(Arrays.stream(states).map(JobStateCondition::new).collect(Collectors.toList())));
         return this;
     }
 
@@ -70,6 +78,14 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
                 .ignoringFields("locker")
                 .isEqualTo(otherJob);
         return this;
+    }
+
+
+    private static class JobStateCondition extends Condition<Job> {
+
+        public JobStateCondition(StateName stateName) {
+            super(job -> job.hasState(stateName), "Job should have state %s", stateName);
+        }
     }
 
 }

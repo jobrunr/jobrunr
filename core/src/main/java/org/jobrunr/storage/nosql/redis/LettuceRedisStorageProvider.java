@@ -13,6 +13,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
+import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Duration;
@@ -56,6 +57,7 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
+@Beta
 public class LettuceRedisStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
     private final ObjectPool<StatefulRedisConnection<String, String>> pool;

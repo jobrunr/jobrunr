@@ -32,9 +32,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ConcurrentJobModificationResolverTest {
+class DefaultConcurrentJobModificationResolverTest {
 
-    private ConcurrentJobModificationResolver concurrentJobModificationResolver;
+    private DefaultConcurrentJobModificationResolver concurrentJobModificationResolver;
 
     @Mock
     private StorageProvider storageProvider;
@@ -43,7 +43,7 @@ class ConcurrentJobModificationResolverTest {
 
     @BeforeEach
     void setUp() {
-        concurrentJobModificationResolver = new ConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
+        concurrentJobModificationResolver = new DefaultConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
     }
 
     @ParameterizedTest
