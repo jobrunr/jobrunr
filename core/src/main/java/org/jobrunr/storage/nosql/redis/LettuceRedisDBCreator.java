@@ -1,7 +1,7 @@
 package org.jobrunr.storage.nosql.redis;
 
 import io.lettuce.core.api.StatefulRedisConnection;
-import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.ObjectPool;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
@@ -9,10 +9,10 @@ import org.jobrunr.storage.nosql.redis.migrations.LettuceRedisMigration;
 
 public class LettuceRedisDBCreator extends NoSqlDatabaseCreator<LettuceRedisMigration> {
 
-    private final GenericObjectPool<StatefulRedisConnection<String, String>> pool;
+    private final ObjectPool<StatefulRedisConnection<String, String>> pool;
     private final String keyPrefix;
 
-    public LettuceRedisDBCreator(NoSqlStorageProvider noSqlStorageProvider, GenericObjectPool<StatefulRedisConnection<String, String>> pool, String keyPrefix) {
+    public LettuceRedisDBCreator(NoSqlStorageProvider noSqlStorageProvider, ObjectPool<StatefulRedisConnection<String, String>> pool, String keyPrefix) {
         super(noSqlStorageProvider);
         this.pool = pool;
         this.keyPrefix = keyPrefix;

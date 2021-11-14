@@ -5,7 +5,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.support.ConnectionPoolSupport;
-import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -58,8 +58,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class LettuceRedisStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
-    private final RedisClient redisClient;
-    private final GenericObjectPool<StatefulRedisConnection<String, String>> pool;
+    private final ObjectPool<StatefulRedisConnection<String, String>> pool;
     private final String keyPrefix;
     private JobMapper jobMapper;
 
@@ -76,10 +75,13 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     public LettuceRedisStorageProvider(RedisClient redisClient, String keyPrefix, RateLimiter changeListenerNotificationRateLimit) {
+        this(ConnectionPoolSupport.createGenericObjectPool(redisClient::connect, new GenericObjectPoolConfig<>()), keyPrefix, changeListenerNotificationRateLimit);
+    }
+
+    public LettuceRedisStorageProvider(ObjectPool<StatefulRedisConnection<String, String>> pool, String keyPrefix, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
-        this.redisClient = redisClient;
+        this.pool = pool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
-        pool = ConnectionPoolSupport.createGenericObjectPool(this::createConnection, new GenericObjectPoolConfig<>());
 
         new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
@@ -350,9 +352,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             List<String> jobsByState;
-            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrangebyscore(jobQueueForStateKey(keyPrefix, state), Range.create(0, toMicroSeconds(updatedBefore)), Limit.create(pageRequest.getOffset(), pageRequest.getLimit()));
-            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrevrangebyscore(jobQueueForStateKey(keyPrefix, state), Range.create(0, toMicroSeconds(updatedBefore)), Limit.create(pageRequest.getOffset(), pageRequest.getLimit()));
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
@@ -383,9 +385,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisCommands<String, String> commands = connection.sync();
             List<String> jobsByState;
             // we only support what is used by frontend
-            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
                 jobsByState = commands.zrevrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
@@ -646,9 +648,5 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    StatefulRedisConnection<String, String> createConnection() {
-        return redisClient.connect();
     }
 }
