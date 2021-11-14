@@ -80,6 +80,14 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         this(ConnectionPoolSupport.createGenericObjectPool(redisClient::connect, new GenericObjectPoolConfig<>()), keyPrefix, changeListenerNotificationRateLimit);
     }
 
+    public LettuceRedisStorageProvider(ObjectPool<StatefulRedisConnection<String, String>> pool) {
+        this(pool, null, rateLimit().at1Request().per(SECOND));
+    }
+
+    public LettuceRedisStorageProvider(ObjectPool<StatefulRedisConnection<String, String>> pool, String keyPrefix) {
+        this(pool, keyPrefix, rateLimit().at1Request().per(SECOND));
+    }
+
     public LettuceRedisStorageProvider(ObjectPool<StatefulRedisConnection<String, String>> pool, String keyPrefix, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.pool = pool;
