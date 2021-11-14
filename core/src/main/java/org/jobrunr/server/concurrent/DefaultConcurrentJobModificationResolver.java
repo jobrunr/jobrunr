@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.statechanges.*;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageProvider;
 
 import java.util.Arrays;
@@ -27,6 +28,7 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
     public DefaultConcurrentJobModificationResolver(StorageProvider storageProvider, JobZooKeeper jobZooKeeper) {
         this.storageProvider = storageProvider;
         allowedConcurrentStateChanges = Arrays.asList(
+                new PermanentlyDeletedWhileProcessingException(jobZooKeeper),
                 new DeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
                 new DeletedWhileSucceededConcurrentStateChange(),
                 new DeletedWhileFailedConcurrentStateChange(),
@@ -52,14 +54,20 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
         final Job jobFromStorage = getJobFromStorageProvider(localJob);
         return allowedConcurrentStateChanges
                 .stream()
-                .filter(allowedConcurrentStateChange -> allowedConcurrentStateChange.matches(localJob.getState(), jobFromStorage.getState()))
+                .filter(allowedConcurrentStateChange -> allowedConcurrentStateChange.matches(localJob, jobFromStorage))
                 .findFirst()
                 .map(allowedConcurrentStateChange -> allowedConcurrentStateChange.resolve(localJob, jobFromStorage))
                 .orElse(ConcurrentJobModificationResolveResult.failed(localJob, jobFromStorage));
     }
 
+
     private Job getJobFromStorageProvider(Job localJob) {
-        return storageProvider.getJobById(localJob.getId());
+        try {
+            return storageProvider.getJobById(localJob.getId());
+        } catch (JobNotFoundException e) {
+            // this happens when the job was permanently deleted while processing
+            return null;
+        }
     }
 
 }

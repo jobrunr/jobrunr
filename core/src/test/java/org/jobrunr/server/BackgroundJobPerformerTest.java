@@ -8,6 +8,7 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -158,6 +159,21 @@ class BackgroundJobPerformerTest {
         assertThat(logger)
                 .hasNoWarnLogMessages()
                 .hasErrorMessage(String.format("Job(id=%s, jobName='failed job') processing failed: An exception occurred during the performance of the job", job.getId()));
+    }
+
+    @Test
+    void onConcurrentJobModificationExceptionAllIsStillOk() throws Exception {
+        Job job = anEnqueuedJob().build();
+
+        when(storageProvider.save(job))
+                .thenReturn(job)
+                .thenThrow(new ConcurrentJobModificationException(job));
+        mockBackgroundJobRunner(job, job1 -> {
+        });
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        backgroundJobPerformer.run();
+
     }
 
     private void mockBackgroundJobRunner(Job job, Consumer<Job> jobConsumer) throws Exception {

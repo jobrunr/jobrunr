@@ -171,6 +171,25 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void jobsThatAreBeingProcessedButArePermanentlyDeletedViaAPIWillBeInterrupted() {
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+        doThrow(new ConcurrentJobModificationException(job)).when(storageProvider).save(singletonList(job));
+        when(storageProvider.getJobById(job.getId())).thenThrow(new JobNotFoundException(job.getId()));
+        final Thread threadMock = mock(Thread.class);
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job, threadMock);
+        jobZooKeeper.run();
+
+        assertThat(logger).hasNoWarnLogMessages();
+
+        assertThat(job).hasState(DELETED);
+        verify(storageProvider).save(singletonList(job));
+        verify(threadMock).interrupt();
+    }
+
+    @Test
     void checkForRecurringJobs() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
