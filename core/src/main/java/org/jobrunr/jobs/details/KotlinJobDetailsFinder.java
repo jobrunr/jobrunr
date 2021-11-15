@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getKotlinClassContainingLambdaAsInputStream;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromField;
 
@@ -21,7 +22,8 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
 
     private enum KotlinVersion {
         ONE_FOUR,
-        ONE_FIVE
+        ONE_FIVE,
+        ONE_SIX
     }
 
     private final JobRunrJob jobRunrJob;
@@ -47,6 +49,8 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
                         kotlinVersion = KotlinVersion.ONE_FOUR;
                     } else if (version[0] == 1 && version[1] == 5) {
                         kotlinVersion = KotlinVersion.ONE_FIVE;
+                    } else if (version[0] == 1 && version[1] == 6) {
+                        kotlinVersion = KotlinVersion.ONE_SIX;
                     } else {
                         throw new UnsupportedOperationException("The Kotlin version " + version[0] + "." + version[1] + " is unsupported");
                     }
@@ -60,10 +64,10 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
         if (name.equals(ACCEPT) || name.equals(INVOKE)) {
             methodCounter++;
         }
-        if (KotlinVersion.ONE_FIVE.equals(kotlinVersion)) {
-            return name.equals(RUN) || ((name.equals(ACCEPT) || name.equals(INVOKE)) && methodCounter == 1);
-        } else {
+        if (KotlinVersion.ONE_FOUR.equals(kotlinVersion)) {
             return name.equals(RUN) || ((name.equals(ACCEPT) || name.equals(INVOKE)) && methodCounter == 2);
+        } else {
+            return name.equals(RUN) || ((name.equals(ACCEPT) || name.equals(INVOKE)) && methodCounter == 1);
         }
     }
 
@@ -101,7 +105,10 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
     }
 
     private void parseNestedClassIfItIsAMethodReference() {
-        if (nestedKotlinClassWithMethodReference != null) {
+        boolean isNestedKotlinClassWithMethodReference = nestedKotlinClassWithMethodReference != null
+                && !toFQResource(jobRunrJob.getClass().getName()).equals(nestedKotlinClassWithMethodReference);
+
+        if (isNestedKotlinClassWithMethodReference) {
             String location = "/" + nestedKotlinClassWithMethodReference + ".class";
             super.parse(jobRunrJob.getClass().getResourceAsStream(location));
             while (jobDetailsBuilder.getInstructions().size() > 1) {

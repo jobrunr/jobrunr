@@ -1,0 +1,86 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+  id 'signing'
+  id 'org.jetbrains.kotlin.jvm' version '1.6.0'
+}
+
+dependencies {
+  api project(':core')
+  compileOnly 'io.insert-koin:koin-core'
+
+  testImplementation project(':core')
+  testImplementation testFixtures(project(":core"))
+
+  testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+  testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      groupId = 'org.jobrunr'
+      artifactId = 'jobrunr-kotlin-1.5-support'
+      version = project.version.replace("v", "")
+      from components.java
+
+      pom {
+        name = 'JobRunr Kotlin 1.5 Support'
+        description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
+        url = 'https://github.com/jobrunr/jobrunr'
+        licenses {
+          license {
+            name = 'GNU Lesser General Public License v3.0 or later'
+            url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+          }
+          license {
+            name = 'Commercial License'
+            url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+          }
+        }
+        developers {
+          developer {
+            id = 'rdehuyss'
+            name = 'Ronald Dehuysser'
+            email = 'ronald.dehuysser@gmail.com'
+          }
+        }
+        scm {
+          connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+          developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+          url = 'https://github.com/jobrunr/jobrunr.git'
+        }
+
+        versionMapping {
+          usage('java-runtime') {
+            fromResolutionResult()
+          }
+        }
+
+        withXml {
+          def pomNode = asNode()
+          pomNode.remove(pomNode.dependencyManagement)
+          pomNode.dependencies.'*'.findAll() {
+            it.optional.text() == 'true'
+          }.each() {
+            it.parent().remove(it)
+          }
+        }
+      }
+    }
+  }
+}
+
+signing {
+  String base64Key = System.getenv('SIGNING_KEY')
+  if (base64Key) {
+    useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+    sign publishing.publications.mavenJava
+  }
+}
