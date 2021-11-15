@@ -97,6 +97,11 @@ class JdkTest {
         assertThat(buildAndTestOnImage("amd64/openjdk:17")).contains("BUILD SUCCESS");
     }
 
+    @Test
+    void jdk18OpenJDK() {
+        assertThat(buildAndTestOnImage("amd64/openjdk:18-ea-jdk")).contains("BUILD SUCCESS");
+    }
+
     private String buildAndTestOnImage(String dockerfile) {
         final MavenBuildAndTestContainer buildAndTestContainer = new MavenBuildAndTestContainer(dockerfile);
         buildAndTestContainer
