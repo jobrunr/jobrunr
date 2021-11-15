@@ -539,7 +539,10 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         if (jedis.exists(jobKey(keyPrefix, jobToSave))) throw new ConcurrentJobModificationException(jobToSave);
         try (Transaction transaction = jedis.multi()) {
             saveJob(transaction, jobToSave);
-            transaction.exec();
+            final List<Object> result = transaction.exec();
+            if (result == null || result.isEmpty()) {
+                throw new StorageException("Unable to save job " + jobToSave.getId() + " with version " + jobToSave.getVersion());
+            }
         }
     }
 

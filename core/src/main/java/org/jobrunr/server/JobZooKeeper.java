@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -50,7 +51,7 @@ public class JobZooKeeper implements Runnable {
     private final ReentrantLock reentrantLock;
     private final AtomicInteger occupiedWorkers;
     private final Duration durationPollIntervalTimeBox;
-    private long runStartTime;
+    private Instant runStartTime;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
@@ -69,7 +70,7 @@ public class JobZooKeeper implements Runnable {
     @Override
     public void run() {
         try {
-            runStartTime = System.currentTimeMillis();
+            runStartTime = Instant.now();
             if (backgroundJobServer.isUnAnnounced()) return;
 
             updateJobsThatAreBeingProcessed();
@@ -84,6 +85,11 @@ public class JobZooKeeper implements Runnable {
                 backgroundJobServer.stop();
             }
         }
+    }
+
+    void updateJobsThatAreBeingProcessed() {
+        LOGGER.debug("Updating currently processed jobs... ");
+        processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), this::updateCurrentlyProcessingJob);
     }
 
     void runMasterTasksIfCurrentServerIsMaster() {
@@ -114,7 +120,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForOrphanedJobs() {
         LOGGER.debug("Looking for orphan jobs... ");
-        final Instant updatedBefore = now().minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
+        final Instant updatedBefore = runStartTime.minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
         Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
     }
@@ -138,11 +144,6 @@ public class JobZooKeeper implements Runnable {
     void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
         storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(backgroundJobServer.getServerStatus().getPermanentlyDeleteDeletedJobsAfter()));
-    }
-
-    void updateJobsThatAreBeingProcessed() {
-        LOGGER.debug("Updating currently processed jobs... ");
-        processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), this::updateCurrentlyProcessingJob);
     }
 
     void onboardNewWorkIfPossible() {
@@ -183,12 +184,10 @@ public class JobZooKeeper implements Runnable {
     }
 
     void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
-        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
-
-        List<Job> jobs = jobListSupplier.get();
+        List<Job> jobs = getJobsToProcess(jobListSupplier);
         while (!jobs.isEmpty()) {
             processJobList(jobs, jobConsumer);
-            jobs = jobListSupplier.get();
+            jobs = getJobsToProcess(jobListSupplier);
         }
     }
 
@@ -240,17 +239,21 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
+    private List<Job> getJobsToProcess(Supplier<List<Job>> jobListSupplier) {
+        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return emptyList();
+        return jobListSupplier.get();
+    }
+
     private void updateCurrentlyProcessingJob(Job job) {
         try {
             job.updateProcessing();
         } catch (ClassCastException e) {
-            // why: because of thread context switching there is a really small chance that the job has succeeded
+            // why: because of thread context switching there is a tiny chance that the job has succeeded
         }
     }
 
     private boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
-        final long currentTime = System.currentTimeMillis();
-        final Duration durationRunTime = Duration.ofMillis(currentTime - runStartTime);
+        final Duration durationRunTime = Duration.between(runStartTime, now());
         final boolean runTimeBoxIsPassed = durationRunTime.compareTo(durationPollIntervalTimeBox) >= 0;
         if (runTimeBoxIsPassed) {
             LOGGER.debug("JobRunr is passing the poll interval in seconds timebox because of too many tasks.");

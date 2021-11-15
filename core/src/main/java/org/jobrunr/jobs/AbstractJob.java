@@ -8,7 +8,7 @@ public abstract class AbstractJob implements Lockable {
 
     private final transient Lock locker;
 
-    private int version;
+    private volatile int version;
     private String jobSignature;
     private String jobName;
     private JobDetails jobDetails;
@@ -40,7 +40,7 @@ public abstract class AbstractJob implements Lockable {
      *
      * @return the version after it was increased
      */
-    int increaseVersion() {
+    synchronized int increaseVersion() {
         return ++version;
     }
 

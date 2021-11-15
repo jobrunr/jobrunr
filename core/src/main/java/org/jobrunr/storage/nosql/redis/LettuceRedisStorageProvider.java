@@ -587,7 +587,10 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         if (commands.exists(jobKey(keyPrefix, jobToSave)) > 0) throw new ConcurrentJobModificationException(jobToSave);
         commands.multi();
         saveJob(commands, jobToSave);
-        commands.exec();
+        TransactionResult result = commands.exec();
+        if (result.wasDiscarded()) {
+            throw new StorageException("Unable to save job " + jobToSave.getId() + " with version " + jobToSave.getVersion());
+        }
     }
 
     private void updateJob(Job jobToSave, RedisCommands<String, String> commands) {
@@ -597,8 +600,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         commands.multi();
         saveJob(commands, jobToSave);
         TransactionResult result = commands.exec();
-        commands.unwatch();
-        if (result == null || result.isEmpty()) throw new ConcurrentJobModificationException(jobToSave);
+        if (result == null || result.isEmpty()) {
+            throw new ConcurrentJobModificationException(jobToSave);
+        }
     }
 
     private void saveJob(RedisCommands<String, String> commands, Job jobToSave) {
