@@ -141,7 +141,7 @@ public class Job extends AbstractJob {
         addJobState(new SucceededState(latencyDuration, processDuration));
     }
 
-    public void failed(String message, Exception exception) {
+    public void failed(String message, Throwable exception) {
         addJobState(new FailedState(message, exception));
     }
 

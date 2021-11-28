@@ -27,7 +27,7 @@ public class FailedState extends AbstractJobState {
         this.doNotRetry = false;
     }
 
-    public FailedState(String message, Exception exception) {
+    public FailedState(String message, Throwable exception) {
         super(StateName.FAILED);
         this.message = message;
         this.exceptionType = exception.getClass().getName();
@@ -82,11 +82,11 @@ public class FailedState extends AbstractJobState {
         }
     }
 
-    private static boolean hasCause(Exception exception) {
+    private static boolean hasCause(Throwable exception) {
         return exception.getCause() != null && exception.getCause() != exception;
     }
 
-    private static boolean isProblematicAndDoNotRetry(Exception exception) {
+    private static boolean isProblematicAndDoNotRetry(Throwable exception) {
         return exception instanceof JobRunrException && ((JobRunrException) exception).isProblematicAndDoNotRetry();
     }
 

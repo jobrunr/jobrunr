@@ -8,9 +8,11 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.utils.annotations.VisibleFor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.jobrunr.jobs.states.StateName.DELETED;
@@ -104,12 +106,13 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToFailedAndRunJobFilters(String message, Exception e) {
         try {
-            job.failed(message, e);
+            Throwable actualException = unwrapException(e);
+            job.failed(message, actualException);
             saveAndRunStateRelatedJobFilters(job);
             if (job.getState() == FAILED) {
-                LOGGER.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
+                LOGGER.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, actualException);
             } else {
-                LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, e);
+                LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, actualException);
             }
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
@@ -143,5 +146,19 @@ public class BackgroundJobPerformer implements Runnable {
 
     private boolean isJobNotFoundException(Exception e) {
         return e instanceof JobNotFoundException;
+    }
+
+    /**
+     * JobRunr uses reflection to run jobs. Any error in jobs is wrapped in {@link InvocationTargetException}.
+     * Job details shows {@link InvocationTargetException} and its stacktrace on UI
+     * with lots of internal details not related to the job.
+     * It makes harder for users to read exceptions
+     * and leaves less space for the actual errors' stacktraces on UI.
+     */
+    @VisibleFor("testing")
+    static Throwable unwrapException(Exception e) {
+        if (!(e instanceof InvocationTargetException)) return e;
+
+        return ((InvocationTargetException) e).getTargetException();
     }
 }
