@@ -2,6 +2,7 @@ package org.jobrunr.utils.exceptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.Supplier;
 
 public class Exceptions {
 
@@ -47,5 +48,19 @@ public class Exceptions {
     @FunctionalInterface
     public interface ThrowingBiFunction<T, U, R> {
         R apply(T t, U u) throws Exception;
+    }
+
+    public static <T> T retryOnException(Supplier<T> supplier, int maxRetries) {
+        int count = 0;
+        while (true) {
+            try {
+                Thread.sleep(count * 20);
+                return supplier.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (RuntimeException e) {
+                if (++count >= maxRetries) throw e;
+            }
+        }
     }
 }
