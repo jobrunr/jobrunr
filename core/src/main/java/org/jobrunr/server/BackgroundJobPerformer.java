@@ -106,7 +106,7 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToFailedAndRunJobFilters(String message, Exception e) {
         try {
-            Throwable actualException = unwrapException(e);
+            Exception actualException = unwrapException(e);
             job.failed(message, actualException);
             saveAndRunStateRelatedJobFilters(job);
             if (job.getState() == FAILED) {
@@ -156,9 +156,11 @@ public class BackgroundJobPerformer implements Runnable {
      * and leaves less space for the actual errors' stacktraces on UI.
      */
     @VisibleFor("testing")
-    static Throwable unwrapException(Exception e) {
-        if (!(e instanceof InvocationTargetException)) return e;
+    static Exception unwrapException(Exception e) {
+        if (e instanceof InvocationTargetException && e.getCause() instanceof Exception) {
+            return (Exception) e.getCause();
+        }
 
-        return ((InvocationTargetException) e).getTargetException();
+        return e;
     }
 }
