@@ -18,9 +18,10 @@
       ]
     },
     "id": "recurring-job-1",
-    "cronExpression": "0 0 * * *",
+    "scheduleExpression": "0 0 * * *",
     "zoneId": "${json-unit.ignore}",
-    "nextRun": "${json-unit.ignore}"
+    "nextRun": "${json-unit.ignore}",
+    "createdAt": "${json-unit.ignore}"
   },
   {
     "@class": "${json-unit.ignore-element}",
@@ -41,8 +42,9 @@
       ]
     },
     "id": "recurring-job-2",
-    "cronExpression": "0 0 * * *",
+    "scheduleExpression": "0 0 * * *",
     "zoneId": "${json-unit.ignore}",
-    "nextRun": "${json-unit.ignore}"
+    "nextRun": "${json-unit.ignore}",
+    "createdAt": "${json-unit.ignore}"
   }
 ]

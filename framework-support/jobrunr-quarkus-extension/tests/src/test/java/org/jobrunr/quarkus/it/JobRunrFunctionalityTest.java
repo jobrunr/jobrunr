@@ -43,7 +43,7 @@ public class JobRunrFunctionalityTest {
         final HttpResponse<String> response = dashboardApi.get("/api/recurring-jobs");
         assertThat(response)
                 .hasStatusCode(200)
-                .hasJsonBody(json -> json.inPath("[0].cronExpression").isEqualTo("*/15 * * * *"))
+                .hasJsonBody(json -> json.inPath("[0].scheduleExpression").isEqualTo("*/15 * * * *"))
                 .hasJsonBody(json -> json.inPath("[0].id").isEqualTo("my-recurring-job"))
                 .hasJsonBody(json -> json.inPath("[0].jobDetails.className").isEqualTo("org.jobrunr.quarkus.it.TestService"))
                 .hasJsonBody(json -> json.inPath("[0].jobDetails.methodName").isEqualTo("aRecurringJob"));

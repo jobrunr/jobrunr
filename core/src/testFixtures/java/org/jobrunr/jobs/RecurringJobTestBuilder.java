@@ -3,9 +3,13 @@ package org.jobrunr.jobs;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.interval.Interval;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
@@ -15,8 +19,9 @@ public class RecurringJobTestBuilder {
     private String id;
     private String name;
     private JobDetails jobDetails;
-    private CronExpression cronExpression;
+    private Schedule schedule;
     private ZoneId zoneId;
+    private Instant createdAt;
 
     private RecurringJobTestBuilder() {
 
@@ -71,7 +76,12 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withCronExpression(String cronExpression) {
-        this.cronExpression = CronExpression.create(cronExpression);
+        this.schedule = CronExpression.create(cronExpression);
+        return this;
+    }
+
+    public RecurringJobTestBuilder withIntervalExpression(String intervalExpression) {
+        this.schedule = new Interval(Duration.parse(intervalExpression));
         return this;
     }
 
@@ -80,11 +90,21 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
+    public RecurringJobTestBuilder withCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+
     public RecurringJob build() {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
+        final RecurringJob recurringJob;
+
+        if (createdAt != null) {
+            recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
+        } else {
+            recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
+        }
+
         recurringJob.setJobName(name);
         return recurringJob;
     }
-
-
 }

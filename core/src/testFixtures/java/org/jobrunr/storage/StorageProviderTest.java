@@ -617,7 +617,7 @@ public abstract class StorageProviderTest {
         RecurringJob recurringJobv2 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv2);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
-        assertThat(storageProvider.getRecurringJobs().get(0).getCronExpression()).isEqualTo(Cron.hourly());
+        assertThat(storageProvider.getRecurringJobs().get(0).getScheduleExpression()).isEqualTo(Cron.hourly());
 
         storageProvider.deleteRecurringJob("my-job");
 
