@@ -9,7 +9,6 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -119,8 +118,8 @@ public class AbstractJobScheduler {
         return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
     }
 
-    String scheduleRecurrently(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
+    String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
         jobFilterUtils.runOnCreatingFilter(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
         jobFilterUtils.runOnCreatedFilter(recurringJob);

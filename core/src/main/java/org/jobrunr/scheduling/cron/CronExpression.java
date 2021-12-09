@@ -1,5 +1,7 @@
 package org.jobrunr.scheduling.cron;
 
+import org.jobrunr.scheduling.Schedule;
+
 import java.time.*;
 import java.util.BitSet;
 import java.util.Calendar;
@@ -19,7 +21,7 @@ import static java.time.Instant.now;
  * @author Ahmed AlSahaf
  * @author Ronald Dehuysser (minor modifications)
  */
-public class CronExpression implements Comparable<CronExpression> {
+public class CronExpression extends Schedule {
 
     private enum DaysAndDaysOfWeekRelation {
         INTERSECT, UNION
@@ -149,29 +151,12 @@ public class CronExpression implements Comparable<CronExpression> {
     }
 
     /**
-     * Calculates the next occurrence based on the current time (at UTC TimeZone).
-     *
-     * @return Instant of the next occurrence.
-     */
-    public Instant next() {
-        return next(now(), ZoneOffset.UTC);
-    }
-
-    /**
-     * Calculates the next occurrence based on the current time (at the given TimeZone).
-     *
-     * @return Instant of the next occurrence.
-     */
-    public Instant next(ZoneId zoneId) {
-        return next(Instant.now(), zoneId);
-    }
-
-    /**
      * Calculates the next occurrence based on provided base time.
      *
      * @param baseInstant Instant object based on which calculating the next occurrence.
      * @return Instant of the next occurrence.
      */
+    @Override
     public Instant next(Instant baseInstant, ZoneId zoneId) {
         LocalDateTime baseDate = LocalDateTime.ofInstant(baseInstant, zoneId);
         int baseSecond = baseDate.getSecond();
@@ -257,32 +242,6 @@ public class CronExpression implements Comparable<CronExpression> {
                     .atZone(zoneId)
                     .toInstant();
         }
-    }
-
-    /**
-     * Compare two {@code Schedule} objects based on next occurrence.
-     * <p>
-     * The next occurrences are calculated based on the current time.
-     *
-     * @param anotherCronExpression the {@code Schedule} to be compared.
-     * @return the value {@code 0} if this {@code Schedule} next occurrence is equal
-     * to the argument {@code Schedule} next occurrence; a value less than
-     * {@code 0} if this {@code Schedule} next occurrence is before the
-     * argument {@code Schedule} next occurrence; and a value greater than
-     * {@code 0} if this {@code Schedule} next occurrence is after the
-     * argument {@code Schedule} next occurrence.
-     */
-    @Override
-    public int compareTo(CronExpression anotherCronExpression) {
-        if (anotherCronExpression == this) {
-            return 0;
-        }
-
-        Instant baseInstant = now();
-        final Instant nextAnother = anotherCronExpression.next(baseInstant, ZoneOffset.UTC);
-        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC);
-
-        return nextThis.compareTo(nextAnother);
     }
 
     /**
@@ -395,5 +354,18 @@ public class CronExpression implements Comparable<CronExpression> {
             updatedDays.set(i, false);
         }
         return updatedDays;
+    }
+
+    public void validateSchedule() {
+        Instant base = Instant.EPOCH;
+        Instant fiveSeconds = base.plusSeconds(SMALLEST_SCHEDULE_IN_SECONDS);
+
+        if (next(base, ZoneOffset.UTC).isBefore(fiveSeconds)) {
+            throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));        }
+    }
+
+    @Override
+    public String toString() {
+        return expression;
     }
 }
