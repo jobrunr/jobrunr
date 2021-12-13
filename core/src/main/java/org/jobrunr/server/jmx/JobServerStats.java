@@ -1,6 +1,5 @@
 package org.jobrunr.server.jmx;
 
-import javax.management.JMException;
 import javax.management.MBeanServer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -74,7 +73,7 @@ public class JobServerStats {
         try {
             final Object attribute = platformMBeanServer.getAttribute(operatingSystemMXBean.getObjectName(), name);
             return cast(attribute);
-        } catch (JMException | NullPointerException ex) {
+        } catch (Throwable ex) {
             return cast(-1);
         }
     }
