@@ -8,6 +8,7 @@ import org.jobrunr.utils.exceptions.Exceptions;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.lettuce.core.LettuceFutures.awaitAll;
@@ -32,7 +33,7 @@ public class LettuceRedisPipelinedStream<T> extends AbstractPipelinedStream<T> {
         RedisAsyncCommands<String, String> redisAsyncCommands = connection.async();
         List<R> collect = initialStream
                 .map(item -> biFunction.apply(redisAsyncCommands, item))
-                .collect(toList()); // must collect otherwise map is not executed
+                .collect(Collectors.toList()); // must collect otherwise map is not executed
         connection.flushCommands();
         awaitAll(ofSeconds(10), collect.toArray(new RedisFuture[0]));
         return new LettuceRedisPipelinedStream<>(collect, connection);
