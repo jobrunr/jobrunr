@@ -6,6 +6,7 @@ import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleFactory;
 import org.jobrunr.scheduling.interval.Interval;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -30,12 +31,18 @@ public class RecurringJob extends AbstractJob {
         this.id = validateAndSetId(id);
         this.scheduleExpression = scheduleExpression;
         this.zoneId = zoneId;
-        ScheduleFactory.getSchedule(scheduleExpression).validateSchedule();
+        Schedule schedule = ScheduleFactory.getSchedule(scheduleExpression);
+        schedule.validateSchedule();
+        if (schedule instanceof Interval) {
+            this.createdAt = Instant.now(Clock.system(ZoneId.of(this.zoneId)));
+        }
     }
 
     public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
         this(id, jobDetails, scheduleExpression, zoneId);
-        if(createdAt != null && !createdAt.isEmpty()) this.createdAt = Instant.parse(createdAt);
+        if(createdAt != null && !createdAt.isEmpty()) {
+            this.createdAt = Instant.parse(createdAt);
+        }
     }
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
