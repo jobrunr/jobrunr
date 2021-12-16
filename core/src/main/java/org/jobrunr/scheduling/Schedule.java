@@ -4,7 +4,7 @@ import static java.time.Instant.now;
 
 import java.time.*;
 
-public abstract class Schedule implements Comparable<Schedule>{
+public abstract class Schedule implements Comparable<Schedule> {
 
     public static final int SMALLEST_SCHEDULE_IN_SECONDS = 5;
 

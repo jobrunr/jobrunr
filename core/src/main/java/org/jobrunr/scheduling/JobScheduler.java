@@ -545,8 +545,8 @@ public class JobScheduler extends AbstractJobScheduler {
      *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
-     * @param duration  the duration defining the time between each instance of this recurring job
-     * @param job  the lambda which defines the fire-and-forget job
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param job      the lambda which defines the fire-and-forget job
      * @return the id of this recurring job which can be used to alter or delete it
      */
     public String scheduleRecurrently(Duration duration, JobLambda job) {
@@ -560,8 +560,8 @@ public class JobScheduler extends AbstractJobScheduler {
      *      BackgroundJob.<MyService>scheduleRecurrently(Duration.parse("P5D"), x -> x.doWork());
      * }</pre>
      *
-     * @param duration  the duration defining the time between each instance of this recurring job
-     * @param iocJob the lambda which defines the fire-and-forget job
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param iocJob   the lambda which defines the fire-and-forget job
      * @return the id of this recurring job which can be used to alter or delete it
      */
     public <S> String scheduleRecurrently(Duration duration, IocJobLambda<S> iocJob) {
@@ -576,9 +576,9 @@ public class JobScheduler extends AbstractJobScheduler {
      *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
-     * @param id   the id of this recurring job which can be used to alter or delete it
-     * @param duration  the duration defining the time between each instance of this recurring job
-     * @param job  the lambda which defines the fire-and-forget job
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param job      the lambda which defines the fire-and-forget job
      * @return the id of this recurring job which can be used to alter or delete it
      */
     public String scheduleRecurrently(String id, Duration duration, JobLambda job) {
@@ -592,9 +592,9 @@ public class JobScheduler extends AbstractJobScheduler {
      *      BackgroundJob.<MyService>scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), x -> x.doWork());
      * }</pre>
      *
-     * @param id     the id of this recurring job which can be used to alter or delete it
-     * @param duration   the duration defining the time between each instance of this recurring job
-     * @param iocJob the lambda which defines the fire-and-forget job
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param iocJob   the lambda which defines the fire-and-forget job
      * @return the id of this recurring job which can be used to alter or delete it
      */
     public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
@@ -609,10 +609,10 @@ public class JobScheduler extends AbstractJobScheduler {
      *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), ZoneId.of("Europe/Brussels"), () -> service.doWork());
      * }</pre>
      *
-     * @param id     the id of this recurring job which can be used to alter or delete it
-     * @param duration   the duration defining the time between each instance of this recurring job
-     * @param zoneId The zoneId (timezone) of when to run this recurring job
-     * @param job    the lambda which defines the fire-and-forget job
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param zoneId   The zoneId (timezone) of when to run this recurring job
+     * @param job      the lambda which defines the fire-and-forget job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see Cron
      */
@@ -628,10 +628,10 @@ public class JobScheduler extends AbstractJobScheduler {
      *      BackgroundJob.<MyService>scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), ZoneId.of("Europe/Brussels"), x -> x.doWork());
      * }</pre>
      *
-     * @param id     the id of this recurring job which can be used to alter or delete it
-     * @param duration   the duration defining the time between each instance of this recurring job
-     * @param zoneId The zoneId (timezone) of when to run this recurring job
-     * @param iocJob the lambda which defines the fire-and-forget job
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param zoneId   The zoneId (timezone) of when to run this recurring job
+     * @param iocJob   the lambda which defines the fire-and-forget job
      * @return the id of this recurring job which can be used to alter or delete it
      */
     public <S> String scheduleRecurrently(String id, Duration duration, ZoneId zoneId, IocJobLambda<S> iocJob) {

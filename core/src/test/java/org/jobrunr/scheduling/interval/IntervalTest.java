@@ -20,7 +20,7 @@ class IntervalTest {
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private static final String TEN_SECONDS = "PT1S";
+    private static final String TEN_SECONDS = "PT10S";
     private static final String FORTY_EIGHT_HOURS = "PT48H";
     private static final String EIGHT_DAYS = "P8D";
 
@@ -31,19 +31,33 @@ class IntervalTest {
             Instant inputInstant = LocalDateTime.parse(baseDate, dateTimeFormatter).toInstant(UTC);
             Interval interval = new Interval(durationExpression);
             Duration duration = Duration.parse(durationExpression);
-            Instant actualInstant = interval.next(inputInstant, UTC);
+            Instant nextInstant = interval.next(inputInstant, UTC);
             Instant now = Instant.now();
 
-            assertThat(actualInstant)
-                    .describedAs("Expecting %s to be after or equal to %s for duration %s and start date %s", actualInstant, now, duration, inputInstant)
+            assertThat(nextInstant)
+                    .describedAs("Expecting %s to be after or equal to %s for duration %s and start date %s", nextInstant, now, duration, inputInstant)
                     .isAfterOrEqualTo(now);
-            assertThat(actualInstant)
-                    .describedAs("Expecting %s to be before to %s for duration %s and start date %s", actualInstant, now.plus(duration), duration, inputInstant)
+            assertThat(nextInstant)
+                    .describedAs("Expecting %s to be before to %s for duration %s and start date %s", nextInstant, now.plus(duration), duration, inputInstant)
                     .isBefore(now.plus(duration));
         } catch (Exception e) {
             System.out.printf("Error for %s and %s%n", baseDate, durationExpression);
             throw e;
         }
+    }
+
+    @Test
+    void testInterval() {
+        Instant now = Instant.now();
+        Interval interval = new Interval(TEN_SECONDS);
+        Duration duration = Duration.parse(TEN_SECONDS);
+        Instant nextInstant = interval.next(now, UTC);
+
+        assertThat(nextInstant)
+                .describedAs("Expecting %s to be after or equal to %s for duration %s and start with now()", nextInstant, now, duration)
+                .isAfterOrEqualTo(now);
+        assertThat(nextInstant)
+                .isEqualTo(now.plus(duration));
     }
 
     @Test

@@ -10,11 +10,11 @@ public class Interval extends Schedule {
 
     private final Duration duration;
 
-    public Interval(Duration duration){
+    public Interval(Duration duration) {
         this.duration = duration;
     }
 
-    public Interval(String durationExpression){
+    public Interval(String durationExpression) {
         this.duration = Duration.parse(durationExpression);
     }
 

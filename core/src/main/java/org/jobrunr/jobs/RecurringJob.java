@@ -3,7 +3,7 @@ package org.jobrunr.jobs;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
-import org.jobrunr.scheduling.ScheduleFactory;
+import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Clock;
@@ -31,7 +31,7 @@ public class RecurringJob extends AbstractJob {
         this.id = validateAndSetId(id);
         this.scheduleExpression = scheduleExpression;
         this.zoneId = zoneId;
-        Schedule schedule = ScheduleFactory.getSchedule(scheduleExpression);
+        Schedule schedule = ScheduleExpressionType.createSchedule(scheduleExpression);
         schedule.validateSchedule();
         if (schedule instanceof Interval) {
             this.createdAt = Instant.now(Clock.system(ZoneId.of(this.zoneId)));
@@ -40,7 +40,7 @@ public class RecurringJob extends AbstractJob {
 
     public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
         this(id, jobDetails, scheduleExpression, zoneId);
-        if(createdAt != null && !createdAt.isEmpty()) {
+        if (createdAt != null && !createdAt.isEmpty()) {
             this.createdAt = Instant.parse(createdAt);
         }
     }
@@ -80,9 +80,9 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun() {
-        Schedule schedule = ScheduleFactory.getSchedule(scheduleExpression);
+        Schedule schedule = ScheduleExpressionType.createSchedule(scheduleExpression);
 
-        if(schedule instanceof Interval){
+        if (schedule instanceof Interval) {
             return schedule.next(createdAt, ZoneId.of(zoneId));
         }
         return schedule.next(ZoneId.of(zoneId));
