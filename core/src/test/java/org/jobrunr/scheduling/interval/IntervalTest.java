@@ -26,38 +26,27 @@ class IntervalTest {
 
     @ParameterizedTest
     @MethodSource("startInstantDurationAndResultInstant")
-    void testInterval(String baseDate, String durationExpression) {
+    void testInterval(String baseDateTime, String durationExpression, String currentDateTime, String expectedDateTime) {
         try {
-            Instant inputInstant = LocalDateTime.parse(baseDate, dateTimeFormatter).toInstant(UTC);
+            Instant baseInstant = LocalDateTime.parse(baseDateTime, dateTimeFormatter).toInstant(UTC);
+            Instant currentInstant = LocalDateTime.parse(currentDateTime, dateTimeFormatter).toInstant(UTC);
+            Instant expectedInstant = LocalDateTime.parse(expectedDateTime, dateTimeFormatter).toInstant(UTC);
+
             Interval interval = new Interval(durationExpression);
             Duration duration = Duration.parse(durationExpression);
-            Instant nextInstant = interval.next(inputInstant, UTC);
-            Instant now = Instant.now();
+            Instant nextInstant = interval.next(baseInstant, currentInstant, UTC);
 
             assertThat(nextInstant)
-                    .describedAs("Expecting %s to be after or equal to %s for duration %s and start date %s", nextInstant, now, duration, inputInstant)
-                    .isAfterOrEqualTo(now);
+                    .describedAs("Expecting %s to be after or equal to %s for duration %s and start date %s", nextInstant, currentInstant, duration, baseInstant)
+                    .isAfterOrEqualTo(currentInstant);
             assertThat(nextInstant)
-                    .describedAs("Expecting %s to be before to %s for duration %s and start date %s", nextInstant, now.plus(duration), duration, inputInstant)
-                    .isBefore(now.plus(duration));
+                    .describedAs("Expecting %s to be equal to %s for duration %s and start date %s", nextInstant, expectedInstant, duration, baseInstant)
+                    .isEqualTo(expectedInstant);
+
         } catch (Exception e) {
-            System.out.printf("Error for %s and %s%n", baseDate, durationExpression);
+            System.out.printf("Error for %s and %s%n", baseDateTime, durationExpression);
             throw e;
         }
-    }
-
-    @Test
-    void testInterval() {
-        Instant now = Instant.now();
-        Interval interval = new Interval(TEN_SECONDS);
-        Duration duration = Duration.parse(TEN_SECONDS);
-        Instant nextInstant = interval.next(now, UTC);
-
-        assertThat(nextInstant)
-                .describedAs("Expecting %s to be after or equal to %s for duration %s and start with now()", nextInstant, now, duration)
-                .isAfterOrEqualTo(now);
-        assertThat(nextInstant)
-                .isEqualTo(now.plus(duration));
     }
 
     @Test
@@ -95,25 +84,24 @@ class IntervalTest {
 
     static Stream<Arguments> startInstantDurationAndResultInstant() {
         return Stream.of(
-                arguments("2019-01-01 00:00:00", TEN_SECONDS),
-                arguments("2019-01-01 00:00:09", TEN_SECONDS),
-                arguments("2019-01-01 00:58:59", TEN_SECONDS),
-                arguments("2019-01-01 11:59:59", TEN_SECONDS),
-                arguments("2019-01-01 00:59:59", TEN_SECONDS),
-                arguments("2019-01-01 11:59:59", TEN_SECONDS),
-                arguments("2019-01-01 23:59:59", TEN_SECONDS),
-                arguments("2021-11-29 23:59:59", TEN_SECONDS),
-                arguments("2019-02-28 23:59:59", TEN_SECONDS),
-                arguments("2019-12-31 23:59:59", TEN_SECONDS),
-                arguments("2020-02-28 23:59:59", TEN_SECONDS),
+                arguments("2019-01-01 00:00:00", TEN_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:00:10"),
+                arguments("2019-01-01 00:00:09", TEN_SECONDS, "2019-01-01 00:00:09", "2019-01-01 00:00:19"),
+                arguments("2019-01-01 00:58:59", TEN_SECONDS, "2019-01-01 00:58:59", "2019-01-01 00:59:09"),
+                arguments("2019-01-01 00:59:59", TEN_SECONDS, "2019-01-01 00:59:59", "2019-01-01 01:00:09"),
+                arguments("2019-01-01 11:59:59", TEN_SECONDS, "2019-01-01 11:59:59", "2019-01-01 12:00:09"),
+                arguments("2019-01-01 23:59:59", TEN_SECONDS, "2019-01-01 23:59:59", "2019-01-02 00:00:09"),
+                arguments("2021-11-29 23:59:59", TEN_SECONDS, "2021-11-29 23:59:59", "2021-11-30 00:00:09"),
+                arguments("2019-02-28 23:59:59", TEN_SECONDS, "2019-02-28 23:59:59", "2019-03-01 00:00:09"),
+                arguments("2019-12-31 23:59:59", TEN_SECONDS, "2019-12-31 23:59:59", "2020-01-01 00:00:09"),
+                arguments("2020-02-28 23:59:59", TEN_SECONDS, "2020-02-28 23:59:59", "2020-02-29 00:00:09"),
 
-                arguments("2021-01-01 11:59:59", FORTY_EIGHT_HOURS),
-                arguments("2021-11-29 11:59:59", FORTY_EIGHT_HOURS),
-                arguments("2021-11-28 11:59:59", FORTY_EIGHT_HOURS),
+                arguments("2021-01-01 11:59:59", FORTY_EIGHT_HOURS, "2021-01-01 11:59:59", "2021-01-03 11:59:59"),
+                arguments("2021-11-29 11:59:59", FORTY_EIGHT_HOURS, "2021-11-29 11:59:59", "2021-12-01 11:59:59"),
+                arguments("2021-11-28 11:59:59", FORTY_EIGHT_HOURS, "2021-11-28 11:59:59", "2021-11-30 11:59:59"),
 
-                arguments("2021-01-01 11:59:59", EIGHT_DAYS),
-                arguments("2021-11-29 11:59:59", EIGHT_DAYS),
-                arguments("2021-11-28 11:59:59", EIGHT_DAYS)
+                arguments("2021-01-01 11:59:59", EIGHT_DAYS, "2021-01-01 11:59:59", "2021-01-09 11:59:59"),
+                arguments("2021-11-29 11:59:59", EIGHT_DAYS, "2021-11-29 11:59:59", "2021-12-07 11:59:59"),
+                arguments("2021-11-28 11:59:59", EIGHT_DAYS, "2021-11-28 11:59:59", "2021-12-06 11:59:59")
         );
     }
 }

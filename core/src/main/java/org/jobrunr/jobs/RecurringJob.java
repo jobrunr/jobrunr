@@ -31,7 +31,7 @@ public class RecurringJob extends AbstractJob {
         this.id = validateAndSetId(id);
         this.scheduleExpression = scheduleExpression;
         this.zoneId = zoneId;
-        Schedule schedule = ScheduleExpressionType.createSchedule(scheduleExpression);
+        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
         schedule.validateSchedule();
         if (schedule instanceof Interval) {
             this.createdAt = Instant.now(Clock.system(ZoneId.of(this.zoneId)));
@@ -80,7 +80,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun() {
-        Schedule schedule = ScheduleExpressionType.createSchedule(scheduleExpression);
+        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
 
         if (schedule instanceof Interval) {
             return schedule.next(createdAt, ZoneId.of(zoneId));

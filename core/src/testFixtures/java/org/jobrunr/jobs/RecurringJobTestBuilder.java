@@ -80,17 +80,17 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
-    public RecurringJobTestBuilder withIntervalExpression(String intervalExpression) {
-        this.schedule = new Interval(Duration.parse(intervalExpression));
-        return this;
-    }
-
     public RecurringJobTestBuilder withZoneId(ZoneId zoneId) {
         this.zoneId = zoneId;
         return this;
     }
 
-    public RecurringJobTestBuilder withCreatedAt(Instant createdAt) {
+    public RecurringJobTestBuilder withIntervalExpression(String intervalExpression) {
+        return this.withIntervalExpression(intervalExpression, Instant.now());
+    }
+
+    public RecurringJobTestBuilder withIntervalExpression(String intervalExpression, Instant createdAt) {
+        this.schedule = new Interval(Duration.parse(intervalExpression));
         this.createdAt = createdAt;
         return this;
     }

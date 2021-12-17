@@ -82,7 +82,6 @@ class RecurringJobTest {
                 .withName("the recurring job")
                 .withIntervalExpression(Duration.ofHours(1).toString())
                 .withZoneId(ZoneOffset.of("+02:00"))
-                .withCreatedAt(Instant.now())
                 .build();
         Instant nextRun = recurringJob.getNextRun();
         assertThat(nextRun).isAfter(Instant.now());
