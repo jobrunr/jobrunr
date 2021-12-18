@@ -54,7 +54,7 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.5.1.Final/18b4f9988d23c1a67d0102d4902fe1b9f51d464f/quarkus-extension-processor-2.5.1.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.6.0.Final/886882976795b359d7d6c5c200f574092b960a54/quarkus-extension-processor-2.6.0.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.2.Final/e2bdb6460f3ce847867983b1a898ba4d306cd60e/jdeparser-2.0.2.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.14.2/5504b065b7582af4291826ecef463ff6729c5054/jsoup-1.14.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.14.10/8f3759c3860aee511083c6fe824cb19722e4038b/javaparser-core-3.14.10.jar" />
@@ -67,7 +67,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
-      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.tests.test" target="11" />
+      <module name="JobRunr.framework-support.jobrunr-spring-boot-native.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
