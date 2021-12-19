@@ -1,10 +1,7 @@
 package org.jobrunr.spring.nativex;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
-import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.documentdb.AmazonDocumentDBStorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
@@ -26,7 +23,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.nativex.hint.TypeAccess;
 
 import java.lang.reflect.Method;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -65,8 +61,5 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
         registry.reflection().forType(OracleStorageProvider.class).withAccess(TypeAccess.values()).build();
         registry.reflection().forType(SQLServerStorageProvider.class).withAccess(TypeAccess.values()).build();
         registry.reflection().forType(SqLiteStorageProvider.class).withAccess(TypeAccess.values()).build();
-
-
     }
-
 }
