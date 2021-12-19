@@ -93,6 +93,7 @@ jar {
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version.replace("v", "")
+        attributes 'Implementation-Version': project.version.replace("v", "")
         attributes 'Bundle-Version': project.version.replace("v", "")
         attributes 'Created-By': "Gradle ${gradle.gradleVersion}"
         attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
