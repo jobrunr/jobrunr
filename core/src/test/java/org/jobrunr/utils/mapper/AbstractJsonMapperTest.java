@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
+import static java.util.Collections.singleton;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJson;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
@@ -199,5 +200,17 @@ public abstract class AbstractJsonMapperTest {
 
         final Job actualJobFrom4Dot0Dot0 = jsonMapper.deserialize(jobAsStringFrom4Dot0Dot0, Job.class);
         assertThat(actualJobFrom4Dot0Dot0).isEqualTo(job);
+    }
+
+    @Test
+    void testCanSerializeCollectionsGithubIssue282() {
+        Long value = 1L;
+        Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCollection(singleton(value))).build();
+
+        String jobAsString = jsonMapper.serialize(job);
+
+        Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(deserializedJob.getJobDetails())
+                .hasArgs(singleton(value));
     }
 }

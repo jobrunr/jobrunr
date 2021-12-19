@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -271,6 +272,10 @@ public class TestService implements TestServiceInterface {
 
     public static void doWorkInStaticMethod(UUID id) {
         System.out.println("Doing work in static method:" + id);
+    }
+
+    public void doWorkWithCollection(Set<Long> singleton) {
+        System.out.println("Doing work with collections: " + singleton.size());
     }
 
     public static class Work {

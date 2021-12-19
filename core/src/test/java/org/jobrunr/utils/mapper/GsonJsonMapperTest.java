@@ -16,4 +16,8 @@ public class GsonJsonMapperTest extends AbstractJsonMapperTest {
     void testSerializeAndDeserializeEnqueuedJobGithubIssue254ComingFrom4Dot0Dot0() {
     }
 
+    @Test
+    @Disabled("Gson does not know type in actual list")
+    void testCanSerializeCollectionsGithubIssue282() {
+    }
 }
