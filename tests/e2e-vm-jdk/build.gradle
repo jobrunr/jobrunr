@@ -18,7 +18,7 @@ dependencies {
     implementation project(':core')
     implementation 'org.slf4j:slf4j-simple:1.7.32'
 
-    testImplementation 'org.jobrunr:jobrunr:[4.0.1]:test-fixtures'
+    testImplementation 'org.jobrunr:jobrunr:[4.0.5]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.8.7'
 
     testImplementation 'org.assertj:assertj-core:3.20.2'
