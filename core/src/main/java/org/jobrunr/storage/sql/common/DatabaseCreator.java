@@ -183,7 +183,7 @@ public class DatabaseCreator {
                 return new NoOpTablePrefixStatementUpdater();
             } else {
                 final String databaseProductName = connectionProvider.getConnection().getMetaData().getDatabaseProductName();
-                if ("Oracle" .equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
+                if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
                     return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
                 } else {
                     return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);

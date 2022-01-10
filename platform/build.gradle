@@ -22,7 +22,7 @@ dependencies {
         api 'io.insert-koin:koin-core:2.2.2'
 
         api 'org.xerial:sqlite-jdbc:3.36.0.3'
-        api 'com.h2database:h2:1.4.200'
+        api 'com.h2database:h2:2.0.206'
         api 'org.postgresql:postgresql:42.3.1'
         api 'com.google.cloud.sql:postgres-socket-factory:1.1.0'
         api 'com.oracle.database.jdbc:ojdbc8:21.4.0.0.1'
