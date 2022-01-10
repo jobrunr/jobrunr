@@ -14,7 +14,7 @@ public class MetadataDocumentMapper {
         document.put("_id", metadata.getId());
         document.put(Metadata.FIELD_NAME, metadata.getName());
         document.put(Metadata.FIELD_OWNER, metadata.getOwner());
-        document.put(Metadata.FIELD_VALUE, metadata.getValue());
+        document.put(Metadata.FIELD_VALUE, metadata.getMetadata());
         return document;
     }
 
@@ -23,7 +23,7 @@ public class MetadataDocumentMapper {
         document.put("_id", metadata.getId());
         document.put(Metadata.FIELD_NAME, metadata.getName());
         document.put(Metadata.FIELD_OWNER, metadata.getOwner());
-        document.put(Metadata.FIELD_VALUE, metadata.getValue());
+        document.put(Metadata.FIELD_VALUE, metadata.getMetadata());
         document.put(Metadata.FIELD_CREATED_AT, metadata.getCreatedAt());
         document.put(Metadata.FIELD_UPDATED_AT, metadata.getUpdatedAt());
 

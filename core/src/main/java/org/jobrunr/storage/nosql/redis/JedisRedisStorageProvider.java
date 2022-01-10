@@ -201,7 +201,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_ID, metadata.getId());
             p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_NAME, metadata.getName());
             p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_OWNER, metadata.getOwner());
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_VALUE, metadata.getValue());
+            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_VALUE, metadata.getMetadata());
             p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_CREATED_AT, String.valueOf(metadata.getCreatedAt()));
             p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_UPDATED_AT, String.valueOf(metadata.getUpdatedAt()));
             p.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));

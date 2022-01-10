@@ -282,7 +282,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
         JobRunrMetadata metadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
-        metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
+        metadata.setMetadata(new AtomicLong(parseLong(metadata.getMetadata()) + amount).toString());
     }
 
     private Stream<Job> getJobsStream(StateName state, PageRequest pageRequest) {

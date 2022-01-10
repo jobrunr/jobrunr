@@ -17,7 +17,7 @@ public class SevereJobRunrExceptionProblem extends Problem {
     public SevereJobRunrExceptionProblem(List<JobRunrMetadata> jobRunrMetadataSetWithSevereJobRunrExceptions) {
         super(PROBLEM_TYPE);
         this.githubIssueTitle = "Severe JobRunr Exception";
-        this.githubIssueBody = jobRunrMetadataSetWithSevereJobRunrExceptions.stream().map(JobRunrMetadata::getValue).collect(joining("\n\n\n"));
+        this.githubIssueBody = jobRunrMetadataSetWithSevereJobRunrExceptions.stream().map(JobRunrMetadata::getMetadata).collect(joining("\n\n\n"));
         this.githubIssueBodyLength = githubIssueBody.length();
     }
 

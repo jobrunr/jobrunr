@@ -9,20 +9,20 @@ public class JobRunrMetadata {
     private final String owner;
     private final Instant createdAt;
     private final Instant updatedAt;
-    private String value;
+    private String metadata;
 
-    public JobRunrMetadata(String name, String owner, Object value) {
-        this(name, owner, value.toString());
+    public JobRunrMetadata(String name, String owner, Object metadata) {
+        this(name, owner, metadata.toString());
     }
 
-    public JobRunrMetadata(String name, String owner, String value) {
-        this(name, owner, value, Instant.now(), Instant.now());
+    public JobRunrMetadata(String name, String owner, String metadata) {
+        this(name, owner, metadata, Instant.now(), Instant.now());
     }
 
-    public JobRunrMetadata(String name, String owner, String value, Instant createdAt, Instant updatedAt) {
+    public JobRunrMetadata(String name, String owner, String metadata, Instant createdAt, Instant updatedAt) {
         this.name = name;
         this.owner = owner;
-        this.value = value;
+        this.metadata = metadata;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -39,16 +39,16 @@ public class JobRunrMetadata {
         return name;
     }
 
-    public String getValue() {
-        return value;
+    public String getMetadata() {
+        return metadata;
     }
 
     public Long getValueAsLong() {
-        return Long.parseLong(value);
+        return Long.parseLong(metadata);
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
     }
 
     public Instant getCreatedAt() {

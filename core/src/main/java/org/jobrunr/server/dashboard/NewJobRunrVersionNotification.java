@@ -10,7 +10,7 @@ public class NewJobRunrVersionNotification implements DashboardNotification {
         if (!metadata.getName().equals(NewJobRunrVersionNotification.class.getSimpleName())) {
             throw new IllegalStateException("Can only be constructed for JobRunrMetadata with key " + NewJobRunrVersionNotification.class.getSimpleName());
         }
-        this.latestVersion = metadata.getValue();
+        this.latestVersion = metadata.getMetadata();
     }
 
     public NewJobRunrVersionNotification(String latestVersion) {

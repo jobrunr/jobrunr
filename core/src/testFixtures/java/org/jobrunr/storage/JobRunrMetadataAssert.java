@@ -26,12 +26,12 @@ public class JobRunrMetadataAssert extends AbstractAssert<JobRunrMetadataAssert,
     }
 
     public JobRunrMetadataAssert hasValue(String value) {
-        Assertions.assertThat(actual.getValue()).isEqualTo(value);
+        Assertions.assertThat(actual.getMetadata()).isEqualTo(value);
         return this;
     }
 
     public JobRunrMetadataAssert valueContains(String toContain) {
-        Assertions.assertThat(actual.getValue()).contains(toContain);
+        Assertions.assertThat(actual.getMetadata()).contains(toContain);
         return this;
     }
 

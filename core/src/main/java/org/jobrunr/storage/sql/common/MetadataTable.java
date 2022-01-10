@@ -21,7 +21,7 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
                 .with(FIELD_ID, JobRunrMetadata::getId)
                 .with(FIELD_NAME, JobRunrMetadata::getName)
                 .with(FIELD_OWNER, JobRunrMetadata::getOwner)
-                .with(FIELD_VALUE, JobRunrMetadata::getValue)
+                .with(FIELD_VALUE, JobRunrMetadata::getMetadata)
                 .with(FIELD_CREATED_AT, JobRunrMetadata::getCreatedAt)
                 .with(FIELD_UPDATED_AT, metadata -> Instant.now());
     }

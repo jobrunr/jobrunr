@@ -34,7 +34,7 @@ public class NewJobRunrVersionProblemHandler implements MetadataChangeListener, 
     public void onChange(List<JobRunrMetadata> metadataList) {
         if (isNewJobRunrVersionAvailable(metadataList)) {
             final JobRunrMetadata jobRunrMetadata = metadataList.get(0);
-            problems.addProblem(new NewJobRunrVersionProblem(jobRunrMetadata.getValue()));
+            problems.addProblem(new NewJobRunrVersionProblem(jobRunrMetadata.getMetadata()));
             isNewVersionAvailable = true;
         } else if (isJobRunrUpdatedToLatestVersion(metadataList)) {
             problems.removeProblemsOfType(NewJobRunrVersionProblem.PROBLEM_TYPE);

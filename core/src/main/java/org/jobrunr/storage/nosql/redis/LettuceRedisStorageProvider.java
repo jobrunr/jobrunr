@@ -226,7 +226,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_ID, metadata.getId());
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_NAME, metadata.getName());
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_OWNER, metadata.getOwner());
-            commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_VALUE, metadata.getValue());
+            commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_VALUE, metadata.getMetadata());
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_CREATED_AT, String.valueOf(metadata.getCreatedAt()));
             commands.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_UPDATED_AT, String.valueOf(metadata.getUpdatedAt()));
             commands.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));

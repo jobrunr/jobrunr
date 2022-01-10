@@ -100,7 +100,7 @@ public class ElasticSearchDocumentMapper {
             builder.startObject();
             builder.field(Metadata.FIELD_NAME, metadata.getName());
             builder.field(Metadata.FIELD_OWNER, metadata.getOwner());
-            builder.field(Metadata.FIELD_VALUE, metadata.getValue());
+            builder.field(Metadata.FIELD_VALUE, metadata.getMetadata());
             builder.field(Metadata.FIELD_CREATED_AT, metadata.getCreatedAt());
             builder.field(Metadata.FIELD_UPDATED_AT, metadata.getUpdatedAt());
             builder.endObject();
