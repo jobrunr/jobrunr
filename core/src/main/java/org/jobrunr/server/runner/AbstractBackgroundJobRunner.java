@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.JobUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.IntStream;

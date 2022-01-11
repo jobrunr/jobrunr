@@ -27,6 +27,8 @@ class CronTest {
                 arguments(Cron.hourly(), "0 * * * *"),
                 arguments(Cron.hourly(9), "9 * * * *"),
                 arguments(Cron.minutely(), "* * * * *"),
+                arguments(Cron.every15seconds(), "*/15 * * * * *"),
+                arguments(Cron.every30seconds(), "*/30 * * * * *"),
                 arguments(Cron.every5minutes(), "*/5 * * * *"),
                 arguments(Cron.every10minutes(), "*/10 * * * *"),
                 arguments(Cron.every15minutes(), "*/15 * * * *"),

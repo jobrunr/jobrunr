@@ -6,4 +6,9 @@ public class AnsiDialect implements Dialect {
     public String limitAndOffset(String order) {
         return " ORDER BY " + order + " LIMIT :limit OFFSET :offset";
     }
+
+    @Override
+    public String escape(String toEscape) {
+        return toEscape;
+    }
 }

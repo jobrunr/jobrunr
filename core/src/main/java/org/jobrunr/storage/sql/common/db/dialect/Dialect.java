@@ -4,4 +4,6 @@ public interface Dialect {
 
     String limitAndOffset(String order);
 
+    String escape(String toEscape);
+
 }

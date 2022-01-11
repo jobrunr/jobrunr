@@ -6,8 +6,8 @@ plugins {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:2.2.3.Final')
-    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.2.3.Final'
+    api platform('io.quarkus:quarkus-bom:2.6.1.Final')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.6.1.Final'
 
     api project(':core')
     api project(':framework-support:jobrunr-quarkus-extension:runtime') // why: https://quarkus.io/guides/building-my-first-extension

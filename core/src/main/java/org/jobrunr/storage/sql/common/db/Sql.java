@@ -235,7 +235,7 @@ public class Sql<T> {
     }
 
     final ParsedStatement createParsedStatement(String query) {
-        final String parsedStatement = parseStatement(query);
+        final String parsedStatement = parseStatement(dialect.escape(query));
         return new ParsedStatement(parsedStatement, new ArrayList<>(paramNames));
     }
 

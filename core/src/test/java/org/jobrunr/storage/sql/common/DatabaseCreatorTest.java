@@ -5,6 +5,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.storage.sql.common.migrations.DefaultSqlMigrationProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
+import org.jobrunr.storage.sql.h2.H2StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sqlite.SQLiteDataSource;
@@ -62,7 +63,7 @@ class DatabaseCreatorTest {
     @Test
     void testH2MigrationsWithSchema() {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS the_schema");
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "the_schema.prefix_");
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "the_schema.prefix_", H2StorageProvider.class);
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
         assertThatCode(databaseCreator::validateTables).doesNotThrowAnyException();
     }
@@ -70,9 +71,9 @@ class DatabaseCreatorTest {
     @Test
     void testH2ValidateWithTablesInWrongSchema() {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
-        final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1.prefix_");
+        final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1.prefix_", H2StorageProvider.class);
         databaseCreatorForSchema1.runMigrations();
-        final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2.prefix_");
+        final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2.prefix_", H2StorageProvider.class);
         assertThatThrownBy(databaseCreatorForSchema2::validateTables).isInstanceOf(JobRunrException.class);
     }
 

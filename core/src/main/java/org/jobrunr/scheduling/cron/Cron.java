@@ -33,6 +33,14 @@ public class Cron {
         return "* * * * *";
     }
 
+    public static String every15seconds() {
+        return "*/15 * * * * *";
+    }
+
+    public static String every30seconds() {
+        return "*/30 * * * * *";
+    }
+
     public static String every5minutes() {
         return "*/5 * * * *";
     }

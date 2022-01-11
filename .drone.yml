@@ -8,6 +8,10 @@ trigger:
     - master
   event:
     - push
+    - pull_request
+
+concurrency:
+  limit: 1
 
 steps:
   - name: prepare

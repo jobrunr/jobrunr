@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -29,7 +30,7 @@ public class JedisRedisPipelinedStream<T> extends AbstractPipelinedStream<T> {
         try (final Pipeline pipeline = jedis.pipelined()) {
             collect = initialStream
                     .map(item -> biFunction.apply(pipeline, item))
-                    .collect(toList()); // must collect otherwise map is not executed
+                    .collect(Collectors.toList()); // must collect otherwise map is not executed
             pipeline.sync();
         }
         return new JedisRedisPipelinedStream<>(collect, jedis);

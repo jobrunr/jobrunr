@@ -61,18 +61,18 @@ const Servers = React.memo(() => {
     const classes = useStyles();
 
     const [isLoading, setIsLoading] = React.useState(true);
-    const [servers, setServers] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const [servers, setServers] = React.useState([]);
     const [open, setOpen] = React.useState(false);
-    const serverRef = React.useRef(null);
+    const [currentServer, setCurrentServer] = React.useState(null);
 
-    const handleOpen = (serverId) => {
-        serverRef.current = servers.find(server => server.id = serverId);
+    const handleOpen = (server) => {
+        setCurrentServer(server);
         setOpen(true);
     };
 
     const handleClose = () => {
         setOpen(false);
-        serverRef.current = null;
+        setCurrentServer(null);
     };
 
 
@@ -94,8 +94,7 @@ const Servers = React.memo(() => {
     }, []);
 
     const sortServers = (servers) => {
-        servers.sort((a, b) => a.firstHeartbeat > b.firstHeartbeat)
-        return servers;
+        return [...servers].sort((a, b) => a.firstHeartbeat > b.firstHeartbeat);
     }
 
     return (
@@ -128,7 +127,7 @@ const Servers = React.memo(() => {
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server.id)}>
+                                                        <Link color="initial" onClick={() => handleOpen(server)}>
                                                             {server.id}
                                                         </Link>
                                                     </TableCell>
@@ -173,103 +172,103 @@ const Servers = React.memo(() => {
                 </>
             }
 
-            {serverRef.current &&
-            <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
-                <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
-                    Server info
-                    <Typography variant="body1">{serverRef.current.id}</Typography>
-                </MuiDialogTitle>
-                <MuiDialogContent dividers>
-                    <TableContainer>
-                        <Table className={classes.table} aria-label="simple table">
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell>
-                                        WorkerPoolSize
-                                    </TableCell>
-                                    <TableCell>
-                                        {serverRef.current.workerPoolSize}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        PollIntervalInSeconds
-                                    </TableCell>
-                                    <TableCell>
-                                        {serverRef.current.pollIntervalInSeconds}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        FirstHeartbeat
-                                    </TableCell>
-                                    <TableCell>
-                                        <TimeAgo date={new Date(serverRef.current.firstHeartbeat)}
-                                                 title={new Date(serverRef.current.firstHeartbeat).toString()}/>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        LastHeartbeat
-                                    </TableCell>
-                                    <TableCell>
-                                        <TimeAgo date={new Date(serverRef.current.lastHeartbeat)}
-                                                 title={new Date(serverRef.current.lastHeartbeat).toString()}/>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        SystemTotalMemory
-                                    </TableCell>
-                                    <TableCell>
-                                        {humanFileSize(serverRef.current.systemTotalMemory, true)}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        SystemFreeMemory
-                                    </TableCell>
-                                    <TableCell>
-                                        {humanFileSize(serverRef.current.systemFreeMemory, true)}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        SystemCpuLoad
-                                    </TableCell>
-                                    <TableCell>
-                                        {(serverRef.current.systemCpuLoad * 100).toFixed(2)} %
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        ProcessFreeMemory
-                                    </TableCell>
-                                    <TableCell>
-                                        {humanFileSize(serverRef.current.processFreeMemory, true)}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        ProcessAllocatedMemory
-                                    </TableCell>
-                                    <TableCell>
-                                        {humanFileSize(serverRef.current.processAllocatedMemory, true)}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        ProcessCpuLoad
-                                    </TableCell>
-                                    <TableCell>
-                                        {(serverRef.current.processCpuLoad * 100).toFixed(2)} %
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </MuiDialogContent>
-            </Dialog>
+            {currentServer &&
+                <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                    <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
+                        Server info
+                        <Typography variant="body1">{currentServer.id}</Typography>
+                    </MuiDialogTitle>
+                    <MuiDialogContent dividers>
+                        <TableContainer>
+                            <Table className={classes.table} aria-label="simple table">
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>
+                                            WorkerPoolSize
+                                        </TableCell>
+                                        <TableCell>
+                                            {currentServer.workerPoolSize}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            PollIntervalInSeconds
+                                        </TableCell>
+                                        <TableCell>
+                                            {currentServer.pollIntervalInSeconds}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            FirstHeartbeat
+                                        </TableCell>
+                                        <TableCell>
+                                            <TimeAgo date={new Date(currentServer.firstHeartbeat)}
+                                                     title={new Date(currentServer.firstHeartbeat).toString()}/>
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            LastHeartbeat
+                                        </TableCell>
+                                        <TableCell>
+                                            <TimeAgo date={new Date(currentServer.lastHeartbeat)}
+                                                     title={new Date(currentServer.lastHeartbeat).toString()}/>
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            SystemTotalMemory
+                                        </TableCell>
+                                        <TableCell>
+                                            {humanFileSize(currentServer.systemTotalMemory, true)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            SystemFreeMemory
+                                        </TableCell>
+                                        <TableCell>
+                                            {humanFileSize(currentServer.systemFreeMemory, true)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            SystemCpuLoad
+                                        </TableCell>
+                                        <TableCell>
+                                            {(currentServer.systemCpuLoad * 100).toFixed(2)} %
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            ProcessFreeMemory
+                                        </TableCell>
+                                        <TableCell>
+                                            {humanFileSize(currentServer.processFreeMemory, true)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            ProcessAllocatedMemory
+                                        </TableCell>
+                                        <TableCell>
+                                            {humanFileSize(currentServer.processAllocatedMemory, true)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>
+                                            ProcessCpuLoad
+                                        </TableCell>
+                                        <TableCell>
+                                            {(currentServer.processCpuLoad * 100).toFixed(2)} %
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </MuiDialogContent>
+                </Dialog>
             }
         </div>
     );
