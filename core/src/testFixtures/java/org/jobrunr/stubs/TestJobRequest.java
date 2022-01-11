@@ -38,7 +38,7 @@ public class TestJobRequest implements JobRequest {
     public static class TestJobRequestHandler implements JobRequestHandler<TestJobRequest> {
 
         @Override
-        @Job(name = "Some neat Job Display Name", retries = 2)
+        @Job(name = "Some neat Job Display Name", retries = 1)
         public void run(TestJobRequest jobRequest) {
             if (jobRequest.mustFail()) throw new IllegalArgumentException("it must fail");
             System.out.println("Running simple job request in background: " + jobRequest.getInput());

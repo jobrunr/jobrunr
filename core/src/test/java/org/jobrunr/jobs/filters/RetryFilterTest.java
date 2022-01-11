@@ -50,7 +50,6 @@ class RetryFilterTest {
         final Job job = aJob()
                 .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
                 .withState(new FailedState("a message", new RuntimeException("boem")))
-                .withState(new FailedState("firstRetry", new RuntimeException("boem")))
                 .build();
         int beforeVersion = job.getJobStates().size();
 
@@ -68,7 +67,6 @@ class RetryFilterTest {
                 .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
                 .withState(new FailedState("a message", new RuntimeException("boem")))
                 .withState(new FailedState("firstRetry", new RuntimeException("boem")))
-                .withState(new FailedState("secondRetry", new RuntimeException("boem")))
                 .build();
         int beforeVersion = job.getJobStates().size();
 
