@@ -48,7 +48,7 @@ public class RetryFilter implements ElectStateFilter {
         if (isNotFailed(newState) || isProblematicExceptionAndMustNotRetry(newState) || maxAmountOfRetriesReached(job))
             return;
 
-        job.scheduleAt(now().plusSeconds(getSecondsToAdd(job)), String.format("Retry %d of %d", getFailureCount(job), numberOfRetries));
+        job.scheduleAt(now().plusSeconds(getSecondsToAdd(job)), String.format("Retry %d of %d", getFailureCount(job), getMaxNumberOfRetries(job)));
     }
 
     protected long getSecondsToAdd(Job job) {
@@ -60,8 +60,7 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     private boolean maxAmountOfRetriesReached(Job job) {
-        int maxNumberOfRetries = JobUtils.getJobAnnotation(job.getJobDetails()).map(org.jobrunr.jobs.annotations.Job::retries).orElse(this.numberOfRetries);
-        return getFailureCount(job) >= maxNumberOfRetries;
+        return getFailureCount(job) > getMaxNumberOfRetries(job);
     }
 
     private long getFailureCount(Job job) {
@@ -79,4 +78,7 @@ public class RetryFilter implements ElectStateFilter {
         return !(newState instanceof FailedState);
     }
 
+    private int getMaxNumberOfRetries(Job job) {
+        return JobUtils.getJobAnnotation(job.getJobDetails()).map(org.jobrunr.jobs.annotations.Job::retries).orElse(this.numberOfRetries);
+    }
 }
