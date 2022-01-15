@@ -63,7 +63,7 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
         this
                 .with(FIELD_ID, id)
                 .with("amount", amount)
-                .update("jobrunr_metadata set value = cast((cast(cast( value as char(10) ) as decimal) + :amount) as char(10)) where id = :id");
+                .update("jobrunr_metadata set value = cast((cast(cast( value as char(10) ) as decimal(10, 0)) + :amount) as char(10)) where id = :id");
     }
 
     public int deleteByName(String name) throws SQLException {
