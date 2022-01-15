@@ -8,11 +8,11 @@ version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 
 dependencies {
     constraints {
-        api 'org.slf4j:slf4j-api:1.7.32'
+        api 'org.slf4j:slf4j-api:1.7.33'
         api 'org.ow2.asm:asm:9.2'
         api 'org.ow2.asm:asm-util:9.2'
 
-        api 'org.slf4j:slf4j-simple:1.7.32'
+        api 'org.slf4j:slf4j-simple:1.7.33'
         api 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1'

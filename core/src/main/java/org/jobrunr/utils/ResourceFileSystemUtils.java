@@ -7,6 +7,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.ProviderNotFoundException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ResourceFileSystemUtils {
 
@@ -30,7 +31,7 @@ public class ResourceFileSystemUtils {
 
     private static FileSystem getFileSystem() throws IOException {
         if (fileSystem == null) {
-            HashMap<String, Object> options = new HashMap<>();
+            Map<String, Object> options = new HashMap<>();
             options.put("create", Boolean.TRUE);
             fileSystem = FileSystems.newFileSystem(URI.create("resource:/resources"), options, null);
         }

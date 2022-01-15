@@ -16,7 +16,7 @@ compileTestJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'org.slf4j:slf4j-simple:1.7.32'
+    implementation 'org.slf4j:slf4j-simple:1.7.33'
 
     testImplementation 'org.jobrunr:jobrunr:[4.0.5]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.8.7'
