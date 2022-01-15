@@ -35,9 +35,9 @@ dependencies {
         api 'com.mchange:c3p0:0.9.5.5'
         api 'org.apache.tomcat:tomcat-jdbc:10.0.14'
         api 'redis.clients:jedis:3.7.0'
-        api 'io.lettuce:lettuce-core:6.1.5.RELEASE'
+        api 'io.lettuce:lettuce-core:6.1.6.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:4.4.1'
-        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.15.1'
+        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.16.3'
 
         api 'org.junit.jupiter:junit-jupiter:5.8.2'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
