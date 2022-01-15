@@ -145,7 +145,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
             commands.zadd(backgroundJobServersUpdatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
             commands.exec();
-            commands.unwatch();
             return Boolean.parseBoolean(commands.hget(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_IS_RUNNING));
         }
     }
