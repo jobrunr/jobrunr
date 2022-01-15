@@ -68,6 +68,8 @@ public class ClassPathUtils {
             }
             if ("jar".equals(uri.getScheme())) {
                 return JarFileSystemUtils.toPath(uri);
+            } else if ("resource".equals(uri.getScheme())) {
+                return ResourceFileSystemUtils.toPath(uri);
             } else {
                 return Paths.get(uri);
             }
