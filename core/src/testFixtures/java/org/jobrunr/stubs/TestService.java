@@ -64,7 +64,7 @@ public class TestService implements TestServiceInterface {
 
     public void doWork(Integer count) {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs);
+        System.out.println("Doing some work... " + processedJobs + "; " + Instant.now());
     }
 
     public void doWork(Long count) {

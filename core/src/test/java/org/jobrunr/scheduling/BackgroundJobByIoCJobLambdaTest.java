@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -206,27 +207,45 @@ public class BackgroundJobByIoCJobLambdaTest {
     }
 
     @Test
-    void testRecurringJob() {
-        BackgroundJob.<TestService>scheduleRecurrently(Cron.minutely(), x -> x.doWork(5));
-        await().atMost(ofSeconds(65)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+    void testRecurringCronJob() {
+        BackgroundJob.<TestService>scheduleRecurrently(Cron.every15seconds(), x -> x.doWork(5));
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
-    void testRecurringJobWithId() {
-        BackgroundJob.<TestService>scheduleRecurrently("theId", Cron.minutely(), x -> x.doWork(5));
-        await().atMost(ofSeconds(65)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+    void testRecurringCronJobWithId() {
+        BackgroundJob.<TestService>scheduleRecurrently("theId", Cron.every15seconds(), x -> x.doWork(5));
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
-    void testRecurringJobWithIdAndTimezone() {
-        BackgroundJob.<TestService>scheduleRecurrently("theId", Cron.minutely(), systemDefault(), x -> x.doWork(5));
-        await().atMost(ofSeconds(65)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+    void testRecurringCronJobWithIdAndTimezone() {
+        BackgroundJob.<TestService>scheduleRecurrently("theId", Cron.every15seconds(), systemDefault(), x -> x.doWork(5));
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringIntervalJob() {
+        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofSeconds(5), x -> x.doWork(5));
+        await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringIntervalJobWithId() {
+        BackgroundJob.<TestService>scheduleRecurrently("theId", Duration.ofSeconds(5), x -> x.doWork(5));
+        await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);

@@ -1,5 +1,7 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.utils.annotations.VisibleFor;
+
 import static java.time.Instant.now;
 
 import java.time.*;
@@ -8,31 +10,28 @@ public abstract class Schedule implements Comparable<Schedule> {
 
     public static final int SMALLEST_SCHEDULE_IN_SECONDS = 5;
 
+
     /**
-     * Calculates the next occurrence based on the current time (at UTC TimeZone).
+     * Calculates the next occurrence based on the creation time and the current time.
      *
+     * @param createdAt Instant object when the schedule was first created
+     * @param zoneId the zone for which to calculate the schedule
      * @return Instant of the next occurrence.
      */
-    public Instant next() {
-        return next(now(), ZoneOffset.UTC);
+    public Instant next(Instant createdAt, ZoneId zoneId) {
+        return next(createdAt, now(), zoneId);
     }
 
     /**
-     * Calculates the next occurrence based on the current time (at the given TimeZone).
+     * Calculates the next occurrence based on the creation time and the provided base time.
      *
+     * @param createdAtInstant Instant object when the schedule was first created
+     * @param currentInstant Instant object used to calculate next occurrence (normally Instant.now()).
+     * @param zoneId the zone for which to calculate the schedule
      * @return Instant of the next occurrence.
      */
-    public Instant next(ZoneId zoneId) {
-        return next(Instant.now(), zoneId);
-    }
-
-    /**
-     * Calculates the next occurrence based on provided base time.
-     *
-     * @param baseInstant Instant object based on which calculating the next occurrence.
-     * @return Instant of the next occurrence.
-     */
-    public abstract Instant next(Instant baseInstant, ZoneId zoneId);
+    @VisibleFor("testing")
+    public abstract Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
 
     public abstract void validateSchedule();
 

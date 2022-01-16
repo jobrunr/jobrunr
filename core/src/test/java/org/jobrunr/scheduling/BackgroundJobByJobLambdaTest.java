@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -274,8 +275,8 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
-    void testRecurringJob() {
-        BackgroundJob.scheduleRecurrently(Cron.minutely(), () -> testService.doWork(5));
+    void testRecurringCronJob() {
+        BackgroundJob.scheduleRecurrently(Cron.every15seconds(), () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -283,18 +284,36 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
-    void testRecurringJobWithId() {
-        BackgroundJob.scheduleRecurrently("theId", Cron.minutely(), () -> testService.doWork(5));
-        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+    void testRecurringCronJobWithId() {
+        BackgroundJob.scheduleRecurrently("theId", Cron.every15seconds(), () -> testService.doWork(5));
+        await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
-    void testRecurringJobWithIdAndTimezone() {
-        BackgroundJob.scheduleRecurrently("theId", Cron.minutely(), systemDefault(), () -> testService.doWork(5));
-        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+    void testRecurringCronJobWithIdAndTimezone() {
+        BackgroundJob.scheduleRecurrently("theId", Cron.every15seconds(), systemDefault(), () -> testService.doWork(5));
+        await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringIntervalJob() {
+        BackgroundJob.scheduleRecurrently(Duration.ofSeconds(5), () -> testService.doWork(5));
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringIntervalJobWithId() {
+        BackgroundJob.scheduleRecurrently("theId", Duration.ofSeconds(5), () -> testService.doWork(5));
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -302,9 +321,9 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void test2RecurringJobsWithSameMethodSignatureShouldBothBeRun() {
-        BackgroundJob.scheduleRecurrently("recurring-job-1", Cron.minutely(), systemDefault(), () -> testService.doWork(5));
-        BackgroundJob.scheduleRecurrently("recurring-job-2", Cron.minutely(), systemDefault(), () -> testService.doWork(5));
-        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
+        BackgroundJob.scheduleRecurrently("recurring-job-1", Cron.every15seconds(), systemDefault(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently("recurring-job-2", Cron.every15seconds(), systemDefault(), () -> testService.doWork(5));
+        await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
 
         final Job job1 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         final Job job2 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(1);

@@ -22,31 +22,24 @@ public class RecurringJob extends AbstractJob {
         // used for deserialization
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
-        this(id, jobDetails, schedule.toString(), zoneId.getId());
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId) {
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId) {
-        super(jobDetails);
-        this.id = validateAndSetId(id);
-        this.scheduleExpression = scheduleExpression;
-        this.zoneId = zoneId;
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        schedule.validateSchedule();
-        if (schedule instanceof Interval) {
-            this.createdAt = Instant.now(Clock.system(ZoneId.of(this.zoneId)));
-        }
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
+        this(id, jobDetails, schedule, zoneId, Instant.now(Clock.system(zoneId)));
     }
 
     public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
-        this(id, jobDetails, scheduleExpression, zoneId);
-        if (createdAt != null && !createdAt.isEmpty()) {
-            this.createdAt = Instant.parse(createdAt);
-        }
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId), Instant.parse(createdAt));
     }
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
-        this(id, jobDetails, schedule.toString(), zoneId.getId(), createdAt.toString());
+        super(jobDetails);
+        this.id = validateAndSetId(id);
+        this.zoneId = zoneId.getId();
+        this.scheduleExpression = schedule.toString();
+        this.createdAt = createdAt;
     }
 
     @Override
@@ -80,12 +73,9 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun() {
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-
-        if (schedule instanceof Interval) {
-            return schedule.next(createdAt, ZoneId.of(zoneId));
-        }
-        return schedule.next(ZoneId.of(zoneId));
+        return ScheduleExpressionType
+                .getSchedule(scheduleExpression)
+                .next(createdAt, ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {

@@ -42,13 +42,9 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .add("version", recurringJob.getVersion())
                 .add("scheduleExpression", recurringJob.getScheduleExpression())
                 .add("zoneId", recurringJob.getZoneId())
-                .add("jobDetails", jobDetailsAdapter.adaptToJson(recurringJob.getJobDetails()));
+                .add("jobDetails", jobDetailsAdapter.adaptToJson(recurringJob.getJobDetails()))
+                .add("createdAt", recurringJob.getCreatedAt().toString());
 
-        if (recurringJob.getCreatedAt() != null) {
-            builder.add("createdAt", recurringJob.getCreatedAt().toString());
-        } else {
-            builder.addNull("createdAt");
-        }
         if (recurringJob instanceof RecurringJobUIModel) {
             builder.add("nextRun", recurringJob.getNextRun().toString());
         }
@@ -62,7 +58,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 jobDetailsAdapter.adaptFromJson(jsonObject.getJsonObject("jobDetails")),
                 jsonObject.getString("scheduleExpression"),
                 jsonObject.getString("zoneId"),
-                jsonObject.isNull("createdAt") ? null : jsonObject.getString("createdAt")
+                jsonObject.getString("createdAt")
         );
         recurringJob.setJobName(jsonObject.getString("jobName"));
         return recurringJob;

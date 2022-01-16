@@ -6,8 +6,6 @@ import java.time.*;
 import java.util.BitSet;
 import java.util.Calendar;
 
-import static java.time.Instant.now;
-
 /**
  * Schedule class represents a parsed crontab expression.
  *
@@ -126,18 +124,14 @@ public class CronExpression extends Schedule {
 
         token = fields[index++];
         cronExpression.days = CronExpression.DAYS_FIELD_PARSER.parse(token);
-        boolean daysStartWithAsterisk = false;
-        if (token.startsWith("*"))
-            daysStartWithAsterisk = true;
+        boolean daysStartWithAsterisk = token.startsWith("*");
 
         token = fields[index++];
         cronExpression.months = CronExpression.MONTHS_FIELD_PARSER.parse(token);
 
         token = fields[index++];
         cronExpression.daysOfWeek = CronExpression.DAY_OF_WEEK_FIELD_PARSER.parse(token);
-        boolean daysOfWeekStartAsterisk = false;
-        if (token.startsWith("*"))
-            daysOfWeekStartAsterisk = true;
+        boolean daysOfWeekStartAsterisk = token.startsWith("*");
         cronExpression.daysOf5Weeks = generateDaysOf5Weeks(cronExpression.daysOfWeek);
 
         cronExpression.daysAndDaysOfWeekRelation = (daysStartWithAsterisk || daysOfWeekStartAsterisk)
@@ -153,12 +147,12 @@ public class CronExpression extends Schedule {
     /**
      * Calculates the next occurrence based on provided base time.
      *
-     * @param baseInstant Instant object based on which calculating the next occurrence.
+     * @param createdAtInstant Instant object based on which calculating the next occurrence.
      * @return Instant of the next occurrence.
      */
     @Override
-    public Instant next(Instant baseInstant, ZoneId zoneId) {
-        LocalDateTime baseDate = LocalDateTime.ofInstant(baseInstant, zoneId);
+    public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+        LocalDateTime baseDate = LocalDateTime.ofInstant(currentInstant, zoneId);
         int baseSecond = baseDate.getSecond();
         int baseMinute = baseDate.getMinute();
         int baseHour = baseDate.getHour();

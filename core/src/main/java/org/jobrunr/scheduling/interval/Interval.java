@@ -1,7 +1,6 @@
 package org.jobrunr.scheduling.interval;
 
 import org.jobrunr.scheduling.Schedule;
-import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -19,17 +18,10 @@ public class Interval extends Schedule {
         this.duration = Duration.parse(durationExpression);
     }
 
-    @Override
-    public Instant next(Instant baseInstant, ZoneId zoneId) {
-        return next(baseInstant, Instant.now(), zoneId);
-    }
-
-    @VisibleFor("testing")
-    Instant next(Instant baseInstant, Instant currentInstant, ZoneId zoneId) {
-        Duration durationUntilNow = Duration.between(baseInstant, currentInstant);
+    public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+        Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();
-
-        return baseInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));
+        return createdAtInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));
     }
 
     @Override

@@ -20,13 +20,14 @@ class IntervalTest {
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private static final String FIVE_SECONDS = "PT5S";
     private static final String TEN_SECONDS = "PT10S";
     private static final String FORTY_EIGHT_HOURS = "PT48H";
     private static final String EIGHT_DAYS = "P8D";
 
     @ParameterizedTest
     @MethodSource("startInstantDurationAndResultInstant")
-    void testInterval(String baseDateTime, String durationExpression, String currentDateTime, String expectedDateTime) {
+    void testInterval(String durationExpression, String baseDateTime, String currentDateTime, String expectedDateTime) {
         try {
             Instant baseInstant = LocalDateTime.parse(baseDateTime, dateTimeFormatter).toInstant(UTC);
             Instant currentInstant = LocalDateTime.parse(currentDateTime, dateTimeFormatter).toInstant(UTC);
@@ -72,36 +73,42 @@ class IntervalTest {
 
     @Test
     void intervalsCanBeCompared() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         Interval interval1 = new Interval(Duration.ofHours(23));
         Interval interval2 = new Interval(Duration.ofDays(1));
 
         assertThat(interval1)
-                .describedAs("Expecting %s to be less than %s. Current LocalDateTime", interval1.next().toString(), interval2.next().toString(), now.toString())
+                .describedAs("Expecting %s to be less than %s. Current LocalDateTime", interval1.next(now, UTC).toString(), interval2.next(now, UTC).toString(), now.toString())
                 .isLessThan(interval2);
     }
 
     static Stream<Arguments> startInstantDurationAndResultInstant() {
         return Stream.of(
-                arguments("2019-01-01 00:00:00", TEN_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:00:10"),
-                arguments("2019-01-01 00:00:09", TEN_SECONDS, "2019-01-01 00:00:09", "2019-01-01 00:00:19"),
-                arguments("2019-01-01 00:58:59", TEN_SECONDS, "2019-01-01 00:58:59", "2019-01-01 00:59:09"),
-                arguments("2019-01-01 00:59:59", TEN_SECONDS, "2019-01-01 00:59:59", "2019-01-01 01:00:09"),
-                arguments("2019-01-01 11:59:59", TEN_SECONDS, "2019-01-01 11:59:59", "2019-01-01 12:00:09"),
-                arguments("2019-01-01 23:59:59", TEN_SECONDS, "2019-01-01 23:59:59", "2019-01-02 00:00:09"),
-                arguments("2021-11-29 23:59:59", TEN_SECONDS, "2021-11-29 23:59:59", "2021-11-30 00:00:09"),
-                arguments("2019-02-28 23:59:59", TEN_SECONDS, "2019-02-28 23:59:59", "2019-03-01 00:00:09"),
-                arguments("2019-12-31 23:59:59", TEN_SECONDS, "2019-12-31 23:59:59", "2020-01-01 00:00:09"),
-                arguments("2020-02-28 23:59:59", TEN_SECONDS, "2020-02-28 23:59:59", "2020-02-29 00:00:09"),
+                arguments(FIVE_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:00:01", "2019-01-01 00:00:05"),
+                arguments(TEN_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-01 00:00:10"),
+                arguments(TEN_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:20:05", "2019-01-01 00:20:10"),
+                arguments(TEN_SECONDS, "2019-01-01 00:00:09", "2019-01-01 00:00:09", "2019-01-01 00:00:19"),
+                arguments(TEN_SECONDS, "2019-01-01 00:58:59", "2019-01-01 00:58:59", "2019-01-01 00:59:09"),
+                arguments(TEN_SECONDS, "2019-01-01 00:59:59", "2019-01-01 00:59:59", "2019-01-01 01:00:09"),
+                arguments(TEN_SECONDS, "2019-01-01 11:59:59", "2019-01-01 11:59:59", "2019-01-01 12:00:09"),
+                arguments(TEN_SECONDS, "2019-01-01 23:59:59", "2019-01-01 23:59:59", "2019-01-02 00:00:09"),
+                arguments(TEN_SECONDS, "2021-11-29 23:59:59", "2021-11-29 23:59:59", "2021-11-30 00:00:09"),
+                arguments(TEN_SECONDS, "2019-02-28 23:59:59", "2019-02-28 23:59:59", "2019-03-01 00:00:09"),
+                arguments(TEN_SECONDS, "2019-12-31 23:59:59", "2019-12-31 23:59:59", "2020-01-01 00:00:09"),
+                arguments(TEN_SECONDS, "2020-02-28 23:59:59", "2020-02-28 23:59:59", "2020-02-29 00:00:09"),
 
-                arguments("2021-01-01 11:59:59", FORTY_EIGHT_HOURS, "2021-01-01 11:59:59", "2021-01-03 11:59:59"),
-                arguments("2021-11-29 11:59:59", FORTY_EIGHT_HOURS, "2021-11-29 11:59:59", "2021-12-01 11:59:59"),
-                arguments("2021-11-28 11:59:59", FORTY_EIGHT_HOURS, "2021-11-28 11:59:59", "2021-11-30 11:59:59"),
+                arguments(FORTY_EIGHT_HOURS, "2021-01-01 11:59:59", "2021-01-01 11:59:59", "2021-01-03 11:59:59"),
+                arguments(FORTY_EIGHT_HOURS, "2021-11-29 11:59:59", "2021-11-29 11:59:59", "2021-12-01 11:59:59"),
+                arguments(FORTY_EIGHT_HOURS, "2021-11-28 11:59:59", "2021-11-28 11:59:59", "2021-11-30 11:59:59"),
+                arguments(FORTY_EIGHT_HOURS, "2021-12-28 11:59:59", "2021-12-31 11:59:59", "2022-01-01 11:59:59"),
+                arguments(FORTY_EIGHT_HOURS, "2021-12-29 11:59:59", "2021-12-31 11:59:59", "2022-01-02 11:59:59"),
 
-                arguments("2021-01-01 11:59:59", EIGHT_DAYS, "2021-01-01 11:59:59", "2021-01-09 11:59:59"),
-                arguments("2021-11-29 11:59:59", EIGHT_DAYS, "2021-11-29 11:59:59", "2021-12-07 11:59:59"),
-                arguments("2021-11-28 11:59:59", EIGHT_DAYS, "2021-11-28 11:59:59", "2021-12-06 11:59:59")
+                arguments(EIGHT_DAYS, "2021-01-01 11:59:59", "2021-01-01 11:59:59", "2021-01-09 11:59:59"),
+                arguments(EIGHT_DAYS, "2021-11-29 11:59:59", "2021-11-29 11:59:59", "2021-12-07 11:59:59"),
+                arguments(EIGHT_DAYS, "2021-11-28 11:59:59", "2021-11-28 11:59:59", "2021-12-06 11:59:59"),
+                arguments(EIGHT_DAYS, "2020-02-28 11:59:59", "2020-02-28 23:59:59", "2020-03-07 11:59:59"),
+                arguments(EIGHT_DAYS, "2021-02-28 11:59:59", "2021-02-28 11:59:59", "2021-03-08 11:59:59")
         );
     }
 }
