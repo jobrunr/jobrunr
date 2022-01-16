@@ -88,9 +88,13 @@ class RecurringJobTest {
     }
 
     @Test
-    void smallestIntervalForRecurringJobIs5Seconds() {
+    void smallestIntervalForRecurringCronJobIs5Seconds() {
         assertThatThrownBy(() -> aDefaultRecurringJob().withCronExpression("* * * * * *").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatCode(() -> aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void smallestIntervalForRecurringIntervalJobIs5Seconds() {
         assertThatThrownBy(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(4).toString()).build()).isInstanceOf(IllegalArgumentException.class);
         assertThatCode(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(5).toString()).build()).doesNotThrowAnyException();
     }

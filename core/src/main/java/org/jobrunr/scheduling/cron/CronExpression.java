@@ -354,7 +354,7 @@ public class CronExpression extends Schedule {
         Instant base = Instant.EPOCH;
         Instant fiveSeconds = base.plusSeconds(SMALLEST_SCHEDULE_IN_SECONDS);
 
-        if (next(base, ZoneOffset.UTC).isBefore(fiveSeconds)) {
+        if (next(base, base, ZoneOffset.UTC).isBefore(fiveSeconds)) {
             throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
         }
     }

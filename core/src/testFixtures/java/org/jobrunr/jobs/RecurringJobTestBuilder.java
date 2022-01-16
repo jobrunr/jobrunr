@@ -21,7 +21,7 @@ public class RecurringJobTestBuilder {
     private JobDetails jobDetails;
     private Schedule schedule;
     private ZoneId zoneId;
-    private Instant createdAt;
+    private Instant createdAt = Instant.now();
 
     private RecurringJobTestBuilder() {
 
@@ -96,14 +96,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJob build() {
-        final RecurringJob recurringJob;
-
-        if (createdAt != null) {
-            recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
-        } else {
-            recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
-        }
-
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
         recurringJob.setJobName(name);
         return recurringJob;
     }
