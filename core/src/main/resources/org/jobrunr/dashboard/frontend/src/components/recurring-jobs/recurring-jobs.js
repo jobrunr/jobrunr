@@ -175,7 +175,9 @@ const RecurringJobs = (props) => {
                                                         {recurringJob.jobName}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {cronstrue.toString(recurringJob.cronExpression)}
+                                                        {recurringJob.scheduleExpression.startsWith('P')
+                                                            ? recurringJob.scheduleExpression
+                                                            : cronstrue.toString(recurringJob.scheduleExpression)}
                                                     </TableCell>
                                                     <TableCell>
                                                         {recurringJob.zoneId}

@@ -16,6 +16,7 @@
     ]
   },
   "id": "anId",
-  "cronExpression": "0 0 * * *",
-  "zoneId": "${json-unit.ignore}"
+  "scheduleExpression": "0 0 * * *",
+  "zoneId": "${json-unit.ignore}",
+  "createdAt": "${json-unit.ignore}"
 }
