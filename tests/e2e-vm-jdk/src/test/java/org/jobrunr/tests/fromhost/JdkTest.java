@@ -90,7 +90,7 @@ class JdkTest {
 
     @Test
     void jdk16OpenJDK() {
-        assertThat(buildAndTestOnImage("amd64/openjdk:16")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:16")).contains("BUILD SUCCESS");
     }
 
     @Test
@@ -105,11 +105,14 @@ class JdkTest {
 
     private String buildAndTestOnImage(String dockerfile) {
         final MavenBuildAndTestContainer buildAndTestContainer = new MavenBuildAndTestContainer(dockerfile);
-        buildAndTestContainer
-                .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
-                .withStartupTimeout(Duration.ofMinutes(1))
-                .start();
-        System.out.println(buildAndTestContainer.getLogs());
-        return buildAndTestContainer.getLogs();
+        try {
+            buildAndTestContainer
+                    .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
+                    .withStartupTimeout(Duration.ofMinutes(3))
+                    .start();
+        } finally {
+            System.out.println(buildAndTestContainer.getLogs());
+            return buildAndTestContainer.getLogs();
+        }
     }
 }
