@@ -1,5 +1,8 @@
 package org.jobrunr.tests.e2e;
 
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.testcontainers.containers.Network;
@@ -29,6 +32,8 @@ public class ElasticSearchGsonBackgroundJobContainer extends AbstractBackgroundJ
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        return new ElasticSearchStorageProvider(elasticSearchContainer.getContainerIpAddress(), elasticSearchContainer.getFirstMappedPort());
+        HttpHost httpHost = new HttpHost(elasticSearchContainer.getContainerIpAddress(), elasticSearchContainer.getFirstMappedPort(), "http");
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(RestClient.builder(httpHost).setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setSocketTimeout(100 * 1000)));
+        return new ElasticSearchStorageProvider(restHighLevelClient);
     }
 }
