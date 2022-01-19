@@ -185,13 +185,13 @@ const JobView = (props) => {
                             <Card className={classes.root}>
                                 <CardContent className={classes.cardContent}>
                                     <Grid container spacing={3} justify="space-between">
-                                        <Grid item xs={8} className={classes.jobDetails}>
+                                        <Grid item xs={6} className={classes.jobDetails}>
                                             <Typography id="job-id-title" className={classes.title}
                                                         color="textSecondary">
                                                 Job Id: {job.id}
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={4} container className={classes.jobDetails}
+                                        <Grid item xs={6} container className={classes.jobDetails}
                                               justify="flex-end">
                                             {job.jobDetails.cacheable === false &&
                                             <HtmlTooltip
