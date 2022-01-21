@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 public class SseExchange implements AutoCloseable {
 
@@ -14,7 +15,7 @@ public class SseExchange implements AutoCloseable {
     private boolean closed;
 
     public SseExchange(HttpExchange httpExchange) throws IOException {
-        this.writer = new BufferedWriter(new OutputStreamWriter(httpExchange.getResponseBody()));
+        this.writer = new BufferedWriter(new OutputStreamWriter(httpExchange.getResponseBody(), StandardCharsets.UTF_8));
         Headers responseHeaders = httpExchange.getResponseHeaders();
         responseHeaders.add("Cache-Control", "no-cache,public");
         responseHeaders.add("Content-Type", "text/event-stream");
