@@ -31,7 +31,7 @@ public class TestMDCJobRequest implements JobRequest {
     public static class TestMDCJobRequestHandler implements JobRequestHandler<TestMDCJobRequest> {
 
         @Override
-        @Job(name = "Some neat Job Display Name with MDC data", retries = 1)
+        @Job(name = "Doing some hard work for customerId: %X{customer.id}", retries = 1)
         public void run(TestMDCJobRequest jobRequest) {
             assertThat(MDC.get(jobRequest.getKey())).isNotNull();
             String result = jobRequest.getKey() + ": " + MDC.get(jobRequest.getKey()) + "; ";

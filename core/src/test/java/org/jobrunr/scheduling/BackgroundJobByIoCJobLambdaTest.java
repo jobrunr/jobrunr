@@ -268,6 +268,14 @@ public class BackgroundJobByIoCJobLambdaTest {
         await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }
 
+    @Test
+    void mdcContextIsAvailableForDisplayName() {
+        MDC.put("customer.id", "1");
+
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkWithAnnotation(5, "John Doe"));
+        assertThat(storageProvider.getJobById(jobId)).hasJobName("Doing some hard work for user John Doe (customerId: 1)");
+    }
+
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());

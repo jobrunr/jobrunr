@@ -240,6 +240,14 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
+    void mdcContextIsAvailableForDisplayName() {
+        MDC.put("customer.id", "1");
+
+        JobId jobId = BackgroundJobRequest.enqueue(new TestMDCJobRequest("someKey"));
+        assertThat(storageProvider.getJobById(jobId)).hasJobName("Doing some hard work for customerId: 1");
+    }
+
+    @Test
     void testJobContextIsThreadSafe() {
         JobId jobId1 = BackgroundJobRequest.enqueue(new TestJobContextJobRequest());
         JobId jobId2 = BackgroundJobRequest.enqueue(new TestJobContextJobRequest());

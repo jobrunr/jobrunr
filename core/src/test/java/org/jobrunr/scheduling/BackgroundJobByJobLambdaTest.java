@@ -18,8 +18,6 @@ import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.nio.file.Paths;
@@ -487,6 +485,14 @@ public class BackgroundJobByJobLambdaTest {
 
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithMDC("someKey"));
         await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+    }
+
+    @Test
+    void mdcContextIsAvailableForDisplayName() {
+        MDC.put("customer.id", "1");
+
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithAnnotation(5, "John Doe"));
+        assertThat(storageProvider.getJobById(jobId)).hasJobName("Doing some hard work for user John Doe (customerId: 1)");
     }
 
     interface SomeJobInterface {

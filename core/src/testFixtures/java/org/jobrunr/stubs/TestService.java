@@ -86,7 +86,7 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work... " + processedJobs);
     }
 
-    @Job(name = "Doing some hard work for user %1")
+    @Job(name = "Doing some hard work for user %1 (customerId: %X{customer.id})")
     public void doWorkWithAnnotation(Integer userId, String userName) {
         System.out.println("Doing some work... " + processedJobs);
     }
