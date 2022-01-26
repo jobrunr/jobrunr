@@ -1,5 +1,6 @@
 package org.jobrunr.stubs;
 
+import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
@@ -8,6 +9,7 @@ import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.slf4j.MDC;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -20,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -276,6 +279,12 @@ public class TestService implements TestServiceInterface {
 
     public void doWorkWithCollection(Set<Long> singleton) {
         System.out.println("Doing work with collections: " + singleton.size());
+    }
+
+    public void doWorkWithMDC(String key) {
+        assertThat(MDC.get(key)).isNotNull();
+        String result = key + ": " + MDC.get(key) + "; ";
+        System.out.println("Found following MDC keys: " + result);
     }
 
     public static class Work {

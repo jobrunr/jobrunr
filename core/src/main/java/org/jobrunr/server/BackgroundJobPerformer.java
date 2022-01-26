@@ -11,6 +11,7 @@ import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,6 +76,7 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void runActualJob() throws Exception {
         try {
+            MDC.setContextMap(job.getMDCContext());
             JobRunrDashboardLogger.setJob(job);
             backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
             LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
@@ -85,6 +87,7 @@ public class BackgroundJobPerformer implements Runnable {
         } finally {
             backgroundJobServer.getJobZooKeeper().stopProcessing(job);
             JobRunrDashboardLogger.clearJob();
+            MDC.clear();
         }
     }
 

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -59,8 +60,6 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
  * Must be public as used as a background job
  */
 public class BackgroundJobByJobLambdaTest {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(BackgroundJobByJobLambdaTest.class);
 
     private TestService testService;
     private StorageProviderForTest storageProvider;
@@ -468,7 +467,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void jobToMethodThatDoesNotExistGoesToFailedState() {
         Job job = storageProvider.save(anEnqueuedJob().withJobDetails(methodThatDoesNotExistJobDetails()).build());
-        await().atMost(3000, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
         assertThat(failedState.getException()).isInstanceOf(JobMethodNotFoundException.class);
         await().during(1, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
@@ -482,13 +481,21 @@ public class BackgroundJobByJobLambdaTest {
         assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
     }
 
+    @Test
+    void mdcContextIsAvailableInJob() {
+        MDC.put("someKey", "someValue");
+
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithMDC("someKey"));
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+    }
+
     interface SomeJobInterface {
         void doWork();
     }
 
     abstract static class SomeJobClass implements SomeJobInterface {
 
-        private String cron;
+        private final String cron;
 
         public SomeJobClass(String cron) {
             this.cron = cron;

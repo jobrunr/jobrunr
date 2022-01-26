@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -159,6 +160,16 @@ public class Job extends AbstractJob {
 
     public Map<String, Object> getMetadata() {
         return metadata;
+    }
+
+    public void addMDCContext(Map<String, String> mdcContext) {
+        mdcContext.forEach((key, value) -> this.metadata.put("mdc-" + key, value));
+    }
+
+    public Map<String, String> getMDCContext() {
+        return metadata.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith("mdc-"))
+                .collect(Collectors.toMap(entry -> entry.getKey().substring(4), entry -> entry.getValue().toString()));
     }
 
     @Override

@@ -13,6 +13,7 @@ import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -128,6 +129,7 @@ public class AbstractJobScheduler {
 
     JobId saveJob(Job job) {
         try {
+            job.addMDCContext(MDC.getCopyOfContextMap());
             jobFilterUtils.runOnCreatingFilter(job);
             Job savedJob = this.storageProvider.save(job);
             jobFilterUtils.runOnCreatedFilter(savedJob);
@@ -139,6 +141,7 @@ public class AbstractJobScheduler {
     }
 
     List<Job> saveJobs(List<Job> jobs) {
+        jobs.forEach(job -> job.addMDCContext(MDC.getCopyOfContextMap()));
         jobFilterUtils.runOnCreatingFilter(jobs);
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);

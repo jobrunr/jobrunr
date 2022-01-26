@@ -16,6 +16,7 @@ import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -31,6 +32,7 @@ import java.util.stream.Stream;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
@@ -256,6 +258,14 @@ public class BackgroundJobByIoCJobLambdaTest {
         String jobId = BackgroundJob.<TestService>scheduleRecurrently(Cron.minutely(), x -> x.doWork(5));
         BackgroundJob.delete(jobId);
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
+    }
+
+    @Test
+    void mdcContextIsAvailableInJob() {
+        MDC.put("someKey", "someValue");
+
+        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkWithMDC("someKey"));
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }
 
     private Stream<UUID> getWorkStream() {

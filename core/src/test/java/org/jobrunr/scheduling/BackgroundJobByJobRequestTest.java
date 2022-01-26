@@ -14,9 +14,12 @@ import org.jobrunr.stubs.TestJobContextJobRequest;
 import org.jobrunr.stubs.TestJobContextJobRequest.TestJobContextJobRequestHandler;
 import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
+import org.jobrunr.stubs.TestMDCJobRequest;
+import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -226,6 +229,14 @@ public class BackgroundJobByJobRequestTest {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
         });
+    }
+
+    @Test
+    void mdcContextIsAvailableInJob() {
+        MDC.put("someKey", "someValue");
+
+        JobId jobId = BackgroundJobRequest.enqueue(new TestMDCJobRequest("someKey"));
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }
 
     @Test
