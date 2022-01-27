@@ -51,7 +51,7 @@ class DisplayNameFilterTest {
 
         displayNameFilter.onCreating(job);
 
-        assertThat(job.getJobName()).isEqualTo("Doing some hard work for user John Doe (customerId: 1)");
+        assertThat(job.getJobName()).isEqualTo("Doing some hard work for user John Doe (customerId: (customer.id is not found in MDC))");
     }
 
     @Test

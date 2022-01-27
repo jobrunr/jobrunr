@@ -163,6 +163,7 @@ public class Job extends AbstractJob {
     }
 
     public void addMDCContext(Map<String, String> mdcContext) {
+        if(mdcContext == null) return;
         mdcContext.forEach((key, value) -> this.metadata.put("mdc-" + key, value));
     }
 
