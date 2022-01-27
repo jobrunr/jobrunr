@@ -23,12 +23,14 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
  */
 public class Job extends AbstractJob {
 
-    private UUID id;
-    private ArrayList<JobState> jobHistory;
+    private final UUID id;
+    private final ArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
 
     private Job() {
         // used for deserialization
+        this.id = null;
+        this.jobHistory = new ArrayList<>();
         this.metadata = new ConcurrentHashMap<>();
     }
 
@@ -41,19 +43,11 @@ public class Job extends AbstractJob {
     }
 
     public Job(JobDetails jobDetails, JobState jobState) {
-        this(jobDetails, singletonList(jobState));
+        this(null, 0, jobDetails, singletonList(jobState), new ConcurrentHashMap<>());
     }
 
     public Job(UUID id, JobDetails jobDetails, JobState jobState) {
-        this(id, jobDetails, singletonList(jobState));
-    }
-
-    public Job(JobDetails jobDetails, List<JobState> jobHistory) {
-        this(null, 0, jobDetails, jobHistory, new ConcurrentHashMap<>());
-    }
-
-    public Job(UUID id, JobDetails jobDetails, List<JobState> jobHistory) {
-        this(id, 0, jobDetails, jobHistory, new ConcurrentHashMap<>());
+        this(id, 0, jobDetails, singletonList(jobState), new ConcurrentHashMap<>());
     }
 
     public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
@@ -62,10 +56,6 @@ public class Job extends AbstractJob {
         this.id = id != null ? id : UUID.randomUUID();
         this.jobHistory = new ArrayList<>(jobHistory);
         this.metadata = metadata;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     @Override
