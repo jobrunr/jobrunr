@@ -71,6 +71,7 @@ public class BackgroundJobByJobRequestTest {
 
     @AfterEach
     public void cleanUp() {
+        MDC.clear();
         JobRunr.destroy();
     }
 
