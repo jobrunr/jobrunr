@@ -160,7 +160,7 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnEnabledHealthIndicator("jobrunr")
     public static class JobRunrHealthIndicatorAutoConfiguration {
 
-        @Bean
+        @Bean(name = "JobRunr")
         public HealthIndicator healthIndicator(JobRunrProperties properties, ObjectProvider<BackgroundJobServer> backgroundJobServerProvider) {
             return new JobRunrHealthIndicator(properties, backgroundJobServerProvider);
         }

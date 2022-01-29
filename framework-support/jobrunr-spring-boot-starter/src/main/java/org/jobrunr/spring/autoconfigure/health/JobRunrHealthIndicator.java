@@ -21,7 +21,7 @@ public class JobRunrHealthIndicator implements HealthIndicator {
         final Health.Builder health = Health.unknown();
         if (!jobRunrProperties.getBackgroundJobServer().isEnabled()) {
             health
-                    .outOfService()
+                    .up()
                     .withDetail("backgroundJobServer", "disabled");
         } else {
             final BackgroundJobServer backgroundJobServer = backgroundJobServerProvider.getIfAvailable();
