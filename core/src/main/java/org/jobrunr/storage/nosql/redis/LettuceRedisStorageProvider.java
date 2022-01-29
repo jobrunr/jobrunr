@@ -508,6 +508,11 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
+    public long countRecurringJobs() {
+        return getConnection().sync().scard(recurringJobsKey(keyPrefix));
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();

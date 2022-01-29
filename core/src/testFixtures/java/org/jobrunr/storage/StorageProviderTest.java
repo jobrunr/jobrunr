@@ -613,15 +613,23 @@ public abstract class StorageProviderTest {
         RecurringJob recurringJobv1 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.daily()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv1);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
+        assertThat(storageProvider.countRecurringJobs()).isEqualTo(1);
 
         RecurringJob recurringJobv2 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv2);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
+        assertThat(storageProvider.countRecurringJobs()).isEqualTo(1);
+
         assertThat(storageProvider.getRecurringJobs().get(0).getScheduleExpression()).isEqualTo(Cron.hourly());
+
+        RecurringJob otherRecurringJob = new RecurringJob("my-other-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
+        storageProvider.saveRecurringJob(otherRecurringJob);
+        assertThat(storageProvider.getRecurringJobs()).hasSize(2);
+        assertThat(storageProvider.countRecurringJobs()).isEqualTo(2);
 
         storageProvider.deleteRecurringJob("my-job");
 
-        assertThat(storageProvider.getRecurringJobs()).hasSize(0);
+        assertThat(storageProvider.getRecurringJobs()).hasSize(1);
     }
 
     @Test

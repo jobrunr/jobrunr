@@ -324,6 +324,15 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public long countRecurringJobs() {
+        try (final Connection conn = dataSource.getConnection()) {
+            return recurringJobTable(conn).count();
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final int deletedRecurringJobCount = recurringJobTable(conn).deleteById(id);

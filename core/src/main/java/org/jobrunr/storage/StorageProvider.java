@@ -74,6 +74,8 @@ public interface StorageProvider extends AutoCloseable {
 
     List<RecurringJob> getRecurringJobs();
 
+    long countRecurringJobs();
+
     int deleteRecurringJob(String id);
 
     JobStats getJobStats();

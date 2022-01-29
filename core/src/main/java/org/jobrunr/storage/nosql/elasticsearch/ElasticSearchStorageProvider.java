@@ -536,6 +536,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
+    public long countRecurringJobs() {
+        try {
+            return client.count(new CountRequest(recurringJobIndexName), RequestOptions.DEFAULT).getCount();
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         try {
             DeleteResponse delete = client.delete(new DeleteRequest(recurringJobIndexName, id).setRefreshPolicy(IMMEDIATE), RequestOptions.DEFAULT);

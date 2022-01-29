@@ -257,6 +257,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public long countRecurringJobs() {
+        return recurringJobs.size();
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         recurringJobs.removeIf(job -> id.equals(job.getId()));
         return 0;

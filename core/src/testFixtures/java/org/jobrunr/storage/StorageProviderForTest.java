@@ -168,6 +168,11 @@ public class StorageProviderForTest implements StorageProvider {
     }
 
     @Override
+    public long countRecurringJobs() {
+        return storageProvider.countRecurringJobs();
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         return storageProvider.deleteRecurringJob(id);
     }

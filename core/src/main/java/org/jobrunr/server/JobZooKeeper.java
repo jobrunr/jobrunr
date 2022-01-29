@@ -42,6 +42,7 @@ public class JobZooKeeper implements Runnable {
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
+    private final List<RecurringJob> recurringJobs;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final JobFilterUtils jobFilterUtils;
     private final WorkDistributionStrategy workDistributionStrategy;
@@ -56,6 +57,7 @@ public class JobZooKeeper implements Runnable {
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
+        this.recurringJobs = new ArrayList<>();
         this.workDistributionStrategy = backgroundJobServer.getWorkDistributionStrategy();
         this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
@@ -108,7 +110,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForRecurringJobs() {
         LOGGER.debug("Looking for recurring jobs... ");
-        List<RecurringJob> recurringJobs = storageProvider.getRecurringJobs();
+        List<RecurringJob> recurringJobs = getRecurringJobs();
         processRecurringJobs(recurringJobs);
     }
 
@@ -259,6 +261,14 @@ public class JobZooKeeper implements Runnable {
             LOGGER.debug("JobRunr is passing the poll interval in seconds timebox because of too many tasks.");
         }
         return runTimeBoxIsPassed;
+    }
+
+    private List<RecurringJob> getRecurringJobs() {
+        if(this.recurringJobs.size() != storageProvider.countRecurringJobs()) {
+            this.recurringJobs.clear();
+            this.recurringJobs.addAll(storageProvider.getRecurringJobs());
+        }
+        return this.recurringJobs;
     }
 
     ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {

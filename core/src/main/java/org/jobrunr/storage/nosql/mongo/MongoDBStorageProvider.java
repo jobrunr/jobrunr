@@ -364,6 +364,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    public long countRecurringJobs() {
+        return recurringJobCollection.countDocuments();
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         final DeleteResult deleteResult = recurringJobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
         return (int) deleteResult.getDeletedCount();
