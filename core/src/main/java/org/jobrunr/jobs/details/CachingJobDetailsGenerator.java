@@ -119,8 +119,11 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 List<Field> declaredFields = new ArrayList<>(asList(jobRunrJob.getClass().getDeclaredFields()));
                 List<JobParameter> jobParameters = jobDetails.getJobParameters();
 
-                if (!declaredFields.isEmpty() && (jobRunrJob instanceof JobLambda || jobRunrJob instanceof JobLambdaFromStream))
+                if (!declaredFields.isEmpty()
+                        && !(declaredFields.get(0).getType().getName().startsWith("java."))
+                        && (jobRunrJob instanceof JobLambda || jobRunrJob instanceof JobLambdaFromStream)) {
                     declaredFields.remove(0);
+                }
 
                 for (JobParameter jp : jobParameters) {
                     parameterRetrievers.add(createJobParameterRetriever(jp, jobRunrJob, itemFromStream, declaredFields));

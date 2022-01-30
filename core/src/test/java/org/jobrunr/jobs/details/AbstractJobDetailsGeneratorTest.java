@@ -1000,6 +1000,27 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasNoArgs();
     }
 
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/335")
+    void testJobLambdaWithDifferentParametersCalledFromOtherMethod() {
+        UUID uuid1 = UUID.randomUUID();
+        assertThat(createJobDetails(uuid1))
+                .hasClass(TestService.GithubIssue335.class)
+                .hasMethodName("run")
+                .hasArgs(uuid1);
+
+        UUID uuid2 = UUID.randomUUID();
+        assertThat(createJobDetails(uuid2))
+                .hasClass(TestService.GithubIssue335.class)
+                .hasMethodName("run")
+                .hasArgs(uuid2);
+    }
+
+    // must be kept in separate method for test of Github Issue 335
+    private JobDetails createJobDetails(UUID uuid) {
+        return toJobDetails(() -> new TestService.GithubIssue335().run(uuid));
+    }
+
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());
