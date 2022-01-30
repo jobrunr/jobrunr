@@ -1,12 +1,12 @@
 plugins {
     id 'java-library'
-    id 'io.micronaut.library' version '3.1.1'
+    id 'io.micronaut.library' version '3.2.0'
     id 'maven-publish'
     id 'signing'
 }
 
 micronaut {
-    version '3.2.6'
+    version '3.3.0'
 }
 
 java {
