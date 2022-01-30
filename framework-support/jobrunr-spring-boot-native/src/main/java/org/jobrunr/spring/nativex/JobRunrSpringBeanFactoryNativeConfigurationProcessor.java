@@ -1,7 +1,11 @@
 package org.jobrunr.spring.nativex;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
+import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
 import org.jobrunr.storage.nosql.documentdb.AmazonDocumentDBStorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
@@ -15,17 +19,22 @@ import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
 import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
+import org.jobrunr.utils.ClassPathUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.springframework.aot.context.bootstrap.generator.infrastructure.nativex.BeanFactoryNativeConfigurationProcessor;
 import org.springframework.aot.context.bootstrap.generator.infrastructure.nativex.NativeConfigurationRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.nativex.hint.TypeAccess;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements BeanFactoryNativeConfigurationProcessor {
 
@@ -47,19 +56,18 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
             throw new RuntimeException("Could not enhance JobRequestHandlers for Spring Boot Native", e);
         }
 
-        registry.reflection().forType(AmazonDocumentDBStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(DB2StorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(DefaultSqlStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(ElasticSearchStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(H2StorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(InMemoryStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(JedisRedisStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(LettuceRedisStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(MariaDbStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(MongoDBStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(PostgresStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(OracleStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(SQLServerStorageProvider.class).withAccess(TypeAccess.values()).build();
-        registry.reflection().forType(SqLiteStorageProvider.class).withAccess(TypeAccess.values()).build();
+        registerAllAssignableTypesOf(registry, StorageProvider.class);
+        registerAllAssignableTypesOf(registry, NoSqlMigration.class);
+        registerAllAssignableTypesOf(registry, NoSqlMigrationProvider.class);
+    }
+
+    private void registerAllAssignableTypesOf(NativeConfigurationRegistry registry, Class<?> anyClass) {
+        ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
+        provider.addIncludeFilter(new AssignableTypeFilter(anyClass));
+        Set<BeanDefinition> candidateComponents = provider.findCandidateComponents("org.jobrunr");
+        for (BeanDefinition beanDefinition : candidateComponents) {
+            Class storageProviderImplementation = ReflectionUtils.toClass(beanDefinition.getBeanClassName());
+            registry.reflection().forType(storageProviderImplementation).withAccess(TypeAccess.values()).build();
+        }
     }
 }
