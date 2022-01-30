@@ -422,4 +422,12 @@ public class TestService implements TestServiceInterface {
             return null;
         }
     }
+
+    public static class GithubIssue335 {
+
+        public void run(UUID id) {
+            System.out.println("Running job for issue 335 " + id);
+        }
+
+    }
 }
