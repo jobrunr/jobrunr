@@ -1,15 +1,7 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-}
-
-processResources {
-    filter ReplaceTokens, tokens: [
-            "version": project.version.replace("v", "")
-    ]
 }
 
 java {
@@ -53,7 +45,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'quarkus-jobrunr'
-            version = project.version.replace("v", "")
+            version = project.version
             from components.java
 
             pom {

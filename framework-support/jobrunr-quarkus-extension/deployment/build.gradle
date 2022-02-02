@@ -34,7 +34,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'quarkus-jobrunr-deployment'
-            version = project.version.replace("v", "")
+            version = project.version
             from components.java
 
             pom {

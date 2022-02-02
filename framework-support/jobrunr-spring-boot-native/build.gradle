@@ -29,7 +29,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr-spring-boot-native'
-            version = project.version.replace("v", "")
+            version = project.version
             from components.java
 
             pom {

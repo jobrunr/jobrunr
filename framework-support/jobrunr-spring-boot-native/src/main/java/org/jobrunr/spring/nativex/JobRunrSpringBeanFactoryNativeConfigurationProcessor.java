@@ -1,26 +1,12 @@
 package org.jobrunr.spring.nativex;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
-import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
-import org.jobrunr.storage.nosql.documentdb.AmazonDocumentDBStorageProvider;
-import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
-import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
-import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
-import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
-import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
-import org.jobrunr.storage.sql.db2.DB2StorageProvider;
-import org.jobrunr.storage.sql.h2.H2StorageProvider;
-import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
-import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
-import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
-import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
-import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
-import org.jobrunr.utils.ClassPathUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aot.context.bootstrap.generator.infrastructure.nativex.BeanFactoryNativeConfigurationProcessor;
 import org.springframework.aot.context.bootstrap.generator.infrastructure.nativex.NativeConfigurationRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -34,9 +20,10 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements BeanFactoryNativeConfigurationProcessor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrSpringBeanFactoryNativeConfigurationProcessor.class);
 
     @Override
     public void process(ConfigurableListableBeanFactory beanFactory, NativeConfigurationRegistry registry) {
@@ -66,8 +53,12 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
         provider.addIncludeFilter(new AssignableTypeFilter(anyClass));
         Set<BeanDefinition> candidateComponents = provider.findCandidateComponents("org.jobrunr");
         for (BeanDefinition beanDefinition : candidateComponents) {
-            Class storageProviderImplementation = ReflectionUtils.toClass(beanDefinition.getBeanClassName());
-            registry.reflection().forType(storageProviderImplementation).withAccess(TypeAccess.values()).build();
+            try {
+                Class storageProviderImplementation = ReflectionUtils.toClass(beanDefinition.getBeanClassName());
+                registry.reflection().forType(storageProviderImplementation).withAccess(TypeAccess.values()).build();
+            } catch (NoClassDefFoundError e) {
+                LOGGER.info("Could not load class " + beanDefinition.getBeanClassName() + " as class dependencies (imports) are not available.");
+            }
         }
     }
 }

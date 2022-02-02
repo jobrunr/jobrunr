@@ -43,7 +43,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr-micronaut-feature'
-            version = project.version.replace("v", "")
+            version = project.version
             from components.java
 
             pom {

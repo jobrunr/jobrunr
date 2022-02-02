@@ -27,7 +27,7 @@ publishing {
     mavenJava(MavenPublication) {
       groupId = 'org.jobrunr'
       artifactId = 'jobrunr-kotlin-1.4-support'
-      version = project.version.replace("v", "")
+      version = project.version
       from components.java
 
       pom {
