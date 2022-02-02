@@ -52,6 +52,9 @@ import static org.springframework.nativex.hint.TypeAccess.*;
         "/org/jobrunr/configuration/JobRunr.class",
         "org/jobrunr/dashboard/frontend/build/.*",
         "org/jobrunr/storage/sql/.*",
+        "org/jobrunr/storage/nosql/elasticsearch/migrations/.*",
+        "org/jobrunr/storage/nosql/mongo/migrations/.*",
+        "org/jobrunr/storage/nosql/redis/migrations/.*",
         "/META-INF/MANIFEST.MF"
 })
 public class JobRunrSpringNativeConfiguration implements NativeConfiguration {

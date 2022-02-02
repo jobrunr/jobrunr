@@ -4,6 +4,10 @@ import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
+import org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration;
+import org.jobrunr.storage.nosql.mongo.migrations.MongoMigration;
+import org.jobrunr.storage.nosql.redis.migrations.JedisRedisMigration;
+import org.jobrunr.storage.nosql.redis.migrations.LettuceRedisMigration;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +50,11 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
         registerAllAssignableTypesOf(registry, StorageProvider.class);
         registerAllAssignableTypesOf(registry, NoSqlMigration.class);
         registerAllAssignableTypesOf(registry, NoSqlMigrationProvider.class);
+        // do not forget to paths to migrations as resource hints
+        registerAllAssignableTypesOf(registry, ElasticSearchMigration.class);
+        registerAllAssignableTypesOf(registry, MongoMigration.class);
+        registerAllAssignableTypesOf(registry, JedisRedisMigration.class);
+        registerAllAssignableTypesOf(registry, LettuceRedisMigration.class);
     }
 
     private void registerAllAssignableTypesOf(NativeConfigurationRegistry registry, Class<?> anyClass) {
