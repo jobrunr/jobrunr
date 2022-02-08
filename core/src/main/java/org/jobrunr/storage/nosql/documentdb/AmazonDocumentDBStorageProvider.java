@@ -57,6 +57,10 @@ public class AmazonDocumentDBStorageProvider extends MongoDBStorageProvider {
         return new AmazonDocumentDBStorageProvider(getDocumentDBDefaultSetting(new ServerAddress(hostName, port), credential));
     }
 
+    public static AmazonDocumentDBStorageProvider amazonDocumentDBStorageProviderWithDefaultSetting(String hostName, int port, MongoCredential credential, String dbName) {
+        return new AmazonDocumentDBStorageProvider(getDocumentDBDefaultSetting(new ServerAddress(hostName, port), credential), dbName);
+    }
+
     private static MongoClient getDocumentDBDefaultSetting(ServerAddress serverAddress, MongoCredential credential) {
         return MongoClients.create(
                 MongoClientSettings.builder()
