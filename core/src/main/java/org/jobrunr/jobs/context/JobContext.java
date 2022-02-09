@@ -11,6 +11,7 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.context.JobDashboardLogger.JOBRUNR_LOG_KEY;
 import static org.jobrunr.jobs.context.JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY;
+import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
 
 /**
  * The JobContext class gives access to the Job id, the Job name, the state, ... .
@@ -93,6 +94,7 @@ public class JobContext {
                 job.getMetadata().entrySet().stream()
                         .filter(entry -> !entry.getKey().startsWith(JOBRUNR_LOG_KEY))
                         .filter(entry -> !entry.getKey().startsWith(JOBRUNR_PROGRESSBAR_KEY))
+                        .filter(entry -> !entry.getKey().startsWith(JOBRUNR_MDC_KEY))
                         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
         );
     }

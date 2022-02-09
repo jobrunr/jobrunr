@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.jobrunr.jobs.filters.JobPerformingFilters;
+import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
@@ -76,7 +77,7 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void runActualJob() throws Exception {
         try {
-            MDC.setContextMap(job.getMDCContext());
+            MDCMapper.loadMDCContextFromJob(job);
             JobRunrDashboardLogger.setJob(job);
             backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
             LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());

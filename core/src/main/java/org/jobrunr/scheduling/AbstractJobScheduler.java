@@ -8,6 +8,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.JobFilterUtils;
+import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
@@ -129,7 +130,7 @@ public class AbstractJobScheduler {
 
     JobId saveJob(Job job) {
         try {
-            job.addMDCContext(MDC.getCopyOfContextMap());
+            MDCMapper.saveMDCContextToJob(job);
             jobFilterUtils.runOnCreatingFilter(job);
             Job savedJob = this.storageProvider.save(job);
             jobFilterUtils.runOnCreatedFilter(savedJob);
@@ -141,7 +142,7 @@ public class AbstractJobScheduler {
     }
 
     List<Job> saveJobs(List<Job> jobs) {
-        jobs.forEach(job -> job.addMDCContext(MDC.getCopyOfContextMap()));
+        jobs.forEach(MDCMapper::saveMDCContextToJob);
         jobFilterUtils.runOnCreatingFilter(jobs);
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);

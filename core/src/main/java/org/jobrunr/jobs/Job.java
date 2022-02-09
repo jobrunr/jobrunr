@@ -152,17 +152,6 @@ public class Job extends AbstractJob {
         return metadata;
     }
 
-    public void addMDCContext(Map<String, String> mdcContext) {
-        if(mdcContext == null) return;
-        mdcContext.forEach((key, value) -> this.metadata.put("mdc-" + key, value));
-    }
-
-    public Map<String, String> getMDCContext() {
-        return metadata.entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith("mdc-"))
-                .collect(Collectors.toMap(entry -> entry.getKey().substring(4), entry -> entry.getValue().toString()));
-    }
-
     @Override
     public String toString() {
         return "Job{" +
