@@ -10,6 +10,11 @@ import org.jobrunr.server.runner.ThreadLocalJobContext;
  */
 public interface JobRequestHandler<T extends JobRequest> {
 
+    /**
+     * The actual job processing to perform.
+     * @param jobRequest the {@link JobRequest} to be processed
+     * @throws Exception if an error occurs during the processing, JobRunr will automatically retry the job.
+     */
     void run(T jobRequest) throws Exception;
 
     /**
