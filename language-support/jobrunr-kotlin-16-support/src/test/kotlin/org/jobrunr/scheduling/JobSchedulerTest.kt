@@ -15,6 +15,8 @@ import org.jobrunr.storage.StorageProviderForTest
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
+import java.time.Instant
+import java.time.Instant.now
 import java.util.concurrent.TimeUnit
 
 class JobSchedulerTest {
@@ -106,13 +108,29 @@ class JobSchedulerTest {
     }
 
     @Test
+    fun `test schedule lambda `() {
+        val amount = 2
+        val text = "foo"
+        val jobId = BackgroundJob.schedule(now().plusMillis(1000)) { println("$text: $amount") }
+
+        await().atMost(Durations.TEN_SECONDS).until {
+            storageProvider.getJobById(jobId).state == SUCCEEDED
+        }
+
+        val job = storageProvider.getJobById(jobId)
+        assertThat(job.jobStates.map { it.name }).containsExactly(
+                SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED
+        )
+    }
+
+    @Test
     fun `test schedule recurrent job`() {
         val amount = 2
         val text = "foo"
 
-        jobScheduler.scheduleRecurrently(Cron.minutely()) { println("$text: $amount") }
+        jobScheduler.scheduleRecurrently(Cron.every15seconds()) { println("$text: $amount") }
 
-        await().atMost(65, TimeUnit.SECONDS).until {
+        await().atMost(35, TimeUnit.SECONDS).until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
 
