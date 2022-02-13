@@ -17,9 +17,7 @@ import java.util.*;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 

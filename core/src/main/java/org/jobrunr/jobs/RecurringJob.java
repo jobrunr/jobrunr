@@ -4,7 +4,6 @@ import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
-import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Clock;
 import java.time.Instant;

@@ -8,9 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaConstructor;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.*;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class InvokeSpecialInstruction extends VisitMethodInstruction {

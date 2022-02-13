@@ -8,11 +8,7 @@ import java.util.stream.IntStream;
 
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJobThatEventuallySucceeded;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJobThatTakesLong;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 public class StubDataProvider {

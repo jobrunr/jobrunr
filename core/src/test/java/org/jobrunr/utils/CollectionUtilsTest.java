@@ -8,9 +8,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
-import static org.jobrunr.utils.CollectionUtils.isNullOrEmpty;
-import static org.jobrunr.utils.CollectionUtils.mapOf;
+import static org.jobrunr.utils.CollectionUtils.*;
 
 class CollectionUtilsTest {
 

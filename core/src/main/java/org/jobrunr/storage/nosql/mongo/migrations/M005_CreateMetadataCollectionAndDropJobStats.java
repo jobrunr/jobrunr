@@ -10,9 +10,7 @@ import org.jobrunr.jobs.states.StateName;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Indexes.compoundIndex;
-import static org.jobrunr.storage.StorageProviderUtils.JobStats;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata;
-import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.storage.StorageProviderUtils.*;
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 
 public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration {

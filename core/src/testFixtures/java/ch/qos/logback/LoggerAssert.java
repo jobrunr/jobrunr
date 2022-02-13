@@ -9,10 +9,7 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.mockito.internal.util.reflection.Whitebox;
 
-import static ch.qos.logback.classic.Level.DEBUG;
-import static ch.qos.logback.classic.Level.ERROR;
-import static ch.qos.logback.classic.Level.INFO;
-import static ch.qos.logback.classic.Level.WARN;
+import static ch.qos.logback.classic.Level.*;
 
 public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILoggingEvent>> {
 

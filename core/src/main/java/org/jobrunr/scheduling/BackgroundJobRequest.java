@@ -1,7 +1,6 @@
 package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 
 import java.time.*;

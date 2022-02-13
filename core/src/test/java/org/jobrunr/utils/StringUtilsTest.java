@@ -3,13 +3,7 @@ package org.jobrunr.utils;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.substringAfter;
-import static org.jobrunr.utils.StringUtils.substringAfterLast;
-import static org.jobrunr.utils.StringUtils.substringBefore;
-import static org.jobrunr.utils.StringUtils.substringBeforeLast;
-import static org.jobrunr.utils.StringUtils.substringBetween;
+import static org.jobrunr.utils.StringUtils.*;
 
 class StringUtilsTest {
 
