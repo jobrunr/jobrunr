@@ -1,4 +1,6 @@
-package org.jobrunr.utils;
+package org.jobrunr.utils.resources;
+
+import org.jobrunr.utils.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -9,32 +11,34 @@ import java.nio.file.ProviderNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ResourceFileSystemUtils {
+public class ResourcesFileSystemProvider implements FileSystemProvider {
 
-    private static FileSystem fileSystem;
+    private FileSystem fileSystem;
 
-    private ResourceFileSystemUtils() {
-    }
-
-    public static Path toPath(URI uri) throws IOException {
+    public Path toPath(URI uri) throws IOException {
         try {
             if (!"resource".equals(uri.getScheme())) {
-                throw new IllegalArgumentException("ResourceFileSystemUtils only supports uri's starting with resource:");
+                throw new IllegalArgumentException("ResourcesFileSystemProvider only supports uri's starting with resource:");
             }
 
             FileSystem fs = getFileSystem();
             return fs.getPath(StringUtils.substringAfter(uri.toString(), ":"));
         } catch (ProviderNotFoundException e) {
-            throw new ProviderNotFoundException("Provider not found for URI " + uri.toString());
+            throw new ProviderNotFoundException("Provider not found for URI " + uri);
         }
     }
 
-    private static FileSystem getFileSystem() throws IOException {
+    private FileSystem getFileSystem() throws IOException {
         if (fileSystem == null) {
             Map<String, Object> options = new HashMap<>();
             options.put("create", Boolean.TRUE);
             fileSystem = FileSystems.newFileSystem(URI.create("resource:/resources"), options, null);
         }
         return fileSystem;
+    }
+
+    @Override
+    public void close() throws IOException {
+        fileSystem.close();
     }
 }

@@ -44,7 +44,7 @@ class DatabaseCreatorTest {
     @Test
     void testSqlLiteMigrationsAllMigrationsApplied() {
         DefaultSqlMigrationProvider sqlMigrationProvider = new DefaultSqlMigrationProvider();
-        List<SqlMigration> migrations = sqlMigrationProvider.getMigrations(DatabaseCreator.class).collect(toList());
+        List<SqlMigration> migrations = sqlMigrationProvider.getMigrations(DatabaseCreator.class);
 
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB1));
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();

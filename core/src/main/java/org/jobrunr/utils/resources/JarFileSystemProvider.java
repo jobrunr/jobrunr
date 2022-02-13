@@ -1,4 +1,4 @@
-package org.jobrunr.utils;
+package org.jobrunr.utils.resources;
 
 import java.io.IOException;
 import java.net.URI;
@@ -10,17 +10,14 @@ import java.util.Map;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
 import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 
-public class JarFileSystemUtils {
+public class JarFileSystemProvider implements FileSystemProvider {
 
-    private static final Map<String, FileSystem> openFileSystems = new HashMap<>();
+    private final Map<String, FileSystem> openFileSystems = new HashMap<>();
 
-    private JarFileSystemUtils() {
-    }
-
-    public static Path toPath(URI uri) throws IOException {
+    public Path toPath(URI uri) throws IOException {
         try {
             if (!"jar".equals(uri.getScheme())) {
-                throw new IllegalArgumentException("JarFileSystemUtils only supports uri's starting with jar:");
+                throw new IllegalArgumentException("JarFileSystemProvider only supports uri's starting with jar:");
             }
 
             String fileSystemName = substringBeforeLast(uri.toString(), "!");
@@ -33,7 +30,7 @@ public class JarFileSystemUtils {
         }
     }
 
-    private static FileSystem getFileSystem(String fileSystemName) throws IOException {
+    private FileSystem getFileSystem(String fileSystemName) throws IOException {
         if (!openFileSystems.containsKey(fileSystemName)) {
             if (!fileSystemName.contains("!")) {
                 try {
@@ -48,5 +45,12 @@ public class JarFileSystemUtils {
             }
         }
         return openFileSystems.get(fileSystemName);
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (FileSystem fs : openFileSystems.values()) {
+            fs.close();
+        }
     }
 }
