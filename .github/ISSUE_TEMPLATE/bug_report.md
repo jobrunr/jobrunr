@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve (if the bug template is not completed correctly, your issue will be closed as is without response).
 title: "[BUG]"
 labels: ''
 assignees: ''
