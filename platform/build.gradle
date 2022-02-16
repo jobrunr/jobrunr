@@ -8,11 +8,11 @@ version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 
 dependencies {
     constraints {
-        api 'org.slf4j:slf4j-api:1.7.35'
+        api 'org.slf4j:slf4j-api:1.7.36'
         api 'org.ow2.asm:asm:9.2'
         api 'org.ow2.asm:asm-util:9.2'
 
-        api 'org.slf4j:slf4j-simple:1.7.35'
+        api 'org.slf4j:slf4j-simple:1.7.36'
         api 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1'
@@ -34,9 +34,9 @@ dependencies {
         api 'org.apache.commons:commons-dbcp2:2.9.0'
         api 'com.mchange:c3p0:0.9.5.5'
         api 'org.apache.tomcat:tomcat-jdbc:10.0.16'
-        api 'redis.clients:jedis:4.1.0'
+        api 'redis.clients:jedis:4.1.1'
         api 'io.lettuce:lettuce-core:6.1.6.RELEASE'
-        api 'org.mongodb:mongodb-driver-sync:4.4.1'
+        api 'org.mongodb:mongodb-driver-sync:4.5.0'
         api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.16.3'
 
         api 'org.junit.jupiter:junit-jupiter:5.8.2'
