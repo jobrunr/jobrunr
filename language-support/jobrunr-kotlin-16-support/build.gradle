@@ -26,12 +26,12 @@ publishing {
   publications {
     mavenJava(MavenPublication) {
       groupId = 'org.jobrunr'
-      artifactId = 'jobrunr-kotlin-1.5-support'
+      artifactId = 'jobrunr-kotlin-1.6-support'
       version = project.version
       from components.java
 
       pom {
-        name = 'JobRunr Kotlin 1.5 Support'
+        name = 'JobRunr Kotlin 1.6 Support'
         description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
         url = 'https://github.com/jobrunr/jobrunr'
         licenses {
