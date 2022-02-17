@@ -297,7 +297,7 @@ public class CronExpression extends Schedule {
             if (!this.days.get(dayIndex))
                 continue;
 
-            for (int monthIndex = 0; monthIndex < 12; monthIndex++) {
+            for (int monthIndex = 0; monthIndex <= 12; monthIndex++) {
                 if (!this.months.get(monthIndex))
                     continue;
 
