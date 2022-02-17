@@ -301,7 +301,7 @@ public class CronExpression extends Schedule {
                 if (!this.months.get(monthIndex))
                     continue;
 
-                if (dayIndex + 1 <= YearMonth.of(aYear, monthIndex + 1).lengthOfMonth())
+                if (dayIndex + 1 <= YearMonth.of(aYear, monthIndex).lengthOfMonth())
                     return true;
             }
         }
