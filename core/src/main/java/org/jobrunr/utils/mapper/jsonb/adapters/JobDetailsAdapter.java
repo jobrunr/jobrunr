@@ -10,12 +10,7 @@ import javax.json.bind.adapter.JsonbAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CACHEABLE;
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETERS;
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_STATIC_FIELD_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.*;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;

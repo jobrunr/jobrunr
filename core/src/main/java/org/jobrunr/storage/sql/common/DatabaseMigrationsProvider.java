@@ -9,9 +9,11 @@ import org.jobrunr.utils.RuntimeUtils;
 import org.jobrunr.utils.annotations.Because;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
 @Because("https://github.com/jobrunr/jobrunr/issues/83")
@@ -26,8 +28,8 @@ class DatabaseMigrationsProvider {
     public Stream<SqlMigration> getMigrations() {
         SqlMigrationProvider migrationProvider = getMigrationProvider();
 
-        final Map<String, SqlMigration> commonMigrations = getCommonMigrations(migrationProvider).collect(toMap(SqlMigration::getFileName, m -> m));
-        final Map<String, SqlMigration> databaseSpecificMigrations = getDatabaseSpecificMigrations(migrationProvider).collect(toMap(SqlMigration::getFileName, p -> p));
+        final Map<String, SqlMigration> commonMigrations = getCommonMigrations(migrationProvider).stream().collect(toMap(SqlMigration::getFileName, m -> m));
+        final Map<String, SqlMigration> databaseSpecificMigrations = getDatabaseSpecificMigrations(migrationProvider).stream().collect(toMap(SqlMigration::getFileName, p -> p));
 
         final HashMap<String, SqlMigration> actualMigrations = new HashMap<>(commonMigrations);
         actualMigrations.putAll(databaseSpecificMigrations);
@@ -43,14 +45,14 @@ class DatabaseMigrationsProvider {
         }
     }
 
-    protected Stream<SqlMigration> getCommonMigrations(SqlMigrationProvider migrationProvider) {
+    protected List<SqlMigration> getCommonMigrations(SqlMigrationProvider migrationProvider) {
         return migrationProvider.getMigrations(DatabaseCreator.class);
     }
 
-    protected Stream<SqlMigration> getDatabaseSpecificMigrations(SqlMigrationProvider migrationProvider) {
+    protected List<SqlMigration> getDatabaseSpecificMigrations(SqlMigrationProvider migrationProvider) {
         if (sqlStorageProviderClass != null) {
             return migrationProvider.getMigrations(sqlStorageProviderClass);
         }
-        return Stream.empty();
+        return emptyList();
     }
 }

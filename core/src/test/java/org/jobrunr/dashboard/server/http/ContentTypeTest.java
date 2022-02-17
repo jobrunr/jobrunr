@@ -6,14 +6,7 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.jobrunr.dashboard.server.http.ContentType.APPLICATION_JSON;
-import static org.jobrunr.dashboard.server.http.ContentType.APPLICATION_OCTET_STREAM;
-import static org.jobrunr.dashboard.server.http.ContentType.IMAGE_PNG;
-import static org.jobrunr.dashboard.server.http.ContentType.IMAGE_X_ICON;
-import static org.jobrunr.dashboard.server.http.ContentType.TEXT_CSS;
-import static org.jobrunr.dashboard.server.http.ContentType.TEXT_HTML;
-import static org.jobrunr.dashboard.server.http.ContentType.TEXT_JAVASCRIPT;
-import static org.jobrunr.dashboard.server.http.ContentType.TEXT_PLAIN;
+import static org.jobrunr.dashboard.server.http.ContentType.*;
 
 class ContentTypeTest {
 

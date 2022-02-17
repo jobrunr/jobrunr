@@ -3,7 +3,6 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.filters.JobFilter;
-import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;

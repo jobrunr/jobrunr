@@ -17,13 +17,8 @@ import java.util.UUID;
 
 import static java.time.Instant.now;
 import static java.util.Collections.singleton;
-import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.JobRunrAssertions.assertThatJson;
-import static org.jobrunr.JobRunrAssertions.contentOfResource;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.JobRunrAssertions.*;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 public abstract class AbstractJsonMapperTest {

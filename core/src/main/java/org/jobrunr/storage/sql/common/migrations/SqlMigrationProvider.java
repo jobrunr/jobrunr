@@ -1,7 +1,7 @@
 package org.jobrunr.storage.sql.common.migrations;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 public interface SqlMigrationProvider {
-    Stream<SqlMigration> getMigrations(Class<?> clazz);
+    List<SqlMigration> getMigrations(Class<?> clazz);
 }

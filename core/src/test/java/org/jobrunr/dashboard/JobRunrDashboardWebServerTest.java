@@ -24,9 +24,7 @@ import java.time.temporal.ChronoUnit;
 import static java.util.UUID.randomUUID;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 

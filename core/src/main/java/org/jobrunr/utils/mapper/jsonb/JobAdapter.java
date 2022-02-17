@@ -6,12 +6,7 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobHistoryAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobMetadataAdapter;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeSerializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.*;
 
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;

@@ -15,13 +15,8 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaMethod;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptor;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
-import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromField;
-import static org.jobrunr.utils.reflection.ReflectionUtils.isClassAssignableToObject;
-import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.*;
+import static org.jobrunr.utils.reflection.ReflectionUtils.*;
 
 public class JobDetailsInstruction extends VisitMethodInstruction {
 

@@ -1,9 +1,9 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.xcontent.XContentBuilder;
 import org.elasticsearch.xcontent.json.JsonXContent;
-import org.elasticsearch.search.SearchHit;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;

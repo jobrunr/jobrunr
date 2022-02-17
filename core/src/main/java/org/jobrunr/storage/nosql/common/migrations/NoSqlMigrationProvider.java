@@ -1,7 +1,7 @@
 package org.jobrunr.storage.nosql.common.migrations;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 public interface NoSqlMigrationProvider {
-    Stream<NoSqlMigration> getMigrations(Class<?> clazz);
+    List<NoSqlMigration> getMigrations(Class<?> clazz);
 }

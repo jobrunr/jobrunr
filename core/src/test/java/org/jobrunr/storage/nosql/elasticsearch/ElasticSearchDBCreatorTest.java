@@ -22,9 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @Testcontainers
 @ExtendWith(MockitoExtension.class)

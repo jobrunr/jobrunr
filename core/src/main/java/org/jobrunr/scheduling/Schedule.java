@@ -2,9 +2,11 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.utils.annotations.VisibleFor;
 
-import static java.time.Instant.now;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
-import java.time.*;
+import static java.time.Instant.now;
 
 public abstract class Schedule implements Comparable<Schedule> {
 

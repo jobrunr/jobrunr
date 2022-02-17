@@ -15,15 +15,11 @@ import java.time.Instant;
 import java.util.stream.Stream;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UseStorageProviderJobConcurrentJobModificationResolverTest {

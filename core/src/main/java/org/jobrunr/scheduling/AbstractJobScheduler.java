@@ -14,7 +14,6 @@ import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.time.Instant;
 import java.time.ZoneId;

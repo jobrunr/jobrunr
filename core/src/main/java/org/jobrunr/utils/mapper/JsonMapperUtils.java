@@ -1,7 +1,5 @@
 package org.jobrunr.utils.mapper;
 
-import java.util.Arrays;
-
 import static java.util.Arrays.stream;
 
 public class JsonMapperUtils {

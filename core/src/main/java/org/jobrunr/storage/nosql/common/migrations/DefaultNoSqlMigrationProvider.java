@@ -1,14 +1,19 @@
 package org.jobrunr.storage.nosql.common.migrations;
 
-import java.util.stream.Stream;
+import org.jobrunr.utils.resources.ClassPathResourceProvider;
 
-import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 public class DefaultNoSqlMigrationProvider implements NoSqlMigrationProvider {
 
     @Override
-    public Stream<NoSqlMigration> getMigrations(Class<?> clazz) {
-        return listAllChildrenOnClasspath(clazz, "migrations")
-                .map(NoSqlMigrationByPath::new);
+    public List<NoSqlMigration> getMigrations(Class<?> clazz) {
+        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+            return resourceProvider.listAllChildrenOnClasspath(clazz, "migrations")
+                    .map(NoSqlMigrationByPath::new)
+                    .collect(toList());
+        }
     }
 }

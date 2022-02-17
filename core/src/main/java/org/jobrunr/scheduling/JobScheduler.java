@@ -9,7 +9,6 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
-import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;

@@ -25,6 +25,7 @@ public class NoSqlDatabaseMigrationsProvider {
     protected Stream<NoSqlMigration> getMigrations(NoSqlMigrationProvider migrationProvider) {
         return migrationProvider
                 .getMigrations(noSqlStorageProviderClass)
+                .stream()
                 .filter(m -> m.getClassName().matches("^M[0-9]{3}_(.)*$"));
     }
 
