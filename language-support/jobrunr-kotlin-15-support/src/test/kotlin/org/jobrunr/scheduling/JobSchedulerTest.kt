@@ -143,9 +143,9 @@ class JobSchedulerTest {
     @Test
     fun `test schedule with polymorphism`() {
         val recurringJob = PrintlnRecurringJob()
-        recurringJob.schedule(Cron.minutely())
+        recurringJob.schedule(Cron.every15seconds())
 
-        await().atMost(65, TimeUnit.SECONDS).until {
+        await().atMost(35, TimeUnit.SECONDS).until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
         val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
