@@ -9,7 +9,6 @@ pluginManagement {
 rootProject.name = 'JobRunr'
 include ':platform'
 include ':core'
-include ':language-support:jobrunr-kotlin-14-support'
 include ':language-support:jobrunr-kotlin-15-support'
 include ':language-support:jobrunr-kotlin-16-support'
 include ':framework-support:jobrunr-micronaut-feature'
