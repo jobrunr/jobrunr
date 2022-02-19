@@ -362,7 +362,7 @@ public class CronExpression extends Schedule {
 
 
         if (isLastDayOfMonth) {
-            for (int j = 0; j < dayCountInMonth; j++) { // remove days before except last day of month
+            for (int j = 0; j < dayCountInMonth; j++) { // remove all days except last day of month
                 updatedDays.set(j, ((j + 1) == dayCountInMonth));
             }
         } else if (isSpecificLastDayOfMonth) { // remove days before the last 7 days
