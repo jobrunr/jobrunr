@@ -43,6 +43,14 @@ public enum CronFieldType {
         return fillBitSet(0, length);
     }
 
+    public BitSet parseLastDayOfMonth() {
+        if (this == DAY) {
+            BitSet bitSet = fillBitSet(27, length);
+            return bitSet;
+        }
+        throw new InvalidCronExpressionException("Last day of month is only allowed in day field");
+    }
+
     public BitSet fillBitSetToIncl(int from, int toIncluded) {
         int fromIndex = from - minAllowedValue;
         int toIndex = toIncluded - minAllowedValue + 1;

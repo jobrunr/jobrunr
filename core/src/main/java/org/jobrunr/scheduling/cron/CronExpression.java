@@ -47,6 +47,8 @@ public class CronExpression extends Schedule {
     private BitSet months;
     private BitSet daysOfWeek;
     private BitSet daysOf5Weeks;
+    private boolean isLastDayOfMonth;
+    private boolean isSpecificLastDayOfMonth;
 
     /**
      * Parses crontab expression and create a Schedule object representing that
@@ -57,7 +59,7 @@ public class CronExpression extends Schedule {
      * <pre>
      *  ┌───────────── minute (0 - 59)
      *  │ ┌───────────── hour (0 - 23)
-     *  │ │ ┌───────────── day of the month (1 - 31)
+     *  │ │ ┌───────────── day of the month (1 - 31) or L for last day of the month
      *  │ │ │ ┌───────────── month (1 - 12 or Jan/January - Dec/December)
      *  │ │ │ │ ┌───────────── day of the week (0 - 6 or Sun/Sunday - Sat/Saturday)
      *  │ │ │ │ │
@@ -72,7 +74,7 @@ public class CronExpression extends Schedule {
      *  ┌───────────── second (0 - 59)
      *  │ ┌───────────── minute (0 - 59)
      *  │ │ ┌───────────── hour (0 - 23)
-     *  │ │ │ ┌───────────── day of the month (1 - 31)
+     *  │ │ │ ┌───────────── day of the month (1 - 31) or L for last day of the month
      *  │ │ │ │ ┌───────────── month (1 - 12 or Jan/January - Dec/December)
      *  │ │ │ │ │ ┌───────────── day of the week (0 - 6 or Sun/Sunday - Sat/Saturday)
      *  │ │ │ │ │ │
@@ -123,7 +125,9 @@ public class CronExpression extends Schedule {
         cronExpression.hours = CronExpression.HOURS_FIELD_PARSER.parse(token);
 
         token = fields[index++];
+        String daysToken = token;
         cronExpression.days = CronExpression.DAYS_FIELD_PARSER.parse(token);
+        cronExpression.isLastDayOfMonth = token.equals("l");
         boolean daysStartWithAsterisk = token.startsWith("*");
 
         token = fields[index++];
@@ -132,6 +136,14 @@ public class CronExpression extends Schedule {
         token = fields[index++];
         cronExpression.daysOfWeek = CronExpression.DAY_OF_WEEK_FIELD_PARSER.parse(token);
         boolean daysOfWeekStartAsterisk = token.startsWith("*");
+
+        if (token.length() == 2 && token.endsWith("l")) {
+            if (!daysToken.equalsIgnoreCase("*")) {
+                throw new InvalidCronExpressionException("when last days of month is specified. the day of the month must be \"*\"");
+            }
+            // this flag will be used later duing finding the next schedule as some months have less than 31 days
+            cronExpression.isSpecificLastDayOfMonth = true;
+        }
         cronExpression.daysOf5Weeks = generateDaysOf5Weeks(cronExpression.daysOfWeek);
 
         cronExpression.daysAndDaysOfWeekRelation = (daysStartWithAsterisk || daysOfWeekStartAsterisk)
@@ -326,26 +338,37 @@ public class CronExpression extends Schedule {
         BitSet updatedDays = new BitSet(31);
         updatedDays.or(this.days);
         BitSet monthDaysOfWeeks = this.daysOf5Weeks.get(daysOf5WeeksOffset, daysOf5WeeksOffset + 31);
-        if (this.daysAndDaysOfWeekRelation == DaysAndDaysOfWeekRelation.INTERSECT) {
+        if (this.isSpecificLastDayOfMonth || this.daysAndDaysOfWeekRelation == DaysAndDaysOfWeekRelation.INTERSECT) {
             updatedDays.and(monthDaysOfWeeks);
         } else {
             updatedDays.or(monthDaysOfWeeks);
         }
-        int i;
+        int dayCountInMonth;
         if (month == Month.FEBRUARY.getValue() /* Feb */) {
-            i = 28;
+            dayCountInMonth = 28;
             if (isLeapYear(year)) {
-                i++;
+                dayCountInMonth++;
             }
         } else {
             // We cannot use lengthOfMonth method with the month Feb
             // because it returns incorrect number of days for years
             // that are dividable by 400 like the year 2000, a bug??
-            i = YearMonth.of(year, month).lengthOfMonth();
+            dayCountInMonth = YearMonth.of(year, month).lengthOfMonth();
         }
         // remove days beyond month length
-        for (; i < 31; i++) {
-            updatedDays.set(i, false);
+        for (int j = dayCountInMonth; j < 31; j++) {
+            updatedDays.set(j, false);
+        }
+
+
+        if (isLastDayOfMonth) {
+            for (int j = 0; j < dayCountInMonth; j++) { // remove days before except last day of month
+                updatedDays.set(j, ((j + 1) == dayCountInMonth));
+            }
+        } else if (isSpecificLastDayOfMonth) { // remove days before the last 7 days
+            for (int j = 0; j < dayCountInMonth - 7; j++) {
+                updatedDays.set(j, false);
+            }
         }
         return updatedDays;
     }

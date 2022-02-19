@@ -88,6 +88,16 @@ class CronFieldParser {
     }
 
     public BitSet parse(String token) {
+        // This is when last day of the month is specified
+        if (this.fieldType == CronFieldType.DAY_OF_WEEK) {
+            if (token.length() == 2 && token.endsWith("l")) {
+                return this.parseLiteral(token.substring(0, 1));
+            }
+        } else if (this.fieldType == CronFieldType.DAY) {
+            if ("l".equals(token)) {
+                return fieldType.parseLastDayOfMonth();
+            }
+        }
         if (token.indexOf(',') > -1) {
             BitSet bitSet = new BitSet(this.length);
             String[] items = token.split(",");
