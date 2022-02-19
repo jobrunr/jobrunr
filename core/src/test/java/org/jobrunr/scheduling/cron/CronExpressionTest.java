@@ -159,6 +159,13 @@ class CronExpressionTest {
         assertThatThrownBy(() -> CronExpression.create("invalid")).isInstanceOf(InvalidCronExpressionException.class);
     }
 
+    @Test
+    void invalidCronExpressionThrowsExceptionIfBothLastDayOfMonth() {
+        assertThatThrownBy(() -> CronExpression.create("0 0 0 l * 5L"))
+                .isInstanceOf(InvalidCronExpressionException.class)
+                .hasMessage("You can only specify the last day of month week in either the DAY field or in the DAY_OF_WEEK field, not both.");
+    }
+
     static Stream<Arguments> startInstantCronExpressionAndResultInstant() {
         return Stream.of(
                 arguments("* * * * * *", "2019-01-01 00:00:00", "2019-01-01 00:00:01"),

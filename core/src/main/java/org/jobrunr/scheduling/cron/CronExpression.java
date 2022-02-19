@@ -138,6 +138,9 @@ public class CronExpression extends Schedule {
         boolean daysOfWeekStartAsterisk = token.startsWith("*");
 
         if (token.length() == 2 && token.endsWith("l")) {
+            if(cronExpression.isLastDayOfMonth) {
+                throw new InvalidCronExpressionException("You can only specify the last day of month week in either the DAY field or in the DAY_OF_WEEK field, not both.");
+            }
             if (!daysToken.equalsIgnoreCase("*")) {
                 throw new InvalidCronExpressionException("when last days of month is specified. the day of the month must be \"*\"");
             }
