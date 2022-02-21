@@ -2,7 +2,7 @@ class StatsState {
     constructor() {
         this._listeners = [];
         this._data = {};
-        this._data.stats = {estimation: {}};
+        this._data.stats = {estimation: {}, succeeded: 0, allTimeSucceeded: 0};
     }
 
     setStats(stats) {
