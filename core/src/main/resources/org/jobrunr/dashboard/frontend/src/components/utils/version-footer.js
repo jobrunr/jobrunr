@@ -34,7 +34,7 @@ export default function VersionFooter() {
             <Typography align="center" className={classes.footer} variant="caption">
                 Processed {(stats.succeeded + stats.allTimeSucceeded)} jobs with <span style={{color: 'red'}}>♥</span> using
                 JobRunr {jobRunrInfo.version}.<br />
-                Support open-source development and <a href="https://www.jobrunr.io/en/about/#eco-friendly-software" target="_blank" rel="noreferrer">the planet</a> by purchasing a <a href="https://www.jobrunr.io/en/pricing/" target="_blank" rel="noreferrer">JobRunr Pro</a> license.
+                Support open-source development and <a href="https://www.jobrunr.io/en/about/#eco-friendly-software" target="_blank" rel="noreferrer">our planet</a> by purchasing a <a href="https://www.jobrunr.io/en/pricing/" target="_blank" rel="noreferrer">JobRunr Pro</a> license.
             </Typography>
         </>
     )
