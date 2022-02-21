@@ -124,8 +124,6 @@ class BackgroundJobServerTest {
     void testOnServerExitCleansUpAllThreads() {
         final int amountOfJobs = 10;
 
-        Map<Thread, StackTraceElement[]> stackTracesBeforeStart = Thread.getAllStackTraces();
-
         backgroundJobServer.start();
         for (int i = 0; i < amountOfJobs; i++) {
             BackgroundJob.enqueue(() -> testService.doWork());
@@ -134,7 +132,7 @@ class BackgroundJobServerTest {
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(Thread.getAllStackTraces()).matches(this::containsBackgroundJobThreads));
 
         backgroundJobServer.stop();
-        await().atMost(TEN_SECONDS)
+        await().atMost(ONE_MINUTE)
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
     }
