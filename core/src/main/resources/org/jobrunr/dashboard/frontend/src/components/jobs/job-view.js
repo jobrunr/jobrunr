@@ -135,7 +135,7 @@ const JobView = (props) => {
         setStateBreadcrumb({
             state: state,
             name: jobStateToHumanReadableName(state),
-            link: state.toLowerCase()
+            link: state.toUpperCase()
         })
     }
 
