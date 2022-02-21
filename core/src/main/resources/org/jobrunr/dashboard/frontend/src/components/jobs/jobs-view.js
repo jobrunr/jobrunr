@@ -15,6 +15,10 @@ const useStyles = makeStyles(theme => ({
         //maxWidth: 360,
         backgroundColor: theme.palette.background.paper,
     },
+    jobRunrProNotice: {
+        margin: "-2rem 0 0.5rem 0",
+        textAlign: "right"
+    },
     content: {
         width: '100%',
     },
@@ -83,6 +87,10 @@ const JobsView = (props) => {
                 ? <LoadingIndicator/>
                 :
                 <>
+                    {jobState === 'FAILED'
+                        ? <div className={classes.jobRunrProNotice}>Need to requeue a lot of failed jobs? That's easy-peasy with <a href="https://www.jobrunr.io/en/documentation/pro/job-filtering/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
+                        : <div className={classes.jobRunrProNotice}>Are you trying to find a certain job here? With <a href="https://www.jobrunr.io/en/documentation/pro/job-filtering/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> you would have already found it.</div>
+                    }
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>
                     </Paper>

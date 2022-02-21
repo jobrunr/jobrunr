@@ -65,6 +65,8 @@
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8" />
+    <bytecodeTargetLevel target="1.8">
+      <module name="JobRunr.language-support.jobrunr-kotlin-14-support.test" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>

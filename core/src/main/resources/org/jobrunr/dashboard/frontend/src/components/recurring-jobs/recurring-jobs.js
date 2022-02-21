@@ -24,6 +24,10 @@ const useStyles = makeStyles(theme => ({
     root: {
         display: 'flex',
     },
+    jobRunrProNotice: {
+        margin: "-2rem 0 0.5rem 0",
+        textAlign: "right"
+    },
     recurringJobActions: {
         margin: '1rem',
     },
@@ -127,6 +131,7 @@ const RecurringJobs = (props) => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
+                    <div className={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just a click away.</div>
                     <Paper className={classes.paper}>
                         {recurringJobs.length < 1
                             ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
