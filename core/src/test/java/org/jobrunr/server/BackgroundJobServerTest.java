@@ -113,11 +113,13 @@ class BackgroundJobServerTest {
 
         // WHEN we shutdown the server
         backgroundJobServer.stop();
+        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)", 1);
 
         // THEN no running backgroundjob threads should exist
         await().atMost(TEN_SECONDS)
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
     }
 
     @Test

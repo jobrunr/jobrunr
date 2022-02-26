@@ -386,6 +386,31 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void jobZooKeeperStopsIfTooManyExceptions() {
+        Job succeededJob1 = aSucceededJob().build();
+        Job succeededJob2 = aSucceededJob().build();
+
+        when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
+        when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+                .thenReturn(
+                        asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build())
+                );
+        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
+
+        jobZooKeeper.run();
+        jobZooKeeper.run();
+        jobZooKeeper.run();
+        jobZooKeeper.run();
+        jobZooKeeper.run();
+        jobZooKeeper.run();
+
+        AtomicInteger exceptionCount = Whitebox.getInternalState(jobZooKeeper, "exceptionCount");
+        assertThat(exceptionCount).hasValue(6);
+        verify(backgroundJobServer).stop();
+    }
+
+    @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/122")
     void masterTasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
         when(backgroundJobServer.isUnAnnounced()).then(putRunStartTimeInPast());

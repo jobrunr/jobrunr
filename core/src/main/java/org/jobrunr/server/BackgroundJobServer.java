@@ -130,6 +130,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public void stop() {
         if (isStopped()) return;
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            LOGGER.info("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)");
             isMaster = null;
             stopWorkers();
             stopZooKeepers();
