@@ -398,12 +398,9 @@ class JobZooKeeperTest {
                 );
         when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
 
-        jobZooKeeper.run();
-        jobZooKeeper.run();
-        jobZooKeeper.run();
-        jobZooKeeper.run();
-        jobZooKeeper.run();
-        jobZooKeeper.run();
+        for(int i = 0; i <= 5 ; i++) {
+            jobZooKeeper.run();
+        }
 
         AtomicInteger exceptionCount = Whitebox.getInternalState(jobZooKeeper, "exceptionCount");
         assertThat(exceptionCount).hasValue(6);

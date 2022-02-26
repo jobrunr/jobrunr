@@ -15,14 +15,6 @@
     <annotationProcessing>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.6.3/5f559b13a0ac7893c42f1daa4684f0d4b3a51e04/spring-boot-autoconfigure-processor-2.6.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.6.3/6c0e21d31af4964436aa81db270b4d00f9c5436f/spring-boot-configuration-processor-2.6.3.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
         <option name="micronaut.processing.annotations" value="org.jobrunr.*" />
         <option name="micronaut.processing.group" value="org.jobrunr" />
         <option name="micronaut.processing.incremental" value="true" />
@@ -53,7 +45,7 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.7.1.Final/9df96b1534b1269ac44b7bed71bef8b292991732/quarkus-extension-processor-2.7.1.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.7.2.Final/151d2be67220b0d770ca8b849180431e2eae5574/quarkus-extension-processor-2.7.2.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.14.2/5504b065b7582af4291826ecef463ff6729c5054/jsoup-1.14.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.24.0/6b87dfd14e6db068f4fe7f23526b6e02353a296e/javaparser-core-3.24.0.jar" />
@@ -63,6 +55,14 @@
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.6.4/e0268bc44e8b9647129935f2e21d7d896cc4558d/spring-boot-autoconfigure-processor-2.6.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.6.4/b369b21e04d10993587c68646c72754585107781/spring-boot-configuration-processor-2.6.4.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
