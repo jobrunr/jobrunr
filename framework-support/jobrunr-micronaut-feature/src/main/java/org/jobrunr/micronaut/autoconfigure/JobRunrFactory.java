@@ -126,6 +126,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {DataSource.class})
+    @Requires(property = "jobrunr.database.type", value = "sql", defaultValue = "sql")
     public StorageProvider sqlStorageProvider(BeanContext beanContext, JobMapper jobMapper) {
         DataSource dataSource = configuration.getDatabase().getDatasource()
                 .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
@@ -140,6 +141,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {MongoClient.class})
+    @Requires(property = "jobrunr.database.type", value = "mongodb", defaultValue = "mongodb")
     public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper) {
         String databaseName = configuration.getDatabase().getDatabaseName().orElse(null);
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
@@ -152,6 +154,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {RedisClient.class})
+    @Requires(property = "jobrunr.database.type", value = "redis-lettuce", defaultValue = "redis-lettuce")
     public StorageProvider lettuceRedisStorageProvider(RedisClient redisClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient, tablePrefix);
@@ -162,6 +165,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {RestHighLevelClient.class})
+    @Requires(property = "jobrunr.database.type", value = "elasticsearch", defaultValue = "elasticsearch")
     public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;

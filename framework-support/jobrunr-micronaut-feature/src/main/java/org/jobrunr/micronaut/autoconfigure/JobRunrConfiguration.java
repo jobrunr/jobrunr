@@ -48,6 +48,12 @@ public interface JobRunrConfiguration {
          * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
          */
         Optional<String> getDatasource();
+
+        /**
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         */
+        Optional<String> getType();
     }
 
     @ConfigurationProperties("jobScheduler")

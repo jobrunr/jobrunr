@@ -23,6 +23,8 @@ public class JobRunrSqlStorageProviderProducer {
     @DefaultBean
     @Singleton
     public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrConfiguration configuration) {
+        if(configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("sql")) return null;
+
         String tablePrefix = configuration.database.tablePrefix.orElse(null);
         DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
         StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(dataSources, configuration), tablePrefix, databaseOptions);

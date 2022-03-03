@@ -169,6 +169,20 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void jobRunrDoesNotFailIfMultipleDatabasesAvailableAndValueConfigured() {
+        this.contextRunner
+                .withPropertyValues(
+                        "org.jobrunr.database.skip-create=true",
+                        "org.jobrunr.database.type=sql"
+                )
+                .withUserConfiguration(SqlDataSourceConfiguration.class, ElasticSearchStorageProviderConfiguration.class).run((context) -> {
+            assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
+            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
+            assertThat(context).hasSingleBean(JobScheduler.class);
+        });
+    }
+
+    @Test
     void jobRunrHealthIndicatorAutoConfiguration() {
         this.contextRunner.withPropertyValues("org.jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobRunrHealthIndicator.class);
