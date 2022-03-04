@@ -51,6 +51,7 @@ public class JobRunr {
             if (jobRunrConfiguration.backgroundJobServer != null) jobRunrConfiguration.backgroundJobServer.stop();
             if (jobRunrConfiguration.dashboardWebServer != null) jobRunrConfiguration.dashboardWebServer.stop();
             if (jobRunrConfiguration.storageProvider != null) jobRunrConfiguration.storageProvider.close();
+            if (jobRunrConfiguration.microMeterIntegration != null) jobRunrConfiguration.microMeterIntegration.close();
         }
         return jobRunrConfiguration;
     }

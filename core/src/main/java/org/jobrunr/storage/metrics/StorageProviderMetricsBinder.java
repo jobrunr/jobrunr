@@ -9,7 +9,7 @@ import org.jobrunr.storage.listeners.JobStatsChangeListener;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class StorageProviderMetricsBinder implements JobStatsChangeListener {
+public class StorageProviderMetricsBinder implements JobStatsChangeListener, AutoCloseable {
 
     private final StorageProvider storageProvider;
     private final MeterRegistry meterRegistry;
@@ -58,5 +58,10 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener {
         succeededGauge.set(jobStats.getSucceeded());
         allTimeSucceededGauge.set(jobStats.getAllTimeSucceeded());
         deletedGauge.set(jobStats.getDeleted());
+    }
+
+    @Override
+    public void close() {
+        this.storageProvider.removeJobStorageOnChangeListener(this);
     }
 }
