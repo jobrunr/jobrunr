@@ -8,12 +8,12 @@ import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 
-public class PermanentlyDeletedWhileProcessingException extends AbstractAllowedConcurrentStateChange {
+public class PermanentlyDeletedWhileProcessingConcurrentStateChange extends AbstractAllowedConcurrentStateChange {
 
     private final JobZooKeeper jobZooKeeper;
 
-    public PermanentlyDeletedWhileProcessingException(JobZooKeeper jobZooKeeper) {
-        super(PROCESSING, DELETED);
+    public PermanentlyDeletedWhileProcessingConcurrentStateChange(JobZooKeeper jobZooKeeper) {
+        super(null, null);
         this.jobZooKeeper = jobZooKeeper;
     }
 
