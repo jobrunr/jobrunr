@@ -51,7 +51,6 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
                         final Object object = jsonParser.getCodec().treeToValue(arrayNode, valueType);
                         return new JobParameter(className, object);
                     }
-                    System.out.println(e);
                     throw e;
                 }
             }
