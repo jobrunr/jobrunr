@@ -70,7 +70,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
 
         final Job job = new Job(id, version, jobDetails, jobHistory, jobMetadata);
         job.setJobName(jsonObject.getString("jobName"));
-        job.setRecurringJobId(jsonObject.containsKey("recurringJobId") && jsonObject.isNull("recurringJobId") ? null : jsonObject.getString("recurringJobId"));
+        job.setRecurringJobId(jsonObject.containsKey("recurringJobId") && !jsonObject.isNull("recurringJobId") ? jsonObject.getString("recurringJobId") : null);
         return job;
     }
 }
