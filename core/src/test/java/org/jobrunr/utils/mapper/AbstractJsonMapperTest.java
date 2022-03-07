@@ -7,6 +7,8 @@ import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestService.Task;
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,13 +19,8 @@ import java.util.UUID;
 
 import static java.time.Instant.now;
 import static java.util.Collections.singleton;
-import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.JobRunrAssertions.assertThatJson;
-import static org.jobrunr.JobRunrAssertions.contentOfResource;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.JobRunrAssertions.*;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 public abstract class AbstractJsonMapperTest {
@@ -170,7 +167,8 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
-    void testSerializeAndDeserializeEnqueuedJobGithubIssue254() {
+    @Because("https://github.com/jobrunr/jobrunr/issues/254")
+    void testSerializeAndDeserializeEnqueuedJobAfter4Dot0Dot0() {
         Job job = anEnqueuedJob()
                 .withJobDetails(() -> testService.doWork(1L))
                 .build();
@@ -180,7 +178,8 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
-    void testSerializeAndDeserializeEnqueuedJobGithubIssue254ComingFrom4Dot0Dot0() {
+    @Because("https://github.com/jobrunr/jobrunr/issues/254")
+    void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
         // jobs created in 4.0.1
         Job job = aJob()
                 .withId(UUID.fromString("8bf98a10-f673-4fd8-9b9c-43ded0030910"))
@@ -203,7 +202,8 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
-    void testCanSerializeCollectionsGithubIssue282() {
+    @Because("https://github.com/jobrunr/jobrunr/issues/282")
+    void testCanSerializeCollections() {
         Long value = 1L;
         Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCollection(singleton(value))).build();
 
@@ -212,5 +212,17 @@ public abstract class AbstractJsonMapperTest {
         Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(deserializedJob.getJobDetails())
                 .hasArgs(singleton(value));
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/375")
+    void testCanSerializeEnums() {
+        Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithEnum(Task.PROGRAMMING)).build();
+
+        String jobAsString = jsonMapper.serialize(job);
+
+        Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(deserializedJob.getJobDetails())
+                .hasArgs(Task.PROGRAMMING);
     }
 }

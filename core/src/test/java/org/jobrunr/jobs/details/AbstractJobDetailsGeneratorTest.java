@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
+import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
 
 public abstract class AbstractJobDetailsGeneratorTest {
 
@@ -1001,6 +1002,16 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/375")
+    void testJobLambdaWithEnum() {
+        JobDetails jobDetails = toJobDetails(() -> testService.doWorkWithEnum(PROGRAMMING));
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWorkWithEnum")
+                .hasArgs(PROGRAMMING);
+    }
+
+    @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/335")
     void testJobLambdaWithDifferentParametersCalledFromOtherMethod() {
         UUID uuid1 = UUID.randomUUID();
@@ -1015,6 +1026,8 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasMethodName("run")
                 .hasArgs(uuid2);
     }
+
+
 
     // must be kept in separate method for test of Github Issue 335
     private JobDetails createJobDetails(UUID uuid) {

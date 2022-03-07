@@ -13,11 +13,11 @@ public class JsonbJsonMapperTest extends AbstractJsonMapperTest {
 
     @Test
     @Disabled("No regression introduced for JsonB coming from 4.0.0")
-    void testSerializeAndDeserializeEnqueuedJobGithubIssue254ComingFrom4Dot0Dot0() {
+    void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
     }
 
     @Test
     @Disabled("JsonB does not know type in actual list")
-    void testCanSerializeCollectionsGithubIssue282() {
+    void testCanSerializeCollections() {
     }
 }
