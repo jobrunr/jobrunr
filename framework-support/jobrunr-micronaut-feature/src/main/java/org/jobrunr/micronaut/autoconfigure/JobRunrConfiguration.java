@@ -16,6 +16,9 @@ public interface JobRunrConfiguration {
     DatabaseConfiguration getDatabase();
 
     @NotNull
+    JobsConfiguration getJobs();
+
+    @NotNull
     JobSchedulerConfiguration getJobScheduler();
 
     @NotNull
@@ -24,6 +27,20 @@ public interface JobRunrConfiguration {
     @NotNull
     DashboardConfiguration getDashboard();
 
+
+    @ConfigurationProperties("jobs")
+    interface JobsConfiguration {
+
+        /**
+         * Configures the default amount of retries.
+         */
+        Optional<Integer> getDefaultNumberOfRetries();
+
+        /**
+         * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
+         */
+        Optional<Integer> getRetryBackOffTimeSeed();
+    }
 
     @ConfigurationProperties("database")
     interface DatabaseConfiguration {

@@ -26,6 +26,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
+    testImplementation testFixtures(project(":core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'

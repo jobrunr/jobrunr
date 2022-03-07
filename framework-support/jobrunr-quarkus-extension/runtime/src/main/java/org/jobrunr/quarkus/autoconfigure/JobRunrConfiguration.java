@@ -13,6 +13,8 @@ public class JobRunrConfiguration {
 
     public DatabaseConfiguration database;
 
+    public JobsConfiguration jobs;
+
     public JobSchedulerConfiguration jobScheduler;
 
     public BackgroundJobServerConfiguration backgroundJobServer;
@@ -57,6 +59,22 @@ public class JobRunrConfiguration {
          * Valid values are 'sql', 'mongodb' and 'elasticsearch'.
          */
         public Optional<String> type;
+    }
+
+    @ConfigGroup
+    public static class JobsConfiguration {
+
+        /**
+         * Configures the default amount of retries.
+         */
+        @ConfigItem
+        Optional<Integer> defaultNumberOfRetries;
+
+        /**
+         * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
+         */
+        @ConfigItem
+        Optional<Integer> retryBackOffTimeSeed;
     }
 
     @ConfigGroup

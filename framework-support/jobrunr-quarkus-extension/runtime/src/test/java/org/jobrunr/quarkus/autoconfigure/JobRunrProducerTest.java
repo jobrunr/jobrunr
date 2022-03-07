@@ -40,6 +40,10 @@ class JobRunrProducerTest {
     @BeforeEach
     void setUp() {
         configuration = new JobRunrConfiguration();
+        configuration.database = new JobRunrConfiguration.DatabaseConfiguration();
+        configuration.jobs = new JobRunrConfiguration.JobsConfiguration();
+        configuration.jobs.defaultNumberOfRetries = Optional.empty();
+        configuration.jobs.retryBackOffTimeSeed = Optional.empty();
         configuration.jobScheduler = new JobRunrConfiguration.JobSchedulerConfiguration();
         configuration.jobScheduler.jobDetailsGenerator = Optional.empty();
         configuration.backgroundJobServer = new JobRunrConfiguration.BackgroundJobServerConfiguration();
@@ -51,7 +55,6 @@ class JobRunrProducerTest {
         configuration.dashboard.port = Optional.empty();
         configuration.dashboard.username = Optional.empty();
         configuration.dashboard.password = Optional.empty();
-        configuration.database = new JobRunrConfiguration.DatabaseConfiguration();
 
         jobRunrProducer = new JobRunrProducer();
         setInternalState(jobRunrProducer, "configuration", configuration);
