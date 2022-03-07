@@ -26,7 +26,7 @@ public class JobParameter {
 
     public JobParameter(String className, Object object) {
         this.className = className;
-        this.actualClassName = object != null ? object.getClass().getName() : className;
+        this.actualClassName = isNotNullNorAnEnum(object) ? object.getClass().getName() : className;
         this.object = object;
     }
 
@@ -57,4 +57,9 @@ public class JobParameter {
         return object;
     }
 
+
+
+    private static boolean isNotNullNorAnEnum(Object object) {
+        return object != null && !(object instanceof Enum);
+    }
 }

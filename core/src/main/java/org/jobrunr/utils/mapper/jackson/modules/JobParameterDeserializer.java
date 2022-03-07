@@ -1,9 +1,12 @@
 package org.jobrunr.utils.mapper.jackson.modules;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.utils.mapper.JsonMapperUtils;
 
@@ -25,20 +28,32 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
     @Override
     public JobParameter deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        final String methodClassName = node.get(FIELD_CLASS_NAME).asText();
+        final String className = node.get(FIELD_CLASS_NAME).asText();
         final String actualClassName = node.has(FIELD_ACTUAL_CLASS_NAME) ? node.get(FIELD_ACTUAL_CLASS_NAME).asText() : null;
         final JsonNode objectJsonNode = node.get("object");
-        if (Path.class.getName().equals(methodClassName)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
-            return new JobParameter(methodClassName, Paths.get(objectJsonNode.asText().replace("file:", "")));
+        if (Path.class.getName().equals(className)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
+            return new JobParameter(className, Paths.get(objectJsonNode.asText().replace("file:", "")));
         } else {
-            Class<Object> valueType = toClass(getActualClassName(methodClassName, actualClassName));
+            Class<Object> valueType = toClass(getActualClassName(className, actualClassName));
             if (objectJsonNode.isArray() && !Collection.class.isAssignableFrom(valueType)) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
                 final JsonNode jsonNodeInArray = objectJsonNode.get(1);
                 final Object object = jsonParser.getCodec().treeToValue(jsonNodeInArray, valueType);
-                return new JobParameter(methodClassName, object);
+                return new JobParameter(className, object);
             } else {
-                final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, valueType);
-                return new JobParameter(methodClassName, object);
+                try {
+                    final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, valueType);
+                    return new JobParameter(className, object);
+                } catch (MismatchedInputException e) { // last attempt: is it an Enum?
+                    if(valueType.isEnum()) {
+                        ArrayNode arrayNode = (ArrayNode) jsonParser.getCodec().createArrayNode();
+                        arrayNode.add(valueType.getName());
+                        arrayNode.add(objectJsonNode);
+                        final Object object = jsonParser.getCodec().treeToValue(arrayNode, valueType);
+                        return new JobParameter(className, object);
+                    }
+                    System.out.println(e);
+                    throw e;
+                }
             }
         }
     }

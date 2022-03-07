@@ -3,6 +3,7 @@ package org.jobrunr.utils.mapper.jackson;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -46,6 +47,8 @@ public class JacksonJsonMapper implements JsonMapper {
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
+                .configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true)
                 .registerModules(findModules(moduleAutoDiscover))
                 .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
                 .activateDefaultTypingAsProperty(LaissezFaireSubTypeValidator.instance,

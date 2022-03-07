@@ -15,9 +15,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -125,6 +123,10 @@ public class TestService implements TestServiceInterface {
 
     public void doWork(byte b, short s, char c) {
         System.out.println("Doing some work... " + b + "; " + s + "; " + c);
+    }
+
+    public void doWorkWithEnum(Task task) {
+        System.out.println("Doing some work: " + task.executeTask());
     }
 
     @Job(name = "Doing some work")
@@ -435,5 +437,23 @@ public class TestService implements TestServiceInterface {
             System.out.println("Running job for issue 335 " + id);
         }
 
+    }
+
+    public enum Task {
+
+        PROGRAMMING {
+            @Override
+            public String executeTask() {
+                return "In the zone";
+            }
+        },
+        CLEANING {
+            @Override
+            public String executeTask() {
+                return "Cleaning the house - wishing I were in zone";
+            }
+        };
+
+        public abstract String executeTask();
     }
 }
