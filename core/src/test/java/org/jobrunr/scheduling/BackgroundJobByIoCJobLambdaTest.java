@@ -47,6 +47,8 @@ public class BackgroundJobByIoCJobLambdaTest {
     private TestServiceForIoC testServiceForIoC;
     private TestServiceInterface testServiceInterface;
 
+    private static final String every5Seconds = "*/5 * * * * *";
+
     @BeforeEach
     public void setUpTests() {
         storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
@@ -205,7 +207,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testRecurringCronJob() {
-        BackgroundJob.<TestService>scheduleRecurrently(Cron.every15seconds(), x -> x.doWork(5));
+        BackgroundJob.<TestService>scheduleRecurrently(every5Seconds, x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -214,7 +216,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testRecurringCronJobWithId() {
-        BackgroundJob.<TestService>scheduleRecurrently("theId", Cron.every15seconds(), x -> x.doWork(5));
+        BackgroundJob.<TestService>scheduleRecurrently("theId", every5Seconds, x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -223,7 +225,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testRecurringCronJobWithIdAndTimezone() {
-        BackgroundJob.<TestService>scheduleRecurrently("theId", Cron.every15seconds(), systemDefault(), x -> x.doWork(5));
+        BackgroundJob.<TestService>scheduleRecurrently("theId", every5Seconds, systemDefault(), x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

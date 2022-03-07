@@ -55,6 +55,7 @@ public class BackgroundJobByJobLambdaTest {
     private TestService testService;
     private StorageProviderForTest storageProvider;
     private BackgroundJobServer backgroundJobServer;
+    private static final String every5Seconds = "*/5 * * * * *";
 
     @BeforeEach
     void setUpTests() {
@@ -267,7 +268,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testRecurringCronJob() {
-        BackgroundJob.scheduleRecurrently(Cron.every15seconds(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently(every5Seconds, () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -276,7 +277,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testRecurringCronJobWithId() {
-        BackgroundJob.scheduleRecurrently("theId", Cron.every15seconds(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently("theId", every5Seconds, () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -285,7 +286,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testRecurringCronJobWithIdAndTimezone() {
-        BackgroundJob.scheduleRecurrently("theId", Cron.every15seconds(), systemDefault(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently("theId", every5Seconds, systemDefault(), () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -312,8 +313,8 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void test2RecurringJobsWithSameMethodSignatureShouldBothBeRun() {
-        BackgroundJob.scheduleRecurrently("recurring-job-1", Cron.every15seconds(), systemDefault(), () -> testService.doWork(5));
-        BackgroundJob.scheduleRecurrently("recurring-job-2", Cron.every15seconds(), systemDefault(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently("recurring-job-1", every5Seconds, systemDefault(), () -> testService.doWork(5));
+        BackgroundJob.scheduleRecurrently("recurring-job-2", every5Seconds, systemDefault(), () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
 
         final Job job1 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

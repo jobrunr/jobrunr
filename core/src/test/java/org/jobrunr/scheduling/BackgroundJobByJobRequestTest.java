@@ -48,6 +48,8 @@ public class BackgroundJobByJobRequestTest {
     private StorageProviderForTest storageProvider;
     private BackgroundJobServer backgroundJobServer;
 
+    private static final String every5Seconds = "*/5 * * * * *";
+
     @BeforeEach
     public void setUpTests() {
         storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
@@ -165,7 +167,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringCronJob() {
-        BackgroundJobRequest.scheduleRecurrently(Cron.every15seconds(), new TestJobRequest("from testRecurringJob"));
+        BackgroundJobRequest.scheduleRecurrently(every5Seconds, new TestJobRequest("from testRecurringJob"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -174,7 +176,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringCronJobWithId() {
-        BackgroundJobRequest.scheduleRecurrently("theId", Cron.every15seconds(), new TestJobRequest("from testRecurringJobWithId"));
+        BackgroundJobRequest.scheduleRecurrently("theId", every5Seconds, new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -183,7 +185,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringCronJobWithIdAndTimezone() {
-        BackgroundJobRequest.scheduleRecurrently("theId", Cron.every15seconds(), systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
+        BackgroundJobRequest.scheduleRecurrently("theId", every5Seconds, systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
