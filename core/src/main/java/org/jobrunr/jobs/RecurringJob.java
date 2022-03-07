@@ -55,12 +55,14 @@ public class RecurringJob extends AbstractJob {
         Instant nextRun = getNextRun();
         final Job job = new Job(getJobDetails(), new ScheduledState(nextRun, this));
         job.setJobName(getJobName());
+        job.setRecurringJobId(getId());
         return job;
     }
 
     public Job toEnqueuedJob() {
         final Job job = new Job(getJobDetails(), new EnqueuedState());
         job.setJobName(getJobName());
+        job.setRecurringJobId(getId());
         return job;
     }
 

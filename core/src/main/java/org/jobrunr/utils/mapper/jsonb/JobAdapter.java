@@ -49,7 +49,8 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
                 .add("version", job.getVersion())
                 .add("metadata", jobMetadataAdapter.adaptToJson(job.getMetadata()))
                 .add("jobDetails", jobDetailsAdapter.adaptToJson(job.getJobDetails()))
-                .add("jobHistory", jobHistoryAdapter.adaptToJson(job.getJobStates()));
+                .add("jobHistory", jobHistoryAdapter.adaptToJson(job.getJobStates()))
+                .add("recurringJobId", job.getRecurringJobId().orElse(null));
 
         if (job.getId() != null) {
             builder.add("id", job.getId().toString());
@@ -69,6 +70,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
 
         final Job job = new Job(id, version, jobDetails, jobHistory, jobMetadata);
         job.setJobName(jsonObject.getString("jobName"));
+        job.setRecurringJobId(jsonObject.isNull("recurringJobId") ? null : jsonObject.getString("recurringJobId"));
         return job;
     }
 }

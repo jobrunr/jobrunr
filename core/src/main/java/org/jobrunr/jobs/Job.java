@@ -25,6 +25,7 @@ public class Job extends AbstractJob {
     private final UUID id;
     private final ArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
+    private String recurringJobId;
 
     private Job() {
         // used for deserialization
@@ -62,6 +63,14 @@ public class Job extends AbstractJob {
         return id;
     }
 
+    public void setRecurringJobId(String recurringJobId) {
+        this.recurringJobId = recurringJobId;
+    }
+
+    public Optional<String> getRecurringJobId() {
+        return Optional.ofNullable(recurringJobId);
+    }
+
     public List<JobState> getJobStates() {
         return unmodifiableList(jobHistory);
     }
@@ -89,13 +98,6 @@ public class Job extends AbstractJob {
 
     public StateName getState() {
         return getJobState().getName();
-    }
-
-    public void addJobState(JobState jobState) {
-        if (isIllegalStateChange(getState(), jobState.getName())) {
-            throw new IllegalJobStateChangeException(getState(), jobState.getName());
-        }
-        this.jobHistory.add(jobState);
     }
 
     public boolean hasState(StateName state) {
@@ -162,5 +164,12 @@ public class Job extends AbstractJob {
                 ", jobState='" + getState() + '\'' +
                 ", updatedAt='" + getUpdatedAt() + '\'' +
                 '}';
+    }
+
+    private void addJobState(JobState jobState) {
+        if (isIllegalStateChange(getState(), jobState.getName())) {
+            throw new IllegalJobStateChangeException(getState(), jobState.getName());
+        }
+        this.jobHistory.add(jobState);
     }
 }

@@ -258,6 +258,20 @@ public class BackgroundJobByIoCJobLambdaTest {
     }
 
     @Test
+    void recurringJobIdIsKeptEvenIsBackgroundJobServerRestarts() {
+        BackgroundJob.<TestService>scheduleRecurrently("my-job-id", every5Seconds, x -> x.doWorkThatTakesLong(20));
+        await().atMost(ofSeconds(6)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
+        final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
+        backgroundJobServer.stop();
+
+        backgroundJobServer.start();
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+        assertThat(storageProvider.getJobById(jobId))
+                .hasRecurringJobId("my-job-id")
+                .hasStates(SCHEDULED, ENQUEUED, PROCESSING, FAILED, SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void mdcContextIsAvailableInJob() {
         MDC.put("someKey", "someValue");
 

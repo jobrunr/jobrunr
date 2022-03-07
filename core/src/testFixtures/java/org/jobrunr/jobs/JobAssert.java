@@ -71,6 +71,13 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasRecurringJobId(String recurringJobId) {
+        Assertions.assertThat(actual.getRecurringJobId())
+                .isPresent()
+                .contains(recurringJobId);
+        return this;
+    }
+
     public JobAssert isEqualTo(Job otherJob) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()

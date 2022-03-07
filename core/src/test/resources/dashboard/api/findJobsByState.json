@@ -31,7 +31,8 @@
       "metadata": {
         "@class": "java.util.concurrent.ConcurrentHashMap"
       },
-      "version": 1
+      "version": 1,
+      "recurringJobId":null
     }
   ],
   "limit": 20,

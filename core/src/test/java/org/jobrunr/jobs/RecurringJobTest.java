@@ -43,20 +43,30 @@ class RecurringJobTest {
 
     @Test
     void testToScheduledJob() {
-        final RecurringJob recurringJob = aDefaultRecurringJob().withName("the recurring job").build();
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
+                .withName("the recurring job")
+                .build();
 
         final Job job = recurringJob.toScheduledJob();
 
-        assertThat(job).hasJobName("the recurring job");
+        assertThat(job)
+                .hasRecurringJobId("the-recurring-job")
+                .hasJobName("the recurring job");
     }
 
     @Test
     void testToEnqueuedJob() {
-        final RecurringJob recurringJob = aDefaultRecurringJob().withName("the recurring job").build();
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
+                .withName("the recurring job")
+                .build();
 
         final Job job = recurringJob.toEnqueuedJob();
 
-        assertThat(job).hasJobName("the recurring job");
+        assertThat(job)
+                .hasRecurringJobId("the-recurring-job")
+                .hasJobName("the recurring job");
     }
 
     @Test

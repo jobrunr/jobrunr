@@ -35,5 +35,6 @@
       "state": "ENQUEUED",
       "@class": "org.jobrunr.jobs.states.EnqueuedState"
     }
-  ]
+  ],
+  "recurringJobId":null
 }

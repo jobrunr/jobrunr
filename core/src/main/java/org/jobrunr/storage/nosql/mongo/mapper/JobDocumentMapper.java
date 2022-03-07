@@ -38,8 +38,8 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
         if (job.hasState(StateName.SCHEDULED)) {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
-            document.put(Jobs.FIELD_RECURRING_JOB_ID, job.<ScheduledState>getJobState().getRecurringJobId());
         }
+        job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return document;
     }
 
@@ -51,8 +51,8 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
         if (job.hasState(StateName.SCHEDULED)) {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
-            document.put(Jobs.FIELD_RECURRING_JOB_ID, job.<ScheduledState>getJobState().getRecurringJobId());
         }
+        job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return new Document("$set", document);
     }
 

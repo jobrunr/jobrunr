@@ -10,11 +10,9 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
-import org.jobrunr.stubs.TestJobContextJobRequest;
+import org.jobrunr.stubs.*;
 import org.jobrunr.stubs.TestJobContextJobRequest.TestJobContextJobRequestHandler;
-import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
-import org.jobrunr.stubs.TestMDCJobRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -215,6 +213,20 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.scheduleRecurrently("theId", Cron.minutely(), systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
         BackgroundJob.delete("theId");
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
+    }
+
+    @Test
+    void recurringJobIdIsKeptEvenIsBackgroundJobServerRestarts() {
+        BackgroundJobRequest.scheduleRecurrently("my-job-id", every5Seconds, new TestJobRequestThatTakesLong("from recurringJobIdIsKeptEvenIsBackgroundJobServerRestarts", 20));
+        await().atMost(ofSeconds(6)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
+        final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
+        backgroundJobServer.stop();
+
+        backgroundJobServer.start();
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+        assertThat(storageProvider.getJobById(jobId))
+                .hasRecurringJobId("my-job-id")
+                .hasStates(SCHEDULED, ENQUEUED, PROCESSING, FAILED, SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
