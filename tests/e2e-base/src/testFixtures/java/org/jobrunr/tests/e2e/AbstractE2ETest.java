@@ -43,17 +43,18 @@ public abstract class AbstractE2ETest {
 
     @Test
     void testProcessInBackgroundJobServer() {
+        TestService testService = new TestService();
+        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
         try {
-            TestService testService = new TestService();
-            JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
-
             with()
-                    //.conditionEvaluationListener(condition -> System.out.printf("Processing not done. Server logs:\n %s", backgroundJobServer().getLogs()))
                     .pollInterval(FIVE_SECONDS)
-                    .await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
-
+                    .await().atMost(45, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         } catch (ConditionTimeoutException e) {
-            System.out.println(backgroundJobServer().getLogs());
+            System.out.println("===============================================================");
+            System.out.println("======================= Test Timed out ========================");
+            System.out.println("===============================================================");
+            System.out.println("Server logs: \n" + backgroundJobServer().getLogs() + "\n");
+            System.out.println("Job status: \n" + storageProvider.getJobById(jobId) + "\n");
             throw e;
         }
     }
