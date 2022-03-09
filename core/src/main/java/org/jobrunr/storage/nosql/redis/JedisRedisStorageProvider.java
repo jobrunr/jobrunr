@@ -6,6 +6,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -61,7 +62,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         this.jedisPool = jedisPool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
+        setUpStorageProvider(null);
     }
 
     @Override
@@ -518,6 +519,11 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             jedis.hincrBy(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);
         }
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
 
     protected Jedis getJedis() {

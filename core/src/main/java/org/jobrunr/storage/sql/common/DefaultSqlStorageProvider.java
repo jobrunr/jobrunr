@@ -30,7 +30,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     protected final DataSource dataSource;
     protected final Dialect dialect;
     protected final String tablePrefix;
-    private final DatabaseOptions databaseOptions;
     private JobMapper jobMapper;
 
     public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, DatabaseOptions databaseOptions) {
@@ -50,22 +49,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         this.dataSource = dataSource;
         this.dialect = dialect;
         this.tablePrefix = tablePrefix;
-        this.databaseOptions = databaseOptions;
-        createDBIfNecessary();
-    }
-
-    protected void createDBIfNecessary() {
-        if (databaseOptions == CREATE) {
-            getDatabaseCreator()
-                    .runMigrations();
-        } else {
-            getDatabaseCreator()
-                    .validateTables();
-        }
-    }
-
-    protected DatabaseCreator getDatabaseCreator() {
-        return new DatabaseCreator(dataSource, tablePrefix, getClass());
+        setUpStorageProvider(databaseOptions);
     }
 
     @Override
@@ -362,6 +346,20 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         }
     }
 
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (databaseOptions == CREATE) {
+            getDatabaseCreator()
+                    .runMigrations();
+        } else {
+            getDatabaseCreator()
+                    .validateTables();
+        }
+    }
+
+    protected DatabaseCreator getDatabaseCreator() {
+        return new DatabaseCreator(dataSource, tablePrefix, getClass());
+    }
 
     protected JobTable jobTable(Connection connection) {
         return new JobTable(connection, dialect, tablePrefix, jobMapper);
