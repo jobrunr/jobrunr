@@ -12,6 +12,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -93,7 +94,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         this.pool = pool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
+        setUpStorageProvider(null);
     }
 
     @Override
@@ -585,6 +586,11 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public void close() {
         super.close();
         pool.close();
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
 
     private void insertJob(Job jobToSave, RedisCommands<String, String> commands) {

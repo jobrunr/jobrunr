@@ -81,6 +81,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     private final String recurringJobIndexName;
     private final String backgroundJobServerIndexName;
     private final String metadataIndexName;
+    private final String indexPrefix;
 
     private ElasticSearchDocumentMapper elasticSearchDocumentMapper;
 
@@ -116,12 +117,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public ElasticSearchStorageProvider(RestHighLevelClient client, String indexPrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.client = client;
+        this.indexPrefix = indexPrefix;
 
-        if (DatabaseOptions.CREATE == databaseOptions) {
-            new ElasticSearchDBCreator(this, client, indexPrefix).runMigrations();
-        } else {
-            new ElasticSearchDBCreator(this, client, indexPrefix).validateIndices();
-        }
+        setUpStorageProvider(databaseOptions);
 
         this.jobIndexName = elementPrefixer(indexPrefix, DEFAULT_JOB_INDEX_NAME);
         this.recurringJobIndexName = elementPrefixer(indexPrefix, DEFAULT_RECURRING_JOB_INDEX_NAME);
@@ -600,6 +598,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             client.update(updateRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
             throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (DatabaseOptions.CREATE == databaseOptions) {
+            new ElasticSearchDBCreator(this, client, indexPrefix).runMigrations();
+        } else {
+            new ElasticSearchDBCreator(this, client, indexPrefix).validateIndices();
         }
     }
 

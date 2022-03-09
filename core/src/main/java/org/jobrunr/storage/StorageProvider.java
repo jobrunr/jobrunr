@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 
 import java.time.Instant;
@@ -88,5 +89,5 @@ public interface StorageProvider extends AutoCloseable {
 
     void close();
 
-
+    void setUpStorageProvider(DatabaseOptions databaseOptions);
 }

@@ -6,6 +6,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -23,28 +24,11 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -78,7 +62,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         this.jedisPool = jedisPool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
+        setUpStorageProvider(null);
     }
 
     @Override
@@ -535,6 +519,11 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             jedis.hincrBy(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);
         }
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
 
     protected Jedis getJedis() {

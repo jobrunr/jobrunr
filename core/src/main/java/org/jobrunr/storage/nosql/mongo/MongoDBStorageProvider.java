@@ -80,11 +80,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
 
+    private final MongoClient mongoClient;
     private final MongoDatabase jobrunrDatabase;
     private final MongoCollection<Document> jobCollection;
     private final MongoCollection<Document> recurringJobCollection;
     private final MongoCollection<Document> backgroundJobServerCollection;
     private final MongoCollection<Document> metadataCollection;
+    private final String collectionPrefix;
 
     private JobDocumentMapper jobDocumentMapper;
     private BackgroundJobServerStatusDocumentMapper backgroundJobServerStatusDocumentMapper;
@@ -134,12 +136,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         validateMongoClient(mongoClient);
 
         final String database = ofNullable(dbName).orElse(DEFAULT_DB_NAME);
+        this.collectionPrefix = collectionPrefix;
+        this.mongoClient = mongoClient;
 
-        if (CREATE == databaseOptions) {
-            runMigrations(mongoClient, database, collectionPrefix);
-        } else {
-            validateTables(mongoClient, database, collectionPrefix);
-        }
+        setUpStorageProvider(databaseOptions);
 
         jobrunrDatabase = mongoClient.getDatabase(database);
         jobCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, Jobs.NAME), Document.class);
@@ -415,6 +415,15 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
         metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, amount), new UpdateOptions().upsert(true));
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (CREATE == databaseOptions) {
+            runMigrations(mongoClient, jobrunrDatabase.getName(), collectionPrefix);
+        } else {
+            validateTables(mongoClient, jobrunrDatabase.getName(), collectionPrefix);
+        }
     }
 
     private long toMicroSeconds(Instant instant) {

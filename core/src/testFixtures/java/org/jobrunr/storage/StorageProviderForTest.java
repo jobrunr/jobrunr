@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 
 import java.time.Instant;
@@ -195,5 +196,10 @@ public class StorageProviderForTest implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        storageProvider.setUpStorageProvider(databaseOptions);
     }
 }
