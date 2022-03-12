@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.Locale;
 
 public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
 
@@ -27,8 +28,9 @@ public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
     public MariaDbStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         super(dataSource, new AnsiDialect(), tablePrefix, databaseOptions);
         try(Connection connection = dataSource.getConnection()) {
+            String driverName = connection.getMetaData().getDriverName();
             int driverMajorVersion = connection.getMetaData().getDriverMajorVersion();
-            if(driverMajorVersion >= 3) {
+            if(driverName.toLowerCase().contains("mariadb") && driverMajorVersion >= 3) {
                 String url = connection.getMetaData().getURL();
                 if(!url.contains("useBulkStmts=false")) {
                     throw new IllegalStateException("JobRunr requires a MariaDB connection with useBulkStmts=false as otherwise optimistic locking cannot be validated.");
