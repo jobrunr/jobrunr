@@ -33,11 +33,11 @@ dependencies {
         api 'com.zaxxer:HikariCP:5.0.1'
         api 'org.apache.commons:commons-dbcp2:2.9.0'
         api 'com.mchange:c3p0:0.9.5.5'
-        api 'org.apache.tomcat:tomcat-jdbc:10.0.16'
+        api 'org.apache.tomcat:tomcat-jdbc:10.0.17'
         api 'redis.clients:jedis:4.1.1'
         api 'io.lettuce:lettuce-core:6.1.6.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:4.5.0'
-        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.0'
+        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.1'
 
         api 'org.junit.jupiter:junit-jupiter:5.8.2'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
