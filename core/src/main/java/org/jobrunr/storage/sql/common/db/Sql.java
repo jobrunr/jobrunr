@@ -152,7 +152,7 @@ public class Sql<T> {
         int[] result = insertOrUpdateAll(batchCollection, INSERT + statement);
         if (result.length != batchCollection.size()) {
             throw shouldNotHappenException("Could not insert or update all objects - different result size: originalCollectionSize=" + batchCollection.size() + "; " + Arrays.toString(result));
-        } else if (stream(result).anyMatch(i -> i < Statement.SUCCESS_NO_INFO || i == 0)) {
+        } else if (stream(result).anyMatch(i -> i < 1 && i != Statement.SUCCESS_NO_INFO)) {
             throw concurrentDatabaseModificationException(batchCollection, result);
         }
     }
@@ -161,7 +161,7 @@ public class Sql<T> {
         int[] result = insertOrUpdateAll(batchCollection, UPDATE + statement);
         if (result.length != batchCollection.size()) {
             throw shouldNotHappenException("Could not insert or update all objects - different result size: originalCollectionSize=" + batchCollection.size() + "; " + Arrays.toString(result));
-        } else if (stream(result).anyMatch(i -> i < 1)) {
+        } else if (stream(result).anyMatch(i -> i < 1 && i != Statement.SUCCESS_NO_INFO)) {
             throw concurrentDatabaseModificationException(batchCollection, result);
         }
     }

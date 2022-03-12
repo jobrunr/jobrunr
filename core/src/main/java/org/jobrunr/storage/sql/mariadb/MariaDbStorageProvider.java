@@ -6,6 +6,8 @@ import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
 import org.jobrunr.utils.exceptions.Exceptions;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Instant;
 
 public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
@@ -19,11 +21,22 @@ public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public MariaDbStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        super(dataSource, new AnsiDialect(), databaseOptions);
+        this(dataSource, null, databaseOptions);
     }
 
     public MariaDbStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         super(dataSource, new AnsiDialect(), tablePrefix, databaseOptions);
+        try(Connection connection = dataSource.getConnection()) {
+            int driverMajorVersion = connection.getMetaData().getDriverMajorVersion();
+            if(driverMajorVersion >= 3) {
+                String url = connection.getMetaData().getURL();
+                if(!url.contains("useBulkStmts=false")) {
+                    throw new IllegalStateException("JobRunr requires a MariaDB connection with useBulkStmts=false as otherwise optimistic locking cannot be validated.");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not query MariaDB driver", e);
+        }
     }
 
     @Override
