@@ -27,6 +27,7 @@ java {
 
 bootJar {
     archiveClassifier = 'boot'
+    onlyIf { false }
 }
 
 jar {
