@@ -61,6 +61,7 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
         ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
         provider.addIncludeFilter(new AssignableTypeFilter(anyClass));
         Set<BeanDefinition> candidateComponents = provider.findCandidateComponents("org.jobrunr");
+        registry.reflection().forType(anyClass).withAccess(TypeAccess.values()).build();
         for (BeanDefinition beanDefinition : candidateComponents) {
             try {
                 Class storageProviderImplementation = ReflectionUtils.toClass(beanDefinition.getBeanClassName());

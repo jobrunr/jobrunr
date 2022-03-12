@@ -21,6 +21,8 @@ public interface StorageProvider extends AutoCloseable {
 
     String getName();
 
+    void setUpStorageProvider(DatabaseOptions databaseOptions);
+
     void addJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
     void removeJobStorageOnChangeListener(StorageProviderChangeListener listener);
@@ -88,6 +90,4 @@ public interface StorageProvider extends AutoCloseable {
     }
 
     void close();
-
-    void setUpStorageProvider(DatabaseOptions databaseOptions);
 }

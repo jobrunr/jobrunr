@@ -65,6 +65,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
 
+    private final String databaseName;
     private final MongoClient mongoClient;
     private final MongoDatabase jobrunrDatabase;
     private final MongoCollection<Document> jobCollection;
@@ -120,13 +121,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         super(changeListenerNotificationRateLimit);
         validateMongoClient(mongoClient);
 
-        final String database = ofNullable(dbName).orElse(DEFAULT_DB_NAME);
+        this.databaseName = ofNullable(dbName).orElse(DEFAULT_DB_NAME);
         this.collectionPrefix = collectionPrefix;
         this.mongoClient = mongoClient;
 
         setUpStorageProvider(databaseOptions);
 
-        jobrunrDatabase = mongoClient.getDatabase(database);
+        jobrunrDatabase = mongoClient.getDatabase(databaseName);
         jobCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, Jobs.NAME), Document.class);
         recurringJobCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, RecurringJobs.NAME), Document.class);
         backgroundJobServerCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, BackgroundJobServers.NAME), Document.class);
@@ -139,6 +140,15 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         this.jobDocumentMapper = new JobDocumentMapper(jobMapper);
         this.backgroundJobServerStatusDocumentMapper = new BackgroundJobServerStatusDocumentMapper();
         this.metadataDocumentMapper = new MetadataDocumentMapper();
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (CREATE == databaseOptions) {
+            runMigrations(mongoClient, databaseName, collectionPrefix);
+        } else {
+            validateTables(mongoClient, databaseName, collectionPrefix);
+        }
     }
 
     @Override
@@ -400,15 +410,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
         metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, amount), new UpdateOptions().upsert(true));
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if (CREATE == databaseOptions) {
-            runMigrations(mongoClient, jobrunrDatabase.getName(), collectionPrefix);
-        } else {
-            validateTables(mongoClient, jobrunrDatabase.getName(), collectionPrefix);
-        }
     }
 
     private long toMicroSeconds(Instant instant) {

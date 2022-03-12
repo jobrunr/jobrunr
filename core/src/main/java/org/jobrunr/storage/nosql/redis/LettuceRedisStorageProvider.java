@@ -76,12 +76,18 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         this.pool = pool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        setUpStorageProvider(null);
+        setUpStorageProvider(DatabaseOptions.CREATE);
     }
 
     @Override
     public void setJobMapper(JobMapper jobMapper) {
         this.jobMapper = jobMapper;
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("LattuceRedisStorageProvider only supports CREATE as databaseOptions.");
+        new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
 
     @Override
@@ -568,11 +574,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public void close() {
         super.close();
         pool.close();
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
 
     private void insertJob(Job jobToSave, RedisCommands<String, String> commands) {

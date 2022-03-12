@@ -62,7 +62,14 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         this.jedisPool = jedisPool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        setUpStorageProvider(null);
+        setUpStorageProvider(DatabaseOptions.CREATE);
+    }
+
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
+        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
 
     @Override
@@ -519,11 +526,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             jedis.hincrBy(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);
         }
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
 
     protected Jedis getJedis() {

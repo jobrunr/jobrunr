@@ -130,6 +130,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (DatabaseOptions.CREATE == databaseOptions) {
+            new ElasticSearchDBCreator(this, client, indexPrefix).runMigrations();
+        } else {
+            new ElasticSearchDBCreator(this, client, indexPrefix).validateIndices();
+        }
+    }
+
+    @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try {
             IndexRequest request = new IndexRequest(backgroundJobServerIndexName)
@@ -595,15 +604,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             client.update(updateRequest, RequestOptions.DEFAULT);
         } catch (IOException e) {
             throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if (DatabaseOptions.CREATE == databaseOptions) {
-            new ElasticSearchDBCreator(this, client, indexPrefix).runMigrations();
-        } else {
-            new ElasticSearchDBCreator(this, client, indexPrefix).validateIndices();
         }
     }
 

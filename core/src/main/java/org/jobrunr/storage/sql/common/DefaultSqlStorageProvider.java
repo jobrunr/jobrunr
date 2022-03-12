@@ -58,6 +58,17 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (databaseOptions == CREATE) {
+            getDatabaseCreator()
+                    .runMigrations();
+        } else {
+            getDatabaseCreator()
+                    .validateTables();
+        }
+    }
+
+    @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             backgroundJobServerTable(conn).announce(serverStatus);
@@ -343,17 +354,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
             transaction.commit();
         } catch (SQLException e) {
             throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if (databaseOptions == CREATE) {
-            getDatabaseCreator()
-                    .runMigrations();
-        } else {
-            getDatabaseCreator()
-                    .validateTables();
         }
     }
 
