@@ -14,6 +14,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -42,6 +44,6 @@ public class TestApplication {
     void testEnqueue() {
         JobId jobId = jobRequestScheduler.enqueue(new SysoutJobRequest("Hello from SysoutJobRequest"));
 
-        await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+        await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }
 }
