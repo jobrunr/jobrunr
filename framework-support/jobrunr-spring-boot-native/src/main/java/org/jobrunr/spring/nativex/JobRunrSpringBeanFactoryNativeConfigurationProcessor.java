@@ -62,12 +62,14 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
         provider.addIncludeFilter(new AssignableTypeFilter(anyClass));
         Set<BeanDefinition> candidateComponents = provider.findCandidateComponents("org.jobrunr");
         registry.reflection().forType(anyClass).withAccess(TypeAccess.values()).build();
+        LOGGER.info("Register JobRunr class for reflection SUCCEEDED: class " + anyClass.getName() + " available for reflection in Spring Boot Native.");
         for (BeanDefinition beanDefinition : candidateComponents) {
             try {
                 Class storageProviderImplementation = ReflectionUtils.toClass(beanDefinition.getBeanClassName());
                 registry.reflection().forType(storageProviderImplementation).withAccess(TypeAccess.values()).build();
+                LOGGER.info("Register JobRunr class for reflection SUCCEEDED: class " + beanDefinition.getBeanClassName() + " available for reflection in Spring Boot Native.");
             } catch (NoClassDefFoundError e) {
-                LOGGER.info("Could not load class " + beanDefinition.getBeanClassName() + " as class dependencies (imports) are not available.");
+                LOGGER.info("Register JobRunr class for reflection FAILED: Could not load class " + beanDefinition.getBeanClassName() + " as class dependencies (imports) are not available.");
             }
         }
     }
