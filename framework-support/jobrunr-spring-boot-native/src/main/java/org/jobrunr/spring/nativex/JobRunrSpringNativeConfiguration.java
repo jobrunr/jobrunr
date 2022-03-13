@@ -1,6 +1,7 @@
 package org.jobrunr.spring.nativex;
 
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.dashboard.server.sse.SseExchange;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.dashboard.ui.model.VersionUIModel;
 import org.jobrunr.dashboard.ui.model.problems.Problem;
@@ -46,7 +47,7 @@ import static org.springframework.nativex.hint.TypeAccess.*;
                         JobRunr.class, Job.class, org.jobrunr.jobs.annotations.Job.class,
                         JobNotFoundException.class, BackgroundJobServerStatus.class, Problem.class, Page.class,
                         BackgroundJobServerStatus.class, StateName.class, Instant.class, JobStats.class, JobStatsExtended.class, ConcurrentLinkedQueue.class,
-                        PageRequest.class, RecurringJobUIModel.class, VersionUIModel.class},
+                        PageRequest.class, RecurringJobUIModel.class, VersionUIModel.class, SseExchange.class},
                 access = {DECLARED_CLASSES, DECLARED_CONSTRUCTORS, DECLARED_FIELDS, DECLARED_METHODS})})
 @ResourceHint(patterns = {
         "/org/jobrunr/configuration/JobRunr.class",

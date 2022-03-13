@@ -1,5 +1,6 @@
 package org.jobrunr.spring.nativex;
 
+import org.jobrunr.dashboard.ui.model.problems.Problem;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
@@ -47,6 +48,7 @@ public class JobRunrSpringBeanFactoryNativeConfigurationProcessor implements Bea
             throw new RuntimeException("Could not enhance JobRequestHandlers for Spring Boot Native", e);
         }
 
+        registerAllAssignableTypesOf(registry, Problem.class);
         registerAllAssignableTypesOf(registry, StorageProvider.class);
         registerAllAssignableTypesOf(registry, NoSqlMigration.class);
         registerAllAssignableTypesOf(registry, NoSqlMigrationProvider.class);
