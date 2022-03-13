@@ -5,10 +5,10 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
-public class MySQLJacksonBackgroundJobContainer extends AbstractBackgroundJobSqlContainer {
+public class MySqlJacksonBackgroundJobContainer extends AbstractBackgroundJobSqlContainer {
 
-    public MySQLJacksonBackgroundJobContainer(JdbcDatabaseContainer sqlContainer) {
-        super("jobrunr-e2e-mariadb-jackson:1.0", sqlContainer);
+    public MySqlJacksonBackgroundJobContainer(JdbcDatabaseContainer sqlContainer) {
+        super("jobrunr-e2e-mysql-jackson:1.0", sqlContainer);
     }
 
     @Override

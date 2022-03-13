@@ -6,13 +6,13 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class MySQLGsonE2ETest extends AbstractE2EGsonTest {
+public class MySqlJacksonE2ETest extends AbstractE2EJacksonTest {
 
     @Container
     private static final MySQLContainer sqlContainer = new MySQLContainer<>();
 
     @Container
-    private static final MySqlGsonBackgroundJobContainer backgroundJobServer = new MySqlGsonBackgroundJobContainer(sqlContainer);
+    private static final MySqlJacksonBackgroundJobContainer backgroundJobServer = new MySqlJacksonBackgroundJobContainer(sqlContainer);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {
