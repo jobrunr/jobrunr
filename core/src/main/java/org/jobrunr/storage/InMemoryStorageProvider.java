@@ -51,6 +51,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {}
+
+    @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(
                 serverStatus.getId(),
@@ -289,9 +292,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         JobRunrMetadata metadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {}
 
     private Stream<Job> getJobsStream(StateName state, PageRequest pageRequest) {
         return getJobsStream(state)

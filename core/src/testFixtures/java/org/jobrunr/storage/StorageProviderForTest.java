@@ -30,6 +30,16 @@ public class StorageProviderForTest implements StorageProvider {
     }
 
     @Override
+    public void setJobMapper(JobMapper jobMapper) {
+        storageProvider.setJobMapper(jobMapper);
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        storageProvider.setUpStorageProvider(databaseOptions);
+    }
+
+    @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         storageProvider.addJobStorageOnChangeListener(listener);
     }
@@ -37,11 +47,6 @@ public class StorageProviderForTest implements StorageProvider {
     @Override
     public void removeJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         storageProvider.removeJobStorageOnChangeListener(listener);
-    }
-
-    @Override
-    public void setJobMapper(JobMapper jobMapper) {
-        storageProvider.setJobMapper(jobMapper);
     }
 
     @Override
@@ -196,10 +201,5 @@ public class StorageProviderForTest implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        storageProvider.setUpStorageProvider(databaseOptions);
     }
 }

@@ -21,13 +21,21 @@ public interface StorageProvider extends AutoCloseable {
 
     String getName();
 
+    void setJobMapper(JobMapper jobMapper);
+
+    /**
+     * This method allows to reinitialize the StorageProvider.
+     * It can be used if you are using Flyway or Liquibase to setup your database manually.
+     *
+     * By default, this method is automatically called on construction of the StorageProvider
+     *
+     * @param databaseOptions defines whether to set up the StorageProvider or validate whether the StorageProvider is set up correctly.
+     */
     void setUpStorageProvider(DatabaseOptions databaseOptions);
 
     void addJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
     void removeJobStorageOnChangeListener(StorageProviderChangeListener listener);
-
-    void setJobMapper(JobMapper jobMapper);
 
     void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus);
 

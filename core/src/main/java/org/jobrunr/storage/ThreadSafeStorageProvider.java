@@ -30,6 +30,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        storageProvider.setUpStorageProvider(databaseOptions);
+    }
+
+    @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         storageProvider.addJobStorageOnChangeListener(listener);
     }
@@ -196,11 +201,6 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
-    }
-
-    @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        getStorageProvider().setUpStorageProvider(databaseOptions);
     }
 
     public StorageProvider getStorageProvider() {

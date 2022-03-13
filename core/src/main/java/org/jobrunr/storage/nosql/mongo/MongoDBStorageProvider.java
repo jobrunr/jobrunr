@@ -134,7 +134,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         metadataCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, Metadata.NAME), Document.class);
     }
 
-
     @Override
     public void setJobMapper(JobMapper jobMapper) {
         this.jobDocumentMapper = new JobDocumentMapper(jobMapper);

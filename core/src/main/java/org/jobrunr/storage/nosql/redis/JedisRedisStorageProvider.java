@@ -65,16 +65,15 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         setUpStorageProvider(DatabaseOptions.CREATE);
     }
 
+    @Override
+    public void setJobMapper(JobMapper jobMapper) {
+        this.jobMapper = jobMapper;
+    }
 
     @Override
     public void setUpStorageProvider(DatabaseOptions databaseOptions) {
         if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
         new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
-    }
-
-    @Override
-    public void setJobMapper(JobMapper jobMapper) {
-        this.jobMapper = jobMapper;
     }
 
     @Override
