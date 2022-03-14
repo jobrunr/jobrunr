@@ -16,7 +16,10 @@ import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
 /**
  * The JobContext class gives access to the Job id, the Job name, the state, ... .
  * <p>
- * It also allows to store some data between different job retries.
+ * Using the {@link #getMetadata()}, it also allows to store some data between different job retries so jobs can be made re-entrant.
+ * This comes in handy when your job exists out of multiple steps, and you want to keep track of which step already succeeded. Then,
+ * in case of a failure, you can skip the steps that already completed successfully.
+ * As soon as the job is completed successfully the metadata is cleared (for storage purpose reasons).
  */
 public class JobContext {
 
@@ -87,7 +90,7 @@ public class JobContext {
     /**
      * Gives access to Job Metadata via an UnmodifiableMap. To save Metadata, use the {@link #saveMetadata(String, Object)} method
      *
-     * @return all user defined metadata about a Job.
+     * @return all user defined metadata about a Job. This metadata is only accessible up to the point a job succeeds.
      */
     public Map<String, Object> getMetadata() {
         return unmodifiableMap(

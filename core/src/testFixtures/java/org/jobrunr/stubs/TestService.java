@@ -70,10 +70,11 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work... " + processedJobs);
     }
 
-    public void doWork(Integer count, JobContext jobContext) {
+    public void doWork(Integer count, JobContext jobContext) throws InterruptedException {
         processedJobs += count;
         System.out.println("Doing some work... " + processedJobs + "; jobId: " + jobContext.getJobId());
         jobContext.saveMetadata("test", "test");
+        Thread.sleep(6000L);
     }
 
     public void doWork(int countA, int countB) {

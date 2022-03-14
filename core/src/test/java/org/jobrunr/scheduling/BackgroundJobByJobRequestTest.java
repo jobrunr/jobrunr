@@ -107,12 +107,15 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testEnqueueWithJobContextAndMetadata() {
-        JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueueWithJobContextAndMetadata"));
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
-        Job jobById = storageProvider.getJobById(jobId);
-        assertThat(jobById)
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+        JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueueWithJobContextAndMetadata", 6));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == PROCESSING);
+        await().atMost(TEN_SECONDS).until(() -> !storageProvider.getJobById(jobId).getMetadata().isEmpty());
+        assertThat(storageProvider.getJobById(jobId))
                 .hasMetadata("test", "test");
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+                .hasNoMetadata();
     }
 
     @Test
@@ -261,8 +264,8 @@ public class BackgroundJobByJobRequestTest {
         JobId jobId1 = BackgroundJobRequest.enqueue(new TestJobContextJobRequest());
         JobId jobId2 = BackgroundJobRequest.enqueue(new TestJobContextJobRequest());
 
-        await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId1).getState() == SUCCEEDED);
-        await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId2).getState() == SUCCEEDED);
+        await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId1).getState() == FAILED);
+        await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId2).getState() == FAILED);
 
         Job job1ById = storageProvider.getJobById(jobId1);
         assertThat(job1ById)

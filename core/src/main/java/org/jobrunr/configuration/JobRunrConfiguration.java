@@ -96,7 +96,7 @@ public class JobRunrConfiguration {
     }
 
     /**
-     * Allows to set extra JobFilters or to provide another implementation of the {@link org.jobrunr.jobs.filters.RetryFilter}
+     * Allows setting extra JobFilters or to provide another implementation of the {@link org.jobrunr.jobs.filters.RetryFilter}
      *
      * @param jobFilters the jobFilters to use for each job.
      * @return the same configuration instance which provides a fluent api

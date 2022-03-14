@@ -147,11 +147,14 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testEnqueueWithJobContextAndMetadata() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(5, JobContext.Null));
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
-        Job jobById = storageProvider.getJobById(jobId);
-        assertThat(jobById)
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == PROCESSING);
+        await().atMost(TEN_SECONDS).until(() -> !storageProvider.getJobById(jobId).getMetadata().isEmpty());
+        assertThat(storageProvider.getJobById(jobId))
                 .hasMetadata("test", "test");
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+                .hasNoMetadata();
     }
 
     @Test

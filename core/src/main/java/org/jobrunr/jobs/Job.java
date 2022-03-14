@@ -128,6 +128,7 @@ public class Job extends AbstractJob {
             throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
         }
 
+        metadata.clear();
         Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));
@@ -138,6 +139,7 @@ public class Job extends AbstractJob {
     }
 
     public void delete(String reason) {
+        metadata.clear();
         addJobState(new DeletedState(reason));
     }
 
