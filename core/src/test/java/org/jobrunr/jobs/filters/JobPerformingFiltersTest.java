@@ -15,12 +15,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 
 class JobPerformingFiltersTest {
 

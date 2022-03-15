@@ -58,5 +58,6 @@
       "currentValue": 10,
       "progress": 12
     }
-  }
+  },
+  "recurringJobId":null
 }

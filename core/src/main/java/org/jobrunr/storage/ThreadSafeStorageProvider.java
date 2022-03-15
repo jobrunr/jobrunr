@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.MultiLock;
@@ -26,6 +27,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public String getName() {
         return storageProvider.getName();
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        storageProvider.setUpStorageProvider(databaseOptions);
     }
 
     @Override
@@ -165,6 +171,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public List<RecurringJob> getRecurringJobs() {
         return storageProvider.getRecurringJobs();
+    }
+
+    @Override
+    public long countRecurringJobs() {
+        return storageProvider.countRecurringJobs();
     }
 
     @Override

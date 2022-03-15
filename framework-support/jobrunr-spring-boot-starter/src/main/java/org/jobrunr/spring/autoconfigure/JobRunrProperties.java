@@ -1,6 +1,7 @@
 package org.jobrunr.spring.autoconfigure;
 
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.filters.RetryFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 
@@ -10,13 +11,31 @@ import java.time.temporal.ChronoUnit;
 @ConfigurationProperties(prefix = "org.jobrunr")
 public class JobRunrProperties {
 
+    private Database database = new Database();
+
+    private Jobs jobs = new Jobs();
+
     private JobScheduler jobScheduler = new JobScheduler();
 
     private Dashboard dashboard = new Dashboard();
 
     private BackgroundJobServer backgroundJobServer = new BackgroundJobServer();
 
-    private Database database = new Database();
+    public Database getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(Database database) {
+        this.database = database;
+    }
+
+    public Jobs getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(Jobs jobs) {
+        this.jobs = jobs;
+    }
 
     public JobScheduler getJobScheduler() {
         return jobScheduler;
@@ -42,12 +61,107 @@ public class JobRunrProperties {
         this.backgroundJobServer = backgroundJobServer;
     }
 
-    public Database getDatabase() {
-        return database;
+    /**
+     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. Redis).
+     */
+    public static class Database {
+        /**
+         * Allows to skip the creation of the tables - this means you should add them manually or by database migration tools like FlywayDB.
+         */
+        private boolean skipCreate = false;
+
+        /**
+         * The name of the database to use (only used by MongoDBStorageProvider). By default, it is 'jobrunr'.
+         */
+        private String databaseName;
+
+        /**
+         * Allows to set the table prefix used by JobRunr
+         */
+        private String tablePrefix;
+
+        /**
+         * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
+         */
+        private String datasource;
+
+        /**
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         */
+        private String type;
+
+        public void setSkipCreate(boolean skipCreate) {
+            this.skipCreate = skipCreate;
+        }
+
+        public boolean isSkipCreate() {
+            return skipCreate;
+        }
+
+        public String getTablePrefix() {
+            return tablePrefix;
+        }
+
+        public void setTablePrefix(String tablePrefix) {
+            this.tablePrefix = tablePrefix;
+        }
+
+        public String getDatabaseName() {
+            return databaseName;
+        }
+
+        public void setDatabaseName(String databaseName) {
+            this.databaseName = databaseName;
+        }
+
+        public String getDatasource() {
+            return datasource;
+        }
+
+        public void setDatasource(String datasource) {
+            this.datasource = datasource;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
     }
 
-    public void setDatabase(Database database) {
-        this.database = database;
+    /**
+     * JobRunr job related settings
+     */
+    public static class Jobs {
+
+        /**
+         * Configures the default amount of retries.
+         */
+        private int defaultNumberOfRetries = RetryFilter.DEFAULT_NBR_OF_RETRIES;
+
+        /**
+         * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
+         */
+        private int backOffTimeSeed = RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED;
+
+        public int getDefaultNumberOfRetries() {
+            return defaultNumberOfRetries;
+        }
+
+        public void setDefaultNumberOfRetries(int defaultNumberOfRetries) {
+            this.defaultNumberOfRetries = defaultNumberOfRetries;
+        }
+
+        public int getRetryBackOffTimeSeed() {
+            return backOffTimeSeed;
+        }
+
+        public void setRetryBackOffTimeSeed(int backOffTimeSeed) {
+            this.backOffTimeSeed = backOffTimeSeed;
+        }
     }
 
     /**
@@ -215,63 +329,6 @@ public class JobRunrProperties {
 
         public void setUsername(String username) {
             this.username = username;
-        }
-    }
-
-    /**
-     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. Redis).
-     */
-    public static class Database {
-        /**
-         * Allows to skip the creation of the tables - this means you should add them manually or by database migration tools like FlywayDB.
-         */
-        private boolean skipCreate = false;
-
-        /**
-         * The name of the database to use (only used by MongoDBStorageProvider). By default, it is 'jobrunr'.
-         */
-        private String databaseName;
-
-        /**
-         * Allows to set the table prefix used by JobRunr
-         */
-        private String tablePrefix;
-
-        /**
-         * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
-         */
-        private String datasource;
-
-        public void setSkipCreate(boolean skipCreate) {
-            this.skipCreate = skipCreate;
-        }
-
-        public boolean isSkipCreate() {
-            return skipCreate;
-        }
-
-        public String getTablePrefix() {
-            return tablePrefix;
-        }
-
-        public void setTablePrefix(String tablePrefix) {
-            this.tablePrefix = tablePrefix;
-        }
-
-        public String getDatabaseName() {
-            return databaseName;
-        }
-
-        public void setDatabaseName(String databaseName) {
-            this.databaseName = databaseName;
-        }
-
-        public String getDatasource() {
-            return datasource;
-        }
-
-        public void setDatasource(String datasource) {
-            this.datasource = datasource;
         }
     }
 }

@@ -35,7 +35,7 @@ public class JobRunrHealthIndicator extends AbstractHealthIndicator<Map<String, 
     @Override
     protected Map<String, String> getHealthInformation() {
         if (!configuration.getBackgroundJobServer().isEnabled()) {
-            healthStatus = new HealthStatus("OUT_OF_SERVICE");
+            healthStatus = HealthStatus.UP;
             return mapOf("backgroundJobServer", "disabled");
         } else {
             if (backgroundJobServer.isRunning()) {

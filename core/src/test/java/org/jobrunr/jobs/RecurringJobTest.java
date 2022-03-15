@@ -6,6 +6,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -42,24 +43,34 @@ class RecurringJobTest {
 
     @Test
     void testToScheduledJob() {
-        final RecurringJob recurringJob = aDefaultRecurringJob().withName("the recurring job").build();
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
+                .withName("the recurring job")
+                .build();
 
         final Job job = recurringJob.toScheduledJob();
 
-        assertThat(job).hasJobName("the recurring job");
+        assertThat(job)
+                .hasRecurringJobId("the-recurring-job")
+                .hasJobName("the recurring job");
     }
 
     @Test
     void testToEnqueuedJob() {
-        final RecurringJob recurringJob = aDefaultRecurringJob().withName("the recurring job").build();
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
+                .withName("the recurring job")
+                .build();
 
         final Job job = recurringJob.toEnqueuedJob();
 
-        assertThat(job).hasJobName("the recurring job");
+        assertThat(job)
+                .hasRecurringJobId("the-recurring-job")
+                .hasJobName("the recurring job");
     }
 
     @Test
-    void nextInstantIsCorrect() {
+    void nextInstantWithCronExpressionIsCorrect() {
         LocalDateTime localDateTime = LocalDateTime.now();
         LocalDateTime timeForCron = localDateTime.plusMinutes(-1);
 
@@ -76,8 +87,25 @@ class RecurringJobTest {
     }
 
     @Test
-    void smallestIntervalForRecurringJobIs5Seconds() {
+    void nextInstantWithIntervalIsCorrect() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withName("the recurring job")
+                .withIntervalExpression(Duration.ofHours(1).toString())
+                .withZoneId(ZoneOffset.of("+02:00"))
+                .build();
+        Instant nextRun = recurringJob.getNextRun();
+        assertThat(nextRun).isAfter(Instant.now());
+    }
+
+    @Test
+    void smallestIntervalForRecurringCronJobIs5Seconds() {
         assertThatThrownBy(() -> aDefaultRecurringJob().withCronExpression("* * * * * *").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatCode(() -> aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void smallestIntervalForRecurringIntervalJobIs5Seconds() {
+        assertThatThrownBy(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(4).toString()).build()).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(5).toString()).build()).doesNotThrowAnyException();
     }
 }

@@ -3,9 +3,13 @@ package org.jobrunr.jobs;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.interval.Interval;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
@@ -15,8 +19,9 @@ public class RecurringJobTestBuilder {
     private String id;
     private String name;
     private JobDetails jobDetails;
-    private CronExpression cronExpression;
+    private Schedule schedule;
     private ZoneId zoneId;
+    private Instant createdAt = Instant.now();
 
     private RecurringJobTestBuilder() {
 
@@ -71,7 +76,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withCronExpression(String cronExpression) {
-        this.cronExpression = CronExpression.create(cronExpression);
+        this.schedule = CronExpression.create(cronExpression);
         return this;
     }
 
@@ -80,11 +85,19 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
+    public RecurringJobTestBuilder withIntervalExpression(String intervalExpression) {
+        return this.withIntervalExpression(intervalExpression, Instant.now());
+    }
+
+    public RecurringJobTestBuilder withIntervalExpression(String intervalExpression, Instant createdAt) {
+        this.schedule = new Interval(Duration.parse(intervalExpression));
+        this.createdAt = createdAt;
+        return this;
+    }
+
     public RecurringJob build() {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, cronExpression, zoneId);
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
         recurringJob.setJobName(name);
         return recurringJob;
     }
-
-
 }

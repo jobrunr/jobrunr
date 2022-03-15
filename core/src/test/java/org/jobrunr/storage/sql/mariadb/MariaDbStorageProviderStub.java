@@ -7,9 +7,4 @@ public class MariaDbStorageProviderStub extends MariaDbStorageProvider {
     public MariaDbStorageProviderStub(DataSource dataSource) {
         super(dataSource);
     }
-
-    @Override
-    protected void createDBIfNecessary() {
-
-    }
 }

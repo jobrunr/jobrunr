@@ -17,9 +17,7 @@ import java.util.*;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
@@ -253,14 +251,13 @@ public class JobTestBuilder {
     }
 
     public Job build() {
-        Job job = new Job(jobDetails, states.remove(0));
+        Job job = new Job(id, jobDetails, states.remove(0));
         if (version != null) {
             Whitebox.setInternalState(job, "version", version);
         }
         if (locker != null) {
             Whitebox.setInternalState(job, "locker", locker);
         }
-        job.setId(id);
         job.setJobName(name);
         job.getMetadata().putAll(metadata);
 

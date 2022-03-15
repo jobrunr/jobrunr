@@ -42,16 +42,10 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.FIVE_SECONDS;
-import static org.awaitility.Durations.TEN_SECONDS;
-import static org.awaitility.Durations.TWO_SECONDS;
+import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -119,18 +113,18 @@ class BackgroundJobServerTest {
 
         // WHEN we shutdown the server
         backgroundJobServer.stop();
+        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)", 1);
 
         // THEN no running backgroundjob threads should exist
         await().atMost(TEN_SECONDS)
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
     }
 
     @Test
     void testOnServerExitCleansUpAllThreads() {
         final int amountOfJobs = 10;
-
-        Map<Thread, StackTraceElement[]> stackTracesBeforeStart = Thread.getAllStackTraces();
 
         backgroundJobServer.start();
         for (int i = 0; i < amountOfJobs; i++) {
@@ -140,7 +134,7 @@ class BackgroundJobServerTest {
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(Thread.getAllStackTraces()).matches(this::containsBackgroundJobThreads));
 
         backgroundJobServer.stop();
-        await().atMost(TEN_SECONDS)
+        await().atMost(ONE_MINUTE)
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
     }

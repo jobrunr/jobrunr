@@ -28,7 +28,7 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
     public DefaultConcurrentJobModificationResolver(StorageProvider storageProvider, JobZooKeeper jobZooKeeper) {
         this.storageProvider = storageProvider;
         allowedConcurrentStateChanges = Arrays.asList(
-                new PermanentlyDeletedWhileProcessingException(jobZooKeeper),
+                new PermanentlyDeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
                 new DeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
                 new DeletedWhileSucceededConcurrentStateChange(),
                 new DeletedWhileFailedConcurrentStateChange(),

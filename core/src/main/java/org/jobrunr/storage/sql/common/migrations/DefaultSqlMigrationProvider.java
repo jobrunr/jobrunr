@@ -1,15 +1,20 @@
 package org.jobrunr.storage.sql.common.migrations;
 
-import java.util.stream.Stream;
+import org.jobrunr.utils.resources.ClassPathResourceProvider;
 
-import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 public class DefaultSqlMigrationProvider implements SqlMigrationProvider {
 
     @Override
-    public Stream<SqlMigration> getMigrations(Class<?> clazz) {
-        return listAllChildrenOnClasspath(clazz, "migrations")
-                .filter(path -> path.toString().endsWith(".sql"))
-                .map(SqlMigrationByPath::new);
+    public List<SqlMigration> getMigrations(Class<?> clazz) {
+        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+            return resourceProvider.listAllChildrenOnClasspath(clazz, "migrations")
+                    .filter(path -> path.toString().endsWith(".sql"))
+                    .map(SqlMigrationByPath::new)
+                    .collect(toList());
+        }
     }
 }

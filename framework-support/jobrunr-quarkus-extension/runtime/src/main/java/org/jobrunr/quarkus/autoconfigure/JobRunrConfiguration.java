@@ -13,6 +13,8 @@ public class JobRunrConfiguration {
 
     public DatabaseConfiguration database;
 
+    public JobsConfiguration jobs;
+
     public JobSchedulerConfiguration jobScheduler;
 
     public BackgroundJobServerConfiguration backgroundJobServer;
@@ -51,6 +53,28 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<String> datasource;
+
+        /**
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb' and 'elasticsearch'.
+         */
+        public Optional<String> type;
+    }
+
+    @ConfigGroup
+    public static class JobsConfiguration {
+
+        /**
+         * Configures the default amount of retries.
+         */
+        @ConfigItem
+        Optional<Integer> defaultNumberOfRetries;
+
+        /**
+         * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
+         */
+        @ConfigItem
+        Optional<Integer> retryBackOffTimeSeed;
     }
 
     @ConfigGroup

@@ -2,33 +2,44 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.Schedule;
+import org.jobrunr.scheduling.ScheduleExpressionType;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 public class RecurringJob extends AbstractJob {
 
     private String id;
-    private String cronExpression;
+    private String scheduleExpression;
     private String zoneId;
+    private Instant createdAt;
 
     private RecurringJob() {
         // used for deserialization
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, CronExpression cronExpression, ZoneId zoneId) {
-        this(id, jobDetails, cronExpression.getExpression(), zoneId.getId());
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId) {
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String cronExpression, String zoneId) {
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
+        this(id, jobDetails, schedule, zoneId, Instant.now(Clock.system(zoneId)));
+    }
+
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId), Instant.parse(createdAt));
+    }
+
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
         super(jobDetails);
+        schedule.validateSchedule();
         this.id = validateAndSetId(id);
-        this.cronExpression = cronExpression;
-        this.zoneId = zoneId;
-        validateCronExpression();
+        this.zoneId = zoneId.getId();
+        this.scheduleExpression = schedule.toString();
+        this.createdAt = createdAt;
     }
 
     @Override
@@ -36,20 +47,22 @@ public class RecurringJob extends AbstractJob {
         return id;
     }
 
-    public String getCronExpression() {
-        return cronExpression;
+    public String getScheduleExpression() {
+        return scheduleExpression;
     }
 
     public Job toScheduledJob() {
         Instant nextRun = getNextRun();
         final Job job = new Job(getJobDetails(), new ScheduledState(nextRun, this));
         job.setJobName(getJobName());
+        job.setRecurringJobId(getId());
         return job;
     }
 
     public Job toEnqueuedJob() {
         final Job job = new Job(getJobDetails(), new EnqueuedState());
         job.setJobName(getJobName());
+        job.setRecurringJobId(getId());
         return job;
     }
 
@@ -57,8 +70,14 @@ public class RecurringJob extends AbstractJob {
         return zoneId;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     public Instant getNextRun() {
-        return CronExpression.create(cronExpression).next(ZoneId.of(zoneId));
+        return ScheduleExpressionType
+                .getSchedule(scheduleExpression)
+                .next(createdAt, ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {
@@ -79,13 +98,5 @@ public class RecurringJob extends AbstractJob {
                 ", jobSignature='" + getJobSignature() + '\'' +
                 ", jobName='" + getJobName() + '\'' +
                 '}';
-    }
-
-    private void validateCronExpression() {
-        Instant base = Instant.EPOCH;
-        Instant fiveSeconds = base.plusSeconds(5);
-        if (CronExpression.create(cronExpression).next(base, ZoneOffset.UTC).isBefore(fiveSeconds)) {
-            throw new IllegalArgumentException("The smallest interval for recurring jobs is 5 seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.");
-        }
     }
 }

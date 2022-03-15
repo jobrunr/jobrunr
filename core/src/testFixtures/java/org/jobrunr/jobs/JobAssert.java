@@ -66,8 +66,20 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasNoMetadata() {
+        Assertions.assertThat(actual.getMetadata()).isEmpty();
+        return this;
+    }
+
     public JobAssert hasVersion(int version) {
         Assertions.assertThat(actual.getVersion()).isEqualTo(version);
+        return this;
+    }
+
+    public JobAssert hasRecurringJobId(String recurringJobId) {
+        Assertions.assertThat(actual.getRecurringJobId())
+                .isPresent()
+                .contains(recurringJobId);
         return this;
     }
 

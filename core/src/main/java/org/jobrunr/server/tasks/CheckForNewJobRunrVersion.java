@@ -19,10 +19,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.substringAfter;
-import static org.jobrunr.utils.StringUtils.substringBefore;
+import static org.jobrunr.utils.StringUtils.*;
 
 public class CheckForNewJobRunrVersion implements Runnable {
 

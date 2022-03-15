@@ -15,7 +15,7 @@ class NativePoolMariaDbStorageProviderTest extends AbstractMariaDbStorageProvide
         if (dataSource == null) {
             try {
                 dataSource = new MariaDbPoolDataSource();
-                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true");
+                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true&useBulkStmts=false");
                 dataSource.setUser(sqlContainer.getUsername());
                 dataSource.setPassword(sqlContainer.getPassword());
             } catch (SQLException e) {

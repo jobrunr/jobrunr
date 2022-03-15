@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.jobrunr.jobs.filters.JobPerformingFilters;
+import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
@@ -11,13 +12,12 @@ import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
 public class BackgroundJobPerformer implements Runnable {
@@ -75,6 +75,7 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void runActualJob() throws Exception {
         try {
+            MDCMapper.loadMDCContextFromJob(job);
             JobRunrDashboardLogger.setJob(job);
             backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
             LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
@@ -85,6 +86,7 @@ public class BackgroundJobPerformer implements Runnable {
         } finally {
             backgroundJobServer.getJobZooKeeper().stopProcessing(job);
             JobRunrDashboardLogger.clearJob();
+            MDC.clear();
         }
     }
 

@@ -11,6 +11,8 @@ import org.assertj.core.api.ListAssert;
 import org.assertj.db.DatabaseAssertions;
 import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
 import org.jobrunr.jobs.*;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.storage.*;
 
 import javax.sql.DataSource;
@@ -45,6 +47,9 @@ public class JobRunrAssertions extends Assertions {
         return JobRunrMetadataAssert.assertThat(metadata);
     }
 
+    public static BackgroundJobServerAssert assertThat(BackgroundJobServer backgroundJobServer) {
+        return BackgroundJobServerAssert.assertThat(backgroundJobServer);
+    }
     public static StorageProviderAssert assertThat(StorageProvider storageProvider) {
         return StorageProviderAssert.assertThat(storageProvider);
     }

@@ -1,7 +1,14 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        maven { url 'https://plugins.gradle.org/m2/' }
+        maven { url 'https://repo.spring.io/release' }
+    }
+}
+
 rootProject.name = 'JobRunr'
 include ':platform'
 include ':core'
-include ':language-support:jobrunr-kotlin-14-support'
 include ':language-support:jobrunr-kotlin-15-support'
 include ':language-support:jobrunr-kotlin-16-support'
 include ':framework-support:jobrunr-micronaut-feature'
@@ -9,6 +16,7 @@ include ':framework-support:jobrunr-quarkus-extension:deployment'
 include ':framework-support:jobrunr-quarkus-extension:runtime'
 include ':framework-support:jobrunr-quarkus-extension:tests'
 include ':framework-support:jobrunr-spring-boot-starter'
+include ':framework-support:jobrunr-spring-boot-native'
 include ':tests:e2e-base'
 include ':tests:e2e-vm-jdk'
 include ':tests:e2e-elasticsearch-gson'
@@ -29,4 +37,3 @@ include ':tests:e2e-sqlserver-gson'
 include ':tests:e2e-sqlserver-jackson'
 include ':tests:e2e-ui-gson'
 include ':tests:e2e-ui-jackson'
-

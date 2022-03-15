@@ -13,7 +13,7 @@ class TomcatJdbcPoolMariaDbStorageProviderTest extends AbstractMariaDbStoragePro
         if (dataSource == null) {
             dataSource = new DataSource();
             dataSource.setDriverClassName(Driver.class.getName());
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useBulkStmts=false");
             dataSource.setUsername(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
         }

@@ -9,8 +9,8 @@
     <properties>
         <jobrunr.version>3.2.1</jobrunr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <java.version>17</java.version>
     </properties>
 

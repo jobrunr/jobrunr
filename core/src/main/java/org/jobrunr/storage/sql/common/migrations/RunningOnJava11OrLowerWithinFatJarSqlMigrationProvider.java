@@ -5,25 +5,25 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements SqlMigrationProvider {
 
     @Override
-    public Stream<SqlMigration> getMigrations(Class<?> clazz) {
+    public List<SqlMigration> getMigrations(Class<?> clazz) {
         try {
             URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
             URLConnection urlConnection = location.openConnection();
-            ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream());
-            return getMigrationsFromZipInputStream(zipInputStream, clazz);
+            try(ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream())) {
+                return getMigrationsFromZipInputStream(zipInputStream, clazz);
+            }
         } catch (IOException e) {
             throw new UnsupportedOperationException("Unable to find migrations.");
         }
     }
 
-    private Stream<SqlMigration> getMigrationsFromZipInputStream(ZipInputStream zipInputStream, Class<?> clazz) throws IOException {
+    private List<SqlMigration> getMigrationsFromZipInputStream(ZipInputStream zipInputStream, Class<?> clazz) throws IOException {
         List<SqlMigration> result = new ArrayList<>();
         ZipEntry zipEntry = zipInputStream.getNextEntry();
         while (zipEntry != null) {
@@ -32,7 +32,7 @@ public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements S
             }
             zipEntry = zipInputStream.getNextEntry();
         }
-        return result.stream();
+        return result;
     }
 
     private SqlMigrationByZipEntry getSqlMigrationFromZipEntry(ZipInputStream zipInputStream, ZipEntry zipEntry) throws IOException {

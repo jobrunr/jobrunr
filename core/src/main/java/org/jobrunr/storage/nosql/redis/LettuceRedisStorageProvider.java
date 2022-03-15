@@ -11,7 +11,9 @@ import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -28,29 +30,10 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
-import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata;
-import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
+import static org.jobrunr.storage.StorageProviderUtils.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.NumberUtils.parseLong;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -93,12 +76,18 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         this.pool = pool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
+        setUpStorageProvider(DatabaseOptions.CREATE);
     }
 
     @Override
     public void setJobMapper(JobMapper jobMapper) {
         this.jobMapper = jobMapper;
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("LattuceRedisStorageProvider only supports CREATE as databaseOptions.");
+        new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
 
     @Override
@@ -145,7 +134,6 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
             commands.zadd(backgroundJobServersUpdatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
             commands.exec();
-            commands.unwatch();
             return Boolean.parseBoolean(commands.hget(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_IS_RUNNING));
         }
     }
@@ -509,6 +497,11 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
+    public long countRecurringJobs() {
+        return getConnection().sync().scard(recurringJobsKey(keyPrefix));
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
@@ -614,7 +607,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         if (SCHEDULED.equals(jobToSave.getState())) {
             commands.zadd(scheduledJobsKey(keyPrefix), toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
-        jobToSave.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> commands.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
+        jobToSave.getRecurringJobId().ifPresent(recurringJobId -> commands.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
     }
 
     private void deleteJobMetadataForUpdate(RedisCommands<String, String> commands, Job job) {
@@ -626,7 +619,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                 || (job.hasState(DELETED) && job.getJobStates().size() >= 2 && job.getJobState(-2) instanceof ScheduledState)) {
             commands.srem(jobDetailsKey(keyPrefix, SCHEDULED), getJobSignature(job.getJobDetails()));
         }
-        job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> commands.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
+        job.getRecurringJobId().ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> commands.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
     }
 
     private void deleteJobMetadata(RedisCommands<String, String> commands, Job job) {

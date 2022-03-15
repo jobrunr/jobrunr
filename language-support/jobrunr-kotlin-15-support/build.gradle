@@ -13,8 +13,8 @@ dependencies {
   testImplementation testFixtures(project(":core"))
 
   testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-  testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+  testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 }
 
 java {
@@ -27,7 +27,7 @@ publishing {
     mavenJava(MavenPublication) {
       groupId = 'org.jobrunr'
       artifactId = 'jobrunr-kotlin-1.5-support'
-      version = project.version.replace("v", "")
+      version = project.version
       from components.java
 
       pom {

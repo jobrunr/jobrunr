@@ -1,6 +1,7 @@
 package org.junit.jupiter.extension;
 
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jobrunr.utils.resources.ClassPathResourceProvider;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.utils.ClassPathUtils.listAllChildrenOnClasspath;
 
 public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCallback {
 
@@ -31,17 +31,18 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         setUpMethod = findMethodWithAnnotation(annotatedTestClass, BeforeAllSubclasses.class);
         tearDownMethod = findMethodWithAnnotation(annotatedTestClass, AfterAllSubclasses.class);
 
-        final List<Path> paths = listAllChildrenOnClasspath(annotatedTestClass).collect(toList());
-        final int count = (int) paths.stream()
-                .filter(path -> path.toString().endsWith(".class"))
-                .map(ReflectionUtils::toClassFromPath)
-                .filter(clazz -> annotatedTestClass.isAssignableFrom(clazz))
-                .count();
+        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+            final List<Path> paths = resourceProvider.listAllChildrenOnClasspath(annotatedTestClass).collect(toList());
+            final int count = (int) paths.stream()
+                    .filter(path -> path.toString().endsWith(".class"))
+                    .map(ReflectionUtils::toClassFromPath)
+                    .filter(clazz -> annotatedTestClass.isAssignableFrom(clazz))
+                    .count();
+            atomicInteger = new AtomicInteger(count - 1);
 
-        atomicInteger = new AtomicInteger(count - 1);
-
-        setUpMethod.invoke(context.getRequiredTestClass());
-        System.err.println("Invoking setup method for " + annotatedTestClass.getName());
+            setUpMethod.invoke(context.getRequiredTestClass());
+            System.err.println("Invoking setup method for " + annotatedTestClass.getName());
+        }
     }
 
     @Override

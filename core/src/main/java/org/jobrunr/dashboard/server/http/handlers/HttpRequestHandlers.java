@@ -3,12 +3,7 @@ package org.jobrunr.dashboard.server.http.handlers;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.DELETE;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.GET;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.HEAD;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.OPTIONS;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.POST;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.PUT;
+import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.*;
 
 public class HttpRequestHandlers {
 

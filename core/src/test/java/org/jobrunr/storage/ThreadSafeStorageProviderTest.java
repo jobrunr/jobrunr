@@ -68,7 +68,7 @@ class ThreadSafeStorageProviderTest {
         countDownLatch.await();
         final Instant after = Instant.now();
 
-        assertThat(between(before, after).toMillis()).isLessThan(150L);
+        assertThat(between(before, after).toMillis()).isLessThan(250L);
     }
 
     @Test

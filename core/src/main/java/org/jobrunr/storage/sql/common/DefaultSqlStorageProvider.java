@@ -30,7 +30,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     protected final DataSource dataSource;
     protected final Dialect dialect;
     protected final String tablePrefix;
-    private final DatabaseOptions databaseOptions;
     private JobMapper jobMapper;
 
     public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, DatabaseOptions databaseOptions) {
@@ -50,11 +49,16 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         this.dataSource = dataSource;
         this.dialect = dialect;
         this.tablePrefix = tablePrefix;
-        this.databaseOptions = databaseOptions;
-        createDBIfNecessary();
+        setUpStorageProvider(databaseOptions);
     }
 
-    protected void createDBIfNecessary() {
+    @Override
+    public void setJobMapper(JobMapper jobMapper) {
+        this.jobMapper = jobMapper;
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
         if (databaseOptions == CREATE) {
             getDatabaseCreator()
                     .runMigrations();
@@ -62,15 +66,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
             getDatabaseCreator()
                     .validateTables();
         }
-    }
-
-    protected DatabaseCreator getDatabaseCreator() {
-        return new DatabaseCreator(dataSource, tablePrefix, getClass());
-    }
-
-    @Override
-    public void setJobMapper(JobMapper jobMapper) {
-        this.jobMapper = jobMapper;
     }
 
     @Override
@@ -324,6 +319,15 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public long countRecurringJobs() {
+        try (final Connection conn = dataSource.getConnection()) {
+            return recurringJobTable(conn).count();
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public int deleteRecurringJob(String id) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final int deletedRecurringJobCount = recurringJobTable(conn).deleteById(id);
@@ -353,6 +357,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         }
     }
 
+    protected DatabaseCreator getDatabaseCreator() {
+        return new DatabaseCreator(dataSource, tablePrefix, getClass());
+    }
 
     protected JobTable jobTable(Connection connection) {
         return new JobTable(connection, dialect, tablePrefix, jobMapper);

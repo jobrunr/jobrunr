@@ -16,6 +16,9 @@ public interface JobRunrConfiguration {
     DatabaseConfiguration getDatabase();
 
     @NotNull
+    JobsConfiguration getJobs();
+
+    @NotNull
     JobSchedulerConfiguration getJobScheduler();
 
     @NotNull
@@ -24,6 +27,20 @@ public interface JobRunrConfiguration {
     @NotNull
     DashboardConfiguration getDashboard();
 
+
+    @ConfigurationProperties("jobs")
+    interface JobsConfiguration {
+
+        /**
+         * Configures the default amount of retries.
+         */
+        Optional<Integer> getDefaultNumberOfRetries();
+
+        /**
+         * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
+         */
+        Optional<Integer> getRetryBackOffTimeSeed();
+    }
 
     @ConfigurationProperties("database")
     interface DatabaseConfiguration {
@@ -48,6 +65,12 @@ public interface JobRunrConfiguration {
          * An optional named {@link javax.sql.DataSource} to use. Defaults to the 'default' datasource.
          */
         Optional<String> getDatasource();
+
+        /**
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         */
+        Optional<String> getType();
     }
 
     @ConfigurationProperties("jobScheduler")

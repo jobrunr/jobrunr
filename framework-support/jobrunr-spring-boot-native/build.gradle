@@ -1,0 +1,98 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'org.springframework.boot' version '2.6.4'
+    id 'org.springframework.experimental.aot' version '0.11.3'
+}
+
+repositories {
+    maven { url 'https://repo.spring.io/release' }
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api project(':core')
+    api project(':framework-support:jobrunr-spring-boot-starter')
+    api 'org.springframework.experimental:spring-aot:0.11.3'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.experimental:spring-aot:0.11.3'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+bootJar {
+    archiveClassifier = 'boot'
+    onlyIf { false }
+}
+
+jar {
+    archiveClassifier = ''
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-spring-boot-native'
+            version = project.version
+            from components.java
+
+            pom {
+                name = 'JobRunr Spring Boot Native'
+                description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                versionMapping {
+                    usage('java-runtime'){
+                        fromResolutionResult()
+                    }
+                }
+
+                withXml {
+                    def pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}

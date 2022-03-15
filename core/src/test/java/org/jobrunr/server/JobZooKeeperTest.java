@@ -37,34 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JobZooKeeperTest {
@@ -193,6 +175,7 @@ class JobZooKeeperTest {
     void checkForRecurringJobs() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
+        when(storageProvider.countRecurringJobs()).thenReturn(1L);
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
 
         jobZooKeeper.run();
@@ -201,9 +184,26 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void recurringJobsAreCached() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+
+        when(storageProvider.countRecurringJobs()).thenReturn(1L);
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+
+        jobZooKeeper.run();
+        verify(storageProvider, times(1)).countRecurringJobs();
+        verify(storageProvider, times(1)).getRecurringJobs();
+
+        jobZooKeeper.run();
+        verify(storageProvider, times(2)).countRecurringJobs();
+        verify(storageProvider, times(1)).getRecurringJobs();
+    }
+
+    @Test
     void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
+        when(storageProvider.countRecurringJobs()).thenReturn(1L);
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
         when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
@@ -383,6 +383,28 @@ class JobZooKeeperTest {
                 .hasName(SevereJobRunrException.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServer.getId())
                 .valueContains("## Runtime information");
+    }
+
+    @Test
+    void jobZooKeeperStopsIfTooManyExceptions() {
+        Job succeededJob1 = aSucceededJob().build();
+        Job succeededJob2 = aSucceededJob().build();
+
+        when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
+        when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
+        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+                .thenReturn(
+                        asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build())
+                );
+        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
+
+        for(int i = 0; i <= 5 ; i++) {
+            jobZooKeeper.run();
+        }
+
+        AtomicInteger exceptionCount = Whitebox.getInternalState(jobZooKeeper, "exceptionCount");
+        assertThat(exceptionCount).hasValue(6);
+        verify(backgroundJobServer).stop();
     }
 
     @Test

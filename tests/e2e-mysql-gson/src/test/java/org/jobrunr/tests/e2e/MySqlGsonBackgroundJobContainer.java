@@ -8,7 +8,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 public class MySqlGsonBackgroundJobContainer extends AbstractBackgroundJobSqlContainer {
 
     public MySqlGsonBackgroundJobContainer(JdbcDatabaseContainer sqlContainer) {
-        super("jobrunr-e2e-mariadb-gson:1.0", sqlContainer);
+        super("jobrunr-e2e-mysql-gson:1.0", sqlContainer);
     }
 
     @Override

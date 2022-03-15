@@ -6,8 +6,8 @@ plugins {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:2.6.2')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.6.2')
+    api platform('org.springframework.boot:spring-boot-dependencies:2.6.4')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.6.4')
     api project(':core')
 
     api 'org.springframework.boot:spring-boot-starter'
@@ -26,6 +26,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
+    testImplementation testFixtures(project(":core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
@@ -46,7 +47,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
             artifactId = 'jobrunr-spring-boot-starter'
-            version = project.version.replace("v", "")
+            version = project.version
             from components.java
 
             pom {

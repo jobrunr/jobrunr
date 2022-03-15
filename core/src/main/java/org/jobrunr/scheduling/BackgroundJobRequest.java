@@ -241,7 +241,7 @@ public class BackgroundJobRequest {
      * }</pre>
      *
      * @param cron       The cron expression defining when to run this recurring job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -260,7 +260,7 @@ public class BackgroundJobRequest {
      *
      * @param id         the id of this recurring job which can be used to alter or delete it
      * @param cron       The cron expression defining when to run this recurring job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -280,13 +280,48 @@ public class BackgroundJobRequest {
      * @param id         the id of this recurring job which can be used to alter or delete it
      * @param cron       The cron expression defining when to run this recurring job
      * @param zoneId     The zoneId (timezone) of when to run this recurring job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public static String scheduleRecurrently(String id, String cron, ZoneId zoneId, JobRequest jobRequest) {
         verifyJobScheduler();
         return jobRequestScheduler.scheduleRecurrently(id, cron, zoneId, jobRequest);
+    }
+
+    /**
+     * Creates a new recurring job based on the given duration and the given jobRequest. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), () -> service.doWork());
+     * }</pre>
+     *
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param jobRequest the jobRequest which defines the recurring job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static String scheduleRecurrently(Duration duration, JobRequest jobRequest) {
+        verifyJobScheduler();
+        return jobRequestScheduler.scheduleRecurrently(duration, jobRequest);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the given id, duration and jobRequest. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
+     * }</pre>
+     *
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param jobRequest the jobRequest which defines the recurring job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {
+        verifyJobScheduler();
+        return jobRequestScheduler.scheduleRecurrently(id, duration, jobRequest);
     }
 
     /**

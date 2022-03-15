@@ -6,12 +6,7 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobHistoryAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobMetadataAdapter;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeSerializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.*;
 
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -54,7 +49,8 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
                 .add("version", job.getVersion())
                 .add("metadata", jobMetadataAdapter.adaptToJson(job.getMetadata()))
                 .add("jobDetails", jobDetailsAdapter.adaptToJson(job.getJobDetails()))
-                .add("jobHistory", jobHistoryAdapter.adaptToJson(job.getJobStates()));
+                .add("jobHistory", jobHistoryAdapter.adaptToJson(job.getJobStates()))
+                .add("recurringJobId", job.getRecurringJobId().orElse(null));
 
         if (job.getId() != null) {
             builder.add("id", job.getId().toString());
@@ -74,6 +70,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
 
         final Job job = new Job(id, version, jobDetails, jobHistory, jobMetadata);
         job.setJobName(jsonObject.getString("jobName"));
+        job.setRecurringJobId(jsonObject.containsKey("recurringJobId") && !jsonObject.isNull("recurringJobId") ? jsonObject.getString("recurringJobId") : null);
         return job;
     }
 }

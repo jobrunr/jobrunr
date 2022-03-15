@@ -15,6 +15,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
+import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -35,6 +36,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import javax.sql.DataSource;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
@@ -76,7 +78,11 @@ public class JobRunrFactory {
     @Singleton
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
     public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        return new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
+        int defaultNbrOfRetries = configuration.getJobs().getDefaultNumberOfRetries().orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
+        int retryBackOffTimeSeed = configuration.getJobs().getRetryBackOffTimeSeed().orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
+        BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
+        backgroundJobServer.setJobFilters(singletonList(new RetryFilter(defaultNbrOfRetries, retryBackOffTimeSeed)));
+        return backgroundJobServer;
     }
 
     @Singleton
@@ -126,6 +132,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {DataSource.class})
+    @Requires(property = "jobrunr.database.type", value = "sql", defaultValue = "sql")
     public StorageProvider sqlStorageProvider(BeanContext beanContext, JobMapper jobMapper) {
         DataSource dataSource = configuration.getDatabase().getDatasource()
                 .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
@@ -140,6 +147,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {MongoClient.class})
+    @Requires(property = "jobrunr.database.type", value = "mongodb", defaultValue = "mongodb")
     public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper) {
         String databaseName = configuration.getDatabase().getDatabaseName().orElse(null);
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
@@ -152,6 +160,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {RedisClient.class})
+    @Requires(property = "jobrunr.database.type", value = "redis-lettuce", defaultValue = "redis-lettuce")
     public StorageProvider lettuceRedisStorageProvider(RedisClient redisClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient, tablePrefix);
@@ -162,6 +171,7 @@ public class JobRunrFactory {
     @Singleton
     @Primary
     @Requires(beans = {RestHighLevelClient.class})
+    @Requires(property = "jobrunr.database.type", value = "elasticsearch", defaultValue = "elasticsearch")
     public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;

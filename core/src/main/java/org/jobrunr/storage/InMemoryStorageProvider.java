@@ -4,6 +4,7 @@ import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
@@ -48,6 +49,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public void setJobMapper(JobMapper jobMapper) {
         this.jobMapper = jobMapper;
     }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {}
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
@@ -238,8 +242,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         return jobQueue.values().stream()
                 .anyMatch(job ->
                         asList(states).contains(job.getState())
-                                && job.getLastJobStateOfType(ScheduledState.class)
-                                .map(ScheduledState::getRecurringJobId)
+                                && job.getRecurringJobId()
                                 .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
                                 .orElse(false));
     }
@@ -254,6 +257,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public List<RecurringJob> getRecurringJobs() {
         return recurringJobs;
+    }
+
+    @Override
+    public long countRecurringJobs() {
+        return recurringJobs.size();
     }
 
     @Override
@@ -302,7 +310,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         return result;
     }
 
-    private void saveJob(Job job) {
+    private synchronized void saveJob(Job job) {
         final Job oldJob = jobQueue.get(job.getId());
         if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
             throw new ConcurrentJobModificationException(job);

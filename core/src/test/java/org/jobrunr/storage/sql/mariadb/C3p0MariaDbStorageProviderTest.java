@@ -14,7 +14,7 @@ class C3p0MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest 
         if (dataSource == null) {
             dataSource = new ComboPooledDataSource();
 
-            dataSource.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            dataSource.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useBulkStmts=false");
             dataSource.setUser(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
         }

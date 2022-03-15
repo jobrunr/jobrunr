@@ -533,6 +533,74 @@ public class BackgroundJob {
     }
 
     /**
+     * Creates a new recurring job based on the given duration and the given lambda. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), () -> service.doWork());
+     * }</pre>
+     *
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param job      the lambda which defines the fire-and-forget job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static String scheduleRecurrently(Duration duration, JobLambda job) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleRecurrently(duration, job);
+    }
+
+    /**
+     * Creates a new recurring job based on the given duration and the given lambda. The IoC container will be used to resolve {@code MyService}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      BackgroundJob.<MyService>scheduleRecurrently(Duration.parse("P5D"), x -> x.doWork());
+     * }</pre>
+     *
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param iocJob   the lambda which defines the fire-and-forget job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static <S> String scheduleRecurrently(Duration duration, IocJobLambda<S> iocJob) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleRecurrently(duration, iocJob);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the given id, duration and lambda. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
+     * }</pre>
+     *
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param job      the lambda which defines the fire-and-forget job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static String scheduleRecurrently(String id, Duration duration, JobLambda job) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleRecurrently(id, duration, job);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the given id, duration and lambda. The IoC container will be used to resolve {@code MyService}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      BackgroundJob.<MyService>scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), x -> x.doWork());
+     * }</pre>
+     *
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param iocJob   the lambda which defines the fire-and-forget job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleRecurrently(id, duration, iocJob);
+    }
+
+    /**
      * Deletes the recurring job based on the given id.
      * <h5>An example:</h5>
      * <pre>{@code

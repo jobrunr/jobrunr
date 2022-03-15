@@ -6,6 +6,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -23,28 +24,11 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -78,7 +62,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         this.jedisPool = jedisPool;
         this.keyPrefix = isNullOrEmpty(keyPrefix) ? "" : keyPrefix;
 
-        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
+        setUpStorageProvider(DatabaseOptions.CREATE);
     }
 
     @Override
@@ -87,26 +71,32 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
+        new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
+    }
+
+    @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, String.valueOf(serverStatus.getDeleteSucceededJobsAfter()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER, String.valueOf(serverStatus.getPermanentlyDeleteDeletedJobsAfter()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-            p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-            p.zadd(backgroundJobServersCreatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
-            p.zadd(backgroundJobServersUpdatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
-            p.sync();
+        try (final Jedis jedis = getJedis(); final Transaction t = jedis.multi()) {
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, String.valueOf(serverStatus.getDeleteSucceededJobsAfter()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER, String.valueOf(serverStatus.getPermanentlyDeleteDeletedJobsAfter()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_FIRST_HEARTBEAT, String.valueOf(serverStatus.getFirstHeartbeat()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_IS_RUNNING, String.valueOf(serverStatus.isRunning()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY, String.valueOf(serverStatus.getSystemTotalMemory()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY, String.valueOf(serverStatus.getProcessMaxMemory()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+            t.zadd(backgroundJobServersCreatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
+            t.zadd(backgroundJobServersUpdatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
+            t.exec();
         }
     }
 
@@ -114,19 +104,20 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
         try (final Jedis jedis = getJedis()) {
             final Map<String, String> valueMap = jedis.hgetAll(backgroundJobServerKey(keyPrefix, serverStatus));
-            if (valueMap.isEmpty())
+            if (valueMap.isEmpty()) {
                 throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
-            try (final Pipeline p = jedis.pipelined()) {
-                p.watch(backgroundJobServerKey(keyPrefix, serverStatus));
-                p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
-                p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
-                p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
-                p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
-                p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
-                p.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
-                p.zadd(backgroundJobServersUpdatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
-                final Response<String> isRunningResponse = p.hget(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
-                p.sync();
+            }
+            jedis.watch(backgroundJobServerKey(keyPrefix, serverStatus));
+            try (final Transaction t = jedis.multi()) {
+                t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_LAST_HEARTBEAT, String.valueOf(serverStatus.getLastHeartbeat()));
+                t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY, String.valueOf(serverStatus.getSystemFreeMemory()));
+                t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD, String.valueOf(serverStatus.getSystemCpuLoad()));
+                t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY, String.valueOf(serverStatus.getProcessFreeMemory()));
+                t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY, String.valueOf(serverStatus.getProcessAllocatedMemory()));
+                t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_PROCESS_CPU_LOAD, String.valueOf(serverStatus.getProcessCpuLoad()));
+                t.zadd(backgroundJobServersUpdatedKey(keyPrefix), toMicroSeconds(now()), serverStatus.getId().toString());
+                final Response<String> isRunningResponse = t.hget(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_IS_RUNNING);
+                t.exec();
                 return Boolean.parseBoolean(isRunningResponse.get());
             }
         }
@@ -134,11 +125,11 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
-        try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
-            p.del(backgroundJobServerKey(keyPrefix, serverStatus.getId()));
-            p.zrem(backgroundJobServersCreatedKey(keyPrefix), serverStatus.getId().toString());
-            p.zrem(backgroundJobServersUpdatedKey(keyPrefix), serverStatus.getId().toString());
-            p.sync();
+        try (final Jedis jedis = getJedis(); final Transaction t = jedis.multi()) {
+            t.del(backgroundJobServerKey(keyPrefix, serverStatus.getId()));
+            t.zrem(backgroundJobServersCreatedKey(keyPrefix), serverStatus.getId().toString());
+            t.zrem(backgroundJobServersUpdatedKey(keyPrefix), serverStatus.getId().toString());
+            t.exec();
         }
     }
 
@@ -182,14 +173,14 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         try (final Jedis jedis = getJedis()) {
-            final Set<String> backgroundjobservers = jedis.zrangeByScore(backgroundJobServersUpdatedKey(keyPrefix), 0, toMicroSeconds(heartbeatOlderThan));
-            try (final Pipeline p = jedis.pipelined()) {
+            final List<String> backgroundjobservers = jedis.zrangeByScore(backgroundJobServersUpdatedKey(keyPrefix), 0, toMicroSeconds(heartbeatOlderThan));
+            try (final Transaction t = jedis.multi()) {
                 backgroundjobservers.forEach(backgroundJobServerId -> {
-                    p.del(backgroundJobServerKey(keyPrefix, backgroundJobServerId));
-                    p.zrem(backgroundJobServersCreatedKey(keyPrefix), backgroundJobServerId);
-                    p.zrem(backgroundJobServersUpdatedKey(keyPrefix), backgroundJobServerId);
+                    t.del(backgroundJobServerKey(keyPrefix, backgroundJobServerId));
+                    t.zrem(backgroundJobServersCreatedKey(keyPrefix), backgroundJobServerId);
+                    t.zrem(backgroundJobServersUpdatedKey(keyPrefix), backgroundJobServerId);
                 });
-                p.sync();
+                t.exec();
             }
             return backgroundjobservers.size();
         }
@@ -197,15 +188,15 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
-        try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_ID, metadata.getId());
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_NAME, metadata.getName());
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_OWNER, metadata.getOwner());
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_VALUE, metadata.getValue());
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_CREATED_AT, String.valueOf(metadata.getCreatedAt()));
-            p.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_UPDATED_AT, String.valueOf(metadata.getUpdatedAt()));
-            p.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));
-            p.sync();
+        try (final Jedis jedis = getJedis(); final Transaction t = jedis.multi()) {
+            t.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_ID, metadata.getId());
+            t.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_NAME, metadata.getName());
+            t.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_OWNER, metadata.getOwner());
+            t.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_VALUE, metadata.getValue());
+            t.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_CREATED_AT, String.valueOf(metadata.getCreatedAt()));
+            t.hset(metadataKey(keyPrefix, metadata), Metadata.FIELD_UPDATED_AT, String.valueOf(metadata.getUpdatedAt()));
+            t.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));
+            t.exec();
             notifyMetadataChangeListeners();
         }
     }
@@ -329,7 +320,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
-            Set<String> jobsByState;
+            List<String> jobsByState;
             if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
             } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
@@ -359,7 +350,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> getJobs(StateName state, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
-            Set<String> jobsByState;
+            List<String> jobsByState;
             // we only support what is used by frontend
             if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
@@ -392,7 +383,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         int amount = 0;
         try (final Jedis jedis = getJedis()) {
-            Set<String> zrangeToInspect = jedis.zrange(jobQueueForStateKey(keyPrefix, state), 0, 1000);
+            List<String> zrangeToInspect = jedis.zrange(jobQueueForStateKey(keyPrefix, state), 0, 1000);
             outerloop:
             while (!zrangeToInspect.isEmpty()) {
                 for (String id : zrangeToInspect) {
@@ -450,10 +441,10 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
-        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
-            p.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
-            p.sadd(recurringJobsKey(keyPrefix), recurringJob.getId());
-            p.sync();
+        try (final Jedis jedis = getJedis(); Transaction t = jedis.multi()) {
+            t.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
+            t.sadd(recurringJobsKey(keyPrefix), recurringJob.getId());
+            t.exec();
         }
         return recurringJob;
     }
@@ -467,6 +458,11 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
         }
+    }
+
+    @Override
+    public long countRecurringJobs() {
+        return getJedis().scard(recurringJobsKey(keyPrefix));
     }
 
     @Override
@@ -567,7 +563,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         if (SCHEDULED.equals(jobToSave.getState())) {
             transaction.zadd(scheduledJobsKey(keyPrefix), toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
-        jobToSave.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> transaction.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
+        jobToSave.getRecurringJobId().ifPresent(recurringJobId -> transaction.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
     }
 
     private void deleteJobMetadataForUpdate(Transaction transaction, Job job) {
@@ -579,7 +575,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                 || (job.hasState(DELETED) && job.getJobStates().size() >= 2 && job.getJobState(-2) instanceof ScheduledState)) {
             transaction.srem(jobDetailsKey(keyPrefix, SCHEDULED), getJobSignature(job.getJobDetails()));
         }
-        job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> transaction.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
+        job.getRecurringJobId().ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> transaction.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
     }
 
     private void deleteJobMetadata(Transaction transaction, Job job) {

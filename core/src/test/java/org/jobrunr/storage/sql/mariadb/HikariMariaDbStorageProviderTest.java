@@ -15,7 +15,7 @@ class HikariMariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTes
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();
 
-            config.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true");
+            config.setJdbcUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useBulkStmts=false");
             config.setUsername(sqlContainer.getUsername());
             config.setPassword(sqlContainer.getPassword());
             dataSource = new HikariDataSource(config);

@@ -15,9 +15,7 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;

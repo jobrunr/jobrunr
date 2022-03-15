@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 
 class UnresolvableConcurrentJobModificationExceptionTest {
 

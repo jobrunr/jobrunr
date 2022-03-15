@@ -47,6 +47,10 @@ public class RecurringJobTable extends Sql<RecurringJob> {
                 .collect(toList());
     }
 
+    public long count() throws SQLException {
+        return selectCount("from jobrunr_recurring_jobs");
+    }
+
     public int deleteById(String id) throws SQLException {
         return withId(id)
                 .delete("from jobrunr_recurring_jobs where id = :id");
@@ -55,4 +59,6 @@ public class RecurringJobTable extends Sql<RecurringJob> {
     private RecurringJob toRecurringJob(SqlResultSet resultSet) {
         return jobMapper.deserializeRecurringJob(resultSet.asString(FIELD_JOB_AS_JSON));
     }
+
+
 }

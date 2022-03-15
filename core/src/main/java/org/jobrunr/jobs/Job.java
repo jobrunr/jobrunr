@@ -22,12 +22,15 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
  */
 public class Job extends AbstractJob {
 
-    private UUID id;
-    private ArrayList<JobState> jobHistory;
+    private final UUID id;
+    private final ArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
+    private String recurringJobId;
 
     private Job() {
         // used for deserialization
+        this.id = null;
+        this.jobHistory = new ArrayList<>();
         this.metadata = new ConcurrentHashMap<>();
     }
 
@@ -40,19 +43,11 @@ public class Job extends AbstractJob {
     }
 
     public Job(JobDetails jobDetails, JobState jobState) {
-        this(jobDetails, singletonList(jobState));
+        this(null, 0, jobDetails, singletonList(jobState), new ConcurrentHashMap<>());
     }
 
     public Job(UUID id, JobDetails jobDetails, JobState jobState) {
-        this(id, jobDetails, singletonList(jobState));
-    }
-
-    public Job(JobDetails jobDetails, List<JobState> jobHistory) {
-        this(null, 0, jobDetails, jobHistory, new ConcurrentHashMap<>());
-    }
-
-    public Job(UUID id, JobDetails jobDetails, List<JobState> jobHistory) {
-        this(id, 0, jobDetails, jobHistory, new ConcurrentHashMap<>());
+        this(id, 0, jobDetails, singletonList(jobState), new ConcurrentHashMap<>());
     }
 
     public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
@@ -63,13 +58,17 @@ public class Job extends AbstractJob {
         this.metadata = metadata;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     @Override
     public UUID getId() {
         return id;
+    }
+
+    public void setRecurringJobId(String recurringJobId) {
+        this.recurringJobId = recurringJobId;
+    }
+
+    public Optional<String> getRecurringJobId() {
+        return Optional.ofNullable(recurringJobId);
     }
 
     public List<JobState> getJobStates() {
@@ -101,13 +100,6 @@ public class Job extends AbstractJob {
         return getJobState().getName();
     }
 
-    public void addJobState(JobState jobState) {
-        if (isIllegalStateChange(getState(), jobState.getName())) {
-            throw new IllegalJobStateChangeException(getState(), jobState.getName());
-        }
-        this.jobHistory.add(jobState);
-    }
-
     public boolean hasState(StateName state) {
         return getState().equals(state);
     }
@@ -136,6 +128,7 @@ public class Job extends AbstractJob {
             throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
         }
 
+        metadata.clear();
         Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));
@@ -146,6 +139,7 @@ public class Job extends AbstractJob {
     }
 
     public void delete(String reason) {
+        metadata.clear();
         addJobState(new DeletedState(reason));
     }
 
@@ -172,5 +166,12 @@ public class Job extends AbstractJob {
                 ", jobState='" + getState() + '\'' +
                 ", updatedAt='" + getUpdatedAt() + '\'' +
                 '}';
+    }
+
+    private void addJobState(JobState jobState) {
+        if (isIllegalStateChange(getState(), jobState.getName())) {
+            throw new IllegalJobStateChangeException(getState(), jobState.getName());
+        }
+        this.jobHistory.add(jobState);
     }
 }

@@ -12,9 +12,7 @@ import org.jobrunr.server.BackgroundJobPerformer;
 import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.*;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -30,8 +28,13 @@ class PackageDependenciesTest {
     }
 
     @ArchTest
+    ArchRule jobRunrDependenciesTest = classes()
+            .that().resideInAPackage("org.jobrunr.configuration..").and().haveSimpleName("JobRunr")
+            .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "java..");
+
+    @ArchTest
     ArchRule jobRunrConfigurationDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.configuration..")
+            .that().resideInAPackage("org.jobrunr.configuration..").and().haveSimpleName("JobRunrConfiguration")
             .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "java..");
 
     @ArchTest

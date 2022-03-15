@@ -11,6 +11,10 @@ public class VersionRetriever {
     }
 
     public static String getVersion(Class<?> clazz) {
+        String version = clazz.getPackage().getImplementationVersion();
+        if(version != null) {
+            return version;
+        }
         return getManifest(clazz).getMainAttributes().getValue("Bundle-Version");
     }
 

@@ -42,7 +42,7 @@ public class JobTable extends Sql<Job> {
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
                 .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
-                .with(FIELD_RECURRING_JOB_ID, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getRecurringJobId() : null);
+                .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));
     }
 
     public JobTable withId(UUID id) {

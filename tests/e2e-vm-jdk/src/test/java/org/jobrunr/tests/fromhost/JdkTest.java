@@ -7,6 +7,7 @@ import org.testcontainers.images.PullPolicy;
 
 import java.time.Duration;
 
+import static java.lang.System.getProperty;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // why: we create a build of the current gradle module inside docker container for each JDK
@@ -89,26 +90,29 @@ class JdkTest {
 
     @Test
     void jdk16OpenJDK() {
-        assertThat(buildAndTestOnImage("amd64/openjdk:16")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:16")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk17OpenJDK() {
-        assertThat(buildAndTestOnImage("amd64/openjdk:17")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:17")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk18OpenJDK() {
-        assertThat(buildAndTestOnImage("amd64/openjdk:18-ea-jdk")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:18-ea-jdk-oraclelinux7")).contains("BUILD SUCCESS");
     }
 
     private String buildAndTestOnImage(String dockerfile) {
         final MavenBuildAndTestContainer buildAndTestContainer = new MavenBuildAndTestContainer(dockerfile);
-        buildAndTestContainer
-                .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
-                .withStartupTimeout(Duration.ofMinutes(1))
-                .start();
-        System.out.println(buildAndTestContainer.getLogs());
-        return buildAndTestContainer.getLogs();
+        try {
+            buildAndTestContainer
+                    .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
+                    .withStartupTimeout(Duration.ofMinutes(3))
+                    .start();
+        } finally {
+            System.out.println(buildAndTestContainer.getLogs());
+            return buildAndTestContainer.getLogs();
+        }
     }
 }

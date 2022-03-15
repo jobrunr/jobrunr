@@ -34,12 +34,12 @@ public class JobRunrHealthIndicatorTest {
     }
 
     @Test
-    void givenDisabledBackgroundJobServer_ThenHealthIsOutOfService() {
+    void givenDisabledBackgroundJobServer_ThenHealthIsUp() {
         when(backgroundJobServerConfiguration.isEnabled()).thenReturn(false);
 
         jobRunrHealthIndicator.getHealthInformation();
 
-        assertThat(jobRunrHealthIndicator.getHealthStatus().getName()).isEqualTo("OUT_OF_SERVICE");
+        assertThat(jobRunrHealthIndicator.getHealthStatus()).isEqualTo(HealthStatus.UP);
     }
 
     @Test

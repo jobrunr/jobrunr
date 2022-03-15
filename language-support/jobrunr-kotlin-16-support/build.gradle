@@ -2,7 +2,7 @@ plugins {
   id 'java-library'
   id 'maven-publish'
   id 'signing'
-  id 'org.jetbrains.kotlin.jvm' version '1.6.0'
+  id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
 dependencies {
@@ -13,8 +13,8 @@ dependencies {
   testImplementation testFixtures(project(":core"))
 
   testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-  testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+  testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 }
 
 java {
@@ -26,12 +26,12 @@ publishing {
   publications {
     mavenJava(MavenPublication) {
       groupId = 'org.jobrunr'
-      artifactId = 'jobrunr-kotlin-1.5-support'
-      version = project.version.replace("v", "")
+      artifactId = 'jobrunr-kotlin-1.6-support'
+      version = project.version
       from components.java
 
       pom {
-        name = 'JobRunr Kotlin 1.5 Support'
+        name = 'JobRunr Kotlin 1.6 Support'
         description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
         url = 'https://github.com/jobrunr/jobrunr'
         licenses {

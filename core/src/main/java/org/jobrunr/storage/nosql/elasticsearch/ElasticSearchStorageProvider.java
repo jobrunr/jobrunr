@@ -53,10 +53,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
@@ -81,6 +78,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     private final String recurringJobIndexName;
     private final String backgroundJobServerIndexName;
     private final String metadataIndexName;
+    private final String indexPrefix;
 
     private ElasticSearchDocumentMapper elasticSearchDocumentMapper;
 
@@ -116,12 +114,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public ElasticSearchStorageProvider(RestHighLevelClient client, String indexPrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.client = client;
+        this.indexPrefix = indexPrefix;
 
-        if (DatabaseOptions.CREATE == databaseOptions) {
-            new ElasticSearchDBCreator(this, client, indexPrefix).runMigrations();
-        } else {
-            new ElasticSearchDBCreator(this, client, indexPrefix).validateIndices();
-        }
+        setUpStorageProvider(databaseOptions);
 
         this.jobIndexName = elementPrefixer(indexPrefix, DEFAULT_JOB_INDEX_NAME);
         this.recurringJobIndexName = elementPrefixer(indexPrefix, DEFAULT_RECURRING_JOB_INDEX_NAME);
@@ -132,6 +127,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public void setJobMapper(JobMapper jobMapper) {
         this.elasticSearchDocumentMapper = new ElasticSearchDocumentMapper(jobMapper);
+    }
+
+    @Override
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        if (DatabaseOptions.CREATE == databaseOptions) {
+            new ElasticSearchDBCreator(this, client, indexPrefix).runMigrations();
+        } else {
+            new ElasticSearchDBCreator(this, client, indexPrefix).validateIndices();
+        }
     }
 
     @Override
@@ -530,6 +534,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             return Stream.of(search.getHits().getHits())
                     .map(elasticSearchDocumentMapper::toRecurringJob)
                     .collect(toList());
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public long countRecurringJobs() {
+        try {
+            return client.count(new CountRequest(recurringJobIndexName), RequestOptions.DEFAULT).getCount();
         } catch (IOException e) {
             throw new StorageException(e);
         }

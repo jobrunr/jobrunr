@@ -1,9 +1,9 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.xcontent.XContentBuilder;
+import org.elasticsearch.xcontent.json.JsonXContent;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -86,7 +86,9 @@ public class ElasticSearchDocumentMapper {
             if (job.hasState(StateName.SCHEDULED)) {
                 builder.field(Jobs.FIELD_SCHEDULED_AT, job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(IllegalStateException::new));
             }
-            builder.field(Jobs.FIELD_RECURRING_JOB_ID, job.getJobStatesOfType(ScheduledState.class).findFirst().map(ScheduledState::getRecurringJobId).orElse(null));
+            if(job.getRecurringJobId().isPresent()) {
+                builder.field(Jobs.FIELD_RECURRING_JOB_ID, job.getRecurringJobId().get());
+            }
             builder.endObject();
             return builder;
         } catch (IOException e) {

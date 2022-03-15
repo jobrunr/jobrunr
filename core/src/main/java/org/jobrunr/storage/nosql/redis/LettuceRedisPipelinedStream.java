@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import static io.lettuce.core.LettuceFutures.awaitAll;
 import static java.time.Duration.ofSeconds;
-import static java.util.stream.Collectors.toList;
 
 public class LettuceRedisPipelinedStream<T> extends AbstractPipelinedStream<T> {
 

@@ -5,6 +5,7 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 
 @MicronautTest(rebuildContext = true)
@@ -59,5 +61,14 @@ class JobRunrFactoryTest {
         assertThat(context)
                 .hasSingleBean(BackgroundJobServer.class)
                 .doesNotHaveBean(JobRunrDashboardWebServer.class);
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.jobs.default-number-of-retries", value = "3")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
+        BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+        assertThat(backgroundJobServer)
+                .hasRetryFilter(3);
     }
 }

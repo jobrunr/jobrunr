@@ -16,6 +16,7 @@ import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -116,6 +117,18 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.jobs.default-number-of-retries=3")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+            assertThat(context).hasSingleBean(BackgroundJobServer.class);
+            JobRunrAssertions.assertThat(context.getBean(BackgroundJobServer.class))
+                    .hasRetryFilter(3);
+        });
+    }
+
+    @Test
     void inMemoryStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(InMemoryStorageProvider.class);
@@ -163,6 +176,20 @@ public class JobRunrAutoConfigurationTest {
     void lettuceStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(LettuceStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
+            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
+            assertThat(context).hasSingleBean(JobScheduler.class);
+        });
+    }
+
+    @Test
+    void jobRunrDoesNotFailIfMultipleDatabasesAvailableAndValueConfigured() {
+        this.contextRunner
+                .withPropertyValues(
+                        "org.jobrunr.database.skip-create=true",
+                        "org.jobrunr.database.type=sql"
+                )
+                .withUserConfiguration(SqlDataSourceConfiguration.class, ElasticSearchStorageProviderConfiguration.class).run((context) -> {
+            assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
             assertThat(context).hasSingleBean(JobScheduler.class);
         });

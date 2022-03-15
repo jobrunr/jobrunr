@@ -13,8 +13,10 @@ import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -53,6 +55,19 @@ class JobSchedulerTest {
 
         assertThat(jobClientLogFilter.onCreating).isTrue();
         assertThat(jobClientLogFilter.onCreated).isTrue();
+    }
+
+    @Test
+    void onSaveJobMDCDataIsPutIntoJob() {
+        ArgumentCaptor<Job> jobArgumentCaptor = ArgumentCaptor.forClass(Job.class);
+
+        MDC.put("some-key", "some-value");
+        when(storageProvider.save(jobArgumentCaptor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        jobScheduler.enqueue(() -> testService.doWork());
+
+        Job job = jobArgumentCaptor.getValue();
+        assertThat(job.getMetadata()).containsKey("mdc-some-key");
     }
 
     @Test

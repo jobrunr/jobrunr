@@ -43,20 +43,9 @@ import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
-import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aBackgroundJobServerStatusBasedOn;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
@@ -613,15 +602,23 @@ public abstract class StorageProviderTest {
         RecurringJob recurringJobv1 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.daily()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv1);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
+        assertThat(storageProvider.countRecurringJobs()).isEqualTo(1);
 
         RecurringJob recurringJobv2 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv2);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
-        assertThat(storageProvider.getRecurringJobs().get(0).getCronExpression()).isEqualTo(Cron.hourly());
+        assertThat(storageProvider.countRecurringJobs()).isEqualTo(1);
+
+        assertThat(storageProvider.getRecurringJobs().get(0).getScheduleExpression()).isEqualTo(Cron.hourly());
+
+        RecurringJob otherRecurringJob = new RecurringJob("my-other-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
+        storageProvider.saveRecurringJob(otherRecurringJob);
+        assertThat(storageProvider.getRecurringJobs()).hasSize(2);
+        assertThat(storageProvider.countRecurringJobs()).isEqualTo(2);
 
         storageProvider.deleteRecurringJob("my-job");
 
-        assertThat(storageProvider.getRecurringJobs()).hasSize(0);
+        assertThat(storageProvider.getRecurringJobs()).hasSize(1);
     }
 
     @Test

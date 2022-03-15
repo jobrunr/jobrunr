@@ -1,10 +1,15 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 @Testcontainers
 public class RedisJacksonE2ETest extends AbstractE2EJacksonTest {
@@ -28,5 +33,12 @@ public class RedisJacksonE2ETest extends AbstractE2EJacksonTest {
     @Override
     protected AbstractBackgroundJobContainer backgroundJobServer() {
         return backgroundJobServer;
+    }
+
+    @Disabled("Gson is dependency from Jedis")
+    @Test
+    void onlyJacksonIsOnClasspath() {
+        assertThat(classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
+        assertThat(classExists("com.google.gson.Gson")).isFalse();
     }
 }

@@ -5,6 +5,7 @@ import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
 
 import java.time.*;
@@ -241,7 +242,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param cron       The cron expression defining when to run this recurring job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -259,7 +260,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *
      * @param id         the id of this recurring job which can be used to alter or delete it
      * @param cron       The cron expression defining when to run this recurring job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -278,7 +279,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param id         the id of this recurring job which can be used to alter or delete it
      * @param cron       The cron expression defining when to run this recurring job
      * @param zoneId     The zoneId (timezone) of when to run this recurring job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -287,5 +288,41 @@ public class JobRequestScheduler extends AbstractJobScheduler {
         return scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
     }
 
+    /**
+     * Creates a new recurring job based on the given duration and the given jobRequest. JobRunr will try to find the JobRequestHandler in
+     * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The first run of this recurring job will happen
+     * after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), new MyJobRequest());
+     * }</pre>
+     *
+     * @param duration the duration defining the time between each instance of this recurring job.
+     * @param jobRequest the jobRequest which defines the recurring job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public String scheduleRecurrently(Duration duration, JobRequest jobRequest) {
+        return scheduleRecurrently(null, duration, jobRequest);
+    }
 
+    /**
+     * Creates a new or alters the existing recurring job based on the given id, duration and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The first run of this recurring job will happen
+     * after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), new MyJobRequest());
+     * }</pre>
+     *
+     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param duration the duration defining the time between each instance of this recurring job
+     * @param jobRequest the jobRequest which defines the recurring job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {
+        JobDetails jobDetails = new JobDetails(jobRequest);
+        return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
+    }
 }

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.mapper.JsonMapperValidator.validateJsonMapper;
@@ -42,6 +43,7 @@ public class JobRunrConfiguration {
     BackgroundJobServer backgroundJobServer;
     JobRunrDashboardWebServer dashboardWebServer;
     JobRunrJMXExtensions jmxExtension;
+    JobRunrMicroMeterIntegration microMeterIntegration;
 
     JobRunrConfiguration() {
         this.jsonMapper = determineJsonMapper();
@@ -94,7 +96,7 @@ public class JobRunrConfiguration {
     }
 
     /**
-     * Allows to set extra JobFilters or to provide another implementation of the {@link org.jobrunr.jobs.filters.RetryFilter}
+     * Allows setting extra JobFilters or to provide another implementation of the {@link org.jobrunr.jobs.filters.RetryFilter}
      *
      * @param jobFilters the jobFilters to use for each job.
      * @return the same configuration instance which provides a fluent api
@@ -288,6 +290,17 @@ public class JobRunrConfiguration {
     }
 
     /**
+     * Allows integrating MicroMeter metrics into JobRunr
+     *
+     * @param microMeterIntegration the JobRunrMicroMeterIntegration
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useMicroMeter(JobRunrMicroMeterIntegration microMeterIntegration) {
+        this.microMeterIntegration = microMeterIntegration;
+        return this;
+    }
+
+    /**
      * Specifies which {@link JobDetailsGenerator} to use.
      *
      * @param jobDetailsGenerator the JobDetailsGenerator to use.
@@ -305,6 +318,7 @@ public class JobRunrConfiguration {
      * @return a JobScheduler to enqueue/schedule new jobs
      */
     public JobRunrConfigurationResult initialize() {
+        ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);

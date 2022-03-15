@@ -53,5 +53,6 @@
         "object": "a test"
       }
     ]
-  }
+  },
+  "recurringJobId":null
 }
