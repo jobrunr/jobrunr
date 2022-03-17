@@ -15,6 +15,7 @@ sourceSets {
             exclude '**/public/'
             exclude '**/cypress/'
             exclude '**/src/'
+            exclude '**/cypress.json'
             exclude '**/jsconfig.json'
             exclude '**/package.json'
             exclude '**/package-lock.json'
@@ -96,6 +97,7 @@ compileTestFixturesJava {
 }
 
 jar {
+    exclude('**/cypress/', '**/cypress.json', '**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
