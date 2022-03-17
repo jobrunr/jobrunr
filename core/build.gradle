@@ -10,7 +10,15 @@ plugins {
 sourceSets {
     main {
         resources {
-            exclude '**/node_modules/*'
+            exclude '**/node_modules/'
+            exclude '**/dependency-check-bin/'
+            exclude '**/public/'
+            exclude '**/cypress/'
+            exclude '**/src/'
+            exclude '**/cypress.json'
+            exclude '**/jsconfig.json'
+            exclude '**/package.json'
+            exclude '**/package-lock.json'
         }
     }
 }
