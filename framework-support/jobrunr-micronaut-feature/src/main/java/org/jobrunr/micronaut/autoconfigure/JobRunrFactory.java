@@ -1,16 +1,10 @@
 package org.jobrunr.micronaut.autoconfigure;
 
-import com.mongodb.client.MongoClient;
-import io.lettuce.core.RedisClient;
 import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.BeanContext;
 import io.micronaut.context.annotation.Factory;
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Requires;
-import io.micronaut.inject.qualifiers.Qualifiers;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
@@ -24,16 +18,8 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.StorageProviderUtils;
-import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
-import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
-import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
-import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
-import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-
-import javax.sql.DataSource;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -123,60 +109,10 @@ public class JobRunrFactory {
     }
 
     @Singleton
+    @Requires(missingBeans = {StorageProvider.class})
     public StorageProvider storageProvider(JobMapper jobMapper) {
         final InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
-    }
-
-    @Singleton
-    @Primary
-    @Requires(beans = {DataSource.class})
-    @Requires(property = "jobrunr.database.type", value = "sql", defaultValue = "sql")
-    public StorageProvider sqlStorageProvider(BeanContext beanContext, JobMapper jobMapper) {
-        DataSource dataSource = configuration.getDatabase().getDatasource()
-                .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
-                .orElse(beanContext.getBean(DataSource.class));
-        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
-        DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
-        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
-        storageProvider.setJobMapper(jobMapper);
-        return storageProvider;
-    }
-
-    @Singleton
-    @Primary
-    @Requires(beans = {MongoClient.class})
-    @Requires(property = "jobrunr.database.type", value = "mongodb", defaultValue = "mongodb")
-    public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper) {
-        String databaseName = configuration.getDatabase().getDatabaseName().orElse(null);
-        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
-        DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
-        MongoDBStorageProvider mongoDBStorageProvider = new MongoDBStorageProvider(mongoClient, databaseName, tablePrefix, databaseOptions);
-        mongoDBStorageProvider.setJobMapper(jobMapper);
-        return mongoDBStorageProvider;
-    }
-
-    @Singleton
-    @Primary
-    @Requires(beans = {RedisClient.class})
-    @Requires(property = "jobrunr.database.type", value = "redis-lettuce", defaultValue = "redis-lettuce")
-    public StorageProvider lettuceRedisStorageProvider(RedisClient redisClient, JobMapper jobMapper) {
-        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
-        LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient, tablePrefix);
-        lettuceRedisStorageProvider.setJobMapper(jobMapper);
-        return lettuceRedisStorageProvider;
-    }
-
-    @Singleton
-    @Primary
-    @Requires(beans = {RestHighLevelClient.class})
-    @Requires(property = "jobrunr.database.type", value = "elasticsearch", defaultValue = "elasticsearch")
-    public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
-        String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
-        StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
-        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(restHighLevelClient, tablePrefix, databaseOptions);
-        elasticSearchStorageProvider.setJobMapper(jobMapper);
-        return elasticSearchStorageProvider;
     }
 }

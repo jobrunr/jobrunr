@@ -1,5 +1,6 @@
 package org.jobrunr.micronaut.autoconfigure.metrics;
 
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Singleton;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 @Singleton
+@Requires(beans = {StorageProviderMetricsBinder.class, BackgroundJobServerMetricsBinder.class})
 public class JobRunrMetricsStarter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrMetricsStarter.class);

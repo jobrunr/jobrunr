@@ -14,13 +14,13 @@ import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 public class JobRunrMetricsFactory {
 
     @Singleton
-    @Requires(beans = StorageProvider.class)
+    @Requires(beans = {StorageProvider.class, MeterRegistry.class})
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }
 
     @Singleton
-    @Requires(beans = BackgroundJobServer.class)
+    @Requires(beans = {BackgroundJobServer.class, MeterRegistry.class})
     public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
         return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
     }
