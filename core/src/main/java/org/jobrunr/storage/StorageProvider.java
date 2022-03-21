@@ -19,6 +19,8 @@ import java.util.UUID;
  */
 public interface StorageProvider extends AutoCloseable {
 
+    int BATCH_SIZE = 5000;
+
     String getName();
 
     void setJobMapper(JobMapper jobMapper);

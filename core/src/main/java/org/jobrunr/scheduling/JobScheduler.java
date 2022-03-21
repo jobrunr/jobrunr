@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import static java.time.ZoneId.systemDefault;
 import static java.util.Collections.emptyList;
+import static org.jobrunr.storage.StorageProvider.BATCH_SIZE;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 /**

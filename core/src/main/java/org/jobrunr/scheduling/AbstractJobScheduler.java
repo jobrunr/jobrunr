@@ -28,7 +28,6 @@ public class AbstractJobScheduler {
 
     private final StorageProvider storageProvider;
     private final JobFilterUtils jobFilterUtils;
-    protected static final int BATCH_SIZE = 5000;
 
     /**
      * Creates a new AbstractJobScheduler using the provided storageProvider

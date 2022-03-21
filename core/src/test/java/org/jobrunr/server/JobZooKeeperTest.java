@@ -180,7 +180,11 @@ class JobZooKeeperTest {
 
         jobZooKeeper.run();
 
-        verify(backgroundJobServer).scheduleJob(recurringJob);
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        Job savedJob = jobsToSaveArgumentCaptor.getValue().get(0);
+        assertThat(savedJob)
+                .hasState(SCHEDULED)
+                .hasRecurringJobId(recurringJob.getId());
     }
 
     @Test
@@ -209,7 +213,7 @@ class JobZooKeeperTest {
 
         jobZooKeeper.run();
 
-        verify(backgroundJobServer, never()).scheduleJob(recurringJob);
+        verify(storageProvider, never()).save(anyList());
     }
 
     @Test

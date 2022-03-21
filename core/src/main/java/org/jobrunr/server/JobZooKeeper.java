@@ -27,10 +27,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -174,9 +176,13 @@ public class JobZooKeeper implements Runnable {
 
     void processRecurringJobs(List<RecurringJob> recurringJobs) {
         LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
-        recurringJobs.stream()
+        List<Job> jobsToSchedule = recurringJobs.stream()
                 .filter(this::mustSchedule)
-                .forEach(backgroundJobServer::scheduleJob);
+                .map(RecurringJob::toScheduledJob)
+                .collect(toList());
+        if(!jobsToSchedule.isEmpty()) {
+            storageProvider.save(jobsToSchedule);
+        }
     }
 
     boolean mustSchedule(RecurringJob recurringJob) {

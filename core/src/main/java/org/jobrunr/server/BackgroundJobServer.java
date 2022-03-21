@@ -227,11 +227,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
-    void scheduleJob(RecurringJob recurringJob) {
-        Job job = recurringJob.toScheduledJob();
-        this.storageProvider.save(job);
-    }
-
     boolean isStarted() {
         return !isStopped();
     }
