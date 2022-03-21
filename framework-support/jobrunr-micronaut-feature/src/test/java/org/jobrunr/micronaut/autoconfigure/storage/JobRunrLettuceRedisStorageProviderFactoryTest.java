@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @MicronautTest(rebuildContext = true)
-class LettuceRedisStorageProviderJobRunrFactoryTest {
+class JobRunrLettuceRedisStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;

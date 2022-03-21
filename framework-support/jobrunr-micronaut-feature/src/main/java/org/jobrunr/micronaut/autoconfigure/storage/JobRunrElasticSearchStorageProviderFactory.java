@@ -10,9 +10,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils;
-import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 
-@SuppressWarnings("deprecation")
 @Factory
 @Requires(classes = {RestHighLevelClient.class})
 @Requires(beans = {RestHighLevelClient.class})
@@ -27,7 +25,7 @@ public class JobRunrElasticSearchStorageProviderFactory {
     public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
-        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(restHighLevelClient, tablePrefix, databaseOptions);
+        org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider elasticSearchStorageProvider = new org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider(restHighLevelClient, tablePrefix, databaseOptions);
         elasticSearchStorageProvider.setJobMapper(jobMapper);
         return elasticSearchStorageProvider;
     }

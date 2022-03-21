@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @MicronautTest(rebuildContext = true)
-class ElasticSearchStorageProviderJobRunrFactoryTest {
+class JobRunrElasticSearchStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;

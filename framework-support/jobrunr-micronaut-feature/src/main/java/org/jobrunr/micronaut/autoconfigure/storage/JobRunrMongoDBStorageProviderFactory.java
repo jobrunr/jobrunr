@@ -26,8 +26,7 @@ public class JobRunrMongoDBStorageProviderFactory {
     public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper) {
         String databaseName = configuration.getDatabase().getDatabaseName().orElse(null);
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
-        StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate()
-                ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
+        StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
         MongoDBStorageProvider mongoDBStorageProvider = new MongoDBStorageProvider(mongoClient, databaseName, tablePrefix, databaseOptions);
         mongoDBStorageProvider.setJobMapper(jobMapper);
         return mongoDBStorageProvider;

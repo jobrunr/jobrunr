@@ -11,12 +11,11 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils;
-import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 
 import javax.sql.DataSource;
 
 @Factory
-@Requires(classes = {DataSource.class}, beans = {DataSource.class})
+@Requires(beans = {DataSource.class})
 @Requires(property = "jobrunr.database.type", value = "sql", defaultValue = "sql")
 public class JobRunrSqlStorageProviderFactory {
 
@@ -31,7 +30,7 @@ public class JobRunrSqlStorageProviderFactory {
                 .orElse(beanContext.getBean(DataSource.class));
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
-        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
+        StorageProvider storageProvider = org.jobrunr.storage.sql.common.SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
     }
