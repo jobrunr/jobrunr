@@ -100,4 +100,70 @@ class RetryFilterTest {
         assertThat(afterVersion).isEqualTo(beforeVersion);
         assertThat(job.getState()).isEqualTo(FAILED);
     }
+
+    @Test
+    void retryFilterKeepsDefaultRetryFilterValueOf10IfRetriesOnJobAnnotationIsNotProvided() {
+
+        final Job job = aJob()
+                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWork()))
+                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .build();
+        int beforeVersion = job.getJobStates().size();
+
+        retryFilter.onStateElection(job, job.getJobState());
+        int afterVersion = job.getJobStates().size();
+
+        assertThat(afterVersion).isEqualTo(beforeVersion + 1);
+        assertThat(job.getState()).isEqualTo(SCHEDULED);
+    }
+
+    @Test
+    void retryFilterKeepsDefaultGivenRetryFilterValueIfRetriesOnJobAnnotationIsNotProvided() {
+        retryFilter = new RetryFilter(0);
+        final Job job = aJob()
+                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWork()))
+                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .build();
+        int beforeVersion = job.getJobStates().size();
+
+        retryFilter.onStateElection(job, job.getJobState());
+        int afterVersion = job.getJobStates().size();
+
+        assertThat(afterVersion).isEqualTo(beforeVersion);
+        assertThat(job.getState()).isEqualTo(FAILED);
+    }
+
+    @Test
+    void retryFilterUsesValueOfRetriesOnJobAnnotationIfProvided() {
+        retryFilter = new RetryFilter(0);
+
+        // GIVEN FIRST FAILURE, NOT YET RETRIED
+        Job job = aJob()
+                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
+                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .build();
+        int beforeVersion = job.getJobStates().size();
+
+        // WHEN
+        retryFilter.onStateElection(job, job.getJobState());
+
+        // THEN
+        int afterVersion = job.getJobStates().size();
+        assertThat(afterVersion).isEqualTo(beforeVersion + 1);
+        assertThat(job.getState()).isEqualTo(SCHEDULED);
+
+        // GIVEN SECOND FAILURE, ALREADY RETRIED
+        job = aCopyOf(job)
+                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .build();
+        beforeVersion = job.getJobStates().size();
+
+        // WHEN
+        retryFilter.onStateElection(job, job.getJobState());
+
+        // THEN
+        afterVersion = job.getJobStates().size();
+        assertThat(afterVersion).isEqualTo(beforeVersion);
+        assertThat(job.getState()).isEqualTo(FAILED);
+    }
 }
