@@ -63,7 +63,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
                 return;
             }
             if (hasParametersOutsideOfJobContext(method)) {
-                throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+                throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
             }
 
             final Recurring recurringAnnotation = method.getAnnotation(Recurring.class);

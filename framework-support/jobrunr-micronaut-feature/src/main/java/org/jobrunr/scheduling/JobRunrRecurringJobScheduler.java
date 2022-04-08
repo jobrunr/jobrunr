@@ -25,7 +25,7 @@ public class JobRunrRecurringJobScheduler {
 
     public void schedule(ExecutableMethod<?, ?> method) {
         if (hasParametersOutsideOfJobContext(method.getTargetMethod())) {
-            throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+            throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
         }
 
         String id = getId(method);

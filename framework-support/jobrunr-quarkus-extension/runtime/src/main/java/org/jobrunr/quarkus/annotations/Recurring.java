@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * Allows to recurrently schedule a method from a Quarkus bean using JobRunr.
  *
- * <em>Note that methods annotated with the &commat;Recurring annotation may not have any parameters.</em>
+ * <em>Note that methods annotated with the &commat;Recurring annotation may only have zero parameters or a single parameter of type org.jobrunr.jobs.context.JobContext.</em>
  *
  * <h5>An example:</h5>
  * <pre>

@@ -131,7 +131,7 @@ class RecurringJobPostProcessorTest {
 
         assertThatThrownBy(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MyUnsupportedService(), "not important"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+                .hasMessage("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
     }
 
     public static class MyServiceWithoutRecurringAnnotation {
