@@ -1,5 +1,7 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.context.JobDashboardLogger;
+import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.*;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
@@ -128,7 +130,7 @@ public class Job extends AbstractJob {
             throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
         }
 
-        metadata.clear();
+        clearMetadata();
         Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));
@@ -139,7 +141,7 @@ public class Job extends AbstractJob {
     }
 
     public void delete(String reason) {
-        metadata.clear();
+        clearMetadata();
         addJobState(new DeletedState(reason));
     }
 
@@ -173,5 +175,9 @@ public class Job extends AbstractJob {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
         this.jobHistory.add(jobState);
+    }
+
+    private void clearMetadata() {
+        metadata.entrySet().removeIf(entry -> !(entry.getKey().matches("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d)")));
     }
 }

@@ -123,7 +123,7 @@ public class BackgroundJobByIoCJobLambdaTest {
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId))
                 .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
-                .hasNoMetadata();
+                .hasMetadataOnlyContainingJobProgressAndLogging();
     }
 
     @Test
