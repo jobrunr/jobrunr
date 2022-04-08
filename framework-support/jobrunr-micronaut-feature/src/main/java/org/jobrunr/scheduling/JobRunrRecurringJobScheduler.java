@@ -2,11 +2,13 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.time.ZoneId;
 
 import static java.util.Collections.emptyList;
@@ -22,7 +24,7 @@ public class JobRunrRecurringJobScheduler {
     }
 
     public void schedule(ExecutableMethod<?, ?> method) {
-        if (method.getTargetMethod().getParameterCount() > 0) {
+        if (hasParametersOutsideOfJobContext(method.getTargetMethod())) {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
         }
 
@@ -40,6 +42,12 @@ public class JobRunrRecurringJobScheduler {
             ZoneId zoneId = getZoneId(method);
             jobScheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
         }
+    }
+
+    private boolean hasParametersOutsideOfJobContext(Method method) {
+        if(method.getParameterCount() == 0) return false;
+        else if(method.getParameterCount() > 1) return true;
+        else return !method.getParameterTypes()[0].equals(JobContext.class);
     }
 
     private String getId(ExecutableMethod<?, ?> method) {

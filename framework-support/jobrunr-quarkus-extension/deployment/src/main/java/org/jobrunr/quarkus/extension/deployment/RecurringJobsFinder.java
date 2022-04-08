@@ -8,9 +8,11 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,12 +68,18 @@ public class RecurringJobsFinder {
 
     private JobDetails getJobDetails(AnnotationInstance recurringJobAnnotation) {
         final MethodInfo methodInfo = recurringJobAnnotation.target().asMethod();
-        if (!methodInfo.parameters().isEmpty()) {
+        if (hasParametersOutsideOfJobContext(methodInfo)) {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
         }
         final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), new ArrayList<>());
         jobDetails.setCacheable(true);
         return jobDetails;
+    }
+
+    private boolean hasParametersOutsideOfJobContext(MethodInfo method) {
+        if(method.parameters().isEmpty()) return false;
+        else if(method.parameters().size() > 1) return true;
+        else return !method.parameters().get(0).equals(JobContext.class);
     }
 
     private String getZoneId(AnnotationInstance recurringJobAnnotation) {

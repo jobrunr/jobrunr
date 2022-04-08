@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.spring.annotations.Recurring;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,24 @@ class RecurringJobPostProcessorTest {
 
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
         assertThat(actualJobDetails.getClassName()).isEqualTo(MyServiceWithRecurringJob.class.getName());
+        assertThat(actualJobDetails.getMethodName()).isEqualTo("myRecurringMethod");
+        assertThat(actualJobDetails.getCacheable()).isTrue();
+    }
+
+    @Test
+    void beansWithMethodsUsingJobContextAnnotatedWithRecurringAnnotationWillAutomaticallyBeRegistered() {
+        // GIVEN
+        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobScheduler);
+        recurringJobPostProcessor.afterPropertiesSet();
+
+        // WHEN
+        recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJobUsingJobContext(), "not important");
+
+        // THEN
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+
+        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
+        assertThat(actualJobDetails.getClassName()).isEqualTo(MyServiceWithRecurringJobUsingJobContext.class.getName());
         assertThat(actualJobDetails.getMethodName()).isEqualTo("myRecurringMethod");
         assertThat(actualJobDetails.getCacheable()).isTrue();
     }
@@ -126,6 +145,14 @@ class RecurringJobPostProcessorTest {
 
         @Recurring(id = "my-recurring-job", cron = "0 0/15 * * *")
         public void myRecurringMethod() {
+            System.out.print("My recurring job method");
+        }
+    }
+
+    public static class MyServiceWithRecurringJobUsingJobContext {
+
+        @Recurring(id = "my-recurring-job", cron = "0 0/15 * * *")
+        public void myRecurringMethod(JobContext jobContext) {
             System.out.print("My recurring job method");
         }
     }

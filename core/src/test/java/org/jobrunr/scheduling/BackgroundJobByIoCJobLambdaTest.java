@@ -218,6 +218,15 @@ public class BackgroundJobByIoCJobLambdaTest {
     }
 
     @Test
+    void testRecurringCronJobWithJobContext() {
+        BackgroundJob.<TestService>scheduleRecurrently(every5Seconds, x -> x.doWork(5, JobContext.Null));
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testRecurringCronJobWithId() {
         BackgroundJob.<TestService>scheduleRecurrently("theId", every5Seconds, x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);

@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import io.micronaut.inject.ExecutableMethod;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,21 @@ class JobRunrRecurringJobSchedulerTest {
     }
 
     @Test
+    void beansWithMethodsAnnotatedWithRecurringAnnotationUsingJobContextWillAutomaticallyBeRegistered() {
+        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
+        when(executableMethod.getTargetMethod()).thenReturn(method);
+
+        when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
+        when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.of("*/15 * * * *"));
+        when(executableMethod.stringValue(Recurring.class, "zone")).thenReturn(Optional.empty());
+
+        jobRunrRecurringJobScheduler.schedule(executableMethod);
+
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+    }
+
+    @Test
     void beansWithUnsupportedMethodsAnnotatedWithRecurringAnnotationWillThrowException() {
         final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyUnsupportedService.class, "myRecurringMethod", String.class);
@@ -63,6 +79,14 @@ class JobRunrRecurringJobSchedulerTest {
 
         @Recurring(id = "my-recurring-job", cron = "*/15 * * * *")
         public void myRecurringMethod() {
+            System.out.print("My recurring job method");
+        }
+    }
+
+    public static class MyServiceWithRecurringJobUsingJobContext {
+
+        @Recurring(id = "my-recurring-job", cron = "*/15 * * * *")
+        public void myRecurringMethod(JobContext jobContext) {
             System.out.print("My recurring job method");
         }
     }

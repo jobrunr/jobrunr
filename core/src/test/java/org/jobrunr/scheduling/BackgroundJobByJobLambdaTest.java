@@ -279,6 +279,15 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
+    void testRecurringCronJobWithJobContext() {
+        BackgroundJob.scheduleRecurrently(every5Seconds, () -> testService.doWork(5, JobContext.Null));
+        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testRecurringCronJobWithId() {
         BackgroundJob.scheduleRecurrently("theId", every5Seconds, () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
