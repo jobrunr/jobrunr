@@ -2,11 +2,13 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.time.ZoneId;
 
 import static java.util.Collections.emptyList;
@@ -22,8 +24,9 @@ public class JobRunrRecurringJobScheduler {
     }
 
     public void schedule(ExecutableMethod<?, ?> method) {
-        if (method.getTargetMethod().getParameterCount() > 0) {
-            throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+        Method call =  method.getTargetMethod();
+        if (call.getParameterCount() > 0 && !(call.getParameterCount() == 1 && JobContext.class.isAssignableFrom(call.getParameterTypes()[0]))) {
+            throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
         }
 
         String id = getId(method);

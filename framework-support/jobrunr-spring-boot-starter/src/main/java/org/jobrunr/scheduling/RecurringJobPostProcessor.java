@@ -3,6 +3,7 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.spring.annotations.Recurring;
+import org.jobrunr.jobs.context.JobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -61,8 +62,8 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
             if (!method.isAnnotationPresent(Recurring.class)) {
                 return;
             }
-            if (method.getParameterCount() > 0) {
-                throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+            if (method.getParameterCount() > 0 && !(method.getParameterCount() == 1 && JobContext.class.isAssignableFrom(method.getParameterTypes()[0]))) {
+                throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
             }
 
             final Recurring recurringAnnotation = method.getAnnotation(Recurring.class);

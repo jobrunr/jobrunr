@@ -8,6 +8,7 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
@@ -66,8 +67,8 @@ public class RecurringJobsFinder {
 
     private JobDetails getJobDetails(AnnotationInstance recurringJobAnnotation) {
         final MethodInfo methodInfo = recurringJobAnnotation.target().asMethod();
-        if (!methodInfo.parameters().isEmpty()) {
-            throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+        if (methodInfo.parameters().size() > 0 && !(methodInfo.parameters().size() == 1 && JobContext.class.isAssignableFrom(methodInfo.parameters().get(0).getClass()))) {
+            throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
         }
         final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), new ArrayList<>());
         jobDetails.setCacheable(true);

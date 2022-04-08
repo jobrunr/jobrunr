@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.spring.annotations.Recurring;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -112,9 +115,14 @@ class RecurringJobPostProcessorTest {
 
         assertThatThrownBy(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MyUnsupportedService(), "not important"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Methods annotated with " + Recurring.class.getName() + " can not have parameters.");
+                .hasMessage("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
     }
-
+    @Test
+    void beansWithSupportedMethodsAnnotatedWithRecurringAnnotationWillNotThrowException() {
+        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobScheduler);
+        recurringJobPostProcessor.afterPropertiesSet();
+        assertThatCode(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MySupportedServiceWithJobContext(), "not important")).doesNotThrowAnyException();
+    }
     public static class MyServiceWithoutRecurringAnnotation {
 
         public void myMethodWithoutRecurringAnnotation() {
@@ -137,7 +145,13 @@ class RecurringJobPostProcessorTest {
             System.out.print("My unsupported recurring job method");
         }
     }
+    public static class MySupportedServiceWithJobContext {
 
+        @Recurring(id = "my-recurring-job-with-jobcontext", cron = "0 0/15 * * *")
+        public void myRecurringMethod(JobContext parameter) {
+            System.out.print("My supported recurring job method");
+        }
+    }
     public static class MyServiceWithRecurringAnnotationContainingPropertyPlaceholder {
 
         @Recurring(id = "${my-job.id}", cron = "${my-job.cron}", zoneId = "${my-job.zone-id}")
