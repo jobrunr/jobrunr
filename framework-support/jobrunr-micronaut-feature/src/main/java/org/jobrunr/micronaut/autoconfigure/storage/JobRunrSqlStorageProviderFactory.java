@@ -27,7 +27,7 @@ public class JobRunrSqlStorageProviderFactory {
     public StorageProvider sqlStorageProvider(BeanContext beanContext, JobMapper jobMapper) {
         DataSource dataSource = configuration.getDatabase().getDatasource()
                 .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
-                .orElse(beanContext.getBean(DataSource.class));
+                .orElseGet(() -> beanContext.getBean(DataSource.class));
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
         StorageProvider storageProvider = org.jobrunr.storage.sql.common.SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
