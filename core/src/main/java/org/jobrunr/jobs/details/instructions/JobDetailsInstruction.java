@@ -29,7 +29,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     @Override
     public Object invokeInstruction() {
         if (!isLastInstruction() && isVoidInstruction()) {
-            throw new JobRunrException("JobRunr only supports enqueueing/scheduling of one method");
+            throw new JobRunrException("JobRunr only supports enqueueing/scheduling of one void method (which also must be the last statement executed)");
         } else if (isLastInstruction()) {
             jobDetailsBuilder.setClassName(getClassName());
             jobDetailsBuilder.setMethodName(getMethodName());
