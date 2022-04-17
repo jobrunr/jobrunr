@@ -1,5 +1,8 @@
 package org.jobrunr.storage.nosql.common.migrations;
 
+import com.mongodb.internal.VisibleForTesting;
+import org.jobrunr.utils.annotations.VisibleFor;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -37,7 +40,9 @@ public class RunningOnJava11OrLowerWithinFatJarNoSqlMigrationProvider implements
         return result;
     }
 
-    private boolean isNoSqlMigration(Class<?> clazz, ZipEntry zipEntry) {
-        return zipEntry.getName().startsWith(clazz.getPackage().getName().replace(".", "/") + "/migrations");
+    @VisibleFor("testing - Github Issue #416")
+    boolean isNoSqlMigration(Class<?> clazz, ZipEntry zipEntry) {
+        return zipEntry.getName().startsWith(clazz.getPackage().getName().replace(".", "/") + "/migrations")
+                && zipEntry.getName().endsWith(".class");
     }
 }
