@@ -64,6 +64,16 @@ class JobDetailsAsmGeneratorForKotlinTest {
     }
 
     @Test
+    fun testJobLambdaCallMethodReferenceInlineService() {
+        val service = TestService()
+        val jobDetails = toJobDetails { service::doWorkWithoutParameters }
+        assertThat(jobDetails)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWorkWithoutParameters")
+            .hasNoArgs()
+    }
+
+    @Test
     fun testJobLambdaCallInstanceMethod_Null() {
         val work: TestService.Work? = null
         assertThatThrownBy { toJobDetails { testService.doWork(work) } }
@@ -570,6 +580,10 @@ class JobDetailsAsmGeneratorForKotlinTest {
                 .hasClass(JobDetailsAsmGeneratorForKotlinTest::class.java)
                 .hasMethodName("doWorkWithUUID")
                 .hasNoArgs()
+    }
+
+    fun bla(job: JobLambda) {
+        job.run()
     }
 
     fun toJobDetails(job: JobLambda): JobDetails {

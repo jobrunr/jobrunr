@@ -56,6 +56,7 @@ class ReflectionUtilsTest {
 
     @Test
     void testAutobox() {
+        assertThat(ReflectionUtils.autobox(null, String.class)).isEqualTo(null);
         assertThat(ReflectionUtils.autobox("string", String.class)).isEqualTo("string");
         assertThat(ReflectionUtils.autobox(1, int.class)).isEqualTo(1);
         assertThat(ReflectionUtils.autobox(1, Integer.class)).isEqualTo(1);
