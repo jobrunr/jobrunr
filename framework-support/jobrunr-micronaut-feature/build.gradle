@@ -27,6 +27,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
     compileOnly 'io.micrometer:micrometer-core'
+    compileOnly 'io.micronaut.data:micronaut-data-tx'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'io.micronaut.test:micronaut-test-junit5'

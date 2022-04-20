@@ -5,6 +5,7 @@ import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.inject.qualifiers.Qualifiers;
+import io.micronaut.transaction.jdbc.DelegatingDataSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -28,6 +29,9 @@ public class JobRunrSqlStorageProviderFactory {
         DataSource dataSource = configuration.getDatabase().getDatasource()
                 .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
                 .orElseGet(() -> beanContext.getBean(DataSource.class));
+        if (dataSource instanceof DelegatingDataSource) {
+            dataSource = ((DelegatingDataSource) dataSource).getTargetDataSource();
+        }
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
         StorageProvider storageProvider = org.jobrunr.storage.sql.common.SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
