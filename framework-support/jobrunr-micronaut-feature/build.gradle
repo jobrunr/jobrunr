@@ -22,6 +22,7 @@ dependencies {
     implementation 'io.micronaut:micronaut-validation'
     implementation 'io.micronaut:micronaut-runtime'
     implementation 'io.micronaut:micronaut-management'
+    compileOnly 'io.micronaut.data:micronaut-data-tx'
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
