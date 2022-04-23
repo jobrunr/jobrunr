@@ -44,8 +44,13 @@ public class InvokeStaticInstruction extends VisitMethodInstruction {
     private Object getObject() {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         List<Object> parameters = getParametersUsingParamTypes(paramTypes);
+        if(isKotlinNullCheck()) return null;
         Object result = createObjectViaStaticMethod(getClassName(), getMethodName(), paramTypes, parameters.toArray());
         return result;
+    }
+
+    private boolean isKotlinNullCheck() {
+        return getClassName().startsWith("kotlin.") && getMethodName().equals("checkNotNullParameter");
     }
 
     private String getMethodName() {
