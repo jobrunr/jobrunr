@@ -5,15 +5,17 @@ import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.inject.qualifiers.Qualifiers;
-import io.micronaut.transaction.jdbc.DelegatingDataSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
+import org.jobrunr.micronaut.autoconfigure.storage.sql.DelegatingDatasourceExtractor;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils;
 
 import javax.sql.DataSource;
+
+import static java.util.Arrays.stream;
 
 @Factory
 @Requires(beans = {DataSource.class})
@@ -26,16 +28,21 @@ public class JobRunrSqlStorageProviderFactory {
     @Singleton
     @Primary
     public StorageProvider sqlStorageProvider(BeanContext beanContext, JobMapper jobMapper) {
-        DataSource dataSource = configuration.getDatabase().getDatasource()
-                .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
-                .orElseGet(() -> beanContext.getBean(DataSource.class));
-        if (dataSource instanceof DelegatingDataSource) {
-            dataSource = ((DelegatingDataSource) dataSource).getTargetDataSource();
-        }
+        DataSource dataSource = getDataSource(beanContext);
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
         StorageProvider storageProvider = org.jobrunr.storage.sql.common.SqlStorageProviderFactory.using(dataSource, tablePrefix, databaseOptions);
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
+    }
+
+    private DataSource getDataSource(BeanContext beanContext) {
+        DataSource dataSource = configuration.getDatabase().getDatasource()
+                .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
+                .orElseGet(() -> beanContext.getBean(DataSource.class));
+        if(stream(dataSource.getClass().getInterfaces()).anyMatch(i -> i.getName().equals("io.micronaut.transaction.jdbc.DelegatingDataSource"))){
+            return DelegatingDatasourceExtractor.extract(dataSource);
+        }
+        return dataSource;
     }
 }
