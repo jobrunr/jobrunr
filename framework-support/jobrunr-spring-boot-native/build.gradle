@@ -14,6 +14,7 @@ dependencies {
     api platform(project(':platform'))
     api project(':core')
     api project(':framework-support:jobrunr-spring-boot-starter')
+    api 'org.springframework:spring-web'
     api 'org.springframework.experimental:spring-aot:0.11.4'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
