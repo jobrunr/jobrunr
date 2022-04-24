@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'org.springframework.boot' version '2.6.6'
-    id 'org.springframework.experimental.aot' version '0.11.3'
+    id 'org.springframework.experimental.aot' version '0.11.4'
 }
 
 repositories {
@@ -14,10 +14,10 @@ dependencies {
     api platform(project(':platform'))
     api project(':core')
     api project(':framework-support:jobrunr-spring-boot-starter')
-    api 'org.springframework.experimental:spring-aot:0.11.3'
+    api 'org.springframework.experimental:spring-aot:0.11.4'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.experimental:spring-aot:0.11.3'
+    testImplementation 'org.springframework.experimental:spring-aot:0.11.4'
 }
 
 java {
