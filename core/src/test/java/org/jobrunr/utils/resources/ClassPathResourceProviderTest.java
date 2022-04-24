@@ -2,27 +2,14 @@ package org.jobrunr.utils.resources;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
-import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ClassPathResourceProviderTest {
-
-    @Test
-    void canGetPathsOnClasspath() {
-        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
-            final List<String> paths = resourceProvider
-                    .toPathsOnClasspath("/org/jobrunr/utils/resources/somefolder")
-                    .map(Path::toString)
-                    .collect(toList());
-
-            assertThat(paths).hasSize(1);
-            assertThat(paths.get(0)).endsWith("org/jobrunr/utils/resources/somefolder");
-        }
-    }
 
     @Test
     void canListChildren() {
@@ -46,4 +33,33 @@ class ClassPathResourceProviderTest {
         }
     }
 
+    @Test
+    void classPathResourceProviderIsThreadsafe() throws InterruptedException {
+        AtomicInteger atomicInteger = new AtomicInteger();
+        CountDownLatch countDownLatch = new CountDownLatch(3);
+        final Thread thread1 = new Thread(() -> useClassPathResourceProvider(atomicInteger, countDownLatch));
+        final Thread thread2 = new Thread(() -> useClassPathResourceProvider(atomicInteger, countDownLatch));
+        final Thread thread3 = new Thread(() -> useClassPathResourceProvider(atomicInteger, countDownLatch));
+
+        thread1.start();
+        thread2.start();
+        thread3.start();
+
+        countDownLatch.await(10, TimeUnit.SECONDS);
+        assertThat(atomicInteger.get()).isEqualTo(300);
+    }
+
+    private void useClassPathResourceProvider(AtomicInteger atomicInteger, CountDownLatch countDownLatch) {
+        for(int i = 0; i < 100; i++) {
+            try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+                final Stream<String> folderItems = resourceProvider
+                        .listAllChildrenOnClasspath(Test.class)
+                        .map(path -> path.getFileName().toString());
+
+                assertThat(folderItems).contains("Test.class", "Tags.class");
+                atomicInteger.incrementAndGet();
+            }
+        }
+        countDownLatch.countDown();
+    }
 }

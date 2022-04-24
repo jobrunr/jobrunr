@@ -36,7 +36,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
             final int count = (int) paths.stream()
                     .filter(path -> path.toString().endsWith(".class"))
                     .map(ReflectionUtils::toClassFromPath)
-                    .filter(clazz -> annotatedTestClass.isAssignableFrom(clazz))
+                    .filter(annotatedTestClass::isAssignableFrom)
                     .count();
             atomicInteger = new AtomicInteger(count - 1);
 

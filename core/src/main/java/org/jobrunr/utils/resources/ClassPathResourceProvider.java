@@ -14,16 +14,31 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
+/**
+ * Class to be only used on startup to load all resources (SQL migrations and noSQL migrations) from the classpath.
+ *
+ * As Jar files need to be mounted as FileSystems which are static, this class uses explicit locking to ensure that only one
+ * consumer can access the resources at a time. It must thus always be used in a try-with-resources block.
+ */
 public class ClassPathResourceProvider implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClassPathResourceProvider.class);
-    private final Map<String, FileSystemProvider> fileSystemProviders;
+    private static final Map<String, FileSystemProvider> fileSystemProviders = new HashMap<>();
+    private static final ReentrantLock lock = new ReentrantLock();
 
     public ClassPathResourceProvider() {
-        this.fileSystemProviders = new HashMap<>();
+        try {
+            lock.tryLock(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Unable to open lock. Make sure the ClassPathResourceProvider is used inside a try-with-resources block?", e);
+        }
     }
+
 
     public Stream<Path> listAllChildrenOnClasspath(Class<?> clazz, String... subFolder) {
         try {
@@ -32,10 +47,6 @@ public class ClassPathResourceProvider implements AutoCloseable {
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
-    }
-
-    public Stream<Path> toPathsOnClasspath(String... subFolder) {
-        return toPathsOnClasspath(ClassPathResourceProvider.class, subFolder);
     }
 
     private Stream<Path> toPathsOnClasspath(Class<?> clazz, String... subFolders) {
@@ -103,6 +114,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
             throw new IllegalStateException("Could not close FileSystemProvider", e);
         } finally {
             this.fileSystemProviders.clear();
+            lock.unlock();
         }
     }
 
