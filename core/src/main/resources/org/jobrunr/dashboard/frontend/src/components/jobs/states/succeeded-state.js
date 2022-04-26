@@ -79,7 +79,7 @@ const Succeeded = (props) => {
                     <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
                 </Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.expansionPanel}>
+            <AccordionDetails>
                 <ul>
                     <li>Latency duration: {getDuration(jobState.latencyDuration)}</li>
                     <li>Process duration: {getDuration(jobState.processDuration)}</li>
