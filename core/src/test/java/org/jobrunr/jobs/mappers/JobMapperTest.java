@@ -1,9 +1,7 @@
 package org.jobrunr.jobs.mappers;
 
 import org.jobrunr.JobRunrException;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
@@ -26,6 +24,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.*;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.mockito.Mockito.lenient;
@@ -143,6 +142,32 @@ abstract class JobMapperTest {
         assertThatCode(() -> jobMapper.serializeJob(job))
                 .isInstanceOf(JobParameterJsonMapperException.class)
                 .isNotExactlyInstanceOf(JobRunrException.class);
+    }
+
+    @Test
+    void onJobWithParameterThatCannotBeDeserializedAnymoreNoExceptionIsThrown() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(jobParameterThatDoesNotExistJobDetails())
+                .build();
+
+        String jobAsJson = jobMapper.serializeJob(job);
+        Job actualJob = jobMapper.deserializeJob(jobAsJson);
+
+        assertThat(actualJob).isNotNull();
+
+        assertThat(actualJob.getJobDetails())
+                .hasClassName(TestService.class.getName())
+                .hasMethodName("doWork")
+                .hasArg(arg -> arg instanceof JobParameterNotDeserializableException
+                                && ((JobParameterNotDeserializableException) arg).getClassName().equals("i.dont.exist.Class"));
+
+        String jobAsJsonAfterDeserialization = jobMapper.serializeJob(actualJob);
+        Job actualJobAfterDeserialization = jobMapper.deserializeJob(jobAsJsonAfterDeserialization);
+        assertThat(actualJobAfterDeserialization.getJobDetails())
+                .hasClassName(TestService.class.getName())
+                .hasMethodName("doWork")
+                .hasArg(arg -> arg instanceof JobParameterNotDeserializableException
+                        && ((JobParameterNotDeserializableException) arg).getClassName().equals("i.dont.exist.Class"));
     }
 
     public static class TestMetadata implements JobContext.Metadata {

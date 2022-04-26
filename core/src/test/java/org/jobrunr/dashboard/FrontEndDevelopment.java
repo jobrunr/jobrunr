@@ -16,14 +16,16 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
@@ -37,12 +39,13 @@ public class FrontEndDevelopment {
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
 
         StubDataProvider.using(storageProvider)
-                .addALotOfEnqueuedJobsThatTakeSomeTime()
+                //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 .addSomeRecurringJobs();
 
-        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, DAYS))).build());
-        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, DAYS))).build());
+        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
 
         JobRunr
                 .configure()
@@ -51,8 +54,10 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(11, 42), ZoneId.of("America/New_York"),
+        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
                 x -> x.doWorkThatTakesLong(JobContext.Null));
+
+        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

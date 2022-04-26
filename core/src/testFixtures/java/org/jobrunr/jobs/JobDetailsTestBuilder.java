@@ -50,6 +50,13 @@ public class JobDetailsTestBuilder {
                 .withJobParameter(5);
     }
 
+    public static JobDetailsTestBuilder jobParameterThatDoesNotExistJobDetails() {
+        return jobDetails()
+                .withClassName(TestService.class)
+                .withMethodName("doWork")
+                .withJobParameter(new JobParameter("i.dont.exist.Class", null));
+    }
+
     private JobDetailsTestBuilder withCacheable(boolean isCacheable) {
         this.isCacheable = isCacheable;
         return this;

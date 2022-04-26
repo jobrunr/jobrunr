@@ -1,13 +1,14 @@
 package org.jobrunr.utils.mapper.jackson.modules;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.JobParameterNotDeserializableException;
 import org.jobrunr.utils.mapper.JsonMapperUtils;
 
 import java.io.IOException;
@@ -34,6 +35,12 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
         if (Path.class.getName().equals(className)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
             return new JobParameter(className, Paths.get(objectJsonNode.asText().replace("file:", "")));
         } else {
+            return getJobParameter(jsonParser, className, actualClassName, objectJsonNode);
+        }
+    }
+
+    private JobParameter getJobParameter(JsonParser jsonParser, String className, String actualClassName, JsonNode objectJsonNode) throws JsonProcessingException {
+        try {
             Class<Object> valueType = toClass(getActualClassName(className, actualClassName));
             if (objectJsonNode.isArray() && !Collection.class.isAssignableFrom(valueType)) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
                 final JsonNode jsonNodeInArray = objectJsonNode.get(1);
@@ -44,7 +51,7 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
                     final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, valueType);
                     return new JobParameter(className, object);
                 } catch (MismatchedInputException e) { // last attempt: is it an Enum?
-                    if(valueType.isEnum()) {
+                    if (valueType.isEnum()) {
                         ArrayNode arrayNode = (ArrayNode) jsonParser.getCodec().createArrayNode();
                         arrayNode.add(valueType.getName());
                         arrayNode.add(objectJsonNode);
@@ -54,6 +61,8 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
                     throw e;
                 }
             }
+        } catch (Exception e) {
+            return new JobParameter(new JobParameterNotDeserializableException(getActualClassName(className, actualClassName), e.getMessage()));
         }
     }
 
