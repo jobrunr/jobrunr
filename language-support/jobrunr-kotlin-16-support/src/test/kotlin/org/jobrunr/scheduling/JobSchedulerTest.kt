@@ -1,8 +1,8 @@
 package org.jobrunr.scheduling
 
-import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
+import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName.*
@@ -15,7 +15,6 @@ import org.jobrunr.storage.StorageProviderForTest
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
-import java.time.Instant
 import java.time.Instant.now
 import java.util.concurrent.TimeUnit
 
@@ -53,9 +52,7 @@ class JobSchedulerTest {
         }
 
         val job = storageProvider.getJobById(jobId)
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            ENQUEUED, PROCESSING, SUCCEEDED
-        )
+        assertThat(job).hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -70,9 +67,24 @@ class JobSchedulerTest {
         }
 
         val job = storageProvider.getJobById(jobId)
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            ENQUEUED, PROCESSING, SUCCEEDED
-        )
+        assertThat(job).hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
+    @Test
+    fun `test enqueue lambda with service dependency and job name`() {
+        val testService = TestService()
+        val input = "Hello!"
+
+        val jobId = jobScheduler.enqueue { testService.doWorkWithJobName(input, "Hello") }
+
+        await().atMost(Durations.TEN_SECONDS).until {
+            storageProvider.getJobById(jobId).state == SUCCEEDED
+        }
+
+        val job = storageProvider.getJobById(jobId)
+        assertThat(job)
+            .hasJobName("Some neat Job Display Name")
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -86,9 +98,8 @@ class JobSchedulerTest {
         }
 
         val job = storageProvider.getJobById(jobId)
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            ENQUEUED, PROCESSING, SUCCEEDED
-        )
+        assertThat(job)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -102,9 +113,8 @@ class JobSchedulerTest {
         }
 
         val job = storageProvider.getJobById(jobId)
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            ENQUEUED, PROCESSING, SUCCEEDED
-        )
+        assertThat(job)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -118,9 +128,8 @@ class JobSchedulerTest {
         }
 
         val job = storageProvider.getJobById(jobId)
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-                SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED
-        )
+        assertThat(job)
+            .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -135,9 +144,8 @@ class JobSchedulerTest {
         }
 
         val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED
-        )
+        assertThat(job)
+            .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -149,12 +157,8 @@ class JobSchedulerTest {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
         val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            SCHEDULED,
-            ENQUEUED,
-            PROCESSING,
-            SUCCEEDED
-        )
+        assertThat(job)
+            .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -165,11 +169,8 @@ class JobSchedulerTest {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
         val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
-        assertThat(job.jobStates.map { it.name }).containsExactly(
-            ENQUEUED,
-            PROCESSING,
-            SUCCEEDED
-        )
+        assertThat(job)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     fun doSomething() {
