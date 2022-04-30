@@ -1,17 +1,25 @@
 package org.jobrunr.configuration;
 
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,9 +31,25 @@ class JobRunrConfigurationTest {
     @Mock
     StorageProvider storageProvider;
 
+    @Captor
+    ArgumentCaptor<JobMapper> jobMapperCaptor;
+
     @AfterEach
     void tearDown() {
         JobRunr.destroy();
+    }
+
+    @Test
+    void jsonMapperCanBeConfigured() {
+        JsonMapper jsonMapper = new GsonJsonMapper();
+        JobRunr.configure()
+                .useJsonMapper(jsonMapper)
+                .useStorageProvider(storageProvider)
+                .initialize();
+
+        verify(storageProvider).setJobMapper(jobMapperCaptor.capture());
+        JobMapper jobMapper = jobMapperCaptor.getValue();
+        assertThat((JsonMapper)getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
     }
 
     @Test

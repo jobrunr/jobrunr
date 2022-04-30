@@ -36,7 +36,7 @@ public class JobRunrConfiguration {
 
     JobActivator jobActivator;
     JsonMapper jsonMapper;
-    final JobMapper jobMapper;
+    JobMapper jobMapper;
     final List<JobFilter> jobFilters;
     JobDetailsGenerator jobDetailsGenerator;
     StorageProvider storageProvider;
@@ -66,6 +66,7 @@ public class JobRunrConfiguration {
             throw new IllegalStateException("Please configure the JobActivator before the DashboardWebServer.");
         }
         this.jsonMapper = validateJsonMapper(jsonMapper);
+        this.jobMapper = new JobMapper(jsonMapper);
         return this;
     }
 
