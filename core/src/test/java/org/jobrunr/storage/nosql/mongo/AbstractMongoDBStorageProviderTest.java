@@ -38,7 +38,11 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
 
     @Override
     protected void cleanup() {
-        MongoDatabase jobrunrDb = mongoClient().getDatabase(MongoDBStorageProvider.DEFAULT_DB_NAME);
+        cleanup(MongoDBStorageProvider.DEFAULT_DB_NAME);
+    }
+
+    protected void cleanup(String dbName) {
+        MongoDatabase jobrunrDb = mongoClient().getDatabase(dbName);
 
         jobrunrDb
                 .listCollectionNames()
@@ -65,7 +69,7 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
         mongoClient = null;
     }
 
-    private MongoClient mongoClient() {
+    protected MongoClient mongoClient() {
         GenericContainer mongoContainer = getMongoContainer();
         if (mongoClient == null) {
             CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
