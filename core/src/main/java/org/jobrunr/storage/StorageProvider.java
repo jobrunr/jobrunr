@@ -16,6 +16,10 @@ import java.util.UUID;
 
 /**
  * The StorageProvider allows to store, retrieve and delete background jobs.
+ *
+ * This API is public and JobRunr major version will change of this StorageProvider API changes.
+ *
+ * @since 0.9.0
  */
 public interface StorageProvider extends AutoCloseable {
 
