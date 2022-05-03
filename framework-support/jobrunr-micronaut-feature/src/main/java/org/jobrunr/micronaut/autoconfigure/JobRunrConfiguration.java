@@ -119,6 +119,13 @@ public interface JobRunrConfiguration {
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
          */
         Optional<Duration> getPermanentlyDeleteDeletedJobsAfter();
+
+        /**
+         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+         */
+        @Bindable(defaultValue = "true")
+        boolean isAllowAnonymousDataUsage();
     }
 
     @ConfigurationProperties("dashboard")

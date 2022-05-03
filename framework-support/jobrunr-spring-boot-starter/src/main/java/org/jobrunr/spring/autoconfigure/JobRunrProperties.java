@@ -232,6 +232,12 @@ public class JobRunrProperties {
         @DurationUnit(ChronoUnit.HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
+        /**
+         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+         */
+        private boolean allowAnonymousDataUsage = true;
+
         public boolean isEnabled() {
             return enabled;
         }
@@ -270,6 +276,14 @@ public class JobRunrProperties {
 
         public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
             this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
+        }
+
+        public boolean isAllowAnonymousDataUsage() {
+            return allowAnonymousDataUsage;
+        }
+
+        public void setAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
+            this.allowAnonymousDataUsage = allowAnonymousDataUsage;
         }
     }
 

@@ -4,6 +4,7 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.NewJobRunrVersionNotification;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.metadata.VersionRetriever;
 import org.slf4j.Logger;
@@ -24,14 +25,19 @@ import static org.jobrunr.utils.StringUtils.*;
 public class CheckForNewJobRunrVersion implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckForNewJobRunrVersion.class);
-    private static final Pattern versionPattern = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^,]*)\",");
+    private static final Pattern versionPattern = Pattern.compile("\"latestVersion\"\\s*:\\s*\"([^,]*)\",");
 
     private final DashboardNotificationManager dashboardNotificationManager;
+    private final StorageProvider storageProvider;
     private static boolean isFirstRun;
+    private static boolean allowAnonymousDataUsage;
 
-    public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer) {
+    public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer, boolean allowAnonymousDataUsage) {
         dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
-        isFirstRun = true; // why: otherwise Github is spammed during testing
+        storageProvider = backgroundJobServer.getStorageProvider();
+
+        CheckForNewJobRunrVersion.isFirstRun = true; // why: otherwise latest version API is spammed during testing
+        CheckForNewJobRunrVersion.allowAnonymousDataUsage = allowAnonymousDataUsage;
     }
 
     @Override
@@ -47,11 +53,11 @@ public class CheckForNewJobRunrVersion implements Runnable {
             }
         } else {
             try {
-                VersionNumber latestVersion = new VersionNumber(getLatestVersion());
+                VersionNumber latestVersion = new VersionNumber(getLatestVersion(storageProvider));
                 VersionNumber actualVersion = new VersionNumber(getActualVersion());
                 if (latestVersion.compareTo(actualVersion) > 0) {
                     dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion.getCompleteVersion()));
-                    LOGGER.info("JobRunr version {} is available.", latestVersion);
+                    LOGGER.info("JobRunr version {} is available.", latestVersion.completeVersion);
                 } else {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
                 }
@@ -63,9 +69,15 @@ public class CheckForNewJobRunrVersion implements Runnable {
     }
 
     @VisibleFor("testing")
-    static String getLatestVersion() throws IOException {
-        URL url = new URL("https://api.github.com/repos/jobrunr/jobrunr/releases/latest");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+    static String getLatestVersion(StorageProvider storageProvider) throws IOException {
+        String url = "https://api.jobrunr.io/api/version/jobrunr/latest?currentVersion=" + getActualVersion();
+        if (allowAnonymousDataUsage) {
+            final String clusterId = storageProvider.getMetadata("id", "cluster").getValue();
+            final long totalAmountOfSucceededJobs = storageProvider.getJobStats().getAllTimeSucceeded();
+            url += "&clusterId=" + clusterId + "&succeededJobCount=" + totalAmountOfSucceededJobs;
+        }
+        URL apiUrl = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
         con.setRequestProperty("User-Agent", "JobRunr " + getActualVersion());
         con.setRequestMethod("GET");
         con.setConnectTimeout(2000);

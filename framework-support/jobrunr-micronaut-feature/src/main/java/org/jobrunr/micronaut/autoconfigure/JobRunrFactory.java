@@ -58,6 +58,7 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getWorkerCount().ifPresent(backgroundJobServerConfiguration::andWorkerCount);
         configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+        backgroundJobServerConfiguration.andAllowAnonymousDataUsage(configuration.getBackgroundJobServer().isAllowAnonymousDataUsage());
         return backgroundJobServerConfiguration;
     }
 

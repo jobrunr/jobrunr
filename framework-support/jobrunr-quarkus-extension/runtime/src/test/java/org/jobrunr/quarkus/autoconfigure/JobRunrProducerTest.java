@@ -109,12 +109,14 @@ class JobRunrProducerTest {
         configuration.backgroundJobServer.workerCount = Optional.of(4);
         configuration.backgroundJobServer.deleteSucceededJobsAfter = Optional.of(Duration.of(1, HOURS));
         configuration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter = Optional.of(Duration.of(1, DAYS));
+        configuration.backgroundJobServer.allowAnonymousDataUsage = true;
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration();
         assertThat(backgroundJobServerConfiguration).isNotNull();
         assertThat((int) getInternalState(backgroundJobServerConfiguration, "pollIntervalInSeconds")).isEqualTo(5);
         assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
         assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
+        assertThat((boolean) getInternalState(backgroundJobServerConfiguration, "allowAnonymousDataUsage")).isEqualTo(true);
     }
 
     @Test

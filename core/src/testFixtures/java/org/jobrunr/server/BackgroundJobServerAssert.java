@@ -33,4 +33,9 @@ public class BackgroundJobServerAssert extends AbstractAssert<BackgroundJobServe
         Assertions.assertThat(filters).anyMatch(jobFilter -> jobFilterClass.equals(jobFilter.getClass()));
         return this;
     }
+
+    public BackgroundJobServerAssert hasAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
+        Assertions.assertThat(actual.getConfiguration().allowAnonymousDataUsage).isEqualTo(allowAnonymousDataUsage);
+        return this;
+    }
 }

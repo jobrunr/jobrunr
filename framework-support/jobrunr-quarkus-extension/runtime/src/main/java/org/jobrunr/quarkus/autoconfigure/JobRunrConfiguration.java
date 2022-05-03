@@ -128,6 +128,13 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<Duration> permanentlyDeleteDeletedJobsAfter;
+
+        /**
+         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+         */
+        @ConfigItem(defaultValue = "true")
+        public boolean allowAnonymousDataUsage;
     }
 
     @ConfigGroup

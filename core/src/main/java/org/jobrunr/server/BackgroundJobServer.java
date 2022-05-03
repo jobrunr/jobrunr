@@ -1,7 +1,6 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
@@ -11,6 +10,7 @@ import org.jobrunr.server.runner.*;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
+import org.jobrunr.server.tasks.CreateClusterIdIfNotExists;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -253,7 +253,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 1, TimeUnit.DAYS);
+        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this, configuration.allowAnonymousDataUsage), 1, 8, TimeUnit.HOURS);
     }
 
     private void stopZooKeepers() {
@@ -276,8 +276,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private void runStartupTasks() {
         try {
             List<Runnable> startupTasks = asList(
+                    new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new CheckForNewJobRunrVersion(this));
+                    new CheckForNewJobRunrVersion(this, configuration.allowAnonymousDataUsage));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
             // server is shut down immediately

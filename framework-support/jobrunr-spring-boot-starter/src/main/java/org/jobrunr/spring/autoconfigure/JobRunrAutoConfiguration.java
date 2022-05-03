@@ -88,6 +88,7 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
         map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+        map.from(backgroundJobServerProperties::isAllowAnonymousDataUsage).to(backgroundJobServerConfiguration::andAllowAnonymousDataUsage);
 
         return backgroundJobServerConfiguration;
     }

@@ -129,6 +129,29 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageDefaultTrue() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    JobRunrAssertions.assertThat(context.getBean(BackgroundJobServer.class))
+                            .hasAllowAnonymousDataUsage(true);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageFalse() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.allow-anonymous-data-usage=false")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    JobRunrAssertions.assertThat(context.getBean(BackgroundJobServer.class))
+                            .hasAllowAnonymousDataUsage(false);
+                });
+    }
+
+    @Test
     void inMemoryStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(InMemoryStorageProvider.class);

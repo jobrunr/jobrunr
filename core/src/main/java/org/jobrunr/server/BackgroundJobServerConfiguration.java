@@ -18,6 +18,7 @@ public class BackgroundJobServerConfiguration {
     Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
     ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
+    boolean allowAnonymousDataUsage = true;
 
     private BackgroundJobServerConfiguration() {
 
@@ -101,6 +102,17 @@ public class BackgroundJobServerConfiguration {
      */
     public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
+        return this;
+    }
+
+    /**
+     * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+     * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+     *
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
+        this.allowAnonymousDataUsage = allowAnonymousDataUsage;
         return this;
     }
 }
