@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Locale;
 
 public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
 

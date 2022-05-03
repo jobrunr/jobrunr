@@ -6,7 +6,6 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.stream;

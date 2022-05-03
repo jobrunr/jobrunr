@@ -13,7 +13,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.*;
-import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
+import org.jobrunr.storage.StorageProviderUtils.*;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;

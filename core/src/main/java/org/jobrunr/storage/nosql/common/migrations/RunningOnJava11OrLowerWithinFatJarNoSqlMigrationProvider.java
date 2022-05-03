@@ -1,6 +1,5 @@
 package org.jobrunr.storage.nosql.common.migrations;
 
-import com.mongodb.internal.VisibleForTesting;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.io.IOException;

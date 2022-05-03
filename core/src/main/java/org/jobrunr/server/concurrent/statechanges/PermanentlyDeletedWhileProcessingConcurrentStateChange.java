@@ -5,9 +5,6 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-
 public class PermanentlyDeletedWhileProcessingConcurrentStateChange extends AbstractAllowedConcurrentStateChange {
 
     private final JobZooKeeper jobZooKeeper;

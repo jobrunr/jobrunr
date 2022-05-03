@@ -1,7 +1,6 @@
 package org.jobrunr.jobs.annotations;
 
 import org.jobrunr.jobs.filters.JobFilter;
-import org.jobrunr.jobs.filters.RetryFilter;
 
 import java.lang.annotation.*;
 

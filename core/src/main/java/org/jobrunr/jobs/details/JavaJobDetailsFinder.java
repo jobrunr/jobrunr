@@ -1,11 +1,9 @@
 package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.lambdas.JobRunrJob;
-import org.jobrunr.utils.StringUtils;
 
 import java.io.InputStream;
 import java.lang.invoke.SerializedLambda;
-import java.util.Arrays;
 
 import static java.util.Arrays.stream;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getJavaClassContainingLambdaAsInputStream;
