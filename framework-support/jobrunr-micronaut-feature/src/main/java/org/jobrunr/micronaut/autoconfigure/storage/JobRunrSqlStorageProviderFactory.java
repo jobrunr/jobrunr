@@ -15,8 +15,6 @@ import org.jobrunr.storage.StorageProviderUtils;
 
 import javax.sql.DataSource;
 
-import static java.util.Arrays.stream;
-
 @Factory
 @Requires(beans = {DataSource.class})
 @Requires(property = "jobrunr.database.type", value = "sql", defaultValue = "sql")
