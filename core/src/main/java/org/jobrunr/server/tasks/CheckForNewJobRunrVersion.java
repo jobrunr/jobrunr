@@ -5,6 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.NewJobRunrVersionNotification;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.metadata.VersionRetriever;
 import org.slf4j.Logger;
@@ -74,7 +75,10 @@ public class CheckForNewJobRunrVersion implements Runnable {
         if (allowAnonymousDataUsage) {
             final String clusterId = storageProvider.getMetadata("id", "cluster").getValue();
             final long totalAmountOfSucceededJobs = storageProvider.getJobStats().getAllTimeSucceeded();
-            url += "&clusterId=" + clusterId + "&succeededJobCount=" + totalAmountOfSucceededJobs;
+            final String storageProviderType = storageProvider instanceof ThreadSafeStorageProvider
+                    ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getName()
+                    : storageProvider.getClass().getName();
+            url += "&clusterId=" + clusterId + "&succeededJobCount=" + totalAmountOfSucceededJobs + "&storageProviderType=" + storageProviderType;
         }
         URL apiUrl = new URL(url);
         HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
