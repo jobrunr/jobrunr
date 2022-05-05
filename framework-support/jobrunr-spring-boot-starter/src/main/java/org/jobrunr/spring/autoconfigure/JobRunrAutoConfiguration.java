@@ -88,7 +88,6 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
         map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
-        map.from(backgroundJobServerProperties::isAllowAnonymousDataUsage).to(backgroundJobServerConfiguration::andAllowAnonymousDataUsage);
 
         return backgroundJobServerConfiguration;
     }
@@ -108,7 +107,8 @@ public class JobRunrAutoConfiguration {
     public JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration(JobRunrProperties properties) {
         return usingStandardDashboardConfiguration()
                 .andPort(properties.getDashboard().getPort())
-                .andBasicAuthentication(properties.getDashboard().getUsername(), properties.getDashboard().getPassword());
+                .andBasicAuthentication(properties.getDashboard().getUsername(), properties.getDashboard().getPassword())
+                .andAllowAnonymousDataUsage(properties.getMiscellaneous().isAllowAnonymousDataUsage());
     }
 
     @Bean

@@ -50,7 +50,7 @@ public class FrontEndDevelopment {
         JobRunr
                 .configure()
                 .useStorageProvider(storageProvider)
-                .useDashboardIf(dashboardIsEnabled(args), 8010)
+                .useDashboardIf(dashboardIsEnabled(args), 8000)
                 .useBackgroundJobServer()
                 .initialize();
 

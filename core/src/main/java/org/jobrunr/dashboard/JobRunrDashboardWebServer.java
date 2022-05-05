@@ -30,6 +30,7 @@ public class JobRunrDashboardWebServer {
     private final JsonMapper jsonMapper;
     private final int port;
     private final BasicAuthenticator basicAuthenticator;
+    private final boolean allowAnonymousDataUsage;
 
     private WebServer webServer;
 
@@ -55,6 +56,7 @@ public class JobRunrDashboardWebServer {
 
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;
+        this.allowAnonymousDataUsage = configuration.allowAnonymousDataUsage;
         this.port = configuration.port;
         this.basicAuthenticator = createOptionalBasicAuthenticator(configuration.username, configuration.password);
     }
@@ -62,7 +64,7 @@ public class JobRunrDashboardWebServer {
     public void start() {
         RedirectHttpHandler redirectHttpHandler = new RedirectHttpHandler("/", "/dashboard");
         JobRunrStaticFileHandler staticFileHandler = createStaticFileHandler();
-        JobRunrApiHandler dashboardHandler = createApiHandler(storageProvider, jsonMapper);
+        JobRunrApiHandler dashboardHandler = createApiHandler(storageProvider, jsonMapper, allowAnonymousDataUsage);
         JobRunrSseHandler sseHandler = createSSeHandler(storageProvider, jsonMapper);
 
         webServer = new WebServer(port);
@@ -103,8 +105,8 @@ public class JobRunrDashboardWebServer {
     }
 
     @VisibleFor("github issue 18")
-    JobRunrApiHandler createApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
-        return new JobRunrApiHandler(storageProvider, jsonMapper);
+    JobRunrApiHandler createApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper, boolean allowAnonymousDataUsage) {
+        return new JobRunrApiHandler(storageProvider, jsonMapper, allowAnonymousDataUsage);
     }
 
     @VisibleFor("github issue 18")

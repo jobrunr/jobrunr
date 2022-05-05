@@ -21,6 +21,8 @@ public class JobRunrProperties {
 
     private BackgroundJobServer backgroundJobServer = new BackgroundJobServer();
 
+    private Miscellaneous miscellaneous = new Miscellaneous();
+
     public Database getDatabase() {
         return database;
     }
@@ -59,6 +61,14 @@ public class JobRunrProperties {
 
     public void setBackgroundJobServer(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
+    }
+
+    public Miscellaneous getMiscellaneous() {
+        return miscellaneous;
+    }
+
+    public void setMiscellaneous(Miscellaneous miscellaneous) {
+        this.miscellaneous = miscellaneous;
     }
 
     /**
@@ -232,12 +242,6 @@ public class JobRunrProperties {
         @DurationUnit(ChronoUnit.HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
-        /**
-         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
-         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
-         */
-        private boolean allowAnonymousDataUsage = true;
-
         public boolean isEnabled() {
             return enabled;
         }
@@ -276,14 +280,6 @@ public class JobRunrProperties {
 
         public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
             this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
-        }
-
-        public boolean isAllowAnonymousDataUsage() {
-            return allowAnonymousDataUsage;
-        }
-
-        public void setAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
-            this.allowAnonymousDataUsage = allowAnonymousDataUsage;
         }
     }
 
@@ -343,6 +339,25 @@ public class JobRunrProperties {
 
         public void setUsername(String username) {
             this.username = username;
+        }
+    }
+
+    /**
+     * Miscellaneous settings
+     */
+    public static class Miscellaneous {
+        /**
+         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+         */
+        private boolean allowAnonymousDataUsage = true;
+
+        public boolean isAllowAnonymousDataUsage() {
+            return allowAnonymousDataUsage;
+        }
+
+        public void setAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
+            this.allowAnonymousDataUsage = allowAnonymousDataUsage;
         }
     }
 }

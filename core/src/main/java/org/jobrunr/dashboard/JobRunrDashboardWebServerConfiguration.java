@@ -1,5 +1,7 @@
 package org.jobrunr.dashboard;
 
+import org.jobrunr.configuration.JobRunrConfiguration;
+
 /**
  * This class allows to configure the JobRunrDashboard
  */
@@ -7,6 +9,7 @@ public class JobRunrDashboardWebServerConfiguration {
     int port = 8000;
     String username = null;
     String password = null;
+    boolean allowAnonymousDataUsage = true;
 
     private JobRunrDashboardWebServerConfiguration() {
 
@@ -43,6 +46,18 @@ public class JobRunrDashboardWebServerConfiguration {
     public JobRunrDashboardWebServerConfiguration andBasicAuthentication(String username, String password) {
         this.username = username;
         this.password = password;
+        return this;
+    }
+
+
+    /**
+     * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+     * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+     *
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrDashboardWebServerConfiguration andAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
+        this.allowAnonymousDataUsage = allowAnonymousDataUsage;
         return this;
     }
 }

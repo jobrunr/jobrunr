@@ -15,19 +15,30 @@ export default function VersionFooter() {
 
     const classes = useStyles();
     const stats = statsState.getStats();
-
-    const [jobRunrInfo, setJobRunrInfo] = React.useState({version: '0.0.0-SNAPSHOT', succeededJobs: 0});
-
+    const [jobRunrInfo, setJobRunrInfo] = React.useState({version: '0.0.0-SNAPSHOT', allowAnonymousDataUsage: false, clusterId: undefined, storageProviderType: undefined});
 
     React.useEffect(() => {
         fetch(`/api/version`)
             .then(res => res.json())
-            .then(response => {
-                setJobRunrInfo(response);
-            })
+            .then(response => setJobRunrInfo(response))
             .catch(error => console.log(error));
     }, []);
 
+    React.useEffect(() => {
+        if(jobRunrInfo.allowAnonymousDataUsage && stats.backgroundJobServers) {
+            const anonymousUsageDataSent = localStorage.getItem('anonymousUsageDataSent');
+            if(!anonymousUsageDataSent || Math.abs(new Date() - Date.parse(anonymousUsageDataSent)) > (1000 * 60 * 60 * 24)) {
+                let url = `https://api.jobrunr.io/api/analytics/jobrunr-pro-trial/report`;
+                url += `?clusterId=${jobRunrInfo.clusterId}&currentVersion=${jobRunrInfo.version}&storageProviderType=${jobRunrInfo.storageProviderType}`;
+                url += `&amountOfBackgroundJobServers=${stats.backgroundJobServers}&succeededJobCount=${(stats.succeeded + stats.allTimeSucceeded)}`;
+                fetch(url)
+                    .then(res => console.log(`JobRunr ${jobRunrInfo.version} - Thank you for sharing anonymous data!`))
+                    .catch(error => console.log(`JobRunr ${jobRunrInfo.version} - Could not share anonymous data :-(!`));
+
+                localStorage.setItem('anonymousUsageDataSent', new Date().toISOString());
+            }
+        }
+    }, [jobRunrInfo]);
 
     return (
         <>

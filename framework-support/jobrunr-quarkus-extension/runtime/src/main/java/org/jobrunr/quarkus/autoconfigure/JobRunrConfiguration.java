@@ -21,6 +21,8 @@ public class JobRunrConfiguration {
 
     public DashboardConfiguration dashboard;
 
+    public MiscellaneousConfiguration miscellaneous;
+
     /**
      * Whether or not an health check is published in case the smallrye-health extension is present.
      */
@@ -128,13 +130,6 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<Duration> permanentlyDeleteDeletedJobsAfter;
-
-        /**
-         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
-         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
-         */
-        @ConfigItem(defaultValue = "true")
-        public boolean allowAnonymousDataUsage;
     }
 
     @ConfigGroup
@@ -163,6 +158,17 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<String> password;
+    }
+
+    @ConfigGroup
+    public static class MiscellaneousConfiguration {
+
+        /**
+         * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
+         * by your cluster per day to show a counter on the JobRunr website for marketing purposes.
+         */
+        @ConfigItem(defaultValue = "true")
+        public boolean allowAnonymousDataUsage;
     }
 }
 

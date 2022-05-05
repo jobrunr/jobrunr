@@ -4,8 +4,6 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.NewJobRunrVersionNotification;
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.metadata.VersionRetriever;
 import org.slf4j.Logger;
@@ -29,16 +27,12 @@ public class CheckForNewJobRunrVersion implements Runnable {
     private static final Pattern versionPattern = Pattern.compile("\"latestVersion\"\\s*:\\s*\"([^,]*)\",");
 
     private final DashboardNotificationManager dashboardNotificationManager;
-    private final StorageProvider storageProvider;
     private static boolean isFirstRun;
-    private static boolean allowAnonymousDataUsage;
 
-    public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer, boolean allowAnonymousDataUsage) {
+    public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer) {
         dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
-        storageProvider = backgroundJobServer.getStorageProvider();
 
         CheckForNewJobRunrVersion.isFirstRun = true; // why: otherwise latest version API is spammed during testing
-        CheckForNewJobRunrVersion.allowAnonymousDataUsage = allowAnonymousDataUsage;
     }
 
     @Override
@@ -54,7 +48,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
             }
         } else {
             try {
-                VersionNumber latestVersion = new VersionNumber(getLatestVersion(storageProvider));
+                VersionNumber latestVersion = new VersionNumber(getLatestVersion());
                 VersionNumber actualVersion = new VersionNumber(getActualVersion());
                 if (latestVersion.compareTo(actualVersion) > 0) {
                     dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion.getCompleteVersion()));
@@ -70,17 +64,8 @@ public class CheckForNewJobRunrVersion implements Runnable {
     }
 
     @VisibleFor("testing")
-    static String getLatestVersion(StorageProvider storageProvider) throws IOException {
-        String url = "https://api.jobrunr.io/api/version/jobrunr/latest?currentVersion=" + getActualVersion();
-        if (allowAnonymousDataUsage) {
-            final String clusterId = storageProvider.getMetadata("id", "cluster").getValue();
-            final long totalAmountOfSucceededJobs = storageProvider.getJobStats().getAllTimeSucceeded();
-            final String storageProviderType = storageProvider instanceof ThreadSafeStorageProvider
-                    ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getName()
-                    : storageProvider.getClass().getName();
-            url += "&clusterId=" + clusterId + "&succeededJobCount=" + totalAmountOfSucceededJobs + "&storageProviderType=" + storageProviderType;
-        }
-        URL apiUrl = new URL(url);
+    static String getLatestVersion() throws IOException {
+        URL apiUrl = new URL(getJobRunrVersionUrl());
         HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
         con.setRequestProperty("User-Agent", "JobRunr " + getActualVersion());
         con.setRequestMethod("GET");
@@ -98,7 +83,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
             if (versionIsFound) {
                 return matcher.group(1).replace("v", "");
             } else {
-                throw new IOException("Github API has changed?");
+                throw new IOException("JobRunr API has changed?");
             }
         } catch (UnknownHostException e) {
             throw e;
@@ -112,6 +97,11 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 throw new IOException(content.toString());
             }
         }
+    }
+
+    @VisibleFor("testing")
+    static String getJobRunrVersionUrl() {
+        return "https://api.jobrunr.io/api/version/jobrunr/latest";
     }
 
     @VisibleFor("testing")

@@ -8,9 +8,7 @@ import org.jobrunr.dashboard.ui.model.problems.ProblemsManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.JobNotFoundException;
-import org.jobrunr.storage.PageRequest;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.*;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.util.List;
@@ -21,11 +19,14 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private final StorageProvider storageProvider;
     private final ProblemsManager problemsManager;
+    private final boolean allowAnonymousDataUsage;
+    private VersionUIModel versionUIModel;
 
-    public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper) {
+    public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper, boolean allowAnonymousDataUsage) {
         super("/api", jsonMapper);
         this.storageProvider = storageProvider;
         this.problemsManager = new ProblemsManager(storageProvider);
+        this.allowAnonymousDataUsage = allowAnonymousDataUsage;
 
         get("/jobs", findJobByState());
 
@@ -125,6 +126,25 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private HttpRequestHandler getVersion() {
-        return (request, response) -> response.asJson(new VersionUIModel());
+        return (request, response) -> response.asJson(getVersionUIModel());
+    }
+
+    private VersionUIModel getVersionUIModel() {
+        if(versionUIModel != null) return versionUIModel;
+        if(allowAnonymousDataUsage) {
+            final JobRunrMetadata metadata = storageProvider.getMetadata("id", "cluster");
+            if(metadata != null) {
+                final String storageProviderType = storageProvider instanceof ThreadSafeStorageProvider
+                        ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getSimpleName()
+                        : storageProvider.getClass().getSimpleName();
+                this.versionUIModel = VersionUIModel.withAnonymousDataUsage(metadata.getValue(), storageProviderType);
+                return this.versionUIModel;
+            }
+            // wait for background job server to add cluster id. Return no anonymous data usage for now.
+            return VersionUIModel.withoutAnonymousDataUsage();
+        } else {
+            this.versionUIModel = VersionUIModel.withoutAnonymousDataUsage();
+            return this.versionUIModel;
+        }
     }
 }

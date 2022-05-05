@@ -58,7 +58,6 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getWorkerCount().ifPresent(backgroundJobServerConfiguration::andWorkerCount);
         configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
-        backgroundJobServerConfiguration.andAllowAnonymousDataUsage(configuration.getBackgroundJobServer().isAllowAnonymousDataUsage());
         return backgroundJobServerConfiguration;
     }
 
@@ -80,6 +79,7 @@ public class JobRunrFactory {
         if (configuration.getDashboard().getUsername().isPresent() && configuration.getDashboard().getPassword().isPresent()) {
             dashboardWebServerConfiguration.andBasicAuthentication(configuration.getDashboard().getUsername().get(), configuration.getDashboard().getPassword().get());
         }
+        dashboardWebServerConfiguration.andAllowAnonymousDataUsage(configuration.getMiscellaneous().isAllowAnonymousDataUsage());
         return dashboardWebServerConfiguration;
     }
 

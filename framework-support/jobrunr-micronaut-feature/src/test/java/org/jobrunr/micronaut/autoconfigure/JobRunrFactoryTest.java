@@ -55,6 +55,23 @@ class JobRunrFactoryTest {
     }
 
     @Test
+    @Property(name = "jobrunr.dashboard.enabled", value = "true")
+    void dashboardAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageDefaultTrue() {
+        JobRunrDashboardWebServer dashboardWebServer = context.getBean(JobRunrDashboardWebServer.class);
+        assertThat(dashboardWebServer)
+                .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
+    }
+
+    @Test
+    @Property(name = "jobrunr.dashboard.enabled", value = "true")
+    @Property(name = "jobrunr.miscellaneous.allow-anonymous-data-usage", value = "false")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageFalse() {
+        JobRunrDashboardWebServer dashboardWebServer = context.getBean(JobRunrDashboardWebServer.class);
+        assertThat(dashboardWebServer)
+                .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
+    }
+
+    @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     void backgroundJobServerAutoConfiguration() {
         assertThat(context)
@@ -71,20 +88,5 @@ class JobRunrFactoryTest {
                 .hasRetryFilter(3);
     }
 
-    @Test
-    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
-    void backgroundJobServerAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageDefaultTrue() {
-        BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-        assertThat(backgroundJobServer)
-                .hasAllowAnonymousDataUsage(true);
-    }
 
-    @Test
-    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
-    @Property(name = "jobrunr.background-job-server.allow-anonymous-data-usage", value = "false")
-    void backgroundJobServerAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageFalse() {
-        BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-        assertThat(backgroundJobServer)
-                .hasAllowAnonymousDataUsage(false);
-    }
 }

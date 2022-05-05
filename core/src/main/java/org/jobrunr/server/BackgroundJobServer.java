@@ -253,7 +253,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this, configuration.allowAnonymousDataUsage), 1, 8, TimeUnit.HOURS);
+        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
     private void stopZooKeepers() {
@@ -278,7 +278,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             List<Runnable> startupTasks = asList(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new CheckForNewJobRunrVersion(this, configuration.allowAnonymousDataUsage));
+                    new CheckForNewJobRunrVersion(this));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
             // server is shut down immediately
