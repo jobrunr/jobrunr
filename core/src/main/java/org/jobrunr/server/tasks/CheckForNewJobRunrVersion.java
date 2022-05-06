@@ -24,7 +24,7 @@ import static org.jobrunr.utils.StringUtils.*;
 public class CheckForNewJobRunrVersion implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckForNewJobRunrVersion.class);
-    private static final Pattern versionPattern = Pattern.compile("\"latestVersion\"\\s*:\\s*\"([^,]*)\",");
+    private static final Pattern versionPattern = Pattern.compile("\"latestVersion\"\\s*:\\s*\"(.*)\"");
 
     private final DashboardNotificationManager dashboardNotificationManager;
     private static boolean isFirstRun;

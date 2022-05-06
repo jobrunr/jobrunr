@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.assertj.core.api.Condition;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
@@ -232,7 +233,7 @@ public class BackgroundJobByJobRequestTest {
                 .hasStates(SCHEDULED, ENQUEUED, PROCESSING, FAILED, SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void jobCanBeDeletedWhenEnqueued() {
         JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("input"));
         BackgroundJobRequest.delete(jobId);

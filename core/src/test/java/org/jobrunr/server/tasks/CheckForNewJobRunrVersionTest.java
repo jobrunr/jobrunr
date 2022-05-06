@@ -44,11 +44,10 @@ class CheckForNewJobRunrVersionTest {
     }
 
     @Test
-    @Disabled
     void testCanGetLatestVersionFromJobRunrApi() throws IOException {
         final String latestVersion = CheckForNewJobRunrVersion.getLatestVersion();
 
-        assertThat(latestVersion).matches("(\\d)+.(\\d)+.(\\d)+");
+        assertThat(latestVersion).matches("\\d\\.\\d\\.\\d-[a-zA-Z]+\\d");
     }
 
     @Test

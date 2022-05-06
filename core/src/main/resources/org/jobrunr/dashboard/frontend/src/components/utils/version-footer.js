@@ -38,6 +38,7 @@ export default function VersionFooter() {
                 localStorage.setItem('anonymousUsageDataSent', new Date().toISOString());
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jobRunrInfo]);
 
     return (

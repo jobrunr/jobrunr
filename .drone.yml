@@ -150,7 +150,7 @@ steps:
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
       - find /root/.gradle/caches/ -name "*.lock" -type f -delete
-      - ./gradlew --no-daemon -i clean build
+      - ./gradlew --no-daemon -i clean assemble
     volumes:
       - name: dockersock
         path: /var/run/docker.sock

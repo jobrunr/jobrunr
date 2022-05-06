@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
@@ -361,7 +362,7 @@ public class BackgroundJobByJobLambdaTest {
         await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void jobCanBeDeletedWhenEnqueued() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
         BackgroundJob.delete(jobId);
