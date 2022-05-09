@@ -27,8 +27,8 @@ export default function VersionFooter() {
     React.useEffect(() => {
         if(jobRunrInfo.allowAnonymousDataUsage && stats.backgroundJobServers) {
             const anonymousUsageDataSent = localStorage.getItem('anonymousUsageDataSent');
-            if(!anonymousUsageDataSent || Math.abs(new Date() - Date.parse(anonymousUsageDataSent)) > (1000 * 60 * 60 * 24)) {
-                let url = `https://api.jobrunr.io/api/analytics/jobrunr-pro-trial/report`;
+            if(!anonymousUsageDataSent || Math.abs(new Date() - Date.parse(anonymousUsageDataSent)) > (1000 * 60 * 60 * 4)) {
+                let url = `https://api.jobrunr.io/api/analytics/jobrunr/report`;
                 url += `?clusterId=${jobRunrInfo.clusterId}&currentVersion=${jobRunrInfo.version}&storageProviderType=${jobRunrInfo.storageProviderType}`;
                 url += `&amountOfBackgroundJobServers=${stats.backgroundJobServers}&succeededJobCount=${(stats.succeeded + stats.allTimeSucceeded)}`;
                 fetch(url)
