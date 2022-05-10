@@ -11,6 +11,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
@@ -30,6 +31,8 @@ import org.jobrunr.storage.nosql.mongo.mapper.JobDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MetadataDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MongoDBPageRequestMapper;
 import org.jobrunr.utils.resilience.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -60,6 +63,8 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class MongoDBStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBStorageProvider.class);
 
     public static final String DEFAULT_DB_NAME = "jobrunr";
 
@@ -266,12 +271,19 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> save(List<Job> jobs) {
+        LOGGER.debug("Need to save {} jobs.", jobs.size());
         try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             if (jobListVersioner.areNewJobs()) {
                 final List<Document> jobsToInsert = jobs.stream()
                         .map(job -> jobDocumentMapper.toInsertDocument(job))
                         .collect(toList());
-                jobCollection.insertMany(jobsToInsert);
+                InsertManyResult insertManyResult = jobCollection.insertMany(jobsToInsert);
+                if(insertManyResult.wasAcknowledged() && insertManyResult.getInsertedIds().size() == jobs.size()) {
+                    LOGGER.debug("Successfully saved {} jobs.", jobs.size());
+                } else {
+                    LOGGER.error("Could not save all jobs. InsertManyResult wasAcknowledged = {}", insertManyResult.wasAcknowledged());
+                    throw new StorageException("Could not save all jobs.");
+                }
             } else {
                 final List<WriteModel<Document>> jobsToUpdate = jobs.stream()
                         .map(job -> jobDocumentMapper.toUpdateOneModel(job))
