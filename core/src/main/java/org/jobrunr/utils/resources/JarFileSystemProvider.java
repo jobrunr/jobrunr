@@ -3,9 +3,8 @@ package org.jobrunr.utils.resources;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
 import static org.jobrunr.utils.StringUtils.substringBeforeLast;
@@ -49,8 +48,25 @@ public class JarFileSystemProvider implements FileSystemProvider {
 
     @Override
     public void close() throws IOException {
-        for (FileSystem fs : openFileSystems.values()) {
-            fs.close();
+        // Nested filesystems need to be closed in order
+        List<String> fileSystemNames = new ArrayList<>(openFileSystems.keySet());
+
+        for(int i = 3; i >= 0; i--) {
+            int finalI = i;
+            List<String> fileSystemsToClose = fileSystemNames.stream()
+                    .filter(fsName -> fsName.chars().filter(ch -> ch == '!').count() == finalI)
+                    .collect(Collectors.toList());
+
+            fileSystemsToClose.forEach(this::close);
+            fileSystemsToClose.forEach(openFileSystems::remove);
+        }
+    }
+
+    private void close(String fileSystemName) {
+        try {
+            openFileSystems.remove(fileSystemName).close();
+        } catch (IOException e ){
+            // nothing more we can do
         }
     }
 }

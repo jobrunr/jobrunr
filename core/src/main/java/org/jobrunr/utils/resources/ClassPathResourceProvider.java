@@ -8,12 +8,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -106,7 +104,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
     public void close() throws IllegalStateException {
         try {
             for (FileSystemProvider fileSystemProvider : this.fileSystemProviders.values()) {
-                fileSystemProvider.close();
+                closeFileSystemProvider(fileSystemProvider);
             }
         } catch (Exception e) {
             LOGGER.error("Could not close FileSystemProvider", e);
@@ -123,6 +121,14 @@ public class ClassPathResourceProvider implements AutoCloseable {
             case "resource": return new ResourcesFileSystemProvider();
             case "file": return new PathFileSystemProvider();
             default: throw new IllegalArgumentException("Unknown FileSystem required " + scheme);
+        }
+    }
+
+    private void closeFileSystemProvider(FileSystemProvider fileSystemProvider) throws IOException {
+        try {
+            fileSystemProvider.close();
+        } catch (ClosedFileSystemException e) {
+            // ignore
         }
     }
 }
