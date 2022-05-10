@@ -51,8 +51,8 @@ public class RecurringJob extends AbstractJob {
         return scheduleExpression;
     }
 
-    public Job toScheduledJob() {
-        Instant nextRun = getNextRun();
+    public Job toScheduledJob(Instant currentInstant) {
+        Instant nextRun = getNextRun(currentInstant);
         final Job job = new Job(getJobDetails(), new ScheduledState(nextRun, this));
         job.setJobName(getJobName());
         job.setRecurringJobId(getId());
@@ -74,10 +74,10 @@ public class RecurringJob extends AbstractJob {
         return createdAt;
     }
 
-    public Instant getNextRun() {
+    public Instant getNextRun(Instant currentInstant) {
         return ScheduleExpressionType
                 .getSchedule(scheduleExpression)
-                .next(createdAt, ZoneId.of(zoneId));
+                .next(createdAt, currentInstant, ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {

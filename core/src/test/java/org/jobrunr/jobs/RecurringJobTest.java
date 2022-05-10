@@ -48,7 +48,7 @@ class RecurringJobTest {
                 .withName("the recurring job")
                 .build();
 
-        final Job job = recurringJob.toScheduledJob();
+        final Job job = recurringJob.toScheduledJob(Instant.now());
 
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
@@ -82,7 +82,7 @@ class RecurringJobTest {
                 .withCronExpression(Cron.daily(hour, (minute)))
                 .withZoneId(ZoneOffset.of("+02:00"))
                 .build();
-        Instant nextRun = recurringJob.getNextRun();
+        Instant nextRun = recurringJob.getNextRun(Instant.now());
         assertThat(nextRun).isAfter(Instant.now());
     }
 
@@ -93,7 +93,7 @@ class RecurringJobTest {
                 .withIntervalExpression(Duration.ofHours(1).toString())
                 .withZoneId(ZoneOffset.of("+02:00"))
                 .build();
-        Instant nextRun = recurringJob.getNextRun();
+        Instant nextRun = recurringJob.getNextRun(Instant.now());
         assertThat(nextRun).isAfter(Instant.now());
     }
 

@@ -117,7 +117,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(1000));
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(runStartTime.plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(1000));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
@@ -132,7 +132,7 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
-        final Instant updatedBefore = now().minus(backgroundJobServer.getServerStatus().getDeleteSucceededJobsAfter());
+        final Instant updatedBefore = runStartTime.minus(backgroundJobServer.getServerStatus().getDeleteSucceededJobsAfter());
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(1000));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
@@ -146,7 +146,7 @@ public class JobZooKeeper implements Runnable {
 
     void checkForJobsThatCanBeDeleted() {
         LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
-        storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(backgroundJobServer.getServerStatus().getPermanentlyDeleteDeletedJobsAfter()));
+        storageProvider.deleteJobsPermanently(StateName.DELETED, runStartTime.minus(backgroundJobServer.getServerStatus().getPermanentlyDeleteDeletedJobsAfter()));
     }
 
     void onboardNewWorkIfPossible() {
@@ -177,17 +177,12 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
         List<Job> jobsToSchedule = recurringJobs.stream()
                 .filter(this::mustSchedule)
-                .map(RecurringJob::toScheduledJob)
+                .map(this::toScheduledJob)
                 .collect(toList());
+        LOGGER.debug("Will schedule {} recurring jobs", jobsToSchedule.size());
         if(!jobsToSchedule.isEmpty()) {
             storageProvider.save(jobsToSchedule);
         }
-    }
-
-    boolean mustSchedule(RecurringJob recurringJob) {
-        return recurringJob.getNextRun().isBefore(now().plus(durationPollIntervalTimeBox).plusSeconds(1))
-                && !storageProvider.recurringJobExists(recurringJob.getId(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING);
-
     }
 
     void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
@@ -274,6 +269,24 @@ public class JobZooKeeper implements Runnable {
             this.recurringJobs.addAll(storageProvider.getRecurringJobs());
         }
         return this.recurringJobs;
+    }
+
+    boolean mustSchedule(RecurringJob recurringJob) {
+        Instant nextRun = recurringJob.getNextRun(runStartTime);
+        Instant upUntil = runStartTime.plus(durationPollIntervalTimeBox).plusSeconds(1);
+        boolean isNextRunInCurrentInterval = nextRun.isBefore(upUntil);
+        if(isNextRunInCurrentInterval) {
+            boolean recurringJobNotYetRunning = !storageProvider.recurringJobExists(recurringJob.getId(), StateName.SCHEDULED, StateName.ENQUEUED, PROCESSING);
+            LOGGER.debug("{} schedule job {} (nextRun={}; takingJobsUntil={}; recurringJobAlreadyRunning={})", recurringJobNotYetRunning ? "Will " : "Will NOT", recurringJob.getId(), nextRun, upUntil, recurringJobNotYetRunning);
+            return recurringJobNotYetRunning;
+        } else {
+            LOGGER.debug("Will NOT schedule job {} (nextRun={}; takingJobsUntil={}; recurringJobAlreadyRunning=NA)", recurringJob.getId(), nextRun, upUntil);
+            return false;
+        }
+    }
+
+    Job toScheduledJob(RecurringJob recurringJob) {
+        return recurringJob.toScheduledJob(runStartTime);
     }
 
     ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {

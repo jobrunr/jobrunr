@@ -8,6 +8,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.*;
@@ -24,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -185,6 +187,32 @@ class JobZooKeeperTest {
         assertThat(savedJob)
                 .hasState(SCHEDULED)
                 .hasRecurringJobId(recurringJob.getId());
+    }
+
+    @Test
+    void checkForRecurringJobsUsesRunStartTimeToCheckWhetherJobsMustBeScheduled() {
+        int cronSec = LocalDateTime.now().plusSeconds(2).getSecond();
+        String cronExpression = cronSec + " * * * * *";
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id-1").withCronExpression(cronExpression).build();
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withId("id-2").withCronExpression(cronExpression).build();
+        RecurringJob recurringJob3 = aDefaultRecurringJob().withId("id-3").withCronExpression(cronExpression).build();
+
+        when(storageProvider.countRecurringJobs()).thenReturn(3L);
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob1, recurringJob2, recurringJob3));
+        when(storageProvider.recurringJobExists("id-1", StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING)).thenAnswer((Answer<Boolean>) invocation -> {
+            Thread.sleep(2400);
+            return false;
+        });
+        when(storageProvider.recurringJobExists("id-2", StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING)).thenAnswer((Answer<Boolean>) invocation -> {
+            Thread.sleep(2400);
+            return false;
+        });
+
+        jobZooKeeper.run();
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        List<Job> savedJobs = jobsToSaveArgumentCaptor.getValue();
+        assertThat(savedJobs).hasSize(3);
     }
 
     @Test
