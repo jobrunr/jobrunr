@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -22,8 +23,11 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
 
+    private final ObjectMapper objectMapper;
+
     protected JobParameterDeserializer() {
         super(JobParameter.class);
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -50,15 +54,19 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
                 try {
                     final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, valueType);
                     return new JobParameter(className, object);
-                } catch (MismatchedInputException e) { // last attempt: is it an Enum?
+                } catch (MismatchedInputException e) { // last attempts
+                    // is it an Enum?
                     if (valueType.isEnum()) {
                         ArrayNode arrayNode = (ArrayNode) jsonParser.getCodec().createArrayNode();
                         arrayNode.add(valueType.getName());
                         arrayNode.add(objectJsonNode);
                         final Object object = jsonParser.getCodec().treeToValue(arrayNode, valueType);
                         return new JobParameter(className, object);
+                    } else {
+                        // another try for Kotlin
+                        final Object object = objectMapper.treeToValue(objectJsonNode, valueType);
+                        return new JobParameter(className, object);
                     }
-                    throw e;
                 }
             }
         } catch (Exception e) {

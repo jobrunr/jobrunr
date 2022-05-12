@@ -1,5 +1,7 @@
 package org.jobrunr.scheduling
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
@@ -173,8 +175,25 @@ class JobSchedulerTest {
             .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
+    @Test
+    fun enqueueWithJsonCreator() {
+        val param = ExampleWrapper(1)
+        jobScheduler.enqueue { doWork(param) }
+
+        await().until {
+            storageProvider.countJobs(SUCCEEDED) == 1L
+        }
+        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        assertThat(job)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
     fun doSomething() {
         println("hello")
+    }
+
+    fun doWork(example: ExampleWrapper) {
+        println("Hello " + example.value)
     }
 
     class TestLambdaContainer {
@@ -195,10 +214,12 @@ class JobSchedulerTest {
     }
 
     class PrintlnRecurringJob : AbstractRecurringJob() {
-
         override fun call() {
             println("In call method")
         }
-
     }
+
+    class ExampleWrapper @JsonCreator constructor(
+        @get:JsonValue val value: Int
+    )
 }

@@ -25,7 +25,7 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 public abstract class AbstractJsonMapperTest {
 
-    private JsonMapper jsonMapper;
+    protected JsonMapper jsonMapper;
     private TestService testService;
 
     @BeforeEach
