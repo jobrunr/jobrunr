@@ -47,6 +47,10 @@ public class ZooKeeperRunManager {
             return this.zooKeeperRunManager.runStartTime;
         }
 
+        public Instant getRequestedStartTime() {
+            return zooKeeperRunManager.firstRunStartTime.plus(ofSeconds(zooKeeperRunManager.runCounter * zooKeeperRunManager.pollIntervalInSeconds));
+        }
+
         @Override
         public void close() {
             this.zooKeeperRunManager.runStartTime = null;
@@ -62,7 +66,7 @@ public class ZooKeeperRunManager {
 
         private void logRunDetails() {
             if(zooKeeperRunManager.logger.isDebugEnabled()) {
-                Instant idealRunStartTime = zooKeeperRunManager.firstRunStartTime.plus(ofSeconds(zooKeeperRunManager.runCounter * zooKeeperRunManager.pollIntervalInSeconds));
+                Instant idealRunStartTime = getRequestedStartTime();
                 zooKeeperRunManager.logger.debug("ZooKeeper run details: runCounter: {}, firstRunStartTime: {}, runStartTime: {}, idealRunStartTime: {}, drift: {} ms",
                         this.zooKeeperRunManager.runCounter,
                         this.zooKeeperRunManager.firstRunStartTime,

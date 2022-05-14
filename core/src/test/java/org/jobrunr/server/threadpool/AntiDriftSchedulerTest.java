@@ -87,7 +87,6 @@ class AntiDriftSchedulerTest {
 
         // THEN
         verify(scheduledFuture).cancel(false);
-
     }
 
 }

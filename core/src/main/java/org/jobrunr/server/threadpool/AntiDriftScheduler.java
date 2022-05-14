@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 
+import static java.lang.Thread.currentThread;
+
 class AntiDriftScheduler implements Runnable {
 
     private final JobRunrExecutor executor;
@@ -31,7 +33,7 @@ class AntiDriftScheduler implements Runnable {
     @Override
     public void run() {
         if(isStopped) {
-            Thread.currentThread().interrupt();
+            currentThread().interrupt();
             return;
         }
         Instant now = Instant.now();
@@ -43,7 +45,7 @@ class AntiDriftScheduler implements Runnable {
     public void stop() {
         scheduledTasks.values().forEach(sf -> sf.cancel(false));
         scheduledTasks.clear();
-        isStopped = false;
+        isStopped = true;
     }
 
     private void schedule(AntiDriftSchedule antiDriftSchedule) {
