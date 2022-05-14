@@ -1066,7 +1066,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         thread3.start();
         thread4.start();
 
-        countDownLatch.await(250, TimeUnit.SECONDS);
+        countDownLatch.await(100, TimeUnit.SECONDS);
         assertThat(jobDetailsResults).hasSize(2000);
         jobDetailsResults.keySet().stream()
                 .forEach(key -> {
@@ -1085,6 +1085,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                     jobDetailsResults.put(threadNbr + "-" + i + "-" + input, jobDetails);
                     sleep(1);
                 }
+                System.out.println("============================== counting down ==============================");
                 countDownLatch.countDown();
             } catch (Exception e) {
                 throw new RuntimeException(e);

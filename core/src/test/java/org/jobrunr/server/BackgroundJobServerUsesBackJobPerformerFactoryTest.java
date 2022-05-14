@@ -111,5 +111,4 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
         when(backgroundJobPerformerFactory.getPriority()).thenReturn(priority);
         return backgroundJobPerformerFactory;
     }
-
 }

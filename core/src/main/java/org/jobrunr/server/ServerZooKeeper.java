@@ -1,7 +1,9 @@
 package org.jobrunr.server;
 
+import org.jobrunr.server.ZooKeeperRunManager.RunTracker;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
+import org.jobrunr.server.dashboard.PollIntervalInSecondsTimeBoxIsTooSmallNotification;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageProvider;
@@ -21,6 +23,7 @@ public class ServerZooKeeper implements Runnable {
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
+    private final ZooKeeperRunManager zooKeeperRunManager;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final Duration timeoutDuration;
     private final AtomicInteger restartAttempts;
@@ -31,6 +34,7 @@ public class ServerZooKeeper implements Runnable {
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
+        this.zooKeeperRunManager = new ZooKeeperRunManager(backgroundJobServer, LOGGER);
         this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
         this.timeoutDuration = Duration.ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4);
         this.restartAttempts = new AtomicInteger();
@@ -42,12 +46,15 @@ public class ServerZooKeeper implements Runnable {
     public void run() {
         if (backgroundJobServer.isStopped()) return;
 
-        try {
+        try (RunTracker tracker = zooKeeperRunManager.startRun()) {
             if (backgroundJobServer.isUnAnnounced()) {
                 announceBackgroundJobServer();
             } else {
                 signalBackgroundJobServerAliveAndDoZooKeeping();
             }
+        } catch (ZooKeeperRunManager.PreviousRunNotFinishedException e) {
+            LOGGER.error("JobRunr is passing the poll interval in seconds time-box. This means your poll interval in seconds setting is too small. This can result in an unstable cluster or recurring jobs that are skipped.");
+            dashboardNotificationManager.notify(new PollIntervalInSecondsTimeBoxIsTooSmallNotification((long)backgroundJobServer.getServerStatus().getPollIntervalInSeconds()));
         } catch (Exception shouldNotHappen) {
             LOGGER.error("An unrecoverable error occurred. Shutting server down...", shouldNotHappen);
             if (masterId == null) backgroundJobServer.setIsMaster(null);
@@ -89,9 +96,8 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private void signalBackgroundJobServerAlive() {
-        // TODO: stop server if requested?
         final BackgroundJobServerStatus serverStatus = backgroundJobServer.getServerStatus();
-        final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(serverStatus);
+        storageProvider.signalBackgroundJobServerAlive(serverStatus);
         cpuAllocationIrregularity(lastSignalAlive, serverStatus.getLastHeartbeat()).ifPresent(amountOfSeconds -> dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(amountOfSeconds)));
         lastSignalAlive = serverStatus.getLastHeartbeat();
     }
