@@ -21,14 +21,12 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Integer.compare;
@@ -59,7 +57,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
-    private volatile ScheduledThreadPoolExecutor zookeeperThreadPool;
+    private volatile ScheduledThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
@@ -252,11 +250,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void startZooKeepers() {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
-        // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
-        // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
+        zookeeperThreadPool.scheduleAtFixedRate(serverZooKeeper, Duration.ZERO, Duration.ofSeconds(configuration.pollIntervalInSeconds));
+        zookeeperThreadPool.scheduleAtFixedRate(jobZooKeeper, Duration.ofSeconds(1), Duration.ofSeconds(configuration.pollIntervalInSeconds));
+        zookeeperThreadPool.scheduleAtFixedRate(new CheckForNewJobRunrVersion(this), Duration.ofHours(1), Duration.ofHours(8));
     }
 
     private void stopZooKeepers() {
@@ -271,8 +267,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void stopWorkers() {
-        if (jobExecutor == null) return;
-        jobExecutor.stop();
+        stop(jobExecutor);
         this.jobExecutor = null;
     }
 
@@ -298,18 +293,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         );
     }
 
-    private void stop(ScheduledExecutorService executorService) {
+    private void stop(JobRunrExecutor executorService) {
         if (executorService == null) return;
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
-                LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most 10 seconds)");
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+        executorService.stop();
     }
 
     private ServerZooKeeper createServerZooKeeper() {

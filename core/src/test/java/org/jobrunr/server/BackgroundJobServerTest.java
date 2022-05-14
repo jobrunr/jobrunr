@@ -30,9 +30,6 @@ import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.time.Instant.now;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -116,9 +113,7 @@ class BackgroundJobServerTest {
         assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)", 1);
 
         // THEN no running backgroundjob threads should exist
-        await().atMost(TEN_SECONDS)
-                .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
-                        .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+        assertThat(backgroundJobServer).hasNoRunningBackgroundJobThreads();
         assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
     }
 
@@ -131,12 +126,10 @@ class BackgroundJobServerTest {
             BackgroundJob.enqueue(() -> testService.doWork());
         }
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider).hasJobs(SUCCEEDED, amountOfJobs));
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(Thread.getAllStackTraces()).matches(this::containsBackgroundJobThreads));
+        assertThat(backgroundJobServer).hasRunningBackgroundJobThreads();
 
         backgroundJobServer.stop();
-        await().atMost(ONE_MINUTE)
-                .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
-                        .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+        assertThat(backgroundJobServer).hasNoRunningBackgroundJobThreads();
     }
 
     @Test
@@ -346,18 +339,6 @@ class BackgroundJobServerTest {
 
         await().atMost(10, SECONDS)
                 .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer failed to start"));
-    }
-
-    private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {
-        return getThreadNames(threadMap).noneMatch(threadName -> threadName.startsWith("backgroundjob"));
-    }
-
-    private boolean containsBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {
-        return getThreadNames(threadMap).anyMatch(threadName -> threadName.startsWith("backgroundjob"));
-    }
-
-    private Stream<String> getThreadNames(Map<Thread, StackTraceElement[]> threadMap) {
-        return threadMap.keySet().stream().map(Thread::getName);
     }
 
 }

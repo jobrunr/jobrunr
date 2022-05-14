@@ -3,7 +3,9 @@ package org.jobrunr.server.threadpool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -11,10 +13,25 @@ public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.Sch
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobRunrExecutor.class);
 
+    private volatile AntiDriftScheduler antiDriftScheduler;
+
     public ScheduledThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
-        super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
-        setMaximumPoolSize(corePoolSize * 2);
+        super(corePoolSize + 1, new NamedThreadFactory(threadNamePrefix));
+        setMaximumPoolSize((corePoolSize + 1) * 2);
         setKeepAliveTime(1, TimeUnit.MINUTES);
+    }
+
+    public void scheduleAtFixedRate(Runnable command, Duration initialDelay, Duration period) {
+        if(antiDriftScheduler == null) {
+            this.antiDriftScheduler = new AntiDriftScheduler(this);
+            super.scheduleAtFixedRate(antiDriftScheduler, 0, 250, TimeUnit.MILLISECONDS);
+        }
+        this.antiDriftScheduler.addSchedule(new AntiDriftSchedule(command, initialDelay, period));
+    }
+
+    @Override
+    public ScheduledFuture<?> schedule(Runnable command, Duration delay) {
+        return this.schedule(command, delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -25,11 +42,16 @@ public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.Sch
     @Override
     public void start() {
         this.prestartAllCoreThreads();
-        LOGGER.info("ThreadManager of type 'ScheduledThreadPool' started");
+        LOGGER.info("ThreadManager of type 'ScheduledThreadPoolJobRunrExecutor' started");
     }
 
     @Override
-    public void stop() {
+    public synchronized void stop() {
+        LOGGER.info("Shutting down ScheduledThreadPoolJobRunrExecutor");
+        if(antiDriftScheduler != null) {
+            this.antiDriftScheduler.stop();
+        }
+        this.getQueue().clear();
         shutdown();
         try {
             if (!awaitTermination(10, TimeUnit.SECONDS)) {
@@ -55,6 +77,7 @@ public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.Sch
         public Thread newThread(Runnable runnable) {
             Thread thread = threadFactory.newThread(runnable);
             thread.setName(thread.getName().replace("pool", poolName));
+            thread.setDaemon(true);
             return thread;
         }
     }

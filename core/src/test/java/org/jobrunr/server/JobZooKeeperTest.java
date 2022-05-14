@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -77,12 +78,35 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void jobZooKeeperDoesNothingIfItIsNotInitialized() {
+    void jobZooKeeperDoesNothingIfBackgroundJobServerIsUnAnnounced() {
         when(backgroundJobServer.isUnAnnounced()).thenReturn(true);
 
         jobZooKeeper.run();
 
         verifyNoInteractions(storageProvider);
+    }
+
+    @Test
+    void jobZooKeeperSkipsRunIfPreviousRunIsNotFinished() {
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
+            sleep(200);
+            return emptyList();
+        });
+
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+        final Thread thread1 = new Thread(() -> {
+            jobZooKeeper.run();
+            countDownLatch.countDown();
+        });
+        final Thread thread2 = new Thread(() -> {
+            jobZooKeeper.run();
+            countDownLatch.countDown();
+        });
+        thread1.start();
+        thread2.start();
+
+        verify(storageProvider, timeout(210).times(1)).getJobs(eq(ENQUEUED), any());
+        assertThat(logger).hasErrorMessage("JobRunr is passing the poll interval in seconds time-box. This means your poll interval in seconds setting is too small. This can result in an unstable cluster or recurring jobs that are skipped.");
     }
 
     @Test
@@ -418,7 +442,9 @@ class JobZooKeeperTest {
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/122")
     void masterTasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
-        when(backgroundJobServer.isUnAnnounced()).then(putRunStartTimeInPast());
+        jobZooKeeper.startProcessing(aJobInProgress().build(), new Thread());
+
+        when(storageProvider.save(anyList())).then(putRunStartTimeInPast());
 
         jobZooKeeper.run();
 
@@ -448,10 +474,10 @@ class JobZooKeeperTest {
         return result;
     }
 
-    private Answer<Boolean> putRunStartTimeInPast() {
+    private Answer<List<Job>> putRunStartTimeInPast() {
         return invocation -> {
-            Whitebox.setInternalState(jobZooKeeper, "runStartTime", System.currentTimeMillis() - 15000);
-            return false;
+            Whitebox.setInternalState(jobZooKeeper, "runStartTime", now().minusSeconds(15));
+            return invocation.getArgument(0);
         };
     }
 }

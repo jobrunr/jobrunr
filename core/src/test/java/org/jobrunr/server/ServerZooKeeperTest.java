@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -49,9 +50,10 @@ class ServerZooKeeperTest {
 
     @BeforeEach
     void setUp() {
-        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         final JsonMapper jsonMapper = new JacksonJsonMapper();
-        storageProvider.setJobMapper(new JobMapper(jsonMapper));
+        InMemoryStorageProvider inMemoryStorageProvider = new InMemoryStorageProvider();
+        inMemoryStorageProvider.setJobMapper(new JobMapper(jsonMapper));
+        storageProvider = Mockito.spy(inMemoryStorageProvider);
         backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5).andWorkerCount(10));
     }
 
@@ -63,6 +65,41 @@ class ServerZooKeeperTest {
             e.printStackTrace();
             // not that important
         }
+    }
+
+    @Test
+    void serverZooKeeperDoesNothingIfBackgroundJobServerIsStopped() {
+        backgroundJobServer.stop();
+
+        final ServerZooKeeper serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
+        serverZooKeeper.run();
+
+        verifyNoInteractions(storageProvider);
+    }
+
+    @Test
+    void serverZooKeeperSkipsRunIfPreviousRunIsNotFinished() {
+        backgroundJobServer.start();
+        await().untilAsserted(() -> assertThat(storageProvider.getBackgroundJobServers()).hasSize(1));
+        reset(storageProvider);
+
+        final ServerZooKeeper serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
+        ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(serverZooKeeper);
+
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+        final Thread thread1 = new Thread(() -> {
+            serverZooKeeper.run();
+            countDownLatch.countDown();
+        });
+        final Thread thread2 = new Thread(() -> {
+            serverZooKeeper.run();
+            countDownLatch.countDown();
+        });
+        thread1.start();
+        thread2.start();
+
+        verify(storageProvider, timeout(210).times(1)).announceBackgroundJobServer(any());
+        assertThat(logger).hasErrorMessage("JobRunr is passing the poll interval in seconds time-box. This means your poll interval in seconds setting is too small. This can result in an unstable cluster or recurring jobs that are skipped.");
     }
 
     @Test
@@ -247,7 +284,13 @@ class ServerZooKeeperTest {
         // THEN
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasNoErrorMessageContaining("An unrecoverable error occurred. Shutting server down..."));
         verify(storageProvider, atLeastOnce()).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
-        assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
+        JobRunrMetadata jobRunrMetadata = jobRunrMetadataToSaveArgumentCaptor.getAllValues().stream()
+                .filter(m -> CpuAllocationIrregularityNotification.class.getSimpleName().equals(m.getName()))
+                .findFirst()
+                .orElse(null);
+
+        assertThat(jobRunrMetadata)
+                .isNotNull()
                 .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServer.getId().toString());
     }

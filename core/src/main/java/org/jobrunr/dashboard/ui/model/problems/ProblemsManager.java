@@ -22,6 +22,7 @@ public class ProblemsManager {
         result.put(ScheduledJobsNotFoundProblem.PROBLEM_TYPE, new ScheduledJobsNotFoundProblemHandler(problems, storageProvider));
         result.put(SevereJobRunrExceptionProblem.PROBLEM_TYPE, new SevereJobRunrExceptionProblemHandler(problems, storageProvider));
         result.put(CpuAllocationIrregularityProblem.PROBLEM_TYPE, new CpuAllocationIrregularityProblemHandler(problems, storageProvider));
+        result.put(PollIntervalInSecondsTimeBoxIsTooSmallProblem.PROBLEM_TYPE, new PollIntervalInSecondsTimeBoxIsTooSmallProblemHandler(problems, storageProvider));
         result.put(NewJobRunrVersionProblem.PROBLEM_TYPE, new NewJobRunrVersionProblemHandler(problems, storageProvider));
         return result;
     }

@@ -34,7 +34,7 @@ class CpuAllocationIrregularityProblemHandlerTest {
     CpuAllocationIrregularityProblemHandler cpuAllocationIrregularityProblemHandler;
 
     @BeforeEach
-    void setUpNewJobRunrVersionProblemHandler() {
+    void setUpNewCpuAllocationIrregularityProblemHandler() {
         cpuAllocationIrregularityProblemHandler = new CpuAllocationIrregularityProblemHandler(problems, storageProvider);
         cpuAllocationIrregularityProblemHandler.onChange(emptyList());
         reset(problems);
