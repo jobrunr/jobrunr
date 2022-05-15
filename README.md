@@ -186,11 +186,6 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 * `npm i`
 * `npm run build`
 * `cd -`
-* `./gradlew :core:publishToMavenLocal`
-* `./gradlew :jobrunr-kotlin-14-support:publishToMavenLocal`
-* `./gradlew :jobrunr-kotlin-15-support:publishToMavenLocal`
-* `./gradlew :jobrunr-spring-boot-starter:publishToMavenLocal`
-* `./gradlew :platform:publishToMavenLocal`
+* `./gradlew publishToMavenLocal`
 
 Then, in your own project you can depend on `org.jobrunr:jobrunr:1.0.0-SNAPSHOT`.
-* 
