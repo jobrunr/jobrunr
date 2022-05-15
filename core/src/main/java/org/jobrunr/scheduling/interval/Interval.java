@@ -18,6 +18,14 @@ public class Interval extends Schedule {
         this.duration = Duration.parse(durationExpression);
     }
 
+    public static Interval of(String durationExpression) {
+        return new Interval(durationExpression);
+    }
+
+    public static Interval of(Duration duration) {
+        return new Interval(duration);
+    }
+
     public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();

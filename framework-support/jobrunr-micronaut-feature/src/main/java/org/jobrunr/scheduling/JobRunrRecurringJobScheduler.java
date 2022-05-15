@@ -5,6 +5,8 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.interval.Interval;
+import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,12 @@ public class JobRunrRecurringJobScheduler {
 
         String id = getId(method);
         String cron = getCron(method);
+        String interval = getInterval(method);
+
+        if (StringUtils.isNullOrEmpty(cron) && StringUtils.isNullOrEmpty(interval))
+            throw new IllegalArgumentException("Either cron or interval attribute is required");
+        if (StringUtils.isNotNullOrEmpty(cron) && StringUtils.isNotNullOrEmpty(interval))
+            throw new IllegalArgumentException("Both cron and interval attribute provided");
 
         if (Recurring.CRON_DISABLED.equals(cron)) {
             if (id == null) {
@@ -40,7 +48,11 @@ public class JobRunrRecurringJobScheduler {
         } else {
             JobDetails jobDetails = getJobDetails(method);
             ZoneId zoneId = getZoneId(method);
-            jobScheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+
+            if (StringUtils.isNotNullOrEmpty(cron))
+                jobScheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+            else
+                jobScheduler.scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
         }
     }
 
@@ -55,7 +67,11 @@ public class JobRunrRecurringJobScheduler {
     }
 
     private String getCron(ExecutableMethod<?, ?> method) {
-        return method.stringValue(Recurring.class, "cron").orElseThrow(() -> new IllegalArgumentException("Cron attribute is required"));
+        return method.stringValue(Recurring.class, "cron").orElse(null);
+    }
+
+    private String getInterval(ExecutableMethod<?, ?> method) {
+        return method.stringValue(Recurring.class, "interval").orElse(null);
     }
 
     private JobDetails getJobDetails(ExecutableMethod<?, ?> method) {
@@ -65,6 +81,6 @@ public class JobRunrRecurringJobScheduler {
     }
 
     private ZoneId getZoneId(ExecutableMethod<?, ?> method) {
-        return method.stringValue(Recurring.class, "zone").map(ZoneId::of).orElse(ZoneId.systemDefault());
+        return method.stringValue(Recurring.class, "zoneId").map(ZoneId::of).orElse(ZoneId.systemDefault());
     }
 }

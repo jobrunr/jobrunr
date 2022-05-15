@@ -4,6 +4,7 @@ import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,14 +36,15 @@ class JobRunrRecurringJobSchedulerTest {
     }
 
     @Test
-    void beansWithMethodsAnnotatedWithRecurringAnnotationWillAutomaticallyBeRegistered() {
+    void beansWithMethodsAnnotatedWithRecurringCronAnnotationWillAutomaticallyBeRegistered() {
         final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
         when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
         when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.of("*/15 * * * *"));
-        when(executableMethod.stringValue(Recurring.class, "zone")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "zoneId")).thenReturn(Optional.empty());
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
@@ -65,12 +67,54 @@ class JobRunrRecurringJobSchedulerTest {
     }
 
     @Test
+    void beansWithMethodsAnnotatedWithRecurringIntervalAnnotationWillAutomaticallyBeRegistered() {
+        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
+        when(executableMethod.getTargetMethod()).thenReturn(method);
+
+        when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
+        when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.of("PT10M"));
+        when(executableMethod.stringValue(Recurring.class, "zoneId")).thenReturn(Optional.empty());
+
+        jobRunrRecurringJobScheduler.schedule(executableMethod);
+
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(Interval.of("PT10M")), eq(ZoneId.systemDefault()));
+    }
+
+    @Test
     void beansWithUnsupportedMethodsAnnotatedWithRecurringAnnotationWillThrowException() {
         final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyUnsupportedService.class, "myRecurringMethod", String.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
         assertThatThrownBy(() -> jobRunrRecurringJobScheduler.schedule(executableMethod)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void beansWithMethodsAnnotatedWithRecurringAnnotationCronAndIntervalWillThrowException() {
+        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
+        when(executableMethod.getTargetMethod()).thenReturn(method);
+
+        when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
+        when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.of("*/15 * * * *"));
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.of("PT1M"));
+
+        assertThatThrownBy(() -> jobRunrRecurringJobScheduler.schedule(executableMethod)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void beansWithMethodsAnnotatedWithRecurringAnnotationNoCronOrIntervalWillThrowException() {
+        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
+        when(executableMethod.getTargetMethod()).thenReturn(method);
+
+        when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
+        when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> jobRunrRecurringJobScheduler.schedule(executableMethod)).isInstanceOf(IllegalArgumentException.class);
     }
 
     public static class MyServiceWithRecurringJob {

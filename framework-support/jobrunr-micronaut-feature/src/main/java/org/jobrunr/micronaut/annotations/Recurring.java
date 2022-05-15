@@ -53,7 +53,21 @@ public @interface Recurring {
      *
      * @return An expression that can be parsed to a cron schedule.
      */
-    String cron();
+    String cron() default "";
+
+    /**
+     * The time interval between scheduled runs pf this recurring job.
+     * <p>@see Duration</p>
+     * <p>Examples:</p>
+     * <pre>
+     * "PT20S"     -- 20 seconds
+     * "PT15M"     -- 15 minutes
+     * "PT10H"     -- 10 hours
+     * "P2D"       -- 2 days
+     * "P2DT3H4M"  -- 2 days, 3 hours and 4 minutes
+     * </pre>
+     */
+    String interval() default "";
 
     /**
      * @return The zoneId (timezone) of when to run this recurring job.
