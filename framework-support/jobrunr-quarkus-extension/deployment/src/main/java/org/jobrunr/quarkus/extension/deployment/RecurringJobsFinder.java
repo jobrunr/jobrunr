@@ -12,7 +12,6 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,9 +38,10 @@ public class RecurringJobsFinder {
             if (AnnotationTarget.Kind.METHOD.equals(annotationTarget.kind())) {
                 final String id = getId(recurringJobAnnotation);
                 final String cron = getCron(recurringJobAnnotation);
+                final String interval = getInterval(recurringJobAnnotation);
                 final JobDetails jobDetails = getJobDetails(recurringJobAnnotation);
                 final String zoneId = getZoneId(recurringJobAnnotation);
-                recorder.schedule(beanContainer.getValue(), id, jobDetails, cron, zoneId);
+                recorder.schedule(beanContainer.getValue(), id, jobDetails, cron, interval, zoneId);
             }
         }
     }
@@ -63,7 +63,17 @@ public class RecurringJobsFinder {
     }
 
     private String getCron(AnnotationInstance recurringJobAnnotation) {
-        return recurringJobAnnotation.value("cron").asString();
+        if(recurringJobAnnotation.value("cron") != null) {
+            return recurringJobAnnotation.value("cron").asString();
+        }
+        return null;
+    }
+
+    private String getInterval(AnnotationInstance recurringJobAnnotation) {
+        if(recurringJobAnnotation.value("interval") != null) {
+            return recurringJobAnnotation.value("interval").asString();
+        }
+        return null;
     }
 
     private JobDetails getJobDetails(AnnotationInstance recurringJobAnnotation) {

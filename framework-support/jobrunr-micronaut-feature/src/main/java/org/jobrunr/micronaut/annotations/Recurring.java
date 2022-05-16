@@ -30,14 +30,14 @@ import java.lang.annotation.*;
 public @interface Recurring {
 
     /**
-     * A special cron expression value that indicates a disabled trigger: {@value}.
+     * A special cron / interval expression value that indicates a disabled trigger: {@value}.
      * <p>
      * This is primarily meant for use with <code>${...}</code> placeholders,
      * allowing for external disabling of corresponding recurring methods.
      * <p>
      * This mechanism was borrowed from {@code @Scheduled} in Spring Framework.
      */
-    String CRON_DISABLED = "-";
+    String RECURRING_JOB_DISABLED = "-";
 
     /**
      * @return The id of this recurring job which can be used to alter or delete it.
@@ -47,7 +47,7 @@ public @interface Recurring {
     /**
      * The cron expression defining when to run this recurring job.
      * <p>
-     * The special value {@link #CRON_DISABLED "-"} indicates a disabled cron
+     * The special value {@link #RECURRING_JOB_DISABLED "-"} indicates a disabled cron
      * trigger, primarily meant for externally specified values resolved by a
      * <code>${...}</code> placeholder.
      *

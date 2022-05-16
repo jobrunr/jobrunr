@@ -52,6 +52,21 @@ class JobRunrRecurringJobSchedulerTest {
     }
 
     @Test
+    void beansWithMethodsAnnotatedWithDisabledRecurringCronAnnotationWillAutomaticallyBeDeleted() {
+        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
+        when(executableMethod.getTargetMethod()).thenReturn(method);
+
+        when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
+        when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.of("-"));
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.empty());
+
+        jobRunrRecurringJobScheduler.schedule(executableMethod);
+
+        verify(jobScheduler).delete("my-recurring-job");
+    }
+
+    @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationUsingJobContextWillAutomaticallyBeRegistered() {
         final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
@@ -59,11 +74,27 @@ class JobRunrRecurringJobSchedulerTest {
 
         when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
         when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.of("*/15 * * * *"));
-        when(executableMethod.stringValue(Recurring.class, "zone")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "zoneId")).thenReturn(Optional.empty());
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
         verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+    }
+
+    @Test
+    void beansWithMethodsAnnotatedWithDisabledRecurringIntervalAnnotationWillAutomaticallyBeDeleted() {
+        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
+        when(executableMethod.getTargetMethod()).thenReturn(method);
+
+        when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
+        when(executableMethod.stringValue(Recurring.class, "cron")).thenReturn(Optional.empty());
+        when(executableMethod.stringValue(Recurring.class, "interval")).thenReturn(Optional.of("-"));
+
+        jobRunrRecurringJobScheduler.schedule(executableMethod);
+
+        verify(jobScheduler).delete("my-recurring-job");
     }
 
     @Test
@@ -79,7 +110,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(Interval.of("PT10M")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(new Interval("PT10M")), eq(ZoneId.systemDefault()));
     }
 
     @Test

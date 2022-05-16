@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.time.ZoneId;
 
 import static java.util.Collections.emptyList;
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
 public class JobRunrRecurringJobScheduler {
 
@@ -35,11 +36,11 @@ public class JobRunrRecurringJobScheduler {
         String interval = getInterval(method);
 
         if (StringUtils.isNullOrEmpty(cron) && StringUtils.isNullOrEmpty(interval))
-            throw new IllegalArgumentException("Either cron or interval attribute is required");
-        if (StringUtils.isNotNullOrEmpty(cron) && StringUtils.isNotNullOrEmpty(interval))
-            throw new IllegalArgumentException("Both cron and interval attribute provided");
+            throw new IllegalArgumentException("Either cron or interval attribute is required.");
+        if (isNotNullOrEmpty(cron) && isNotNullOrEmpty(interval))
+            throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
 
-        if (Recurring.CRON_DISABLED.equals(cron)) {
+        if (Recurring.RECURRING_JOB_DISABLED.equals(cron) || Recurring.RECURRING_JOB_DISABLED.equals(interval)) {
             if (id == null) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
@@ -49,10 +50,11 @@ public class JobRunrRecurringJobScheduler {
             JobDetails jobDetails = getJobDetails(method);
             ZoneId zoneId = getZoneId(method);
 
-            if (StringUtils.isNotNullOrEmpty(cron))
+            if (isNotNullOrEmpty(cron)) {
                 jobScheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
-            else
+            } else {
                 jobScheduler.scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
+            }
         }
     }
 
