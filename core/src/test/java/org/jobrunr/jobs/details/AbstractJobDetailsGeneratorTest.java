@@ -23,20 +23,27 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.lang.Integer.parseInt;
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
+import static org.jobrunr.utils.SleepUtils.sleep;
+import static org.jobrunr.utils.StringUtils.substringAfterLast;
 
 public abstract class AbstractJobDetailsGeneratorTest {
 
@@ -1027,6 +1034,62 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasArgs(uuid2);
     }
 
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/335")
+    void jobDetailsGeneratorIsThreadSafe() {
+        UUID uuid1 = UUID.randomUUID();
+        assertThat(createJobDetails(uuid1))
+                .hasClass(TestService.GithubIssue335.class)
+                .hasMethodName("run")
+                .hasArgs(uuid1);
+
+        UUID uuid2 = UUID.randomUUID();
+        assertThat(createJobDetails(uuid2))
+                .hasClass(TestService.GithubIssue335.class)
+                .hasMethodName("run")
+                .hasArgs(uuid2);
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/456")
+    void createJobDetailsInMultipleThreadss() throws InterruptedException {
+        final CountDownLatch countDownLatch = new CountDownLatch(4);
+        final Map<String, JobDetails> jobDetailsResults = new ConcurrentHashMap<>();
+        final Thread thread1 = new Thread(createJobDetailsRunnable(countDownLatch, "thread1", jobDetailsResults));
+        final Thread thread2 = new Thread(createJobDetailsRunnable(countDownLatch, "thread2", jobDetailsResults));
+        final Thread thread3 = new Thread(createJobDetailsRunnable(countDownLatch, "thread3", jobDetailsResults));
+        final Thread thread4 = new Thread(createJobDetailsRunnable(countDownLatch, "thread4", jobDetailsResults));
+
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread4.start();
+
+        countDownLatch.await(100, TimeUnit.SECONDS);
+        assertThat(jobDetailsResults).hasSize(2000);
+        jobDetailsResults.keySet().stream()
+                .forEach(key -> {
+                    Integer givenInput = parseInt(substringAfterLast(key, "-"));
+                    assertThat(jobDetailsResults.get(key)).hasArgs(givenInput);
+                });
+    }
+
+    private Runnable createJobDetailsRunnable(CountDownLatch countDownLatch, String threadNbr, Map<String, JobDetails> jobDetailsResults) {
+        Random random = new Random();
+        return () -> {
+            try {
+                for (int i = 0; i < 500; i++) {
+                    Integer input = random.nextInt(1000);
+                    JobDetails jobDetails = toJobDetails(() -> testService.doWork(input));
+                    jobDetailsResults.put(threadNbr + "-" + i + "-" + input, jobDetails);
+                    sleep(1);
+                }
+                countDownLatch.countDown();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
 
 
     // must be kept in separate method for test of Github Issue 335

@@ -9,6 +9,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static java.lang.Boolean.TRUE;
@@ -27,7 +29,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
     public CachingJobDetailsGenerator(JobDetailsGenerator delegate) {
         this.delegate = delegate;
-        this.cache = new HashMap<>();
+        this.cache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -58,18 +60,25 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
         private final JobDetailsGenerator jobDetailsGeneratorDelegate;
+        private final ReentrantLock jobDetailsLock;
         private JobDetails jobDetails;
         private List<JobParameterRetriever> jobParameterRetrievers;
 
         private CacheableJobDetails(JobDetailsGenerator jobDetailsGeneratorDelegate) {
             this.jobDetailsGeneratorDelegate = jobDetailsGeneratorDelegate;
+            this.jobDetailsLock = new ReentrantLock();
         }
 
         public JobDetails getJobDetails(JobLambda lambda) {
             if (jobDetails == null) {
-                jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
-                jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
-                return jobDetails;
+                jobDetailsLock.lock();
+                try {
+                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
+                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
+                    return jobDetails;
+                } finally {
+                    jobDetailsLock.unlock();
+                }
             } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.empty());
             } else {
@@ -79,9 +88,14 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         public JobDetails getJobDetails(IocJobLambda lambda) {
             if (jobDetails == null) {
-                jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
-                jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
-                return jobDetails;
+                jobDetailsLock.lock();
+                try {
+                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
+                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
+                    return jobDetails;
+                } finally {
+                    jobDetailsLock.unlock();
+                }
             } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.empty());
             } else {
@@ -91,9 +105,14 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         public <T> JobDetails getJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
             if (jobDetails == null) {
-                jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
-                jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
-                return jobDetails;
+                jobDetailsLock.lock();
+                try {
+                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
+                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
+                    return jobDetails;
+                } finally {
+                    jobDetailsLock.unlock();
+                }
             } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.of(itemFromStream));
             } else {
@@ -103,9 +122,14 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         public <S, T> JobDetails getJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
             if (jobDetails == null) {
-                jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
-                jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
-                return jobDetails;
+                jobDetailsLock.lock();
+                try {
+                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
+                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
+                    return jobDetails;
+                } finally {
+                    jobDetailsLock.unlock();
+                }
             } else if (TRUE.equals(jobDetails.getCacheable())) {
                 return getCachedJobDetails(lambda, Optional.of(itemFromStream));
             } else {
