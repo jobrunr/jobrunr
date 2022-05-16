@@ -9,6 +9,8 @@ import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.scheduling.interval.Interval;
+import org.jobrunr.utils.StringUtils;
 
 import java.time.ZoneId;
 import java.util.NoSuchElementException;
@@ -22,18 +24,29 @@ public class JobRunrRecurringJobRecorder {
 
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
-    public void schedule(BeanContainer container, String id, JobDetails jobDetails, String cron, String zoneId) {
+    public void schedule(BeanContainer container, String id, JobDetails jobDetails, String cron, String interval, String zoneId) {
         JobScheduler scheduler = container.instance(JobScheduler.class);
         String jobId = getId(id);
-        String cronExpression = getCronExpression(cron);
-        if (Recurring.CRON_DISABLED.equals(cronExpression)) {
+        String optionalCronExpression = getCronExpression(cron);
+        String optionalInterval = getInterval(interval);
+
+        if (StringUtils.isNullOrEmpty(cron) && StringUtils.isNullOrEmpty(optionalInterval))
+            throw new IllegalArgumentException("Either cron or interval attribute is required.");
+        if (StringUtils.isNotNullOrEmpty(cron) && StringUtils.isNotNullOrEmpty(optionalInterval))
+            throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
+
+        if (Recurring.RECURRING_JOB_DISABLED.equals(optionalCronExpression) || Recurring.RECURRING_JOB_DISABLED.equals(optionalInterval)) {
             if (isNullOrEmpty(jobId)) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
                 scheduler.delete(jobId);
             }
         } else {
-            scheduler.scheduleRecurrently(jobId, jobDetails, CronExpression.create(cronExpression), getZoneId(zoneId));
+            if (isNotNullOrEmpty(optionalCronExpression)) {
+                scheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(optionalCronExpression), getZoneId(zoneId));
+            } else {
+                scheduler.scheduleRecurrently(id, jobDetails, new Interval(optionalInterval), getZoneId(zoneId));
+            }
         }
     }
 
@@ -43,6 +56,10 @@ public class JobRunrRecurringJobRecorder {
 
     private static String getCronExpression(String cron) {
         return resolveStringValue(cron);
+    }
+
+    private static String getInterval(String interval) {
+        return resolveStringValue(interval);
     }
 
     private static ZoneId getZoneId(String zoneId) {
