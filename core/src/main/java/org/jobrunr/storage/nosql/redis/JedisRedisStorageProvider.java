@@ -462,7 +462,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public long countRecurringJobs() {
-        return getJedis().scard(recurringJobsKey(keyPrefix));
+        try (final Jedis jedis = getJedis()) {
+            return jedis.scard(recurringJobsKey(keyPrefix));
+        }
     }
 
     @Override

@@ -13,7 +13,6 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.*;
-import org.jobrunr.storage.StorageProviderUtils.*;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -498,7 +497,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public long countRecurringJobs() {
-        return getConnection().sync().scard(recurringJobsKey(keyPrefix));
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            return connection.sync().scard(recurringJobsKey(keyPrefix));
+        }
     }
 
     @Override
