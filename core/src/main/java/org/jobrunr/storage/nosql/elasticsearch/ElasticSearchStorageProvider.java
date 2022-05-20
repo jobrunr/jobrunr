@@ -30,6 +30,7 @@ import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.ParsedSum;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.jobrunr.jobs.*;
@@ -54,6 +55,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
 import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.search.aggregations.AggregationBuilders.sum;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
@@ -523,7 +525,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
+    public RecurringJobsResult getRecurringJobs() {
         try {
             SearchRequest searchRequest = new SearchRequest(recurringJobIndexName);
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -531,9 +533,26 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             searchSourceBuilder.storedField(RecurringJobs.FIELD_JOB_AS_JSON);
             searchRequest.source(searchSourceBuilder);
             SearchResponse search = client.search(searchRequest, RequestOptions.DEFAULT);
-            return Stream.of(search.getHits().getHits())
+            List<RecurringJob> recurringJobs = Stream.of(search.getHits().getHits())
                     .map(elasticSearchDocumentMapper::toRecurringJob)
                     .collect(toList());
+            return new RecurringJobsResult(recurringJobs);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
+        try {
+            SearchRequest searchRequest = new SearchRequest(recurringJobIndexName);
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(matchAllQuery());
+            searchSourceBuilder.aggregation(sum(RecurringJobs.FIELD_CREATED_AT).field(RecurringJobs.FIELD_CREATED_AT));
+            searchRequest.source(searchSourceBuilder);
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            ParsedSum parsedSum = searchResponse.getAggregations().get(RecurringJobs.FIELD_CREATED_AT);
+            return !recurringJobsUpdatedHash.equals(Double.valueOf(parsedSum.getValue()).longValue());
         } catch (IOException e) {
             throw new StorageException(e);
         }

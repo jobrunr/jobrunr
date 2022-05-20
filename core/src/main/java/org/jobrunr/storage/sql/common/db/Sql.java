@@ -103,6 +103,17 @@ public class Sql<T> {
         }
     }
 
+    public long selectSum(String column) throws SQLException {
+        String parsedStatement = parse("select sum(" + column + ") from " + tableName);
+        try (PreparedStatement ps = connection.prepareStatement(parsedStatement)) {
+            setParams(ps);
+            try (ResultSet countResultSet = ps.executeQuery()) {
+                countResultSet.next();
+                return countResultSet.getLong(1);
+            }
+        }
+    }
+
     public boolean selectExists(String statement) throws SQLException {
         return selectCount(statement) > 0;
     }

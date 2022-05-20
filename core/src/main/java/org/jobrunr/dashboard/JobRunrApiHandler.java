@@ -20,6 +20,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
     private final StorageProvider storageProvider;
     private final ProblemsManager problemsManager;
     private final boolean allowAnonymousDataUsage;
+    private RecurringJobsResult recurringJobsResult;
     private VersionUIModel versionUIModel;
 
     public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper, boolean allowAnonymousDataUsage) {
@@ -91,8 +92,10 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler getRecurringJobs() {
         return (request, response) -> {
-            final List<RecurringJobUIModel> recurringJobUIModels = storageProvider
-                    .getRecurringJobs()
+            if(recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
+                recurringJobsResult = storageProvider.getRecurringJobs();
+            }
+            final List<RecurringJobUIModel> recurringJobUIModels = recurringJobsResult
                     .stream()
                     .map(RecurringJobUIModel::new)
                     .collect(Collectors.toList());

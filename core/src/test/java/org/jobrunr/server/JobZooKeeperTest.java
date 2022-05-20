@@ -175,8 +175,8 @@ class JobZooKeeperTest {
     void checkForRecurringJobs() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
-        when(storageProvider.countRecurringJobs()).thenReturn(1L);
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
 
         jobZooKeeper.run();
 
@@ -191,24 +191,28 @@ class JobZooKeeperTest {
     void recurringJobsAreCached() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
-        when(storageProvider.countRecurringJobs()).thenReturn(1L);
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true, false, true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
 
-        jobZooKeeper.run();
-        verify(storageProvider, times(1)).countRecurringJobs();
+        jobZooKeeper.run(); // initial loading
+        verify(storageProvider, times(1)).recurringJobsUpdated(anyLong());
         verify(storageProvider, times(1)).getRecurringJobs();
 
-        jobZooKeeper.run();
-        verify(storageProvider, times(2)).countRecurringJobs();
+        jobZooKeeper.run(); // no updates to recurring jobs
+        verify(storageProvider, times(2)).recurringJobsUpdated(anyLong());
         verify(storageProvider, times(1)).getRecurringJobs();
+
+        jobZooKeeper.run(); // reload as recurring jobs updated
+        verify(storageProvider, times(3)).recurringJobsUpdated(anyLong());
+        verify(storageProvider, times(2)).getRecurringJobs();
     }
 
     @Test
     void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
-        when(storageProvider.countRecurringJobs()).thenReturn(1L);
-        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
         when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
         jobZooKeeper.run();

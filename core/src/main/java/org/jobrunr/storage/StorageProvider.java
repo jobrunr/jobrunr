@@ -89,9 +89,12 @@ public interface StorageProvider extends AutoCloseable {
 
     RecurringJob saveRecurringJob(RecurringJob recurringJob);
 
-    List<RecurringJob> getRecurringJobs();
-
+    @Deprecated
     long countRecurringJobs();
+
+    RecurringJobsResult getRecurringJobs();
+
+    boolean recurringJobsUpdated(Long recurringJobsUpdatedHash);
 
     int deleteRecurringJob(String id);
 

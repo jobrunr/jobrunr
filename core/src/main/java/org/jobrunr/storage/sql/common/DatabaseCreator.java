@@ -182,11 +182,13 @@ public class DatabaseCreator {
             if (isNullOrEmpty(tablePrefix)) {
                 return new NoOpTablePrefixStatementUpdater();
             } else {
-                final String databaseProductName = connectionProvider.getConnection().getMetaData().getDatabaseProductName();
-                if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
-                    return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
-                } else {
-                    return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
+                try(Connection connection = connectionProvider.getConnection()) {
+                    final String databaseProductName = connection.getMetaData().getDatabaseProductName();
+                    if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
+                        return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
+                    } else {
+                        return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
+                    }
                 }
             }
         } catch (SQLException e) {

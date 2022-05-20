@@ -7,6 +7,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.PutMappingRequest;
 import org.jobrunr.storage.StorageException;
 
 import java.io.IOException;
@@ -85,6 +86,28 @@ public abstract class ElasticSearchMigration {
             }
         }
     }
+
+    public static void updateIndex(RestHighLevelClient client, PutMappingRequest putMappingRequest) {
+        try {
+            waitForHealthyCluster(client);
+            client.indices().putMapping(putMappingRequest, RequestOptions.DEFAULT);
+            waitForHealthyCluster(client);
+        } catch (ElasticsearchStatusException e) {
+            if (e.status().getStatus() == 400) {
+                if (e.getMessage().contains("resource_already_exists_exception")) {
+                    // why: since we're distributed, multiple StorageProviders are trying to create indices
+                    return;
+                } else {
+                    throw new StorageException("Retried 5 times to setup ElasticSearch Indices", e);
+                }
+            } else {
+                throw e;
+            }
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
     protected static Map<String, Object> mapping(BiConsumer<StringBuilder, Map<String, Object>>... consumers) {
         Map<String, Object> jsonMap = new HashMap<>();
         Map<String, Object> properties = new HashMap<>();

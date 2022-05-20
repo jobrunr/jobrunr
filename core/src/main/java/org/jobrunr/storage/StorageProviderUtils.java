@@ -60,6 +60,7 @@ public class StorageProviderUtils {
         public static final String FIELD_ID = StorageProviderUtils.FIELD_ID;
         public static final String FIELD_VERSION = "version";
         public static final String FIELD_JOB_AS_JSON = "jobAsJson";
+        public static final String FIELD_CREATED_AT = "createdAt";
     }
 
     public static final class BackgroundJobServers {

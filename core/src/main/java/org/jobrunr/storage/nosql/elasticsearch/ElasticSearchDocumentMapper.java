@@ -117,6 +117,7 @@ public class ElasticSearchDocumentMapper {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
             builder.field(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(job));
+            builder.field(RecurringJobs.FIELD_CREATED_AT, job.getCreatedAt().toEpochMilli());
             builder.endObject();
             return builder;
         } catch (IOException e) {

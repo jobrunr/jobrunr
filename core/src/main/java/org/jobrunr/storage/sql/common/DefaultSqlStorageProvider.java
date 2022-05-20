@@ -7,6 +7,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
+import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
@@ -306,13 +307,22 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         } catch (SQLException e) {
             throw new StorageException(e);
         }
-
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
+    public RecurringJobsResult getRecurringJobs() {
         try (final Connection conn = dataSource.getConnection()) {
-            return recurringJobTable(conn).selectAll();
+            return new RecurringJobsResult(recurringJobTable(conn).selectAll());
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
+        try (final Connection conn = dataSource.getConnection()) {
+            Long lastModifiedHash = recurringJobTable(conn).selectSum(RecurringJobs.FIELD_CREATED_AT);
+            return !recurringJobsUpdatedHash.equals(lastModifiedHash);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

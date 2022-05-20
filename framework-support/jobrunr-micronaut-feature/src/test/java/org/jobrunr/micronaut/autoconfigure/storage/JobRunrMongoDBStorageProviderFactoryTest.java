@@ -14,9 +14,10 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Spliterator;
+
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,14 +43,23 @@ class JobRunrMongoDBStorageProviderFactoryTest {
 
     public MongoClient mongoClient() {
         MongoClient mongoClientMock = mock(MongoClient.class);
+        MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);
+        when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
+        when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(MongoIterable.class));
+
         MongoCollection migrationCollectionMock = mock(MongoCollection.class);
         when(migrationCollectionMock.find(any(Bson.class))).thenReturn(mock(FindIterable.class));
-        MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);
-        when(mongoDatabaseMock.getCollection(StorageProviderUtils.Migrations.NAME)).thenReturn(migrationCollectionMock);
-        when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(MongoIterable.class));
-        when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
-        when(mongoDatabaseMock.getCollection(any(), eq(Document.class))).thenReturn(mock(MongoCollection.class));
         when(migrationCollectionMock.insertOne(any())).thenReturn(mock(InsertOneResult.class));
+        when(mongoDatabaseMock.getCollection(StorageProviderUtils.Migrations.NAME)).thenReturn(migrationCollectionMock);
+
+        MongoCollection recurringJobCollectionMock = mock(MongoCollection.class);
+        ListIndexesIterable recurringJobListIndicesMock = mock(ListIndexesIterable.class);
+        when(recurringJobListIndicesMock.spliterator()).thenReturn(mock(Spliterator.class));
+        when(recurringJobCollectionMock.listIndexes()).thenReturn(recurringJobListIndicesMock);
+        when(mongoDatabaseMock.getCollection(StorageProviderUtils.RecurringJobs.NAME, Document.class)).thenReturn(recurringJobCollectionMock);
+
+        when(mongoDatabaseMock.getCollection(StorageProviderUtils.Jobs.NAME, Document.class)).thenReturn(mock(MongoCollection.class));
+        when(mongoDatabaseMock.getCollection(StorageProviderUtils.Metadata.NAME, Document.class)).thenReturn(mock(MongoCollection.class));
         return mongoClientMock;
     }
 }

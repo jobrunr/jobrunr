@@ -4,6 +4,7 @@ import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,10 +46,10 @@ class CheckIfAllJobsExistTaskTest {
 
     @Test
     void onRunItLogsAllRecurringJobsThatDoNotExist() {
-        when(storageProvider.getRecurringJobs()).thenReturn(asList(
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(asList(
                 aDefaultRecurringJob().build(),
                 aDefaultRecurringJob().withJobDetails(classThatDoesNotExistJobDetails()).build()
-        ));
+        )));
 
         checkIfAllJobsExistTask.run();
 
@@ -60,6 +61,7 @@ class CheckIfAllJobsExistTaskTest {
 
     @Test
     void onRunItLogsAllScheduledJobsThatDoNotExist() {
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult());
         when(storageProvider.getDistinctJobSignatures(SCHEDULED)).thenReturn(Set.of(
                 getJobSignature(defaultJobDetails().build()),
                 getJobSignature(classThatDoesNotExistJobDetails().build())
@@ -75,10 +77,10 @@ class CheckIfAllJobsExistTaskTest {
 
     @Test
     void onRunItLogsAllScheduledAndRecurringJobsThatDoNotExist() {
-        when(storageProvider.getRecurringJobs()).thenReturn(asList(
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(asList(
                 aDefaultRecurringJob().build(),
                 aDefaultRecurringJob().withJobDetails(classThatDoesNotExistJobDetails()).build()
-        ));
+        )));
 
         when(storageProvider.getDistinctJobSignatures(SCHEDULED)).thenReturn(Set.of(
                 getJobSignature(defaultJobDetails().build()),
