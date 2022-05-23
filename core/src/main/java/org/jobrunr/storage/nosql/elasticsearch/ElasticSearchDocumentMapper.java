@@ -154,6 +154,8 @@ public class ElasticSearchDocumentMapper {
     }
 
     public JobRunrMetadata toMetadata(Map<String, Object> fieldMap) {
+        if(fieldMap == null || fieldMap.isEmpty()) return null;
+
         return new JobRunrMetadata(
                 autobox(fieldMap.get(Metadata.FIELD_NAME), String.class),
                 autobox(fieldMap.get(Metadata.FIELD_OWNER), String.class),

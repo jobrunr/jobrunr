@@ -31,6 +31,7 @@ public class MetadataDocumentMapper {
     }
 
     public JobRunrMetadata toJobRunrMetadata(Document document) {
+        if(document == null) return null;
 
         return new JobRunrMetadata(
                 document.getString(Metadata.FIELD_NAME),

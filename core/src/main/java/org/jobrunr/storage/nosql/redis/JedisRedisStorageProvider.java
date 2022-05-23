@@ -222,6 +222,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public JobRunrMetadata getMetadata(String name, String owner) {
         try (final Jedis jedis = getJedis()) {
             Map<String, String> fieldMap = jedis.hgetAll(metadataKey(keyPrefix, toId(name, owner)));
+            if(fieldMap.isEmpty()) return null;
+
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
                     fieldMap.get(Metadata.FIELD_OWNER),

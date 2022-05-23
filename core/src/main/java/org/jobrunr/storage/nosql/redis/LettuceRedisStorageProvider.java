@@ -246,6 +246,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             Map<String, String> fieldMap = commands.hgetall(metadataKey(keyPrefix, toId(name, owner)));
+            if(fieldMap.isEmpty()) return null;
+
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
                     fieldMap.get(Metadata.FIELD_OWNER),

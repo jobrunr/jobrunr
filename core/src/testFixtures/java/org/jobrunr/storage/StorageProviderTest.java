@@ -170,6 +170,7 @@ public abstract class StorageProviderTest {
         // GET
         assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata1.getOwner())).isEqualTo(metadata1);
         assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata2.getOwner())).isEqualTo(metadata2);
+        assertThat(storageProvider.getMetadata("somethingThatDoesNotExist", UUID.randomUUID().toString())).isNull();
 
         // UPDATE
         JobRunrMetadata metadata1Update = new JobRunrMetadata("shouldNotHappenException", metadata1.getOwner(), "An Update");
