@@ -100,7 +100,12 @@ class JdkTest {
 
     @Test
     void jdk18OpenJDK() {
-        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:18-ea-jdk-oraclelinux7")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:18.0.1.1-oraclelinux7")).contains("BUILD SUCCESS");
+    }
+
+    @Test
+    void jdk19OpenJDK() {
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:19-jdk-slim")).contains("BUILD SUCCESS");
     }
 
     private String buildAndTestOnImage(String dockerfile) {
@@ -108,7 +113,7 @@ class JdkTest {
         try {
             buildAndTestContainer
                     .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
-                    .withStartupTimeout(Duration.ofMinutes(3))
+                    .withStartupTimeout(Duration.ofMinutes(1))
                     .start();
         } finally {
             System.out.println(buildAndTestContainer.getLogs());
