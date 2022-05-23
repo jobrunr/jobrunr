@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import io.micronaut.inject.ExecutableMethod;
+import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
@@ -8,6 +9,8 @@ import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -17,7 +20,7 @@ import java.util.Optional;
 
 import static io.micronaut.core.reflect.ReflectionUtils.getRequiredMethod;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -27,6 +30,8 @@ class JobRunrRecurringJobSchedulerTest {
     @Mock
     JobScheduler jobScheduler;
 
+    @Captor
+    private ArgumentCaptor<JobDetails> jobDetailsArgumentCaptor;
 
     JobRunrRecurringJobScheduler jobRunrRecurringJobScheduler;
 
@@ -48,7 +53,13 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
+        assertThat(actualJobDetails)
+                .isCacheable()
+                .hasClassName(MyServiceWithRecurringJob.class.getName())
+                .hasMethodName("myRecurringMethod")
+                .hasNoArgs();
     }
 
     @Test
@@ -67,9 +78,9 @@ class JobRunrRecurringJobSchedulerTest {
     }
 
     @Test
-    void beansWithMethodsAnnotatedWithRecurringAnnotationUsingJobContextWillAutomaticallyBeRegistered() {
+    void beansWithMethodsAnnotatedWithRecurringCronAnnotationUsingJobContextWillAutomaticallyBeRegistered() {
         final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
-        final Method method = getRequiredMethod(MyServiceWithRecurringJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
+        final Method method = getRequiredMethod(MyServiceWithRecurringCronJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
         when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
@@ -79,7 +90,13 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
+        assertThat(actualJobDetails)
+                .isCacheable()
+                .hasClassName(MyServiceWithRecurringCronJobUsingJobContext.class.getName())
+                .hasMethodName("myRecurringMethod")
+                .hasJobContextArg();
     }
 
     @Test
@@ -100,7 +117,7 @@ class JobRunrRecurringJobSchedulerTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringIntervalAnnotationWillAutomaticallyBeRegistered() {
         final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
-        final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
+        final Method method = getRequiredMethod(MyServiceWithRecurringIntervalJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
         when(executableMethod.stringValue(Recurring.class, "id")).thenReturn(Optional.of("my-recurring-job"));
@@ -110,7 +127,13 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(), eq(new Interval("PT10M")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(new Interval("PT10M")), eq(ZoneId.systemDefault()));
+        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
+        assertThat(actualJobDetails)
+                .isCacheable()
+                .hasClassName(MyServiceWithRecurringIntervalJobUsingJobContext.class.getName())
+                .hasMethodName("myRecurringMethod")
+                .hasJobContextArg();
     }
 
     @Test
@@ -156,13 +179,22 @@ class JobRunrRecurringJobSchedulerTest {
         }
     }
 
-    public static class MyServiceWithRecurringJobUsingJobContext {
+    public static class MyServiceWithRecurringCronJobUsingJobContext {
 
         @Recurring(id = "my-recurring-job", cron = "*/15 * * * *")
         public void myRecurringMethod(JobContext jobContext) {
             System.out.print("My recurring job method");
         }
     }
+
+    public static class MyServiceWithRecurringIntervalJobUsingJobContext {
+
+        @Recurring(id = "my-recurring-job", interval = "PT10M")
+        public void myRecurringMethod(JobContext jobContext) {
+            System.out.print("My recurring job method");
+        }
+    }
+
 
     public static class MyUnsupportedService {
 

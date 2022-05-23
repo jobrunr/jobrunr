@@ -15,8 +15,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.time.ZoneId;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -57,9 +57,11 @@ class RecurringJobPostProcessorTest {
         verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
 
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
-        assertThat(actualJobDetails.getClassName()).isEqualTo(MyServiceWithRecurringJob.class.getName());
-        assertThat(actualJobDetails.getMethodName()).isEqualTo("myRecurringMethod");
-        assertThat(actualJobDetails.getCacheable()).isTrue();
+        assertThat(actualJobDetails)
+                .isCacheable()
+                .hasClassName(MyServiceWithRecurringJob.class.getName())
+                .hasMethodName("myRecurringMethod")
+                .hasNoArgs();
     }
 
     @Test
@@ -75,9 +77,11 @@ class RecurringJobPostProcessorTest {
         verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
 
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
-        assertThat(actualJobDetails.getClassName()).isEqualTo(MyServiceWithRecurringCronJobUsingJobContext.class.getName());
-        assertThat(actualJobDetails.getMethodName()).isEqualTo("myRecurringMethod");
-        assertThat(actualJobDetails.getCacheable()).isTrue();
+        assertThat(actualJobDetails)
+                .isCacheable()
+                .hasClassName(MyServiceWithRecurringCronJobUsingJobContext.class.getName())
+                .hasMethodName("myRecurringMethod")
+                .hasJobContextArg();
     }
 
     @Test
@@ -93,9 +97,11 @@ class RecurringJobPostProcessorTest {
         verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(new Interval("PT10M")), any(ZoneId.class));
 
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
-        assertThat(actualJobDetails.getClassName()).isEqualTo(MyServiceWithRecurringIntervalJobUsingJobContext.class.getName());
-        assertThat(actualJobDetails.getMethodName()).isEqualTo("myRecurringMethod");
-        assertThat(actualJobDetails.getCacheable()).isTrue();
+        assertThat(actualJobDetails)
+                .isCacheable()
+                .hasClassName(MyServiceWithRecurringIntervalJobUsingJobContext.class.getName())
+                .hasMethodName("myRecurringMethod")
+                .hasJobContextArg();
     }
 
     @Test
@@ -155,7 +161,7 @@ class RecurringJobPostProcessorTest {
                 .withPropertyValues("my-job.zone-id=Asia/Taipei")
                 .run(context -> {
                     context.getBean(RecurringJobPostProcessor.class)
-                    .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
+                            .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
 
                     verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), eq(ZoneId.of("Asia/Taipei")));
                 });

@@ -15,7 +15,9 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -84,6 +86,11 @@ public class TestService implements TestServiceInterface {
 
     @Job(name = "Doing some hard work for user %1 (customerId: %X{customer.id})")
     public void doWorkWithAnnotation(Integer userId, String userName) {
+        System.out.println("Doing some work... " + processedJobs);
+    }
+
+    @Job(name = "Doing some hard work for user %1 with id %0")
+    public void doWorkWithAnnotationAndJobContext(Integer userId, String userName, JobContext jobContext) {
         System.out.println("Doing some work... " + processedJobs);
     }
 

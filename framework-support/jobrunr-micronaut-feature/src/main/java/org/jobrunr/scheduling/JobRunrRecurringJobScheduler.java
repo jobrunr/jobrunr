@@ -2,6 +2,7 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
@@ -12,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
-import static java.util.Collections.emptyList;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
 public class JobRunrRecurringJobScheduler {
@@ -77,7 +79,11 @@ public class JobRunrRecurringJobScheduler {
     }
 
     private JobDetails getJobDetails(ExecutableMethod<?, ?> method) {
-        final JobDetails jobDetails = new JobDetails(method.getTargetMethod().getDeclaringClass().getName(), null, method.getTargetMethod().getName(), emptyList());
+        List<JobParameter> jobParameters = new ArrayList<>();
+        if(method.getTargetMethod().getParameterCount() == 1 && method.getTargetMethod().getParameterTypes()[0].equals(JobContext.class)) {
+            jobParameters.add(JobParameter.JobContext);
+        }
+        final JobDetails jobDetails = new JobDetails(method.getTargetMethod().getDeclaringClass().getName(), null, method.getTargetMethod().getName(), jobParameters);
         jobDetails.setCacheable(true);
         return jobDetails;
     }

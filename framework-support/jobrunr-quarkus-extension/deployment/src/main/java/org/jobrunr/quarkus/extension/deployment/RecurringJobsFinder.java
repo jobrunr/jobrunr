@@ -8,6 +8,7 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
@@ -81,7 +82,11 @@ public class RecurringJobsFinder {
         if (hasParametersOutsideOfJobContext(methodInfo)) {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
         }
-        final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), new ArrayList<>());
+        List<JobParameter> jobParameters = new ArrayList<>();
+        if(methodInfo.parameters().size() == 1 && methodInfo.parameters().get(0).name().equals(DotName.createSimple(JobContext.class.getName()))) {
+            jobParameters.add(JobParameter.JobContext);
+        }
+        final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), jobParameters);
         jobDetails.setCacheable(true);
         return jobDetails;
     }
@@ -89,7 +94,7 @@ public class RecurringJobsFinder {
     private boolean hasParametersOutsideOfJobContext(MethodInfo method) {
         if(method.parameters().isEmpty()) return false;
         else if(method.parameters().size() > 1) return true;
-        else return !method.parameters().get(0).equals(JobContext.class);
+        else return !method.parameters().get(0).name().equals(DotName.createSimple(JobContext.class.getName()));
     }
 
     private String getZoneId(AnnotationInstance recurringJobAnnotation) {

@@ -25,8 +25,12 @@ public class JobParameter {
     }
 
     public JobParameter(String className, Object object) {
+        this(className, isNotNullNorAnEnum(object) ? object.getClass().getName() : className, object);
+    }
+
+    public JobParameter(String className, String actualClassName, Object object) {
         this.className = className;
-        this.actualClassName = isNotNullNorAnEnum(object) ? object.getClass().getName() : className;
+        this.actualClassName = actualClassName;
         this.object = object;
     }
 

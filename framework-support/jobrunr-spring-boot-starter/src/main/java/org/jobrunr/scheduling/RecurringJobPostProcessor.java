@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
@@ -18,6 +19,7 @@ import org.springframework.util.StringValueResolver;
 import java.lang.reflect.Method;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -108,7 +110,11 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
         }
 
         private JobDetails getJobDetails(Method method) {
-            final JobDetails jobDetails = new JobDetails(method.getDeclaringClass().getName(), null, method.getName(), new ArrayList<>());
+            List<JobParameter> jobParameters = new ArrayList<>();
+            if(method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(JobContext.class)) {
+                jobParameters.add(JobParameter.JobContext);
+            }
+            final JobDetails jobDetails = new JobDetails(method.getDeclaringClass().getName(), null, method.getName(), jobParameters);
             jobDetails.setCacheable(true);
             return jobDetails;
         }

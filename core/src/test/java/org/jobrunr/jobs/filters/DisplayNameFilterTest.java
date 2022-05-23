@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,4 +78,19 @@ class DisplayNameFilterTest {
         assertThat(job.getJobName()).isEqualTo("java.lang.System.out.println(some message)");
     }
 
+    @Test
+    void testDisplayNameFilterAlsoWorksWithJobContext() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(jobDetails()
+                        .withClassName(TestService.class)
+                        .withMethodName("doWorkWithAnnotationAndJobContext")
+                        .withJobParameter(5)
+                        .withJobParameter("John Doe")
+                        .withJobParameter(JobParameter.JobContext))
+                .build();
+
+        displayNameFilter.onCreating(job);
+
+        assertThat(job.getJobName()).isEqualTo("Doing some hard work for user John Doe with id 5");
+    }
 }

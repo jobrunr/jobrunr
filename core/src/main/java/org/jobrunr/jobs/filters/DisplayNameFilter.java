@@ -42,7 +42,9 @@ public class DisplayNameFilter implements JobClientFilter {
     private String replaceJobParametersInDisplayName(String name, JobDetails jobDetails) {
         String finalName = name;
         for (int i = 0; i < jobDetails.getJobParameters().size(); i++) {
-            finalName = finalName.replace("%" + i, jobDetails.getJobParameterValues()[i].toString());
+            if(jobDetails.getJobParameterValues()[i] != null) {
+                finalName = finalName.replace("%" + i, jobDetails.getJobParameterValues()[i].toString());
+            }
         }
         return finalName;
     }
