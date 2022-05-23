@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.details;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
@@ -468,7 +469,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         }
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testJobLambdaCallingMultiLineStatementSystemOutPrintln() {
         final List<UUID> workStream = getWorkStream().collect(toList());
         LocalDateTime now = LocalDateTime.now();

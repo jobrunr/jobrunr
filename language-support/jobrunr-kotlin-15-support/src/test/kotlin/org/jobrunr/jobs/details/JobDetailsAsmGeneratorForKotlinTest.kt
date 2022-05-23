@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.details
 
+import io.github.artsok.RepeatedIfExceptionsTest
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jobrunr.JobRunrAssertions.assertThat
@@ -262,7 +263,7 @@ class JobDetailsAsmGeneratorForKotlinTest {
                 .hasCauseInstanceOf(IllegalArgumentException::class.java)
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     fun testJobLambdaCallingMultiLineStatement() {
         val jobDetails = toJobDetails {
             val testId = UUID.randomUUID()
