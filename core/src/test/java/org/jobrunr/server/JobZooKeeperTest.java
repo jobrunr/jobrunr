@@ -37,34 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
-import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
-import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JobZooKeeperTest {
@@ -95,12 +77,35 @@ class JobZooKeeperTest {
     }
 
     @Test
-    void jobZooKeeperDoesNothingIfItIsNotInitialized() {
+    void jobZooKeeperDoesNothingIfBackgroundJobServerIsUnAnnounced() {
         when(backgroundJobServer.isUnAnnounced()).thenReturn(true);
 
         jobZooKeeper.run();
 
         verifyNoInteractions(storageProvider);
+    }
+
+    @Test
+    void jobZooKeeperSkipsRunIfPreviousRunIsNotFinished() {
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
+            sleep(200);
+            return emptyList();
+        });
+
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+        final Thread thread1 = new Thread(() -> {
+            jobZooKeeper.run();
+            countDownLatch.countDown();
+        });
+        final Thread thread2 = new Thread(() -> {
+            jobZooKeeper.run();
+            countDownLatch.countDown();
+        });
+        thread1.start();
+        thread2.start();
+
+        verify(storageProvider, timeout(210).times(1)).getJobs(eq(ENQUEUED), any());
+        assertThat(logger).hasErrorMessage("Skipping run as previous run is not finished. This means the pollIntervalInSeconds setting is too small. This can result in an unstable cluster or recurring jobs that are skipped.");
     }
 
     @Test
@@ -388,7 +393,9 @@ class JobZooKeeperTest {
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/122")
     void masterTasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
-        when(backgroundJobServer.isUnAnnounced()).then(putRunStartTimeInPast());
+        jobZooKeeper.startProcessing(aJobInProgress().build(), new Thread());
+
+        when(storageProvider.save(anyList())).then(putRunStartTimeInPast());
 
         jobZooKeeper.run();
 

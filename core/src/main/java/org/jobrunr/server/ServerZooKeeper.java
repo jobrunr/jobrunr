@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.server.ZooKeeperRunManager.RunTracker;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -21,6 +22,7 @@ public class ServerZooKeeper implements Runnable {
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
+    private final ZooKeeperRunManager zooKeeperRunManager;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final Duration timeoutDuration;
     private final AtomicInteger restartAttempts;
@@ -31,6 +33,7 @@ public class ServerZooKeeper implements Runnable {
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
+        this.zooKeeperRunManager = new ZooKeeperRunManager(backgroundJobServer, LOGGER);
         this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
         this.timeoutDuration = Duration.ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4);
         this.restartAttempts = new AtomicInteger();
@@ -41,8 +44,9 @@ public class ServerZooKeeper implements Runnable {
     @Override
     public void run() {
         if (backgroundJobServer.isStopped()) return;
+        if (zooKeeperRunManager.isPreviousRunNotFinished()) return;
 
-        try {
+        try (RunTracker tracker = zooKeeperRunManager.startRun()) {
             if (backgroundJobServer.isUnAnnounced()) {
                 announceBackgroundJobServer();
             } else {
@@ -88,9 +92,8 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private void signalBackgroundJobServerAlive() {
-        // TODO: stop server if requested?
         final BackgroundJobServerStatus serverStatus = backgroundJobServer.getServerStatus();
-        final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(serverStatus);
+        storageProvider.signalBackgroundJobServerAlive(serverStatus);
         cpuAllocationIrregularity(lastSignalAlive, serverStatus.getLastHeartbeat()).ifPresent(amountOfSeconds -> dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(amountOfSeconds)));
         lastSignalAlive = serverStatus.getLastHeartbeat();
     }

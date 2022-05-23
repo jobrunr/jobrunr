@@ -6,6 +6,7 @@ import SevereJobRunrExceptionProblem from "./severe-jobrunr-exception-problem";
 import Grid from '@material-ui/core/Grid';
 import CpuAllocationIrregularityProblem from "./cpu-allocation-irregularity-problem";
 import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
+import PollIntervalInSecondsIsTooSmallProblem from "./poll-interval-timebox-is-too-small-problem";
 
 const useStyles = makeStyles(theme => ({
     alert: {
@@ -58,6 +59,9 @@ const Problems = () => {
                                                                                                  refresh={refresh}/></Grid>
                         case 'cpu-allocation-irregularity':
                             return <Grid item xs={12} key={index}><CpuAllocationIrregularityProblem problem={problem}
+                                                                                                    refresh={refresh}/></Grid>
+                        case 'poll-interval-in-seconds-is-too-small':
+                            return <Grid item xs={12} key={index}><PollIntervalInSecondsIsTooSmallProblem problem={problem}
                                                                                                     refresh={refresh}/></Grid>
                         case 'new-jobrunr-version':
                             return <Grid item xs={12} key={index}><NewJobRunrVersionAvailable problem={problem} /></Grid>
