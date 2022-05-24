@@ -169,13 +169,19 @@ public class StorageProviderForTest implements StorageProvider {
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
+    public RecurringJobsResult getRecurringJobs() {
         return storageProvider.getRecurringJobs();
     }
 
     @Override
+    @Deprecated
     public long countRecurringJobs() {
         return storageProvider.countRecurringJobs();
+    }
+
+    @Override
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
+        return storageProvider.recurringJobsUpdated(recurringJobsUpdatedHash);
     }
 
     @Override

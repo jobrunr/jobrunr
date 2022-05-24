@@ -480,20 +480,35 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.multi();
             commands.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
             commands.sadd(recurringJobsKey(keyPrefix), recurringJob.getId());
+            commands.hset(recurringJobCreatedAtKey(keyPrefix), recurringJob.getId(), Long.toString(recurringJob.getCreatedAt().toEpochMilli()));
             commands.exec();
         }
         return recurringJob;
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
-            return commands.smembers(recurringJobsKey(keyPrefix))
+            Long lastModifiedHash = commands
+                    .hvals(recurringJobCreatedAtKey(keyPrefix)).stream()
+                    .map(Long::valueOf)
+                    .reduce(Long::sum)
+                    .orElse(0L);
+            return !lastModifiedHash.equals(recurringJobsUpdatedHash);
+        }
+    }
+
+    @Override
+    public RecurringJobsResult getRecurringJobs() {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            List<RecurringJob> recurringJobs = commands.smembers(recurringJobsKey(keyPrefix))
                     .stream()
                     .map(id -> commands.get(recurringJobKey(keyPrefix, id)))
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
+            return new RecurringJobsResult(recurringJobs);
         }
     }
 
@@ -511,6 +526,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.multi();
             commands.del(recurringJobKey(keyPrefix, id));
             commands.srem(recurringJobsKey(keyPrefix), id);
+            commands.hdel(recurringJobCreatedAtKey(keyPrefix), id);
 
             final TransactionResult exec = commands.exec();
             return (exec != null && !exec.isEmpty()) ? 1 : 0;

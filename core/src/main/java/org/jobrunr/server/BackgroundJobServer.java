@@ -11,6 +11,7 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.CreateClusterIdIfNotExists;
+import org.jobrunr.server.tasks.UpdateRecurringJobsTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -278,7 +279,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             List<Runnable> startupTasks = asList(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new CheckForNewJobRunrVersion(this));
+                    new CheckForNewJobRunrVersion(this),
+                    new UpdateRecurringJobsTask(this));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
             // server is shut down immediately

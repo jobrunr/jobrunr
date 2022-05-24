@@ -10,10 +10,7 @@ import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.PageRequest;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +40,6 @@ public class JobZooKeeper implements Runnable {
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
-    private final List<RecurringJob> recurringJobs;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final JobFilterUtils jobFilterUtils;
     private final WorkDistributionStrategy workDistributionStrategy;
@@ -53,12 +49,13 @@ public class JobZooKeeper implements Runnable {
     private final ReentrantLock reentrantLock;
     private final AtomicInteger occupiedWorkers;
     private final Duration durationPollIntervalTimeBox;
+    private RecurringJobsResult recurringJobs;
     private Instant runStartTime;
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
-        this.recurringJobs = new ArrayList<>();
+        this.recurringJobs = new RecurringJobsResult();
         this.workDistributionStrategy = backgroundJobServer.getWorkDistributionStrategy();
         this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
@@ -269,9 +266,8 @@ public class JobZooKeeper implements Runnable {
     }
 
     private List<RecurringJob> getRecurringJobs() {
-        if(this.recurringJobs.size() != storageProvider.countRecurringJobs()) {
-            this.recurringJobs.clear();
-            this.recurringJobs.addAll(storageProvider.getRecurringJobs());
+        if(storageProvider.recurringJobsUpdated(recurringJobs.getLastModifiedHash())) {
+            this.recurringJobs = storageProvider.getRecurringJobs();
         }
         return this.recurringJobs;
     }

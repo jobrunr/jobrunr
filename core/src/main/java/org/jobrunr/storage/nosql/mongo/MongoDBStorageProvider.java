@@ -5,10 +5,7 @@ import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertOneResult;
@@ -353,8 +350,22 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
-        return recurringJobCollection.find().map(jobDocumentMapper::toRecurringJob).into(new ArrayList<>());
+    public RecurringJobsResult getRecurringJobs() {
+        ArrayList<RecurringJob> recurringJobs = recurringJobCollection.find().map(jobDocumentMapper::toRecurringJob).into(new ArrayList<>());
+        return new RecurringJobsResult(recurringJobs);
+    }
+
+    @Override
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
+        AggregateIterable<Document> lastModifiedHash = recurringJobCollection.aggregate(asList(
+                sort(ascending(RecurringJobs.FIELD_CREATED_AT)),
+                group("$last_modified_hash", Accumulators.sum(RecurringJobs.FIELD_CREATED_AT, '$' + RecurringJobs.FIELD_CREATED_AT)),
+                limit(1)));
+        if(lastModifiedHash.first() != null) {
+            Long value = lastModifiedHash.first().getLong(RecurringJobs.FIELD_CREATED_AT);
+            return !recurringJobsUpdatedHash.equals(value);
+        }
+        return !recurringJobsUpdatedHash.equals(0L);
     }
 
     @Override
@@ -480,6 +491,18 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         explainDocument.put("filter", query);
         Document command = new Document();
         command.put("explain", explainDocument);
+        final Document document = jobrunrDatabase.runCommand(command);
+        System.out.println(document.toJson());
+    }
+
+    private void explainAggregation(List<Bson> query, String collectionName) {
+        Document explainDocument = new Document();
+        explainDocument.put("aggregate", collectionName);
+        explainDocument.put("pipeline", query);
+        explainDocument.put("cursor", new Document());
+        Document command = new Document();
+        command.put("explain", explainDocument);
+        command.put("verbosity", "executionStats");
         final Document document = jobrunrDatabase.runCommand(command);
         System.out.println(document.toJson());
     }

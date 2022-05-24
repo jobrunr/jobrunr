@@ -446,19 +446,33 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis(); Transaction t = jedis.multi()) {
             t.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
             t.sadd(recurringJobsKey(keyPrefix), recurringJob.getId());
+            t.hset(recurringJobCreatedAtKey(keyPrefix), recurringJob.getId(), Long.toString(recurringJob.getCreatedAt().toEpochMilli()));
             t.exec();
         }
         return recurringJob;
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
         try (final Jedis jedis = getJedis()) {
-            return jedis.smembers(recurringJobsKey(keyPrefix))
+            Long lastModifiedHash = jedis
+                    .hvals(recurringJobCreatedAtKey(keyPrefix)).stream()
+                    .map(Long::valueOf)
+                    .reduce(Long::sum)
+                    .orElse(0L);
+            return !lastModifiedHash.equals(recurringJobsUpdatedHash);
+        }
+    }
+
+    @Override
+    public RecurringJobsResult getRecurringJobs() {
+        try (final Jedis jedis = getJedis()) {
+            List<RecurringJob> recurringJobs = jedis.smembers(recurringJobsKey(keyPrefix))
                     .stream()
                     .map(id -> jedis.get(recurringJobKey(keyPrefix, id)))
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
+            return new RecurringJobsResult(recurringJobs);
         }
     }
 
@@ -474,6 +488,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis(); final Transaction transaction = jedis.multi()) {
             transaction.del(recurringJobKey(keyPrefix, id));
             transaction.srem(recurringJobsKey(keyPrefix), id);
+            transaction.hdel(recurringJobCreatedAtKey(keyPrefix), id);
 
             final List<Object> exec = transaction.exec();
             return (exec != null && !exec.isEmpty()) ? 1 : 0;

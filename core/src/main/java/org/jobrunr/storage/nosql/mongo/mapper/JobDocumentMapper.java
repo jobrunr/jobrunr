@@ -80,6 +80,7 @@ public class JobDocumentMapper {
         document.put(toMongoId(RecurringJobs.FIELD_ID), recurringJob.getId());
         document.put(RecurringJobs.FIELD_VERSION, recurringJob.getVersion());
         document.put(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(recurringJob));
+        document.put(RecurringJobs.FIELD_CREATED_AT, recurringJob.getCreatedAt().toEpochMilli());
         return document;
     }
 

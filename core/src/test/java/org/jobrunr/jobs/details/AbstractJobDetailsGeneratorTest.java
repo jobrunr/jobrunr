@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.details;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
@@ -468,7 +469,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         }
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testJobLambdaCallingMultiLineStatementSystemOutPrintln() {
         final List<UUID> workStream = getWorkStream().collect(toList());
         LocalDateTime now = LocalDateTime.now();
@@ -1052,7 +1053,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/456")
-    void createJobDetailsInMultipleThreadss() throws InterruptedException {
+    void createJobDetailsInMultipleThreads() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(4);
         final Map<String, JobDetails> jobDetailsResults = new ConcurrentHashMap<>();
         final Thread thread1 = new Thread(createJobDetailsRunnable(countDownLatch, "thread1", jobDetailsResults));
@@ -1065,7 +1066,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         thread3.start();
         thread4.start();
 
-        countDownLatch.await(100, TimeUnit.SECONDS);
+        countDownLatch.await(250, TimeUnit.SECONDS);
         assertThat(jobDetailsResults).hasSize(2000);
         jobDetailsResults.keySet().stream()
                 .forEach(key -> {

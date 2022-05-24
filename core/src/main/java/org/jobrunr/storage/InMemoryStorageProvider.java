@@ -255,13 +255,20 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public List<RecurringJob> getRecurringJobs() {
-        return recurringJobs;
+    public RecurringJobsResult getRecurringJobs() {
+        return new RecurringJobsResult(recurringJobs);
     }
 
     @Override
+    @Deprecated
     public long countRecurringJobs() {
         return recurringJobs.size();
+    }
+
+    @Override
+    public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
+        Long currentResult = recurringJobs.stream().map(rj -> rj.getCreatedAt().toEpochMilli()).reduce(Long::sum).orElse(0L);
+        return !currentResult.equals(recurringJobsUpdatedHash);
     }
 
     @Override

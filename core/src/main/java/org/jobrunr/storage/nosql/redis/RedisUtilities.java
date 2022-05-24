@@ -72,6 +72,10 @@ public class RedisUtilities {
         return toRedisKey(keyPrefix, "recurringjob", id);
     }
 
+    public static String recurringJobCreatedAtKey(String keyPrefix) {
+        return toRedisKey(keyPrefix, "recurringjob", "createdAt");
+    }
+
     public static String scheduledJobsKey(String keyPrefix) {
         return toRedisKey(keyPrefix, "queue", "scheduledjobs");
     }
