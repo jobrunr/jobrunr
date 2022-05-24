@@ -28,13 +28,20 @@ class DatabaseMigrationsProvider {
     public Stream<SqlMigration> getMigrations() {
         SqlMigrationProvider migrationProvider = getMigrationProvider();
 
-        final Map<String, SqlMigration> commonMigrations = getCommonMigrations(migrationProvider).stream().collect(toMap(SqlMigration::getFileName, m -> m));
-        final Map<String, SqlMigration> databaseSpecificMigrations = getDatabaseSpecificMigrations(migrationProvider).stream().collect(toMap(SqlMigration::getFileName, p -> p));
+        try {
+            final Map<String, SqlMigration> commonMigrations = getCommonMigrations(migrationProvider).stream().collect(toMap(SqlMigration::getFileName, m -> m));
+            final Map<String, SqlMigration> databaseSpecificMigrations = getDatabaseSpecificMigrations(migrationProvider).stream().collect(toMap(SqlMigration::getFileName, p -> p));
 
-        final HashMap<String, SqlMigration> actualMigrations = new HashMap<>(commonMigrations);
-        actualMigrations.putAll(databaseSpecificMigrations);
+            final HashMap<String, SqlMigration> actualMigrations = new HashMap<>(commonMigrations);
+            actualMigrations.putAll(databaseSpecificMigrations);
 
-        return actualMigrations.values().stream();
+            return actualMigrations.values().stream();
+        } catch (IllegalStateException e) {
+            if(e.getMessage().startsWith("Duplicate key")) {
+                throw new IllegalStateException("It seems you have JobRunr twice on your classpath. Please make sure to only have one JobRunr jar in your classpath.", e);
+            }
+            throw e;
+        }
     }
 
     private SqlMigrationProvider getMigrationProvider() {
