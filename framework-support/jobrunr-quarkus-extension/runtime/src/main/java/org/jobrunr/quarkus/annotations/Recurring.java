@@ -53,7 +53,7 @@ public @interface Recurring {
     String cron() default "";
 
     /**
-     * The time interval between scheduled runs pf this recurring job.
+     * The time interval between scheduled runs of this recurring job.
      * <p>@see Duration</p>
      * <p>Examples:</p>
      * <pre>
