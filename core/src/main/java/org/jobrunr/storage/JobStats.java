@@ -2,7 +2,7 @@ package org.jobrunr.storage;
 
 import java.time.Instant;
 
-public class JobStats {
+public class JobStats implements Comparable<JobStats> {
 
     private final Instant timeStamp;
     private final Long total;
@@ -84,5 +84,14 @@ public class JobStats {
 
     public int getBackgroundJobServers() {
         return backgroundJobServers;
+    }
+
+    @Override
+    public int compareTo(JobStats jobStats) {
+        if(this.succeeded > jobStats.succeeded) return 1;
+        else if(this.total > jobStats.total) return 1;
+        else if(this.succeeded < jobStats.succeeded) return -1;
+        else if(this.total < jobStats.total) return -1;
+        else return this.timeStamp.compareTo(jobStats.timeStamp);
     }
 }

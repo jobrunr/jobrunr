@@ -33,8 +33,8 @@ public class JobStatsEnricher {
 
     private static JobStats getLatestJobStats(JobStats jobStats, JobStats previousJobStats) {
         if (previousJobStats == null) return jobStats;
-        if (jobStats.getTimeStamp().isAfter(previousJobStats.getTimeStamp())) return jobStats;
-        return previousJobStats;
+        else if (jobStats.compareTo(previousJobStats) >= 0) return jobStats;
+        else return previousJobStats;
     }
 
     private void setFirstRelevantJobStats(JobStats jobStats) {
