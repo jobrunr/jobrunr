@@ -128,8 +128,17 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    public void restart() {
+        forceStop();
+        start();
+    }
+
     public void stop() {
         if (isStopped()) return;
+        forceStop();
+    }
+
+    private void forceStop() {
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
             LOGGER.info("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)");
             isMaster = null;
