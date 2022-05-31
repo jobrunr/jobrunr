@@ -95,7 +95,8 @@ class DefaultConcurrentJobModificationResolverTest {
                 arguments(aCopyOf(scheduledJob).withEnqueuedState(Instant.now()).build(), aCopyOf(scheduledJob).withDeletedState().build()),
                 arguments(aCopyOf(jobInProgress).withSucceededState().build(), aCopyOf(jobInProgress).withDeletedState().build()),
                 arguments(aCopyOf(jobInProgress).withFailedState().build(), aCopyOf(jobInProgress).withDeletedState().build()),
-                arguments(aCopyOf(jobInProgress).withScheduledState().build(), aCopyOf(jobInProgress).withDeletedState().build())
+                arguments(aCopyOf(jobInProgress).withScheduledState().build(), aCopyOf(jobInProgress).withDeletedState().build()),
+                arguments(aCopyOf(jobInProgress).withVersion(3).build(), aCopyOf(jobInProgress).withVersion(6).withFailedState().withScheduledState().withEnqueuedState(Instant.now()).withProcessingState().build())
         );
     }
 
