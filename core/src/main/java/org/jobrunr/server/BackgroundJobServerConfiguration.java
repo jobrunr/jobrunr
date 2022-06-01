@@ -10,9 +10,13 @@ import java.time.Duration;
 public class BackgroundJobServerConfiguration {
 
     public static final int DEFAULT_POLL_INTERVAL_IN_SECONDS = 15;
+    public static final int DEFAULT_PAGE_REQUEST_SIZE = 1000;
     public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
     public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
 
+    int scheduledJobRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
+    int orphanedJobRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
+    int succeededJobRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
     Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
     Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
@@ -65,6 +69,39 @@ public class BackgroundJobServerConfiguration {
      */
     public BackgroundJobServerConfiguration andBackgroundJobServerWorkerPolicy(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
         this.backgroundJobServerWorkerPolicy = backgroundJobServerWorkerPolicy;
+        return this;
+    }
+
+    /**
+     * Allows to set the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+     *
+     * @param scheduledJobRequestSize maximum number of jobs to update per polling interval
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andScheduledJobRequestSize(int scheduledJobRequestSize) {
+        this.scheduledJobRequestSize = scheduledJobRequestSize;
+        return this;
+    }
+
+    /**
+     * Allows to set the query size for misfired jobs per polling interval (to retry them).
+     *
+     * @param orphanedJobRequestSize maximum number of misfired jobs to check per polling interval
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andOrphanedJobRequestSize(int orphanedJobRequestSize) {
+        this.orphanedJobRequestSize = orphanedJobRequestSize;
+        return this;
+    }
+
+    /**
+     * Allows to set the maximum number of jobs to update from succeeded to deleted state per polling interval.
+     *
+     * @param succeededJobRequestSize maximum number of jobs to update per polling interval
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andSucceededJobRequestSize(int succeededJobRequestSize) {
+        this.succeededJobRequestSize = succeededJobRequestSize;
         return this;
     }
 

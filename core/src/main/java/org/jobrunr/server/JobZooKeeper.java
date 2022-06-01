@@ -114,14 +114,16 @@ public class JobZooKeeper implements Runnable {
 
     void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(1000));
+        final int pageRequestSize = backgroundJobServer.getConfiguration().scheduledJobRequestSize;
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(pageRequestSize));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
     void checkForOrphanedJobs() {
         LOGGER.debug("Looking for orphan jobs... ");
+        final int pageRequestSize = backgroundJobServer.getConfiguration().orphanedJobRequestSize;
         final Instant updatedBefore = runStartTime.minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
-        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(1000));
+        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
     }
 
@@ -129,8 +131,9 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
+        final int pageRequestSize = backgroundJobServer.getConfiguration().succeededJobRequestSize;
         final Instant updatedBefore = now().minus(backgroundJobServer.getServerStatus().getDeleteSucceededJobsAfter());
-        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(1000));
+        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(succeededJobsSupplier, job -> {
             succeededJobsCounter.incrementAndGet();
             job.delete("JobRunr maintenance - deleting succeeded job");

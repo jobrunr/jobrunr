@@ -114,6 +114,24 @@ public class JobRunrConfiguration {
         public Optional<Integer> workerCount;
 
         /**
+         * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+         */
+        @ConfigItem
+        public Optional<Integer> scheduledJobRequestSize;
+
+        /**
+         * Sets the query size for misfired jobs per polling interval (to retry them).
+         */
+        @ConfigItem
+        public Optional<Integer> orphanedJobRequestSize;
+
+        /**
+         * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
+         */
+        @ConfigItem
+        public Optional<Integer> succeededJobRequestSize;
+
+        /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
         @ConfigItem
