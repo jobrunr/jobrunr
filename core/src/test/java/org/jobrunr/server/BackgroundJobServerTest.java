@@ -6,6 +6,7 @@ import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.states.ProcessingState;
@@ -14,6 +15,7 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
+import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
@@ -22,15 +24,18 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
 import org.jobrunr.stubs.TestServiceThatCannotBeRun;
 import org.jobrunr.utils.SleepUtils;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +53,12 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class BackgroundJobServerTest {
 
@@ -346,6 +356,86 @@ class BackgroundJobServerTest {
 
         await().atMost(10, SECONDS)
                 .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer failed to start"));
+    }
+
+    @Test
+    void testProcessJobUsesBackgroundJobPerformerFactoryWithMaximumPriorityWhenAvailable() {
+        try (MockedStatic<ServiceLoader> serviceLoaderMock = Mockito.mockStatic(ServiceLoader.class)) {
+
+            // arrange
+            JobRunrExecutor jobRunrExecutor = mock(JobRunrExecutor.class);
+            ServiceLoader<JobRunrExecutor> jobRunrExecutorServiceLoader = mock(ServiceLoader.class);
+            when(jobRunrExecutorServiceLoader.iterator()).thenReturn(Stream.of(jobRunrExecutor).iterator());
+
+            BackgroundJobPerformer minPriorityBackgroundJobPerformer = mock(BackgroundJobPerformer.class);
+            BackgroundJobPerformerFactory minPriorityJobPerformerFactory = mock(BackgroundJobPerformerFactory.class);
+            when(minPriorityJobPerformerFactory.newBackgroundJobPerformer(any(), any()))
+                    .thenReturn(minPriorityBackgroundJobPerformer);
+            when(minPriorityJobPerformerFactory.getPriority())
+                    .thenReturn(5);
+
+            BackgroundJobPerformer maxPriorityBackgroundJobPerformer = mock(BackgroundJobPerformer.class);
+            BackgroundJobPerformerFactory maxPriorityJobPerformerFactory = mock(BackgroundJobPerformerFactory.class);
+            when(maxPriorityJobPerformerFactory.newBackgroundJobPerformer(any(), any()))
+                    .thenReturn(maxPriorityBackgroundJobPerformer);
+            when(maxPriorityJobPerformerFactory.getPriority())
+                    .thenReturn(15);
+
+            ServiceLoader<BackgroundJobPerformerFactory> backgroundJobPerformerFactoryServiceLoader = mock(ServiceLoader.class);
+            when(backgroundJobPerformerFactoryServiceLoader.iterator()).thenReturn(Stream.of(minPriorityJobPerformerFactory, maxPriorityJobPerformerFactory).iterator());
+
+
+            serviceLoaderMock.when(() -> ServiceLoader.load(JobRunrExecutor.class)).thenReturn(jobRunrExecutorServiceLoader);
+            serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
+
+            BackgroundJobServer jobServer = new BackgroundJobServer(storageProvider, mock(JsonMapper.class), jobActivator, usingStandardBackgroundJobServerConfiguration());
+            jobServer.start();
+
+            // act
+            jobServer.processJob(mock(Job.class));
+
+            // assert
+            verify(minPriorityJobPerformerFactory, never()).newBackgroundJobPerformer(any(), any());
+            verify(jobRunrExecutor, never()).execute(eq(minPriorityBackgroundJobPerformer));
+
+            verify(maxPriorityJobPerformerFactory).newBackgroundJobPerformer(any(), any());
+            verify(jobRunrExecutor).execute(eq(maxPriorityBackgroundJobPerformer));
+        }
+    }
+
+    @Test
+    void testProcessJobUsesDefaultBackgroundJobPerformerFactoryWhenNoneAvailable() {
+        try (MockedStatic<ServiceLoader> serviceLoaderMock = Mockito.mockStatic(ServiceLoader.class)) {
+
+            // arrange
+            JobRunrExecutor jobRunrExecutor = mock(JobRunrExecutor.class);
+            ServiceLoader<JobRunrExecutor> jobRunrExecutorServiceLoader = mock(ServiceLoader.class);
+            when(jobRunrExecutorServiceLoader.iterator())
+                    .thenReturn(Stream.of(jobRunrExecutor).iterator());
+
+            ServiceLoader<BackgroundJobPerformerFactory> backgroundJobPerformerFactoryServiceLoader = mock(ServiceLoader.class);
+            when(backgroundJobPerformerFactoryServiceLoader.iterator())
+                    .thenReturn(Stream.<BackgroundJobPerformerFactory>empty().iterator());
+
+
+            serviceLoaderMock.when(() -> ServiceLoader.load(JobRunrExecutor.class)).thenReturn(jobRunrExecutorServiceLoader);
+            serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
+
+            BackgroundJobServer jobServer = new BackgroundJobServer(storageProvider, mock(JsonMapper.class), jobActivator, usingStandardBackgroundJobServerConfiguration());
+            jobServer.start();
+
+            JobDetails jobDetails = mock(JobDetails.class);
+            when(jobDetails.getClassName()).thenReturn("java");
+            Job job = mock(Job.class);
+            when(job.getJobDetails()).thenReturn(jobDetails);
+
+            // act
+            jobServer.processJob(job);
+
+            // assert
+            serviceLoaderMock.verify(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class));
+            verify(jobRunrExecutor).execute(any(BackgroundJobPerformer.class));
+        }
     }
 
     private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {

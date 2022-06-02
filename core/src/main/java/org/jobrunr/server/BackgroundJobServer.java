@@ -55,6 +55,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
     private final BackgroundJobServerLifecycleLock lifecycleLock;
+    private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
@@ -85,6 +86,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
+        this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
     }
 
     public UUID getId() {
@@ -223,7 +225,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     void processJob(Job job) {
-        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(this, job);
+        BackgroundJobPerformer backgroundJobPerformer = backgroundJobPerformerFactory.newBackgroundJobPerformer(this, job);
         jobExecutor.execute(backgroundJobPerformer);
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
@@ -322,6 +324,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return configuration.backgroundJobServerWorkerPolicy.toWorkDistributionStrategy(this);
     }
 
+    private BackgroundJobPerformerFactory loadBackgroundJobPerformerFactory() {
+        ServiceLoader<BackgroundJobPerformerFactory> serviceLoader = ServiceLoader.load(BackgroundJobPerformerFactory.class);
+        return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
+                .min((a, b) -> compare(b.getPriority(), a.getPriority()))
+                .orElseGet(BasicBackgroundJobPerformerFactory::new);
+    }
+
     private JobRunrExecutor loadJobRunrExecutor() {
         ServiceLoader<JobRunrExecutor> serviceLoader = ServiceLoader.load(JobRunrExecutor.class);
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
@@ -343,6 +352,18 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         @Override
         public void close() {
             reentrantLock.unlock();
+        }
+    }
+
+    private static class BasicBackgroundJobPerformerFactory implements BackgroundJobPerformerFactory {
+        @Override
+        public int getPriority() {
+            return 10;
+        }
+
+        @Override
+        public BackgroundJobPerformer newBackgroundJobPerformer(BackgroundJobServer backgroundJobServer, Job job) {
+            return new BackgroundJobPerformer(backgroundJobServer, job);
         }
     }
 }
