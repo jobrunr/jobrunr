@@ -58,9 +58,9 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getWorkerCount().ifPresent(backgroundJobServerConfiguration::andWorkerCount);
         configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
-        configuration.getBackgroundJobServer().getScheduledJobRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobRequestSize);
-        configuration.getBackgroundJobServer().getOrphanedJobRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobRequestSize);
-        configuration.getBackgroundJobServer().getSucceededJobRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobRequestSize);
+        configuration.getBackgroundJobServer().getScheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
+        configuration.getBackgroundJobServer().getOrphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
+        configuration.getBackgroundJobServer().getSucceededJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
         return backgroundJobServerConfiguration;
     }
 

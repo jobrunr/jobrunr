@@ -116,17 +116,17 @@ public interface JobRunrConfiguration {
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
          */
-        Optional<Integer> getScheduledJobRequestSize();
+        Optional<Integer> getScheduledJobsRequestSize();
 
         /**
          * Sets the query size for misfired jobs per polling interval (to retry them).
          */
-        Optional<Integer> getOrphanedJobRequestSize();
+        Optional<Integer> getOrphanedJobsRequestSize();
 
         /**
          * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
          */
-        Optional<Integer> getSucceededJobRequestSize();
+        Optional<Integer> getSucceededJobsRequestSize();
 
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.

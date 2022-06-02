@@ -114,14 +114,14 @@ public class JobZooKeeper implements Runnable {
 
     void checkForScheduledJobs() {
         LOGGER.debug("Looking for scheduled jobs... ");
-        final int pageRequestSize = backgroundJobServer.getConfiguration().scheduledJobRequestSize;
+        final int pageRequestSize = backgroundJobServer.getConfiguration().scheduledJobsRequestSize;
         Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerStatus().getPollIntervalInSeconds()), ascOnUpdatedAt(pageRequestSize));
         processJobList(scheduledJobsSupplier, Job::enqueue);
     }
 
     void checkForOrphanedJobs() {
         LOGGER.debug("Looking for orphan jobs... ");
-        final int pageRequestSize = backgroundJobServer.getConfiguration().orphanedJobRequestSize;
+        final int pageRequestSize = backgroundJobServer.getConfiguration().orphanedJobsRequestSize;
         final Instant updatedBefore = runStartTime.minus(ofSeconds(backgroundJobServer.getServerStatus().getPollIntervalInSeconds()).multipliedBy(4));
         Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(orphanedJobsSupplier, job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")));
@@ -131,7 +131,7 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         AtomicInteger succeededJobsCounter = new AtomicInteger();
 
-        final int pageRequestSize = backgroundJobServer.getConfiguration().succeededJobRequestSize;
+        final int pageRequestSize = backgroundJobServer.getConfiguration().succeededJobsRequestSize;
         final Instant updatedBefore = now().minus(backgroundJobServer.getServerStatus().getDeleteSucceededJobsAfter());
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(succeededJobsSupplier, job -> {

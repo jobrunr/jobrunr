@@ -16,11 +16,11 @@ import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
 import org.jobrunr.spring.autoconfigure.storage.*;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -49,6 +49,7 @@ import java.sql.*;
 import java.util.Spliterator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -117,7 +118,7 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.miscellaneous.allow-anonymous-data-usage=true")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
-                    JobRunrAssertions.assertThat(context.getBean(JobRunrDashboardWebServer.class))
+                    assertThat(context.getBean(JobRunrDashboardWebServer.class))
                             .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
                 });
     }
@@ -129,7 +130,7 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.miscellaneous.allow-anonymous-data-usage=false")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
-                    JobRunrAssertions.assertThat(context.getBean(JobRunrDashboardWebServer.class))
+                    assertThat(context.getBean(JobRunrDashboardWebServer.class))
                             .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
                 });
     }
@@ -149,9 +150,24 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.jobs.default-number-of-retries=3")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(BackgroundJobServer.class);
-            JobRunrAssertions.assertThat(context.getBean(BackgroundJobServer.class))
+            assertThat(context.getBean(BackgroundJobServer.class))
                     .hasRetryFilter(3);
         });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountAllJobsRequestSizes() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.scheduled-jobs-request-size=1")
+                .withPropertyValues("org.jobrunr.background-job-server.orphaned-jobs-request-size=2")
+                .withPropertyValues("org.jobrunr.background-job-server.succeeded-jobs-request-size=3")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasScheduledJobRequestSize(1)
+                            .hasOrphanedJobRequestSize(2)
+                            .hasSucceededJobRequestSize(3);
+                });
     }
 
     @Test

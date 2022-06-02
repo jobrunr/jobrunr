@@ -9,6 +9,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -86,6 +87,20 @@ class JobRunrFactoryTest {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
         assertThat(backgroundJobServer)
                 .hasRetryFilter(3);
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.scheduled-jobs-request-size", value = "1")
+    @Property(name = "jobrunr.background-job-server.orphaned-jobs-request-size", value = "2")
+    @Property(name = "jobrunr.background-job-server.succeeded-jobs-request-size", value = "3")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountAllJobsRequestSizes() {
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfiguration)
+                .hasScheduledJobRequestSize(1)
+                .hasOrphanedJobRequestSize(2)
+                .hasSucceededJobRequestSize(3);
     }
 
 
