@@ -32,6 +32,12 @@ public class DatabaseCreator {
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
 
     public static void main(String[] args) {
+        if(args.length < 3) {
+            System.out.println("Error: insufficient arguments");
+            System.out.println();
+            System.out.println("usage: java -cp jobrunr-${jobrunr.version}.jar org.jobrunr.storage.sql.common.DatabaseCreator {jdbcUrl} {userName} {password} ({tablePrefix})");
+            return;
+        }
         String url = args[0];
         String userName = args[1];
         String password = args[2];
