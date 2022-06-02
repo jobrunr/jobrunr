@@ -65,6 +65,9 @@ public class JobRunrProducer {
             configuration.backgroundJobServer.workerCount.ifPresent(backgroundJobServerConfiguration::andWorkerCount);
             configuration.backgroundJobServer.deleteSucceededJobsAfter.ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
             configuration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter.ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+            configuration.backgroundJobServer.scheduledJobsRequestSize.ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
+            configuration.backgroundJobServer.orphanedJobsRequestSize.ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
+            configuration.backgroundJobServer.succeededsJobRequestSize.ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
             return backgroundJobServerConfiguration;
         }
         return null;

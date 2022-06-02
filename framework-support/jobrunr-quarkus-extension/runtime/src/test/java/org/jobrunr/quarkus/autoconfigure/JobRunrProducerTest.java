@@ -49,6 +49,9 @@ class JobRunrProducerTest {
         configuration.backgroundJobServer = new JobRunrConfiguration.BackgroundJobServerConfiguration();
         configuration.backgroundJobServer.pollIntervalInSeconds = Optional.empty();
         configuration.backgroundJobServer.workerCount = Optional.empty();
+        configuration.backgroundJobServer.scheduledJobsRequestSize = Optional.empty();
+        configuration.backgroundJobServer.orphanedJobsRequestSize = Optional.empty();
+        configuration.backgroundJobServer.succeededsJobRequestSize = Optional.empty();
         configuration.backgroundJobServer.deleteSucceededJobsAfter = Optional.empty();
         configuration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter = Optional.empty();
         configuration.dashboard = new JobRunrConfiguration.DashboardConfiguration();

@@ -13,6 +13,8 @@ import org.jobrunr.dashboard.server.http.client.HttpResponseAssert;
 import org.jobrunr.jobs.*;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
 import org.jobrunr.storage.*;
 
 import javax.sql.DataSource;
@@ -45,6 +47,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static JobRunrMetadataAssert assertThat(JobRunrMetadata metadata) {
         return JobRunrMetadataAssert.assertThat(metadata);
+    }
+
+    public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        return BackgroundJobServerConfigurationAssert.assertThat(backgroundJobServerConfiguration);
     }
 
     public static BackgroundJobServerAssert assertThat(BackgroundJobServer backgroundJobServer) {

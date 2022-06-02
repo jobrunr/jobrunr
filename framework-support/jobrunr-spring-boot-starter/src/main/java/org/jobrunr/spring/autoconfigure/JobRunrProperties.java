@@ -229,6 +229,21 @@ public class JobRunrProperties {
         private Integer pollIntervalInSeconds = 15;
 
         /**
+         * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+         */
+        private Integer scheduledJobsRequestSize = 1000;
+
+        /**
+         * Sets the query size for misfired jobs per polling interval (to retry them).
+         */
+        private Integer orphanedJobsRequestSize = 1000;
+
+        /**
+         * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
+         */
+        private Integer succeededJobsRequestSize = 1000;
+
+        /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
@@ -264,6 +279,33 @@ public class JobRunrProperties {
 
         public void setPollIntervalInSeconds(Integer pollIntervalInSeconds) {
             this.pollIntervalInSeconds = pollIntervalInSeconds;
+        }
+
+        public Integer getScheduledJobsRequestSize() {
+            return scheduledJobsRequestSize;
+        }
+
+        public BackgroundJobServer setScheduledJobsRequestSize(Integer scheduledJobsRequestSize) {
+            this.scheduledJobsRequestSize = scheduledJobsRequestSize;
+            return this;
+        }
+
+        public Integer getOrphanedJobsRequestSize() {
+            return orphanedJobsRequestSize;
+        }
+
+        public BackgroundJobServer setOrphanedJobsRequestSize(Integer orphanedJobsRequestSize) {
+            this.orphanedJobsRequestSize = orphanedJobsRequestSize;
+            return this;
+        }
+
+        public Integer getSucceededJobsRequestSize() {
+            return succeededJobsRequestSize;
+        }
+
+        public BackgroundJobServer setSucceededJobsRequestSize(Integer succeededJobsRequestSize) {
+            this.succeededJobsRequestSize = succeededJobsRequestSize;
+            return this;
         }
 
         public Duration getDeleteSucceededJobsAfter() {
