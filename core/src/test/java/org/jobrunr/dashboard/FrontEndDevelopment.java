@@ -1,5 +1,7 @@
 package org.jobrunr.dashboard;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.context.JobContext;
@@ -16,14 +18,12 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
+import javax.sql.DataSource;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
@@ -36,6 +36,7 @@ public class FrontEndDevelopment {
 
     public static void main(String[] args) throws InterruptedException {
         StorageProvider storageProvider = new InMemoryStorageProvider();
+        //final StorageProvider storageProvider = SqlStorageProviderFactory.using(getMariaDBDataSource());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
 
         StubDataProvider.using(storageProvider)
@@ -94,5 +95,14 @@ public class FrontEndDevelopment {
         public DiagnosticsBuilder getDiagnosticsInfo() {
             return diagnostics().withTitle("Title").withLine("Text").withException(new RuntimeException());
         }
+    }
+
+    protected static DataSource getMariaDBDataSource() {
+        HikariConfig config = new HikariConfig();
+        config.setMaximumPoolSize(84);
+        config.setJdbcUrl("jdbc:mariadb://localhost:3306/mysql?rewriteBatchedStatements=true&useBulkStmts=false");
+        config.setUsername("root");
+        config.setPassword("mysql");
+        return new HikariDataSource(config);
     }
 }
