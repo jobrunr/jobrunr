@@ -85,8 +85,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.workDistributionStrategy = createWorkDistributionStrategy(configuration);
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
-        this.lifecycleLock = new BackgroundJobServerLifecycleLock();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
+        this.lifecycleLock = new BackgroundJobServerLifecycleLock();
     }
 
     public UUID getId() {
