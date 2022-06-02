@@ -9,7 +9,7 @@
 - [ ] Website:
   - [x] Explain difference between static BackgroundJob and jobscheduler access
   - [x] Fix typo Alexander: BackgroundJob.enqueue should be jobScheduler.enqueue
-  - [x] Add CLA
+  - [x] Add CLA and test
   - [ ] Add examples about Quarkus
 - [ ] GraalVM
   - [ ] Add support for JobDetails
