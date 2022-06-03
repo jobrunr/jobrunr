@@ -2,6 +2,10 @@ package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
+import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
 import org.jobrunr.storage.sql.db2.DB2StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
 import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
@@ -18,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseSqlMigrationFileProvider {
 
@@ -40,14 +46,17 @@ public class DatabaseSqlMigrationFileProvider {
             System.out.println("  where databaseType is one of 'db2', 'h2', 'mariadb', 'mysql', 'oracle', 'postgres', 'sqlite', 'sqlserver'");
             return;
         }
+        String tablePrefix = args.length >= 2 ? args[1] : null;
 
         try {
             System.out.println("==========================================================");
             System.out.println("======== JobRunr Database SQL Migration Provider =========");
             System.out.println("==========================================================");
-            DatabaseMigrationsProvider databaseMigrationsProvider = new DatabaseMigrationsProvider(databaseTypes.get(args[0].toLowerCase()));
+            Class<? extends SqlStorageProvider> sqlStorageProviderClass = databaseTypes.get(args[0].toLowerCase());
+            DatabaseMigrationsProvider databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
+            TablePrefixStatementUpdater statementUpdater = getStatementUpdater(tablePrefix, sqlStorageProviderClass);
             databaseMigrationsProvider.getMigrations()
-                    .forEach(DatabaseSqlMigrationFileProvider::createSQLMigrationFile);
+                    .forEach(sqlMigration -> createSQLMigrationFile(sqlMigration, statementUpdater));
             System.out.println("Successfully created all SQL scripts for " + args[0] + "!");
         } catch (Exception e) {
             System.out.println("An error occurred: ");
@@ -58,11 +67,28 @@ public class DatabaseSqlMigrationFileProvider {
         }
     }
 
-    private static void createSQLMigrationFile(SqlMigration migration) {
+    private static void createSQLMigrationFile(SqlMigration migration, TablePrefixStatementUpdater statementUpdater) {
         try {
-            Files.write(Paths.get("./" + migration.getFileName()), migration.getMigrationSql().getBytes(StandardCharsets.UTF_8));
+            final StringBuilder result = new StringBuilder();
+            final String sql = migration.getMigrationSql();
+            for (String statement : sql.split(";")) {
+                result.append(statementUpdater.updateStatement(statement)).append(";");
+            }
+            Files.write(Paths.get("./" + migration.getFileName()), result.toString().getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    private static TablePrefixStatementUpdater getStatementUpdater(String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        if (isNullOrEmpty(tablePrefix)) {
+            return new NoOpTablePrefixStatementUpdater();
+        } else {
+            if (OracleStorageProvider.class.equals(sqlStorageProviderClass) || DB2StorageProvider.class.equals(sqlStorageProviderClass)) {
+                return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
+            } else {
+                return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
+            }
         }
     }
 }

@@ -4,6 +4,10 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
+import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,14 +21,11 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.substringAfterLast;
 
 public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
-    private static final String DEFAULT_PREFIX = "jobrunr_";
     private static final String[] JOBRUNR_TABLES = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
 
     private final ConnectionProvider connectionProvider;
@@ -199,90 +200,6 @@ public class DatabaseCreator {
             }
         } catch (SQLException e) {
             throw JobRunrException.shouldNotHappenException(e);
-        }
-    }
-
-    private interface TablePrefixStatementUpdater {
-
-        String updateStatement(String statement);
-
-        String getFQTableName(String tableName);
-
-    }
-
-    private static class NoOpTablePrefixStatementUpdater implements TablePrefixStatementUpdater {
-
-        @Override
-        public String updateStatement(String statement) {
-            return statement;
-        }
-
-        @Override
-        public String getFQTableName(String tableName) {
-            return tableName;
-        }
-
-
-    }
-
-    private static class OracleAndDB2TablePrefixStatementUpdater implements TablePrefixStatementUpdater {
-
-        private final String tablePrefix;
-
-        public OracleAndDB2TablePrefixStatementUpdater(String tablePrefix) {
-            this.tablePrefix = tablePrefix;
-        }
-
-        @Override
-        public String updateStatement(String statement) {
-            return statement.replace(DEFAULT_PREFIX, elementPrefixer(tablePrefix, DEFAULT_PREFIX));
-        }
-
-        @Override
-        public String getFQTableName(String tableName) {
-            return elementPrefixer(tablePrefix, tableName);
-        }
-    }
-
-    private static class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixStatementUpdater {
-
-        private final String tablePrefix;
-        private final String indexPrefix;
-
-        public AnsiDatabaseTablePrefixStatementUpdater(String tablePrefix) {
-            this.tablePrefix = tablePrefix;
-            this.indexPrefix = getIndexPrefix(tablePrefix);
-        }
-
-        @Override
-        public String updateStatement(String statement) {
-            if (isCreateIndex(statement)) {
-                return updateStatementWithTablePrefixForCreateIndexStatement(statement);
-            }
-            return updateStatementWithTablePrefixForOtherStatements(statement);
-        }
-
-        @Override
-        public String getFQTableName(String tableName) {
-            return elementPrefixer(tablePrefix, tableName);
-        }
-
-        private boolean isCreateIndex(String statement) {
-            return statement.contains("CREATE INDEX ");
-        }
-
-        private String updateStatementWithTablePrefixForCreateIndexStatement(String statement) {
-            return statement
-                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
-                    .replace("ON jobrunr_", "ON " + elementPrefixer(tablePrefix, DEFAULT_PREFIX));
-        }
-
-        private String updateStatementWithTablePrefixForOtherStatements(String statement) {
-            return statement.replace(DEFAULT_PREFIX, elementPrefixer(tablePrefix, DEFAULT_PREFIX));
-        }
-
-        private String getIndexPrefix(String tablePrefix) {
-            return substringAfterLast(tablePrefix, ".");
         }
     }
 }
