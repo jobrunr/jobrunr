@@ -38,11 +38,7 @@ public class BackgroundJobPerformer implements Runnable {
     public void run() {
         try {
             backgroundJobServer.getJobZooKeeper().notifyThreadOccupied();
-            boolean canProcess = updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart();
-            if (canProcess) {
-                runActualJob();
-                updateJobStateToSucceededAndRunJobFilters();
-            }
+            performJob();
         } catch (Exception e) {
             if (isJobDeletedWhileProcessing(e)) {
                 // nothing to do anymore as Job is deleted
@@ -57,6 +53,14 @@ public class BackgroundJobPerformer implements Runnable {
             }
         } finally {
             backgroundJobServer.getJobZooKeeper().notifyThreadIdle();
+        }
+    }
+
+    protected void performJob() throws Exception {
+        boolean canProcess = updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart();
+        if (canProcess) {
+            runActualJob();
+            updateJobStateToSucceededAndRunJobFilters();
         }
     }
 

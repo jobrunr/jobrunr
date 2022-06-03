@@ -60,7 +60,7 @@ class BackgroundJobServerTest {
     private ListAppender<ILoggingEvent> logger;
 
     @BeforeEach
-    void setUpTestService() {
+    void setUp() {
         testService = new TestService();
         testServiceForIoC = new TestServiceForIoC("an argument");
         testService.reset();

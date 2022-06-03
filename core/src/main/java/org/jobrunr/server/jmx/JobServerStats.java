@@ -15,7 +15,7 @@ public class JobServerStats {
     private final ConcurrentMap<String, Object> cachedValues = new ConcurrentHashMap<>();
 
     public JobServerStats() {
-        this(ManagementFactory.getOperatingSystemMXBean(), ManagementFactory.getPlatformMBeanServer());
+        this(getOperatingSystemMXBean(), getPlatformMBeanServer());
     }
 
     protected JobServerStats(OperatingSystemMXBean operatingSystemMXBean, MBeanServer platformMBeanServer) {
@@ -69,12 +69,30 @@ public class JobServerStats {
 
     // visible for testing
     // see bug JDK-8193878
+
     <O> O getMXBeanValue(String name) {
+        if(platformMBeanServer == null || operatingSystemMXBean == null) return cast(-1);
+
         try {
             final Object attribute = platformMBeanServer.getAttribute(operatingSystemMXBean.getObjectName(), name);
             return cast(attribute);
         } catch (Throwable ex) {
             return cast(-1);
+        }
+    }
+    private static OperatingSystemMXBean getOperatingSystemMXBean() {
+        try {
+            return ManagementFactory.getOperatingSystemMXBean();
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
+            return null;
+        }
+    }
+
+    private static MBeanServer getPlatformMBeanServer() {
+        try {
+            return ManagementFactory.getPlatformMBeanServer();
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
+            return null;
         }
     }
 }
