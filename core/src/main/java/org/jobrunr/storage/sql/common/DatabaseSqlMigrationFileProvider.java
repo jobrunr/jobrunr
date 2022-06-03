@@ -42,7 +42,7 @@ public class DatabaseSqlMigrationFileProvider {
         if(args.length < 1 || !databaseTypes.containsKey(args[0].toLowerCase())) {
             System.out.println("Error: insufficient arguments");
             System.out.println();
-            System.out.println("usage: java -cp jobrunr-${jobrunr.version}.jar org.jobrunr.storage.sql.common.DatabaseSqlMigrationFileProvider {databaseType}");
+            System.out.println("usage: java -cp jobrunr-${jobrunr.version}.jar org.jobrunr.storage.sql.common.DatabaseSqlMigrationFileProvider {databaseType} ({tablePrefix})");
             System.out.println("  where databaseType is one of 'db2', 'h2', 'mariadb', 'mysql', 'oracle', 'postgres', 'sqlite', 'sqlserver'");
             return;
         }
