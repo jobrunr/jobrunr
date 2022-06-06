@@ -64,7 +64,7 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
         if (restHighLevelClient == null) {
             restHighLevelClient = new RestHighLevelClient(
                     RestClient.builder(
-                            new HttpHost(elasticSearchContainer.getContainerIpAddress(), elasticSearchContainer.getMappedPort(9200), "http")));
+                            new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getMappedPort(9200), "http")));
         }
         return restHighLevelClient;
     }

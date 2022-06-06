@@ -53,7 +53,7 @@ public class JedisRedisStorageProviderTest extends StorageProviderTest {
 
     private static JedisPool getJedisPool() {
         if (jedisPool == null) {
-            jedisPool = new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379));
+            jedisPool = new JedisPool(redisContainer.getHost(), redisContainer.getMappedPort(6379));
         }
         return jedisPool;
     }

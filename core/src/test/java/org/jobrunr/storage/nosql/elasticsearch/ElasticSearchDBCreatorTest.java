@@ -98,7 +98,7 @@ class ElasticSearchDBCreatorTest {
     private RestHighLevelClient elasticSearchClient() {
         return new RestHighLevelClient(
                 RestClient.builder(
-                        new HttpHost(elasticSearchContainer.getContainerIpAddress(), elasticSearchContainer.getMappedPort(9200), "http")));
+                        new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getMappedPort(9200), "http")));
 
     }
 }

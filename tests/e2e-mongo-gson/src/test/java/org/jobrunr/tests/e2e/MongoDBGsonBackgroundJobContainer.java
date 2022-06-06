@@ -29,6 +29,6 @@ public class MongoDBGsonBackgroundJobContainer extends AbstractBackgroundJobCont
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        return new MongoDBStorageProvider(mongoContainer.getContainerIpAddress(), mongoContainer.getFirstMappedPort());
+        return new MongoDBStorageProvider(mongoContainer.getHost(), mongoContainer.getFirstMappedPort());
     }
 }

@@ -78,7 +78,7 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
             );
             mongoClient = MongoClients.create(
                     MongoClientSettings.builder()
-                            .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoContainer.getContainerIpAddress(), mongoContainer.getMappedPort(27017)))))
+                            .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoContainer.getHost(), mongoContainer.getMappedPort(27017)))))
                             .codecRegistry(codecRegistry)
                             .build());
 

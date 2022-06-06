@@ -60,7 +60,7 @@ class LettuceRedisDBCreatorTest {
     }
 
     private RedisClient getRedisClient() {
-        return RedisClient.create(RedisURI.create(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379)));
+        return RedisClient.create(RedisURI.create(redisContainer.getHost(), redisContainer.getMappedPort(6379)));
     }
 
     StatefulRedisConnection<String, String> createConnection(RedisClient redisClient) {

@@ -28,7 +28,7 @@ class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
     protected DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = new DB2SimpleDataSource();
-            dataSource.setServerName(sqlContainer.getContainerIpAddress());
+            dataSource.setServerName(sqlContainer.getHost());
             dataSource.setUser(sqlContainer.getUsername());
             dataSource.setPassword(sqlContainer.getPassword());
             dataSource.setDatabaseName(sqlContainer.getDatabaseName());

@@ -29,7 +29,7 @@ public class MongoDBJacksonBackgroundJobContainer extends AbstractBackgroundJobC
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        return new MongoDBStorageProvider(mongoContainer.getContainerIpAddress(), mongoContainer.getFirstMappedPort());
+        return new MongoDBStorageProvider(mongoContainer.getHost(), mongoContainer.getFirstMappedPort());
     }
 
 }
