@@ -57,7 +57,7 @@ public class LettuceRedisStorageProviderTest extends StorageProviderTest {
 
     private static RedisClient getRedisClient() {
         if (redisClient == null) {
-            redisClient = RedisClient.create(RedisURI.create(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379)));
+            redisClient = RedisClient.create(RedisURI.create(redisContainer.getHost(), redisContainer.getMappedPort(6379)));
         }
         return redisClient;
     }

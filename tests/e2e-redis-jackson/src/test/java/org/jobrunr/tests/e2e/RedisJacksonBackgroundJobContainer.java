@@ -30,7 +30,7 @@ public class RedisJacksonBackgroundJobContainer extends AbstractBackgroundJobCon
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        return new JedisRedisStorageProvider(new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getFirstMappedPort()));
+        return new JedisRedisStorageProvider(new JedisPool(redisContainer.getHost(), redisContainer.getFirstMappedPort()));
     }
 
 }

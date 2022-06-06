@@ -51,6 +51,6 @@ class JedisRedisDBCreatorTest {
     }
 
     private JedisPool getJedisPool() {
-        return new JedisPool(redisContainer.getContainerIpAddress(), redisContainer.getMappedPort(6379));
+        return new JedisPool(redisContainer.getHost(), redisContainer.getMappedPort(6379));
     }
 }

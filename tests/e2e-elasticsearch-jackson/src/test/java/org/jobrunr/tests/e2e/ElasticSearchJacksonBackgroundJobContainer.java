@@ -32,7 +32,7 @@ public class ElasticSearchJacksonBackgroundJobContainer extends AbstractBackgrou
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        HttpHost httpHost = new HttpHost(elasticSearchContainer.getContainerIpAddress(), elasticSearchContainer.getFirstMappedPort(), "http");
+        HttpHost httpHost = new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getFirstMappedPort(), "http");
         RestHighLevelClient restHighLevelClient = new RestHighLevelClient(RestClient.builder(httpHost).setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setSocketTimeout(100 * 1000)));
         return new ElasticSearchStorageProvider(restHighLevelClient);
     }
