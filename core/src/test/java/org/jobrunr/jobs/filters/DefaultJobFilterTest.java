@@ -12,13 +12,13 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
-class DisplayNameFilterTest {
+class DefaultJobFilterTest {
 
-    private DisplayNameFilter displayNameFilter;
+    private DefaultJobFilter defaultJobFilter;
 
     @BeforeEach
     void setup() {
-        displayNameFilter = new DisplayNameFilter();
+        defaultJobFilter = new DefaultJobFilter();
     }
 
     @Test
@@ -32,7 +32,7 @@ class DisplayNameFilterTest {
                         .withJobParameter("John Doe"))
                 .build();
 
-        displayNameFilter.onCreating(job);
+        defaultJobFilter.onCreating(job);
 
         assertThat(job.getJobName()).isEqualTo("Doing some hard work for user John Doe (customerId: 1)");
     }
@@ -48,7 +48,7 @@ class DisplayNameFilterTest {
                         .withJobParameter("John Doe"))
                 .build();
 
-        displayNameFilter.onCreating(job);
+        defaultJobFilter.onCreating(job);
 
         assertThat(job.getJobName()).isEqualTo("Doing some hard work for user John Doe (customerId: (customer.id is not found in MDC))");
     }
@@ -62,7 +62,7 @@ class DisplayNameFilterTest {
                         .withJobParameter(5.5))
                 .build();
 
-        displayNameFilter.onCreating(job);
+        defaultJobFilter.onCreating(job);
 
         assertThat(job.getJobName()).isEqualTo("org.jobrunr.stubs.TestService.doWork(5.5)");
     }
@@ -73,7 +73,7 @@ class DisplayNameFilterTest {
                 .withJobDetails(systemOutPrintLnJobDetails("some message"))
                 .build();
 
-        displayNameFilter.onCreating(job);
+        defaultJobFilter.onCreating(job);
 
         assertThat(job.getJobName()).isEqualTo("java.lang.System.out.println(some message)");
     }
@@ -89,7 +89,7 @@ class DisplayNameFilterTest {
                         .withJobParameter(JobParameter.JobContext))
                 .build();
 
-        displayNameFilter.onCreating(job);
+        defaultJobFilter.onCreating(job);
 
         assertThat(job.getJobName()).isEqualTo("Doing some hard work for user John Doe with id 5");
     }
