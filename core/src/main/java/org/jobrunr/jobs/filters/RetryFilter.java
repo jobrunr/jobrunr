@@ -26,21 +26,28 @@ public class RetryFilter implements ElectStateFilter {
 
     public static final int DEFAULT_BACKOFF_POLICY_TIME_SEED = 3;
     public static final int DEFAULT_NBR_OF_RETRIES = 10;
+    public static final long DEFAULT_MAX_BACKOFF_SECONDS = 0;
 
     private final int numberOfRetries;
     private final int backOffPolicyTimeSeed;
+    private final long maxBackoffSeconds;
 
     public RetryFilter() {
         this(DEFAULT_NBR_OF_RETRIES);
     }
 
     public RetryFilter(int numberOfRetries) {
-        this(numberOfRetries, DEFAULT_BACKOFF_POLICY_TIME_SEED);
+        this(numberOfRetries, DEFAULT_BACKOFF_POLICY_TIME_SEED, DEFAULT_MAX_BACKOFF_SECONDS);
     }
 
     public RetryFilter(int numberOfRetries, int backOffPolicyTimeSeed) {
+        this(numberOfRetries, backOffPolicyTimeSeed, DEFAULT_MAX_BACKOFF_SECONDS);
+    }
+
+    public RetryFilter(int numberOfRetries, int backOffPolicyTimeSeed, long maxBackoffSeconds) {
         this.numberOfRetries = numberOfRetries;
         this.backOffPolicyTimeSeed = backOffPolicyTimeSeed;
+        this.maxBackoffSeconds = maxBackoffSeconds;
     }
 
     @Override
@@ -52,7 +59,11 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     protected long getSecondsToAdd(Job job) {
-        return getExponentialBackoffPolicy(job, backOffPolicyTimeSeed);
+        final long secondsToAdd = getExponentialBackoffPolicy(job, backOffPolicyTimeSeed);
+        if (maxBackoffSeconds > 0) {
+            return Math.min(secondsToAdd, maxBackoffSeconds);
+        }
+        return secondsToAdd;
     }
 
     protected long getExponentialBackoffPolicy(Job job, int seed) {

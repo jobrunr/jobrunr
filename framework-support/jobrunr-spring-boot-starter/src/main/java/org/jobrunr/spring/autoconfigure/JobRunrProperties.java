@@ -157,6 +157,11 @@ public class JobRunrProperties {
          */
         private int backOffTimeSeed = RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED;
 
+        /**
+         * Configures a max interval for the exponential back-off. Default value '0' will disable.
+         */
+        private long maxBackoffSeconds = RetryFilter.DEFAULT_MAX_BACKOFF_SECONDS;
+
         public int getDefaultNumberOfRetries() {
             return defaultNumberOfRetries;
         }
@@ -171,6 +176,14 @@ public class JobRunrProperties {
 
         public void setRetryBackOffTimeSeed(int backOffTimeSeed) {
             this.backOffTimeSeed = backOffTimeSeed;
+        }
+
+        public long getMaxBackoffSeconds() {
+            return maxBackoffSeconds;
+        }
+
+        public void setMaxBackoffSeconds(long maxBackoffSeconds) {
+            this.maxBackoffSeconds = maxBackoffSeconds;
         }
     }
 
