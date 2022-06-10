@@ -6,10 +6,7 @@ import ch.qos.logback.core.read.ListAppender;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.*;
 import org.jobrunr.utils.GCUtils;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -208,10 +205,35 @@ class ServerZooKeeperTest {
         await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
     }
 
+    @Test
+    void whenStorageProviderFailsBackgroundJobServerCanBeRestarted() {
+        // GIVEN
+        Mockito.doThrow(new StorageException("Boem!")).when(storageProvider).signalBackgroundJobServerStopped(any());
+
+        backgroundJobServer.start();
+        await().untilAsserted(() -> verify(storageProvider).announceBackgroundJobServer(any()));
+
+        // WHEN
+        backgroundJobServer.stop();
+        await().untilAsserted(() -> verify(storageProvider).signalBackgroundJobServerStopped(any()));
+        await().until(() -> backgroundJobServer.isStopped());
+
+        // THEN
+        assertThat(getServerZooKeeper()).extracting("masterId").isNull();
+
+        // WHEN
+        reset(storageProvider);
+        backgroundJobServer.start();
+        // THEN
+        await().untilAsserted(() -> verify(storageProvider).announceBackgroundJobServer(any()));
+        await().untilAsserted(() -> verify(storageProvider, atLeast(3)).getRecurringJobs()); // why 3: 2 Startup tasks and then the JobZooKeeper
+        assertThat(getServerZooKeeper()).extracting("masterId").isNotNull();
+    }
+
     @RepeatedIfExceptionsTest
     public void testLongGCDoesNotStopJobRunr() throws InterruptedException {
         // GIVEN
-        final Object serverZooKeeper = getInternalState(backgroundJobServer, "serverZooKeeper");
+        final ServerZooKeeper serverZooKeeper = getServerZooKeeper();
         ListAppender<ILoggingEvent> zookeeperLogger = LoggerAssert.initFor(serverZooKeeper);
         backgroundJobServer.start();
         LOGGER.info("Let JobRunr startup");
@@ -228,6 +250,10 @@ class ServerZooKeeperTest {
         assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
                 .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServer.getId().toString());
+    }
+
+    private ServerZooKeeper getServerZooKeeper() {
+        return getInternalState(backgroundJobServer, "serverZooKeeper");
     }
 
     private BackgroundJobServerStatus anotherServer() {

@@ -58,9 +58,10 @@ public class ServerZooKeeper implements Runnable {
     public synchronized void stop() {
         try {
             storageProvider.signalBackgroundJobServerStopped(backgroundJobServer.getServerStatus());
-            masterId = null;
         } catch (Exception e) {
             LOGGER.error("Error when signalling that BackgroundJobServer stopped", e);
+        } finally {
+            masterId = null;
         }
     }
 
