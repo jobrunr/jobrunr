@@ -44,7 +44,7 @@ This Contributor License Agreement is adapted from the HomeAssistant CLA.
 
 ## Signing
 
-To sign this CLA you must first submit a pull request to a repository under the JobRunr organization.
+To sign this CLA you must first submit a pull request to the [clabot-config](https://github.com/jobrunr/clabot-config) repository under the JobRunr organization.
 
 ## Adoption
 
