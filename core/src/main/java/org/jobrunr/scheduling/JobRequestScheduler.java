@@ -47,6 +47,10 @@ public class JobRequestScheduler extends AbstractJobScheduler {
         BackgroundJobRequest.setJobRequestScheduler(this);
     }
 
+    public JobId create(JobRequestBuilder jobRequestBuilder) {
+        return saveJob(jobRequestBuilder.toJob());
+    }
+
     /**
      * Creates a new fire-and-forget job based on a given jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.

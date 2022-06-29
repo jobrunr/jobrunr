@@ -61,6 +61,10 @@ public class JobScheduler extends AbstractJobScheduler {
         BackgroundJob.setJobScheduler(this);
     }
 
+    public JobId create(JobBuilder jobBuilder) {
+        return saveJob(jobBuilder.toJob(jobDetailsGenerator));
+    }
+
     /**
      * Creates a new fire-and-forget job based on a given lambda.
      * <h5>An example:</h5>
