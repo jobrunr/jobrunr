@@ -16,6 +16,8 @@ public abstract class AbstractJobBuilder<T extends AbstractJobBuilder, J> {
     private String jobName;
     private Instant scheduleAt;
     private Integer retries;
+    //TODO RB jobDetails isn't a JobDetails object, consider renaming
+    //TODO RB possible names: jobMethod, jobWork, jobContent?
     private J jobDetails;
 
     protected AbstractJobBuilder() {
@@ -45,21 +47,25 @@ public abstract class AbstractJobBuilder<T extends AbstractJobBuilder, J> {
     }
 
     public T withAmountOfRetries(int amountOfRetries) {
-        this.retries = retries;
+        this.retries = amountOfRetries;
         return self();
     }
 
-    public T withDetails(J jobLambda) {
-        this.jobDetails = jobLambda;
+    public T withDetails(J jobDetails) {
+        this.jobDetails = jobDetails;
         return self();
     }
 
-    protected Job createJob(JobDetails jobDetails) {
+    protected Job build(JobDetails jobDetails) {
+        Job job;
         if(jobId != null) {
-            return new Job(jobId, jobDetails, getState());
+            job = new Job(jobId, jobDetails, getState());
         } else {
-            return new Job(jobDetails, getState());
+            job = new Job(jobDetails, getState());
         }
+        setJobName(job);
+        setAmountOfRetries(job);
+        return job;
     }
 
     protected UUID getJobId() {
