@@ -101,6 +101,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasAmountOfRetries(int amountOfRetries) {
+        Assertions.assertThat(actual.getAmountOfRetries()).isEqualTo(amountOfRetries);
+        return this;
+    }
+
     public JobAssert hasRecurringJobId(String recurringJobId) {
         Assertions.assertThat(actual.getRecurringJobId())
                 .isPresent()

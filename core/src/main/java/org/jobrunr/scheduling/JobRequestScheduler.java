@@ -48,7 +48,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     }
 
     public JobId create(JobRequestBuilder jobRequestBuilder) {
-        return saveJob(jobRequestBuilder.toJob());
+        return saveJob(jobRequestBuilder.build());
     }
 
     /**

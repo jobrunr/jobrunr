@@ -139,6 +139,7 @@ public class AbstractJobScheduler {
         return new JobId(job.getId());
     }
 
+    //TODO RB why not loop over list, call saveJob(job) and return a list of IDs?
     List<Job> saveJobs(List<Job> jobs) {
         jobs.forEach(MDCMapper::saveMDCContextToJob);
         jobFilterUtils.runOnCreatingFilter(jobs);

@@ -62,7 +62,7 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     public JobId create(JobBuilder jobBuilder) {
-        return saveJob(jobBuilder.toJob(jobDetailsGenerator));
+        return saveJob(jobBuilder.build(jobDetailsGenerator));
     }
 
     /**

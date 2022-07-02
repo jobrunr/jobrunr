@@ -14,11 +14,9 @@ public class JobRequestBuilder extends AbstractJobBuilder<JobRequestBuilder, Job
         return new JobRequestBuilder();
     }
 
-    Job toJob() {
-        Job job = createJob(new JobDetails(getJobDetails()));
-        setJobName(job);
-        setAmountOfRetries(job);
-        return job;
+    Job build() {
+        JobDetails jobDetails = new JobDetails(getJobDetails());
+        return super.build(jobDetails);
     }
 
     @Override

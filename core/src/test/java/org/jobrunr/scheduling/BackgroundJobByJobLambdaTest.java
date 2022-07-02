@@ -104,7 +104,7 @@ public class BackgroundJobByJobLambdaTest {
         UUID id = UUID.randomUUID();
         JobId jobId1 = BackgroundJob.enqueue(id, () -> testService.doWork());
         JobId jobId2 = BackgroundJob.enqueue(id, () -> testService.doWork());
-        // why: no exception whould be thrown.
+        // why: no exception would be thrown.
 
         assertThat(jobId1).isEqualTo(jobId2);
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId1)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
