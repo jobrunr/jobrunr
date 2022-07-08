@@ -39,7 +39,6 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
-import org.jobrunr.utils.JobUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.io.IOException;
@@ -66,6 +65,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR_PREFIX;
+import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -506,8 +506,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
             final SearchRequest request = new SearchRequest(jobIndexName)
               .source(source);
-            final SearchResponse searchResponse = client.search(request, DEFAULT);
-            final Terms terms = searchResponse.getAggregations().get(FIELD_JOB_SIGNATURE);
+            final SearchResponse response = client.search(request, DEFAULT);
+            final Terms terms = response.getAggregations().get(FIELD_JOB_SIGNATURE);
 
             return terms
               .getBuckets()
@@ -531,16 +531,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public boolean exists(final JobDetails jobDetails,
                           final StateName... states) {
         try {
-            BoolQueryBuilder stateQuery = boolQuery();
-            for (StateName state : states) {
-                stateQuery.should(matchQuery(FIELD_STATE, state));
-            }
+            final QueryBuilder query = boolQuery()
+              .must(shouldMatch(states))
+              .must(matchQuery(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)));
 
-            BoolQueryBuilder stateAndJobSignatureQuery = boolQuery()
-              .must(stateQuery)
-              .must(matchQuery(FIELD_JOB_SIGNATURE, JobUtils.getJobSignature(jobDetails)));
-
-            return countJobs(stateAndJobSignatureQuery) > 0;
+            return countJobs(query) > 0;
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -550,11 +545,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public boolean recurringJobExists(final String recurringJobId,
                                       final StateName... states) {
         try {
-            final QueryBuilder stateAndJobSignatureQuery = boolQuery()
+            final QueryBuilder query = boolQuery()
               .must(shouldMatch(states))
               .must(matchQuery(FIELD_RECURRING_JOB_ID, recurringJobId));
 
-            return countJobs(stateAndJobSignatureQuery) > 0;
+            return countJobs(query) > 0;
         } catch (final IOException e) {
             throw new StorageException(e);
         }
@@ -613,7 +608,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               .source(source);
 
             final SearchResponse response = client.search(search, DEFAULT);
-            ParsedSum parsedSum = response.getAggregations().get(FIELD_CREATED_AT);
+            final ParsedSum parsedSum = response.getAggregations().get(FIELD_CREATED_AT);
+
             return !recurringJobsUpdatedHash.equals(Double.valueOf(parsedSum.getValue()).longValue());
         } catch (final IOException e) {
             throw new StorageException(e);
