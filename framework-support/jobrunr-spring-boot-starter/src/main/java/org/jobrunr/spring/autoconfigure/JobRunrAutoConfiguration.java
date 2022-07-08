@@ -9,7 +9,6 @@ import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
-import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
@@ -22,11 +21,15 @@ import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.autoconfigure.condition.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import javax.json.bind.Jsonb;
@@ -43,6 +46,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @EnableConfigurationProperties(JobRunrProperties.class)
+@ComponentScan(basePackages = {"org.jobrunr.scheduling"})
 public class JobRunrAutoConfiguration {
 
     @Bean
@@ -58,12 +62,6 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
         return new JobRequestScheduler(storageProvider, emptyList());
-    }
-
-    @Bean
-    @ConditionalOnBean(JobScheduler.class)
-    public RecurringJobPostProcessor recurringJobPostProcessor(JobScheduler jobScheduler) {
-        return new RecurringJobPostProcessor(jobScheduler);
     }
 
     @Bean(destroyMethod = "stop")

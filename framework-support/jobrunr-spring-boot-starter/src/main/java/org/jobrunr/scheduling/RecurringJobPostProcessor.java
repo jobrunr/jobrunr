@@ -11,8 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringValueResolver;
 
@@ -24,16 +26,18 @@ import java.util.List;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
+@Component
 public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedValueResolverAware, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecurringJobPostProcessor.class);
 
-    private final JobScheduler jobScheduler;
+    private final ObjectFactory<JobScheduler> jobSchedulerObjectFactory;
     private StringValueResolver embeddedValueResolver;
     private RecurringJobFinderMethodCallback recurringJobFinderMethodCallback;
 
-    public RecurringJobPostProcessor(JobScheduler jobScheduler) {
-        this.jobScheduler = jobScheduler;
+    public RecurringJobPostProcessor(ObjectFactory<JobScheduler> jobSchedulerObjectFactory) {
+        this.jobSchedulerObjectFactory = jobSchedulerObjectFactory;
+        System.out.println("RecurringJobPostProcessor()");
     }
 
     @Override
@@ -49,16 +53,16 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
 
     @Override
     public void afterPropertiesSet() {
-        this.recurringJobFinderMethodCallback = new RecurringJobFinderMethodCallback(jobScheduler, embeddedValueResolver);
+        this.recurringJobFinderMethodCallback = new RecurringJobFinderMethodCallback(jobSchedulerObjectFactory, embeddedValueResolver);
     }
 
     private static class RecurringJobFinderMethodCallback implements ReflectionUtils.MethodCallback {
 
-        private final JobScheduler jobScheduler;
+        private final ObjectFactory<JobScheduler> jobSchedulerObjectFactory;
         private final StringValueResolver embeddedValueResolver;
 
-        public RecurringJobFinderMethodCallback(JobScheduler jobScheduler, StringValueResolver resolver) {
-            this.jobScheduler = jobScheduler;
+        public RecurringJobFinderMethodCallback(ObjectFactory<JobScheduler> jobSchedulerObjectFactory, StringValueResolver resolver) {
+            this.jobSchedulerObjectFactory = jobSchedulerObjectFactory;
             this.embeddedValueResolver = resolver;
         }
 
@@ -85,15 +89,15 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
                 if (id == null) {
                     LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
-                    jobScheduler.delete(id);
+                    jobSchedulerObjectFactory.getObject().delete(id);
                 }
             } else {
                 JobDetails jobDetails = getJobDetails(method);
                 ZoneId zoneId = getZoneId(recurringAnnotation);
                 if (isNotNullOrEmpty(cron)) {
-                    jobScheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+                    jobSchedulerObjectFactory.getObject().scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
                 } else {
-                    jobScheduler.scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
+                    jobSchedulerObjectFactory.getObject().scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
                 }
             }
         }

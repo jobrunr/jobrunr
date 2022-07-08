@@ -200,7 +200,7 @@ public class JobRunrAutoConfigurationTest {
     void elasticSearchStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(ElasticSearchStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(ElasticSearchStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("elasticSearchDocumentMapper").isNotNull();
+            assertThat(context.getBean("storageProvider")).extracting("documentMapper").isNotNull();
             assertThat(context).hasSingleBean(JobScheduler.class);
         });
     }
