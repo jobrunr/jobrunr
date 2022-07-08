@@ -18,15 +18,14 @@ import java.util.stream.Collectors;
 public class JobRunrApiHandler extends RestHttpHandler {
 
     private final StorageProvider storageProvider;
-    private final ProblemsManager problemsManager;
     private final boolean allowAnonymousDataUsage;
+    private ProblemsManager problemsManager;
     private RecurringJobsResult recurringJobsResult;
     private VersionUIModel versionUIModel;
 
     public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper, boolean allowAnonymousDataUsage) {
         super("/api", jsonMapper);
         this.storageProvider = storageProvider;
-        this.problemsManager = new ProblemsManager(storageProvider);
         this.allowAnonymousDataUsage = allowAnonymousDataUsage;
 
         get("/jobs", findJobByState());
@@ -80,22 +79,21 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private HttpRequestHandler getProblems() {
-        return (request, response) -> response.asJson(problemsManager.getProblems());
+        return (request, response) -> {
+            response.asJson(problemsManager().getProblems());
+        };
     }
 
     private HttpRequestHandler deleteProblemByType() {
         return (request, response) -> {
-            problemsManager.dismissProblemOfType(request.param(":type", String.class));
+            problemsManager().dismissProblemOfType(request.param(":type", String.class));
             response.statusCode(204);
         };
     }
 
     private HttpRequestHandler getRecurringJobs() {
         return (request, response) -> {
-            if(recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
-                recurringJobsResult = storageProvider.getRecurringJobs();
-            }
-            final List<RecurringJobUIModel> recurringJobUIModels = recurringJobsResult
+            final List<RecurringJobUIModel> recurringJobUIModels = recurringJobResults()
                     .stream()
                     .map(RecurringJobUIModel::new)
                     .collect(Collectors.toList());
@@ -112,7 +110,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler triggerRecurringJob() {
         return (request, response) -> {
-            final RecurringJob recurringJob = storageProvider.getRecurringJobs()
+            final RecurringJob recurringJob = recurringJobResults()
                     .stream()
                     .filter(rj -> request.param(":id").equals(rj.getId()))
                     .findFirst()
@@ -149,5 +147,19 @@ public class JobRunrApiHandler extends RestHttpHandler {
             this.versionUIModel = VersionUIModel.withoutAnonymousDataUsage();
             return this.versionUIModel;
         }
+    }
+
+    private ProblemsManager problemsManager() {
+        if(this.problemsManager == null) {
+            this.problemsManager = new ProblemsManager(storageProvider);
+        }
+        return this.problemsManager;
+    }
+
+    private RecurringJobsResult recurringJobResults() {
+        if(recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
+            recurringJobsResult = storageProvider.getRecurringJobs();
+        }
+        return recurringJobsResult;
     }
 }

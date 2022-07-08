@@ -19,7 +19,7 @@ public class ScheduledJobsNotFoundProblemHandler implements JobStatsChangeListen
     public ScheduledJobsNotFoundProblemHandler(Problems problems, StorageProvider storageProvider) {
         this.problems = problems;
         this.storageProvider = storageProvider;
-        this.storageProvider.addJobStorageOnChangeListener(this);
+        this.initScheduledJobNotFoundProblems();
     }
 
     @Override
