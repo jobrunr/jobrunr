@@ -28,7 +28,7 @@ public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert,
         if (MongoDBStorageProvider.class.equals(actual.getClass())) {
             jobMapperField = "jobDocumentMapper";
         } else if (ElasticSearchStorageProvider.class.equals(actual.getClass())) {
-            jobMapperField = "elasticSearchDocumentMapper";
+            jobMapperField = "documentMapper";
         }
 
         Assertions.assertThat(actual).extracting(jobMapperField).isNotNull();

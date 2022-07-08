@@ -16,4 +16,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Target(value = {ANNOTATION_TYPE, CONSTRUCTOR, FIELD, METHOD, TYPE})
 @Documented
 public @interface Beta {
+
+    String note() default "";
 }
