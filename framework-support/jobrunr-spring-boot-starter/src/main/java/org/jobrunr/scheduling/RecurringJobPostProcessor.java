@@ -37,7 +37,6 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
 
     public RecurringJobPostProcessor(ObjectFactory<JobScheduler> jobSchedulerObjectFactory) {
         this.jobSchedulerObjectFactory = jobSchedulerObjectFactory;
-        System.out.println("RecurringJobPostProcessor()");
     }
 
     @Override
