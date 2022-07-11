@@ -33,6 +33,8 @@ public class BackgroundJobServerMetricsBinder implements AutoCloseable {
         meters.add(registerGauge("system-total-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getSystemTotalMemory()));
         meters.add(registerGauge("first-heartbeat", bgJobServer -> (double) bgJobServer.getServerStatus().getFirstHeartbeat().getEpochSecond()));
         meters.add(registerGauge("last-heartbeat", bgJobServer -> (double) bgJobServer.getServerStatus().getLastHeartbeat().getNano()));
+        meters.add(registerGauge("system-cpu-load", bgJobServer -> bgJobServer.getServerStatus().getSystemCpuLoad()));
+        meters.add(registerGauge("process-cpu-load", bgJobServer -> bgJobServer.getServerStatus().getProcessCpuLoad()));
     }
 
     private FunctionCounter registerFunction(String name, ToDoubleFunction<BackgroundJobServer> func) {
