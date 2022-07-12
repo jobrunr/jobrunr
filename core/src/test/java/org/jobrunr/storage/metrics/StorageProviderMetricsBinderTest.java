@@ -32,7 +32,7 @@ class StorageProviderMetricsBinderTest {
     void testBinder() {
         new StorageProviderMetricsBinder(storageProvider, meterRegistry);
 
-        verify(meterRegistry, times(7)).gauge(anyString(), any(), any(AtomicLong.class));
+        verify(meterRegistry, times(9)).gauge(anyString(), any(), any(AtomicLong.class));
     }
 
 }
