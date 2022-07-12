@@ -39,7 +39,7 @@ class JobRunrMicroMeterIntegrationTest {
         // THEN
         verify(storageProvider).getJobStats();
         verify(storageProvider).addJobStorageOnChangeListener(any(StorageProviderMetricsBinder.class));
-        verify(meterRegistry, times(7)).gauge(any(String.class), any(Iterable.class), any(AtomicLong.class));
+        verify(meterRegistry, times(9)).gauge(any(String.class), any(Iterable.class), any(AtomicLong.class));
 
         // WHEN
         assertThatCode(jobRunrMicroMeterIntegration::close).doesNotThrowAnyException();
@@ -59,7 +59,7 @@ class JobRunrMicroMeterIntegrationTest {
         // THEN
         verify(storageProvider).getJobStats();
         verify(storageProvider).addJobStorageOnChangeListener(any(StorageProviderMetricsBinder.class));
-        verify(meterRegistry, times(7)).gauge(any(String.class), any(Iterable.class), any(AtomicLong.class));
+        verify(meterRegistry, times(9)).gauge(any(String.class), any(Iterable.class), any(AtomicLong.class));
 
         // WHEN
         assertThatCode(jobRunrMicroMeterIntegration::close).doesNotThrowAnyException();
