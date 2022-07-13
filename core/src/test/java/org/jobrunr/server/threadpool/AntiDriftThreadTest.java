@@ -17,26 +17,26 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AntiDriftSchedulerTest {
+class AntiDriftThreadTest {
 
     @Mock
-    JobRunrExecutor jobRunrExecutor;
+    JobRunrInternalExecutor jobRunrExecutor;
     @Mock
     ScheduledFuture scheduledFuture;
 
     @Captor
     ArgumentCaptor<Duration> durationArgumentCaptor;
 
-    AntiDriftScheduler antiDriftScheduler;
+    AntiDriftThread antiDriftThread;
 
     @BeforeEach
     void setUp() {
-        antiDriftScheduler = new AntiDriftScheduler(jobRunrExecutor);
+        antiDriftThread = new AntiDriftThread(jobRunrExecutor);
     }
 
     @Test
     void antiDriftSchedulerWhenNoSchedulesDoesNothing() {
-        antiDriftScheduler.run();
+        antiDriftThread.run();
 
         verifyNoInteractions(jobRunrExecutor);
     }
@@ -46,11 +46,11 @@ class AntiDriftSchedulerTest {
         // GIVEN
         Runnable runnable = () -> System.out.println("The runnable");
         AntiDriftSchedule antiDriftSchedule = new AntiDriftSchedule(runnable, ZERO, Duration.ofMillis(1000));
-        antiDriftScheduler.addSchedule(antiDriftSchedule);
+        antiDriftThread.addSchedule(antiDriftSchedule);
         when(jobRunrExecutor.schedule(any(), any())).thenReturn(scheduledFuture);
 
         // WHEN
-        antiDriftScheduler.run();
+        antiDriftThread.run();
 
         // THEN
         verify(jobRunrExecutor).schedule(eq(runnable), durationArgumentCaptor.capture());
@@ -59,7 +59,7 @@ class AntiDriftSchedulerTest {
         when(jobRunrExecutor.schedule(any(), any())).thenReturn(scheduledFuture);
 
         // WHEN
-        antiDriftScheduler.run();
+        antiDriftThread.run();
 
         // THEN
         verify(jobRunrExecutor).schedule(eq(runnable), durationArgumentCaptor.capture());
@@ -67,7 +67,7 @@ class AntiDriftSchedulerTest {
         reset(jobRunrExecutor);
 
         // WHEN
-        antiDriftScheduler.run();
+        antiDriftThread.run();
 
         // THEN
         verifyNoInteractions(jobRunrExecutor);
@@ -78,12 +78,12 @@ class AntiDriftSchedulerTest {
         // GIVEN
         Runnable runnable = () -> System.out.println("The runnable");
         AntiDriftSchedule antiDriftSchedule = new AntiDriftSchedule(runnable, ZERO, Duration.ofMillis(1000));
-        antiDriftScheduler.addSchedule(antiDriftSchedule);
+        antiDriftThread.addSchedule(antiDriftSchedule);
         when(jobRunrExecutor.schedule(any(), any())).thenReturn(scheduledFuture);
-        antiDriftScheduler.run();
+        antiDriftThread.run();
 
         // WHEN
-        antiDriftScheduler.stop();
+        antiDriftThread.stop();
 
         // THEN
         verify(scheduledFuture).cancel(false);

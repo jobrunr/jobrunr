@@ -4,34 +4,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+public class ScheduledThreadPoolJobRunrExecutor extends ScheduledThreadPoolExecutor implements JobRunrInternalExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobRunrExecutor.class);
 
-    private volatile AntiDriftScheduler antiDriftScheduler;
+    private final AntiDriftThread antiDriftThread;
 
-    public ScheduledThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
+    public ScheduledThreadPoolJobRunrExecutor(
+      final int corePoolSize,
+      final String threadNamePrefix) {
         super(corePoolSize + 1, new NamedThreadFactory(threadNamePrefix));
+
         setMaximumPoolSize((corePoolSize + 1) * 2);
         setKeepAliveTime(1, TimeUnit.MINUTES);
-    }
 
-    public void scheduleAtFixedRate(Runnable command, Duration initialDelay, Duration period) {
-        if(antiDriftScheduler == null) {
-            this.antiDriftScheduler = new AntiDriftScheduler(this);
-            super.scheduleAtFixedRate(antiDriftScheduler, 0, 250, TimeUnit.MILLISECONDS);
-        }
-        this.antiDriftScheduler.addSchedule(new AntiDriftSchedule(command, initialDelay, period));
+        antiDriftThread = new AntiDriftThread(this);
+        antiDriftThread.setDaemon(true);
+        antiDriftThread.start();
     }
 
     @Override
-    public ScheduledFuture<?> schedule(Runnable command, Duration delay) {
-        return this.schedule(command, delay.toMillis(), TimeUnit.MILLISECONDS);
+    public void scheduleAtFixedRate(final Runnable command,
+                                    final Duration initialDelay,
+                                    final Duration period) {
+        antiDriftThread.addSchedule(new AntiDriftSchedule(command, initialDelay, period));
+    }
+
+    @Override
+    public ScheduledFuture<?> schedule(final Runnable command, final Duration delay) {
+        return schedule(command, delay.toNanos(), NANOSECONDS);
     }
 
     @Override
@@ -48,37 +55,19 @@ public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.Sch
     @Override
     public synchronized void stop() {
         LOGGER.info("Shutting down ScheduledThreadPoolJobRunrExecutor");
-        if(antiDriftScheduler != null) {
-            this.antiDriftScheduler.stop();
-        }
-        this.getQueue().clear();
+        getQueue().clear();
+
         shutdown();
         try {
-            if (!awaitTermination(10, TimeUnit.SECONDS)) {
+            antiDriftThread.interrupt();
+            antiDriftThread.join();
+
+            if (!awaitTermination(10, SECONDS)) {
                 shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             shutdownNow();
             Thread.currentThread().interrupt();
-        }
-    }
-
-    private static class NamedThreadFactory implements ThreadFactory {
-
-        private final String poolName;
-        private final ThreadFactory threadFactory;
-
-        public NamedThreadFactory(String poolName) {
-            this.poolName = poolName;
-            threadFactory = Executors.defaultThreadFactory();
-        }
-
-        @Override
-        public Thread newThread(Runnable runnable) {
-            Thread thread = threadFactory.newThread(runnable);
-            thread.setName(thread.getName().replace("pool", poolName));
-            thread.setDaemon(true);
-            return thread;
         }
     }
 }

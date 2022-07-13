@@ -14,6 +14,4 @@ public interface JobRunrExecutor extends Executor {
 
     void scheduleAtFixedRate(Runnable command, Duration initialDelay, Duration period);
 
-    ScheduledFuture<?> schedule(Runnable command, Duration delay);
-
 }

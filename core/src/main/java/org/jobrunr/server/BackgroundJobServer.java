@@ -57,7 +57,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
-    private volatile ScheduledThreadPoolJobRunrExecutor zookeeperThreadPool;
+    private volatile JobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {

@@ -2,33 +2,46 @@ package org.jobrunr.server.threadpool;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
-class AntiDriftSchedule {
+import static java.time.Duration.ZERO;
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.NANOS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
+final class AntiDriftSchedule implements Delayed {
     private final Duration duration;
     private final Runnable runnable;
-    private final Instant firstScheduledAt;
-    private long scheduleCount;
-    private Instant scheduledAt;
+    private final Instant scheduledAt;
 
-    public AntiDriftSchedule(Runnable runnable, Duration initialDelay, Duration duration) {
+    AntiDriftSchedule(
+      final Runnable runnable,
+      final Duration initialDelay,
+      final Duration duration) {
+        super();
         this.runnable = runnable;
         this.duration = duration;
-        this.scheduleCount = 0;
-        this.firstScheduledAt = Instant.now().plus(initialDelay);
-        this.scheduledAt = firstScheduledAt;
+        this.scheduledAt = now().plus(initialDelay);
     }
 
-    public Instant getScheduledAt() {
-        return this.scheduledAt;
-    }
-
-    public Instant getNextSchedule() {
-        this.scheduledAt = firstScheduledAt.plus(duration.multipliedBy(scheduleCount));
-        scheduleCount++;
-        return scheduledAt;
+    AntiDriftSchedule getNextSchedule() {
+        return new AntiDriftSchedule(runnable, ZERO, duration);
     }
 
     Runnable getRunnable() {
         return runnable;
+    }
+
+    @Override
+    public long getDelay(final TimeUnit unit) {
+        final Instant now = now();
+        final long nanos = NANOS.between(now, scheduledAt);
+        return unit.convert(nanos, NANOSECONDS);
+    }
+
+    @Override
+    public int compareTo(final Delayed o) {
+        return Long.compare(getDelay(NANOSECONDS), o.getDelay(NANOSECONDS));
     }
 }
