@@ -1,10 +1,14 @@
 package org.jobrunr.storage;
 
+import java.time.Duration;
 import java.time.Instant;
+
+import static java.time.Instant.now;
 
 public class JobStats implements Comparable<JobStats> {
 
     private final Instant timeStamp;
+    private final Long queryDurationInMillis;
     private final Long total;
     private final Long scheduled;
     private final Long enqueued;
@@ -17,7 +21,7 @@ public class JobStats implements Comparable<JobStats> {
     private final int backgroundJobServers;
 
     public static JobStats empty() {
-        return new JobStats(Instant.now(), 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
+        return new JobStats(now(), 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0, 0);
     }
 
     public static JobStats of(Instant instant, JobStats jobStats) {
@@ -30,6 +34,7 @@ public class JobStats implements Comparable<JobStats> {
 
     public JobStats(Instant timeStamp, Long total, Long scheduled, Long enqueued, Long processing, Long failed, Long succeeded, Long allTimeSucceeded, Long deleted, int recurringJobs, int backgroundJobServers) {
         this.timeStamp = timeStamp;
+        this.queryDurationInMillis = Duration.between(timeStamp, now()).toMillis();
         this.total = total;
         this.scheduled = scheduled;
         this.enqueued = enqueued;
@@ -44,6 +49,10 @@ public class JobStats implements Comparable<JobStats> {
 
     public Instant getTimeStamp() {
         return timeStamp;
+    }
+
+    public Long getQueryDurationInMillis() {
+        return queryDurationInMillis;
     }
 
     public Long getTotal() {
@@ -89,9 +98,7 @@ public class JobStats implements Comparable<JobStats> {
     @Override
     public int compareTo(JobStats jobStats) {
         if(this.succeeded > jobStats.succeeded) return 1;
-        else if(this.total > jobStats.total) return 1;
-        else if(this.succeeded < jobStats.succeeded) return -1;
-        else if(this.total < jobStats.total) return -1;
+        else if(this.allTimeSucceeded > jobStats.allTimeSucceeded) return 1;
         else return this.timeStamp.compareTo(jobStats.timeStamp);
     }
 }

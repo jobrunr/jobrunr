@@ -630,6 +630,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public JobStats getJobStats() {
         try {
+            Instant instant = Instant.now();
             final SearchSourceBuilder source = new SearchSourceBuilder()
                     .query(matchAllQuery())
                     .aggregation(terms(FIELD_STATE).field(FIELD_STATE))
@@ -648,7 +649,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final int backgroundJobServers = getCount(backgroundJobServerIndexName);
 
             return new JobStats(
-                    Instant.now(),
+                    instant,
                     0L,
                     count(buckets, SCHEDULED),
                     count(buckets, ENQUEUED),

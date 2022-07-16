@@ -85,19 +85,6 @@ class JobStatsEnricherTest {
     }
 
     @Test
-    void jobStatsIsDiscardedIfOutOfOrderDueToDBLag() {
-        JobStats firstJobStats = getJobStats(0L, 0L, 0L, 80L);
-        JobStats secondJobStats = getJobStats(10L, 0L, 0L, 100L);
-        JobStats thirdJobStats = getJobStats(10L, 0L, 0L, 90L);
-        jobStatsEnricher.enrich(firstJobStats);
-        jobStatsEnricher.enrich(secondJobStats);
-        jobStatsEnricher.enrich(thirdJobStats);
-
-        JobStats jobStats = Whitebox.getInternalState(jobStatsEnricher, "previousJobStats");
-        assertThat(jobStats).isEqualToComparingFieldByField(secondJobStats);
-    }
-
-    @Test
     void firstRelevantJobStatsIsUpdatedAfterWorkIsDone() {
         JobStats firstJobStats = getJobStats(0L, 0L, 0L, 100L);
         jobStatsEnricher.enrich(firstJobStats);

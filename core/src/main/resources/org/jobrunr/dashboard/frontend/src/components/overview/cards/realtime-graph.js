@@ -58,16 +58,16 @@ const RealtimeGraph = () => {
 
         if (!stats.succeeded || stats.succeeded < 1) return;
         if (!oldStats.succeeded || oldStats.succeeded < 1) {
-            oldStatsRef.current = {...stats, timestamp: new Date()};
+            oldStatsRef.current = stats;
             return;
         }
 
         const succeededData = succeededDataRef.current;
         const failedData = failedDataRef.current;
-        const amountSucceeded = stats.succeeded - oldStats.succeeded;
+        const amountSucceeded = (stats.succeeded + stats.allTimeSucceeded) - (oldStats.succeeded + oldStats.allTimeSucceeded);
         const amountFailed = stats.failed - oldStats.failed;
 
-        if (!isNaN(amountSucceeded) && !isNaN(amountFailed)) {
+        if (!isNaN(amountSucceeded) && !isNaN(amountFailed) && amountSucceeded >= 0 && amountFailed >= 0) {
             succeededData.push(amountSucceeded)
             failedData.push(amountFailed)
             ApexCharts.exec('processing-chart', 'updateSeries', [
@@ -75,7 +75,7 @@ const RealtimeGraph = () => {
                 {data: succeededData}
             ])
         }
-        oldStatsRef.current = {...stats, timestamp: new Date()};
+        oldStatsRef.current = stats;
     }, [stats]);
 
     return (
