@@ -46,7 +46,7 @@ class AntiDriftThreadTest {
         // GIVEN
         Runnable runnable = () -> System.out.println("The runnable");
         AntiDriftSchedule antiDriftSchedule = new AntiDriftSchedule(runnable, ZERO, Duration.ofMillis(1000));
-        antiDriftThread.addSchedule(antiDriftSchedule);
+        antiDriftThread.queue(antiDriftSchedule);
         when(jobRunrExecutor.schedule(any(), any())).thenReturn(scheduledFuture);
 
         // WHEN
@@ -78,7 +78,7 @@ class AntiDriftThreadTest {
         // GIVEN
         Runnable runnable = () -> System.out.println("The runnable");
         AntiDriftSchedule antiDriftSchedule = new AntiDriftSchedule(runnable, ZERO, Duration.ofMillis(1000));
-        antiDriftThread.addSchedule(antiDriftSchedule);
+        antiDriftThread.queue(antiDriftSchedule);
         when(jobRunrExecutor.schedule(any(), any())).thenReturn(scheduledFuture);
         antiDriftThread.run();
 

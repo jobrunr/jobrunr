@@ -33,7 +33,7 @@ public class ScheduledThreadPoolJobRunrExecutor extends ScheduledThreadPoolExecu
     public void scheduleAtFixedRate(final Runnable command,
                                     final Duration initialDelay,
                                     final Duration period) {
-        antiDriftThread.addSchedule(new AntiDriftSchedule(command, initialDelay, period));
+        antiDriftThread.queue(new AntiDriftSchedule(command, initialDelay, period));
     }
 
     @Override

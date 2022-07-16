@@ -1,6 +1,7 @@
 package org.jobrunr.server.threadpool;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
@@ -12,27 +13,35 @@ import static java.util.Objects.requireNonNull;
 final class AntiDriftThread extends Thread {
 
     private final JobRunrInternalExecutor executor;
-    private final BlockingQueue<AntiDriftSchedule> schedules;
-    private final List<ScheduledFuture<?>> scheduledTasks;
+    private final BlockingQueue<AntiDriftSchedule> queue;
+    private final List<ScheduledFuture<?>> tasks;
 
     AntiDriftThread(final JobRunrInternalExecutor executor) {
         super();
         this.executor = requireNonNull(executor);
-        this.schedules = new DelayQueue<>();
-        this.scheduledTasks = new ArrayList<>();
+        this.queue = new DelayQueue<>();
+        this.tasks = new ArrayList<>();
     }
 
     @Override
     public void run() {
         while (!currentThread().isInterrupted()) {
             try {
-                final AntiDriftSchedule taken = schedules.take();
+                final AntiDriftSchedule taken = queue.take();
 
-                addSchedule(taken.getNextSchedule());
+                queue(taken.getNextSchedule());
                 schedule(taken);
+
+                final Iterator<ScheduledFuture<?>> it = tasks.iterator();
+                while (it.hasNext()) {
+                    final ScheduledFuture<?> f = it.next();
+                    if (f.isDone()) {
+                        it.remove();
+                    }
+                }
             } catch (final InterruptedException e) {
-                scheduledTasks.forEach(sf -> sf.cancel(false));
-                scheduledTasks.clear();
+                tasks.forEach(sf -> sf.cancel(false));
+                tasks.clear();
                 return;
             }
         }
@@ -40,10 +49,10 @@ final class AntiDriftThread extends Thread {
 
     private void schedule(final AntiDriftSchedule s) {
         final ScheduledFuture<?> future = executor.schedule(s.getRunnable(), ZERO);
-        scheduledTasks.add(future);
+        tasks.add(future);
     }
 
-    void addSchedule(final AntiDriftSchedule s) {
-        schedules.add(s);
+    void queue(final AntiDriftSchedule s) {
+        queue.add(s);
     }
 }

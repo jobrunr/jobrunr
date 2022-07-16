@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadFactory;
 
 import static java.util.Objects.requireNonNull;
 
-final  class NamedThreadFactory implements ThreadFactory {
+final class NamedThreadFactory implements ThreadFactory {
 
   private final String poolName;
   private final ThreadFactory factory;

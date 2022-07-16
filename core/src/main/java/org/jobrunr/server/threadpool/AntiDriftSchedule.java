@@ -11,22 +11,22 @@ import static java.time.temporal.ChronoUnit.NANOS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 final class AntiDriftSchedule implements Delayed {
-    private final Duration duration;
+    private final Duration period;
     private final Runnable runnable;
     private final Instant scheduledAt;
 
     AntiDriftSchedule(
       final Runnable runnable,
       final Duration initialDelay,
-      final Duration duration) {
+      final Duration period) {
         super();
         this.runnable = runnable;
-        this.duration = duration;
-        this.scheduledAt = now().plus(initialDelay);
+        this.period = period;
+        this.scheduledAt = now().plus(initialDelay.isZero() ? period : initialDelay);
     }
 
     AntiDriftSchedule getNextSchedule() {
-        return new AntiDriftSchedule(runnable, ZERO, duration);
+        return new AntiDriftSchedule(runnable, ZERO, period);
     }
 
     Runnable getRunnable() {
