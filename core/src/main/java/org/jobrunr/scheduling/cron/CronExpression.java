@@ -61,7 +61,7 @@ public class CronExpression extends Schedule {
      *  │ ┌───────────── hour (0 - 23)
      *  │ │ ┌───────────── day of the month (1 - 31) or L for last day of the month
      *  │ │ │ ┌───────────── month (1 - 12 or Jan/January - Dec/December)
-     *  │ │ │ │ ┌───────────── day of the week (0 - 6 or Sun/Sunday - Sat/Saturday)
+     *  │ │ │ │ ┌───────────── day of the week (0 - 7 or Sun/Sunday - Sat/Saturday)
      *  │ │ │ │ │
      *  │ │ │ │ │
      *  │ │ │ │ │
@@ -76,7 +76,7 @@ public class CronExpression extends Schedule {
      *  │ │ ┌───────────── hour (0 - 23)
      *  │ │ │ ┌───────────── day of the month (1 - 31) or L for last day of the month
      *  │ │ │ │ ┌───────────── month (1 - 12 or Jan/January - Dec/December)
-     *  │ │ │ │ │ ┌───────────── day of the week (0 - 6 or Sun/Sunday - Sat/Saturday)
+     *  │ │ │ │ │ ┌───────────── day of the week (0 - 7 or Sun/Sunday - Sat/Saturday)
      *  │ │ │ │ │ │
      *  │ │ │ │ │ │
      *  │ │ │ │ │ │

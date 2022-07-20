@@ -8,7 +8,7 @@ public enum CronFieldType {
     HOUR(24, 0, 23),
     DAY(31, 1, 31),
     MONTH(12, 1, 12),
-    DAY_OF_WEEK(7, 0, 6);
+    DAY_OF_WEEK(7, 0, 7);
 
     private final int length;
     private final int minAllowedValue;

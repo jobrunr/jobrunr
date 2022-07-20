@@ -182,18 +182,6 @@ public abstract class AbstractPipelinedStream<T> implements Stream<T> {
         return Stream.of(values);
     }
 
-    public static <T1> Stream<T1> iterate(T1 seed, UnaryOperator<T1> f) {
-        return Stream.iterate(seed, f);
-    }
-
-    public static <T1> Stream<T1> generate(Supplier<? extends T1> s) {
-        return Stream.generate(s);
-    }
-
-    public static <T1> Stream<T1> concat(Stream<? extends T1> a, Stream<? extends T1> b) {
-        return Stream.concat(a, b);
-    }
-
     @Override
     public Iterator<T> iterator() {
         return initialStream.iterator();
