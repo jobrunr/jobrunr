@@ -51,7 +51,8 @@ class CronFieldParser {
         DAYS_OF_WEEK_NAMES.put("Friday", 5);
         DAYS_OF_WEEK_NAMES.put("Fri", 5);
         DAYS_OF_WEEK_NAMES.put("Saturday", 6);
-        DAYS_OF_WEEK_NAMES.put("sat", 6);
+        DAYS_OF_WEEK_NAMES.put("Sunday", 7);
+        DAYS_OF_WEEK_NAMES.put("Sun", 7);
     }
 
     private final CronFieldType fieldType;
