@@ -77,7 +77,7 @@ public class RecurringJob extends AbstractJob {
     public Instant getNextRun() {
         return ScheduleExpressionType
                 .getSchedule(scheduleExpression)
-                .next(createdAt, ZoneId.of(zoneId));
+                .next(createdAt.minusSeconds(15*60), ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {
