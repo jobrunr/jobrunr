@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -40,6 +42,20 @@ dependencies {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes 'Automatic-Module-Name' : 'org.jobrunr.spring.boot.starter'
+        attributes 'Built-By': 'build.jobrunr.io'
+        attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
+        attributes 'Build-Version': project.version
+        attributes 'Implementation-Version': project.version
+        attributes 'Bundle-Version': project.version
+        attributes 'Created-By': "Gradle ${gradle.gradleVersion}"
+        attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
+        attributes 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+    }
 }
 
 publishing {
