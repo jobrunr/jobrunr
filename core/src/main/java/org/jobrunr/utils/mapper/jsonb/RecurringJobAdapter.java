@@ -14,6 +14,7 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 import javax.json.bind.adapter.JsonbAdapter;
+import java.time.Instant;
 
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 
@@ -46,7 +47,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .add("createdAt", recurringJob.getCreatedAt().toString());
 
         if (recurringJob instanceof RecurringJobUIModel) {
-            builder.add("nextRun", recurringJob.getNextRun().toString());
+            builder.add("nextRun", recurringJob.getNextRun(Instant.now()).toString());
         }
         return builder.build();
     }

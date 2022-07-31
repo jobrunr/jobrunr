@@ -14,12 +14,16 @@ public abstract class Schedule implements Comparable<Schedule> {
 
 
     /**
+     * Deprecated as it gives wrong results when a long GC happened: Use {@link #next(Instant, Instant, ZoneId)} instead.
+     *
+     *
      * Calculates the next occurrence based on the creation time and the current time.
      *
      * @param createdAt Instant object when the schedule was first created
      * @param zoneId the zone for which to calculate the schedule
      * @return Instant of the next occurrence.
      */
+    @Deprecated
     public Instant next(Instant createdAt, ZoneId zoneId) {
         return next(createdAt, now(), zoneId);
     }

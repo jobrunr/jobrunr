@@ -15,7 +15,7 @@ public class ZooKeeperRunManager {
     private final ReentrantLock lock;
     private Instant firstRunStartTime;
     private long runCounter;
-    private volatile Instant runStartTime;
+    private volatile Instant actualRunStartTime;
 
     public ZooKeeperRunManager(BackgroundJobServer backgroundJobServer, Logger logger) {
         this.logger = logger;
@@ -26,6 +26,15 @@ public class ZooKeeperRunManager {
     public RunTracker startRun() {
         if(!lock.tryLock()) throw new PreviousRunNotFinishedException();
         return new RunTracker(this);
+    }
+
+    public void stop() {
+        try {
+            lock.lock();
+            this.firstRunStartTime = null;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public static class PreviousRunNotFinishedException extends RuntimeException {
@@ -44,35 +53,31 @@ public class ZooKeeperRunManager {
         }
 
         public Instant getRunStartTime() {
-            return this.zooKeeperRunManager.runStartTime;
-        }
-
-        public Instant getRequestedStartTime() {
             return zooKeeperRunManager.firstRunStartTime.plus(ofSeconds(zooKeeperRunManager.runCounter * zooKeeperRunManager.pollIntervalInSeconds));
         }
 
         @Override
         public void close() {
-            this.zooKeeperRunManager.runStartTime = null;
+            this.zooKeeperRunManager.actualRunStartTime = null;
+            this.zooKeeperRunManager.runCounter++;
             this.zooKeeperRunManager.lock.unlock();
         }
 
         private void startRun() {
-            this.zooKeeperRunManager.runStartTime = Instant.now();
-            if(this.zooKeeperRunManager.firstRunStartTime == null) this.zooKeeperRunManager.firstRunStartTime = this.zooKeeperRunManager.runStartTime;
+            this.zooKeeperRunManager.actualRunStartTime = Instant.now();
+            if(this.zooKeeperRunManager.firstRunStartTime == null) this.zooKeeperRunManager.firstRunStartTime = this.zooKeeperRunManager.actualRunStartTime;
             this.logRunDetails();
-            this.zooKeeperRunManager.runCounter++;
         }
 
         private void logRunDetails() {
             if(zooKeeperRunManager.logger.isDebugEnabled()) {
-                Instant idealRunStartTime = getRequestedStartTime();
+                Instant idealRunStartTime = getRunStartTime();
                 zooKeeperRunManager.logger.debug("ZooKeeper run details: runCounter: {}, firstRunStartTime: {}, runStartTime: {}, idealRunStartTime: {}, drift: {} ms",
                         this.zooKeeperRunManager.runCounter,
                         this.zooKeeperRunManager.firstRunStartTime,
-                        this.zooKeeperRunManager.runStartTime,
+                        this.zooKeeperRunManager.actualRunStartTime,
                         idealRunStartTime,
-                        Duration.between(this.zooKeeperRunManager.runStartTime, idealRunStartTime).toMillis());
+                        Duration.between(this.zooKeeperRunManager.actualRunStartTime, idealRunStartTime).toMillis());
             }
         }
     }

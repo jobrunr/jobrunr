@@ -14,7 +14,8 @@ class RecurringJobUIModelTest {
         final RecurringJobUIModel recurringJobUIModel = new RecurringJobUIModel(recurringJob);
 
         assertThat(recurringJobUIModel)
-                .isEqualToIgnoringGivenFields(recurringJob, "locker");
+                .isEqualToIgnoringGivenFields(recurringJob, "locker", "nextRun")
+                .hasFieldOrProperty("nextRun");
     }
 
 }

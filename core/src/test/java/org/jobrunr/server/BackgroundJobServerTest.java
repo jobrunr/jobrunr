@@ -99,7 +99,7 @@ class BackgroundJobServerTest {
 
         // THEN the job should stay in state ENQUEUED
         await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> testService.getProcessedJobs() == 1);
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
+        await().during(TWO_SECONDS).atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
 
         // WHEN we resume the server again
         backgroundJobServer.resumeProcessing();

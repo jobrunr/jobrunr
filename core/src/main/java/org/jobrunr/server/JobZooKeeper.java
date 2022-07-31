@@ -96,6 +96,10 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
+    void stop() {
+        zooKeeperRunManager.stop();
+    }
+
     void updateJobsThatAreBeingProcessed() {
         LOGGER.debug("Updating currently processed jobs... ");
         processJobList(new ArrayList<>(currentlyProcessedJobs.keySet()), this::updateCurrentlyProcessingJob);
@@ -165,13 +169,6 @@ public class JobZooKeeper implements Runnable {
         }
     }
 
-    private void showWarningIfPollIntervalInSecondsTimeBoxIsPassed() {
-        if(pollIntervalInSecondsTimeBoxIsAboutToPass()) {
-            LOGGER.warn("JobRunr is passing the poll interval in seconds time-box. This means your poll interval in seconds setting is too small.");
-            dashboardNotificationManager.notify(new PollIntervalInSecondsTimeBoxIsTooSmallNotification((long)backgroundJobServerStatus().getPollIntervalInSeconds()));
-        }
-    }
-
     void checkForEnqueuedJobs() {
         try {
             if (reentrantLock.tryLock()) {
@@ -179,6 +176,7 @@ public class JobZooKeeper implements Runnable {
                 final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
                 if (workPageRequest.getLimit() > 0) {
                     final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest);
+                    LOGGER.debug("Found {} enqueued jobs.", enqueuedJobs.size());
                     enqueuedJobs.forEach(backgroundJobServer::processJob);
                 }
             }
@@ -193,7 +191,7 @@ public class JobZooKeeper implements Runnable {
         LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
         List<Job> jobsToSchedule = recurringJobs.stream()
                 .filter(this::mustSchedule)
-                .map(RecurringJob::toScheduledJob)
+                .map(recurringJob -> recurringJob.toScheduledJob(runStartTime))
                 .collect(toList());
         if (!jobsToSchedule.isEmpty()) {
             storageProvider.save(jobsToSchedule);
@@ -201,12 +199,8 @@ public class JobZooKeeper implements Runnable {
     }
 
     boolean mustSchedule(RecurringJob recurringJob) {
-        LOGGER.debug("mustSchedule {}", recurringJob);
-        boolean condition1 = recurringJob.getNextRun().isBefore(now().plus(durationPollIntervalTimeBox).plusSeconds(1));
-        boolean condition2 = !storageProvider.recurringJobExists(recurringJob.getId(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING);
-        boolean flag = condition1 && condition2;
-        LOGGER.debug("condition1 {} condition2 {}", condition1, condition2);
-        return flag;
+        return recurringJob.getNextRun(runStartTime).isBefore(runStartTime.plus(durationPollIntervalTimeBox).plusSeconds(1))
+                && !storageProvider.recurringJobExists(recurringJob.getId(), StateName.SCHEDULED, StateName.ENQUEUED, StateName.PROCESSING);
     }
 
     void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
