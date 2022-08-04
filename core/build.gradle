@@ -98,6 +98,7 @@ compileTestFixturesJava {
 jar {
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
+        attributes 'Automatic-Module-Name' : 'org.jobrunr.core'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
