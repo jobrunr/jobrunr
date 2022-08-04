@@ -86,7 +86,8 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     }
 
     public LoggerAssert hasInfoMessageContaining(String message) {
-        return hasInfoMessageContaining(message, 1);
+        Assertions.assertThat(actual.list).areAtLeastOne(logsWithLevelAndMessageContaining(INFO, message));
+        return this;
     }
 
     public LoggerAssert hasInfoMessageContaining(String message, int times) {

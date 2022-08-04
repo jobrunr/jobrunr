@@ -1,5 +1,7 @@
 package org.jobrunr.scheduling;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.core.read.ListAppender;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
@@ -16,6 +18,9 @@ import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
 import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
+import org.jobrunr.utils.GCUtils;
+import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -273,7 +278,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testRecurringCronJob() {
         BackgroundJob.scheduleRecurrently(every5Seconds, () -> testService.doWork(5));
-        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 3);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -304,6 +309,23 @@ public class BackgroundJobByJobLambdaTest {
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringCronJobDoesNotSkipRecurringJobsIfStopTheWorldGCOccurs() {
+        TestServiceForRecurringJobsIfStopTheWorldGCOccurs testService = new TestServiceForRecurringJobsIfStopTheWorldGCOccurs();
+        testService.resetProcessedJobs();
+        ListAppender logger = LoggerAssert.initFor(testService);
+        BackgroundJob.scheduleRecurrently(every5Seconds, testService::doWork);
+        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        // WHEN
+        GCUtils.simulateStopTheWorldGC(20000);
+
+        // THEN
+        await().atMost(65, SECONDS)
+                .untilAsserted(() -> assertThat(logger).hasInfoMessageContaining("JobRunr recovered from long GC and all jobs were executed"));
+        SleepUtils.sleep(20000);
     }
 
     @Test

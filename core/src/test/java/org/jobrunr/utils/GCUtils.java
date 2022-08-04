@@ -12,9 +12,10 @@ public class GCUtils {
     private static Logger LOGGER = LoggerFactory.getLogger(GCUtils.class);
 
     public static void simulateStopTheWorldGC(long howLongInMillis) {
-        LOGGER.info("Simulating stop the world GC for {} sec", TimeUnit.MILLISECONDS.toSeconds(howLongInMillis));
+        LOGGER.info("Starting simulation stop the world GC for {} sec", TimeUnit.MILLISECONDS.toSeconds(howLongInMillis));
         new MemoryExhauster(howLongInMillis - 500).start();
         callFullGCFor(howLongInMillis);
+        LOGGER.info("Ended simulation stop the world GC for {} sec", TimeUnit.MILLISECONDS.toSeconds(howLongInMillis));
     }
 
     private static void callFullGCFor(long millis) {
