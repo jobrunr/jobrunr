@@ -5,6 +5,7 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -70,6 +71,7 @@ public class RecurringJob extends AbstractJob {
      * @return creates all jobs that must be scheduled
      */
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
+        LoggerFactory.getLogger(RecurringJob.class).info("Creating scheduled jobs for recurring job {} between {} and {}", getId(), from, upTo);
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
