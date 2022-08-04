@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -38,6 +41,41 @@ class RecurringJobTest {
 
         final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobDetails((JobLambda) testService::doWork).build();
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
+    }
+
+    @Test
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("*/5 * * * * *")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(1);
+        ScheduledState scheduledState = jobs.get(0).getJobState();
+        assertThat(scheduledState.getScheduledAt()).isAfter(now());
+    }
+
+    @Test
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndNoResults() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression(Cron.weekly())
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+        assertThat(jobs).isEmpty();
+    }
+
+    @Test
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResults() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("*/5 * * * * *")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(4);
     }
 
     @Test
@@ -72,7 +110,7 @@ class RecurringJobTest {
                 .withZoneId(ZoneOffset.of("+02:00"))
                 .build();
         Instant nextRun = recurringJob.getNextRun();
-        assertThat(nextRun).isAfter(Instant.now());
+        assertThat(nextRun).isAfter(now());
     }
 
     @Test

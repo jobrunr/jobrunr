@@ -68,6 +68,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
       <module name="JobRunr.framework-support.jobrunr-spring-boot-native.test" target="11" />
+      <module name="JobRunr.language-support.jobrunr-kotlin-17-support.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

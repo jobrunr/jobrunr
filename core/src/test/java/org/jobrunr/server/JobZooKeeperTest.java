@@ -191,25 +191,45 @@ class JobZooKeeperTest {
 
     @Test
     void checkForRecurringJobs() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
 
         jobZooKeeper.run();
 
-        verify(backgroundJobServer).scheduleJob(recurringJob);
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        Job savedJob = jobsToSaveArgumentCaptor.getValue().get(0);
+        assertThat(savedJob)
+                .hasState(SCHEDULED);
     }
 
     @Test
     void checkForRecurringJobsDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
 
         when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
         when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
         jobZooKeeper.run();
 
-        verify(backgroundJobServer, never()).scheduleJob(recurringJob);
+        verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
+    }
+
+    @Test
+    void checkForRecurringJobsSchedulesJobsThatWereMissedDuringStopTheWorldGC() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+
+        when(storageProvider.getRecurringJobs()).thenReturn(List.of(recurringJob));
+
+        jobZooKeeper.run();
+        sleep(10500);
+        jobZooKeeper.run();
+
+        verify(storageProvider, times(2)).save(jobsToSaveArgumentCaptor.capture());
+        assertThat(jobsToSaveArgumentCaptor.getValue())
+                .hasSizeBetween(2, 3)
+                .extracting(Job::getState)
+                .containsOnly(SCHEDULED);
     }
 
     @Test
@@ -400,8 +420,8 @@ class JobZooKeeperTest {
     private JobZooKeeper initializeJobZooKeeper() {
         UUID backgroundJobServerId = UUID.randomUUID();
         lenient().when(backgroundJobServer.getId()).thenReturn(backgroundJobServerId);
+        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
-        when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
         when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(workDistributionStrategy);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
         when(backgroundJobServer.getDashboardNotificationManager()).thenReturn(new DashboardNotificationManager(backgroundJobServerId, storageProvider));
@@ -420,7 +440,7 @@ class JobZooKeeperTest {
 
     private Answer<Boolean> putRunStartTimeInPast() {
         return invocation -> {
-            Whitebox.setInternalState(jobZooKeeper, "runStartTime", System.currentTimeMillis() - 15000);
+            Whitebox.setInternalState(jobZooKeeper, "runStartTime", Instant.now().minusSeconds(15));
             return false;
         };
     }
