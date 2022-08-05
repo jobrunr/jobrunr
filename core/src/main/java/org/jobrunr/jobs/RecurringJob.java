@@ -5,6 +5,7 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
