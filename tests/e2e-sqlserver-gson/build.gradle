@@ -6,7 +6,9 @@ dependencies {
     implementation project(':core')
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple'
-    implementation 'com.microsoft.sqlserver:mssql-jdbc'
+    implementation ('com.microsoft.sqlserver:mssql-jdbc') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
     implementation 'com.google.code.gson:gson'
 
     testImplementation project(':core')
