@@ -3,7 +3,6 @@ package org.jobrunr.micronaut.autoconfigure.storage;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
-import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.elasticsearch.action.get.GetRequest;
@@ -39,7 +38,6 @@ class JobRunrMultipleStorageProviderFactoryTest {
     void setupDataSource() throws SQLException, IOException {
         context.registerSingleton(elasticSearchRestHighLevelClient());
         context.registerSingleton(dataSource());
-        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("jobrunr"));
     }
 
     @Test

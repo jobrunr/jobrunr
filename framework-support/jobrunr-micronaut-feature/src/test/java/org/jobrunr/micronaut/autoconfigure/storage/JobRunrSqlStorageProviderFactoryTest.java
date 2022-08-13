@@ -9,7 +9,6 @@ import jakarta.inject.Inject;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
@@ -25,15 +24,29 @@ class JobRunrSqlStorageProviderFactoryTest {
     @Inject
     ApplicationContext context;
 
-    @BeforeEach
-    void setupDataSource() throws SQLException {
+    @Test
+    @Property(name = "jobrunr.database.skip-create", value = "true")
+    void sqlStorageProviderAutoConfigurationTestWithDefaultDataSource() throws SQLException {
+        // GIVEN
         context.registerSingleton(dataSource());
-        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("jobrunr"));
+
+        // WHEN & THEN
+        assertThat(context).hasSingleBean(StorageProvider.class);
+        assertThat(context.getBean(StorageProvider.class))
+                .isInstanceOf(SqlStorageProvider.class)
+                .hasJobMapper();
+        assertThat(context).doesNotHaveBean(InMemoryStorageProvider.class);
     }
 
     @Test
     @Property(name = "jobrunr.database.skip-create", value = "true")
-    void sqlStorageProviderAutoConfigurationTest() {
+    @Property(name = "jobrunr.database.datasource", value = "jobrunr")
+    void sqlStorageProviderAutoConfigurationTestWithMultipleNamedDataSources() throws SQLException {
+        // GIVEN
+        context.registerSingleton(dataSource());
+        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("jobrunr"));
+
+        // WHEN & THEN
         assertThat(context).hasSingleBean(StorageProvider.class);
         assertThat(context.getBean(StorageProvider.class))
                 .isInstanceOf(SqlStorageProvider.class)

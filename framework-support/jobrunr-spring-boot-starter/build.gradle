@@ -8,8 +8,8 @@ plugins {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:2.7.0')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.7.0')
+    api platform('org.springframework.boot:spring-boot-dependencies:2.7.2')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.7.2')
     api project(':core')
 
     api 'org.springframework.boot:spring-boot-starter'
