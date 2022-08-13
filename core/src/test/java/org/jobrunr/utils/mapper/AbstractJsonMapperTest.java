@@ -202,6 +202,23 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/536")
+    void testSerializeAndDeserializeJobsComingFrom4Dot0Dot0() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {4.0, 5.0, 6.0};
+        Job job = aJob()
+                .withId(UUID.fromString("8bf98a10-f673-4fd8-9b9c-43ded0030910"))
+                .withName("an enqueued job")
+                .withState(new EnqueuedState(), Instant.parse("2021-11-10T11:37:40.551537Z"))
+                .withJobDetails(() -> testService.doWork(xValues, yValues))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/282")
     void testCanSerializeCollections() {
         Long value = 1L;

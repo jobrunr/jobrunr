@@ -62,6 +62,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work... " + processedJobs + count);
     }
 
+    public void doWork(double[] xValues, double[] yValues) {
+        System.out.println("Doing some work with coordinates... ");
+    }
+
     public void doWork(Integer count) {
         processedJobs += count;
         System.out.println("Doing some work... " + processedJobs + "; " + Instant.now());

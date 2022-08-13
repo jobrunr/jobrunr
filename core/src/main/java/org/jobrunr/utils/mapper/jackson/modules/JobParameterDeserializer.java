@@ -46,7 +46,7 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
     private JobParameter getJobParameter(JsonParser jsonParser, String className, String actualClassName, JsonNode objectJsonNode) throws JsonProcessingException {
         try {
             Class<Object> valueType = toClass(getActualClassName(className, actualClassName));
-            if (objectJsonNode.isArray() && !Collection.class.isAssignableFrom(valueType)) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
+            if (objectJsonNode.isArray() && !Collection.class.isAssignableFrom(valueType) && !valueType.isArray()) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
                 final JsonNode jsonNodeInArray = objectJsonNode.get(1);
                 final Object object = jsonParser.getCodec().treeToValue(jsonNodeInArray, valueType);
                 return new JobParameter(className, object);
