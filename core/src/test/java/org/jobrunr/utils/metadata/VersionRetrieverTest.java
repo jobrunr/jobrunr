@@ -20,7 +20,7 @@ class VersionRetrieverTest {
 
     @Test
     void gsonVersion() {
-        assertThat(VersionRetriever.getVersion(Gson.class)).isEqualTo("2.9.0");
+        assertThat(VersionRetriever.getVersion(Gson.class)).isEqualTo("2.9.1");
     }
 
     @Test

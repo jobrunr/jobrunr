@@ -1051,7 +1051,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasArgs(uuid2);
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     @Because("https://github.com/jobrunr/jobrunr/issues/456")
     void createJobDetailsInMultipleThreads() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(4);
@@ -1085,9 +1085,10 @@ public abstract class AbstractJobDetailsGeneratorTest {
                     jobDetailsResults.put(threadNbr + "-" + i + "-" + input, jobDetails);
                     sleep(1);
                 }
-                countDownLatch.countDown();
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            } finally {
+                countDownLatch.countDown();
             }
         };
     }
