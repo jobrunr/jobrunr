@@ -3,22 +3,24 @@ package org.jobrunr.configuration;
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
-import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
@@ -33,6 +35,12 @@ class JobRunrConfigurationTest {
 
     @Captor
     ArgumentCaptor<JobMapper> jobMapperCaptor;
+
+    @BeforeEach
+    void setUpStorageProvider() {
+        lenient().when(storageProvider.getLongestRunningBackgroundJobServerId()).thenReturn(randomUUID());
+        lenient().when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult());
+    }
 
     @AfterEach
     void tearDown() {
