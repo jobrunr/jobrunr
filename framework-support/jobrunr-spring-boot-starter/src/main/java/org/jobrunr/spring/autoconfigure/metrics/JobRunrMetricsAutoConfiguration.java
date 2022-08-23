@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Configuration;
 public class JobRunrMetricsAutoConfiguration {
 
     @Bean
+    @ConditionalOnBean({BackgroundJobServer.class})
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }
