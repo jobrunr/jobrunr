@@ -3,6 +3,7 @@ package org.jobrunr.spring.autoconfigure.metric;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.metrics.JobRunrMetricsAutoConfiguration;
@@ -66,6 +67,33 @@ public class JobRunrMetricsAutoConfigurationTest {
                 .withBean(SimpleMeterRegistry.class)
                 .run((context) -> {
                     assertThat(context).hasSingleBean(StorageProviderMetricsBinder.class);
+                    assertThat(context).doesNotHaveBean(BackgroundJobServerMetricsBinder.class);
+                });
+    }
+
+    @Test
+    void storageProviderMetricsBinderIsIgnoredIfJobsMetricsAreDisabled() {
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withPropertyValues("org.jobrunr.jobs.metrics.enabled=false")
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withBean(SimpleMeterRegistry.class)
+                .run((context) -> {
+                    assertThat(context).doesNotHaveBean(StorageProviderMetricsBinder.class);
+                    assertThat(context).hasSingleBean(BackgroundJobServerMetricsBinder.class);
+                });
+    }
+
+    @Test
+    void backgroundJobServerMetricsBinderIsIgnoredIfBackgroundJobServerMetricsAreDisabled() {
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.metrics.enabled=false")
+                .withBean(SimpleMeterRegistry.class)
+                .run((context) -> {
+                    assertThat(context).hasSingleBean(StorageProviderMetricsBinder.class);
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context).doesNotHaveBean(BackgroundJobServerMetricsBinder.class);
                 });
     }

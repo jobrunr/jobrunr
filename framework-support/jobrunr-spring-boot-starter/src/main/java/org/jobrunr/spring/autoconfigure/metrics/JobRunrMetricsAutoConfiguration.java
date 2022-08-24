@@ -12,6 +12,7 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfigu
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,12 +23,14 @@ import org.springframework.context.annotation.Configuration;
 public class JobRunrMetricsAutoConfiguration {
 
     @Bean
+    @ConditionalOnProperty(prefix = "org.jobrunr.jobs.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }
 
     @Bean
     @ConditionalOnBean({BackgroundJobServer.class})
+    @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
     public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
         return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
     }

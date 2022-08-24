@@ -43,6 +43,12 @@ public interface JobRunrConfiguration {
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
         Optional<Integer> getRetryBackOffTimeSeed();
+
+        /**
+         * Allows to configure the MicroMeter Metrics integration for jobs.
+         */
+        @NotNull
+        MetricsConfiguration getMetrics();
     }
 
     @ConfigurationProperties("database")
@@ -137,6 +143,12 @@ public interface JobRunrConfiguration {
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
          */
         Optional<Duration> getPermanentlyDeleteDeletedJobsAfter();
+
+        /**
+         * Allows to configure the MicroMeter Metrics integration for the BackgroundJobServer.
+         */
+        @NotNull
+        MetricsConfiguration getMetrics();
     }
 
     @ConfigurationProperties("dashboard")
@@ -164,14 +176,8 @@ public interface JobRunrConfiguration {
         Optional<String> getPassword();
     }
 
-    @ConfigurationProperties("jobs")
+    @ConfigurationProperties("miscellaneous")
     interface MiscellaneousConfiguration {
-
-        /**
-         * Enables the JobRunr dashboard.
-         */
-        @Bindable(defaultValue = "false")
-        boolean isEnabled();
 
         /**
          * Allows to opt-out of anonymous usage statistics. This setting is true by default and sends only the total amount of succeeded jobs processed
@@ -181,13 +187,13 @@ public interface JobRunrConfiguration {
         boolean isAllowAnonymousDataUsage();
     }
 
-    @ConfigurationProperties("health")
-    interface Health {
+    @ConfigurationProperties("metrics")
+    interface MetricsConfiguration {
 
         /**
-         * Allows to disable the health check for JobRunr.
+         * Allows to enable the MicroMeter integration
          */
-        @Bindable(defaultValue = "false")
+        @Bindable(defaultValue = "true")
         boolean isEnabled();
     }
 }

@@ -70,13 +70,19 @@ public class JobRunrConfiguration {
          * Configures the default amount of retries.
          */
         @ConfigItem
-        Optional<Integer> defaultNumberOfRetries;
+        public Optional<Integer> defaultNumberOfRetries;
 
         /**
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
         @ConfigItem
-        Optional<Integer> retryBackOffTimeSeed;
+        public Optional<Integer> retryBackOffTimeSeed;
+
+        /**
+         * Configures MicroMeter metrics related to jobs
+         */
+        @ConfigItem
+        public MetricsConfiguration metrics;
     }
 
     @ConfigGroup
@@ -148,6 +154,12 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<Duration> permanentlyDeleteDeletedJobsAfter;
+
+        /**
+         * Configures MicroMeter metrics related to the background job server
+         */
+        @ConfigItem
+        public MetricsConfiguration metrics;
     }
 
     @ConfigGroup
@@ -187,6 +199,16 @@ public class JobRunrConfiguration {
          */
         @ConfigItem(defaultValue = "true")
         public boolean allowAnonymousDataUsage;
+    }
+
+    @ConfigGroup
+    public static class MetricsConfiguration {
+
+        /**
+         * Configures whether metrics are reported to MicroMeter.
+         */
+        @ConfigItem(defaultValue = "true")
+        public boolean enabled;
     }
 }
 

@@ -15,12 +15,14 @@ public class JobRunrMetricsFactory {
 
     @Singleton
     @Requires(beans = {StorageProvider.class, MeterRegistry.class})
+    @Requires(property = "jobrunr.jobs.metrics.enabled", value = "true", defaultValue = "true")
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }
 
     @Singleton
     @Requires(beans = {BackgroundJobServer.class, MeterRegistry.class})
+    @Requires(property = "jobrunr.background-job-server.metrics.enabled", value = "true", defaultValue = "true")
     public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
         return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
     }

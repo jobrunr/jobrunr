@@ -157,6 +157,11 @@ public class JobRunrProperties {
          */
         private int backOffTimeSeed = RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED;
 
+        /**
+         * Configures MicroMeter metrics related to jobs
+         */
+        private Metrics metrics = new Metrics();
+
         public int getDefaultNumberOfRetries() {
             return defaultNumberOfRetries;
         }
@@ -171,6 +176,14 @@ public class JobRunrProperties {
 
         public void setRetryBackOffTimeSeed(int backOffTimeSeed) {
             this.backOffTimeSeed = backOffTimeSeed;
+        }
+
+        public Metrics getMetrics() {
+            return metrics;
+        }
+
+        public void setMetrics(Metrics metrics) {
+            this.metrics = metrics;
         }
     }
 
@@ -257,6 +270,11 @@ public class JobRunrProperties {
         @DurationUnit(ChronoUnit.HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
+        /**
+         * Configures MicroMeter metrics related to the BackgroundJobServer
+         */
+        private Metrics metrics = new Metrics();
+
         public boolean isEnabled() {
             return enabled;
         }
@@ -322,6 +340,14 @@ public class JobRunrProperties {
 
         public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
             this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
+        }
+
+        public Metrics getMetrics() {
+            return metrics;
+        }
+
+        public void setMetrics(Metrics metrics) {
+            this.metrics = metrics;
         }
     }
 
@@ -400,6 +426,25 @@ public class JobRunrProperties {
 
         public void setAllowAnonymousDataUsage(boolean allowAnonymousDataUsage) {
             this.allowAnonymousDataUsage = allowAnonymousDataUsage;
+        }
+    }
+
+    /**
+     * JobRunr MicroMeter Metrics related settings
+     */
+    public static class Metrics {
+
+        /**
+         * Configures whether metrics are reported to MicroMeter.
+         */
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }

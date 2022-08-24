@@ -69,7 +69,7 @@ class JobRunrFactoryTest {
     void backgroundJobServerAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageFalse() {
         JobRunrDashboardWebServer dashboardWebServer = context.getBean(JobRunrDashboardWebServer.class);
         assertThat(dashboardWebServer)
-                .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
+                .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
     }
 
     @Test
