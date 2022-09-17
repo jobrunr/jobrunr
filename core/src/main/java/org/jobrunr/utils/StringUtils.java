@@ -1,7 +1,10 @@
 package org.jobrunr.utils;
 
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class StringUtils {
 
@@ -46,6 +49,23 @@ public class StringUtils {
             return substringBefore(substringAfter(s, open), close);
         }
         return null;
+    }
+
+    public static String md5Checksum(String input) {
+        try {
+            MessageDigest m = MessageDigest.getInstance("MD5");
+            m.reset();
+            m.update(input.getBytes());
+            byte[] digest = m.digest();
+            BigInteger bigInt = new BigInteger(1, digest);
+            String hashResult = bigInt.toString(16);
+            while (hashResult.length() < 32) {
+                hashResult = "0" + hashResult;
+            }
+            return hashResult;
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("MD5 Hashing algorithm not found.", e);
+        }
     }
 
     public static String urlEncode(String string) {

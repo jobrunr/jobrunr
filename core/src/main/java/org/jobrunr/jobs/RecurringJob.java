@@ -4,6 +4,7 @@ import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
+import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -83,9 +84,15 @@ public class RecurringJob extends AbstractJob {
     private String validateAndSetId(String input) {
         String result = Optional.ofNullable(input).orElse(getJobSignature().replace("$", "_")); //why: to support inner classes
 
-        if (!result.matches("[\\dA-Za-z-_(),.]+")) {
+        if(result.length() >= 128 && input == null) {
+            //why: id's should be identical for identical recurring jobs as otherwise we would generate duplicate recurring jobs after restarts
+            result = StringUtils.md5Checksum(result);
+        } else if(result.length() >= 128) {
+            throw new IllegalArgumentException("The id of a recurring job must be smaller than 128 characters.");
+        } else if (!result.matches("[\\dA-Za-z-_(),.]+")) {
             throw new IllegalArgumentException("The id of a recurring job can only contain letters and numbers.");
         }
+
         return result;
     }
 
