@@ -1,6 +1,7 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
@@ -9,6 +10,8 @@ import org.jobrunr.utils.StringUtils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class RecurringJob extends AbstractJob {
@@ -52,19 +55,33 @@ public class RecurringJob extends AbstractJob {
         return scheduleExpression;
     }
 
+    /**
+     * Returns the next job to for this recurring job based on the current instant.
+     * @return the next job to for this recurring job based on the current instant.
+     */
     public Job toScheduledJob() {
-        Instant nextRun = getNextRun();
-        final Job job = new Job(getJobDetails(), new ScheduledState(nextRun, this));
-        job.setJobName(getJobName());
-        job.setRecurringJobId(getId());
-        return job;
+        return toJob(new ScheduledState(getNextRun(), this));
+    }
+
+    /**
+     * Creates all jobs that must be scheduled between the given start and end time.
+     *
+     * @param from the start time from which to create Scheduled Jobs
+     * @param upTo the end time until which to create Scheduled Jobs
+     * @return creates all jobs that must be scheduled
+     */
+    public List<Job> toScheduledJobs(Instant from, Instant upTo) {
+        List<Job> jobs = new ArrayList<>();
+        Instant nextRun = getNextRun(from);
+        while (nextRun.isBefore(upTo)) {
+            jobs.add(toJob(new ScheduledState(nextRun, this)));
+            nextRun = getNextRun(nextRun);
+        }
+        return jobs;
     }
 
     public Job toEnqueuedJob() {
-        final Job job = new Job(getJobDetails(), new EnqueuedState());
-        job.setJobName(getJobName());
-        job.setRecurringJobId(getId());
-        return job;
+        return toJob(new EnqueuedState());
     }
 
     public String getZoneId() {
@@ -76,9 +93,13 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun() {
+        return getNextRun(Instant.now());
+    }
+
+    public Instant getNextRun(Instant sinceInstant) {
         return ScheduleExpressionType
                 .getSchedule(scheduleExpression)
-                .next(createdAt, ZoneId.of(zoneId));
+                .next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {
@@ -94,6 +115,13 @@ public class RecurringJob extends AbstractJob {
         }
 
         return result;
+    }
+
+    private Job toJob(JobState jobState) {
+        final Job job = new Job(getJobDetails(), jobState);
+        job.setJobName(getJobName());
+        job.setRecurringJobId(getId());
+        return job;
     }
 
     @Override
