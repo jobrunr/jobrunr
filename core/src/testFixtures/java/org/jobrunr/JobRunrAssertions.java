@@ -30,7 +30,7 @@ public class JobRunrAssertions extends Assertions {
     }
 
     public static <T extends Job> ListAssert<T> assertThatJobs(List<T> jobs) {
-        return Assertions.assertThat(jobs).usingRecursiveFieldByFieldElementComparator();
+        return Assertions.assertThat(jobs).usingRecursiveFieldByFieldElementComparatorIgnoringFields("locker");
     }
 
     public static JobAssert assertThat(Job job) {

@@ -103,7 +103,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     private String validateAndSetId(String input) {
-        String result = Optional.ofNullable(input).orElse(getJobSignature().replace("$", "_")); //why: to support inner classes
+        String result = Optional.ofNullable(input).orElse(getJobSignature().replace(" ", "").replace("$", "_")); //why: to support inner classes
 
         if(result.length() >= 128 && input == null) {
             //why: id's should be identical for identical recurring jobs as otherwise we would generate duplicate recurring jobs after restarts
