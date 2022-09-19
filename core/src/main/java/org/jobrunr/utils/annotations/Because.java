@@ -16,6 +16,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Documented
 public @interface Because {
 
-    String value();
+    String[] value();
 
 }

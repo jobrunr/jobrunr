@@ -27,7 +27,7 @@ public class JobPerformedOnOtherBackgroundJobServerConcurrentStateChange impleme
 
     @Override
     public boolean matches(StateName localState, StateName storageProviderState) {
-        throw new IllegalStateException("Should not happen as matches method is overriden");
+        throw new IllegalStateException("Should not happen as matches method is overridden");
     }
 
     @Override

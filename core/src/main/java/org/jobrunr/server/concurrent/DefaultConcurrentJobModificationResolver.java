@@ -34,7 +34,8 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
                 new DeletedWhileFailedConcurrentStateChange(),
                 new DeletedWhileEnqueuedConcurrentStateChange(),
                 new DeletedWhileScheduledConcurrentStateChange(),
-                new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange()
+                new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(),
+                new ScheduledTooEarlyByJobZooKeeperConcurrentStateChange(storageProvider)
         );
     }
 
