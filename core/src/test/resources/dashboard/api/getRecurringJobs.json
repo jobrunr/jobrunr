@@ -1,50 +1,59 @@
-[
-  {
-    "@class": "${json-unit.ignore-element}",
-    "version": 0,
-    "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
-    "jobName": "Import sales data",
-    "jobDetails": {
-      "cacheable": true,
-      "className": "org.jobrunr.stubs.TestService",
-      "staticFieldName": null,
-      "methodName": "doWork",
-      "jobParameters": [
-        {
-          "className": "java.lang.Integer",
-          "actualClassName": "java.lang.Integer",
-          "object": 5
-        }
-      ]
+{
+  "currentPage": 0,
+  "hasNext": false,
+  "hasPrevious": false,
+  "items": [
+    {
+      "@class": "${json-unit.ignore-element}",
+      "version": 0,
+      "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
+      "jobName": "Import sales data",
+      "jobDetails": {
+        "cacheable": true,
+        "className": "org.jobrunr.stubs.TestService",
+        "staticFieldName": null,
+        "methodName": "doWork",
+        "jobParameters": [
+          {
+            "className": "java.lang.Integer",
+            "actualClassName": "java.lang.Integer",
+            "object": 5
+          }
+        ]
+      },
+      "id": "recurring-job-1",
+      "scheduleExpression": "0 0 * * *",
+      "zoneId": "${json-unit.ignore}",
+      "nextRun": "${json-unit.ignore}",
+      "createdAt": "${json-unit.ignore}"
     },
-    "id": "recurring-job-1",
-    "scheduleExpression": "0 0 * * *",
-    "zoneId": "${json-unit.ignore}",
-    "nextRun": "${json-unit.ignore}",
-    "createdAt": "${json-unit.ignore}"
-  },
-  {
-    "@class": "${json-unit.ignore-element}",
-    "version": 0,
-    "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
-    "jobName": "Generate sales reports",
-    "jobDetails": {
-      "cacheable": true,
-      "className": "org.jobrunr.stubs.TestService",
-      "staticFieldName": null,
-      "methodName": "doWork",
-      "jobParameters": [
-        {
-          "className": "java.lang.Integer",
-          "actualClassName": "java.lang.Integer",
-          "object": 5
-        }
-      ]
-    },
-    "id": "recurring-job-2",
-    "scheduleExpression": "0 0 * * *",
-    "zoneId": "${json-unit.ignore}",
-    "nextRun": "${json-unit.ignore}",
-    "createdAt": "${json-unit.ignore}"
-  }
-]
+    {
+      "@class": "${json-unit.ignore-element}",
+      "version": 0,
+      "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
+      "jobName": "Generate sales reports",
+      "jobDetails": {
+        "cacheable": true,
+        "className": "org.jobrunr.stubs.TestService",
+        "staticFieldName": null,
+        "methodName": "doWork",
+        "jobParameters": [
+          {
+            "className": "java.lang.Integer",
+            "actualClassName": "java.lang.Integer",
+            "object": 5
+          }
+        ]
+      },
+      "id": "recurring-job-2",
+      "scheduleExpression": "0 0 * * *",
+      "zoneId": "${json-unit.ignore}",
+      "nextRun": "${json-unit.ignore}",
+      "createdAt": "${json-unit.ignore}"
+    }
+  ],
+  "limit": 20,
+  "offset": 0,
+  "total": 2,
+  "totalPages": 1
+}

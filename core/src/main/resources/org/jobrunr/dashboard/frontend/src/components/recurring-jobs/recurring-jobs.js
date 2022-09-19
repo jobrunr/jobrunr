@@ -19,6 +19,8 @@ import {Snackbar} from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
+import {useHistory, useLocation} from "react-router-dom";
+import TablePagination from "@material-ui/core/TablePagination";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -38,23 +40,39 @@ const useStyles = makeStyles(theme => ({
 
 const RecurringJobs = (props) => {
     const classes = useStyles();
+    const history = useHistory();
+    const location = useLocation();
 
+    const urlSearchParams = new URLSearchParams(location.search);
+    const page = urlSearchParams.get('page');
     const [isLoading, setIsLoading] = React.useState(true);
+    const [recurringJobPage, setRecurringJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
     const [recurringJobs, setRecurringJobs] = React.useState([{}]);
     const [apiStatus, setApiStatus] = React.useState(null);
 
     React.useEffect(() => {
         getRecurringJobs();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page]);
 
     const getRecurringJobs = () => {
-        fetch(`/api/recurring-jobs`)
+        setIsLoading(true);
+        const offset = (page) * 20;
+        const limit = 20;
+        fetch(`/api/recurring-jobs?offset=${offset}&limit=${limit}`)
             .then(res => res.json())
             .then(response => {
-                setRecurringJobs(response.map(recurringJob => ({...recurringJob, selected: false})));
+                setRecurringJobPage(response);
+                setRecurringJobs(response.items.map(recurringJob => ({...recurringJob, selected: false})));
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
+    };
+
+    const handleChangePage = (event, newPage) => {
+        let urlSearchParams = new URLSearchParams(location.search);
+        urlSearchParams.set("page", newPage);
+        history.push(`?${urlSearchParams.toString()}`);
     };
 
     const selectAll = (event) => {
@@ -196,6 +214,15 @@ const RecurringJobs = (props) => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+                                <TablePagination
+                                    id="recurring-jobs-table-pagination"
+                                    component="div"
+                                    rowsPerPageOptions={[]}
+                                    count={recurringJobPage.total}
+                                    rowsPerPage={recurringJobPage.limit}
+                                    page={recurringJobPage.currentPage}
+                                    onPageChange={handleChangePage}
+                                />
                             </>
                         }
                     </Paper>

@@ -93,11 +93,16 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler getRecurringJobs() {
         return (request, response) -> {
-            final List<RecurringJobUIModel> recurringJobUIModels = recurringJobResults()
+            PageRequest pageRequest = request.fromQueryParams(PageRequest.class);
+            RecurringJobsResult recurringJobs = recurringJobResults();
+            final List<RecurringJobUIModel> recurringJobUIModels = recurringJobs
                     .stream()
+                    .skip(pageRequest.getOffset())
+                    .limit(pageRequest.getLimit())
                     .map(RecurringJobUIModel::new)
                     .collect(Collectors.toList());
-            response.asJson(recurringJobUIModels);
+            Page<RecurringJobUIModel> result = new Page<>(recurringJobs.size(), recurringJobUIModels, pageRequest);
+            response.asJson(result);
         };
     }
 

@@ -24,9 +24,10 @@ public class StubDataProvider {
     }
 
     public StubDataProvider addALotOfEnqueuedJobsThatTakeSomeTime() {
-        for (int i = 0; i < 33; i++) {
-            List<Job> jobs = IntStream.range(0, 1000).mapToObj(j -> anEnqueuedJobThatTakesLong().build()).collect(toList());
+        for (int i = 0; i < 1000; i++) {
+            List<Job> jobs = IntStream.range(0, 10000).mapToObj(j -> anEnqueuedJobThatTakesLong().build()).collect(toList());
             storageProvider.save(jobs);
+            System.out.println("Saved " + (i+1) * 10000 + " jobs");
         }
         storageProvider.save(aJob().withState(new ScheduledState(now().plusSeconds(60L * 60 * 5))).build());
         storageProvider.save(aSucceededJob().build());
@@ -36,8 +37,10 @@ public class StubDataProvider {
     }
 
     public StubDataProvider addSomeRecurringJobs() {
-        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build());
-        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").withName("Generate sales report at 3am").withCronExpression("0 3 * * *").build());
+        for(int i = 0; i < 100; i++) {
+            storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data-" + i).withName("Import all sales data at midnight").build());
+            storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports-" + i).withName("Generate sales report at 3am").withCronExpression("0 0 3 * *").build());
+        }
         return this;
     }
 }

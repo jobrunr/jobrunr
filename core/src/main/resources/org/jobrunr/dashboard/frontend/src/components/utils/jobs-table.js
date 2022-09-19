@@ -130,7 +130,7 @@ const JobsTable = (props) => {
                         count={jobPage.total}
                         rowsPerPage={jobPage.limit}
                         page={jobPage.currentPage}
-                        onChangePage={handleChangePage}
+                        onPageChange={handleChangePage}
                     />
                 </>
             }
