@@ -6,6 +6,7 @@ import SevereJobRunrExceptionProblem from "./severe-jobrunr-exception-problem";
 import Grid from '@material-ui/core/Grid';
 import CpuAllocationIrregularityProblem from "./cpu-allocation-irregularity-problem";
 import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
+import JobRunrApiNotification from "./jobrunr-api-notification";
 
 const useStyles = makeStyles(theme => ({
     alert: {
@@ -49,7 +50,9 @@ const Problems = () => {
         <div className={classes.metadata}>
             {isProblemsApiLoading
                 ? <LoadingIndicator/>
-                : <Grid container> {problems.map((problem, index) => {
+                : <Grid container>
+                    <Grid item xs={12}><JobRunrApiNotification /></Grid>
+                    {problems.map((problem, index) => {
                     switch (problem.type) {
                         case 'jobs-not-found':
                             return <Grid item xs={12} key={index}><JobNotFoundProblem problem={problem}/></Grid>

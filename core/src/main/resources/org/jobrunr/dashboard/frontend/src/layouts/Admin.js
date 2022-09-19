@@ -1,5 +1,5 @@
 import React from 'react';
-import {createMuiTheme, makeStyles, MuiThemeProvider} from '@material-ui/core/styles';
+import {createTheme, makeStyles, MuiThemeProvider} from '@material-ui/core/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const AdminUI = function () {
-    const theme = createMuiTheme({
+    const theme = createTheme({
         palette: {
             primary: {
                 main: '#000'

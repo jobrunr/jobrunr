@@ -1,7 +1,10 @@
 import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import {Alert, AlertTitle} from '@material-ui/lab';
-import {Button, Link, Snackbar} from "@material-ui/core";
+import {Button, Dialog, Link, Snackbar} from "@material-ui/core";
+import MuiDialogTitle from "@material-ui/core/DialogTitle";
+import MuiDialogContent from "@material-ui/core/DialogContent";
+import Highlight from "react-highlight";
 
 const useStyles = makeStyles(theme => ({
     alert: {
@@ -17,10 +20,10 @@ const SevereJobRunrExceptionProblem = (props) => {
     const classes = useStyles();
 
     const [copyStatus, setCopyStatus] = React.useState(null);
+    const [issueDialog, setIssueDialogContent] = React.useState(null);
 
-    const handleCloseSnackbar = (event, reason) => {
-        setCopyStatus(null);
-    };
+    const handleCloseSnackbar = (event, reason) => setCopyStatus(null);
+    const handleCloseDialog = (event, reason) => setIssueDialogContent(null);
 
     const dismissProblem = () => {
         fetch(`/api/problems/severe-jobrunr-exception`, {
@@ -28,6 +31,10 @@ const SevereJobRunrExceptionProblem = (props) => {
         })
             .then(resp => props.refresh())
             .catch(error => console.log(error));
+    }
+
+    const showDialogAsContentCouldNotBeCopied = () => {
+        setIssueDialogContent(props.problem.githubIssueBody);
     }
 
     const copyToClipboard = () => {
@@ -38,16 +45,10 @@ const SevereJobRunrExceptionProblem = (props) => {
                         severity: 'success',
                         message: 'Successfully copied Github issue data to the clipboard'
                     }),
-                    () => setCopyStatus({
-                        severity: 'error',
-                        message: 'Could not copy data to the clipboard. Are you using an old browser?'
-                    })
+                    showDialogAsContentCouldNotBeCopied
                 );
         } else {
-            setCopyStatus({
-                severity: 'error',
-                message: 'Could not copy data to the clipboard. Are you using an old browser?'
-            });
+            showDialogAsContentCouldNotBeCopied();
         }
     }
 
@@ -76,11 +77,25 @@ const SevereJobRunrExceptionProblem = (props) => {
                         information.</strong>.<br/></>
             }
             {copyStatus &&
-            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseSnackbar}>
-                <Alert severity={copyStatus.severity}>
-                    {copyStatus.message}
-                </Alert>
-            </Snackbar>
+                <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+                    <Alert severity={copyStatus.severity}>
+                        {copyStatus.message}
+                    </Alert>
+                </Snackbar>
+            }
+            {issueDialog &&
+                <Dialog open={true} onClose={handleCloseDialog} aria-labelledby="customized-dialog-title" >
+                    <MuiDialogTitle id="customized-dialog-title" onClose={handleCloseDialog}>
+                        Could not copy issue data to clipboard
+                    </MuiDialogTitle>
+                    <MuiDialogContent dividers>
+                        JobRunr could not copy the issue data to the clipboard (are you running an older browser or are you not using https?).
+                        Please copy the data below and paste it in the Github issue as is.
+                        <Highlight language='yaml'>
+                            {issueDialog}
+                        </Highlight>
+                    </MuiDialogContent>
+                </Dialog>
             }
         </Alert>
     );
