@@ -4,10 +4,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,6 +190,8 @@ public class DatabaseCreator {
                     final String databaseProductName = connection.getMetaData().getDatabaseProductName();
                     if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
                         return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
+                    } else if ("Microsoft SQL Server".equals(databaseProductName)) {
+                        return new SqlServerDatabaseTablePrefixStatementUpdater(tablePrefix);
                     } else {
                         return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
                     }
