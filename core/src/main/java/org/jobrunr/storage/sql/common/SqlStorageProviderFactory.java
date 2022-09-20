@@ -51,7 +51,9 @@ public class SqlStorageProviderFactory {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".h2.H2StorageProvider");
         } else if (jdbcUrl.startsWith("jdbc:postgres")) {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".postgres.PostgresStorageProvider");
-        } else if (jdbcUrl.startsWith("jdbc:mysql") || jdbcUrl.startsWith("jdbc:mariadb")) {
+        } else if (jdbcUrl.startsWith("jdbc:mysql")) {
+            return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".mysql.MySqlStorageProvider");
+        } else if (jdbcUrl.startsWith("jdbc:mariadb")) {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".mariadb.MariaDbStorageProvider");
         } else if (jdbcUrl.startsWith("jdbc:oracle")) {
             return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + ".oracle.OracleStorageProvider");

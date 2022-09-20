@@ -24,7 +24,7 @@ public class StubDataProvider {
     }
 
     public StubDataProvider addALotOfEnqueuedJobsThatTakeSomeTime() {
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 14; i++) {
             List<Job> jobs = IntStream.range(0, 10000).mapToObj(j -> anEnqueuedJobThatTakesLong().build()).collect(toList());
             storageProvider.save(jobs);
             System.out.println("Saved " + (i+1) * 10000 + " jobs");

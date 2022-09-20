@@ -17,7 +17,7 @@ import static java.time.Instant.now;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractOracleStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static OracleContainer sqlContainer = new OracleContainer("container-registry.oracle.com/database/standard:12.1.0.2")
+    protected static OracleContainer sqlContainer = new OracleContainer("gvenzl/oracle-xe")
             .withStartupTimeoutSeconds(900)
             .withConnectTimeoutSeconds(500)
             .withEnv("DB_SID", "ORCL")

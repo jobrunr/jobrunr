@@ -15,7 +15,7 @@ import static java.time.Instant.now;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractMySQLStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static MySQLContainer sqlContainer = new MySQLContainer<>().withEnv("TZ", "UTC");
+    protected static MySQLContainer sqlContainer = new MySQLContainer<>("mysql:5.7").withEnv("TZ", "UTC");
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {
