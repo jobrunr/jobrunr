@@ -30,7 +30,7 @@ const JobRunrApiNotification = (props) => {
     if(notification) {
         return <Alert className={classes.alert} severity="info">
             <AlertTitle><h4 className={classes.alertTitle}>{notification.title}</h4></AlertTitle>
-            {notification.body}<br/>
+            <span dangerouslySetInnerHTML={{ __html: notification.body }} />
         </Alert>
     }
     return null;
