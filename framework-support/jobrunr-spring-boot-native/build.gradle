@@ -4,7 +4,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.springframework.boot' version '2.7.2'
+    id 'org.springframework.boot' version '2.7.4'
     id 'org.springframework.experimental.aot' version '0.12.1'
 }
 

@@ -16,14 +16,6 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.2/fc8253c588d15e039558368eb735cd071f391ffc/spring-boot-autoconfigure-processor-2.7.2.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.2/12575686ba3820571ea79bfd08d6d27534b97a0e/spring-boot-configuration-processor-2.7.2.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/2.11.2.Final/9b1f08adb0a8a9b1905f33a639563d4599038038/quarkus-extension-processor-2.11.2.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.15.1/c4e25ce7c04dc4ae8f6db08f2391f38e9111231f/jsoup-1.15.1.jar" />
@@ -69,6 +61,14 @@
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.4/3cc2ed4a41e9bc20618b499e2936aeb3579ce10c/spring-boot-autoconfigure-processor-2.7.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.4/444e3980bdda8429a5055c9d55881dd66a61c85e/spring-boot-configuration-processor-2.7.4.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
