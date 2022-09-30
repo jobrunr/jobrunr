@@ -12,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.time.ZoneId;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 class RecurringJobPostProcessorTest {
 
     @Mock
-    private ObjectFactory<JobScheduler> jobSchedulerObjectFactory;
+    private BeanFactory beanFactory;
     @Mock
     private JobScheduler jobScheduler;
 
@@ -36,14 +36,13 @@ class RecurringJobPostProcessorTest {
 
     @BeforeEach
     void setUpJobSchedulerObjectFactory() {
-        lenient().when(jobSchedulerObjectFactory.getObject()).thenReturn(jobScheduler);
+        lenient().when(beanFactory.getBean(JobScheduler.class)).thenReturn(jobScheduler);
     }
 
     @Test
     void beansWithoutMethodsAnnotatedWithRecurringAnnotationWillNotBeHandled() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithoutRecurringAnnotation(), "not important");
@@ -55,8 +54,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationWillAutomaticallyBeRegistered() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJob(), "not important");
@@ -75,8 +73,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsUsingJobContextAnnotatedWithRecurringCronAnnotationWillAutomaticallyBeRegistered() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringCronJobUsingJobContext(), "not important");
@@ -95,8 +92,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsUsingJobContextAnnotatedWithRecurringIntervalAnnotationWillAutomaticallyBeRegistered() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringIntervalJobUsingJobContext(), "not important");
@@ -115,8 +111,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationCronDisabled() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringCronJobDisabled(), "not important");
@@ -128,8 +123,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationIntervalDisabled() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringIntervalDisabled(), "not important");
@@ -141,8 +135,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationCronAndIntervalWillThrowException() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN & THEN
         assertThatThrownBy(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJobWithCronAndInterval(), "not important"))
@@ -152,8 +145,7 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationNoCronOrIntervalWillThrowException() {
         // GIVEN
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         // WHEN & THEN
         assertThatThrownBy(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJobWithoutCronAndInterval(), "not important"))
@@ -163,7 +155,8 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationContainingPropertyPlaceholdersWillBeResolved() {
         new ApplicationContextRunner()
-                .withBean(RecurringJobPostProcessor.class, jobSchedulerObjectFactory)
+                .withBean(RecurringJobPostProcessor.class)
+                .withBean(JobScheduler.class, () -> jobScheduler)
                 .withPropertyValues("my-job.id=my-recurring-job")
                 .withPropertyValues("my-job.cron=0 0/15 * * *")
                 .withPropertyValues("my-job.zone-id=Asia/Taipei")
@@ -178,7 +171,8 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationHasDisabledCronExpressionValueShouldBeDeleted() {
         new ApplicationContextRunner()
-                .withBean(RecurringJobPostProcessor.class, jobSchedulerObjectFactory)
+                .withBean(RecurringJobPostProcessor.class)
+                .withBean(JobScheduler.class, () -> jobScheduler)
                 .withPropertyValues("my-job.id=my-recurring-job-to-be-deleted")
                 .withPropertyValues("my-job.cron=-")
                 .withPropertyValues("my-job.zone-id=Asia/Taipei")
@@ -193,7 +187,8 @@ class RecurringJobPostProcessorTest {
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationHasDisabledCronExpressionButNotSpecifiedIdShouldBeOmitted() {
         new ApplicationContextRunner()
-                .withBean(RecurringJobPostProcessor.class, jobSchedulerObjectFactory)
+                .withBean(RecurringJobPostProcessor.class)
+                .withBean(JobScheduler.class, () -> jobScheduler)
                 .withPropertyValues("my-job.id=")
                 .withPropertyValues("my-job.cron=-")
                 .withPropertyValues("my-job.zone-id=Asia/Taipei")
@@ -207,12 +202,19 @@ class RecurringJobPostProcessorTest {
 
     @Test
     void beansWithUnsupportedMethodsAnnotatedWithRecurringAnnotationWillThrowException() {
-        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor(jobSchedulerObjectFactory);
-        recurringJobPostProcessor.afterPropertiesSet();
+        final RecurringJobPostProcessor recurringJobPostProcessor = getRecurringJobPostProcessor();
 
         assertThatThrownBy(() -> recurringJobPostProcessor.postProcessAfterInitialization(new MyUnsupportedService(), "not important"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
+    }
+
+
+    private RecurringJobPostProcessor getRecurringJobPostProcessor() {
+        final RecurringJobPostProcessor recurringJobPostProcessor = new RecurringJobPostProcessor();
+        recurringJobPostProcessor.setBeanFactory(beanFactory);
+        recurringJobPostProcessor.afterPropertiesSet();
+        return recurringJobPostProcessor;
     }
 
     public static class MyServiceWithoutRecurringAnnotation {

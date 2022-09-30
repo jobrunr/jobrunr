@@ -10,11 +10,11 @@ import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.EmbeddedValueResolverAware;
-import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringValueResolver;
 
@@ -26,23 +26,23 @@ import java.util.List;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
-@Component
-public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedValueResolverAware, InitializingBean {
+public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactoryAware, EmbeddedValueResolverAware, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecurringJobPostProcessor.class);
 
-    private final ObjectFactory<JobScheduler> jobSchedulerObjectFactory;
+    private BeanFactory beanFactory;
     private StringValueResolver embeddedValueResolver;
     private RecurringJobFinderMethodCallback recurringJobFinderMethodCallback;
-
-    public RecurringJobPostProcessor(ObjectFactory<JobScheduler> jobSchedulerObjectFactory) {
-        this.jobSchedulerObjectFactory = jobSchedulerObjectFactory;
-    }
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithMethods(bean.getClass(), recurringJobFinderMethodCallback);
         return bean;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 
     @Override
@@ -52,16 +52,16 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
 
     @Override
     public void afterPropertiesSet() {
-        this.recurringJobFinderMethodCallback = new RecurringJobFinderMethodCallback(jobSchedulerObjectFactory, embeddedValueResolver);
+        this.recurringJobFinderMethodCallback = new RecurringJobFinderMethodCallback(beanFactory, embeddedValueResolver);
     }
 
     private static class RecurringJobFinderMethodCallback implements ReflectionUtils.MethodCallback {
 
-        private final ObjectFactory<JobScheduler> jobSchedulerObjectFactory;
+        private final BeanFactory beanFactory;
         private final StringValueResolver embeddedValueResolver;
 
-        public RecurringJobFinderMethodCallback(ObjectFactory<JobScheduler> jobSchedulerObjectFactory, StringValueResolver resolver) {
-            this.jobSchedulerObjectFactory = jobSchedulerObjectFactory;
+        public RecurringJobFinderMethodCallback(BeanFactory beanFactory, StringValueResolver resolver) {
+            this.beanFactory = beanFactory;
             this.embeddedValueResolver = resolver;
         }
 
@@ -88,15 +88,15 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, EmbeddedVal
                 if (id == null) {
                     LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
-                    jobSchedulerObjectFactory.getObject().delete(id);
+                    beanFactory.getBean(JobScheduler.class).delete(id);
                 }
             } else {
                 JobDetails jobDetails = getJobDetails(method);
                 ZoneId zoneId = getZoneId(recurringAnnotation);
                 if (isNotNullOrEmpty(cron)) {
-                    jobSchedulerObjectFactory.getObject().scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+                    beanFactory.getBean(JobScheduler.class).scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
                 } else {
-                    jobSchedulerObjectFactory.getObject().scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
+                    beanFactory.getBean(JobScheduler.class).scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
                 }
             }
         }
