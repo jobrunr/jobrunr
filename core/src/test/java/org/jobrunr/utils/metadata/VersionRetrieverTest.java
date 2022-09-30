@@ -25,7 +25,7 @@ class VersionRetrieverTest {
 
     @Test
     void jacksonVersion() {
-        assertThat(VersionRetriever.getVersion(ObjectMapper.class)).isEqualTo("2.13.3");
+        assertThat(VersionRetriever.getVersion(ObjectMapper.class)).isEqualTo("2.13.4");
     }
 
 }
