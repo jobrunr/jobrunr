@@ -1,0 +1,1 @@
+org.jobrunr.scheduling.RecurringJobPostProcessor=org.springframework.stereotype.Component,org.springframework.beans.factory.config.BeanPostProcessor
