@@ -19,7 +19,7 @@ public class JavaJobDetailsFinder extends AbstractJobDetailsFinder {
         super(new JavaJobDetailsBuilder(serializedLambda, params));
         this.jobRunrJob = jobRunrJob;
         this.serializedLambda = serializedLambda;
-        this.isLambda = (serializedLambda.getImplMethodName().startsWith("lambda$") || serializedLambda.getImplMethodName().contains("$lambda-"));
+        this.isLambda = (serializedLambda.getImplMethodName().startsWith("lambda$") || serializedLambda.getImplMethodName().contains("$lambda-") || serializedLambda.getImplMethodName().contains("$lambda$"));
         if(isLambda) {
             parse(getClassContainingLambdaAsInputStream());
         } else if(serializedLambda.getCapturedArgCount() == 1 &&
