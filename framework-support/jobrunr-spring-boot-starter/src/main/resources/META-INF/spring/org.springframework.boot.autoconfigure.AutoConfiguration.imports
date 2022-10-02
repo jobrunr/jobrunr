@@ -1,0 +1,7 @@
+org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration
+org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration
+org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration
+org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceStorageAutoConfiguration
+org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration
+org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration
+org.jobrunr.spring.autoconfigure.metrics.JobRunrMetricsAutoConfiguration
