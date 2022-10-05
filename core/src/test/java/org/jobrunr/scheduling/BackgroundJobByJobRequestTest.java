@@ -17,6 +17,7 @@ import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.jobrunr.stubs.TestJobRequestThatTakesLong;
 import org.jobrunr.stubs.TestMDCJobRequest;
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -252,6 +253,16 @@ public class BackgroundJobByJobRequestTest {
         MDC.put("someKey", "someValue");
 
         JobId jobId = BackgroundJobRequest.enqueue(new TestMDCJobRequest("someKey"));
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/581")
+    void mdcContextIsAvailableInJobAndAllowsNullValues() {
+        MDC.put("keyA", "keyAValue");
+        MDC.put("keyB", null);
+
+        JobId jobId = BackgroundJobRequest.enqueue(new TestMDCJobRequest("keyA"));
         await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }
 

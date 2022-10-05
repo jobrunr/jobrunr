@@ -13,7 +13,11 @@ public class MDCMapper {
     public static void saveMDCContextToJob(Job job) {
         Map<String, String> mdcContext = MDC.getCopyOfContextMap();
         if(mdcContext == null) return;
-        mdcContext.forEach((key, value) -> job.getMetadata().put(JOBRUNR_MDC_KEY + "-" + key, value));
+        mdcContext.forEach((key, value) -> {
+            if(value != null) {
+                job.getMetadata().put(JOBRUNR_MDC_KEY + "-" + key, value);
+            }
+        });
     }
 
     public static void loadMDCContextFromJob(Job job) {
