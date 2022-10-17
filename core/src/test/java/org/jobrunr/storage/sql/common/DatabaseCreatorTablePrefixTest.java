@@ -1,6 +1,9 @@
 package org.jobrunr.storage.sql.common;
 
 import org.assertj.core.api.Condition;
+import org.jetbrains.annotations.NotNull;
+import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.db2.DB2StorageProvider;
 import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
 import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
@@ -46,7 +49,7 @@ class DatabaseCreatorTablePrefixTest {
 
     @Test
     void testIndexesAreCreatedWithoutSchema() throws SQLException {
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, null, OracleStorageProvider.class);
+        final DatabaseCreator databaseCreator = getDatabaseCreator(dataSource, null, OracleStorageProvider.class);
         databaseCreator.runMigrations();
 
         assertThat(getAllExecutedStatements())
@@ -59,7 +62,7 @@ class DatabaseCreatorTablePrefixTest {
         when(connection.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getDatabaseProductName()).thenReturn("Oracle");
 
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.", OracleStorageProvider.class);
+        final DatabaseCreator databaseCreator = getDatabaseCreator(dataSource, "SOME_SCHEMA.", OracleStorageProvider.class);
         databaseCreator.runMigrations();
 
         assertThat(getAllExecutedStatements())
@@ -72,7 +75,7 @@ class DatabaseCreatorTablePrefixTest {
         when(connection.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getDatabaseProductName()).thenReturn("DB2");
 
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", DB2StorageProvider.class);
+        final DatabaseCreator databaseCreator = getDatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", DB2StorageProvider.class);
         databaseCreator.runMigrations();
 
         assertThat(getAllExecutedStatements())
@@ -85,12 +88,22 @@ class DatabaseCreatorTablePrefixTest {
         when(connection.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getDatabaseProductName()).thenReturn("SQL Server");
 
-        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", SQLServerStorageProvider.class);
+        final DatabaseCreator databaseCreator = getDatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", SQLServerStorageProvider.class);
         databaseCreator.runMigrations();
 
         assertThat(getAllExecutedStatements())
                 .areAtLeastOne(stringContaining("CREATE TABLE SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs"))
                 .areAtLeastOne(stringContaining("CREATE INDEX SOME_PREFIX_jobrunr_state_idx ON SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs (state)"));
+    }
+
+    @NotNull
+    private static DatabaseCreator getDatabaseCreator(DataSource dataSource, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        return new DatabaseCreator(dataSource, tablePrefix, sqlStorageProviderClass) {
+            @Override
+            protected boolean isMigrationApplied(SqlMigration migration) {
+                return false;
+            }
+        };
     }
 
     private Condition<String> stringContaining(String string) {
