@@ -8,14 +8,19 @@ import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.sqlite.SQLiteDataSource;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class DatabaseCreatorTest {
 
@@ -76,6 +81,24 @@ class DatabaseCreatorTest {
         assertThatThrownBy(databaseCreatorForSchema2::validateTables).isInstanceOf(JobRunrException.class);
     }
 
+    @Test
+    void testMigrationIsNotDoneMoreThanOnce() {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test;DB_CLOSE_DELAY=-1");
+        final DatabaseCreator databaseCreator = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+
+        insertExtraMigrationInDB(dataSource, databaseCreator);
+        Mockito.reset(databaseCreator);
+
+        assertThatCode(databaseCreator::runMigrations)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("A migration was applied multiple times (probably because it took too long and the process was killed). " +
+                        "Please cleanup the migrations_table and remove duplicate entries.");
+
+        verify(databaseCreator, never()).runMigration(any());
+    }
+
     private JdbcDataSource createH2DataSource(String url) {
         JdbcDataSource dataSource = new JdbcDataSource();
         dataSource.setURL(url);
@@ -90,4 +113,13 @@ class DatabaseCreatorTest {
         return sqLiteDataSource;
     }
 
+    private void insertExtraMigrationInDB(DataSource dataSource, DatabaseCreator databaseCreator) {
+        try(Connection connection = dataSource.getConnection()) {
+            SqlMigration migration = mock(SqlMigration.class);
+            when(migration.getFileName()).thenReturn("v014__improve_job_stats.sql");
+            databaseCreator.updateMigrationsTable(connection, migration);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -155,12 +155,17 @@ public class DatabaseCreator {
             pSt.setString(1, migration.getFileName());
             try (ResultSet rs = pSt.executeQuery()) {
                 if (rs.next()) {
-                    result = rs.getInt(1) == 1;
+                    int numberOfRows = rs.getInt(1);
+                    if(numberOfRows > 1) {
+                        throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
+                                "Please cleanup the migrations_table and remove duplicate entries.");
+                    }
+                    result = numberOfRows >= 1;
                 }
             }
             tran.commit();
             return result;
-        } catch (Exception becauseTableDoesNotExist) {
+        } catch (SQLException becauseTableDoesNotExist) {
             return false;
         }
     }

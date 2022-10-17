@@ -9,6 +9,7 @@ import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
 import org.jobrunr.storage.sql.db2.DB2StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
 import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
+import org.jobrunr.storage.sql.mysql.MySqlStorageProvider;
 import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
@@ -31,7 +32,7 @@ public class DatabaseSqlMigrationFileProvider {
         put("db2", DB2StorageProvider.class);
         put("h2", H2StorageProvider.class);
         put("mariadb", MariaDbStorageProvider.class);
-        put("mysql", MariaDbStorageProvider.class);
+        put("mysql", MySqlStorageProvider.class);
         put("oracle", OracleStorageProvider.class);
         put("postgres", PostgresStorageProvider.class);
         put("sqlite", SqLiteStorageProvider.class);
