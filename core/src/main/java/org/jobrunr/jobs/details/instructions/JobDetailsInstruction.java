@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -54,14 +51,15 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
             return findInheritedClassName(className).orElse(className);
         }
 
-        Object jobOnStack = jobDetailsBuilder.getStack().getLast();
-        if (jobOnStack == null) {
-            return className;
-        }
-
-        Class<Object> jobClass = toClass(className);
-        if (jobClass.isAssignableFrom(jobOnStack.getClass())) {
-            return jobOnStack.getClass().getName();
+        ListIterator objectOnStackIterator = jobDetailsBuilder.getStack().listIterator(jobDetailsBuilder.getStack().size());
+        while(objectOnStackIterator.hasPrevious()) {
+            Object jobOnStack = objectOnStackIterator.previous();
+            if(jobOnStack != null) {
+                Class<Object> jobClass = toClass(className);
+                if (jobClass.isAssignableFrom(jobOnStack.getClass())) {
+                    return jobOnStack.getClass().getName();
+                }
+            }
         }
         return className;
     }

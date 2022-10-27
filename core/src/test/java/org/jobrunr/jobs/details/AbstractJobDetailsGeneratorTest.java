@@ -10,6 +10,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.stubs.TaskEvent;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
@@ -1073,6 +1074,17 @@ public abstract class AbstractJobDetailsGeneratorTest {
                     Integer givenInput = parseInt(substringAfterLast(key, "-"));
                     assertThat(jobDetailsResults.get(key)).hasArgs(givenInput);
                 });
+    }
+
+    @Test
+    @Because("https://stackoverflow.com/questions/74161840/enqueue-jobrunr-background-job-with-lambda-subclass-of-abstract-class")
+    void testWithSubClass() {
+        TaskEvent taskEvent = new TaskEvent();
+        taskEvent.tasks.add(new TaskEvent.Task1());
+        taskEvent.tasks.add(new TaskEvent.Task2());
+
+        JobDetails jobDetails = toJobDetails((JobLambda) () -> taskEvent.tasks.get(0).process("id1"));
+        assertThat(jobDetails.getClassName()).isEqualTo(TaskEvent.Task1.class.getName());
     }
 
     private Runnable createJobDetailsRunnable(CountDownLatch countDownLatch, String threadNbr, Map<String, JobDetails> jobDetailsResults) {
