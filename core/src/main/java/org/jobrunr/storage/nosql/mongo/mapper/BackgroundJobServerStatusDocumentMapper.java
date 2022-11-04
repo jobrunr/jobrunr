@@ -14,6 +14,7 @@ public class BackgroundJobServerStatusDocumentMapper {
     public Document toInsertDocument(BackgroundJobServerStatus serverStatus) {
         final Document document = new Document();
         document.put("_id", serverStatus.getId());
+        document.put(FIELD_NAME, serverStatus.getName());
         document.put(FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
         document.put(FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
         document.put(FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter().toString());
@@ -47,6 +48,7 @@ public class BackgroundJobServerStatusDocumentMapper {
 
         return new BackgroundJobServerStatus(
                 getIdAsUUID(document),
+                document.getString(FIELD_NAME),
                 document.getInteger(FIELD_WORKER_POOL_SIZE),
                 document.getInteger(FIELD_POLL_INTERVAL_IN_SECONDS),
                 Duration.parse(document.getString(FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),

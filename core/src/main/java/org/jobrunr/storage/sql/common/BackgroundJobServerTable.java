@@ -24,6 +24,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
         this
                 .using(connection, dialect, tablePrefix, "jobrunr_backgroundjobservers")
                 .with(FIELD_ID, BackgroundJobServerStatus::getId)
+                .with(FIELD_NAME, BackgroundJobServerStatus::getName)
                 .with(FIELD_WORKER_POOL_SIZE, BackgroundJobServerStatus::getWorkerPoolSize)
                 .with(FIELD_POLL_INTERVAL_IN_SECONDS, BackgroundJobServerStatus::getPollIntervalInSeconds)
                 .with(FIELD_DELETE_SUCCEEDED_JOBS_AFTER, BackgroundJobServerStatus::getDeleteSucceededJobsAfter)
@@ -101,6 +102,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
     private BackgroundJobServerStatus toBackgroundJobServerStatus(SqlResultSet resultSet) {
         return new BackgroundJobServerStatus(
                 resultSet.asUUID(FIELD_ID),
+                resultSet.asString(FIELD_NAME),
                 resultSet.asInt(FIELD_WORKER_POOL_SIZE),
                 resultSet.asInt(FIELD_POLL_INTERVAL_IN_SECONDS),
                 resultSet.asDuration(FIELD_DELETE_SUCCEEDED_JOBS_AFTER),

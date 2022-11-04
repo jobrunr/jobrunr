@@ -95,6 +95,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisCommands<String, String> commands = connection.sync();
             commands.multi();
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_NAME, serverStatus.getName());
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
             commands.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, String.valueOf(serverStatus.getDeleteSucceededJobsAfter()));
@@ -159,6 +160,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                     .mapAfterSync(RedisFuture<Map<String, String>>::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
                             UUID.fromString(fieldMap.get(BackgroundJobServers.FIELD_ID)),
+                            fieldMap.get(BackgroundJobServers.FIELD_NAME),
                             Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
                             Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
                             Duration.parse(fieldMap.get(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),

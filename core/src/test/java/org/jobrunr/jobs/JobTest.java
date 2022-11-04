@@ -1,7 +1,6 @@
 package org.jobrunr.jobs;
 
 import org.assertj.core.data.Offset;
-import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -82,7 +81,7 @@ class JobTest {
         Job job = aJob()
                 .withState(new ScheduledState(Instant.now()), Instant.now().minusSeconds(600))
                 .withState(new EnqueuedState(), Instant.now().minusSeconds(60))
-                .withState(new ProcessingState(backgroundJobServer.getId()), Instant.now().minusSeconds(10))
+                .withState(new ProcessingState(backgroundJobServer), Instant.now().minusSeconds(10))
                 .build();
         job.updateProcessing();
         job.succeeded();

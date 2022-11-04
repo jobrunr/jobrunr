@@ -4,8 +4,8 @@ import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
-import TimeAgo from "react-timeago/lib";
 import {TimerSand} from "mdi-material-ui";
+import SwitchableTimeAgo from "../../utils/time-ago";
 
 
 const useStyles = makeStyles(theme => ({
@@ -45,7 +45,7 @@ const Enqueued = (props) => {
                     </Typography>
                 </Alert>
                 <Typography className={classes.secondaryHeading}>
-                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
         </Accordion>

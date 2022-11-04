@@ -57,6 +57,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         final BackgroundJobServerStatus backgroundJobServerStatus = new BackgroundJobServerStatus(
                 serverStatus.getId(),
+                serverStatus.getName(),
                 serverStatus.getWorkerPoolSize(),
                 serverStatus.getPollIntervalInSeconds(),
                 serverStatus.getDeleteSucceededJobsAfter(),

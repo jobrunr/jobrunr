@@ -1,7 +1,10 @@
 package org.jobrunr.server;
 
 import org.jobrunr.server.configuration.*;
+import org.jobrunr.utils.StringUtils;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 
 /**
@@ -18,6 +21,7 @@ public class BackgroundJobServerConfiguration {
     int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    String name = getHostName();
     Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
     Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
@@ -34,6 +38,19 @@ public class BackgroundJobServerConfiguration {
      */
     public static BackgroundJobServerConfiguration usingStandardBackgroundJobServerConfiguration() {
         return new BackgroundJobServerConfiguration();
+    }
+
+    /**
+     * Allows to set the name for the BackgroundJobServer
+     *
+     * @param name the name of this BackgroundJobServer (used in the dashboard)
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andName(String name) {
+        if (StringUtils.isNullOrEmpty(name))
+            throw new IllegalArgumentException("The name can not be blank or null");
+        this.name = name;
+        return this;
     }
 
     /**
@@ -139,5 +156,13 @@ public class BackgroundJobServerConfiguration {
     public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
         return this;
+    }
+
+    private static String getHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "Unable to determine hostname";
+        }
     }
 }
