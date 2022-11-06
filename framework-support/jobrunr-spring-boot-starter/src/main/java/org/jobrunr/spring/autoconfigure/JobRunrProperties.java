@@ -226,6 +226,11 @@ public class JobRunrProperties {
     public static class BackgroundJobServer {
 
         /**
+         * Allows to set the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
+         */
+        private String name;
+
+        /**
          * Enables the background processing of jobs.
          */
         private boolean enabled = false;
@@ -274,6 +279,14 @@ public class JobRunrProperties {
          * Configures MicroMeter metrics related to the BackgroundJobServer
          */
         private Metrics metrics = new Metrics();
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
 
         public boolean isEnabled() {
             return enabled;

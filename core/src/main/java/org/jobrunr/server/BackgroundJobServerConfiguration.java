@@ -1,11 +1,13 @@
 package org.jobrunr.server;
 
 import org.jobrunr.server.configuration.*;
-import org.jobrunr.utils.StringUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
+
+import static java.lang.Math.min;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 /**
  * This class allows to configure the BackgroundJobServer
@@ -41,14 +43,14 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the name for the BackgroundJobServer
+     * Allows to set the name for the {@link BackgroundJobServer}
      *
      * @param name the name of this BackgroundJobServer (used in the dashboard)
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andName(String name) {
-        if (StringUtils.isNullOrEmpty(name))
-            throw new IllegalArgumentException("The name can not be blank or null");
+        if (isNullOrEmpty(name)) throw new IllegalArgumentException("The name can not be null or empty");
+        if (name.length() >= 128) throw new IllegalArgumentException("The length of the name can not exceed 128 characters");
         this.name = name;
         return this;
     }
@@ -160,7 +162,9 @@ public class BackgroundJobServerConfiguration {
 
     private static String getHostName() {
         try {
-            return InetAddress.getLocalHost().getHostName();
+            String hostName = InetAddress.getLocalHost().getHostName();
+            hostName.substring(0, min(hostName.length(), 127));
+            return hostName;
         } catch (UnknownHostException e) {
             return "Unable to determine hostname";
         }

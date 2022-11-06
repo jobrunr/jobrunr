@@ -103,6 +103,11 @@ public interface JobRunrConfiguration {
     interface BackgroundJobServerConfiguration {
 
         /**
+         * Allows to set the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
+         */
+        Optional<String> getName();
+
+        /**
          * Enables the background processing of jobs.
          */
         @Bindable(defaultValue = "false")

@@ -27,7 +27,8 @@
       "updatedAt": "${json-unit.ignore}",
       "state": "PROCESSING",
       "createdAt": "${json-unit.ignore}",
-      "serverId": "${json-unit.ignore}"
+      "serverId": "${json-unit.ignore}",
+      "serverName": "${json-unit.ignore}"
     },
     {
       "@class": "org.jobrunr.jobs.states.SucceededState",
