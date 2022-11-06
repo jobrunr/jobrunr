@@ -9,6 +9,7 @@
     {
       "@class": "org.jobrunr.jobs.states.ProcessingState",
       "serverId": "${json-unit.ignore}",
+      "serverName": "${json-unit.ignore}",
       "updatedAt": "${json-unit.ignore}",
       "state": "PROCESSING",
       "createdAt": "${json-unit.ignore}"

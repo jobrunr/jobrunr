@@ -367,7 +367,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void jobsStuckInProcessingStateAreRescheduled() {
-        Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId()), now().minus(15, ChronoUnit.MINUTES)).build());
+        Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer), now().minus(15, ChronoUnit.MINUTES)).build());
         await().atMost(3, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
     }
 

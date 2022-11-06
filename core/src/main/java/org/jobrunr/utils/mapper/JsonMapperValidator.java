@@ -82,7 +82,7 @@ public class JsonMapperValidator {
                 Arrays.asList(
                         setCreatedAndScheduledDates(new ScheduledState(Instant.now()), Instant.ofEpochSecond(1634248800), Instant.ofEpochSecond(1634245200)),
                         setCreatedAt(new EnqueuedState(), Instant.ofEpochSecond(1634248800)),
-                        setCreatedAt(new ProcessingState(UUID.fromString("117bbfcf-e6df-45f0-82a7-b88fd8f96c06")), Instant.ofEpochSecond(1634248900))),
+                        setCreatedAt(new ProcessingState(UUID.fromString("117bbfcf-e6df-45f0-82a7-b88fd8f96c06"), "some host name"), Instant.ofEpochSecond(1634248900))),
                 new ConcurrentHashMap<>()
         );
         job.setJobName("Some name");

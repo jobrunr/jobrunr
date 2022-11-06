@@ -116,7 +116,7 @@ public class Job extends AbstractJob {
 
     public void startProcessingOn(BackgroundJobServer backgroundJobServer) {
         if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
-        addJobState(new ProcessingState(backgroundJobServer.getId()));
+        addJobState(new ProcessingState(backgroundJobServer));
     }
 
     public void updateProcessing() {

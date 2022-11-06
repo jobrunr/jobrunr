@@ -54,6 +54,7 @@ public class JobRunrFactory {
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
     public BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+        configuration.getBackgroundJobServer().getName().ifPresent(backgroundJobServerConfiguration::andName);
         configuration.getBackgroundJobServer().getPollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
         configuration.getBackgroundJobServer().getWorkerCount().ifPresent(backgroundJobServerConfiguration::andWorkerCount);
         configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);

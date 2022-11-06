@@ -9,6 +9,7 @@ import java.util.UUID;
 public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean {
 
     private final UUID id;
+    private final String name;
     private final int workerPoolSize;
     private final int pollIntervalInSeconds;
     private final Duration deleteSucceededJobsAfter;
@@ -24,12 +25,13 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final Long processAllocatedMemory;
     private final Double processCpuLoad;
 
-    public BackgroundJobServerStatus(int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
-        this(UUID.randomUUID(), workerPoolSize, pollIntervalInSeconds, deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, null, null, false, null, null, null, null, null, null, null);
+    public BackgroundJobServerStatus(String name, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
+        this(UUID.randomUUID(), name, workerPoolSize, pollIntervalInSeconds, deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, null, null, false, null, null, null, null, null, null, null);
     }
 
-    public BackgroundJobServerStatus(UUID id, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {
+    public BackgroundJobServerStatus(UUID id, String name, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {
         this.id = id;
+        this.name = name;
         this.workerPoolSize = workerPoolSize;
         this.pollIntervalInSeconds = pollIntervalInSeconds;
         this.deleteSucceededJobsAfter = deleteSucceededJobsAfter;
@@ -49,6 +51,11 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     @Override
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

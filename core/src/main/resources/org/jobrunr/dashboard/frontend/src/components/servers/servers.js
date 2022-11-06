@@ -37,6 +37,10 @@ const useStyles = makeStyles(theme => ({
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
+        cursor: 'pointer'
+    },
+    nameColumn: {
+        cursor: 'pointer'
     },
     inline: {
         display: 'inline',
@@ -114,6 +118,7 @@ const Servers = React.memo(() => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell className={classes.idColumn}>Id</TableCell>
+                                                <TableCell>Name</TableCell>
                                                 <TableCell>Workers</TableCell>
                                                 <TableCell>Created</TableCell>
                                                 <TableCell>Last heartbeat</TableCell>
@@ -129,6 +134,11 @@ const Servers = React.memo(() => {
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
                                                         <Link color="initial" onClick={() => handleOpen(server)}>
                                                             {server.id}
+                                                        </Link>
+                                                    </TableCell>
+                                                    <TableCell className={classes.nameColumn}>
+                                                        <Link color="initial" onClick={() => handleOpen(server)}>
+                                                            {server.name}
                                                         </Link>
                                                     </TableCell>
                                                     <TableCell>
@@ -173,15 +183,22 @@ const Servers = React.memo(() => {
             }
 
             {currentServer &&
-                <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <Dialog fullWidth="true" maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
                     <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
-                        Server info
-                        <Typography variant="body1">{currentServer.id}</Typography>
+                        Server info <code>{currentServer.id}</code>
                     </MuiDialogTitle>
                     <MuiDialogContent dividers>
                         <TableContainer>
                             <Table className={classes.table} aria-label="simple table">
                                 <TableBody>
+                                    <TableRow>
+                                        <TableCell>
+                                            Name
+                                        </TableCell>
+                                        <TableCell>
+                                            {currentServer.name}
+                                        </TableCell>
+                                    </TableRow>
                                     <TableRow>
                                         <TableCell>
                                             WorkerPoolSize

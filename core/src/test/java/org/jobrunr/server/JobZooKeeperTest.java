@@ -289,7 +289,7 @@ class JobZooKeeperTest {
 
     @Test
     void checkForOrphanedJobs() {
-        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId())).build();
+        final Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer)).build();
         when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
                         singletonList(orphanedJob),

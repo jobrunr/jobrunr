@@ -2,6 +2,7 @@
   {
     "@class": "${json-unit.ignore-element}",
     "id": "${json-unit.ignore}",
+    "name": "${json-unit.ignore}",
     "workerPoolSize": 10,
     "pollIntervalInSeconds": 15,
     "deleteSucceededJobsAfter": 129600.0,

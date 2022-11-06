@@ -18,6 +18,7 @@ import java.util.*;
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
@@ -74,7 +75,7 @@ public class JobTestBuilder {
     }
 
     public static JobTestBuilder aJobInProgress() {
-        return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID()));
+        return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
     }
 
     public static JobTestBuilder aScheduledJob() {
@@ -87,7 +88,7 @@ public class JobTestBuilder {
         return anEnqueuedJob()
                 .withName("a failed job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
-                .withState(new ProcessingState(UUID.randomUUID()))
+                .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
                 .withState(new FailedState("a message", new IllegalStateException()));
     }
 
@@ -95,7 +96,7 @@ public class JobTestBuilder {
         return anEnqueuedJob()
                 .withName("a succeeded job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
-                .withState(new ProcessingState(UUID.randomUUID()))
+                .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
                 .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.ofSeconds(10L, 7345L)));
     }
 
@@ -115,7 +116,7 @@ public class JobTestBuilder {
         UUID serverId = UUID.randomUUID();
         for (int i = 0; i < 4; i++) {
             jobTestBuilder.withState(new EnqueuedState());
-            jobTestBuilder.withState(new ProcessingState(serverId));
+            jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
             jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
             if(i < 3) {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
@@ -135,7 +136,7 @@ public class JobTestBuilder {
         UUID serverId = UUID.randomUUID();
         for (int i = 0; i < 11; i++) {
             jobTestBuilder.withState(new EnqueuedState());
-            jobTestBuilder.withState(new ProcessingState(serverId));
+            jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
             jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
             if(i < 10) {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
@@ -221,7 +222,7 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withProcessingState() {
-        return withState(new ProcessingState(UUID.randomUUID()));
+        return withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
     }
 
     public JobTestBuilder withSucceededState() {
