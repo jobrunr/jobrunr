@@ -201,8 +201,7 @@ class BackgroundJobPerformerTest {
     @Test
     @DisplayName("any exception other than InvocationTargetException stays unwrapped")
     void anyExceptionOtherThanInvocationTargetExceptionIsNotUnwrapped() throws Exception {
-        var job = anEnqueuedJob()
-                .build();
+        var job = anEnqueuedJob().build();
         var runner = mock(BackgroundJobRunner.class);
         doThrow(new RuntimeException("test error")).when(runner).run(job);
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(runner);

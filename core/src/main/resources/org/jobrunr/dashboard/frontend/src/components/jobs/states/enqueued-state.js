@@ -6,6 +6,7 @@ import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {TimerSand} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";
+import {Icon} from "@material-ui/core";
 
 
 const useStyles = makeStyles(theme => ({
@@ -37,6 +38,7 @@ const Enqueued = (props) => {
         <Accordion>
             <AccordionSummary
                 className={classes.info}
+                expandIcon={<Icon/>}
                 id="enqueued-panel-header"
             >
                 <Alert className={classes.alert} severity="info" icon={enqueuedIcon}>

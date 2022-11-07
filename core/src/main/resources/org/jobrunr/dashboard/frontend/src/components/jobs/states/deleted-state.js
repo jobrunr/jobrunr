@@ -7,6 +7,8 @@ import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {Delete} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+import {Icon} from "@material-ui/core";
 
 
 const useStyles = makeStyles(() => ({
@@ -51,6 +53,10 @@ const Deleted = (props) => {
             <AccordionSummary
                 className={classes.info}
                 id="deleted-panel-header"
+                expandIcon={jobState.reason
+                    ? <ExpandMore />
+                    : <Icon />
+                }
             >
                 <Alert className={classes.alert} severity="info" icon={deletedIcon}>
                     <Typography className={classes.primaryHeading} variant="h6">
@@ -66,7 +72,6 @@ const Deleted = (props) => {
                 <div className={classes.details}>{jobState.reason}</div>
             </AccordionDetails>
             }
-
         </Accordion>
     )
 };
