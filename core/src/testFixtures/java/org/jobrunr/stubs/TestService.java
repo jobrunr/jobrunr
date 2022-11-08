@@ -156,11 +156,11 @@ public class TestService implements TestServiceInterface {
         return "Hello to you to " + someString;
     }
 
-    @Job(name = "Doing some work", retries = 1)
+    @Job(name = "Doing some work", retries = 1, labels = {"Just a label", "Another label"})
     public void doWorkThatFails() {
         processedJobs++;
         System.out.println("Whoopsie, an error will occur " + processedJobs);
-        throw new RuntimeException("Whoopsie, an error occcured");
+        throw new RuntimeException("Whoopsie, an error occurred");
     }
 
     public void doWorkThatTakesLong(JobContext jobContext) throws InterruptedException {

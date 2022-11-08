@@ -212,7 +212,7 @@ public abstract class AbstractJsonMapperTest {
         final String jobAsStringFrom4Dot0Dot0 = contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-github-254-input.json");
 
         final Job actualJobFrom4Dot0Dot0 = jsonMapper.deserialize(jobAsStringFrom4Dot0Dot0, Job.class);
-        assertThat(actualJobFrom4Dot0Dot0).isEqualTo(job);
+        assertThat(actualJobFrom4Dot0Dot0).isEqualTo(job, "locker", "labels");
     }
 
     @Test

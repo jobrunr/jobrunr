@@ -4,14 +4,23 @@ import org.jobrunr.utils.JobUtils;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.Lockable;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
+import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
+
 public abstract class AbstractJob implements Lockable {
 
+    private static final int MAX_AMOUNT_OF_LABELS = 3;
+    private static final int MAX_LABEL_LENGTH = 45;
     private final transient Lock locker;
 
     private volatile int version;
     private String jobSignature;
     private String jobName;
     private Integer amountOfRetries;
+    private HashSet<String> labels;
     private JobDetails jobDetails;
 
     protected AbstractJob() {
@@ -28,6 +37,7 @@ public abstract class AbstractJob implements Lockable {
         this.jobDetails = jobDetails;
         this.version = version;
         this.jobSignature = JobUtils.getJobSignature(jobDetails);
+        this.labels = new HashSet<>();
     }
 
     public abstract Object getId();
@@ -67,6 +77,22 @@ public abstract class AbstractJob implements Lockable {
 
     public void setAmountOfRetries(Integer retries) {
         this.amountOfRetries = retries;
+    }
+
+    public Set<String> getLabels() {
+        return unmodifiableSet(labels);
+    }
+
+    public void setLabels(Set<String> labels) {
+        if (isNotNullOrEmpty(labels)) {
+            if (labels.size() > MAX_AMOUNT_OF_LABELS) {
+                throw new IllegalArgumentException(String.format("Per job a maximum of %d labels can be provided.", MAX_AMOUNT_OF_LABELS));
+            }
+            if (labels.stream().anyMatch((label) -> label.length() > 45)) {
+                throw new IllegalArgumentException(String.format("Label length must be less than %d characters.", MAX_LABEL_LENGTH));
+            }
+            this.labels = new HashSet<>(labels);
+        }
     }
 
     public JobDetails getJobDetails() {

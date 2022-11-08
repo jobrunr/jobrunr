@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -72,7 +74,38 @@ class DefaultJobFilterTest {
     @Test
     void testAmountOfRetriesExceptionIsThrownIfJobBuilderIsUsedWithAnnotation() {
         Job job = anEnqueuedJob()
+                .withoutName()
                 .withAmountOfRetries(3)
+                .withJobDetails(jobDetails()
+                        .withClassName(TestService.class)
+                        .withMethodName("doWorkThatFails"))
+                .build();
+
+        assertThatThrownBy(() -> defaultJobFilter.onCreating(job))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
+    }
+
+    @Test
+    void testLabelsIsUsedIfProvidedByJobBuilder() {
+        Job job = anEnqueuedJob()
+                .withLabels("TestLabel", "Email")
+                .withJobDetails(jobDetails()
+                        .withClassName(TestService.class)
+                        .withMethodName("doWork")
+                        .withJobParameter(2))
+                .build();
+
+        defaultJobFilter.onCreating(job);
+
+        assertThat(job).hasLabels(Set.of("TestLabel", "Email"));
+    }
+
+    @Test
+    void testLabelsExceptionIsThrownIfJobBuilderIsUsedWithAnnotation() {
+        Job job = anEnqueuedJob()
+                .withoutName()
+                .withLabels("TestLabel", "Email")
                 .withJobDetails(jobDetails()
                         .withClassName(TestService.class)
                         .withMethodName("doWorkThatFails"))

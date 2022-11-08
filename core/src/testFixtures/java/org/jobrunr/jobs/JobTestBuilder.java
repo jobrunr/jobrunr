@@ -20,6 +20,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
@@ -35,6 +36,7 @@ public class JobTestBuilder {
     private Integer version;
     private String name;
     private Integer amountOfRetries;
+    private Set<String> labels;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
@@ -126,7 +128,7 @@ public class JobTestBuilder {
             jobTestBuilder.withState(new EnqueuedState());
             jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
             jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
-            if(i < 3) {
+            if (i < 3) {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
@@ -146,7 +148,7 @@ public class JobTestBuilder {
             jobTestBuilder.withState(new EnqueuedState());
             jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
             jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
-            if(i < 10) {
+            if (i < 10) {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
@@ -180,6 +182,15 @@ public class JobTestBuilder {
 
     public JobTestBuilder withAmountOfRetries(int amountOfRetries) {
         this.amountOfRetries = amountOfRetries;
+        return this;
+    }
+
+    public JobTestBuilder withLabels(String... labels) {
+        return withLabels(asSet(labels));
+    }
+
+    public JobTestBuilder withLabels(Set<String> labels) {
+        this.labels = labels;
         return this;
     }
 
@@ -274,6 +285,9 @@ public class JobTestBuilder {
         }
         if (amountOfRetries != null) {
             job.setAmountOfRetries(amountOfRetries);
+        }
+        if (labels != null) {
+            job.setLabels(labels);
         }
         job.setJobName(name);
         job.getMetadata().putAll(metadata);

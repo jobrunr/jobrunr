@@ -3,6 +3,8 @@ package org.jobrunr.jobs;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
+import java.util.Set;
+
 public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, RecurringJob> {
 
     private RecurringJobAssert(RecurringJob recurringJob) {
@@ -30,6 +32,11 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
 
     public RecurringJobAssert hasRetries(int amountOfRetries) {
         Assertions.assertThat(actual.getAmountOfRetries()).isEqualTo(amountOfRetries);
+        return this;
+    }
+
+    public RecurringJobAssert hasLabels(Set<String> labels) {
+        Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
         return this;
     }
 

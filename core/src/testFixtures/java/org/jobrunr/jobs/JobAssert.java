@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -115,6 +116,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasLabels(Set<String> labels) {
+        Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
+        return this;
+    }
+
     public JobAssert hasRecurringJobId(String recurringJobId) {
         Assertions.assertThat(actual.getRecurringJobId())
                 .isPresent()
@@ -123,10 +129,14 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     }
 
     public JobAssert isEqualTo(Job otherJob) {
+        return isEqualTo(otherJob, "locker");
+    }
+
+    public JobAssert isEqualTo(Job otherJob, String... fieldNamesToIgnore) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
                 .usingOverriddenEquals()
-                .ignoringFields("locker")
+                .ignoringFields(fieldNamesToIgnore)
                 .isEqualTo(otherJob);
         return this;
     }

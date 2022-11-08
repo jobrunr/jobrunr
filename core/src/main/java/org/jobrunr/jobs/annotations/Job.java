@@ -51,5 +51,7 @@ public @interface Job {
 
     int retries() default NBR_OF_RETRIES_NOT_PROVIDED;
 
+    String[] labels() default {};
+
     Class<? extends JobFilter>[] jobFilters() default {};
 }

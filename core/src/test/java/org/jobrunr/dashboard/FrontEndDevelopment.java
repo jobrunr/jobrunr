@@ -21,12 +21,14 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import javax.sql.DataSource;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -35,6 +37,7 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws InterruptedException {
+        TestService testService = new TestService();
         StorageProvider storageProvider = new InMemoryStorageProvider();
         //final StorageProvider storageProvider = SqlStorageProviderFactory.using(getMariaDBDataSource());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
@@ -44,9 +47,11 @@ public class FrontEndDevelopment {
                 //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 .addSomeRecurringJobs();
 
-        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
+        int i = 0;
+        Set<String> tooManyLabels = Set.of("Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i));
+        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withLabels(tooManyLabels).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withLabels(Set.of("test")).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withLabels(Set.of("Failed Job", "Missing job parameter")).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
 
         JobRunr
                 .configure()
@@ -55,10 +60,18 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
-                x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.scheduleRecurrently(
+                aRecurringJob()
+                        .withId("Github-75")
+                        .withLabels("Triggered by someone", "Long", "provided Id")
+                        .withCron(Cron.daily(18, 4))
+                        .withDetails(() -> testService.doWorkThatTakesLong(JobContext.Null)));
 
-        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.scheduleRecurrently(
+                aRecurringJob()
+                        .withLabels(Set.of("Recurring", "Long"))
+                        .withDuration(Duration.ofMinutes(1))
+                        .withDetails(() -> testService.doWorkThatTakesLong(JobContext.Null)));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

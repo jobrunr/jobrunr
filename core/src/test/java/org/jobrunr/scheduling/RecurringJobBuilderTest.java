@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.ZoneId;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.time.ZoneId.systemDefault;
@@ -91,6 +92,40 @@ class RecurringJobBuilderTest {
                 .hasRetries(10)
                 .hasId()
                 .hasScheduleExpression(every5Seconds);
+    }
+
+    @Test
+    void testWithLabels() {
+        RecurringJob recurringJob = aRecurringJob()
+                .withLabels(Set.of("TestLabel", "Email"))
+                .withCron(every5Seconds)
+                .withDetails(() -> testService.doWork())
+                .build(jobDetailsGenerator);
+
+        assertThat(recurringJob)
+                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasId()
+                .hasScheduleExpression(every5Seconds);
+    }
+
+    @Test
+    void testMaxAmountOfLabels() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> aRecurringJob()
+                        .withLabels("TestLabel", "Email", "Automated", "Too many")
+                        .withCron(every5Seconds)
+                        .withDetails(() -> testService.doWork())
+                        .build(jobDetailsGenerator));
+    }
+
+    @Test
+    void testMaxLengthOfLabel() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> aRecurringJob()
+                        .withLabels("Label longer than 45 characters should throw an exception")
+                        .withCron(every5Seconds)
+                        .withDetails(() -> testService.doWork())
+                        .build(jobDetailsGenerator));
     }
 
     @Test
