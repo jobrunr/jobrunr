@@ -120,6 +120,10 @@ public class AbstractJobScheduler {
 
     String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
+        return scheduleRecurrently(recurringJob);
+    }
+
+    String scheduleRecurrently(RecurringJob recurringJob) {
         jobFilterUtils.runOnCreatingFilter(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
         jobFilterUtils.runOnCreatedFilter(recurringJob);

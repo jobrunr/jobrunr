@@ -23,6 +23,15 @@ public class BackgroundJobRequest {
     private static JobRequestScheduler jobRequestScheduler;
 
     /**
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobRequestBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobRequestBuilder the jobRequestBuilder with all the details of the job
+     * @return the id of the job
+     */
+    public static JobId create(JobRequestBuilder jobRequestBuilder) {
+        return jobRequestScheduler.create(jobRequestBuilder);
+    }
+
+    /**
      * Creates a new fire-and-forget job based on a given jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>

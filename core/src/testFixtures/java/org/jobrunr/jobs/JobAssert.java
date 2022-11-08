@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.condition.AnyOf.anyOf;
@@ -25,6 +26,19 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public static JobAssert assertThat(Job job) {
         return new JobAssert(job);
+    }
+
+    public JobAssert hasId() {
+        Assertions.assertThat(actual.getId()).isNotNull();
+        return this;
+    }
+
+
+    public JobAssert hasId(UUID id) {
+        Assertions.assertThat(actual.getId())
+                .isNotNull()
+                .isEqualTo(id);
+        return this;
     }
 
     public JobAssert hasJobName(String name) {
@@ -84,6 +98,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasVersion(int version) {
         Assertions.assertThat(actual.getVersion()).isEqualTo(version);
+        return this;
+    }
+
+    public JobAssert hasAmountOfRetries(int amountOfRetries) {
+        Assertions.assertThat(actual.getAmountOfRetries()).isEqualTo(amountOfRetries);
         return this;
     }
 

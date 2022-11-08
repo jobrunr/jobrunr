@@ -43,6 +43,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.scheduling.JobRequestBuilder.aJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -80,6 +81,21 @@ public class BackgroundJobByJobRequestTest {
         assertThatThrownBy(() -> BackgroundJobRequest.enqueue(new TestJobRequest("not important")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("The JobRequestScheduler has not been initialized. Use the fluent JobRunr.configure() API to setup JobRunr or set the JobRequestScheduler via the static setter method.");
+    }
+
+    @Test
+    void testCreateViaBuilder() {
+        UUID jobId = UUID.randomUUID();
+        BackgroundJobRequest.create(aJob()
+                .withId(jobId)
+                .withName("My Job Name")
+                .withAmountOfRetries(3)
+                .withJobRequest(new TestJobRequestWithoutJobAnnotation("not important")));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasJobName("My Job Name")
+                .hasAmountOfRetries(3)
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

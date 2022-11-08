@@ -50,6 +50,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -91,6 +92,21 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
+    void testCreateViaBuilder() {
+        UUID jobId = UUID.randomUUID();
+        BackgroundJob.create(aJob()
+                .withId(jobId)
+                .withName("My Job Name")
+                .withAmountOfRetries(3)
+                .withDetails(() -> testService.doWorkAndReturnResult("some string")));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasJobName("My Job Name")
+                .hasAmountOfRetries(3)
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testEnqueueSystemOut() {
         JobId jobId = BackgroundJob.enqueue(() -> System.out.println("this is a test"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
@@ -109,7 +125,7 @@ public class BackgroundJobByJobLambdaTest {
         UUID id = UUID.randomUUID();
         JobId jobId1 = BackgroundJob.enqueue(id, () -> testService.doWork());
         JobId jobId2 = BackgroundJob.enqueue(id, () -> testService.doWork());
-        // why: no exception whould be thrown.
+        // why: no exception would be thrown.
 
         assertThat(jobId1).isEqualTo(jobId2);
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId1)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));

@@ -26,6 +26,7 @@ public class JobTestBuilder {
     private UUID id;
     private Integer version;
     private String name;
+    private Integer amountOfRetries;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
@@ -169,6 +170,11 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withAmountOfRetries(int amountOfRetries) {
+        this.amountOfRetries = amountOfRetries;
+        return this;
+    }
+
     public JobTestBuilder withoutName() {
         this.name = null;
         return this;
@@ -258,6 +264,9 @@ public class JobTestBuilder {
         if (locker != null) {
             Whitebox.setInternalState(job, "locker", locker);
         }
+        if (amountOfRetries != null) {
+            job.setAmountOfRetries(amountOfRetries);
+        }
         job.setJobName(name);
         job.getMetadata().putAll(metadata);
 
@@ -265,6 +274,4 @@ public class JobTestBuilder {
         jobHistory.addAll(states);
         return job;
     }
-
-
 }

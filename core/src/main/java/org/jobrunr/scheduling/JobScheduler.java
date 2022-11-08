@@ -61,6 +61,16 @@ public class JobScheduler extends AbstractJobScheduler {
         BackgroundJob.setJobScheduler(this);
     }
 
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobBuilder the jobBuilder with all the details of the job
+     * @return the id of the job
+     */
+    public JobId create(JobBuilder jobBuilder) {
+        return saveJob(jobBuilder.build(jobDetailsGenerator));
+    }
+
     /**
      * Creates a new fire-and-forget job based on a given lambda.
      * <h5>An example:</h5>
