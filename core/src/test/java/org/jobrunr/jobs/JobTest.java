@@ -104,7 +104,7 @@ class JobTest {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
 
-        job.failed("En exception occured", new RuntimeException("boem"));
+        job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
         job.scheduleAt(Instant.now(), "failure before");
@@ -119,7 +119,7 @@ class JobTest {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
 
-        job.failed("En exception occured", new RuntimeException("boem"));
+        job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
         job.scheduleAt(Instant.now(), "failure before");

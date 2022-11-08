@@ -79,6 +79,12 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     private int getMaxNumberOfRetries(Job job) {
+        if(job.getAmountOfRetries() != null) return job.getAmountOfRetries();
+        return getMaxNumberOfRetriesViaJobAnnotation(job);
+    }
+
+    @Deprecated // this will be removed in JobRunr 6
+    private int getMaxNumberOfRetriesViaJobAnnotation(Job job) {
         return JobUtils.getJobAnnotation(job.getJobDetails())
                 .map(jobAnnotation -> jobAnnotation.retries() > org.jobrunr.jobs.annotations.Job.NBR_OF_RETRIES_NOT_PROVIDED ? jobAnnotation.retries() : null)
                 .orElse(this.numberOfRetries);

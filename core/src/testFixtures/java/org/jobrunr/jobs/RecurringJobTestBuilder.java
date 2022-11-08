@@ -18,6 +18,7 @@ public class RecurringJobTestBuilder {
 
     private String id;
     private String name;
+    private Integer amountOfRetries;
     private JobDetails jobDetails;
     private Schedule schedule;
     private ZoneId zoneId;
@@ -52,6 +53,11 @@ public class RecurringJobTestBuilder {
 
     public RecurringJobTestBuilder withName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public RecurringJobTestBuilder withAmountOfRetries(int amountOfRetries) {
+        this.amountOfRetries = amountOfRetries;
         return this;
     }
 
@@ -97,6 +103,9 @@ public class RecurringJobTestBuilder {
 
     public RecurringJob build() {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
+        if (amountOfRetries != null) {
+            recurringJob.setAmountOfRetries(amountOfRetries);
+        }
         recurringJob.setJobName(name);
         return recurringJob;
     }
