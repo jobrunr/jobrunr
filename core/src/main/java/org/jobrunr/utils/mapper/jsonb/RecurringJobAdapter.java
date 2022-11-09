@@ -3,10 +3,7 @@ package org.jobrunr.utils.mapper.jsonb;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.*;
 
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -26,8 +23,8 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
         Jsonb jsonb = JsonbBuilder.create(new JsonbConfig()
                 .withNullValues(true)
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
-                .withSerializers(new PathTypeSerializer(), new DurationTypeSerializer())
-                .withDeserializers(new PathTypeDeserializer(), new DurationTypeDeserializer())
+                .withSerializers(new PathTypeSerializer(), new FileTypeSerializer(), new DurationTypeSerializer())
+                .withDeserializers(new PathTypeDeserializer(), new FileTypeDeserializer(), new DurationTypeDeserializer())
         );
         this.jsonb = new JobRunrJsonb(jsonb);
         jobDetailsAdapter = new JobDetailsAdapter(this.jsonb);

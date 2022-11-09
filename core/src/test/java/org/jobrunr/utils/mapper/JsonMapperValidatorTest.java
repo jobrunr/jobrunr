@@ -69,8 +69,7 @@ public class JsonMapperValidatorTest {
                 ))
         )
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.")
-                .hasRootCauseMessage("Timestamps are wrongly formatted for JobRunr. They should be in ISO8601 format.");
+                .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.");
     }
 
     @Test

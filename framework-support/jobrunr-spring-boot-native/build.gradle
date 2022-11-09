@@ -4,33 +4,36 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.springframework.boot' version '2.7.4'
-    id 'org.springframework.experimental.aot' version '0.12.1'
 }
 
 repositories {
-    maven { url 'https://repo.spring.io/release' }
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
     api platform(project(':platform'))
+    api platform('org.springframework.boot:spring-boot-dependencies:3.0.0-RC1')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.0.0-RC1')
+
     api project(':core')
     api project(':framework-support:jobrunr-spring-boot-starter')
-    api 'org.springframework:spring-web'
-    api 'org.springframework.experimental:spring-aot:0.12.1'
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.experimental:spring-aot:0.12.1'
 }
 
 java {
     withJavadocJar()
     withSourcesJar()
-}
-
-bootJar {
-    archiveClassifier = 'boot'
-    onlyIf { false }
 }
 
 jar {

@@ -32,7 +32,7 @@ tasks.named("dependencyUpdates").configure {
     }
 }
 
-configure(subprojects.findAll {it.name != 'platform'}) {
+configure(subprojects.findAll {! ['platform'].contains(it.name)}) {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'jacoco'

@@ -12,6 +12,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.metadata.VersionRetriever;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -19,6 +20,8 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,7 +54,10 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(Map.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobContext.Metadata.class))
                 .registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe())
+                .registerTypeAdapter(File.class, new FileAdapter().nullSafe())
                 .registerTypeAdapter(Instant.class, new InstantAdapter().nullSafe())
+                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter().nullSafe())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
                 .create();
