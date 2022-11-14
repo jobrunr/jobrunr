@@ -11,12 +11,9 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
-import org.jobrunr.stubs.TestJobContextJobRequest;
+import org.jobrunr.stubs.*;
 import org.jobrunr.stubs.TestJobContextJobRequest.TestJobContextJobRequestHandler;
-import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
-import org.jobrunr.stubs.TestJobRequestThatTakesLong;
-import org.jobrunr.stubs.TestMDCJobRequest;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +40,8 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.scheduling.JobRequestBuilder.aJob;
+import static org.jobrunr.scheduling.JobBuilder.aJob;
+import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -197,6 +195,17 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
+    void testRecurringCronJobFromBuilder() {
+        BackgroundJobRequest.scheduleRecurrently(aRecurringJob()
+                .withCron(every5Seconds)
+                .withJobRequest(new TestJobRequest("from TestRecurringJob")));
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testRecurringCronJobWithId() {
         BackgroundJobRequest.scheduleRecurrently("theId", every5Seconds, new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
@@ -217,6 +226,17 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void testRecurringIntervalJob() {
         BackgroundJobRequest.scheduleRecurrently(Duration.ofSeconds(5), new TestJobRequest("from testRecurringJob"));
+        await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringIntervalJobFromBuilder() {
+        BackgroundJobRequest.scheduleRecurrently(aRecurringJob()
+                .withDuration(Duration.ofSeconds(5))
+                .withJobRequest(new TestJobRequest("from TestRecurringJob")));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

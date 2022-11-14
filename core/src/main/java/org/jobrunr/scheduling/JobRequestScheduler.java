@@ -48,12 +48,12 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobRequestBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
-     * @param jobRequestBuilder the jobRequestBuilder with all the details of the job
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobBuilder the jobBuilder with all the details of the job
      * @return the id of the job
      */
-    public JobId create(JobRequestBuilder jobRequestBuilder) {
-        return saveJob(jobRequestBuilder.build());
+    public JobId create(JobBuilder jobBuilder) {
+        return saveJob(jobBuilder.build());
     }
 
     /**

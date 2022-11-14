@@ -622,9 +622,9 @@ public class BackgroundJob {
      * @param recurringJobBuilder the builder defining the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      */
-    public static <S> String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder) {
+    public static String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder) {
         verifyJobScheduler();
-        return jobScheduler.scheduleRecurrently(recurringJobBuilder.build());
+        return jobScheduler.scheduleRecurrently(recurringJobBuilder);
     }
 
     /**

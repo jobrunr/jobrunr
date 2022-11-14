@@ -23,12 +23,12 @@ public class BackgroundJobRequest {
     private static JobRequestScheduler jobRequestScheduler;
 
     /**
-     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobRequestBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
-     * @param jobRequestBuilder the jobRequestBuilder with all the details of the job
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobBuilder the jobBuilder with all the details of the job
      * @return the id of the job
      */
-    public static JobId create(JobRequestBuilder jobRequestBuilder) {
-        return jobRequestScheduler.create(jobRequestBuilder);
+    public static JobId create(JobBuilder jobBuilder) {
+        return jobRequestScheduler.create(jobBuilder);
     }
 
     /**
@@ -331,6 +331,11 @@ public class BackgroundJobRequest {
     public static String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {
         verifyJobScheduler();
         return jobRequestScheduler.scheduleRecurrently(id, duration, jobRequest);
+    }
+
+    public static String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder) {
+        verifyJobScheduler();
+        return jobRequestScheduler.scheduleRecurrently(recurringJobBuilder);
     }
 
     /**

@@ -118,6 +118,10 @@ public class AbstractJobScheduler {
         return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
     }
 
+    String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder) {
+        return this.scheduleRecurrently(recurringJobBuilder.build());
+    }
+
     String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
         return scheduleRecurrently(recurringJob);
