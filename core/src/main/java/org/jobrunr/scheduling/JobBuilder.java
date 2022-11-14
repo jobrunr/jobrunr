@@ -29,7 +29,7 @@ import java.util.UUID;
  * <h5>A JobRequest example:</h5>
  * <pre>{@code
  *          MyService service = new MyService();
- *          jobScheduler.create(aJob()
+ *          jobRequestScheduler.create(aJob()
  *                                .withId(UUID.fromString(idRequestParam))
  *                                .withAmountOfRetries(3)
  *                                .scheduleIn(Duration.ofSeconds(10))

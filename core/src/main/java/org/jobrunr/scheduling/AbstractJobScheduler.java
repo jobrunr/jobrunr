@@ -22,7 +22,7 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 
-public class AbstractJobScheduler {
+public abstract class AbstractJobScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
@@ -118,9 +118,7 @@ public class AbstractJobScheduler {
         return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
     }
 
-    String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder) {
-        return this.scheduleRecurrently(recurringJobBuilder.build());
-    }
+    abstract String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder);
 
     String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);

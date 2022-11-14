@@ -2,6 +2,7 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.JobFilter;
@@ -438,6 +439,28 @@ public class JobScheduler extends AbstractJobScheduler {
     public <S> JobId schedule(UUID id, Instant instant, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return schedule(id, instant, jobDetails);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the given RecurringJobBuilder (using id, cron expression and lambda).
+     * If no zoneId is set on the builder the jobs will be scheduled using the systemDefault timezone.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      jobScheduler.scheduleRecurrently(RecurringJobBuilder
+     *          .aRecurringJob()
+     *          .withDetails(() -> service.doWork())
+     *          //your configuration here
+     *          );
+     * }</pre>
+     *
+     * @param recurringJobBuilder the builder describing your recurring job.
+     * @return the id of this recurring job which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.Cron
+     */
+    @Override
+    String scheduleRecurrently(RecurringJobBuilder recurringJobBuilder) {
+        RecurringJob recurringJob = recurringJobBuilder.build(jobDetailsGenerator);
+        return this.scheduleRecurrently(recurringJob);
     }
 
     /**
