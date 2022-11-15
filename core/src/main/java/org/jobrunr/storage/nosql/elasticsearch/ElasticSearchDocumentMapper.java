@@ -37,6 +37,7 @@ public class ElasticSearchDocumentMapper {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
             builder.field(BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            builder.field(BackgroundJobServers.FIELD_NAME, serverStatus.getName());
             builder.field(BackgroundJobServers.FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
             builder.field(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
             builder.field(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter());

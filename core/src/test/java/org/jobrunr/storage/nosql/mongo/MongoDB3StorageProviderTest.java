@@ -8,7 +8,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MongoDB3StorageProviderTest extends AbstractMongoDBStorageProviderTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.6").withExposedPorts(27017);
 
     @Override
     protected GenericContainer getMongoContainer() {
