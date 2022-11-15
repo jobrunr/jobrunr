@@ -212,7 +212,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobDefaultFilters.addAll(jobFilters);
     }
 
-    JobDefaultFilters getJobFilters() {
+    public JobDefaultFilters getJobFilters() {
         return jobDefaultFilters;
     }
 
@@ -224,7 +224,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 .orElseThrow(() -> problematicConfigurationException("Could not find a BackgroundJobRunner: either no JobActivator is registered, your Background Job Class is not registered within the IoC container or your Job does not have a default no-arg constructor."));
     }
 
-    void processJob(Job job) {
+    public void processJob(Job job) {
         BackgroundJobPerformer backgroundJobPerformer = backgroundJobPerformerFactory.newBackgroundJobPerformer(this, job);
         jobExecutor.execute(backgroundJobPerformer);
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
