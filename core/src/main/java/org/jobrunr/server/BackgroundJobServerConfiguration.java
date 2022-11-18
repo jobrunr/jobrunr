@@ -19,15 +19,15 @@ public class BackgroundJobServerConfiguration {
     public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
     public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
 
-    int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
-    int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
-    int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
-    int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
-    String name = getHostName();
-    Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
-    Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
-    BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
-    public ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
+    private int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
+    private int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
+    private int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
+    private int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    private String name = getHostName();
+    private Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+    private Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
+    private BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
+    private ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
 
     private BackgroundJobServerConfiguration() {
 
@@ -158,6 +158,42 @@ public class BackgroundJobServerConfiguration {
     public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
         return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getScheduledJobsRequestSize() {
+        return scheduledJobsRequestSize;
+    }
+
+    public int getOrphanedJobsRequestSize() {
+        return orphanedJobsRequestSize;
+    }
+
+    public int getSucceededJobsRequestSize() {
+        return succeededJobsRequestSize;
+    }
+
+    public int getPollIntervalInSeconds() {
+        return pollIntervalInSeconds;
+    }
+
+    public Duration getDeleteSucceededJobsAfter() {
+        return deleteSucceededJobsAfter;
+    }
+
+    public Duration getPermanentlyDeleteDeletedJobsAfter() {
+        return permanentlyDeleteDeletedJobsAfter;
+    }
+
+    public BackgroundJobServerWorkerPolicy getBackgroundJobServerWorkerPolicy() {
+        return backgroundJobServerWorkerPolicy;
+    }
+
+    public ConcurrentJobModificationPolicy getConcurrentJobModificationPolicy() {
+        return concurrentJobModificationPolicy;
     }
 
     private static String getHostName() {

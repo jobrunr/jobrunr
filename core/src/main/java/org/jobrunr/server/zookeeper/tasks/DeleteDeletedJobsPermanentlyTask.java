@@ -13,7 +13,7 @@ public class DeleteDeletedJobsPermanentlyTask extends ZooKeeperTask {
     }
 
     @Override
-    public void runTask() {
+    protected void runTask() {
         storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(serverStatus().getDeleteSucceededJobsAfter()));
     }
 }

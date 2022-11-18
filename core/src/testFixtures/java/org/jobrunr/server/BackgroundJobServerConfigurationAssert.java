@@ -15,17 +15,17 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
     }
 
     public BackgroundJobServerConfigurationAssert hasScheduledJobRequestSize(int scheduledJobsRequestSize) {
-        Assertions.assertThat(actual.scheduledJobsRequestSize).isEqualTo(scheduledJobsRequestSize);
+        Assertions.assertThat(actual.getScheduledJobsRequestSize()).isEqualTo(scheduledJobsRequestSize);
         return this;
     }
 
     public BackgroundJobServerConfigurationAssert hasOrphanedJobRequestSize(int orphanedJobRequestSize) {
-        Assertions.assertThat(actual.orphanedJobsRequestSize).isEqualTo(orphanedJobRequestSize);
+        Assertions.assertThat(actual.getOrphanedJobsRequestSize()).isEqualTo(orphanedJobRequestSize);
         return this;
     }
 
     public BackgroundJobServerConfigurationAssert hasSucceededJobRequestSize(int succeededJobRequestSize) {
-        Assertions.assertThat(actual.succeededJobsRequestSize).isEqualTo(succeededJobRequestSize);
+        Assertions.assertThat(actual.getSucceededJobsRequestSize()).isEqualTo(succeededJobRequestSize);
         return this;
     }
 

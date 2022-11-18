@@ -90,7 +90,8 @@ public abstract class ZooKeeperTask {
 
     ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
         return backgroundJobServer.getConfiguration()
-                .concurrentJobModificationPolicy.toConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
+                .getConcurrentJobModificationPolicy()
+                .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
     }
 
     BackgroundJobServerStatus serverStatus() {

@@ -27,7 +27,7 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
     }
 
     @Override
-    public void runTask() {
+    protected void runTask() {
         LOGGER.debug("Looking for recurring jobs... ");
         List<RecurringJob> recurringJobs = getRecurringJobs();
         processRecurringJobs(recurringJobs);

@@ -22,7 +22,7 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
     }
 
     @Override
-    public void runTask() {
+    protected void runTask() {
         try {
             if (reentrantLock.tryLock()) {
                 LOGGER.debug("Looking for enqueued jobs... ");
@@ -37,9 +37,5 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
                 reentrantLock.unlock();
             }
         }
-    }
-
-    void processJob(Job job) {
-        // job.startProcessingOn();
     }
 }

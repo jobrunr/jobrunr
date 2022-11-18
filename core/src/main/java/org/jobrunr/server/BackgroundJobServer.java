@@ -176,8 +176,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(
-                backgroundJobServerId, configuration.name, workDistributionStrategy.getWorkerCount(),
-                configuration.pollIntervalInSeconds, configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter,
+                backgroundJobServerId, configuration.getName(), workDistributionStrategy.getWorkerCount(),
+                configuration.getPollIntervalInSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
                 firstHeartbeat, Instant.now(), isRunning, jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(),
                 jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(), jobServerStats.getProcessFreeMemory(),
                 jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad()
@@ -254,8 +254,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
@@ -321,7 +321,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private WorkDistributionStrategy createWorkDistributionStrategy(BackgroundJobServerConfiguration configuration) {
-        return configuration.backgroundJobServerWorkerPolicy.toWorkDistributionStrategy(this);
+        return configuration.getBackgroundJobServerWorkerPolicy().toWorkDistributionStrategy(this);
     }
 
     private BackgroundJobPerformerFactory loadBackgroundJobPerformerFactory() {
@@ -334,9 +334,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private JobRunrExecutor loadJobRunrExecutor() {
         ServiceLoader<JobRunrExecutor> serviceLoader = ServiceLoader.load(JobRunrExecutor.class);
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
-                .sorted((a, b) -> compare(b.getPriority(), a.getPriority()))
-                .findFirst()
-                .orElse(new ScheduledThreadPoolJobRunrExecutor(workDistributionStrategy.getWorkerCount(), "backgroundjob-worker-pool"));
+                .min((a, b) -> compare(b.getPriority(), a.getPriority()))
+                .orElseGet(() -> new ScheduledThreadPoolJobRunrExecutor(workDistributionStrategy.getWorkerCount(), "backgroundjob-worker-pool"));
     }
 
     private static class BackgroundJobServerLifecycleLock implements AutoCloseable {

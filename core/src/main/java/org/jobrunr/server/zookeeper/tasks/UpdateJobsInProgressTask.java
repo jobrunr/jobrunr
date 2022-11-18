@@ -13,7 +13,7 @@ public class UpdateJobsInProgressTask extends ZooKeeperTask {
     }
 
     @Override
-    public void runTask() {
+    protected void runTask() {
         LOGGER.debug("Updating currently processed jobs... ");
         processJobList(new ArrayList<>(jobZooKeeper.getJobsInProgress()), this::updateCurrentlyProcessingJob);
     }

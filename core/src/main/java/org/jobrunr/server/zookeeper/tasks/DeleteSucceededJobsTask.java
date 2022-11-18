@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.DEFAULT_PAGE_REQUEST_SIZE;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class DeleteSucceededJobsTask extends ZooKeeperTask {
@@ -21,12 +20,12 @@ public class DeleteSucceededJobsTask extends ZooKeeperTask {
 
     public DeleteSucceededJobsTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         super(jobZooKeeper, backgroundJobServer);
-        this.pageRequestSize = DEFAULT_PAGE_REQUEST_SIZE; //backgroundJobServer.getConfiguration().succeededJobsRequestSize;
+        this.pageRequestSize = backgroundJobServer.getConfiguration().getSucceededJobsRequestSize();
         this.succeededJobsCounter = new AtomicInteger();
     }
 
     @Override
-    public void runTask() {
+    protected void runTask() {
         LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
         succeededJobsCounter.set(0);
 

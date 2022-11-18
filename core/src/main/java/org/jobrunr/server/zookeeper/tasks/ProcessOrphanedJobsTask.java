@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 
 import static java.time.Duration.ofSeconds;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.DEFAULT_PAGE_REQUEST_SIZE;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class ProcessOrphanedJobsTask extends ZooKeeperTask {
@@ -19,11 +18,11 @@ public class ProcessOrphanedJobsTask extends ZooKeeperTask {
 
     public ProcessOrphanedJobsTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         super(jobZooKeeper, backgroundJobServer);
-        this.pageRequestSize = DEFAULT_PAGE_REQUEST_SIZE;// backgroundJobServer.getConfiguration().orphanedJobsRequestSize;
+        this.pageRequestSize = backgroundJobServer.getConfiguration().getOrphanedJobsRequestSize();
     }
 
     @Override
-    public void runTask() {
+    protected void runTask() {
         LOGGER.debug("Looking for orphan jobs... ");
         final Instant updatedBefore = runStartTime().minus(ofSeconds(serverStatus().getPollIntervalInSeconds()).multipliedBy(4));
         Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(pageRequestSize));
