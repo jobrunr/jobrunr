@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation project(':core')
     implementation project(':tests:e2e-base')
-    implementation 'org.slf4j:slf4j-simple'
+    implementation 'ch.qos.logback:logback-classic'
     implementation 'com.google.code.gson:gson'
     implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
