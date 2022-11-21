@@ -1,5 +1,6 @@
-package org.jobrunr.server.zookeeper.tasks;
+package org.jobrunr.server.zookeeper;
 
+import org.jobrunr.server.zookeeper.tasks.ZooKeeperTaskInfo;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 
 import java.time.Duration;
@@ -7,14 +8,20 @@ import java.time.Instant;
 
 import static java.time.Instant.now;
 
-public class ZooKeeperRunInfo {
+public class ZooKeeperRunTaskInfo implements ZooKeeperTaskInfo, AutoCloseable {
 
-    private final Instant runStartTime;
+    private final ZooKeeperStatistics zooKeeperStatistics;
     private final BackgroundJobServerStatus backgroundJobServerStatus;
+    private final long runIndex;
+    private final Instant runStartTime;
+    private boolean runSucceeded;
 
-    public ZooKeeperRunInfo(BackgroundJobServerStatus backgroundJobServerStatus) {
-        this.runStartTime = Instant.now();
+    public ZooKeeperRunTaskInfo(ZooKeeperStatistics zooKeeperStatistics, BackgroundJobServerStatus backgroundJobServerStatus, long runIndex) {
+        this.zooKeeperStatistics = zooKeeperStatistics;
         this.backgroundJobServerStatus = backgroundJobServerStatus;
+        this.runIndex = runIndex;
+        this.runStartTime = Instant.now();
+        this.runSucceeded = false;
     }
 
     public boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
@@ -29,5 +36,10 @@ public class ZooKeeperRunInfo {
 
     public Instant getRunStartTime() {
         return runStartTime;
+    }
+
+    @Override
+    public void close() {
+        zooKeeperStatistics.logRun(runIndex, backgroundJobServerStatus.getPollIntervalInSeconds(), runStartTime, Instant.now());
     }
 }

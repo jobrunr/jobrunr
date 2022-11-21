@@ -19,10 +19,17 @@ import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public class JobTestBuilder {
+
+    public static List<Job>[] emptyJobList() {
+        List<Job>[] result = cast(new ArrayList[1]);
+        result[0] = new ArrayList<>();
+        return result;
+    }
 
     private UUID id;
     private Integer version;

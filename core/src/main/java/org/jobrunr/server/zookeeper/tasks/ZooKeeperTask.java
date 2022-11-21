@@ -30,7 +30,7 @@ public abstract class ZooKeeperTask {
     protected final JobZooKeeper jobZooKeeper;
     protected final BackgroundJobServer backgroundJobServer;
     protected final StorageProvider storageProvider;
-    protected ZooKeeperRunInfo runInfo;
+    protected ZooKeeperTaskInfo runInfo;
 
     public ZooKeeperTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         this.jobZooKeeper = jobZooKeeper;
@@ -40,10 +40,10 @@ public abstract class ZooKeeperTask {
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
     }
 
-    public void run(ZooKeeperRunInfo runInfo) {
+    public void run(ZooKeeperTaskInfo runInfo) {
         try {
             this.runInfo = runInfo;
-            if (runInfo.pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
+            if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
             runTask();
         } finally {
             this.runInfo = null;
@@ -78,7 +78,7 @@ public abstract class ZooKeeperTask {
     }
 
     private List<Job> getJobsToProcess(Supplier<List<Job>> jobListSupplier) {
-        if (runInfo.pollIntervalInSecondsTimeBoxIsAboutToPass()) return emptyList();
+        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return emptyList();
         return jobListSupplier.get();
     }
 
@@ -86,7 +86,9 @@ public abstract class ZooKeeperTask {
         return backgroundJobServer.getConfiguration();
     }
 
-
+    private boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
+        return runInfo.pollIntervalInSecondsTimeBoxIsAboutToPass();
+    }
 
     ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
         return backgroundJobServer.getConfiguration()

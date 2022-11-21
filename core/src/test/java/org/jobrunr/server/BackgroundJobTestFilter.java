@@ -10,9 +10,9 @@ import java.util.List;
 
 public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilter {
 
-    boolean processingPassed;
-    boolean processedPassed;
-    List<String> stateChanges = new ArrayList<>();
+    public boolean processingPassed;
+    public boolean processedPassed;
+    public List<String> stateChanges = new ArrayList<>();
 
     @Override
     public void onStateApplied(Job job, JobState oldState, JobState newState) {
