@@ -35,6 +35,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
         final JsonObjectBuilder builder = nullSafeJsonObjectBuilder()
                 .add("id", recurringJob.getId())
                 .add("jobName", recurringJob.getJobName())
+                .add("amountOfRetries", recurringJob.getAmountOfRetries())
                 .add("jobSignature", recurringJob.getJobSignature())
                 .add("version", recurringJob.getVersion())
                 .add("scheduleExpression", recurringJob.getScheduleExpression())

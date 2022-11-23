@@ -45,6 +45,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
         final JsonObjectBuilder builder = nullSafeJsonObjectBuilder()
                 .add("id", job.getId())
                 .add("jobName", job.getJobName())
+                .add("amountOfRetries", job.getAmountOfRetries())
                 .add("jobSignature", job.getJobSignature())
                 .add("version", job.getVersion())
                 .add("metadata", jobMetadataAdapter.adaptToJson(job.getMetadata()))
@@ -52,11 +53,6 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
                 .add("jobHistory", jobHistoryAdapter.adaptToJson(job.getJobStates()))
                 .add("recurringJobId", job.getRecurringJobId().orElse(null));
 
-        if (job.getId() != null) {
-            builder.add("id", job.getId().toString());
-        } else {
-            builder.addNull("id");
-        }
         return builder.build();
     }
 
@@ -70,6 +66,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
 
         final Job job = new Job(id, version, jobDetails, jobHistory, jobMetadata);
         job.setJobName(jsonObject.getString("jobName"));
+        job.setAmountOfRetries(jsonObject.containsKey("amountOfRetries") && !jsonObject.isNull("amountOfRetries") ? jsonObject.getInt("amountOfRetries") : null);
         job.setRecurringJobId(jsonObject.containsKey("recurringJobId") && !jsonObject.isNull("recurringJobId") ? jsonObject.getString("recurringJobId") : null);
         return job;
     }

@@ -1,6 +1,7 @@
 {
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "failed job",
+  "amountOfRetries": null,
   "jobDetails": {
     "cacheable": true,
     "className": "java.lang.System",

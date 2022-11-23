@@ -121,6 +121,7 @@ public class RecurringJob extends AbstractJob {
         final Job job = new Job(getJobDetails(), jobState);
         job.setJobName(getJobName());
         job.setRecurringJobId(getId());
+        job.setAmountOfRetries(getAmountOfRetries());
         return job;
     }
 

@@ -110,13 +110,15 @@ class RecurringJobTest {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withId("the-recurring-job")
                 .withName("the recurring job")
+                .withAmountOfRetries(3)
                 .build();
 
         final Job job = recurringJob.toEnqueuedJob();
 
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
-                .hasJobName("the recurring job");
+                .hasJobName("the recurring job")
+                .hasAmountOfRetries(3);
     }
 
     @Test
