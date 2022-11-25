@@ -46,6 +46,11 @@ public class BackgroundJobServerStatusTestBuilder {
                 .withLastHeartbeat(status.getLastHeartbeat());
     }
 
+    public BackgroundJobServerStatusTestBuilder withId() {
+        this.id = UUID.randomUUID();
+        return this;
+    }
+
     public BackgroundJobServerStatusTestBuilder withId(UUID id) {
         this.id = id;
         return this;

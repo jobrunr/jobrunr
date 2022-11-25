@@ -1,6 +1,7 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
+import org.jobrunr.server.dashboard.PollIntervalInSecondsTimeBoxIsTooSmallNotification;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
@@ -37,6 +38,8 @@ public class CpuAllocationIrregularityProblemHandler implements MetadataChangeLi
             problems.removeProblemsOfType(CpuAllocationIrregularityProblem.PROBLEM_TYPE);
             if (!metadataList.isEmpty()) {
                 problems.addProblem(new CpuAllocationIrregularityProblem(metadataList));
+                problems.removeProblemsOfType(PollIntervalInSecondsTimeBoxIsTooSmallProblem.PROBLEM_TYPE);
+                storageProvider.deleteMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
             }
             this.serversWithLongGCCyclesMetadataList = metadataList;
         }

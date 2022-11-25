@@ -19,7 +19,7 @@ public class BackgroundJobServerAssert extends AbstractAssert<BackgroundJobServe
     }
 
     public BackgroundJobServerAssert hasName(String name) {
-        Assertions.assertThat(actual.getConfiguration().name).isEqualTo(name);
+        Assertions.assertThat(actual.getConfiguration().getName()).isEqualTo(name);
         return this;
     }
 

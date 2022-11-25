@@ -7,6 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import CpuAllocationIrregularityProblem from "./cpu-allocation-irregularity-problem";
 import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
 import JobRunrApiNotification from "./jobrunr-api-notification";
+import PollIntervalInSecondsIsTooSmallProblem from "./poll-interval-timebox-is-too-small-problem";
 
 const useStyles = makeStyles(theme => ({
     alert: {
@@ -57,11 +58,11 @@ const Problems = () => {
                         case 'jobs-not-found':
                             return <Grid item xs={12} key={index}><JobNotFoundProblem problem={problem}/></Grid>
                         case 'severe-jobrunr-exception':
-                            return <Grid item xs={12} key={index}><SevereJobRunrExceptionProblem problem={problem}
-                                                                                                 refresh={refresh}/></Grid>
+                            return <Grid item xs={12} key={index}><SevereJobRunrExceptionProblem problem={problem} refresh={refresh}/></Grid>
                         case 'cpu-allocation-irregularity':
-                            return <Grid item xs={12} key={index}><CpuAllocationIrregularityProblem problem={problem}
-                                                                                                    refresh={refresh}/></Grid>
+                            return <Grid item xs={12} key={index}><CpuAllocationIrregularityProblem problem={problem} refresh={refresh}/></Grid>
+                        case 'poll-interval-in-seconds-is-too-small':
+                            return <Grid item xs={12} key={index}><PollIntervalInSecondsIsTooSmallProblem problem={problem} refresh={refresh}/></Grid>
                         case 'new-jobrunr-version':
                             return <Grid item xs={12} key={index}><NewJobRunrVersionAvailable problem={problem} /></Grid>
                         default:

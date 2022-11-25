@@ -1,6 +1,7 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
+import org.jobrunr.server.dashboard.PollIntervalInSecondsTimeBoxIsTooSmallNotification;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,9 @@ class CpuAllocationIrregularityProblemHandlerTest {
         assertThat(problemArgumentCaptor.getValue())
                 .isInstanceOf(CpuAllocationIrregularityProblem.class)
                 .hasFieldOrPropertyWithValue("cpuAllocationIrregularityMetadataSet", asList(jobRunrMetadata));
+
+        verify(problems).removeProblemsOfType(PollIntervalInSecondsTimeBoxIsTooSmallProblem.PROBLEM_TYPE);
+        verify(storageProvider).deleteMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
     }
 
     @Test
