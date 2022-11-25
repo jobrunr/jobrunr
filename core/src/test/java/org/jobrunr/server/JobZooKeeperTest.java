@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
+import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -15,9 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -27,6 +26,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
@@ -65,6 +65,24 @@ class JobZooKeeperTest {
         jobZooKeeper.run();
 
         verifyNoInteractions(storageProvider);
+    }
+
+    @Test
+    void evenWhenNoWorkCanBeOnboardedJobsThatAreProcessedAreBeingUpdatedWithAHeartbeat() {
+        backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withWorkerSize(0).build();
+        jobZooKeeper = initializeJobZooKeeper();
+
+        final Job job = anEnqueuedJob().withId().build();
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+
+        job.startProcessingOn(backgroundJobServer);
+        jobZooKeeper.startProcessing(job, mock(Thread.class));
+        jobZooKeeper.run();
+        jobZooKeeper.startProcessing(aJobInProgress().build(), mock(Thread.class));
+
+        verify(storageProvider).save(singletonList(job));
+        ProcessingState processingState = job.getJobState();
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
     }
 
     @Test
@@ -141,12 +159,5 @@ class JobZooKeeperTest {
         lenient().when(backgroundJobServer.isAnnounced()).thenReturn(true);
         lenient().when(backgroundJobServer.isMaster()).thenReturn(true);
         return new JobZooKeeper(backgroundJobServer);
-    }
-
-    private Answer<Boolean> putRunStartTimeInPast() {
-        return invocation -> {
-            Whitebox.setInternalState(jobZooKeeper, "runStartTime", Instant.now().minusSeconds(15));
-            return false;
-        };
     }
 }
