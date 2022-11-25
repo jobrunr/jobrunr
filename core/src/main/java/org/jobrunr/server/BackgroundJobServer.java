@@ -105,7 +105,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 isRunning = true;
                 startZooKeepers();
                 startWorkers();
-                runStartupTasks();
             }
         }
     }
@@ -163,6 +162,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.isMaster = isMaster;
         if (isMaster != null) {
             LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getName(), workDistributionStrategy.getWorkerCount());
+            if(isMaster) {
+                runStartupTasks();
+            }
         } else {
             LOGGER.error("JobRunr BackgroundJobServer failed to start");
         }
