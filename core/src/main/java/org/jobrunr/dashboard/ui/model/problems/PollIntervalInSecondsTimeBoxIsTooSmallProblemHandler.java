@@ -35,7 +35,7 @@ public class PollIntervalInSecondsTimeBoxIsTooSmallProblemHandler implements Met
     public void onChange(List<JobRunrMetadata> metadataList) {
         if (this.serversWithPollIntervalInSecondsTimeBoxTooSmallMetadataList == null || this.serversWithPollIntervalInSecondsTimeBoxTooSmallMetadataList.size() != metadataList.size()) {
             problems.removeProblemsOfType(PollIntervalInSecondsTimeBoxIsTooSmallProblem.PROBLEM_TYPE);
-            if (!metadataList.isEmpty()) {
+            if (!metadataList.isEmpty() && !problems.containsProblemOfType(CpuAllocationIrregularityProblem.PROBLEM_TYPE)) {
                 problems.addProblem(new PollIntervalInSecondsTimeBoxIsTooSmallProblem(metadataList));
             }
             this.serversWithPollIntervalInSecondsTimeBoxTooSmallMetadataList = metadataList;

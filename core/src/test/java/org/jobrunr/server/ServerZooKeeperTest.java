@@ -14,8 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -44,8 +43,6 @@ class ServerZooKeeperTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeperTest.class);
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
-    @Captor
-    private ArgumentCaptor<JobRunrMetadata> jobRunrMetadataToSaveArgumentCaptor;
 
     @BeforeEach
     void setUp() {
@@ -246,8 +243,10 @@ class ServerZooKeeperTest {
 
         // THEN
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> assertThat(zookeeperLogger).hasNoErrorMessageContaining("An unrecoverable error occurred. Shutting server down..."));
-        verify(storageProvider, atLeastOnce()).saveMetadata(jobRunrMetadataToSaveArgumentCaptor.capture());
-        assertThat(jobRunrMetadataToSaveArgumentCaptor.getValue())
+
+        List<JobRunrMetadata> dashboardNotifications = storageProvider.getMetadata(CpuAllocationIrregularityNotification.class.getSimpleName());
+        assertThat(dashboardNotifications).hasSize(1);
+        assertThat(dashboardNotifications.get(0))
                 .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServer.getId().toString());
     }

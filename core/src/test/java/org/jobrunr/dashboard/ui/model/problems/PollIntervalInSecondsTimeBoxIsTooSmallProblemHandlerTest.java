@@ -60,6 +60,16 @@ class PollIntervalInSecondsTimeBoxIsTooSmallProblemHandlerTest {
     }
 
     @Test
+    void ifChangesOnPollIntervalInSecondsTimeBoxIsTooSmallDetectedButCpuAllocationIrregularityProblemExistsThenProblemIsNotCreated() {
+        when(problems.containsProblemOfType(CpuAllocationIrregularityProblem.PROBLEM_TYPE)).thenReturn(true);
+
+        final JobRunrMetadata jobRunrMetadata = new JobRunrMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName(), "BackgroundJobServer " + UUID.randomUUID(), "23");
+        pollIntervalInSecondsTimeBoxIsTooSmallProblemHandler.onChange(asList(jobRunrMetadata));
+
+        verify(problems, never()).addProblem(problemArgumentCaptor.capture());
+    }
+
+    @Test
     void ifPollIntervalInSecondsTimeBoxIsTooSmallIsDeletedThenProblemIsRemoved() {
         final JobRunrMetadata jobRunrMetadata = new JobRunrMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName(), "BackgroundJobServer " + UUID.randomUUID(), "23");
         pollIntervalInSecondsTimeBoxIsTooSmallProblemHandler.onChange(asList(jobRunrMetadata));
