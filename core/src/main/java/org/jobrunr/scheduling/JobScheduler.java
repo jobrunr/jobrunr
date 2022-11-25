@@ -457,7 +457,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @see org.jobrunr.scheduling.cron.Cron
      */
     @Override
-    String createRecurrently(RecurringJobBuilder recurringJobBuilder) {
+    public String createRecurrently(RecurringJobBuilder recurringJobBuilder) {
         RecurringJob recurringJob = recurringJobBuilder.build(jobDetailsGenerator);
         return this.scheduleRecurrently(recurringJob);
     }

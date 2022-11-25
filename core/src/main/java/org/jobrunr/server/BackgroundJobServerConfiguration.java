@@ -199,8 +199,7 @@ public class BackgroundJobServerConfiguration {
     private static String getHostName() {
         try {
             String hostName = InetAddress.getLocalHost().getHostName();
-            hostName.substring(0, min(hostName.length(), 127));
-            return hostName;
+            return hostName.substring(0, min(hostName.length(), 127));
         } catch (UnknownHostException e) {
             return "Unable to determine hostname";
         }
