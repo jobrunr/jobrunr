@@ -60,14 +60,14 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.scheduleRecurrently(
+        BackgroundJob.createRecurrently(
                 aRecurringJob()
                         .withId("Github-75")
                         .withLabels("Triggered by someone", "Long", "provided Id")
                         .withCron(Cron.daily(18, 4))
                         .withDetails(() -> testService.doWorkThatTakesLong(JobContext.Null)));
 
-        BackgroundJob.scheduleRecurrently(
+        BackgroundJob.createRecurrently(
                 aRecurringJob()
                         .withLabels(Set.of("Recurring", "Long"))
                         .withDuration(Duration.ofMinutes(1))
