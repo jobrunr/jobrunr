@@ -2,12 +2,13 @@ package org.jobrunr.utils.mapper.jsonb.adapters;
 
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
-import javax.json.*;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonValue;
 import javax.json.bind.adapter.JsonbAdapter;
 import java.util.Set;
 import java.util.TreeSet;
-
-import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 
 public class JobLabelsAdapter implements JsonbAdapter<Set<String>, JsonArray> {
 
@@ -21,8 +22,7 @@ public class JobLabelsAdapter implements JsonbAdapter<Set<String>, JsonArray> {
     public JsonArray adaptToJson(Set<String> labels) {
         final JsonArrayBuilder historyJsonObject = Json.createArrayBuilder();
         for (String label : labels) {
-            final JsonObject jsonObject = nullSafeJsonObjectBuilder(jsonb, label).build();
-            historyJsonObject.add(jsonObject);
+            historyJsonObject.add(label);
         }
         return historyJsonObject.build();
     }
