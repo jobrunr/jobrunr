@@ -90,6 +90,16 @@ abstract class JobMapperTest {
     }
 
     @Test
+    void testSerializeAndDeserializeJobWithLabel() {
+        Job job = anEnqueuedJob().withLabels("first label", "second label").build();
+
+        String jobAsString = jobMapper.serializeJob(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/jobs/mappers/enqueued-job-with-labels.json"));
+
+        assertThatCode(() -> jobMapper.deserializeJob(jobAsString)).doesNotThrowAnyException();
+    }
+
+    @Test
     void serializeAndDeserializeRecurringJob() {
         RecurringJob recurringJob = aDefaultRecurringJob().build();
 

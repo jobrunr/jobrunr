@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -111,6 +112,7 @@ class RecurringJobTest {
                 .withId("the-recurring-job")
                 .withName("the recurring job")
                 .withAmountOfRetries(3)
+                .withLabels("some label")
                 .build();
 
         final Job job = recurringJob.toEnqueuedJob();
@@ -118,7 +120,8 @@ class RecurringJobTest {
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
                 .hasJobName("the recurring job")
-                .hasAmountOfRetries(3);
+                .hasAmountOfRetries(3)
+                .hasLabels(Set.of("some label"));
     }
 
     @Test

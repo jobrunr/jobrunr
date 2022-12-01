@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.time.Instant.now;
@@ -113,6 +114,36 @@ class JobBuilderTest {
         assertThat(job)
                 .hasAmountOfRetries(amountOfRetries)
                 .hasState(StateName.ENQUEUED);
+    }
+
+    @Test
+    void testWithLabels() {
+        Job job = aJob()
+                .withLabels(Set.of("TestLabel", "Email"))
+                .withDetails(() -> testService.doWork())
+                .build(jobDetailsGenerator);
+
+        assertThat(job)
+                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasState(StateName.ENQUEUED);
+    }
+
+    @Test
+    void testMaxAmountOfLabels() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> aJob()
+                        .withLabels("TestLabel", "Email", "Automated", "Too many")
+                        .withDetails(() -> testService.doWork())
+                        .build(jobDetailsGenerator));
+    }
+
+    @Test
+    void testMaxLengthOfLabel() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> aJob()
+                        .withLabels("Label longer than 45 characters should throw an exception")
+                        .withDetails(() -> testService.doWork())
+                        .build(jobDetailsGenerator));
     }
 
     @Test

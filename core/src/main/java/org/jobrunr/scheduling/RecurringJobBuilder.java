@@ -11,8 +11,10 @@ import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Duration;
 import java.time.ZoneId;
+import java.util.Set;
 
 import static java.time.ZoneId.systemDefault;
+import static org.jobrunr.utils.CollectionUtils.asSet;
 
 /**
  * This class is used to build a {@link RecurringJob} using a job lambda or a {@Link JobRequest}.
@@ -37,6 +39,7 @@ public class RecurringJobBuilder {
     private String jobId;
     private String jobName;
     private Integer retries;
+    private Set<String> labels;
     private JobLambda jobLambda;
     private JobRequest jobRequest;
     private Schedule schedule;
@@ -70,7 +73,7 @@ public class RecurringJobBuilder {
      * Allows to set the name of the recurringJob for the dashboard.
      *
      * @param jobName the name of the recurringJob for the dashboard
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withName(String jobName) {
         this.jobName = jobName;
@@ -81,10 +84,33 @@ public class RecurringJobBuilder {
      * Allows to specify number of times that the recurringJob should be retried.
      *
      * @param amountOfRetries the amount of times the recurringJob should be retried.
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withAmountOfRetries(int amountOfRetries) {
         this.retries = amountOfRetries;
+        return this;
+    }
+
+    /**
+     * Allows to provide a set of labels to be shown in the dashboard.
+     * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
+     *
+     * @param labels an array of labels to be added to the recurring job
+     * @return the same builder instance which provides a fluent api
+     */
+    public RecurringJobBuilder withLabels(String... labels) {
+        return withLabels(asSet(labels));
+    }
+
+    /**
+     * Allows to provide a set of labels to be shown in the dashboard.
+     * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
+     *
+     * @param labels the set of labels to be added to the recurringJob
+     * @return the same builder instance which provides a fluent api
+     */
+    public RecurringJobBuilder withLabels(Set<String> labels) {
+        this.labels = labels;
         return this;
     }
 
@@ -120,7 +146,7 @@ public class RecurringJobBuilder {
      * Allows to specify the cron that will be used to create the recurringJobs.
      *
      * @param cron the cron that will be used to create the recurringJobs.
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withCron(String cron) {
         if (this.schedule != null) {
@@ -134,7 +160,7 @@ public class RecurringJobBuilder {
      * Allows to specify the duration that will be used to create the recurringJobs.
      *
      * @param duration the duration that will be used to create the recurringJobs.
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withDuration(Duration duration) {
         if (this.schedule != null) {
@@ -149,7 +175,7 @@ public class RecurringJobBuilder {
      * If no zoneId is set, the {@link ZoneId#systemDefault()} is used.
      *
      * @param zoneId the zoneId that will be used to create the recurringJobs.
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withZoneId(ZoneId zoneId) {
         this.zoneId = zoneId;
@@ -192,6 +218,7 @@ public class RecurringJobBuilder {
         RecurringJob recurringJob = new RecurringJob(jobId, jobDetails, schedule, zoneId);
         setJobName(recurringJob);
         setAmountOfRetries(recurringJob);
+        setLabels(recurringJob);
         return recurringJob;
     }
 
@@ -204,6 +231,12 @@ public class RecurringJobBuilder {
     private void setAmountOfRetries(RecurringJob recurringJob) {
         if (retries != null) {
             recurringJob.setAmountOfRetries(retries);
+        }
+    }
+
+    private void setLabels(RecurringJob recurringJob) {
+        if (labels != null) {
+            recurringJob.setLabels(labels);
         }
     }
 }

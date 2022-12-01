@@ -11,7 +11,10 @@ import org.jobrunr.jobs.states.ScheduledState;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
+
+import static org.jobrunr.utils.CollectionUtils.asSet;
 
 /**
  * This class is used to build a {@link Job} using a job lambda or a {@Link JobRequest}.
@@ -45,6 +48,7 @@ public class JobBuilder {
     private String jobName;
     private Instant scheduleAt;
     private Integer retries;
+    private Set<String> labels;
     private JobLambda jobLambda;
     private JobRequest jobRequest;
 
@@ -99,11 +103,35 @@ public class JobBuilder {
 
     /**
      * Allows to specify the amount of retries for a job when it fails
+     *
      * @param amountOfRetries the amount of retries that JobRunr will perform in case the job fails
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public JobBuilder withAmountOfRetries(int amountOfRetries) {
         this.retries = amountOfRetries;
+        return this;
+    }
+
+    /**
+     * Allows to provide a set of labels to be shown in the dashboard.
+     * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
+     *
+     * @param labels an array of labels to be added to the recurring job
+     * @return the same builder instance which provides a fluent api
+     */
+    public JobBuilder withLabels(String... labels) {
+        return withLabels(asSet(labels));
+    }
+
+    /**
+     * Allows to provide a set of labels to be shown in the dashboard.
+     * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
+     *
+     * @param labels an array of labels to be added to the recurring job
+     * @return the same builder instance which provides a fluent api
+     */
+    public JobBuilder withLabels(Set<String> labels) {
+        this.labels = labels;
         return this;
     }
 
@@ -165,6 +193,7 @@ public class JobBuilder {
         Job job = new Job(jobId, jobDetails, getState());
         setJobName(job);
         setAmountOfRetries(job);
+        setLabels(job);
         return job;
     }
 
@@ -175,13 +204,19 @@ public class JobBuilder {
     }
 
     private void setAmountOfRetries(Job job) {
-        if(retries != null) {
+        if (retries != null) {
             job.setAmountOfRetries(retries);
         }
     }
 
+    private void setLabels(Job job) {
+        if (labels != null) {
+            job.setLabels(labels);
+        }
+    }
+
     private AbstractJobState getState() {
-        if(this.scheduleAt != null) {
+        if (this.scheduleAt != null) {
             return new ScheduledState(this.scheduleAt);
         } else {
             return new EnqueuedState();

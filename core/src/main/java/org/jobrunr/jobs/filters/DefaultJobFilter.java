@@ -3,6 +3,7 @@ package org.jobrunr.jobs.filters;
 import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.utils.CollectionUtils;
 import org.jobrunr.utils.StringUtils;
 import org.slf4j.MDC;
 
@@ -11,6 +12,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.JobUtils.getJobAnnotation;
 import static org.jobrunr.utils.JobUtils.getReadableNameFromJobDetails;
 
@@ -24,6 +26,7 @@ public class DefaultJobFilter implements JobClientFilter {
         Optional<Job> jobAnnotation = getJobAnnotation(jobDetails);
         setJobName(job, jobAnnotation);
         setAmountOfRetries(job, jobAnnotation);
+        setLabels(job, jobAnnotation);
     }
 
     private void setJobName(AbstractJob job, Optional<Job> jobAnnotation) {
@@ -41,8 +44,17 @@ public class DefaultJobFilter implements JobClientFilter {
         Optional<Integer> amountOfRetriesFromAnnotation = getIntegerFromAnnotation(jobAnnotation, Job::retries);
         if (job.getAmountOfRetries() != null && amountOfRetriesFromAnnotation.isPresent()) {
             throw new IllegalStateException("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
-        } else if(amountOfRetriesFromAnnotation.isPresent()) {
+        } else if (amountOfRetriesFromAnnotation.isPresent()) {
             job.setAmountOfRetries(amountOfRetriesFromAnnotation.get());
+        }
+    }
+
+    private void setLabels(AbstractJob job, Optional<Job> jobAnnotation) {
+        Optional<String[]> labelsFromAnnotation = getStringArrayFromAnnotation(jobAnnotation, Job::labels);
+        if (!job.getLabels().isEmpty() && labelsFromAnnotation.isPresent()) {
+            throw new IllegalStateException("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
+        } else if (labelsFromAnnotation.isPresent()) {
+            job.setLabels(asSet(labelsFromAnnotation.get()));
         }
     }
 
@@ -58,6 +70,12 @@ public class DefaultJobFilter implements JobClientFilter {
                 .filter(val -> val > Job.NBR_OF_RETRIES_NOT_PROVIDED);
     }
 
+    private Optional<String[]> getStringArrayFromAnnotation(Optional<Job> jobAnnotation, Function<Job, String[]> mappingFunction) {
+        return jobAnnotation
+                .map(mappingFunction)
+                .filter(CollectionUtils::isNotNullOrEmpty);
+    }
+
     private String resolveParameters(String name, AbstractJob abstractJob) {
         String jobName = replaceJobParameters(name, abstractJob.getJobDetails());
         return replaceMDCVariables(jobName);
@@ -66,7 +84,7 @@ public class DefaultJobFilter implements JobClientFilter {
     private String replaceJobParameters(String name, JobDetails jobDetails) {
         String finalName = name;
         for (int i = 0; i < jobDetails.getJobParameters().size(); i++) {
-            if(jobDetails.getJobParameterValues()[i] != null) {
+            if (jobDetails.getJobParameterValues()[i] != null) {
                 finalName = finalName.replace("%" + i, jobDetails.getJobParameterValues()[i].toString());
             }
         }

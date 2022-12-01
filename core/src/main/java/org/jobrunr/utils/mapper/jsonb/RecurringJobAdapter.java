@@ -3,6 +3,7 @@ package org.jobrunr.utils.mapper.jsonb;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
+import org.jobrunr.utils.mapper.jsonb.adapters.JobLabelsAdapter;
 import org.jobrunr.utils.mapper.jsonb.serializer.*;
 
 import javax.json.JsonObject;
@@ -17,6 +18,7 @@ import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObj
 public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObject> {
 
     private final JobRunrJsonb jsonb;
+    private final JobLabelsAdapter jobLabelsAdapter;
     private final JobDetailsAdapter jobDetailsAdapter;
 
     public RecurringJobAdapter() {
@@ -27,6 +29,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .withDeserializers(new PathTypeDeserializer(), new FileTypeDeserializer(), new DurationTypeDeserializer())
         );
         this.jsonb = new JobRunrJsonb(jsonb);
+        jobLabelsAdapter = new JobLabelsAdapter(this.jsonb);
         jobDetailsAdapter = new JobDetailsAdapter(this.jsonb);
     }
 
@@ -36,6 +39,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .add("id", recurringJob.getId())
                 .add("jobName", recurringJob.getJobName())
                 .add("amountOfRetries", recurringJob.getAmountOfRetries())
+                .add("labels", jobLabelsAdapter.adaptToJson(recurringJob.getLabels()))
                 .add("jobSignature", recurringJob.getJobSignature())
                 .add("version", recurringJob.getVersion())
                 .add("scheduleExpression", recurringJob.getScheduleExpression())
@@ -59,6 +63,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 jsonObject.getString("createdAt")
         );
         recurringJob.setJobName(jsonObject.getString("jobName"));
+        recurringJob.setLabels(jobLabelsAdapter.adaptFromJson(jsonObject.getJsonArray("labels")));
         return recurringJob;
     }
 

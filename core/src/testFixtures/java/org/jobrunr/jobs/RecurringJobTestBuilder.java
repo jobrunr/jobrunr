@@ -11,8 +11,10 @@ import org.jobrunr.scheduling.interval.Interval;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Set;
 
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
+import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class RecurringJobTestBuilder {
 
@@ -22,6 +24,7 @@ public class RecurringJobTestBuilder {
     private JobDetails jobDetails;
     private Schedule schedule;
     private ZoneId zoneId;
+    private Set<String> labels;
     private Instant createdAt = Instant.now();
 
     private RecurringJobTestBuilder() {
@@ -101,12 +104,18 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
+    public RecurringJobTestBuilder withLabels(String... labels) {
+        this.labels = asSet(labels);
+        return this;
+    }
+
     public RecurringJob build() {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
         if (amountOfRetries != null) {
             recurringJob.setAmountOfRetries(amountOfRetries);
         }
         recurringJob.setJobName(name);
+        recurringJob.setLabels(labels);
         return recurringJob;
     }
 }

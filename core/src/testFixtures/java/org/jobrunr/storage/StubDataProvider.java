@@ -37,8 +37,8 @@ public class StubDataProvider {
     }
 
     public StubDataProvider addSomeRecurringJobs() {
-        for(int i = 0; i < 100; i++) {
-            storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data-" + i).withName("Import all sales data at midnight").build());
+        for (int i = 0; i < 10; i++) {
+            storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data-" + i).withName("Import all sales data at midnight").withLabels("some label a", "another label").build());
             storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports-" + i).withName("Generate sales report at 3am").withCronExpression("0 0 3 * *").build());
         }
         return this;
