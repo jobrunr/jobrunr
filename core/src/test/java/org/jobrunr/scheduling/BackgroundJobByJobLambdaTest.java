@@ -339,7 +339,7 @@ public class BackgroundJobByJobLambdaTest {
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testRecurringCronJobDoesNotSkipRecurringJobsIfStopTheWorldGCOccurs() {
         TestServiceForRecurringJobsIfStopTheWorldGCOccurs testService = new TestServiceForRecurringJobsIfStopTheWorldGCOccurs();
         testService.resetProcessedJobs();
