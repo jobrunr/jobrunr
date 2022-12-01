@@ -19,6 +19,7 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 class DefaultJobFilterTest {
 
     private DefaultJobFilter defaultJobFilter;
+    private TestService testService;
 
     @BeforeEach
     void setup() {
@@ -99,6 +100,17 @@ class DefaultJobFilterTest {
         defaultJobFilter.onCreating(job);
 
         assertThat(job).hasLabels(Set.of("TestLabel", "Email"));
+    }
+
+    @Test
+    void testLabelsIsUsedIfProvidedByAnnotation() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWorkWithJobAnnotationAndLabels(3, "customer name"))
+                .build();
+
+        defaultJobFilter.onCreating(job);
+
+        assertThat(job).hasLabels(Set.of("label-3 - customer name"));
     }
 
     @Test

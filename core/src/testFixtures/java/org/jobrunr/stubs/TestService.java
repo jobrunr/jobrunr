@@ -147,6 +147,12 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work... " + processedJobs);
     }
 
+    @Job(labels = "label-%0 - %1")
+    public void doWorkWithJobAnnotationAndLabels(int i, String s) {
+        processedJobs++;
+        System.out.println("Doing some work... " + processedJobs);
+    }
+
     @Job(jobFilters = {TheSunIsAlwaysShiningElectStateFilter.class, TestFilter.class})
     public void doWorkWithCustomJobFilters() {
         System.out.println("I will always succeed thanks to my SunIsAlwaysShiningElectStateFilter... ");

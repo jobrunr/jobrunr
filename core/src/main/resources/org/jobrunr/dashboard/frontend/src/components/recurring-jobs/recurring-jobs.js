@@ -21,7 +21,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
 import {useHistory, useLocation} from "react-router-dom";
 import TablePagination from "@material-ui/core/TablePagination";
-import JobLabel from "../JobLabel";
+import JobLabel from "../utils/job-label";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -196,7 +196,7 @@ const RecurringJobs = (props) => {
                                                         {recurringJob.id}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {recurringJob.labels.map((label) => <JobLabel text={label}/>)}
+                                                        {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
                                                         {recurringJob.jobName}
                                                     </TableCell>
                                                     <TableCell>

@@ -12,7 +12,8 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jobrunr.utils.CollectionUtils.asSet;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.utils.JobUtils.getJobAnnotation;
 import static org.jobrunr.utils.JobUtils.getReadableNameFromJobDetails;
 
@@ -54,7 +55,7 @@ public class DefaultJobFilter implements JobClientFilter {
         if (!job.getLabels().isEmpty() && labelsFromAnnotation.isPresent()) {
             throw new IllegalStateException("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
         } else if (labelsFromAnnotation.isPresent()) {
-            job.setLabels(asSet(labelsFromAnnotation.get()));
+            job.setLabels(stream(labelsFromAnnotation.get()).map(s -> resolveParameters(s, job)).collect(toSet()));
         }
     }
 
