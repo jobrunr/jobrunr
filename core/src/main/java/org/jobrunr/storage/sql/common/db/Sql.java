@@ -5,6 +5,7 @@ import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -12,6 +13,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.stream;
+import static java.util.TimeZone.getTimeZone;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
@@ -223,7 +225,7 @@ public class Sql<T> {
         } else if (o instanceof Boolean) {
             ps.setInt(i, (boolean) o ? 1 : 0);
         } else if (o instanceof Instant) {
-            ps.setTimestamp(i, Timestamp.from((Instant) o));
+            ps.setTimestamp(i, Timestamp.from((Instant) o), Calendar.getInstance(getTimeZone(ZoneOffset.UTC)));
         } else if (o instanceof Duration) {
             ps.setString(i, o.toString());
         } else if (o instanceof Enum) {
