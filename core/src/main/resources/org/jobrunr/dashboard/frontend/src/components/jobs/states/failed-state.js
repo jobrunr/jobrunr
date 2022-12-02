@@ -6,7 +6,7 @@ import ExpandMore from "@material-ui/icons/ExpandMore";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
 import {makeStyles} from "@material-ui/core/styles";
-import TimeAgo from "react-timeago/lib";
+import SwitchableTimeAgo from "../../utils/time-ago";
 
 const useStyles = makeStyles(theme => ({
     primaryHeading: {
@@ -58,7 +58,7 @@ const Failed = (props) => {
                     </Typography>
                 </Alert>
                 <Typography className={classes.secondaryHeading}>
-                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
 

@@ -1,0 +1,35 @@
+{
+  "id": "${json-unit.ignore}",
+  "jobName": "an enqueued job",
+  "amountOfRetries": null,
+  "labels": [
+    "first label",
+    "second label"
+  ],
+  "jobSignature": "java.lang.System.out.println(java.lang.String)",
+  "version": 0,
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  },
+  "jobDetails": {
+    "cacheable": true,
+    "className": "java.lang.System",
+    "staticFieldName": "out",
+    "methodName": "println",
+    "jobParameters": [
+      {
+        "actualClassName": "java.lang.String",
+        "className": "java.lang.String",
+        "object": "a test"
+      }
+    ]
+  },
+  "jobHistory": [
+    {
+      "createdAt": "${json-unit.ignore}",
+      "state": "ENQUEUED",
+      "@class": "org.jobrunr.jobs.states.EnqueuedState"
+    }
+  ],
+  "recurringJobId": null
+}

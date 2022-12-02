@@ -1,9 +1,6 @@
 package org.jobrunr.server.dashboard;
 
-import org.jobrunr.server.dashboard.mappers.CpuAllocationIrregularityNotificationMapper;
-import org.jobrunr.server.dashboard.mappers.DashboardNotificationMapper;
-import org.jobrunr.server.dashboard.mappers.NewJobRunrVersionNotificationMapper;
-import org.jobrunr.server.dashboard.mappers.SevereJobRunrExceptionNotificationMapper;
+import org.jobrunr.server.dashboard.mappers.*;
 import org.jobrunr.storage.StorageProvider;
 
 import java.util.HashSet;
@@ -23,6 +20,7 @@ public class DashboardNotificationManager {
         this.notificationMappers = new HashSet<>(asList(
                 new SevereJobRunrExceptionNotificationMapper(backgroundJobServerId, storageProvider),
                 new CpuAllocationIrregularityNotificationMapper(backgroundJobServerId),
+                new PollIntervalInSecondsTimeBoxIsTooSmallNotificationMapper(backgroundJobServerId),
                 new NewJobRunrVersionNotificationMapper()
         ));
     }

@@ -12,6 +12,7 @@ import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -132,6 +133,19 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    void testSerializeAndDeserializeEnqueuedJobWithFileJobParameter() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWorkWithFile(new File("/tmp/test.txt")))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-file-parameter.json"));
+
+        Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
     void testSerializeAndDeserializeEnqueuedJobWithInterfaceAsJobParameter() {
         Job job = anEnqueuedJob()
                 .withJobDetails(() -> testService.doWorkWithCommand(new TestService.SimpleCommand("Hello", 5)))
@@ -198,7 +212,7 @@ public abstract class AbstractJsonMapperTest {
         final String jobAsStringFrom4Dot0Dot0 = contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-github-254-input.json");
 
         final Job actualJobFrom4Dot0Dot0 = jsonMapper.deserialize(jobAsStringFrom4Dot0Dot0, Job.class);
-        assertThat(actualJobFrom4Dot0Dot0).isEqualTo(job);
+        assertThat(actualJobFrom4Dot0Dot0).isEqualTo(job, "locker", "labels");
     }
 
     @Test

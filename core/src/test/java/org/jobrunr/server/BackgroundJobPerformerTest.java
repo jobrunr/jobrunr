@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +47,7 @@ class BackgroundJobPerformerTest {
     void setUpMocks() {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
 
+        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(aDefaultBackgroundJobServerStatus().build());
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
@@ -199,8 +201,7 @@ class BackgroundJobPerformerTest {
     @Test
     @DisplayName("any exception other than InvocationTargetException stays unwrapped")
     void anyExceptionOtherThanInvocationTargetExceptionIsNotUnwrapped() throws Exception {
-        var job = anEnqueuedJob()
-                .build();
+        var job = anEnqueuedJob().build();
         var runner = mock(BackgroundJobRunner.class);
         doThrow(new RuntimeException("test error")).when(runner).run(job);
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(runner);

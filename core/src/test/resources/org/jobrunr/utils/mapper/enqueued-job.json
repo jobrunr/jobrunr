@@ -1,6 +1,8 @@
 {
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "an enqueued job",
+  "amountOfRetries": null,
+  "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "java.lang.System",

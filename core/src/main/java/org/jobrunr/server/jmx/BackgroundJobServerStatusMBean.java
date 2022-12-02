@@ -7,6 +7,8 @@ import java.util.UUID;
 public interface BackgroundJobServerStatusMBean {
     UUID getId();
 
+    String getName();
+
     int getWorkerPoolSize();
 
     int getPollIntervalInSeconds();

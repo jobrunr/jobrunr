@@ -2,6 +2,8 @@
   "version": 0,
   "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
   "jobName": "some name",
+  "amountOfRetries": null,
+  "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "org.jobrunr.stubs.TestService",

@@ -9,8 +9,11 @@ import java.util.UUID;
 
 public class BackgroundJobServerStatusTestBuilder {
 
+    public static final String DEFAULT_SERVER_NAME = "test-server-name";
+
     private final JobServerStats jobServerStats = new JobServerStats();
     private UUID id = UUID.randomUUID();
+    private String name = DEFAULT_SERVER_NAME;
     private int workerPoolSize = 10;
     private int pollIntervalInSeconds = BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL_IN_SECONDS;
     private Duration deleteSucceededJobsAfter = BackgroundJobServerConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
@@ -35,6 +38,7 @@ public class BackgroundJobServerStatusTestBuilder {
     public static BackgroundJobServerStatusTestBuilder aBackgroundJobServerStatusBasedOn(BackgroundJobServerStatus status) {
         return new BackgroundJobServerStatusTestBuilder()
                 .withId(status.getId())
+                .withName(status.getName())
                 .withWorkerSize(status.getWorkerPoolSize())
                 .withPollIntervalInSeconds(status.getPollIntervalInSeconds())
                 .withRunning(status.isRunning())
@@ -42,8 +46,18 @@ public class BackgroundJobServerStatusTestBuilder {
                 .withLastHeartbeat(status.getLastHeartbeat());
     }
 
+    public BackgroundJobServerStatusTestBuilder withId() {
+        this.id = UUID.randomUUID();
+        return this;
+    }
+
     public BackgroundJobServerStatusTestBuilder withId(UUID id) {
         this.id = id;
+        return this;
+    }
+
+    public BackgroundJobServerStatusTestBuilder withName(String name) {
+        this.name = name;
         return this;
     }
 
@@ -80,7 +94,7 @@ public class BackgroundJobServerStatusTestBuilder {
     }
 
     public BackgroundJobServerStatus build() {
-        return new BackgroundJobServerStatus(id, workerPoolSize, pollIntervalInSeconds,
+        return new BackgroundJobServerStatus(id, name, workerPoolSize, pollIntervalInSeconds,
                 deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, running,
                 jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(),
                 jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());

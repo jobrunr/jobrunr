@@ -65,8 +65,8 @@ class RetryFilterTest {
     void retryFilterDoesNotScheduleJobAgainIfMaxNumberOfRetriesIsReached() {
         final Job job = aJob()
                 .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
-                .withState(new FailedState("a message", new RuntimeException("boem")))
-                .withState(new FailedState("firstRetry", new RuntimeException("boem")))
+                .withState(new FailedState("a message", new RuntimeException("boom")))
+                .withState(new FailedState("firstRetry", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();
 
@@ -106,7 +106,7 @@ class RetryFilterTest {
 
         final Job job = aJob()
                 .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWork()))
-                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();
 
@@ -122,7 +122,7 @@ class RetryFilterTest {
         retryFilter = new RetryFilter(0);
         final Job job = aJob()
                 .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWork()))
-                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();
 
@@ -140,7 +140,7 @@ class RetryFilterTest {
         // GIVEN FIRST FAILURE, NOT YET RETRIED
         Job job = aJob()
                 .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
-                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();
 
@@ -154,7 +154,7 @@ class RetryFilterTest {
 
         // GIVEN SECOND FAILURE, ALREADY RETRIED
         job = aCopyOf(job)
-                .withState(new FailedState("a message", new RuntimeException("boem")))
+                .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         beforeVersion = job.getJobStates().size();
 

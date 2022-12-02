@@ -2,10 +2,11 @@
   {
     "@class": "${json-unit.ignore-element}",
     "id": "${json-unit.ignore}",
+    "name": "${json-unit.ignore}",
     "workerPoolSize": 10,
     "pollIntervalInSeconds": 15,
-    "deleteSucceededJobsAfter": 129600.0,
-    "permanentlyDeleteDeletedJobsAfter": 259200.0,
+    "deleteSucceededJobsAfter": 129600.000000000,
+    "permanentlyDeleteDeletedJobsAfter": 259200.000000000,
     "firstHeartbeat": "${json-unit.ignore}",
     "lastHeartbeat": "${json-unit.ignore}",
     "running": true,

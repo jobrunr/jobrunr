@@ -11,6 +11,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TimeAgo from "react-timeago/lib";
 import {makeStyles} from '@material-ui/core/styles';
 import LoadingIndicator from "../LoadingIndicator";
+import JobLabel from "./job-label";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -108,6 +109,12 @@ const JobsTable = (props) => {
                                             }}>{job.id}</Link>
                                         </TableCell>
                                         <TableCell>
+                                            {job.labels &&
+                                                <>
+                                                    {job.labels.map((label) => <JobLabel text={label}/>)}
+                                                    <span style={{marginRight: '0.5rem'}}></span>
+                                                </>
+                                            }
                                             <Link to={{
                                                 pathname: `/dashboard/jobs/${job.id}`,
                                                 job: job
@@ -115,7 +122,8 @@ const JobsTable = (props) => {
                                         </TableCell>
                                         <TableCell>
                                             <Link to={{pathname: `/dashboard/jobs/${job.id}`, job: job}}>
-                                                <TimeAgo date={new Date(columnFunction(job))} title={new Date(columnFunction(job)).toString()}/>
+                                                <TimeAgo date={new Date(columnFunction(job))}
+                                                         title={new Date(columnFunction(job)).toString()}/>
                                             </Link>
                                         </TableCell>
                                     </TableRow>

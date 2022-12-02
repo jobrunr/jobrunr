@@ -47,9 +47,19 @@ public @interface Job {
 
     int NBR_OF_RETRIES_NOT_PROVIDED = -1;
 
+    /**
+     * The name of the job. Parameter substitution is supported by means of <code>%0</code> (this will be replaced by the toString representation of the first argument).
+     * @return the name of the job.
+     */
     String name() default "";
 
     int retries() default NBR_OF_RETRIES_NOT_PROVIDED;
+
+    /**
+     * The labels for the job. Parameter substitution is supported by means of <code>%0</code> (this will be replaced by the toString representation of the first argument).
+     * @return the labels for the job.
+     */
+    String[] labels() default {};
 
     Class<? extends JobFilter>[] jobFilters() default {};
 }

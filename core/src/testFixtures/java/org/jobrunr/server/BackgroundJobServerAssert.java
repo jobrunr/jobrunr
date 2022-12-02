@@ -18,6 +18,11 @@ public class BackgroundJobServerAssert extends AbstractAssert<BackgroundJobServe
         return new BackgroundJobServerAssert(backgroundJobServer);
     }
 
+    public BackgroundJobServerAssert hasName(String name) {
+        Assertions.assertThat(actual.getConfiguration().getName()).isEqualTo(name);
+        return this;
+    }
+
     public BackgroundJobServerAssert hasRetryFilter(int defaultNbrOfRetries) {
         List<JobFilter> filters = getInternalState(actual.getJobFilters(), "filters");
         JobFilter retryFilter = filters.stream()

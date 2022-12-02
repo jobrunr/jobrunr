@@ -97,7 +97,7 @@ BackgroundJob.schedule(Instant.now().plusHours(5), () -> System.out.println("Rel
 Recurring jobs have never been simpler; just call the following method to perform any kind of recurring task using the [CRON expressions](http://en.wikipedia.org/wiki/Cron#CRON_expression).
 
 ```java
-BackgroundJob.scheduleRecurringly("my-recurring-job", Cron.daily(), () -> service.doWork());
+BackgroundJob.scheduleRecurrently("my-recurring-job", Cron.daily(), () -> service.doWork());
 ```
 
 **Process background tasks inside a web application…**

@@ -82,6 +82,15 @@ class JobRunrFactoryTest {
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.name", value = "test")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
+        BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+        assertThat(backgroundJobServer)
+                .hasName("test");
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     @Property(name = "jobrunr.jobs.default-number-of-retries", value = "3")
     void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);

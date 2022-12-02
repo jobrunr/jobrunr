@@ -80,6 +80,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try (final Jedis jedis = getJedis(); final Transaction t = jedis.multi()) {
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_NAME, serverStatus.getName());
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, String.valueOf(serverStatus.getDeleteSucceededJobsAfter()));
@@ -141,6 +142,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .mapAfterSync(Response::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
                             UUID.fromString(fieldMap.get(BackgroundJobServers.FIELD_ID)),
+                            fieldMap.get(BackgroundJobServers.FIELD_NAME),
                             Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
                             Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
                             Duration.parse(fieldMap.get(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),

@@ -29,6 +29,7 @@ import SucceededNotification from "./notifications/succeeded-notification";
 import DeletedNotification from "./notifications/deleted-notification";
 import JobDetailsNotCacheableNotification from "./notifications/job-details-not-cacheable-notification";
 import VersionFooter from "../utils/version-footer";
+import JobLabel from "../utils/job-label";
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -198,7 +199,7 @@ const JobView = (props) => {
                                         </Grid>
                                         <Grid item xs={12} className={classes.jobDetails} style={{paddingTop: 0}}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
-                                                {job.jobName}
+                                                {job.jobName} {job.labels?.map((label) => <JobLabel text={label}/>)}
                                             </Typography>
                                         </Grid>
                                     </Grid>
