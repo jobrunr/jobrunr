@@ -1,5 +1,6 @@
 package org.jobrunr.server.zookeeper.tasks;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.storage.RecurringJobsResult;
@@ -74,7 +75,7 @@ class ProcessRecurringJobsTaskTest extends AbstractZooKeeperTaskTest {
         verify(storageProvider, never()).save(anyList());
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void taskSchedulesJobsThatWereMissedDuringStopTheWorldGC() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 

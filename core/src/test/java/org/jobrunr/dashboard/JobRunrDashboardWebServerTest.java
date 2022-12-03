@@ -82,8 +82,8 @@ abstract class JobRunrDashboardWebServerTest {
         final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
 
-        HttpResponse<String> deleteResponse = http.post("/api/jobs/%s/requeue", savedJob.getId());
-        assertThat(deleteResponse).hasStatusCode(204);
+        HttpResponse<String> requeueResponse = http.post("/api/jobs/%s/requeue", savedJob.getId());
+        assertThat(requeueResponse).hasStatusCode(204);
 
         assertThat(storageProvider.getJobById(job.getId())).hasState(StateName.ENQUEUED);
     }
