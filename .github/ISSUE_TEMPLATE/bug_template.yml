@@ -1,9 +1,6 @@
 name: Bug Report
 description: File a bug report
 title: "[Bug]: "
-labels: ["bug", "triage"]
-assignees:
-  - octocat
 body:
   - type: markdown
     attributes:
@@ -13,7 +10,7 @@ body:
     id: contact
     attributes:
       label: Contact Details
-      description: How can we get in touch with you if we need more info (your company email address)?
+      description: How can we get in touch with you if we need more info (your professional email address)?
       placeholder: ex. email@example.com
     validations:
       required: true
