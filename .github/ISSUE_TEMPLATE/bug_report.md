@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug report (old)
 about: Create a report to help us improve (if the bug template is not completed correctly - this also means properly formatted code and stacktraces, your issue will be closed as is without response). 
 title: "[BUG]"
 labels: ''
