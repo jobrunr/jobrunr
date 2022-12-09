@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.mariadb;
 
+import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
@@ -41,8 +42,27 @@ public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
     }
 
     @Override
+    public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
+        // why https://github.com/jobrunr/jobrunr/issues/635
+        Exceptions.retryOnException(() -> super.announceBackgroundJobServer(serverStatus), 5);
+
+    }
+
+    @Override
     public int removeTimedOutBackgroundJobServers(Instant heartbeatOlderThan) {
         //why: https://github.com/jobrunr/jobrunr/issues/275
         return Exceptions.retryOnException(() -> super.removeTimedOutBackgroundJobServers(heartbeatOlderThan), 5);
+    }
+
+    @Override
+    public boolean signalBackgroundJobServerAlive(BackgroundJobServerStatus serverStatus) {
+        //why: https://github.com/jobrunr/jobrunr/issues/635
+        return Exceptions.retryOnException(() -> super.signalBackgroundJobServerAlive(serverStatus), 5);
+    }
+
+    @Override
+    public void signalBackgroundJobServerStopped(BackgroundJobServerStatus serverStatus) {
+        // why https://github.com/jobrunr/jobrunr/issues/635
+        Exceptions.retryOnException(() -> super.signalBackgroundJobServerStopped(serverStatus), 5);
     }
 }

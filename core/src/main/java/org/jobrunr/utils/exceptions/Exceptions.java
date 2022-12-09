@@ -63,4 +63,18 @@ public class Exceptions {
             }
         }
     }
+
+    public static void retryOnException(Runnable runnable, int maxRetries) {
+        int count = 0;
+        while (true) {
+            try {
+                Thread.sleep(count * 20);
+                runnable.run();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (RuntimeException e) {
+                if (++count >= maxRetries) throw e;
+            }
+        }
+    }
 }

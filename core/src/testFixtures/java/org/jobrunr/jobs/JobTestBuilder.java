@@ -292,7 +292,7 @@ public class JobTestBuilder {
         job.setJobName(name);
         job.getMetadata().putAll(metadata);
 
-        ArrayList<JobState> jobHistory = getInternalState(job, "jobHistory");
+        List<JobState> jobHistory = getInternalState(job, "jobHistory");
         jobHistory.addAll(states);
         return job;
     }

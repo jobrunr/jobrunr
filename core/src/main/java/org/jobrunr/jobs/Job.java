@@ -9,9 +9,13 @@ import org.jobrunr.utils.streams.StreamUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -25,14 +29,14 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class Job extends AbstractJob {
 
     private final UUID id;
-    private final ArrayList<JobState> jobHistory;
+    private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
 
     private Job() {
         // used for deserialization
         this.id = null;
-        this.jobHistory = new ArrayList<>();
+        this.jobHistory = new CopyOnWriteArrayList<>();
         this.metadata = new ConcurrentHashMap<>();
     }
 
@@ -56,7 +60,7 @@ public class Job extends AbstractJob {
         super(jobDetails, version);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : UUID.randomUUID();
-        this.jobHistory = new ArrayList<>(jobHistory);
+        this.jobHistory = new CopyOnWriteArrayList<>(jobHistory);
         this.metadata = metadata;
     }
 
@@ -170,7 +174,7 @@ public class Job extends AbstractJob {
                 '}';
     }
 
-    private void addJobState(JobState jobState) {
+    private void    addJobState(JobState jobState) {
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
