@@ -10,7 +10,7 @@ body:
         Thanks for taking the time to fill out this bug report! As this is an open-source project where we try to make a living from, 
         we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to 
         know to whom we're talking to and providing free support to. If your Github Profile is not complete, we will probably close 
-        the issue without answering.
+        the issue without answering. For more info, read this excellent blog post about [open-source etiquette](https://www.yegor256.com/2020/07/29/open-source-etiquette.html)
   - type: input
     id: version
     attributes:
