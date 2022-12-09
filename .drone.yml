@@ -61,7 +61,7 @@ steps:
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
       - find /root/.gradle/caches/ -name "*.lock" -type f -delete
-      - ./gradlew build --no-daemon -i clean build
+      - ./gradlew build --no-daemon --fail-fast -i clean build
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
