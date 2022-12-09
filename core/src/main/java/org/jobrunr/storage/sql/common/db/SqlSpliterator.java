@@ -4,10 +4,9 @@ import org.jobrunr.storage.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
@@ -20,6 +19,7 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
     private final Consumer<PreparedStatement> paramsSetter;
     private PreparedStatement ps;
     private ResultSet rs;
+    private List<String> columns;
     private boolean hasMore;
 
     public SqlSpliterator(Connection connection, String sqlStatement, Consumer<PreparedStatement> paramsSetter) {
@@ -36,10 +36,12 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
                 hasMore = rs.next();
                 if (!hasMore) {
                     close();
+                } else {
+                    columns = initColumns(rs);
                 }
             }
             if (!hasMore) return false;
-            consumer.accept(new SqlResultSet(rs));
+            consumer.accept(new SqlResultSet(columns, rs));
             hasMore = rs.next();
             if (!hasMore) {
                 close();
@@ -93,5 +95,15 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
     @Override
     public int characteristics() {
         return 0;
+    }
+
+    private static List<String> initColumns(ResultSet resultSet) throws SQLException {
+        List<String> result = new ArrayList<>();
+        result.add(null); // SQL in Java is 1 based
+        final ResultSetMetaData metaData = resultSet.getMetaData();
+        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+            result.add(metaData.getColumnName(i).toLowerCase());
+        }
+        return result;
     }
 }

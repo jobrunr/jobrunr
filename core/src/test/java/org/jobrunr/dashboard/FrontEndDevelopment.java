@@ -13,22 +13,22 @@ import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.StubDataProvider;
+import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -36,22 +36,17 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
  */
 public class FrontEndDevelopment {
 
-    public static void main(String[] args) throws InterruptedException {
-        TestService testService = new TestService();
-        StorageProvider storageProvider = new InMemoryStorageProvider();
-        //final StorageProvider storageProvider = SqlStorageProviderFactory.using(getMariaDBDataSource());
-        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+    public static void main(String[] args) throws Exception {
+        StorageProvider storageProvider = inMemoryStorageProvider();
 
-        StubDataProvider.using(storageProvider)
+        //StubDataProvider.using(storageProvider)
                 //.addALotOfEnqueuedJobsThatTakeSomeTime()
                 //.addALotOfEnqueuedJobsThatTakeSomeTime()
-                .addSomeRecurringJobs();
+                //.addSomeRecurringJobs();
 
-        int i = 0;
-        Set<String> tooManyLabels = Set.of("Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i), "Label" + (++i));
-        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withLabels(tooManyLabels).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withLabels(Set.of("test")).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withLabels(Set.of("Failed Job", "Missing job parameter")).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
 
         JobRunr
                 .configure()
@@ -60,18 +55,10 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.createRecurrently(
-                aRecurringJob()
-                        .withId("Github-75")
-                        .withLabels("Triggered by someone", "Long", "provided Id")
-                        .withCron(Cron.daily(18, 4))
-                        .withDetails(() -> testService.doWorkThatTakesLong(JobContext.Null)));
+        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
+                x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        BackgroundJob.createRecurrently(
-                aRecurringJob()
-                        .withLabels(Set.of("Recurring", "Long"))
-                        .withDuration(Duration.ofMinutes(1))
-                        .withDetails(() -> testService.doWorkThatTakesLong(JobContext.Null)));
+        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {
@@ -110,12 +97,79 @@ public class FrontEndDevelopment {
         }
     }
 
-    protected static DataSource getMariaDBDataSource() {
+    private static StorageProvider inMemoryStorageProvider() throws SQLException {
+        StorageProvider storageProvider = new InMemoryStorageProvider();
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+        return storageProvider;
+    }
+
+    private static StorageProvider db2StorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(84);
+        config.setJdbcUrl("jdbc:db2://127.0.0.1:53759/test");
+        config.setUsername("db2inst1");
+        config.setPassword("foobar1234");
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider h2StorageProvider() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:h2:/tmp/test-frontend");
+        config.setUsername("sa");
+        config.setPassword("sa");
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider mariaDBStorageProvider() throws SQLException {
+        HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mariadb://localhost:3306/mysql?rewriteBatchedStatements=true&useBulkStmts=false");
         config.setUsername("root");
         config.setPassword("mysql");
-        return new HikariDataSource(config);
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider mysqlStorageProvider() throws SQLException {
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setJdbcUrl("jdbc:mysql://127.0.0.1:50516/test?rewriteBatchedStatements=true&useSSL=false");
+        config.setUsername("test");
+        config.setPassword("test");
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider oracleStorageProvider() throws SQLException {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:oracle:thin:@127.0.0.1:54076/xepdb1");
+        config.setUsername("test");
+        config.setPassword("test");
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider postgresStorageProvider() throws SQLException {
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setURL("jdbc:postgresql://127.0.0.1:5432/postgres");
+        dataSource.setUser("postgres");
+        dataSource.setPassword("postgres");
+        dataSource.setProperty("socketTimeout", "10");
+        return toStorageProvider(dataSource);
+    }
+
+    private static StorageProvider sqliteStorageProvider() throws SQLException {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:sqlite:/tmp/jobrunr-frontend.db");
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider sqlServerStorageProvider() throws SQLException {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:sqlserver://localhost:1433;databaseName=tempdb;encrypt=true;trustServerCertificate=true;");
+        config.setUsername("sa");
+        config.setPassword("yourStrong(!)Password");
+        return toStorageProvider(new HikariDataSource(config));
+    }
+
+    private static StorageProvider toStorageProvider(DataSource dataSource) {
+        StorageProvider storageProvider = SqlStorageProviderFactory.using(dataSource);
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+        return storageProvider;
     }
 }
