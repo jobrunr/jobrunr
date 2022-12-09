@@ -52,7 +52,7 @@ public class Exceptions {
 
     public static <T> T retryOnException(Supplier<T> supplier, int maxRetries) {
         int count = 0;
-        while (true) {
+        while (count <= maxRetries) {
             try {
                 Thread.sleep(count * 20);
                 return supplier.get();
@@ -62,14 +62,16 @@ public class Exceptions {
                 if (++count >= maxRetries) throw e;
             }
         }
+        throw new IllegalStateException("Cannot happen");
     }
 
     public static void retryOnException(Runnable runnable, int maxRetries) {
         int count = 0;
-        while (true) {
+        while (count <= maxRetries) {
             try {
                 Thread.sleep(count * 20);
                 runnable.run();
+                return;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (RuntimeException e) {

@@ -45,7 +45,6 @@ public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         // why https://github.com/jobrunr/jobrunr/issues/635
         Exceptions.retryOnException(() -> super.announceBackgroundJobServer(serverStatus), 5);
-
     }
 
     @Override
