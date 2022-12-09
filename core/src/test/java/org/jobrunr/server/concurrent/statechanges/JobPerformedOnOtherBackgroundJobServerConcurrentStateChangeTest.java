@@ -2,9 +2,13 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.*;
+import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,14 +17,25 @@ import static java.time.Duration.ofMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
+
+    @Mock
+    JobZooKeeper jobZooKeeper;
+
+    @Mock
+    Thread threadProcessingLocalJob;
 
     JobPerformedOnOtherBackgroundJobServerConcurrentStateChange allowedStateChange;
 
     @BeforeEach
     public void setUp() {
-        allowedStateChange = new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange();
+        allowedStateChange = new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(jobZooKeeper);
+        lenient().when(jobZooKeeper.getThreadProcessingJob(any())).thenReturn(threadProcessingLocalJob);
     }
 
     @Test
@@ -51,6 +66,7 @@ class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
 
     @Test
     void ifJobIsHavingConcurrentStateChangeOnDifferentServerItWillResolveToTheStorageProviderJob() {
+        //GIVEN
         final Job jobInProgress = aJobInProgress().build();
         final Job jobInProgressOnOtherServer = aCopyOf(jobInProgress)
                 .withState(new FailedState("Orphaned job", new IllegalStateException("Not important")))
@@ -59,9 +75,13 @@ class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
                 .withState(new ProcessingState(UUID.randomUUID()))
                 .build();
 
+        // WHEN
         final ConcurrentJobModificationResolveResult resolveResult = allowedStateChange.resolve(jobInProgress, jobInProgressOnOtherServer);
+
+        // THEN
         assertThat(resolveResult.failed()).isFalse();
         assertThat(resolveResult.getLocalJob()).isEqualTo(jobInProgressOnOtherServer);
+        verify(threadProcessingLocalJob).interrupt();
     }
 
 }
