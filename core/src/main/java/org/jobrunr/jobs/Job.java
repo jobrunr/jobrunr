@@ -174,7 +174,7 @@ public class Job extends AbstractJob {
                 '}';
     }
 
-    private void addJobState(JobState jobState) {
+    private void    addJobState(JobState jobState) {
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
