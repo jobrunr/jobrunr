@@ -3,6 +3,7 @@ package org.jobrunr.server.concurrent.statechanges;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.jobrunr.utils.annotations.Because;
 
@@ -12,6 +13,12 @@ import java.util.Optional;
 // this will be resolved.
 @Because("https://github.com/jobrunr/jobrunr/issues/429")
 public class JobPerformedOnOtherBackgroundJobServerConcurrentStateChange implements AllowedConcurrentStateChange {
+
+    private JobZooKeeper jobZooKeeper;
+
+    public JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(JobZooKeeper jobZooKeeper) {
+        this.jobZooKeeper = jobZooKeeper;
+    }
 
     @Override
     public boolean matches(Job localJob, Job storageProviderJob) {
@@ -32,6 +39,10 @@ public class JobPerformedOnOtherBackgroundJobServerConcurrentStateChange impleme
 
     @Override
     public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
+        final Thread threadProcessingJob = jobZooKeeper.getThreadProcessingJob(localJob);
+        if (threadProcessingJob != null) {
+            threadProcessingJob.interrupt();
+        }
         return ConcurrentJobModificationResolveResult.succeeded(storageProviderJob);
     }
 }
