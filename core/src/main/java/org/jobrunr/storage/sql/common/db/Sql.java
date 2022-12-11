@@ -239,7 +239,7 @@ public class Sql<T> {
     }
 
     final String parse(String query) {
-        final ParsedStatement parsedStatement = parsedStatementCache.computeIfAbsent(query.hashCode(), hash -> createParsedStatement(query));
+        final ParsedStatement parsedStatement = parsedStatementCache.computeIfAbsent(elementPrefixer(tablePrefix, query).hashCode(), hash -> createParsedStatement(query));
         paramNames.clear();
         paramNames.addAll(parsedStatement.paramNames);
         return parsedStatement.sqlStatement;
