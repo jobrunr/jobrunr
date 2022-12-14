@@ -182,6 +182,6 @@ public class Job extends AbstractJob {
     }
 
     private void clearMetadata() {
-        metadata.entrySet().removeIf(entry -> !(entry.getKey().matches("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d)")));
+        metadata.entrySet().removeIf(entry -> !(entry.getKey().matches("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)")));
     }
 }
