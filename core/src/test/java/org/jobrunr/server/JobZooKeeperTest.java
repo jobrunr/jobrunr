@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -86,6 +87,18 @@ class JobZooKeeperTest {
     }
 
     @Test
+    void checkForEnqueuedJobsIfJobsPresentSubmitsThemToTheBackgroundJobServer() {
+        final Job enqueuedJob = anEnqueuedJob().build();
+        final List<Job> jobs = List.of(enqueuedJob);
+
+        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(jobs);
+
+        jobZooKeeper.run();
+
+        verify(backgroundJobServer).processJob(enqueuedJob);
+    }
+
+    @Test
     void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = aScheduledJob().build();
 
@@ -150,6 +163,7 @@ class JobZooKeeperTest {
         UUID backgroundJobServerId = UUID.randomUUID();
         lenient().when(backgroundJobServer.getId()).thenReturn(backgroundJobServerId);
         lenient().when(backgroundJobServer.getServerStatus()).thenReturn(backgroundJobServerStatus);
+        lenient().when(backgroundJobServer.isRunning()).thenReturn(true);
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(workDistributionStrategy);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));

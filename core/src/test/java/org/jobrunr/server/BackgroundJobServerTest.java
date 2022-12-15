@@ -58,6 +58,7 @@ class BackgroundJobServerTest {
     private TestServiceForIoC testServiceForIoC;
     private SimpleJobActivator jobActivator;
     private ListAppender<ILoggingEvent> logger;
+    private ListAppender<ILoggingEvent> jobZooKeeperLogger;
 
     @BeforeEach
     void setUp() {
@@ -74,6 +75,7 @@ class BackgroundJobServerTest {
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
         logger = LoggerAssert.initFor(backgroundJobServer);
+        jobZooKeeperLogger = LoggerAssert.initFor(backgroundJobServer.getJobZooKeeper());
     }
 
     @AfterEach
@@ -101,8 +103,8 @@ class BackgroundJobServerTest {
         JobId anotherJobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         // THEN the job should stay in state ENQUEUED
-        await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> testService.getProcessedJobs() == 1);
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
+        await().during(5, SECONDS).atMost(10, SECONDS).until(() -> testService.getProcessedJobs() == 1);
+        await().during(5, SECONDS).atMost(10, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
 
         // WHEN we resume the server again
         backgroundJobServer.resumeProcessing();
@@ -120,6 +122,7 @@ class BackgroundJobServerTest {
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
         assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
+        assertThat(jobZooKeeperLogger).hasNoWarnLogMessages();
     }
 
     @Test

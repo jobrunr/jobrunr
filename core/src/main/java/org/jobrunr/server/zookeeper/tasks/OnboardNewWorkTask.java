@@ -24,7 +24,7 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         try {
-            if (reentrantLock.tryLock()) {
+            if (backgroundJobServer.isRunning() && reentrantLock.tryLock()) {
                 LOGGER.debug("Looking for enqueued jobs... ");
                 final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
                 if (workPageRequest.getLimit() > 0) {
