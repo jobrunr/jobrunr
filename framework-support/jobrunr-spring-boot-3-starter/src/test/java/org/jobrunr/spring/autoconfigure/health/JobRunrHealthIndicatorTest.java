@@ -1,8 +1,7 @@
-package org.jobrunr.autoconfigure.health;
+package org.jobrunr.spring.autoconfigure.health;
 
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
-import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

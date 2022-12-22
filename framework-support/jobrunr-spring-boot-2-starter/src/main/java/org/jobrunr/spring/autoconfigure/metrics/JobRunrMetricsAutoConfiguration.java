@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Configuration;
 public class JobRunrMetricsAutoConfiguration {
 
     @Bean
-    @ConditionalOnProperty(prefix = "org.jobrunr.jobs.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "org.jobrunr.jobs.metrics", name = "enabled", havingValue = "true")
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }

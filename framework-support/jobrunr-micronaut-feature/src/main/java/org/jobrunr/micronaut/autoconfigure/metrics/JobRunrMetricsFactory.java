@@ -15,7 +15,7 @@ public class JobRunrMetricsFactory {
 
     @Singleton
     @Requires(beans = {StorageProvider.class, MeterRegistry.class})
-    @Requires(property = "jobrunr.jobs.metrics.enabled", value = "true", defaultValue = "true")
+    @Requires(property = "jobrunr.jobs.metrics.enabled", value = "true", defaultValue = "false")
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }

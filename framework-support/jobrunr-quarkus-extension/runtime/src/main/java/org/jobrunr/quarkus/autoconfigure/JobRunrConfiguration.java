@@ -213,7 +213,7 @@ public class JobRunrConfiguration {
         /**
          * Configures whether metrics are reported to MicroMeter.
          */
-        @ConfigItem(defaultValue = "true")
+        @ConfigItem(defaultValue = "false")
         public boolean enabled;
     }
 }
