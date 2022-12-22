@@ -646,11 +646,11 @@ public abstract class StorageProviderTest {
 
         Job job = anEnqueuedJob().build();
         storageProvider.save(job);
-        assertThat(onChangeListener.changes).hasSize(1);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
 
         job.delete("For test");
         storageProvider.save(job);
-        assertThat(onChangeListener.changes).hasSize(2);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
     }
 
     @Test
@@ -660,11 +660,11 @@ public abstract class StorageProviderTest {
 
         final List<Job> jobs = asList(anEnqueuedJob().build(), anEnqueuedJob().build());
         storageProvider.save(jobs);
-        assertThat(onChangeListener.changes).hasSize(1);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
 
         jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
         storageProvider.save(jobs);
-        assertThat(onChangeListener.changes).hasSize(2);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
     }
 
     @Test
@@ -676,7 +676,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.deleteJobsPermanently(ENQUEUED, now());
 
-        assertThat(onChangeListener.changes).hasSize(1);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
     }
 
     @Test
