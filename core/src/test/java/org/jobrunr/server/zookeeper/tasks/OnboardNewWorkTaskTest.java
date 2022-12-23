@@ -23,6 +23,7 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
     @BeforeEach
     void setUpTask() {
         task = new OnboardNewWorkTask(jobZooKeeper, backgroundJobServer);
+        when(backgroundJobServer.isRunning()).thenReturn(true);
     }
 
     @Test
