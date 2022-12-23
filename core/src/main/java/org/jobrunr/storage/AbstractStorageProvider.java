@@ -66,14 +66,13 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     protected void notifyJobStatsOnChangeListeners() {
-        if(!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
-
         final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
                 .ofType(onChangeListeners, JobStatsChangeListener.class)
                 .collect(toList());
         if (!jobStatsChangeListeners.isEmpty()) {
             runAsync(() -> {
                 try {
+                    if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
                     if (changeListenerNotificationRateLimit.isRateLimited()) return;
                     JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
                     jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
