@@ -14,6 +14,7 @@ public class DeleteDeletedJobsPermanentlyTask extends ZooKeeperTask {
 
     @Override
     protected void runTask() {
+        LOGGER.debug("Looking for deleted jobs that can be deleted permanently... ");
         storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(serverStatus().getDeleteSucceededJobsAfter()));
     }
 }
