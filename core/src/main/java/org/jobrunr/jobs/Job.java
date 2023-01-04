@@ -174,7 +174,7 @@ public class Job extends AbstractJob {
                 '}';
     }
 
-    private void    addJobState(JobState jobState) {
+    private void addJobState(JobState jobState) {
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
@@ -182,6 +182,6 @@ public class Job extends AbstractJob {
     }
 
     private void clearMetadata() {
-        metadata.entrySet().removeIf(entry -> !(entry.getKey().matches("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d)")));
+        metadata.entrySet().removeIf(entry -> !(entry.getKey().matches("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)")));
     }
 }

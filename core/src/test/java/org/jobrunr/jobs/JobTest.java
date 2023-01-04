@@ -1,6 +1,7 @@
 package org.jobrunr.jobs;
 
 import org.assertj.core.data.Offset;
+import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -127,5 +128,34 @@ class JobTest {
 
         job.delete("From UI");
         assertThat(job).hasNoMetadata();
+    }
+
+    @Test
+    void jobLoggingAndProgressIsNotClearedIfMoreThan10Retries() {
+        Job job = anEnqueuedJob().build();
+        for(int i = 0; i < 10; i++) {
+            job.startProcessingOn(backgroundJobServer);
+
+            JobDashboardLogger jobDashboardLogger = new JobDashboardLogger(job);
+            jobDashboardLogger.info("Message " + i);
+
+            job.failed("Job failed", new IllegalStateException("Not important"));
+            job.scheduleAt(Instant.now(), "Retry");
+            job.enqueue();
+        }
+
+        job.startProcessingOn(backgroundJobServer);
+        job.succeeded();
+        assertThat(job)
+                .hasMetadata("jobRunrDashboardLog-2")
+                .hasMetadata("jobRunrDashboardLog-6")
+                .hasMetadata("jobRunrDashboardLog-10")
+                .hasMetadata("jobRunrDashboardLog-14")
+                .hasMetadata("jobRunrDashboardLog-18")
+                .hasMetadata("jobRunrDashboardLog-22")
+                .hasMetadata("jobRunrDashboardLog-26")
+                .hasMetadata("jobRunrDashboardLog-30")
+                .hasMetadata("jobRunrDashboardLog-34")
+                .hasMetadata("jobRunrDashboardLog-38");
     }
 }
