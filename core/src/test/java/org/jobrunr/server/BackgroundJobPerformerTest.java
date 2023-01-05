@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
+import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.server.runner.BackgroundJobRunner;
@@ -18,9 +19,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -182,8 +185,7 @@ class BackgroundJobPerformerTest {
     @Test
     @DisplayName("InvocationTargetException is unwrapped and the actual error is stored instead")
     void invocationTargetExceptionUnwrapped() throws Exception {
-        var job = anEnqueuedJob()
-                .build();
+        var job = anEnqueuedJob().build();
         var runner = mock(BackgroundJobRunner.class);
         doThrow(new InvocationTargetException(new RuntimeException("test error"))).when(runner).run(job);
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(runner);
@@ -214,6 +216,64 @@ class BackgroundJobPerformerTest {
         assertThat(lastFailure.get().getExceptionMessage()).isEqualTo("test error");
         assertThat(lastFailure.get().getException()).isInstanceOf(RuntimeException.class);
         assertThat(lastFailure.get().getException().getMessage()).isEqualTo("test error");
+    }
+
+    @Test
+    void mdcIsAlsoAvailableDuringLoggingOfJobSuccess() throws Exception {
+        // GIVEN
+        Job job = anEnqueuedJob().build();
+        MDC.put("testKey", "testValue");
+        MDCMapper.saveMDCContextToJob(job);
+
+        BackgroundJobRunner runner = mock(BackgroundJobRunner.class);
+        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(runner);
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        ListAppender logger = LoggerAssert.initFor(backgroundJobPerformer);
+
+        // WHEN
+        backgroundJobPerformer.run();
+
+        // THEN
+        assertThat(logger)
+                .hasDebugMessageContaining(
+                        "Job(id=" + job.getId() + ", jobName='" + job.getJobName() + "') processing succeeded",
+                        Map.of(
+                                "jobrunr.jobId", job.getId().toString(),
+                                "jobrunr.jobName", job.getJobName(),
+                                "testKey", "testValue"
+                        ));
+
+        assertThat(MDC.getCopyOfContextMap()).isNullOrEmpty(); // backgroundJobPerformer clears MDC Context
+    }
+
+    @Test
+    void mdcIsAlsoAvailableDuringLoggingOfJobFailure() throws Exception {
+        // GIVEN
+        Job job = anEnqueuedJob().build();
+        MDC.put("testKey", "testValue");
+        MDCMapper.saveMDCContextToJob(job);
+
+        BackgroundJobRunner runner = mock(BackgroundJobRunner.class);
+        doThrow(new InvocationTargetException(new RuntimeException("test error"))).when(runner).run(job);
+        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(runner);
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        ListAppender logger = LoggerAssert.initFor(backgroundJobPerformer);
+
+        // WHEN
+        backgroundJobPerformer.run();
+
+        // THEN
+        assertThat(logger)
+                .hasWarningMessageContaining(
+                        "Job(id=" + job.getId() + ", jobName='" + job.getJobName() + "') processing failed",
+                        Map.of(
+                                "jobrunr.jobId", job.getId().toString(),
+                                "jobrunr.jobName", job.getJobName(),
+                                "testKey", "testValue"
+                        ));
+        assertThat(MDC.getCopyOfContextMap()).isNullOrEmpty(); // backgroundJobPerformer clears MDC Context
     }
 
     private void mockBackgroundJobRunner(Job job, Consumer<Job> jobConsumer) throws Exception {

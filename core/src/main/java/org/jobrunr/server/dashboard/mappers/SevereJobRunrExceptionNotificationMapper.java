@@ -2,6 +2,7 @@ package org.jobrunr.server.dashboard.mappers;
 
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
@@ -43,6 +44,7 @@ public class SevereJobRunrExceptionNotificationMapper implements DashboardNotifi
                 .withBulletedLine("StorageProvider", storageProvider instanceof ThreadSafeStorageProvider ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getName() : storageProvider.getClass().getName())
                 .withBulletedLine("Java Version", System.getProperty("java.version"))
                 .withBulletedLine("Is running from nested jar", Boolean.toString(RuntimeUtils.isRunningFromNestedJar()))
+                .withBulletedLine("Is showing CpuAllocationNotification", Boolean.toString(!storageProvider.getMetadata(CpuAllocationIrregularityNotification.class.getSimpleName()).isEmpty()))
                 .withEmptyLine()
                 .withSubTitle("Background Job Servers")
                 .with(storageProvider.getBackgroundJobServers(), (server, diagnosticsBuilder) -> diagnosticsBuilder.withBulletedLine(format("BackgroundJobServer id: %s\n(workerPoolSize: %d, pollIntervalInSeconds: %d, firstHeartbeat: %s, lastHeartbeat: %s)", server.getId(), server.getWorkerPoolSize(), server.getPollIntervalInSeconds(), server.getFirstHeartbeat(), server.getLastHeartbeat())))

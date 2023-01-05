@@ -38,6 +38,7 @@ public class BackgroundJobPerformer implements Runnable {
     public void run() {
         try {
             backgroundJobServer.getJobZooKeeper().notifyThreadOccupied();
+            MDCMapper.loadMDCContextFromJob(job);
             performJob();
         } catch (Exception e) {
             if (isJobDeletedWhileProcessing(e)) {
@@ -53,6 +54,7 @@ public class BackgroundJobPerformer implements Runnable {
             }
         } finally {
             backgroundJobServer.getJobZooKeeper().notifyThreadIdle();
+            MDC.clear();
         }
     }
 
@@ -79,7 +81,6 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void runActualJob() throws Exception {
         try {
-            MDCMapper.loadMDCContextFromJob(job);
             JobRunrDashboardLogger.setJob(job);
             backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
             LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
@@ -90,7 +91,6 @@ public class BackgroundJobPerformer implements Runnable {
         } finally {
             backgroundJobServer.getJobZooKeeper().stopProcessing(job);
             JobRunrDashboardLogger.clearJob();
-            MDC.clear();
         }
     }
 
