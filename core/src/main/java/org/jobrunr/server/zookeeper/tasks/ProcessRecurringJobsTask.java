@@ -28,7 +28,7 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
 
     @Override
     protected void runTask() {
-        LOGGER.debug("Looking for recurring jobs... ");
+        LOGGER.trace("Looking for recurring jobs... ");
         List<RecurringJob> recurringJobs = getRecurringJobs();
         processRecurringJobs(recurringJobs);
     }
@@ -41,7 +41,7 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
     }
 
     void processRecurringJobs(List<RecurringJob> recurringJobs) {
-        LOGGER.debug("Found {} recurring jobs", recurringJobs.size());
+        LOGGER.debug("Found {} recurring jobs.", recurringJobs.size());
 
         Instant from = runStartTime();
         Instant upUntil = runStartTime().plusSeconds(serverStatus().getPollIntervalInSeconds());
@@ -50,7 +50,7 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
         for (RecurringJob recurringJob : recurringJobs) {
             List<Job> jobsToSchedule = getJobsToSchedule(recurringJob, from, upUntil);
             if(jobsToSchedule.isEmpty()) {
-                LOGGER.debug("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
+                LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
             } else if(jobsToSchedule.size() > 1) {
                 LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size());
                 allJobsToSchedule.addAll(jobsToSchedule);

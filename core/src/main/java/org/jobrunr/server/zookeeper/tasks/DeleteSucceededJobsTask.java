@@ -6,7 +6,6 @@ import org.jobrunr.server.JobZooKeeper;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static java.time.Instant.now;
@@ -16,30 +15,24 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 public class DeleteSucceededJobsTask extends ZooKeeperTask {
 
     private final int pageRequestSize;
-    private final AtomicInteger succeededJobsCounter;
 
     public DeleteSucceededJobsTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         super(jobZooKeeper, backgroundJobServer);
         this.pageRequestSize = backgroundJobServer.getConfiguration().getSucceededJobsRequestSize();
-        this.succeededJobsCounter = new AtomicInteger();
     }
 
     @Override
     protected void runTask() {
-        LOGGER.debug("Looking for succeeded jobs that can go to the deleted state... ");
-        succeededJobsCounter.set(0);
-
+        LOGGER.trace("Looking for succeeded jobs that can go to the deleted state... ");
         final Instant updatedBefore = now().minus(serverStatus().getDeleteSucceededJobsAfter());
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(pageRequestSize));
-
-        processJobList(succeededJobsSupplier, this::deleteJobAndIncrementSucceededJobsCounter);
-        if (succeededJobsCounter.get() > 0) {
-            storageProvider.publishTotalAmountOfSucceededJobs(succeededJobsCounter.get());
-        }
+        processJobList(succeededJobsSupplier, job -> job.delete("JobRunr maintenance - deleting succeeded job"), this::handleTotalAmountOfSucceededJobs);
     }
 
-    private void deleteJobAndIncrementSucceededJobsCounter(Job job) {
-        succeededJobsCounter.incrementAndGet();
-        job.delete("JobRunr maintenance - deleting succeeded job");
+    private void handleTotalAmountOfSucceededJobs(int totalAmountOfSucceededJobs) {
+        if (totalAmountOfSucceededJobs > 0) {
+            storageProvider.publishTotalAmountOfSucceededJobs(totalAmountOfSucceededJobs);
+        }
+        LOGGER.debug("Found {} succeeded jobs that moved to DELETED state as part of JobRunr maintenance", totalAmountOfSucceededJobs);
     }
 }

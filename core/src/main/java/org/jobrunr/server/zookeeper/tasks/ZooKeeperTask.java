@@ -52,12 +52,15 @@ public abstract class ZooKeeperTask {
 
     protected abstract void runTask();
 
-    protected void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer) {
+    protected void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer, Consumer<Integer> amountOfProcessedJobsConsumer) {
+        int amountOfProcessedJobs = 0;
         List<Job> jobs = getJobsToProcess(jobListSupplier);
         while (!jobs.isEmpty()) {
             processJobList(jobs, jobConsumer);
+            amountOfProcessedJobs += jobs.size();
             jobs = getJobsToProcess(jobListSupplier);
         }
+        amountOfProcessedJobsConsumer.accept(amountOfProcessedJobs);
     }
 
     protected void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
