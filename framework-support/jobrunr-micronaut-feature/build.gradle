@@ -28,7 +28,7 @@ dependencies {
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'co.elastic.clients:elasticsearch-java'
     compileOnly 'io.micrometer:micrometer-core'
 
     testImplementation testFixtures(project(":core"))
@@ -37,7 +37,8 @@ dependencies {
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testImplementation 'co.elastic.clients:elasticsearch-java'
+
     testImplementation 'io.micrometer:micrometer-core'
 }
 

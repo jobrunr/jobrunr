@@ -1,12 +1,10 @@
 package org.jobrunr.storage.nosql.elasticsearch.migrations;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.elasticsearch.ElasticsearchStatusException;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.PutMappingRequest;
 import org.jobrunr.storage.StorageException;
 
@@ -15,40 +13,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import static co.elastic.clients.elasticsearch._types.HealthStatus.Yellow;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.sleep;
 
 public abstract class ElasticSearchMigration {
 
-    public abstract void runMigration(RestHighLevelClient restHighLevelClients, String indexPrefix) throws IOException;
+    public abstract void runMigration(ElasticsearchClient client, String indexPrefix) throws IOException;
 
-    public static void waitForHealthyCluster(RestHighLevelClient restHighLevelClient) {
+    public static void waitForHealthyCluster(ElasticsearchClient client) {
         try {
-            ClusterHealthRequest clusterHealthRequest = new ClusterHealthRequest();
-            clusterHealthRequest.waitForYellowStatus();
-            restHighLevelClient.cluster().health(clusterHealthRequest, RequestOptions.DEFAULT);
+            client
+              .cluster()
+              .health(r -> r.waitForStatus(Yellow));
         } catch (IOException e) {
             throw new StorageException(e);
         }
     }
 
-    public static boolean indexExists(RestHighLevelClient client, String name) {
+    public static boolean indexExists(ElasticsearchClient client, String name) {
         waitForHealthyCluster(client);
         try {
-            return client.indices().exists(new GetIndexRequest(name), RequestOptions.DEFAULT);
+            return client
+              .indices()
+              .exists(r -> r.index(name))
+              .value();
         } catch (IOException e) {
             throw new StorageException(e);
         }
     }
 
-    public static void createIndex(RestHighLevelClient client, String name) {
+    public static void createIndex(ElasticsearchClient client, String name) {
         createIndex(client, new CreateIndexRequest(name), 0);
     }
 
-    public static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest) {
+    public static void createIndex(ElasticsearchClient client, CreateIndexRequest createIndexRequest) {
         createIndex(client, createIndexRequest, 0);
     }
 
-    private static void createIndex(RestHighLevelClient client, CreateIndexRequest createIndexRequest, int retry) {
+    private static void createIndex(ElasticsearchClient client, CreateIndexRequest createIndexRequest, int retry) {
         sleep(retry * 500L);
         try {
             waitForHealthyCluster(client);
@@ -72,7 +74,7 @@ public abstract class ElasticSearchMigration {
         }
     }
 
-    void deleteIndex(RestHighLevelClient client, String name) throws IOException {
+    void deleteIndex(ElasticsearchClient client, String name) throws IOException {
         try {
             waitForHealthyCluster(client);
             client.indices().delete(new DeleteIndexRequest(name), RequestOptions.DEFAULT);
@@ -87,7 +89,7 @@ public abstract class ElasticSearchMigration {
         }
     }
 
-    public static void updateIndex(RestHighLevelClient client, PutMappingRequest putMappingRequest) {
+    public static void updateIndex(ElasticsearchClient client, PutMappingRequest putMappingRequest) {
         try {
             waitForHealthyCluster(client);
             client.indices().putMapping(putMappingRequest, RequestOptions.DEFAULT);

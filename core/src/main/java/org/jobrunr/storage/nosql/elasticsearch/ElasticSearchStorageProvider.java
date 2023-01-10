@@ -1,5 +1,10 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Refresh;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchStatusException;
@@ -15,6 +20,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
@@ -47,6 +53,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static co.elastic.clients.elasticsearch._types.Refresh.True;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -80,7 +87,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public static final String DEFAULT_METADATA_INDEX_NAME = JOBRUNR_PREFIX + Metadata.NAME;
     public static final int MAX_SIZE = 10_000;
 
-    private final RestHighLevelClient client;
+    private final ElasticsearchClient client;
     private final String jobIndexName;
     private final String recurringJobIndexName;
     private final String backgroundJobServerIndexName;
@@ -95,30 +102,40 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     public ElasticSearchStorageProvider(HttpHost httpHost) {
-        this(new RestHighLevelClient(RestClient.builder(httpHost)));
+        this(newClient(httpHost));
     }
 
-    public ElasticSearchStorageProvider(RestHighLevelClient client) {
+    private static ElasticsearchClient newClient(final HttpHost host) {
+        final RestClientBuilder builder = RestClient.builder(host);
+        final ElasticsearchTransport transport = new RestClientTransport(
+          builder.build(),
+          new JacksonJsonpMapper()
+        );
+
+        return new ElasticsearchClient(transport);
+    }
+
+    public ElasticSearchStorageProvider(ElasticsearchClient client) {
         this(client, (String) null);
     }
 
-    public ElasticSearchStorageProvider(RestHighLevelClient client, String indexPrefix) {
+    public ElasticSearchStorageProvider(ElasticsearchClient client, String indexPrefix) {
         this(client, indexPrefix, CREATE, rateLimit().at1Request().per(SECOND));
     }
 
-    public ElasticSearchStorageProvider(RestHighLevelClient client, String indexPrefix, DatabaseOptions databaseOptions) {
+    public ElasticSearchStorageProvider(ElasticsearchClient client, String indexPrefix, DatabaseOptions databaseOptions) {
         this(client, indexPrefix, databaseOptions, rateLimit().at1Request().per(SECOND));
     }
 
-    public ElasticSearchStorageProvider(RestHighLevelClient client, DatabaseOptions databaseOptions) {
+    public ElasticSearchStorageProvider(ElasticsearchClient client, DatabaseOptions databaseOptions) {
         this(client, null, databaseOptions, rateLimit().at1Request().per(SECOND));
     }
 
-    public ElasticSearchStorageProvider(RestHighLevelClient client, DatabaseOptions databaseOptions, RateLimiter rateLimiter) {
+    public ElasticSearchStorageProvider(ElasticsearchClient client, DatabaseOptions databaseOptions, RateLimiter rateLimiter) {
         this(client, null, databaseOptions, rateLimiter);
     }
 
-    public ElasticSearchStorageProvider(RestHighLevelClient client, String indexPrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+    public ElasticSearchStorageProvider(ElasticsearchClient client, String indexPrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         this.client = client;
         this.indexPrefix = indexPrefix;
@@ -149,13 +166,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public void announceBackgroundJobServer(final BackgroundJobServerStatus status) {
         try {
-            final IndexRequest request = new IndexRequest()
-                    .index(backgroundJobServerIndexName)
-                    .id(status.getId().toString())
-                    .setRefreshPolicy(IMMEDIATE)
-                    .source(documentMapper.toXContentBuilderForInsert(status));
-
-            client.index(request, DEFAULT);
+            client.index(r -> {
+                r.index(backgroundJobServerIndexName)
+                  .id(status.getId().toString())
+                  .refresh(True)
+                  .document(documentMapper.toXContentBuilderForInsert(status))
+            });
         } catch (final IOException e) {
             throw new StorageException(e);
         }
@@ -165,10 +181,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public boolean signalBackgroundJobServerAlive(final BackgroundJobServerStatus status) {
         try {
             final UpdateRequest updateRequest = new UpdateRequest()
-                    .index(backgroundJobServerIndexName)
-                    .id(status.getId().toString())
-                    .fetchSource(true)
-                    .doc(documentMapper.toXContentBuilderForUpdate(status));
+              .index(backgroundJobServerIndexName)
+              .id(status.getId().toString())
+              .fetchSource(true)
+              .doc(documentMapper.toXContentBuilderForUpdate(status));
 
             final UpdateResponse updateResponse = client.update(updateRequest, DEFAULT);
 
@@ -198,18 +214,18 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchAllQuery())
-                    .fetchSource(true)
-                    .sort(FIELD_FIRST_HEARTBEAT, ASC)
-                    .size(MAX_SIZE);
+              .query(matchAllQuery())
+              .fetchSource(true)
+              .sort(FIELD_FIRST_HEARTBEAT, ASC)
+              .size(MAX_SIZE);
 
             SearchResponse search = client.search(new SearchRequest()
-                    .indices(backgroundJobServerIndexName)
-                    .source(source), DEFAULT);
+              .indices(backgroundJobServerIndexName)
+              .source(source), DEFAULT);
 
             return Stream.of(search.getHits().getHits())
-                    .map(documentMapper::toBackgroundJobServerStatus)
-                    .collect(toList());
+              .map(documentMapper::toBackgroundJobServerStatus)
+              .collect(toList());
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -219,14 +235,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public UUID getLongestRunningBackgroundJobServerId() {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchAllQuery())
-                    .fetchSource(false)
-                    .sort(FIELD_FIRST_HEARTBEAT, ASC)
-                    .size(1);
+              .query(matchAllQuery())
+              .fetchSource(false)
+              .sort(FIELD_FIRST_HEARTBEAT, ASC)
+              .size(1);
 
             final SearchResponse search = client.search(new SearchRequest()
-                    .indices(backgroundJobServerIndexName)
-                    .source(source), DEFAULT);
+              .indices(backgroundJobServerIndexName)
+              .source(source), DEFAULT);
 
             return UUID.fromString(search.getHits().getHits()[0].getId());
         } catch (final IOException e) {
@@ -237,8 +253,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public int removeTimedOutBackgroundJobServers(final Instant heartbeatOlderThan) {
         final long deleted = deleteByQuery(
-                backgroundJobServerIndexName,
-                rangeQuery(FIELD_LAST_HEARTBEAT).to(heartbeatOlderThan)
+          backgroundJobServerIndexName,
+          rangeQuery(FIELD_LAST_HEARTBEAT).to(heartbeatOlderThan)
         );
 
         notifyJobStatsOnChangeListenersIf(deleted > 0);
@@ -250,10 +266,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public void saveMetadata(final JobRunrMetadata metadata) {
         try {
             final IndexRequest request = new IndexRequest()
-                    .index(metadataIndexName)
-                    .id(metadata.getId())
-                    .setRefreshPolicy(IMMEDIATE)
-                    .source(documentMapper.toXContentBuilder(metadata));
+              .index(metadataIndexName)
+              .id(metadata.getId())
+              .setRefreshPolicy(IMMEDIATE)
+              .source(documentMapper.toXContentBuilder(metadata));
 
             client.index(request, DEFAULT);
 
@@ -267,16 +283,16 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public List<JobRunrMetadata> getMetadata(final String name) {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchQuery(FIELD_NAME, name))
-                    .size(MAX_SIZE);
+              .query(matchQuery(FIELD_NAME, name))
+              .size(MAX_SIZE);
 
             final SearchResponse response = client.search(new SearchRequest()
-                    .indices(metadataIndexName)
-                    .source(source), DEFAULT);
+              .indices(metadataIndexName)
+              .source(source), DEFAULT);
 
             return Stream.of(response.getHits().getHits())
-                    .map(documentMapper::toMetadata)
-                    .collect(toList());
+              .map(documentMapper::toMetadata)
+              .collect(toList());
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -304,8 +320,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     private long deleteByQuery(final String index, final QueryBuilder query) {
         final DeleteByQueryRequest request = new DeleteByQueryRequest(index)
-                .setQuery(query)
-                .setRefresh(true);
+          .setQuery(query)
+          .setRefresh(true);
 
         try {
             final BulkByScrollResponse response = client.deleteByQuery(request, DEFAULT);
@@ -319,12 +335,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public Job save(final Job job) {
         try (JobVersioner jobVersioner = new JobVersioner(job)) {
             IndexRequest request = new IndexRequest()
-                    .index(jobIndexName)
-                    .id(job.getId().toString())
-                    .versionType(VersionType.EXTERNAL)
-                    .version(job.getVersion())
-                    .setRefreshPolicy(IMMEDIATE)
-                    .source(documentMapper.toXContentBuilder(job));
+              .index(jobIndexName)
+              .id(job.getId().toString())
+              .versionType(VersionType.EXTERNAL)
+              .version(job.getVersion())
+              .setRefreshPolicy(IMMEDIATE)
+              .source(documentMapper.toXContentBuilder(job));
 
             client.index(request, DEFAULT);
             jobVersioner.commitVersion();
@@ -344,9 +360,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public int deletePermanently(final UUID id) {
         try {
             final DeleteRequest request = new DeleteRequest()
-                    .index(jobIndexName)
-                    .id(id.toString())
-                    .setRefreshPolicy(IMMEDIATE);
+              .index(jobIndexName)
+              .id(id.toString())
+              .setRefreshPolicy(IMMEDIATE);
 
             final DeleteResponse response = client.delete(request, DEFAULT);
             final int amountDeleted = response.getShardInfo().getSuccessful();
@@ -362,9 +378,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public Job getJobById(final UUID id) {
         try {
             final GetRequest request = new GetRequest()
-                    .index(jobIndexName)
-                    .id(id.toString())
-                    .storedFields(Jobs.FIELD_JOB_AS_JSON);
+              .index(jobIndexName)
+              .id(id.toString())
+              .storedFields(Jobs.FIELD_JOB_AS_JSON);
 
             final GetResponse response = client.get(request, DEFAULT);
             if (response.isExists()) {
@@ -383,21 +399,21 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             versioner.validateJobs();
 
             final BulkRequest bulkRequest = new BulkRequest(jobIndexName)
-                    .setRefreshPolicy(IMMEDIATE);
+              .setRefreshPolicy(IMMEDIATE);
             jobs.stream()
-                    .map(job ->
-                            new IndexRequest()
-                                    .id(job.getId().toString())
-                                    .versionType(VersionType.EXTERNAL)
-                                    .version(job.getVersion())
-                                    .source(documentMapper.toXContentBuilder(job))
-                    ).forEach(bulkRequest::add);
+              .map(job ->
+                new IndexRequest()
+                  .id(job.getId().toString())
+                  .versionType(VersionType.EXTERNAL)
+                  .version(job.getVersion())
+                  .source(documentMapper.toXContentBuilder(job))
+              ).forEach(bulkRequest::add);
 
             final BulkResponse response = client.bulk(bulkRequest, DEFAULT);
             final List<Job> concurrentModifiedJobs = Stream.of(response.getItems())
-                    .filter(item -> item.isFailed() && item.status().getStatus() == 409)
-                    .map(item -> jobs.get(item.getItemId()))
-                    .collect(toList());
+              .filter(item -> item.isFailed() && item.status().getStatus() == 409)
+              .map(item -> jobs.get(item.getItemId()))
+              .collect(toList());
             if (!concurrentModifiedJobs.isEmpty()) {
                 versioner.rollbackVersions(concurrentModifiedJobs);
                 throw new ConcurrentJobModificationException(concurrentModifiedJobs);
@@ -416,13 +432,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public List<Job> getJobs(final StateName state, final Instant updatedBefore, final PageRequest pageRequest) {
         try {
             final BoolQueryBuilder query = boolQuery()
-                    .must(matchQuery(FIELD_STATE, state))
-                    .must(rangeQuery(Jobs.FIELD_UPDATED_AT).to(updatedBefore));
+              .must(matchQuery(FIELD_STATE, state))
+              .must(rangeQuery(Jobs.FIELD_UPDATED_AT).to(updatedBefore));
 
             final SearchResponse response = searchJobs(query, pageRequest);
             return Stream.of(response.getHits().getHits())
-                    .map(documentMapper::toJob)
-                    .collect(toList());
+              .map(documentMapper::toJob)
+              .collect(toList());
         } catch (final IOException e) {
             throw new StorageException(e);
         }
@@ -436,8 +452,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final SearchResponse searchResponse = searchJobs(query, pageRequest);
 
             return Stream.of(searchResponse.getHits().getHits())
-                    .map(documentMapper::toJob)
-                    .collect(toList());
+              .map(documentMapper::toJob)
+              .collect(toList());
         } catch (final IOException e) {
             throw new StorageException(e);
         }
@@ -450,8 +466,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final SearchResponse response = searchJobs(query, pageRequest);
 
             return Stream.of(response.getHits().getHits())
-                    .map(documentMapper::toJob)
-                    .collect(toList());
+              .map(documentMapper::toJob)
+              .collect(toList());
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -475,12 +491,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         try {
             final QueryBuilder query = boolQuery()
-                    .must(matchQuery(FIELD_STATE, state))
-                    .must(rangeQuery(Jobs.FIELD_UPDATED_AT).to(updatedBefore));
+              .must(matchQuery(FIELD_STATE, state))
+              .must(rangeQuery(Jobs.FIELD_UPDATED_AT).to(updatedBefore));
 
             final DeleteByQueryRequest request = new DeleteByQueryRequest(jobIndexName)
-                    .setQuery(query)
-                    .setRefresh(true);
+              .setQuery(query)
+              .setRefresh(true);
 
             final BulkByScrollResponse response = client.deleteByQuery(request, DEFAULT);
 
@@ -497,18 +513,18 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public Set<String> getDistinctJobSignatures(final StateName... states) {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(shouldMatch(states))
-                    .aggregation(terms(FIELD_JOB_SIGNATURE).field(FIELD_JOB_SIGNATURE));
+              .query(shouldMatch(states))
+              .aggregation(terms(FIELD_JOB_SIGNATURE).field(FIELD_JOB_SIGNATURE));
 
             final SearchResponse response = client.search(new SearchRequest(jobIndexName)
-                    .source(source), DEFAULT);
+              .source(source), DEFAULT);
             final Terms terms = response.getAggregations().get(FIELD_JOB_SIGNATURE);
 
             return terms
-                    .getBuckets()
-                    .stream()
-                    .map(MultiBucketsAggregation.Bucket::getKeyAsString)
-                    .collect(toSet());
+              .getBuckets()
+              .stream()
+              .map(MultiBucketsAggregation.Bucket::getKeyAsString)
+              .collect(toSet());
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -518,8 +534,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public boolean exists(final JobDetails jobDetails, final StateName... states) {
         try {
             final QueryBuilder query = boolQuery()
-                    .must(shouldMatch(states))
-                    .must(matchQuery(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)));
+              .must(shouldMatch(states))
+              .must(matchQuery(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)));
 
             return countJobs(query) > 0;
         } catch (IOException e) {
@@ -531,8 +547,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public boolean recurringJobExists(final String recurringJobId, final StateName... states) {
         try {
             final QueryBuilder query = boolQuery()
-                    .must(shouldMatch(states))
-                    .must(matchQuery(FIELD_RECURRING_JOB_ID, recurringJobId));
+              .must(shouldMatch(states))
+              .must(matchQuery(FIELD_RECURRING_JOB_ID, recurringJobId));
 
             return countJobs(query) > 0;
         } catch (final IOException e) {
@@ -544,10 +560,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public RecurringJob saveRecurringJob(final RecurringJob job) {
         try {
             final IndexRequest request = new IndexRequest()
-                    .index(recurringJobIndexName)
-                    .id(job.getId())
-                    .setRefreshPolicy(IMMEDIATE)
-                    .source(documentMapper.toXContentBuilder(job));
+              .index(recurringJobIndexName)
+              .id(job.getId())
+              .setRefreshPolicy(IMMEDIATE)
+              .source(documentMapper.toXContentBuilder(job));
 
             client.index(request, DEFAULT);
 
@@ -561,17 +577,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public RecurringJobsResult getRecurringJobs() {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchAllQuery())
-                    .storedField(RecurringJobs.FIELD_JOB_AS_JSON)
-                    .size(MAX_SIZE);
+              .query(matchAllQuery())
+              .storedField(RecurringJobs.FIELD_JOB_AS_JSON)
+              .size(MAX_SIZE);
 
             final SearchResponse response = client.search(new SearchRequest()
-                    .indices(recurringJobIndexName)
-                    .source(source), DEFAULT);
+              .indices(recurringJobIndexName)
+              .source(source), DEFAULT);
 
             final List<RecurringJob> jobs = Stream.of(response.getHits().getHits())
-                    .map(documentMapper::toRecurringJob)
-                    .collect(toList());
+              .map(documentMapper::toRecurringJob)
+              .collect(toList());
             return new RecurringJobsResult(jobs);
         } catch (IOException e) {
             throw new StorageException(e);
@@ -582,13 +598,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public boolean recurringJobsUpdated(final Long recurringJobsUpdatedHash) {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchAllQuery())
-                    .aggregation(sum(FIELD_CREATED_AT).field(FIELD_CREATED_AT))
-                    .size(0);
+              .query(matchAllQuery())
+              .aggregation(sum(FIELD_CREATED_AT).field(FIELD_CREATED_AT))
+              .size(0);
 
             final SearchRequest search = new SearchRequest()
-                    .indices(recurringJobIndexName)
-                    .source(source);
+              .indices(recurringJobIndexName)
+              .source(source);
 
             final SearchResponse response = client.search(search, DEFAULT);
             final ParsedSum parsedSum = response.getAggregations().get(FIELD_CREATED_AT);
@@ -612,9 +628,9 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public int deleteRecurringJob(final String id) {
         try {
             final DeleteRequest request = new DeleteRequest()
-                    .index(recurringJobIndexName)
-                    .id(id)
-                    .setRefreshPolicy(IMMEDIATE);
+              .index(recurringJobIndexName)
+              .id(id)
+              .setRefreshPolicy(IMMEDIATE);
 
             final DeleteResponse response = client.delete(request, DEFAULT);
             final int amountDeleted = response.getShardInfo().getSuccessful();
@@ -632,12 +648,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         try {
             Instant instant = Instant.now();
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchAllQuery())
-                    .aggregation(terms(FIELD_STATE).field(FIELD_STATE))
-                    .size(0);
+              .query(matchAllQuery())
+              .aggregation(terms(FIELD_STATE).field(FIELD_STATE))
+              .size(0);
 
             final SearchRequest request = new SearchRequest(jobIndexName)
-                    .source(source);
+              .source(source);
 
             final SearchResponse response = client.search(request, DEFAULT);
 
@@ -649,17 +665,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final int backgroundJobServers = getCount(backgroundJobServerIndexName);
 
             return new JobStats(
-                    instant,
-                    0L,
-                    count(buckets, SCHEDULED),
-                    count(buckets, ENQUEUED),
-                    count(buckets, PROCESSING),
-                    count(buckets, FAILED),
-                    count(buckets, SUCCEEDED),
-                    allTimeSucceededJobs,
-                    count(buckets, DELETED),
-                    recurringJobs,
-                    backgroundJobServers
+              instant,
+              0L,
+              count(buckets, SCHEDULED),
+              count(buckets, ENQUEUED),
+              count(buckets, PROCESSING),
+              count(buckets, FAILED),
+              count(buckets, SUCCEEDED),
+              allTimeSucceededJobs,
+              count(buckets, DELETED),
+              recurringJobs,
+              backgroundJobServers
             );
         } catch (IOException e) {
             throw new StorageException(e);
@@ -668,8 +684,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     private long getAllTimeSucceededJobs() throws IOException {
         final GetRequest request = new GetRequest()
-                .index(metadataIndexName)
-                .id(STATS_ID);
+          .index(metadataIndexName)
+          .id(STATS_ID);
 
         final GetResponse response = client.get(request, DEFAULT);
         final Object value = response.getSource().getOrDefault(FIELD_VALUE, 0L);
@@ -679,24 +695,24 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     private int getCount(final String indexName) throws IOException {
         final CountRequest request = new CountRequest()
-                .indices(indexName);
+          .indices(indexName);
         return (int) client.count(request, DEFAULT).getCount();
     }
 
     private long count(final List<? extends Terms.Bucket> buckets, final StateName state) {
         return buckets
-                .stream()
-                .filter(bucket -> Objects.equals(state.name(), bucket.getKeyAsString()))
-                .map(MultiBucketsAggregation.Bucket::getDocCount)
-                .findFirst()
-                .orElse(0L);
+          .stream()
+          .filter(bucket -> Objects.equals(state.name(), bucket.getKeyAsString()))
+          .map(MultiBucketsAggregation.Bucket::getDocCount)
+          .findFirst()
+          .orElse(0L);
     }
 
     @Override
     public void publishTotalAmountOfSucceededJobs(final int amount) {
         try {
             final UpdateRequest update = new UpdateRequest(metadataIndexName, STATS_ID)
-                    .scriptedUpsert(true);
+              .scriptedUpsert(true);
 
             final Map<String, Object> parameters = singletonMap("value", amount);
             final Script inline = new Script(ScriptType.INLINE, "painless", "ctx._source." + FIELD_VALUE + " += params.value", parameters);
@@ -710,8 +726,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     long countJobs(final QueryBuilder query) throws IOException {
         final CountRequest request = new CountRequest()
-                .indices(jobIndexName)
-                .query(query);
+          .indices(jobIndexName)
+          .query(query);
 
         final CountResponse response = client.count(request, DEFAULT);
 
@@ -720,15 +736,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     SearchResponse searchJobs(final QueryBuilder query, final PageRequest page) throws IOException {
         final SearchSourceBuilder source = new SearchSourceBuilder()
-                .query(query)
-                .from((int) page.getOffset())
-                .size(page.getLimit())
-                .storedField(Jobs.FIELD_JOB_AS_JSON);
+          .query(query)
+          .from((int) page.getOffset())
+          .size(page.getLimit())
+          .storedField(Jobs.FIELD_JOB_AS_JSON);
 
         sortJobs(page, source);
 
         final SearchRequest request = new SearchRequest(jobIndexName)
-                .source(source);
+          .source(source);
 
         return client.search(request, DEFAULT);
     }

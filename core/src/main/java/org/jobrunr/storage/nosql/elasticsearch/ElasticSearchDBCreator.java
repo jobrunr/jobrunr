@@ -1,5 +1,6 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
@@ -39,7 +40,7 @@ import static org.jobrunr.utils.StringUtils.substringBefore;
 public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMigration> {
 
     public static final String JOBRUNR_MIGRATIONS_INDEX_NAME = JOBRUNR_PREFIX + Migrations.NAME;
-    private final RestHighLevelClient client;
+    private final ElasticsearchClient client;
     private final String indexPrefix;
     private final String migrationIndexName;
 
