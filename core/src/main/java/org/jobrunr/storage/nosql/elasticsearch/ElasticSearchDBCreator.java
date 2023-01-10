@@ -1,16 +1,8 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import org.elasticsearch.ElasticsearchStatusException;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.xcontent.XContentBuilder;
-import org.elasticsearch.xcontent.json.JsonXContent;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
@@ -24,17 +16,19 @@ import org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import static co.elastic.clients.elasticsearch._types.Refresh.True;
 import static java.util.Arrays.asList;
-import static org.elasticsearch.rest.RestStatus.NOT_FOUND;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.jobrunr.storage.StorageProviderUtils.Migrations;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR_PREFIX;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.sleep;
 import static org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration.*;
-import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMigration> {
@@ -44,7 +38,7 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
     private final String indexPrefix;
     private final String migrationIndexName;
 
-    public ElasticSearchDBCreator(NoSqlStorageProvider noSqlStorageProvider, RestHighLevelClient client, String indexPrefix) {
+    public ElasticSearchDBCreator(NoSqlStorageProvider noSqlStorageProvider, ElasticsearchClient client, String indexPrefix) {
         super(noSqlStorageProvider);
         this.client = client;
         this.indexPrefix = indexPrefix;
@@ -64,14 +58,14 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
             waitForHealthyCluster(client);
 
             final List<String> requiredIndexNames = asList(Jobs.NAME, RecurringJobs.NAME, BackgroundJobServers.NAME, Metadata.NAME);
-            final Set<String> availableIndexNames = asSet(client.indices().get(new GetIndexRequest("*"), RequestOptions.DEFAULT).getIndices());
+            final Set<String> availableIndexNames = client.indices().get(r -> r.index("*")).result().keySet();
             for (String requiredIndexName : requiredIndexNames) {
                 if (!availableIndexNames.contains(elementPrefixer(indexPrefix, elementPrefixer(JOBRUNR_PREFIX, requiredIndexName)))) {
                     throw new JobRunrException("Not all required indices are available by JobRunr!");
                 }
             }
-        } catch (ElasticsearchStatusException e) {
-            if (e.status() == NOT_FOUND) {
+        } catch (ElasticsearchException e) {
+            if (e.status() == SC_NOT_FOUND) {
                 throw new JobRunrException("Not all required indices are available by JobRunr!");
             }
             throw new StorageException(e);
@@ -99,16 +93,15 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
     @Override
     protected boolean markMigrationAsDone(NoSqlMigration noSqlMigration) {
         try {
-            XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
-            builder.startObject();
-            builder.field(Migrations.FIELD_NAME, noSqlMigration.getClassName());
-            builder.field(Migrations.FIELD_DATE, Instant.now());
-            builder.endObject();
-            IndexRequest indexRequest = new IndexRequest(migrationIndexName)
-                    .id(substringBefore(noSqlMigration.getClassName(), "_"))
-                    .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                    .source(builder);
-            return client.index(indexRequest, RequestOptions.DEFAULT) != null;
+            final Map<String, Object> map = new LinkedHashMap<>();
+            map.put(Migrations.FIELD_NAME, noSqlMigration.getClassName());
+            map.put(Migrations.FIELD_DATE, Instant.now());
+            return client.index(r ->
+              r.index(migrationIndexName)
+                .id(substringBefore(noSqlMigration.getClassName(), "_"))
+                .refresh(True)
+                .document(map)
+            ).result() != null;
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -118,13 +111,15 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
         sleep(retry * 500L);
         try {
             waitForHealthyCluster(client);
-            GetResponse migration = client.get(new GetRequest(migrationIndexName, substringBefore(noSqlMigration.getClassName(), "_")), RequestOptions.DEFAULT);
-            return !migration.isExists();
-        } catch (ElasticsearchStatusException e) {
+            BooleanResponse migration = client.exists(
+              r -> r.index(migrationIndexName).id(substringBefore(noSqlMigration.getClassName(), "_"))
+            );
+            return !migration.value();
+        } catch (ElasticsearchException e) {
             if (retry < 5) {
                 return isNewMigration(noSqlMigration, retry + 1);
             }
-            if (e.status() == NOT_FOUND) {
+            if (e.status() == SC_NOT_FOUND) {
                 return true;
             }
             throw e;

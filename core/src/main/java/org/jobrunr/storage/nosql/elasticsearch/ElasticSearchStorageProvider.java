@@ -166,12 +166,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public void announceBackgroundJobServer(final BackgroundJobServerStatus status) {
         try {
-            client.index(r -> {
-                r.index(backgroundJobServerIndexName)
-                  .id(status.getId().toString())
-                  .refresh(True)
-                  .document(documentMapper.toXContentBuilderForInsert(status))
-            });
+            client.index(r ->
+              r.index(backgroundJobServerIndexName)
+                .id(status.getId().toString())
+                .refresh(True)
+                .document(documentMapper.toXContentBuilderForInsert(status))
+            );
         } catch (final IOException e) {
             throw new StorageException(e);
         }
