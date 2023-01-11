@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.JobRunrAssertions;
 
 import java.util.Set;
 
@@ -27,6 +28,14 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
 
     public RecurringJobAssert hasJobName(String name) {
         Assertions.assertThat(actual.getJobName()).isEqualTo(name);
+        return this;
+    }
+
+    public RecurringJobAssert hasJobDetails(Class<?> clazz, String methodName, Object... args) {
+        JobRunrAssertions.assertThat(actual.getJobDetails())
+                .hasClass(clazz)
+                .hasMethodName(methodName)
+                .hasArgs(args);
         return this;
     }
 

@@ -37,7 +37,21 @@ class RecurringJobBuilderTest {
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(every5Seconds)
+                .hasJobDetails(TestService.class, "doWork");
+    }
+
+    @Test
+    void testDefaultJobWithIoCJobLambda() {
+        RecurringJob recurringJob = aRecurringJob()
+                .<TestService>withDetails(x -> x.doWork())
+                .withCron(every5Seconds)
+                .build(jobDetailsGenerator);
+
+        assertThat(recurringJob)
+                .hasId()
+                .hasScheduleExpression(every5Seconds)
+                .hasJobDetails(TestService.class, "doWork");
     }
 
     @Test
@@ -49,7 +63,8 @@ class RecurringJobBuilderTest {
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(every5Seconds)
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest);
     }
 
     @Test
