@@ -42,6 +42,18 @@ class JobBuilderTest {
     }
 
     @Test
+    void testDefaultJobWithIoCJobLambda() {
+        Job job = aJob()
+                .<TestService>withDetails(x -> x.doWork())
+                .build(jobDetailsGenerator);
+
+        assertThat(job)
+                .hasId()
+                .hasJobDetails(TestService.class, "doWork")
+                .hasState(StateName.ENQUEUED);
+    }
+
+    @Test
     void testDefaultJobWithJobRequest() {
         Job job = aJob()
                 .withJobRequest(jobRequest)

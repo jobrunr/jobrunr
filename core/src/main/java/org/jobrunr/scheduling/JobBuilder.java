@@ -3,8 +3,10 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
+import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -49,7 +51,7 @@ public class JobBuilder {
     private Instant scheduleAt;
     private Integer retries;
     private Set<String> labels;
-    private JobLambda jobLambda;
+    private JobRunrJob jobLambda;
     private JobRequest jobRequest;
 
     /**
@@ -142,6 +144,20 @@ public class JobBuilder {
      * @return the same builder instance that can be given to the {@link JobScheduler#create(JobBuilder)} method
      */
     public JobBuilder withDetails(JobLambda jobLambda) {
+        if (this.jobRequest != null) {
+            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+        }
+        this.jobLambda = jobLambda;
+        return this;
+    }
+
+    /**
+     * Allows to provide the job details by means of Java 8 lambda. The IoC container will be used to resolve an actual instance of the requested service.
+     *
+     * @param jobLambda the lambda which defines the job
+     * @return the same builder instance that can be given to the {@link JobScheduler#create(JobBuilder)} method
+     */
+    public <S> JobBuilder withDetails(IocJobLambda<S> jobLambda) {
         if (this.jobRequest != null) {
             throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
         }
