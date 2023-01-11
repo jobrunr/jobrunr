@@ -30,8 +30,8 @@ public class ElasticSearchDocumentMapper {
         this.jobMapper = jobMapper;
     }
 
-    public Map<String, Object> toXContentBuilderForInsert(BackgroundJobServerStatus serverStatus) {
-        final Map<String, Object> map = new LinkedHashMap<>();
+    public Map<Object, Object> toXContentBuilderForInsert(BackgroundJobServerStatus serverStatus) {
+        final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(FIELD_ID, serverStatus.getId().toString());
         map.put(FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
         map.put(FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
@@ -50,8 +50,8 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<String, Object> toXContentBuilderForUpdate(BackgroundJobServerStatus serverStatus) {
-        final Map<String, Object> map = new LinkedHashMap<>();
+    public Map<Object, Object> toXContentBuilderForUpdate(BackgroundJobServerStatus serverStatus) {
+        final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
         map.put(FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
         map.put(FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
@@ -61,8 +61,8 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<String, Object> toXContentBuilder(Job job) {
-        final Map<String, Object> map = new LinkedHashMap<>();
+    public Map<Object, Object> toXContentBuilder(Job job) {
+        final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         map.put(Jobs.FIELD_STATE, job.getState());
         map.put(Jobs.FIELD_UPDATED_AT, job.getUpdatedAt());
@@ -76,8 +76,8 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<String, Object> toXContentBuilder(JobRunrMetadata metadata) {
-        final Map<String, Object> map = new LinkedHashMap<>();
+    public Map<Object, Object> toXContentBuilder(JobRunrMetadata metadata) {
+        final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(Metadata.FIELD_NAME, metadata.getName());
         map.put(Metadata.FIELD_OWNER, metadata.getOwner());
         map.put(Metadata.FIELD_VALUE, metadata.getValue());
@@ -86,31 +86,30 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<String, Object> toXContentBuilder(RecurringJob job) {
-        final Map<String, Object> map = new LinkedHashMap<>();
+    public Map<Object, Object> toXContentBuilder(RecurringJob job) {
+        final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(job));
         map.put(RecurringJobs.FIELD_CREATED_AT, job.getCreatedAt().toEpochMilli());
         return map;
     }
 
-    public BackgroundJobServerStatus toBackgroundJobServerStatus(Hit<Map<String, Object>> searchHit) {
-        Map<String, Object> fieldMap = searchHit.source();
+    public BackgroundJobServerStatus toBackgroundJobServerStatus(Map<Object, Object> map) {
         return new BackgroundJobServerStatus(
-          autobox(fieldMap.get(FIELD_ID), UUID.class),
-          autobox(fieldMap.get(FIELD_WORKER_POOL_SIZE), int.class),
-          autobox(fieldMap.get(FIELD_POLL_INTERVAL_IN_SECONDS), int.class),
-          autobox(fieldMap.get(FIELD_DELETE_SUCCEEDED_JOBS_AFTER), Duration.class),
-          autobox(fieldMap.get(FIELD_DELETE_DELETED_JOBS_AFTER), Duration.class),
-          autobox(fieldMap.get(FIELD_FIRST_HEARTBEAT), Instant.class),
-          autobox(fieldMap.get(FIELD_LAST_HEARTBEAT), Instant.class),
-          autobox(fieldMap.get(FIELD_IS_RUNNING), boolean.class),
-          autobox(fieldMap.get(FIELD_SYSTEM_TOTAL_MEMORY), long.class),
-          autobox(fieldMap.get(FIELD_SYSTEM_FREE_MEMORY), long.class),
-          autobox(fieldMap.get(FIELD_SYSTEM_CPU_LOAD), double.class),
-          autobox(fieldMap.get(FIELD_PROCESS_MAX_MEMORY), long.class),
-          autobox(fieldMap.get(FIELD_PROCESS_FREE_MEMORY), long.class),
-          autobox(fieldMap.get(FIELD_PROCESS_ALLOCATED_MEMORY), long.class),
-          autobox(fieldMap.get(FIELD_PROCESS_CPU_LOAD), double.class)
+          autobox(map.get(FIELD_ID), UUID.class),
+          autobox(map.get(FIELD_WORKER_POOL_SIZE), int.class),
+          autobox(map.get(FIELD_POLL_INTERVAL_IN_SECONDS), int.class),
+          autobox(map.get(FIELD_DELETE_SUCCEEDED_JOBS_AFTER), Duration.class),
+          autobox(map.get(FIELD_DELETE_DELETED_JOBS_AFTER), Duration.class),
+          autobox(map.get(FIELD_FIRST_HEARTBEAT), Instant.class),
+          autobox(map.get(FIELD_LAST_HEARTBEAT), Instant.class),
+          autobox(map.get(FIELD_IS_RUNNING), boolean.class),
+          autobox(map.get(FIELD_SYSTEM_TOTAL_MEMORY), long.class),
+          autobox(map.get(FIELD_SYSTEM_FREE_MEMORY), long.class),
+          autobox(map.get(FIELD_SYSTEM_CPU_LOAD), double.class),
+          autobox(map.get(FIELD_PROCESS_MAX_MEMORY), long.class),
+          autobox(map.get(FIELD_PROCESS_FREE_MEMORY), long.class),
+          autobox(map.get(FIELD_PROCESS_ALLOCATED_MEMORY), long.class),
+          autobox(map.get(FIELD_PROCESS_CPU_LOAD), double.class)
         );
     }
 
