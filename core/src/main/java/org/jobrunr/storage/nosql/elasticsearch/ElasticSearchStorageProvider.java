@@ -3,9 +3,11 @@ package org.jobrunr.storage.nosql.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
+import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.UpdateResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -13,30 +15,8 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.core.CountRequest;
-import org.elasticsearch.client.core.CountResponse;
-import org.elasticsearch.index.VersionType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.elasticsearch.index.reindex.DeleteByQueryRequest;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
-import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.metrics.ParsedSum;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.jobrunr.jobs.*;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
@@ -61,12 +41,7 @@ import static java.util.UUID.fromString;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
-import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
 import static org.elasticsearch.client.RequestOptions.DEFAULT;
-import static org.elasticsearch.index.query.QueryBuilders.*;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.sum;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
-import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
@@ -98,7 +73,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     private final String metadataIndexName;
     private final String indexPrefix;
 
-    private ElasticSearchDocumentMapper documentMapper;
+    private ElasticSearchDocumentMapper mapper;
 
 
     public ElasticSearchStorageProvider(String hostName, int port) {
@@ -155,7 +130,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public void setJobMapper(final JobMapper jobMapper) {
-        this.documentMapper = new ElasticSearchDocumentMapper(jobMapper);
+        this.mapper = new ElasticSearchDocumentMapper(jobMapper);
     }
 
     @Override
@@ -175,7 +150,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               r.index(backgroundJobServerIndexName)
                 .id(status.getId().toString())
                 .refresh(True)
-                .document(documentMapper.toXContentBuilderForInsert(status))
+                .document(mapper.toXContentBuilderForInsert(status))
             );
         } catch (final IOException e) {
             throw new StorageException(e);
@@ -185,7 +160,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean signalBackgroundJobServerAlive(final BackgroundJobServerStatus status) {
         try {
-            final Map<Object, Object> value = documentMapper.toXContentBuilderForUpdate(status);
+            final Map<Object, Object> value = mapper.toXContentBuilderForUpdate(status);
             final UpdateResponse<? extends Map> response = client.update(r ->
                 r
                   .index(backgroundJobServerIndexName)
@@ -240,7 +215,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               .stream()
               .map(Hit::source)
               .filter(Objects::nonNull)
-              .map(documentMapper::toBackgroundJobServerStatus)
+              .map(mapper::toBackgroundJobServerStatus)
               .collect(toList());
         } catch (IOException e) {
             throw new StorageException(e);
@@ -268,11 +243,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public int removeTimedOutBackgroundJobServers(final Instant heartbeatOlderThan) {
-        final long deleted = deleteByQuery(
-          backgroundJobServerIndexName,
-          RangeQuery.of(r -> r.field(FIELD_LAST_HEARTBEAT).to(heartbeatOlderThan.getEpochSecond()))
-          rangeQuery(FIELD_LAST_HEARTBEAT).to(heartbeatOlderThan)
-        );
+        final RangeQuery q = RangeQuery
+          .of(
+            r -> r
+              .field(FIELD_LAST_HEARTBEAT)
+              .to(Long.toString(heartbeatOlderThan.toEpochMilli()))
+          );
+
+        final long deleted = deleteByQuery(backgroundJobServerIndexName, q);
 
         notifyJobStatsOnChangeListenersIf(deleted > 0);
 
@@ -282,13 +260,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public void saveMetadata(final JobRunrMetadata metadata) {
         try {
-            final IndexRequest request = new IndexRequest()
-              .index(metadataIndexName)
-              .id(metadata.getId())
-              .setRefreshPolicy(IMMEDIATE)
-              .source(documentMapper.toXContentBuilder(metadata));
-
-            client.index(request, DEFAULT);
+            client.index(
+              i -> i
+                .index(metadataIndexName)
+                .id(metadata.getId())
+                .refresh(True)
+                .document(mapper.toXContentBuilder(metadata))
+            );
 
             notifyMetadataChangeListeners();
         } catch (IOException e) {
@@ -299,16 +277,21 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<JobRunrMetadata> getMetadata(final String name) {
         try {
-            final SearchSourceBuilder source = new SearchSourceBuilder()
-              .query(matchQuery(FIELD_NAME, name))
-              .size(MAX_SIZE);
+            final SearchResponse<Map> response = client.search(
+              s -> s
+                .index(metadataIndexName)
+                .query(q -> q.match(m -> m.field(FIELD_NAME).query(name)))
+                .source(src -> src.fetch(true))
+                .size(MAX_SIZE),
+              Map.class
+            );
 
-            final SearchResponse response = client.search(new SearchRequest()
-              .indices(metadataIndexName)
-              .source(source), DEFAULT);
-
-            return Stream.of(response.getHits().getHits())
-              .map(documentMapper::toMetadata)
+            return response
+              .hits()
+              .hits()
+              .stream()
+              .map(Hit::source)
+              .map(mapper::toMetadata)
               .collect(toList());
         } catch (IOException e) {
             throw new StorageException(e);
@@ -318,9 +301,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public JobRunrMetadata getMetadata(final String name, final String owner) {
         try {
-            final GetRequest request = new GetRequest(metadataIndexName, toId(name, owner));
-            final GetResponse response = client.get(request, DEFAULT);
-            return documentMapper.toMetadata(response);
+            final GetResponse<Map> response = client.get(
+              g -> g.index(metadataIndexName).id(toId(name, owner)),
+              Map.class
+            );
+
+            return mapper.toMetadata(response.source());
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -328,7 +314,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public void deleteMetadata(final String name) {
-        final long deleted = deleteByQuery(metadataIndexName, matchQuery(FIELD_NAME, name));
+        final MatchQuery q = MatchQuery.of(q -> q.field(FIELD_NAME).query(name));
+        final long deleted = deleteByQuery(metadataIndexName, q);
 
         if (deleted > 0) {
             notifyMetadataChangeListeners();
@@ -358,7 +345,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               .versionType(VersionType.EXTERNAL)
               .version(job.getVersion())
               .setRefreshPolicy(IMMEDIATE)
-              .source(documentMapper.toXContentBuilder(job));
+              .source(mapper.toXContentBuilder(job));
 
             client.index(request, DEFAULT);
             jobVersioner.commitVersion();
@@ -402,7 +389,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
             final GetResponse response = client.get(request, DEFAULT);
             if (response.isExists()) {
-                return documentMapper.toJob(response);
+                return mapper.toJob(response);
             }
 
             throw new JobNotFoundException(id);
@@ -424,7 +411,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                   .id(job.getId().toString())
                   .versionType(VersionType.EXTERNAL)
                   .version(job.getVersion())
-                  .source(documentMapper.toXContentBuilder(job))
+                  .source(mapper.toXContentBuilder(job))
               ).forEach(bulkRequest::add);
 
             final BulkResponse response = client.bulk(bulkRequest, DEFAULT);
@@ -455,7 +442,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
             final SearchResponse response = searchJobs(query, pageRequest);
             return Stream.of(response.getHits().getHits())
-              .map(documentMapper::toJob)
+              .map(mapper::toJob)
               .collect(toList());
         } catch (final IOException e) {
             throw new StorageException(e);
@@ -470,7 +457,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final SearchResponse searchResponse = searchJobs(query, pageRequest);
 
             return Stream.of(searchResponse.getHits().getHits())
-              .map(documentMapper::toJob)
+              .map(mapper::toJob)
               .collect(toList());
         } catch (final IOException e) {
             throw new StorageException(e);
@@ -484,7 +471,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final SearchResponse response = searchJobs(query, pageRequest);
 
             return Stream.of(response.getHits().getHits())
-              .map(documentMapper::toJob)
+              .map(mapper::toJob)
               .collect(toList());
         } catch (IOException e) {
             throw new StorageException(e);
@@ -581,7 +568,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               .index(recurringJobIndexName)
               .id(job.getId())
               .setRefreshPolicy(IMMEDIATE)
-              .source(documentMapper.toXContentBuilder(job));
+              .source(mapper.toXContentBuilder(job));
 
             client.index(request, DEFAULT);
 
@@ -604,7 +591,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               .source(source), DEFAULT);
 
             final List<RecurringJob> jobs = Stream.of(response.getHits().getHits())
-              .map(documentMapper::toRecurringJob)
+              .map(mapper::toRecurringJob)
               .collect(toList());
             return new RecurringJobsResult(jobs);
         } catch (IOException e) {

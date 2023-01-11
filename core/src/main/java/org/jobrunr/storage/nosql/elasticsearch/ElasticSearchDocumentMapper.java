@@ -113,15 +113,7 @@ public class ElasticSearchDocumentMapper {
         );
     }
 
-    public JobRunrMetadata toMetadata(Hit<Map<String, Object>> searchHit) {
-        return toMetadata(searchHit.source());
-    }
-
-    public JobRunrMetadata toMetadata(GetResponse<Map<String, Object>> response) {
-        return toMetadata(response.source());
-    }
-
-    public JobRunrMetadata toMetadata(Map<String, Object> fieldMap) {
+    public JobRunrMetadata toMetadata(final Map<Object, Object> fieldMap) {
         if(fieldMap == null || fieldMap.isEmpty()) return null;
 
         return new JobRunrMetadata(
