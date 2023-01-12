@@ -399,12 +399,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Job getJobById(final UUID id) {
         try {
-            final GetResponse response = client.get(
+            final GetResponse<Map<Object, Object>> response = client.get(
               r -> r
                 .index(jobIndexName)
                 .id(id.toString())
                 .storedFields(Jobs.FIELD_JOB_AS_JSON),
-              Map.class
+              MAP_CLASS
             );
 
             if (response.found()) {

@@ -2,6 +2,7 @@ package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -52,7 +53,7 @@ public class ElasticSearchDocumentMapper {
 
     public Map<Object, Object> toMapForUpdate(BackgroundJobServerStatus serverStatus) {
         final Map<Object, Object> map = new LinkedHashMap<>();
-        map.put(FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
+        map.put(FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat().toEpochMilli());
         map.put(FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
         map.put(FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad());
         map.put(FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory());
@@ -65,10 +66,11 @@ public class ElasticSearchDocumentMapper {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         map.put(Jobs.FIELD_STATE, job.getState());
-        map.put(Jobs.FIELD_UPDATED_AT, job.getUpdatedAt());
+        map.put(Jobs.FIELD_UPDATED_AT, job.getUpdatedAt().toEpochMilli());
         map.put(Jobs.FIELD_JOB_SIGNATURE, job.getJobSignature());
         if (job.hasState(StateName.SCHEDULED)) {
-            map.put(Jobs.FIELD_SCHEDULED_AT, job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(IllegalStateException::new));
+            final Instant instant = job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(IllegalStateException::new);
+            map.put(Jobs.FIELD_SCHEDULED_AT, instant.toEpochMilli());
         }
         if(job.getRecurringJobId().isPresent()) {
             map.put(Jobs.FIELD_RECURRING_JOB_ID, job.getRecurringJobId().get());
@@ -81,8 +83,8 @@ public class ElasticSearchDocumentMapper {
         map.put(Metadata.FIELD_NAME, metadata.getName());
         map.put(Metadata.FIELD_OWNER, metadata.getOwner());
         map.put(Metadata.FIELD_VALUE, metadata.getValue());
-        map.put(Metadata.FIELD_CREATED_AT, metadata.getCreatedAt());
-        map.put(Metadata.FIELD_UPDATED_AT, metadata.getUpdatedAt());
+        map.put(Metadata.FIELD_CREATED_AT, metadata.getCreatedAt().toEpochMilli());
+        map.put(Metadata.FIELD_UPDATED_AT, metadata.getUpdatedAt().toEpochMilli());
         return map;
     }
 
@@ -114,7 +116,7 @@ public class ElasticSearchDocumentMapper {
     }
 
     public JobRunrMetadata toMetadata(final Map<Object, Object> fieldMap) {
-        if(fieldMap == null || fieldMap.isEmpty()) return null;
+        if (fieldMap == null || fieldMap.isEmpty()) return null;
 
         return new JobRunrMetadata(
           autobox(fieldMap.get(Metadata.FIELD_NAME), String.class),
@@ -124,18 +126,21 @@ public class ElasticSearchDocumentMapper {
           autobox(fieldMap.get(Metadata.FIELD_UPDATED_AT), Instant.class));
     }
 
-
-    public Job toJob(GetResponse response) {
-        return jobMapper.deserializeJob(response.fields().get(Jobs.FIELD_JOB_AS_JSON).toString());
-    }
-
-    public Job toJob(Hit<Map<Object, Object>> hit) {
-        String jobAsJson = hit.fields().get(Jobs.FIELD_JOB_AS_JSON).toString();
+    public Job toJob(final GetResponse<Map<Object, Object>> response) {
+        final JsonData jsonData = response.fields().get(Jobs.FIELD_JOB_AS_JSON);
+        final String jobAsJson = jsonData.toString();
         return jobMapper.deserializeJob(jobAsJson);
     }
 
-    public RecurringJob toRecurringJob(Hit<?> hit) {
-        String jobAsJson = hit.fields().get(RecurringJobs.FIELD_JOB_AS_JSON).toString();
+    public Job toJob(final Hit<Map<Object, Object>> hit) {
+        final JsonData jsonData = hit.fields().get(Jobs.FIELD_JOB_AS_JSON);
+        final String jobAsJson = jsonData.toString();
+        return jobMapper.deserializeJob(jobAsJson);
+    }
+
+    public RecurringJob toRecurringJob(final Hit<?> hit) {
+        final JsonData jsonData = hit.fields().get(Jobs.FIELD_JOB_AS_JSON);
+        final String jobAsJson = jsonData.toString();
         return jobMapper.deserializeRecurringJob(jobAsJson);
     }
 }

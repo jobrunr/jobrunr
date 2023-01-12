@@ -19,11 +19,8 @@ public class ElasticSearchGsonE2ETest extends AbstractE2EGsonTest {
     private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.17.8")
       .withNetwork(network)
       .withNetworkAliases("elasticsearch")
-      .withEnv(of(
-        "ES_JAVA_OPTS", "-Xmx512m",
-        "discovery.type", "single-node",
-        "xpack.security.enabled", "false"
-      )).withExposedPorts(9200);
+      .withEnv(of("ES_JAVA_OPTS", "-Xmx512m"))
+      .withExposedPorts(9200);
 
     @Container
     private static final ElasticSearchGsonBackgroundJobContainer backgroundJobServer = new ElasticSearchGsonBackgroundJobContainer(elasticSearchContainer, network);

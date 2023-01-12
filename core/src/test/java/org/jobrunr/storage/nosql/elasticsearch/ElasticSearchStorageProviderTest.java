@@ -33,11 +33,8 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Container
     private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.17.8")
-      .withEnv(of(
-        "ES_JAVA_OPTS", "-Xmx512m",
-        "discovery.type", "single-node",
-        "xpack.security.enabled", "false"
-      )).withExposedPorts(9200);
+      .withEnv(of("ES_JAVA_OPTS", "-Xmx512m"))
+      .withExposedPorts(9200);
 
     private static ElasticsearchClient client;
 
