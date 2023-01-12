@@ -2,7 +2,9 @@ package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.VersionType;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
@@ -347,7 +349,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               .setRefreshPolicy(IMMEDIATE)
               .source(mapper.toXContentBuilder(job));
 
-            client.index(request, DEFAULT);
+            client.index(
+              i -> i
+                .index(jobIndexName)
+                .id(job.getId().toString())
+                .versionType(VersionType.External)
+                .version((long) job.getVersion())
+                .refresh(True)
+            );
             jobVersioner.commitVersion();
             notifyJobStatsOnChangeListeners();
             return job;
