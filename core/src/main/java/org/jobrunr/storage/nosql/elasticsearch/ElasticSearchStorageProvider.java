@@ -2,12 +2,16 @@ package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.*;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import co.elastic.clients.elasticsearch._types.aggregations.SumAggregate;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
@@ -30,19 +34,19 @@ import org.jobrunr.utils.resilience.RateLimiter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static co.elastic.clients.elasticsearch._types.Refresh.True;
+import static co.elastic.clients.elasticsearch._types.ScriptBuilders.inline;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.bool;
 import static java.util.Collections.singletonMap;
+import static java.util.Optional.ofNullable;
 import static java.util.UUID.fromString;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
-import static org.elasticsearch.client.RequestOptions.DEFAULT;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
@@ -51,6 +55,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_JOB_AS_JSON;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR_PREFIX;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
@@ -61,6 +66,7 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 @Beta(note = "The ElasticSearchStorageProvider is still in Beta. My first impression is that other StorageProviders are faster than ElasticSearch.")
 public class ElasticSearchStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
+    @SuppressWarnings("unchecked")
     private static final Class<Map<Object, Object>> MAP_CLASS = (Class<Map<Object, Object>>) Map.of().getClass();
 
     public static final String DEFAULT_JOB_INDEX_NAME = JOBRUNR_PREFIX + Jobs.NAME;
@@ -202,14 +208,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<BackgroundJobServerStatus> getBackgroundJobServers() {
         try {
-            final SearchResponse<Map> search = client.search(s ->
+            final SearchResponse<Map<Object, Object>> search = client.search(s ->
                 s
                   .index(backgroundJobServerIndexName)
                   .query(q -> q.matchAll(m -> m))
                   .sort(sort -> sort.field(f -> f.field(FIELD_FIRST_HEARTBEAT).order(Asc)))
                   .source(src -> src.fetch(true))
                   .size(MAX_SIZE),
-              Map.class
+              MAP_CLASS
             );
 
             return search
@@ -235,7 +241,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                   .source(src -> src.fetch(false))
                   .sort(sort -> sort.field(f -> f.field(FIELD_FIRST_HEARTBEAT).order(Asc)))
                   .size(1),
-              Map.class
+              MAP_CLASS
             );
 
             return fromString(search.hits().hits().get(0).id());
@@ -280,13 +286,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<JobRunrMetadata> getMetadata(final String name) {
         try {
-            final SearchResponse<Map> response = client.search(
+            final SearchResponse<Map<Object, Object>> response = client.search(
               s -> s
                 .index(metadataIndexName)
                 .query(q -> q.match(m -> m.field(FIELD_NAME).query(name)))
                 .source(src -> src.fetch(true))
                 .size(MAX_SIZE),
-              Map.class
+              MAP_CLASS
             );
 
             return response
@@ -304,12 +310,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public JobRunrMetadata getMetadata(final String name, final String owner) {
         try {
-            final GetResponse<Map> response = client.get(
+            final GetResponse<Map<Object, Object>> response = client.get(
               g -> g.index(metadataIndexName).id(toId(name, owner)),
-              Map.class
+              MAP_CLASS
             );
 
-            return mapper.toMetadata(response.source());
+            final Map<Object, Object> source = ofNullable(response.source())
+              .orElseGet(Map::of);
+
+            return mapper.toMetadata(source);
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -393,9 +402,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               r -> r
                 .index(jobIndexName)
                 .id(id.toString())
-                .storedFields(FIELD_JOB_AS_JSON),
+                .storedFields(Jobs.FIELD_JOB_AS_JSON),
               Map.class
             );
+
             if (response.found()) {
                 return mapper.toJob(response);
             }
@@ -547,7 +557,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final int amountDeleted = response.deleted().intValue();
 
             notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
-            
+
             return amountDeleted;
         } catch (IOException e) {
             throw new StorageException(e);
@@ -566,18 +576,26 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Set<String> getDistinctJobSignatures(final StateName... states) {
         try {
-            final SearchSourceBuilder source = new SearchSourceBuilder()
-              .query(shouldMatch(states))
-              .aggregation(terms(FIELD_JOB_SIGNATURE).field(FIELD_JOB_SIGNATURE));
-
-            final SearchResponse response = client.search(new SearchRequest(jobIndexName)
-              .source(source), DEFAULT);
-            final Terms terms = response.getAggregations().get(FIELD_JOB_SIGNATURE);
+            final SearchResponse<Map<Object, Object>> response = client.search(
+              s -> s
+                .index(jobIndexName)
+                .query(shouldMatch(states))
+                .aggregations(FIELD_JOB_SIGNATURE, t -> t.terms(terms -> terms.field(FIELD_JOB_SIGNATURE)))
+                .size(0)
+              ,
+              MAP_CLASS
+            );
+            final StringTermsAggregate terms = response
+              .aggregations()
+              .get(FIELD_JOB_SIGNATURE)
+              .sterms();
 
             return terms
-              .getBuckets()
+              .buckets()
+              .array()
               .stream()
-              .map(MultiBucketsAggregation.Bucket::getKeyAsString)
+              .map(StringTermsBucket::key)
+              .map(FieldValue::stringValue)
               .collect(toSet());
         } catch (IOException e) {
             throw new StorageException(e);
@@ -587,9 +605,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean exists(final JobDetails jobDetails, final StateName... states) {
         try {
-            final QueryBuilder query = withStateAndUpdatedBefore()
+            final QueryVariant query = bool()
               .must(shouldMatch(states))
-              .must(matchQuery(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)));
+              .must(must -> must.match(match -> match.field(FIELD_JOB_SIGNATURE).query( getJobSignature(jobDetails))))
+              .build();
 
             return countJobs(query) > 0;
         } catch (IOException e) {
@@ -600,9 +619,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean recurringJobExists(final String recurringJobId, final StateName... states) {
         try {
-            final QueryBuilder query = withStateAndUpdatedBefore()
+            final QueryVariant query = bool()
               .must(shouldMatch(states))
-              .must(matchQuery(FIELD_RECURRING_JOB_ID, recurringJobId));
+              .must(mu -> mu.match(ma -> ma.field(FIELD_RECURRING_JOB_ID).query(recurringJobId)))
+              .build();
 
             return countJobs(query) > 0;
         } catch (final IOException e) {
@@ -613,13 +633,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public RecurringJob saveRecurringJob(final RecurringJob job) {
         try {
-            final IndexRequest request = new IndexRequest()
+            client.index(i -> i
               .index(recurringJobIndexName)
               .id(job.getId())
-              .setRefreshPolicy(IMMEDIATE)
-              .source(mapper.toXContentBuilder(job));
-
-            client.index(request, DEFAULT);
+              .document(mapper.toXContentBuilder(job))
+              .refresh(True)
+            );
 
             return job;
         } catch (IOException e) {
@@ -630,16 +649,19 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public RecurringJobsResult getRecurringJobs() {
         try {
-            final SearchSourceBuilder source = new SearchSourceBuilder()
-              .query(matchAllQuery())
-              .storedField(RecurringJobs.FIELD_JOB_AS_JSON)
-              .size(MAX_SIZE);
+            final SearchResponse<Map<Object, Object>> response = client.search(
+              s -> s
+                .index(recurringJobIndexName)
+                .query(q -> q.matchAll(m -> m))
+                .storedFields(FIELD_JOB_AS_JSON)
+                .size(MAX_SIZE),
+              MAP_CLASS
+            );
 
-            final SearchResponse response = client.search(new SearchRequest()
-              .indices(recurringJobIndexName)
-              .source(source), DEFAULT);
-
-            final List<RecurringJob> jobs = Stream.of(response.getHits().getHits())
+            final List<RecurringJob> jobs = response
+              .hits()
+              .hits()
+              .stream()
               .map(mapper::toRecurringJob)
               .collect(toList());
             return new RecurringJobsResult(jobs);
@@ -651,19 +673,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean recurringJobsUpdated(final Long recurringJobsUpdatedHash) {
         try {
-            final SearchSourceBuilder source = new SearchSourceBuilder()
-              .query(matchAllQuery())
-              .aggregation(sum(FIELD_CREATED_AT).field(FIELD_CREATED_AT))
-              .size(0);
+            final SearchResponse<?> response = client.search(
+              s -> s
+                .index(recurringJobIndexName)
+                .query(q -> q.matchAll(m -> m))
+                .aggregations(FIELD_CREATED_AT, aggs -> aggs.sum(sum -> sum.field(FIELD_CREATED_AT)))
+                .size(0),
+              MAP_CLASS
+            );
+            final SumAggregate parsedSum = response.aggregations().get(FIELD_CREATED_AT).sum();
 
-            final SearchRequest search = new SearchRequest()
-              .indices(recurringJobIndexName)
-              .source(source);
-
-            final SearchResponse response = client.search(search, DEFAULT);
-            final ParsedSum parsedSum = response.getAggregations().get(FIELD_CREATED_AT);
-
-            return !recurringJobsUpdatedHash.equals(Double.valueOf(parsedSum.getValue()).longValue());
+            return !recurringJobsUpdatedHash.equals(Double.valueOf(parsedSum.value()).longValue());
         } catch (final IOException e) {
             throw new StorageException(e);
         }
@@ -681,13 +701,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public int deleteRecurringJob(final String id) {
         try {
-            final DeleteRequest request = new DeleteRequest()
-              .index(recurringJobIndexName)
-              .id(id)
-              .setRefreshPolicy(IMMEDIATE);
-
-            final DeleteResponse response = client.delete(request, DEFAULT);
-            final int amountDeleted = response.getShardInfo().getSuccessful();
+            final DeleteResponse response = client.delete(
+              d -> d
+                .index(recurringJobIndexName)
+                .id(id)
+                .refresh(True)
+            );
+            final int amountDeleted = response.shards().successful().intValue();
 
             notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
 
@@ -700,26 +720,28 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public JobStats getJobStats() {
         try {
-            Instant instant = Instant.now();
-            final SearchSourceBuilder source = new SearchSourceBuilder()
-              .query(matchAllQuery())
-              .aggregation(terms(FIELD_STATE).field(FIELD_STATE))
-              .size(0);
+            final SearchResponse<?> response = client.search(
+              s -> s
+                .index(jobIndexName)
+                .query(q -> q.matchAll( m -> m))
+                .aggregations(FIELD_STATE, aggs -> aggs.terms(t -> t.field(FIELD_STATE)))
+                .size(0),
+              MAP_CLASS
+            );
 
-            final SearchRequest request = new SearchRequest(jobIndexName)
-              .source(source);
-
-            final SearchResponse response = client.search(request, DEFAULT);
-
-            final Terms terms = response.getAggregations().get(FIELD_STATE);
-            List<? extends Terms.Bucket> buckets = terms.getBuckets();
+            final StringTermsAggregate terms = response
+              .aggregations()
+              .get(FIELD_STATE)
+              .sterms();
+            final List<StringTermsBucket> buckets = terms.buckets().array();
 
             final long allTimeSucceededJobs = getAllTimeSucceededJobs();
             final int recurringJobs = getCount(recurringJobIndexName);
             final int backgroundJobServers = getCount(backgroundJobServerIndexName);
 
+            final Instant now = Instant.now();
             return new JobStats(
-              instant,
+              now,
               0L,
               count(buckets, SCHEDULED),
               count(buckets, ENQUEUED),
@@ -731,33 +753,34 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               recurringJobs,
               backgroundJobServers
             );
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new StorageException(e);
         }
     }
 
     private long getAllTimeSucceededJobs() throws IOException {
-        final GetRequest request = new GetRequest()
-          .index(metadataIndexName)
-          .id(STATS_ID);
-
-        final GetResponse response = client.get(request, DEFAULT);
-        final Object value = response.getSource().getOrDefault(FIELD_VALUE, 0L);
+        final GetResponse<Map<Object, Object>> response = client.get(
+          g -> g
+            .index(metadataIndexName)
+            .id(STATS_ID),
+          MAP_CLASS
+        );
+        final Object value = ofNullable(response.source())
+          .orElseGet(Map::of)
+          .getOrDefault(FIELD_VALUE, 0L);
 
         return ((Number) value).longValue();
     }
 
     private int getCount(final String indexName) throws IOException {
-        final CountRequest request = new CountRequest()
-          .indices(indexName);
-        return (int) client.count(request, DEFAULT).getCount();
+        return (int) client.count(c -> c.index(indexName)).count();
     }
 
-    private long count(final List<? extends Terms.Bucket> buckets, final StateName state) {
+    private long count(final List<StringTermsBucket> buckets, final StateName state) {
         return buckets
           .stream()
-          .filter(bucket -> Objects.equals(state.name(), bucket.getKeyAsString()))
-          .map(MultiBucketsAggregation.Bucket::getDocCount)
+          .filter(bucket -> Objects.equals(state.name(), bucket.key()))
+          .map(StringTermsBucket::docCount)
           .findFirst()
           .orElse(0L);
     }
@@ -765,14 +788,21 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public void publishTotalAmountOfSucceededJobs(final int amount) {
         try {
-            final UpdateRequest update = new UpdateRequest(metadataIndexName, STATS_ID)
-              .scriptedUpsert(true);
+            final Map<String, JsonData> parameters = singletonMap("value", JsonData.of(amount));
+            final InlineScript inline = inline()
+              .lang("painless")
+              .source("ctx._source." + FIELD_VALUE + " += params.value")
+              .params(parameters)
+              .build();
 
-            final Map<String, Object> parameters = singletonMap("value", amount);
-            final Script inline = new Script(ScriptType.INLINE, "painless", "ctx._source." + FIELD_VALUE + " += params.value", parameters);
-
-            update.script(inline);
-            client.update(update, DEFAULT);
+            client.update(
+              u -> u
+                .index(metadataIndexName)
+                .id(STATS_ID)
+                .scriptedUpsert(true)
+                .script(s -> s.inline(inline)),
+              parameters.getClass()
+            );
         } catch (IOException e) {
             throw new StorageException(e);
         }
@@ -788,7 +818,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         return response.count();
     }
 
-    SearchResponse<Map<Object, Object>> searchJobs(final QueryVariant query, final PageRequest page) throws IOException {
+    SearchResponse<Map<Object, Object>> searchJobs(
+      final QueryVariant query,
+      final PageRequest page) throws IOException {
+
         return client.search(
           s -> s
             .index(jobIndexName)
@@ -801,14 +834,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         );
     }
 
-    private static QueryVariant shouldMatch(final StateName... states) {
+    private static Query shouldMatch(final StateName... states) {
         final BoolQuery.Builder query = new BoolQuery.Builder();
 
         for (final StateName state : states) {
             query.should(s-> s.match(m -> m.field(FIELD_STATE).query(state.toString())));
         }
 
-        return query.build();
+        return query.build()._toQuery();
     }
 
     private static ObjectBuilder<SortOptions> sortJobs(final PageRequest page, final SortOptions.Builder s) {

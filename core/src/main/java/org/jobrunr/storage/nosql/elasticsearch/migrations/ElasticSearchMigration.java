@@ -7,9 +7,6 @@ import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 import org.jobrunr.storage.StorageException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
 
 import static co.elastic.clients.elasticsearch._types.HealthStatus.Yellow;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
