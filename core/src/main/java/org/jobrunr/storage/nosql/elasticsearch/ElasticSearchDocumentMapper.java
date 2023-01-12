@@ -129,7 +129,7 @@ public class ElasticSearchDocumentMapper {
         return jobMapper.deserializeJob(response.fields().get(Jobs.FIELD_JOB_AS_JSON).toString());
     }
 
-    public Job toJob(Hit<?> hit) {
+    public Job toJob(Hit<Map<Object, Object>> hit) {
         String jobAsJson = hit.fields().get(Jobs.FIELD_JOB_AS_JSON).toString();
         return jobMapper.deserializeJob(jobAsJson);
     }

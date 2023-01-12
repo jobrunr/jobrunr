@@ -2,10 +2,7 @@ package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.*;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
@@ -38,8 +35,8 @@ import java.util.stream.Stream;
 import static co.elastic.clients.elasticsearch._types.Refresh.True;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
+import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.bool;
 import static java.util.Collections.singletonMap;
-import static java.util.Optional.ofNullable;
 import static java.util.UUID.fromString;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -320,7 +317,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public void deleteMetadata(final String name) {
-        final MatchQuery q = MatchQuery.of(q -> q.field(FIELD_NAME).query(name));
+        final MatchQuery q = MatchQuery.of(m -> m.field(FIELD_NAME).query(name));
         final long deleted = deleteByQuery(metadataIndexName, q);
 
         if (deleted > 0) {
@@ -422,11 +419,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             for (final Job job : jobs) {
 
                 final IndexOperation.Builder<Map<Object, Object>> builder = new IndexOperation
-                  .Builder<>()
+                  .Builder<Map<Object, Object>>()
                   .id(job.getId().toString())
                   .versionType(VersionType.External)
                   .version((long) job.getVersion())
-                  .document(mapper.toXContentBuilder(job))
+                  .document(mapper.toXContentBuilder(job));
 
                 operations.add(builder.build()._toBulkOperation());
             }
@@ -463,12 +460,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<Job> getJobs(final StateName state, final Instant updatedBefore, final PageRequest pageRequest) {
         try {
-            final BoolQueryBuilder query = boolQuery()
-              .must(matchQuery(FIELD_STATE, state))
-              .must(rangeQuery(Jobs.FIELD_UPDATED_AT).to(updatedBefore));
+            final QueryVariant query = withStateAndUpdatedBefore(state, updatedBefore);
 
-            final SearchResponse response = searchJobs(query, pageRequest);
-            return Stream.of(response.getHits().getHits())
+            final SearchResponse<Map<Object, Object>> response = searchJobs(query, pageRequest);
+            return response
+              .hits()
+              .hits()
+              .stream()
               .map(mapper::toJob)
               .collect(toList());
         } catch (final IOException e) {
@@ -479,11 +477,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<Job> getScheduledJobs(final Instant scheduledBefore, final PageRequest pageRequest) {
         try {
-            final QueryBuilder query = rangeQuery(Jobs.FIELD_SCHEDULED_AT).to(scheduledBefore);
+            final QueryVariant query =
+              QueryBuilders.range()
+                .field(FIELD_SCHEDULED_AT)
+                .to(Long.toString(scheduledBefore.toEpochMilli()))
+                .build();
 
-            final SearchResponse searchResponse = searchJobs(query, pageRequest);
-
-            return Stream.of(searchResponse.getHits().getHits())
+            final SearchResponse<Map<Object, Object>> response = searchJobs(query, pageRequest);
+            return response
+              .hits()
+              .hits()
+              .stream()
               .map(mapper::toJob)
               .collect(toList());
         } catch (final IOException e) {
@@ -494,10 +498,16 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<Job> getJobs(final StateName state, final PageRequest pageRequest) {
         try {
-            final QueryBuilder query = boolQuery().must(matchQuery(FIELD_STATE, state));
-            final SearchResponse response = searchJobs(query, pageRequest);
+            final QueryVariant query = bool()
+              .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
+              .build();
 
-            return Stream.of(response.getHits().getHits())
+            final SearchResponse<Map<Object, Object>> response = searchJobs(query, pageRequest);
+
+            return response
+              .hits()
+              .hits()
+              .stream()
               .map(mapper::toJob)
               .collect(toList());
         } catch (IOException e) {
@@ -508,7 +518,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
         try {
-            long count = countJobs(boolQuery().must(matchQuery(FIELD_STATE, state)));
+            final QueryVariant query = bool()
+              .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
+              .build();
+
+            long count = countJobs(query);
             if (count > 0) {
                 List<Job> jobs = getJobs(state, pageRequest);
                 return new Page<>(count, jobs, pageRequest);
@@ -522,23 +536,31 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         try {
-            final QueryBuilder query = boolQuery()
-              .must(matchQuery(FIELD_STATE, state))
-              .must(rangeQuery(Jobs.FIELD_UPDATED_AT).to(updatedBefore));
+            final QueryVariant query = withStateAndUpdatedBefore(state, updatedBefore);
 
-            final DeleteByQueryRequest request = new DeleteByQueryRequest(jobIndexName)
-              .setQuery(query)
-              .setRefresh(true);
+            final DeleteByQueryResponse response = client.deleteByQuery(
+              d -> d.index(jobIndexName)
+                .query(query._toQuery())
+                .refresh(true)
+            );
 
-            final BulkByScrollResponse response = client.deleteByQuery(request, DEFAULT);
-
-            final int amountDeleted = (int) response.getDeleted();
+            final int amountDeleted = response.deleted().intValue();
 
             notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
+            
             return amountDeleted;
         } catch (IOException e) {
             throw new StorageException(e);
         }
+    }
+
+    private static QueryVariant withStateAndUpdatedBefore(
+      final StateName state,
+      final Instant updatedBefore) {
+        return bool()
+          .must(must -> must.match(m -> m.field(FIELD_STATE).query(String.valueOf(state))))
+          .must(must -> must.range(m -> m.field(Jobs.FIELD_UPDATED_AT).to(Long.toString(updatedBefore.getEpochSecond()))))
+          .build();
     }
 
     @Override
@@ -565,7 +587,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean exists(final JobDetails jobDetails, final StateName... states) {
         try {
-            final QueryBuilder query = boolQuery()
+            final QueryBuilder query = withStateAndUpdatedBefore()
               .must(shouldMatch(states))
               .must(matchQuery(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)));
 
@@ -578,7 +600,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean recurringJobExists(final String recurringJobId, final StateName... states) {
         try {
-            final QueryBuilder query = boolQuery()
+            final QueryBuilder query = withStateAndUpdatedBefore()
               .must(shouldMatch(states))
               .must(matchQuery(FIELD_RECURRING_JOB_ID, recurringJobId));
 
