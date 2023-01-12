@@ -1,10 +1,13 @@
 package org.jobrunr.tests.e2e;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.SimpleJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
+import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.testcontainers.containers.Network;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
@@ -32,8 +35,15 @@ public class ElasticSearchGsonBackgroundJobContainer extends AbstractBackgroundJ
 
     @Override
     public StorageProvider getStorageProviderForClient() {
-        HttpHost httpHost = new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getFirstMappedPort(), "http");
-        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(RestClient.builder(httpHost).setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setSocketTimeout(100 * 1000)));
+        final HttpHost httpHost = new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getFirstMappedPort(), "http");
+        final RestClient restClient = RestClient
+          .builder(httpHost)
+          .setRequestConfigCallback(b -> b.setSocketTimeout(100 * 1000))
+          .build();
+
+        final RestClientTransport transport = new RestClientTransport(restClient, new SimpleJsonpMapper());
+        final ElasticsearchClient restHighLevelClient = new ElasticsearchClient(transport);
+
         return new ElasticSearchStorageProvider(restHighLevelClient);
     }
 }

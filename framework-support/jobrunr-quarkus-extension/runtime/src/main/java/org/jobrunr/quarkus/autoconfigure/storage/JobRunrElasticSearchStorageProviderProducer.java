@@ -1,7 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure.storage;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import io.quarkus.arc.DefaultBean;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.storage.StorageProvider;
@@ -16,13 +16,18 @@ public class JobRunrElasticSearchStorageProviderProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public StorageProvider storageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper, JobRunrConfiguration configuration) {
-        if(configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("elasticsearch")) return null;
+    public StorageProvider storageProvider(
+      final ElasticsearchClient client,
+      final JobMapper jobMapper,
+      final JobRunrConfiguration configuration) {
 
-        String tablePrefix = configuration.database.tablePrefix.orElse(null);
-        DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
-        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(restHighLevelClient, tablePrefix, databaseOptions);
-        elasticSearchStorageProvider.setJobMapper(jobMapper);
-        return elasticSearchStorageProvider;
+        if (configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("elasticsearch")) return null;
+
+        final String tableprefix = configuration.database.tablePrefix.orElse(null);
+        final DatabaseOptions options = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
+        final ElasticSearchStorageProvider provider = new ElasticSearchStorageProvider(client, tableprefix, options);
+        provider.setJobMapper(jobMapper);
+
+        return provider;
     }
 }

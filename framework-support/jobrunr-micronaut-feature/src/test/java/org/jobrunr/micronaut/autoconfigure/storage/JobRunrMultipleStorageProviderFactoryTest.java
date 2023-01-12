@@ -5,13 +5,6 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.client.ClusterClient;
-import org.elasticsearch.client.IndicesClient;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
@@ -23,8 +16,7 @@ import java.io.IOException;
 import java.sql.*;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.jobrunr.micronaut.autoconfigure.storage.JobRunrElasticSearchStorageProviderFactoryTest.elasticsearchClient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +28,7 @@ class JobRunrMultipleStorageProviderFactoryTest {
 
     @BeforeEach
     void setupDataSource() throws SQLException, IOException {
-        context.registerSingleton(elasticSearchRestHighLevelClient());
+        context.registerSingleton(elasticsearchClient());
         context.registerSingleton(dataSource());
     }
 
@@ -74,19 +66,4 @@ class JobRunrMultipleStorageProviderFactoryTest {
             when(resultSetMock.getInt(1)).thenReturn(1);
         }
     }
-
-    public RestHighLevelClient elasticSearchRestHighLevelClient() throws IOException {
-        RestHighLevelClient restHighLevelClientMock = mock(RestHighLevelClient.class);
-        IndicesClient indicesClientMock = mock(IndicesClient.class);
-        ClusterClient clusterClientMock = mock(ClusterClient.class);
-        when(restHighLevelClientMock.indices()).thenReturn(indicesClientMock);
-        when(restHighLevelClientMock.cluster()).thenReturn(clusterClientMock);
-        when(indicesClientMock.exists(any(GetIndexRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(true);
-
-        GetResponse getResponse = mock(GetResponse.class);
-        when(getResponse.isExists()).thenReturn(true);
-        when(restHighLevelClientMock.get(any(GetRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(getResponse);
-        return restHighLevelClientMock;
-    }
-
 }

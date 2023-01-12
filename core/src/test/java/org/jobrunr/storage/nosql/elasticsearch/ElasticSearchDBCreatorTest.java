@@ -1,11 +1,11 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationByClass;
@@ -38,7 +38,7 @@ class ElasticSearchDBCreatorTest {
 
     @BeforeEach
     void clearAllCollections() throws IOException {
-        elasticSearchClient().indices().delete(new DeleteIndexRequest("_all"), RequestOptions.DEFAULT);
+        elasticSearchClient().indices().delete(d -> d.index("_all"));
     }
 
     @Test
@@ -53,7 +53,7 @@ class ElasticSearchDBCreatorTest {
 
         assertThat(elasticSearchDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_CreateJobsIndex.class))).isFalse();
         assertThat(elasticSearchDBCreator.isNewMigration(new NoSqlMigrationByClass(M002_CreateRecurringJobsIndex.class))).isFalse();
-        assertThat(elasticSearchClient().indices().get(new GetIndexRequest("*"), RequestOptions.DEFAULT).getIndices()).hasSize(5);
+        assertThat(elasticSearchClient().indices().get(g -> g.index("*")).result()).hasSize(5);
     }
 
     @Test
@@ -66,7 +66,7 @@ class ElasticSearchDBCreatorTest {
         elasticSearchDBCreator.runMigrations();
 
         assertThatCode(elasticSearchDBCreator::validateIndices).doesNotThrowAnyException();
-        assertThat(elasticSearchClient().indices().get(new GetIndexRequest("*"), RequestOptions.DEFAULT).getIndices()).hasSize(5);
+        assertThat(elasticSearchClient().indices().get(g -> g.index("*")).result()).hasSize(5);
     }
 
     @Test
@@ -95,10 +95,11 @@ class ElasticSearchDBCreatorTest {
         assertThatCode(elasticSearchDBCreator::runMigrations).doesNotThrowAnyException();
     }
 
-    private RestHighLevelClient elasticSearchClient() {
-        return new RestHighLevelClient(
-                RestClient.builder(
-                        new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getMappedPort(9200), "http")));
-
+    private ElasticsearchClient elasticSearchClient() {
+        final RestClient http = RestClient.builder(
+          new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getMappedPort(9200), "http"))
+          .build();
+        final ElasticsearchTransport transport = new RestClientTransport(http, new JacksonJsonpMapper());
+        return new ElasticsearchClient(transport);
     }
 }

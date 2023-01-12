@@ -91,7 +91,7 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
     }
 
     @Override
-    protected boolean markMigrationAsDone(NoSqlMigration noSqlMigration) {
+    protected boolean markMigrationAsDone(final NoSqlMigration noSqlMigration) {
         try {
             final Map<String, Object> map = new LinkedHashMap<>();
             map.put(Migrations.FIELD_NAME, noSqlMigration.getClassName());
@@ -107,11 +107,11 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
         }
     }
 
-    private boolean isNewMigration(NoSqlMigration noSqlMigration, int retry) {
+    private boolean isNewMigration(final NoSqlMigration noSqlMigration, final int retry) {
         sleep(retry * 500L);
         try {
             waitForHealthyCluster(client);
-            BooleanResponse migration = client.exists(
+            final BooleanResponse migration = client.exists(
               r -> r.index(migrationIndexName).id(substringBefore(noSqlMigration.getClassName(), "_"))
             );
             return !migration.value();
