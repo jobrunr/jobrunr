@@ -128,19 +128,19 @@ public class ElasticSearchDocumentMapper {
 
     public Job toJob(final GetResponse<Map<Object, Object>> response) {
         final JsonData jsonData = response.fields().get(Jobs.FIELD_JOB_AS_JSON);
-        final String jobAsJson = jsonData.toString();
+        final String jobAsJson = jsonData.toJson().asJsonArray().get(0).toString();
         return jobMapper.deserializeJob(jobAsJson);
     }
 
     public Job toJob(final Hit<Map<Object, Object>> hit) {
         final JsonData jsonData = hit.fields().get(Jobs.FIELD_JOB_AS_JSON);
-        final String jobAsJson = jsonData.toString();
+        final String jobAsJson = jsonData.toJson().asJsonArray().get(0).toString();
         return jobMapper.deserializeJob(jobAsJson);
     }
 
     public RecurringJob toRecurringJob(final Hit<?> hit) {
         final JsonData jsonData = hit.fields().get(Jobs.FIELD_JOB_AS_JSON);
-        final String jobAsJson = jsonData.toString();
+        final String jobAsJson = jsonData.toJson().asJsonArray().get(0).toString();
         return jobMapper.deserializeRecurringJob(jobAsJson);
     }
 }
