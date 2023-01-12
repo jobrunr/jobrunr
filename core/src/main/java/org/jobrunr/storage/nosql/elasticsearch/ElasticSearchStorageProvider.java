@@ -1,21 +1,20 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
-import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.VersionType;
+import co.elastic.clients.elasticsearch._types.*;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.UpdateResponse;
+import co.elastic.clients.elasticsearch.core.*;
+import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.util.ObjectBuilder;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -38,10 +37,13 @@ import java.util.stream.Stream;
 
 import static co.elastic.clients.elasticsearch._types.Refresh.True;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
+import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
 import static java.util.Collections.singletonMap;
+import static java.util.Optional.ofNullable;
 import static java.util.UUID.fromString;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.elasticsearch.client.RequestOptions.DEFAULT;
 import static org.jobrunr.jobs.states.StateName.*;
@@ -61,6 +63,8 @@ import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 @Beta(note = "The ElasticSearchStorageProvider is still in Beta. My first impression is that other StorageProviders are faster than ElasticSearch.")
 public class ElasticSearchStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
+
+    private static final Class<Map<Object, Object>> MAP_CLASS = (Class<Map<Object, Object>>) Map.of().getClass();
 
     public static final String DEFAULT_JOB_INDEX_NAME = JOBRUNR_PREFIX + Jobs.NAME;
     public static final String DEFAULT_RECURRING_JOB_INDEX_NAME = JOBRUNR_PREFIX + RecurringJobs.NAME;
@@ -341,14 +345,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Job save(final Job job) {
         try (JobVersioner jobVersioner = new JobVersioner(job)) {
-            IndexRequest request = new IndexRequest()
-              .index(jobIndexName)
-              .id(job.getId().toString())
-              .versionType(VersionType.EXTERNAL)
-              .version(job.getVersion())
-              .setRefreshPolicy(IMMEDIATE)
-              .source(mapper.toXContentBuilder(job));
-
             client.index(
               i -> i
                 .index(jobIndexName)
@@ -357,11 +353,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                 .version((long) job.getVersion())
                 .refresh(True)
             );
+
             jobVersioner.commitVersion();
             notifyJobStatsOnChangeListeners();
+
             return job;
         } catch (final ElasticsearchException e) {
-            if (e.status().getStatus() == 409) {
+            if (e.status() == SC_CONFLICT) {
                 throw new ConcurrentJobModificationException(job);
             }
             throw new StorageException(e);
@@ -373,13 +371,16 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public int deletePermanently(final UUID id) {
         try {
-            final DeleteRequest request = new DeleteRequest()
-              .index(jobIndexName)
-              .id(id.toString())
-              .setRefreshPolicy(IMMEDIATE);
-
-            final DeleteResponse response = client.delete(request, DEFAULT);
-            final int amountDeleted = response.getShardInfo().getSuccessful();
+            final DeleteResponse response = client.delete(
+              d -> d
+                .index(jobIndexName)
+                .id(id.toString())
+                .refresh(True)
+            );
+            final int amountDeleted = response
+              .shards()
+              .successful()
+              .intValue();
 
             notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
@@ -391,13 +392,14 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public Job getJobById(final UUID id) {
         try {
-            final GetRequest request = new GetRequest()
-              .index(jobIndexName)
-              .id(id.toString())
-              .storedFields(Jobs.FIELD_JOB_AS_JSON);
-
-            final GetResponse response = client.get(request, DEFAULT);
-            if (response.isExists()) {
+            final GetResponse response = client.get(
+              r -> r
+                .index(jobIndexName)
+                .id(id.toString())
+                .storedFields(FIELD_JOB_AS_JSON),
+              Map.class
+            );
+            if (response.found()) {
                 return mapper.toJob(response);
             }
 
@@ -412,25 +414,41 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         try (final JobListVersioner versioner = new JobListVersioner(jobs)) {
             versioner.validateJobs();
 
-            final BulkRequest bulkRequest = new BulkRequest(jobIndexName)
-              .setRefreshPolicy(IMMEDIATE);
-            jobs.stream()
-              .map(job ->
-                new IndexRequest()
-                  .id(job.getId().toString())
-                  .versionType(VersionType.EXTERNAL)
-                  .version(job.getVersion())
-                  .source(mapper.toXContentBuilder(job))
-              ).forEach(bulkRequest::add);
+            final BulkRequest.Builder bulk = new BulkRequest.Builder()
+              .index(jobIndexName)
+              .refresh(True);
 
-            final BulkResponse response = client.bulk(bulkRequest, DEFAULT);
-            final List<Job> concurrentModifiedJobs = Stream.of(response.getItems())
-              .filter(item -> item.isFailed() && item.status().getStatus() == 409)
-              .map(item -> jobs.get(item.getItemId()))
-              .collect(toList());
-            if (!concurrentModifiedJobs.isEmpty()) {
-                versioner.rollbackVersions(concurrentModifiedJobs);
-                throw new ConcurrentJobModificationException(concurrentModifiedJobs);
+            final List<BulkOperation> operations = new ArrayList<>();
+            for (final Job job : jobs) {
+
+                final IndexOperation.Builder<Map<Object, Object>> builder = new IndexOperation
+                  .Builder<>()
+                  .id(job.getId().toString())
+                  .versionType(VersionType.External)
+                  .version((long) job.getVersion())
+                  .document(mapper.toXContentBuilder(job))
+
+                operations.add(builder.build()._toBulkOperation());
+            }
+
+            bulk.operations(operations);
+
+            final BulkResponse response = client.bulk(bulk.build());
+
+            final List<BulkResponseItem> items = response.items();
+            for (int i = 0; i < items.size(); i ++) {
+                final int index = i;
+
+                final List<Job> concurrentModifiedJobs = items
+                  .stream()
+                  .filter(item -> item.status() == SC_CONFLICT)
+                  .map(item -> jobs.get(index))
+                  .collect(toList());
+
+                if (!concurrentModifiedJobs.isEmpty()) {
+                    versioner.rollbackVersions(concurrentModifiedJobs);
+                    throw new ConcurrentJobModificationException(concurrentModifiedJobs);
+                }
             }
 
             versioner.commitVersions();
@@ -738,47 +756,53 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         }
     }
 
-    long countJobs(final QueryBuilder query) throws IOException {
-        final CountRequest request = new CountRequest()
-          .indices(jobIndexName)
-          .query(query);
+    long countJobs(final QueryVariant query) throws IOException {
+        final CountResponse response = client.count(
+          c -> c
+            .index(jobIndexName)
+            .query(query._toQuery())
+        );
 
-        final CountResponse response = client.count(request, DEFAULT);
-
-        return response.getCount();
+        return response.count();
     }
 
-    SearchResponse searchJobs(final QueryBuilder query, final PageRequest page) throws IOException {
-        final SearchSourceBuilder source = new SearchSourceBuilder()
-          .query(query)
-          .from((int) page.getOffset())
-          .size(page.getLimit())
-          .storedField(Jobs.FIELD_JOB_AS_JSON);
-
-        sortJobs(page, source);
-
-        final SearchRequest request = new SearchRequest(jobIndexName)
-          .source(source);
-
-        return client.search(request, DEFAULT);
+    SearchResponse<Map<Object, Object>> searchJobs(final QueryVariant query, final PageRequest page) throws IOException {
+        return client.search(
+          s -> s
+            .index(jobIndexName)
+            .query(query._toQuery())
+            .from((int) page.getOffset())
+            .size(page.getLimit())
+            .storedFields(Jobs.FIELD_JOB_AS_JSON)
+            .sort(sort -> sortJobs(page, sort)),
+          MAP_CLASS
+        );
     }
 
-    private static QueryBuilder shouldMatch(final StateName... states) {
-        final BoolQueryBuilder query = boolQuery();
+    private static QueryVariant shouldMatch(final StateName... states) {
+        final BoolQuery.Builder query = new BoolQuery.Builder();
+
         for (final StateName state : states) {
-            query.should(matchQuery(FIELD_STATE, state));
+            query.should(s-> s.match(m -> m.field(FIELD_STATE).query(state.toString())));
         }
-        return query;
+
+        return query.build();
     }
 
-    private static void sortJobs(final PageRequest page, final SearchSourceBuilder source) {
+    private static ObjectBuilder<SortOptions> sortJobs(final PageRequest page, final SortOptions.Builder s) {
         final String order = page.getOrder();
+
+        final SortOrder o;
         if (Objects.equals(order, "updatedAt:ASC")) {
-            source.sort(Jobs.FIELD_UPDATED_AT, ASC);
+            o = Asc;
         } else if (Objects.equals(order, "updatedAt:DESC")) {
-            source.sort(Jobs.FIELD_UPDATED_AT, SortOrder.DESC);
+            o = Desc;
         } else {
             throw new IllegalArgumentException("Unknown sort: " + order);
         }
+
+        return s
+          .field(f -> f.field(Jobs.FIELD_UPDATED_AT)
+            .order(o));
     }
 }
