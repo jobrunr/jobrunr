@@ -159,7 +159,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
               r.index(backgroundJobServerIndexName)
                 .id(status.getId().toString())
                 .refresh(True)
-                .document(mapper.toXContentBuilderForInsert(status))
+                .document(mapper.toMap(status))
             );
         } catch (final IOException e) {
             throw new StorageException(e);
@@ -169,7 +169,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public boolean signalBackgroundJobServerAlive(final BackgroundJobServerStatus status) {
         try {
-            final Map<Object, Object> value = mapper.toXContentBuilderForUpdate(status);
+            final Map<Object, Object> value = mapper.toMapForUpdate(status);
             final UpdateResponse<? extends Map> response = client.update(r ->
                 r
                   .index(backgroundJobServerIndexName)
@@ -274,7 +274,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                 .index(metadataIndexName)
                 .id(metadata.getId())
                 .refresh(True)
-                .document(mapper.toXContentBuilder(metadata))
+                .document(mapper.toMap(metadata))
             );
 
             notifyMetadataChangeListeners();
@@ -357,6 +357,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                 .id(job.getId().toString())
                 .versionType(VersionType.External)
                 .version((long) job.getVersion())
+                .document(mapper.toMap(job))
                 .refresh(True)
             );
 
@@ -433,7 +434,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                   .id(job.getId().toString())
                   .versionType(VersionType.External)
                   .version((long) job.getVersion())
-                  .document(mapper.toXContentBuilder(job));
+                  .document(mapper.toMap(job));
 
                 operations.add(builder.build()._toBulkOperation());
             }
@@ -636,7 +637,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             client.index(i -> i
               .index(recurringJobIndexName)
               .id(job.getId())
-              .document(mapper.toXContentBuilder(job))
+              .document(mapper.toMap(job))
               .refresh(True)
             );
 

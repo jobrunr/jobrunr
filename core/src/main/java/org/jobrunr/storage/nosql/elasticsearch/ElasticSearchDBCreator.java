@@ -95,7 +95,7 @@ public class ElasticSearchDBCreator extends NoSqlDatabaseCreator<ElasticSearchMi
         try {
             final Map<String, Object> map = new LinkedHashMap<>();
             map.put(Migrations.FIELD_NAME, noSqlMigration.getClassName());
-            map.put(Migrations.FIELD_DATE, Instant.now());
+            map.put(Migrations.FIELD_DATE, Instant.now().toEpochMilli());
             return client.index(r ->
               r.index(migrationIndexName)
                 .id(substringBefore(noSqlMigration.getClassName(), "_"))

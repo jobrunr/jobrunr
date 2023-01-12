@@ -30,7 +30,7 @@ public class ElasticSearchDocumentMapper {
         this.jobMapper = jobMapper;
     }
 
-    public Map<Object, Object> toXContentBuilderForInsert(BackgroundJobServerStatus serverStatus) {
+    public Map<Object, Object> toMap(BackgroundJobServerStatus serverStatus) {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(FIELD_ID, serverStatus.getId().toString());
         map.put(FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
@@ -50,7 +50,7 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<Object, Object> toXContentBuilderForUpdate(BackgroundJobServerStatus serverStatus) {
+    public Map<Object, Object> toMapForUpdate(BackgroundJobServerStatus serverStatus) {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(FIELD_LAST_HEARTBEAT, serverStatus.getLastHeartbeat());
         map.put(FIELD_SYSTEM_FREE_MEMORY, serverStatus.getSystemFreeMemory());
@@ -61,7 +61,7 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<Object, Object> toXContentBuilder(Job job) {
+    public Map<Object, Object> toMap(Job job) {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         map.put(Jobs.FIELD_STATE, job.getState());
@@ -76,7 +76,7 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<Object, Object> toXContentBuilder(JobRunrMetadata metadata) {
+    public Map<Object, Object> toMap(JobRunrMetadata metadata) {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(Metadata.FIELD_NAME, metadata.getName());
         map.put(Metadata.FIELD_OWNER, metadata.getOwner());
@@ -86,7 +86,7 @@ public class ElasticSearchDocumentMapper {
         return map;
     }
 
-    public Map<Object, Object> toXContentBuilder(RecurringJob job) {
+    public Map<Object, Object> toMap(RecurringJob job) {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(RecurringJobs.FIELD_JOB_AS_JSON, jobMapper.serializeRecurringJob(job));
         map.put(RecurringJobs.FIELD_CREATED_AT, job.getCreatedAt().toEpochMilli());

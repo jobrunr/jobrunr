@@ -1,8 +1,10 @@
 package org.jobrunr.tests.e2e;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.json.SimpleJsonpMapper;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.jobrunr.storage.StorageProvider;
@@ -40,7 +42,11 @@ public class ElasticSearchJacksonBackgroundJobContainer extends AbstractBackgrou
           .setRequestConfigCallback(b -> b.setSocketTimeout(100 * 1000))
           .build();
 
-        final RestClientTransport transport = new RestClientTransport(restClient, new SimpleJsonpMapper());
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.findAndRegisterModules();
+
+        final RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper(mapper));
         final ElasticsearchClient restHighLevelClient = new ElasticsearchClient(transport);
 
         return new ElasticSearchStorageProvider(restHighLevelClient);

@@ -19,6 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.IOException;
 import java.util.function.Function;
 
+import static java.util.Map.of;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +32,12 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.10.1").withExposedPorts(9200);
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.17.8")
+      .withEnv(of(
+        "ES_JAVA_OPTS", "-Xmx512m",
+        "discovery.type", "single-node",
+        "xpack.security.enabled", "false"
+      )).withExposedPorts(9200);
 
     private static ElasticsearchClient client;
 

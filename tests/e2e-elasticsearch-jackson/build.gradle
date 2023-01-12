@@ -7,6 +7,7 @@ dependencies {
     implementation project(':tests:e2e-base')
     implementation 'org.slf4j:slf4j-simple'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'co.elastic.clients:elasticsearch-java'
 
     testImplementation project(':core')

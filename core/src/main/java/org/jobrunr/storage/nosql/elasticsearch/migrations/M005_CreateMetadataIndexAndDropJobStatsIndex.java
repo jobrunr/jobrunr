@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static co.elastic.clients.elasticsearch._types.Refresh.True;
+import static java.time.Instant.now;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
@@ -64,8 +65,9 @@ public class M005_CreateMetadataIndexAndDropJobStatsIndex extends ElasticSearchM
         map.put(Metadata.FIELD_NAME, Metadata.STATS_NAME);
         map.put(Metadata.FIELD_OWNER, Metadata.STATS_OWNER);
         map.put(Metadata.FIELD_VALUE, totalSucceededAmount);
-        map.put(Metadata.FIELD_CREATED_AT, Instant.now());
-        map.put(Metadata.FIELD_UPDATED_AT, Instant.now());
+        final Instant now = now();
+        map.put(Metadata.FIELD_CREATED_AT, now.toEpochMilli());
+        map.put(Metadata.FIELD_UPDATED_AT, now.toEpochMilli());
 
         return IndexRequest.of(
           i -> i
