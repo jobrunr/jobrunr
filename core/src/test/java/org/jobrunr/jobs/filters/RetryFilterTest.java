@@ -1,7 +1,6 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +47,7 @@ class RetryFilterTest {
     @Test
     void retryFilterSchedulesJobAgainIfItIsFailedButMaxNumberOfRetriesIsNotReached() {
         final Job job = aJob()
-                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
+                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
                 .withState(new FailedState("a message", new RuntimeException("boem")))
                 .build();
         int beforeVersion = job.getJobStates().size();
@@ -64,7 +63,7 @@ class RetryFilterTest {
     @Test
     void retryFilterDoesNotScheduleJobAgainIfMaxNumberOfRetriesIsReached() {
         final Job job = aJob()
-                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
+                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .withState(new FailedState("firstRetry", new RuntimeException("boom")))
                 .build();
@@ -105,7 +104,7 @@ class RetryFilterTest {
     void retryFilterKeepsDefaultRetryFilterValueOf10IfRetriesOnJobAnnotationIsNotProvided() {
 
         final Job job = aJob()
-                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWork()))
+                .<TestService>withJobDetails(ts -> ts.doWork())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();
@@ -121,7 +120,7 @@ class RetryFilterTest {
     void retryFilterKeepsDefaultGivenRetryFilterValueIfRetriesOnJobAnnotationIsNotProvided() {
         retryFilter = new RetryFilter(0);
         final Job job = aJob()
-                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWork()))
+                .<TestService>withJobDetails(ts -> ts.doWork())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();
@@ -139,7 +138,7 @@ class RetryFilterTest {
 
         // GIVEN FIRST FAILURE, NOT YET RETRIED
         Job job = aJob()
-                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
+                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         int beforeVersion = job.getJobStates().size();

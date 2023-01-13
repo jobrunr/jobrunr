@@ -4,6 +4,7 @@ import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.utils.CollectionUtils;
+import org.jobrunr.utils.JobUtils;
 import org.jobrunr.utils.StringUtils;
 import org.slf4j.MDC;
 
@@ -14,7 +15,6 @@ import java.util.regex.Pattern;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.utils.JobUtils.getJobAnnotation;
 import static org.jobrunr.utils.JobUtils.getReadableNameFromJobDetails;
 
 public class DefaultJobFilter implements JobClientFilter {
@@ -30,11 +30,14 @@ public class DefaultJobFilter implements JobClientFilter {
         setLabels(job, jobAnnotation);
     }
 
+    @Override
+    public void onCreated(AbstractJob job) {
+        // nothing to do
+    }
+
     private void setJobName(AbstractJob job, Optional<Job> jobAnnotation) {
         Optional<String> jobNameFromAnnotation = getFromAnnotation(jobAnnotation, Job::name);
-        if (job.getJobName() != null && jobNameFromAnnotation.isPresent()) {
-            throw new IllegalStateException("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
-        } else if (job.getJobName() == null && jobNameFromAnnotation.isPresent()) {
+        if (jobNameFromAnnotation.isPresent()) {
             job.setJobName(resolveParameters(jobNameFromAnnotation.get(), job));
         } else if (job.getJobName() == null) {
             job.setJobName(getReadableNameFromJobDetails(job.getJobDetails()));
@@ -42,19 +45,13 @@ public class DefaultJobFilter implements JobClientFilter {
     }
 
     private void setAmountOfRetries(AbstractJob job, Optional<Job> jobAnnotation) {
-        Optional<Integer> amountOfRetriesFromAnnotation = getIntegerFromAnnotation(jobAnnotation, Job::retries);
-        if (job.getAmountOfRetries() != null && amountOfRetriesFromAnnotation.isPresent()) {
-            throw new IllegalStateException("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
-        } else if (amountOfRetriesFromAnnotation.isPresent()) {
-            job.setAmountOfRetries(amountOfRetriesFromAnnotation.get());
-        }
+        getIntegerFromAnnotation(jobAnnotation, Job::retries)
+                .ifPresent(job::setAmountOfRetries);
     }
 
     private void setLabels(AbstractJob job, Optional<Job> jobAnnotation) {
         Optional<String[]> labelsFromAnnotation = getStringArrayFromAnnotation(jobAnnotation, Job::labels);
-        if (!job.getLabels().isEmpty() && labelsFromAnnotation.isPresent()) {
-            throw new IllegalStateException("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
-        } else if (labelsFromAnnotation.isPresent()) {
+        if (labelsFromAnnotation.isPresent()) {
             job.setLabels(stream(labelsFromAnnotation.get()).map(s -> resolveParameters(s, job)).collect(toSet()));
         }
     }
@@ -101,5 +98,9 @@ public class DefaultJobFilter implements JobClientFilter {
         }
         matcher.appendTail(result);
         return result.toString();
+    }
+
+    private Optional<Job> getJobAnnotation(JobDetails jobDetails) {
+        return JobUtils.getJobAnnotation(jobDetails);
     }
 }

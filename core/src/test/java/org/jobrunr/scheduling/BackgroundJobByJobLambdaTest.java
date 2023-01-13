@@ -108,6 +108,14 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
+    void testCreateViaBuilderAndAnnotationMustFail() {
+        assertThatThrownBy(() -> BackgroundJob.create(aJob()
+                .withDetails(() -> testService.doWorkWithAnnotation(3, "Jef Klak"))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
+    }
+
+    @Test
     void testEnqueueSystemOut() {
         JobId jobId = BackgroundJob.enqueue(() -> System.out.println("this is a test"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
@@ -212,6 +220,15 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testEnqueueStreamWithMethodReference() {
         BackgroundJob.enqueue(getWorkStream(), TestService::doWorkWithUUID);
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
+    }
+
+    @Test
+    void testCreateStreamWithJobBuilder() {
+        BackgroundJob.create(getWorkStream()
+                .map(uuid -> aJob().withDetails(() -> System.out.println("this is a test")))
+        );
+
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
     }
 

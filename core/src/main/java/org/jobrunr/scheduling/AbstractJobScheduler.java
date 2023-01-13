@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
@@ -50,6 +51,10 @@ public abstract class AbstractJobScheduler {
         this.storageProvider = storageProvider;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
+
+    abstract JobId create(JobBuilder jobBuilder);
+
+    abstract void create(Stream<JobBuilder> jobBuilderStream);
 
     /**
      * @see #delete(UUID)

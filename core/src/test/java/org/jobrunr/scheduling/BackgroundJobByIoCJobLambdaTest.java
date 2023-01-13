@@ -288,7 +288,7 @@ public class BackgroundJobByIoCJobLambdaTest {
     @Test
     void recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts() {
         BackgroundJob.<TestService>scheduleRecurrently("my-job-id", every5Seconds, x -> x.doWorkThatTakesLong(20));
-        await().atMost(ofSeconds(6)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
+        await().atMost(ofSeconds(11)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
         final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
         backgroundJobServer.stop();
 

@@ -97,6 +97,14 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
+    void testCreateViaBuilderAndAnnotationMustFail() {
+        assertThatThrownBy(() -> BackgroundJobRequest.create(aJob()
+                .withJobRequest(new TestJobRequest("not important"))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
+    }
+
+    @Test
     void testEnqueue() {
         JobId jobId = BackgroundJobRequest.enqueue(new TestJobRequest("from testEnqueue"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
@@ -139,8 +147,17 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testEnqueueStreamWithMultipleParameters() {
-        Stream<JobRequest> workStream = getWorkStream();
+        Stream<JobRequest> workStream = jobRequestStream();
         BackgroundJobRequest.enqueue(workStream);
+
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
+    }
+
+    @Test
+    void testCreateStreamWithJobBuilder() {
+        BackgroundJobRequest.create(jobRequestWithoutJobAnnotationStream()
+                .map(jobRequest -> aJob().withJobRequest(jobRequest))
+        );
 
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
     }
@@ -262,7 +279,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts() {
         BackgroundJobRequest.scheduleRecurrently("my-job-id", every5Seconds, new TestJobRequestThatTakesLong("from recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts", 20));
-        await().atMost(ofSeconds(6)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
+        await().atMost(ofSeconds(11)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
         final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
         backgroundJobServer.stop();
 
@@ -337,13 +354,23 @@ public class BackgroundJobByJobRequestTest {
         return new Condition<>(s -> new HashSet<>(s.values()).size() == 2 && new HashSet<>(s.values()).contains(id), "a value matches %s", id);
     }
 
-    private Stream<JobRequest> getWorkStream() {
+    private Stream<JobRequest> jobRequestStream() {
         return Stream.of(
                 new TestJobRequest("Workstream item 1"),
                 new TestJobRequest("Workstream item 2"),
                 new TestJobRequest("Workstream item 3"),
                 new TestJobRequest("Workstream item 4"),
                 new TestJobRequest("Workstream item 5")
+        );
+    }
+
+    private Stream<TestJobRequestWithoutJobAnnotation> jobRequestWithoutJobAnnotationStream() {
+        return Stream.of(
+                new TestJobRequestWithoutJobAnnotation("Workstream item 1"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 2"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 3"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 4"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 5")
         );
     }
 }

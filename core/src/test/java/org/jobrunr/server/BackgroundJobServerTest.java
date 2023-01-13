@@ -7,7 +7,6 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJob;
@@ -269,7 +268,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForIoCJobWithoutInstance() {
         final Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestServiceForIoC>) (x) -> x.doWork())
+                .<TestService>withJobDetails(ts -> ts.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -291,7 +290,7 @@ class BackgroundJobServerTest {
         jobActivator.clear();
 
         final Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestService>) (x) -> x.doWork())
+                .<TestService>withJobDetails(ts -> ts.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -325,7 +324,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForJobThatCannotBeRun() {
         final Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestServiceThatCannotBeRun>) (x) -> x.doWork())
+                .<TestServiceThatCannotBeRun>withJobDetails(ts -> ts.doWork())
                 .build();
         assertThatThrownBy(() -> backgroundJobServer.getBackgroundJobRunner(job))
                 .isInstanceOf(JobRunrException.class);

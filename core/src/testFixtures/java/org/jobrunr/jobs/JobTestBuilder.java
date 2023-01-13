@@ -19,8 +19,8 @@ import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
@@ -214,7 +214,7 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withJobDetails(IocJobLambda jobLambda) {
+    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
         this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;
     }

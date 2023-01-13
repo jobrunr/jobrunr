@@ -68,8 +68,21 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param jobBuilder the jobBuilder with all the details of the job
      * @return the id of the job
      */
+    @Override
     public JobId create(JobBuilder jobBuilder) {
         return saveJob(jobBuilder.build(jobDetailsGenerator));
+    }
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
+     *
+     * @param jobBuilderStream the jobBuilders for which to create jobs.
+     */
+    @Override
+    public void create(Stream<JobBuilder> jobBuilderStream) {
+        jobBuilderStream
+                .map(jobBuilder -> jobBuilder.build(jobDetailsGenerator))
+                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 
     /**

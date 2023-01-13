@@ -10,6 +10,7 @@ import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.utils.JobUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -206,6 +207,10 @@ public class JobBuilder {
     }
 
     private Job build(JobDetails jobDetails) {
+        if(JobUtils.getJobAnnotation(jobDetails).isPresent()) {
+            throw new IllegalStateException("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
+        }
+
         Job job = new Job(jobId, jobDetails, getState());
         setJobName(job);
         setAmountOfRetries(job);

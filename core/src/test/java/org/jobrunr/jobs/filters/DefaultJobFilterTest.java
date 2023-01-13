@@ -10,7 +10,6 @@ import org.slf4j.MDC;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
@@ -42,22 +41,6 @@ class DefaultJobFilterTest {
     }
 
     @Test
-    void testDisplayNameExceptionIsThrownIfJobBuilderIsUsedWithAnnotation() {
-        Job job = anEnqueuedJob()
-                .withName("My job name")
-                .withJobDetails(jobDetails()
-                        .withClassName(TestService.class)
-                        .withMethodName("doWorkWithAnnotation")
-                        .withJobParameter(5)
-                        .withJobParameter("John Doe"))
-                .build();
-
-        assertThatThrownBy(() -> defaultJobFilter.onCreating(job))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
-    }
-
-    @Test
     void testAmountOfRetriesIsUsedIfProvidedByJobBuilder() {
         Job job = anEnqueuedJob()
                 .withAmountOfRetries(3)
@@ -70,21 +53,6 @@ class DefaultJobFilterTest {
         defaultJobFilter.onCreating(job);
 
         assertThat(job).hasAmountOfRetries(3);
-    }
-
-    @Test
-    void testAmountOfRetriesExceptionIsThrownIfJobBuilderIsUsedWithAnnotation() {
-        Job job = anEnqueuedJob()
-                .withoutName()
-                .withAmountOfRetries(3)
-                .withJobDetails(jobDetails()
-                        .withClassName(TestService.class)
-                        .withMethodName("doWorkThatFails"))
-                .build();
-
-        assertThatThrownBy(() -> defaultJobFilter.onCreating(job))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
     }
 
     @Test
@@ -111,21 +79,6 @@ class DefaultJobFilterTest {
         defaultJobFilter.onCreating(job);
 
         assertThat(job).hasLabels(Set.of("label-3 - customer name"));
-    }
-
-    @Test
-    void testLabelsExceptionIsThrownIfJobBuilderIsUsedWithAnnotation() {
-        Job job = anEnqueuedJob()
-                .withoutName()
-                .withLabels("TestLabel", "Email")
-                .withJobDetails(jobDetails()
-                        .withClassName(TestService.class)
-                        .withMethodName("doWorkThatFails"))
-                .build();
-
-        assertThatThrownBy(() -> defaultJobFilter.onCreating(job))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("You are combining the JobBuilder with the Job annotation. You can only use one of them.");
     }
 
     @Test

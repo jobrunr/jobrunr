@@ -32,6 +32,15 @@ public class BackgroundJobRequest {
     }
 
     /**
+     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
+     *
+     * @param jobBuilderStream the jobBuilders for which to create jobs.
+     */
+    public static void create(Stream<JobBuilder> jobBuilderStream) {
+        jobRequestScheduler.create(jobBuilderStream);
+    }
+
+    /**
      * Creates a new fire-and-forget job based on a given jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
