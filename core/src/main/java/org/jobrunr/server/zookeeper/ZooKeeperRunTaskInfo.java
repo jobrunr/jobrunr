@@ -38,8 +38,12 @@ public class ZooKeeperRunTaskInfo implements ZooKeeperTaskInfo, AutoCloseable {
         return runStartTime;
     }
 
+    public void markRunAsSucceeded() {
+        this.runSucceeded = true;
+    }
+
     @Override
     public void close() {
-        zooKeeperStatistics.logRun(runIndex, backgroundJobServerStatus.getPollIntervalInSeconds(), runStartTime, Instant.now());
+        zooKeeperStatistics.logRun(runIndex, runSucceeded, backgroundJobServerStatus.getPollIntervalInSeconds(), runStartTime, Instant.now());
     }
 }

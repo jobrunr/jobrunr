@@ -55,6 +55,7 @@ public class JobZooKeeper implements Runnable {
             updateJobsThatAreBeingProcessed(runInfo);
             runMasterTasksIfCurrentServerIsMaster(runInfo);
             onboardNewWorkIfPossible(runInfo);
+            runInfo.markRunAsSucceeded();
         } catch (Exception e) {
             zooKeeperStatistics.handleException(e);
             if (zooKeeperStatistics.hasTooManyExceptions()) {
