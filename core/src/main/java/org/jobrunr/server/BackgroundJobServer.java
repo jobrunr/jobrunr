@@ -11,7 +11,7 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.CreateClusterIdIfNotExists;
-import org.jobrunr.server.tasks.UpdateRecurringJobsTask;
+import org.jobrunr.server.tasks.MigrateFromV5toV6Task;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -161,7 +161,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
         this.isMaster = isMaster;
         if (isMaster != null) {
-            LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getName(), workDistributionStrategy.getWorkerCount());
+            LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
             if(isMaster) {
                 runStartupTasks();
             }
@@ -284,7 +284,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
                     new CheckForNewJobRunrVersion(this),
-                    new UpdateRecurringJobsTask(this));
+                    new MigrateFromV5toV6Task(this));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
             // server is shut down immediately

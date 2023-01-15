@@ -75,7 +75,7 @@ public class JobRunrDashboardWebServer {
         webServer.start();
 
         LOGGER.info("JobRunr Dashboard using {} started at http://{}:{}/dashboard",
-                storageProvider.getName(),
+                storageProvider.getStorageProviderInfo().getName(),
                 webServer.getWebServerHostAddress(),
                 webServer.getWebServerHostPort());
     }

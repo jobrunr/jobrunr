@@ -36,8 +36,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     @Override
-    public String getName() {
-        return this.getClass().getSimpleName();
+    public StorageProviderInfo getStorageProviderInfo() {
+        return new StorageProviderInfo(this);
     }
 
     @Override

@@ -15,4 +15,14 @@ class PageRequestTest {
         assertThat(pageRequest.getOffset()).isEqualTo(20);
         assertThat(pageRequest.getLimit()).isEqualTo(20);
     }
+
+    @Test
+    void testNextPage() {
+        PageRequest pageRequest = PageRequest.ascOnUpdatedAt( 20);
+
+        PageRequest nextPageRequest = pageRequest.nextPage();
+        assertThat(nextPageRequest.getOrder()).isEqualTo("updatedAt:ASC");
+        assertThat(nextPageRequest.getOffset()).isEqualTo(20);
+        assertThat(nextPageRequest.getLimit()).isEqualTo(20);
+    }
 }

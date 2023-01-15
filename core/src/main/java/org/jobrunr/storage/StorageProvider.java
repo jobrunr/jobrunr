@@ -25,7 +25,7 @@ public interface StorageProvider extends AutoCloseable {
 
     int BATCH_SIZE = 5000;
 
-    String getName();
+    StorageProviderInfo getStorageProviderInfo();
 
     void setJobMapper(JobMapper jobMapper);
 
@@ -107,4 +107,21 @@ public interface StorageProvider extends AutoCloseable {
     }
 
     void close();
+
+    class StorageProviderInfo {
+
+        private final StorageProvider storageProvider;
+
+        protected StorageProviderInfo(StorageProvider storageProvider) {
+            this.storageProvider = storageProvider;
+        }
+
+        public String getName() {
+            return storageProvider.getClass().getSimpleName();
+        }
+
+        public Class<? extends StorageProvider> getImplementationClass() {
+            return storageProvider.getClass();
+        }
+    }
 }
