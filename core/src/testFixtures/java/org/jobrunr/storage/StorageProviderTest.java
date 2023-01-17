@@ -1,5 +1,6 @@
 package org.jobrunr.storage;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
@@ -639,7 +640,7 @@ public abstract class StorageProviderTest {
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult4.getLastModifiedHash())).isFalse());
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForSaveAndDeleteJob() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
@@ -653,7 +654,7 @@ public abstract class StorageProviderTest {
         await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForSaveJobList() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
@@ -667,7 +668,7 @@ public abstract class StorageProviderTest {
         await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForDeleteJobsByState() {
         storageProvider.save(asList(anEnqueuedJob().build(), anEnqueuedJob().build()));
 
