@@ -32,7 +32,7 @@ dependencies {
         api 'com.zaxxer:HikariCP:5.0.1'
         api 'org.apache.commons:commons-dbcp2:2.9.0'
         api 'com.mchange:c3p0:0.9.5.5'
-        api 'org.apache.tomcat:tomcat-jdbc:10.1.2'
+        api 'org.apache.tomcat:tomcat-jdbc:10.1.5'
         api 'redis.clients:jedis:4.3.1'
         api 'io.lettuce:lettuce-core:6.2.1.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:4.8.0'
