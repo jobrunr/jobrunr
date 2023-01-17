@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
+import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.sql.*;
 import java.time.Duration;
@@ -252,7 +253,8 @@ public class Sql<T> {
         return new ParsedStatement(parsedStatement, new ArrayList<>(paramNames));
     }
 
-    final String parseStatement(String query) {
+    @VisibleFor("testing")
+    String parseStatement(String query) {
         paramNames.clear();
         // I was originally using regular expressions, but they didn't work well for ignoring
         // parameter-like strings inside quotes.
