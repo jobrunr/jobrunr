@@ -6,10 +6,6 @@ plugins {
     id 'signing'
 }
 
-repositories {
-    maven { url 'https://repo.spring.io/milestone' }
-}
-
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
@@ -20,8 +16,8 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:3.0.0')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.0.0')
+    api platform('org.springframework.boot:spring-boot-dependencies:3.0.1')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.0.1')
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter'
