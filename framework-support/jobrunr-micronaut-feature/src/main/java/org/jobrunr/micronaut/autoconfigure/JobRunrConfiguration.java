@@ -198,7 +198,7 @@ public interface JobRunrConfiguration {
         /**
          * Allows to enable the MicroMeter integration
          */
-        @Bindable(defaultValue = "true")
+        @Bindable(defaultValue = "false")
         boolean isEnabled();
     }
 }

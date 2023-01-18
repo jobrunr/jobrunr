@@ -96,7 +96,8 @@ abstract class JobMapperTest {
         String jobAsString = jobMapper.serializeJob(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/jobs/mappers/enqueued-job-with-labels.json"));
 
-        assertThatCode(() -> jobMapper.deserializeJob(jobAsString)).doesNotThrowAnyException();
+        final Job actualJob = jobMapper.deserializeJob(jobAsString);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     @Test

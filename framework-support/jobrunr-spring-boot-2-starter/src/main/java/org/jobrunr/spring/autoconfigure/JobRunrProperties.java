@@ -450,7 +450,7 @@ public class JobRunrProperties {
         /**
          * Configures whether metrics are reported to MicroMeter.
          */
-        private boolean enabled = true;
+        private boolean enabled = false;
 
         public boolean isEnabled() {
             return enabled;
