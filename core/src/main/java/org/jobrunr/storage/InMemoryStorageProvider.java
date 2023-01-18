@@ -320,7 +320,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private synchronized void saveJob(Job job) {
         final Job oldJob = jobQueue.get(job.getId());
-        if (oldJob != null && job.getVersion() != oldJob.getVersion()) {
+        if ((oldJob != null && job.getVersion() != oldJob.getVersion()) || (oldJob == null && job.getVersion() > 0)) {
             throw new ConcurrentJobModificationException(job);
         }
 

@@ -303,6 +303,16 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testOptimisticLockingOnSaveJobForJobThatWasDeleted() {
+        Job job = anEnqueuedJob().build();
+        storageProvider.save(job);
+        storageProvider.deletePermanently(job.getId());
+        job.succeeded();
+        assertThatThrownBy(() -> storageProvider.save(job))
+                .isInstanceOf(ConcurrentJobModificationException.class);
+    }
+
+    @Test
     void testSaveOfJobWithSameId() {
         UUID id = UUID.randomUUID();
         Job job1 = anEnqueuedJob().withId(id).build();
