@@ -21,11 +21,7 @@ public class M007_UpdateJobsCollectionReplaceIndices extends MongoMigration {
 
         MongoCollection<Document> jobCollection = jobrunrDatabase.getCollection(collectionName, Document.class);
 
-        jobCollection.listIndexes().forEach(doc -> {
-            String idxName = doc.getString("name");
-            if(idxName.startsWith("_")) return;
-            jobCollection.dropIndex(doc.getString("name"));
-        });
+        jobCollection.dropIndexes();
 
         // idx for recurring jobs that need to be fetched by JobZooKeeper ProcessRecurringJobsTask
         jobCollection.createIndex(
