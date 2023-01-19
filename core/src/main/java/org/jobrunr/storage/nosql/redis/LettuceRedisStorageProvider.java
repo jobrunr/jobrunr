@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.lettuce.core.Range.unbounded;
+import static java.lang.Integer.parseInt;
 import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
@@ -609,8 +610,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     private void updateJob(Job jobToSave, RedisCommands<String, String> commands) {
         commands.watch(jobVersionKey(keyPrefix, jobToSave));
-        final int version = Integer.parseInt(commands.get(jobVersionKey(keyPrefix, jobToSave)));
-        if (version != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
+        String versionAsString = commands.get(jobVersionKey(keyPrefix, jobToSave));
+        if (versionAsString == null || parseInt(versionAsString) != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
         commands.multi();
         saveJob(commands, jobToSave);
         TransactionResult result = commands.exec();
