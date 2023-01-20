@@ -478,11 +478,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         }
     }
 
-    private void runMigrations(MongoClient mongoClient, String dbName, String collectionPrefix) {
+    protected void runMigrations(MongoClient mongoClient, String dbName, String collectionPrefix) {
         new MongoDBCreator(mongoClient, dbName, collectionPrefix).runMigrations();
     }
 
-    private void validateTables(MongoClient mongoClient, String dbName, String collectionPrefix) {
+    protected void validateTables(MongoClient mongoClient, String dbName, String collectionPrefix) {
         new MongoDBCreator(mongoClient, dbName, collectionPrefix).validateCollections();
     }
 
