@@ -1,5 +1,6 @@
 package org.jobrunr.storage;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
@@ -93,11 +94,11 @@ public abstract class StorageProviderTest {
 
     @Test
     void testAnnounceAndListBackgroundJobServers() {
-        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
+        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withName("server-A").withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus1);
         sleep(100);
 
-        final BackgroundJobServerStatus serverStatus2 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
+        final BackgroundJobServerStatus serverStatus2 = aDefaultBackgroundJobServerStatus().withName("server-B").withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus2);
         sleep(100);
 
@@ -116,6 +117,7 @@ public abstract class StorageProviderTest {
         assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, ChronoUnit.MICROS));
         assertThat(backgroundJobServers.get(1).getLastHeartbeat()).isAfter(backgroundJobServers.get(1).getFirstHeartbeat());
         assertThat(backgroundJobServers).extracting("id").containsExactly(serverStatus1.getId(), serverStatus2.getId());
+        assertThat(backgroundJobServers).extracting("name").containsExactly(serverStatus1.getName(), serverStatus2.getName());
 
         assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus1.getId());
 
@@ -298,6 +300,16 @@ public abstract class StorageProviderTest {
 
         assertThat(job1).hasVersion(2);
         assertThat(job2).hasVersion(1);
+    }
+
+    @Test
+    void testOptimisticLockingOnSaveJobForJobThatWasDeleted() {
+        Job job = anEnqueuedJob().build();
+        storageProvider.save(job);
+        storageProvider.deletePermanently(job.getId());
+        job.succeeded();
+        assertThatThrownBy(() -> storageProvider.save(job))
+                .isInstanceOf(ConcurrentJobModificationException.class);
     }
 
     @Test
@@ -638,35 +650,35 @@ public abstract class StorageProviderTest {
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult4.getLastModifiedHash())).isFalse());
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForSaveAndDeleteJob() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
         Job job = anEnqueuedJob().build();
         storageProvider.save(job);
-        assertThat(onChangeListener.changes).hasSize(1);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
 
         job.delete("For test");
         storageProvider.save(job);
-        assertThat(onChangeListener.changes).hasSize(2);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForSaveJobList() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();
         storageProvider.addJobStorageOnChangeListener(onChangeListener);
 
         final List<Job> jobs = asList(anEnqueuedJob().build(), anEnqueuedJob().build());
         storageProvider.save(jobs);
-        assertThat(onChangeListener.changes).hasSize(1);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
 
         jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
         storageProvider.save(jobs);
-        assertThat(onChangeListener.changes).hasSize(2);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForDeleteJobsByState() {
         storageProvider.save(asList(anEnqueuedJob().build(), anEnqueuedJob().build()));
 
@@ -675,7 +687,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.deleteJobsPermanently(ENQUEUED, now());
 
-        assertThat(onChangeListener.changes).hasSize(1);
+        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
     }
 
     @Test

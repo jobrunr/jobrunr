@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -23,6 +24,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock reentrantLock;
+    private final ReentrantLock notifyJobStatsChangeListenersReentrantLock;
     private volatile Timer timer;
 
     protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
@@ -30,11 +32,12 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.reentrantLock = new ReentrantLock();
+        this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
     }
 
     @Override
-    public String getName() {
-        return this.getClass().getSimpleName();
+    public StorageProviderInfo getStorageProviderInfo() {
+        return new StorageProviderInfo(this);
     }
 
     @Override
@@ -63,18 +66,24 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     protected void notifyJobStatsOnChangeListeners() {
-        try {
-            if (changeListenerNotificationRateLimit.isRateLimited()) return;
-
-            final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
-                    .ofType(onChangeListeners, JobStatsChangeListener.class)
-                    .collect(toList());
-            if (!jobStatsChangeListeners.isEmpty()) {
-                JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
-                jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
-            }
-        } catch (Exception e) {
-            logError(e);
+        final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
+                .ofType(onChangeListeners, JobStatsChangeListener.class)
+                .collect(toList());
+        if (!jobStatsChangeListeners.isEmpty()) {
+            runAsync(() -> {
+                try {
+                    if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
+                    if (changeListenerNotificationRateLimit.isRateLimited()) return;
+                    JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
+                    jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
+                } catch (Exception e) {
+                    logError(e);
+                } finally {
+                    if(notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
+                        notifyJobStatsChangeListenersReentrantLock.unlock();
+                    }
+                }
+            });
         }
     }
 

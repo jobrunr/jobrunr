@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.*;
 class MongoDBCreatorTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.6").withExposedPorts(27017);
 
     @BeforeEach
     void clearAllCollections() {

@@ -5,6 +5,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -33,11 +34,15 @@ class JobRunrConfigurationTest {
     @Mock
     StorageProvider storageProvider;
 
+    @Mock
+    StorageProviderInfo storageProviderInfo;
+
     @Captor
     ArgumentCaptor<JobMapper> jobMapperCaptor;
 
     @BeforeEach
     void setUpStorageProvider() {
+        lenient().when(storageProvider.getStorageProviderInfo()).thenReturn(storageProviderInfo);
         lenient().when(storageProvider.getLongestRunningBackgroundJobServerId()).thenReturn(randomUUID());
         lenient().when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult());
     }

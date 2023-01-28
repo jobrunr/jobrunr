@@ -107,6 +107,12 @@ public class JobRunrConfiguration {
     public static class BackgroundJobServerConfiguration {
 
         /**
+         * Sets the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
+         */
+        @ConfigItem
+        public Optional<String> name;
+
+        /**
          * Enables the background processing of jobs.
          */
         @ConfigItem(defaultValue = "false")
@@ -207,7 +213,7 @@ public class JobRunrConfiguration {
         /**
          * Configures whether metrics are reported to MicroMeter.
          */
-        @ConfigItem(defaultValue = "true")
+        @ConfigItem(defaultValue = "false")
         public boolean enabled;
     }
 }

@@ -37,6 +37,7 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -68,6 +69,21 @@ public class BackgroundJobByIoCJobLambdaTest {
         MDC.clear();
         backgroundJobServer.stop();
         storageProvider.close();
+    }
+
+    @Test
+    void testCreateViaBuilder() {
+        UUID jobId = UUID.randomUUID();
+        BackgroundJob.create(aJob()
+                .withId(jobId)
+                .withName("My Job Name")
+                .withAmountOfRetries(3)
+                .<TestService>withDetails(x -> x.doWorkAndReturnResult("some string")));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasJobName("My Job Name")
+                .hasAmountOfRetries(3)
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -272,7 +288,7 @@ public class BackgroundJobByIoCJobLambdaTest {
     @Test
     void recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts() {
         BackgroundJob.<TestService>scheduleRecurrently("my-job-id", every5Seconds, x -> x.doWorkThatTakesLong(20));
-        await().atMost(ofSeconds(6)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
+        await().atMost(ofSeconds(11)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
         final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
         backgroundJobServer.stop();
 

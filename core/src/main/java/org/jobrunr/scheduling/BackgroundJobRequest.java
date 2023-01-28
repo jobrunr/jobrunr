@@ -23,6 +23,24 @@ public class BackgroundJobRequest {
     private static JobRequestScheduler jobRequestScheduler;
 
     /**
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobBuilder the jobBuilder with all the details of the job
+     * @return the id of the job
+     */
+    public static JobId create(JobBuilder jobBuilder) {
+        return jobRequestScheduler.create(jobBuilder);
+    }
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
+     *
+     * @param jobBuilderStream the jobBuilders for which to create jobs.
+     */
+    public static void create(Stream<JobBuilder> jobBuilderStream) {
+        jobRequestScheduler.create(jobBuilderStream);
+    }
+
+    /**
      * Creates a new fire-and-forget job based on a given jobRequest. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
@@ -322,6 +340,24 @@ public class BackgroundJobRequest {
     public static String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {
         verifyJobScheduler();
         return jobRequestScheduler.scheduleRecurrently(id, duration, jobRequest);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the given {@link RecurringJobBuilder}.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *
+     *      BackgroundJob.createRecurrently(aRecurringJob()
+     *                                        .withCron("* * 0 * * *")
+     *                                        .withDetails(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
+     * }</pre>
+     *
+     * @param recurringJobBuilder the builder defining the recurring job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static String createRecurrently(RecurringJobBuilder recurringJobBuilder) {
+        verifyJobScheduler();
+        return jobRequestScheduler.createRecurrently(recurringJobBuilder);
     }
 
     /**

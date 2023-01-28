@@ -57,4 +57,8 @@ public class PageRequest {
                 ", limit=" + limit +
                 '}';
     }
+
+    public PageRequest nextPage() {
+        return new PageRequest(order, offset + limit, limit);
+    }
 }

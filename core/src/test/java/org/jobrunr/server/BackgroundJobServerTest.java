@@ -7,7 +7,6 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJob;
@@ -58,6 +57,7 @@ class BackgroundJobServerTest {
     private TestServiceForIoC testServiceForIoC;
     private SimpleJobActivator jobActivator;
     private ListAppender<ILoggingEvent> logger;
+    private ListAppender<ILoggingEvent> jobZooKeeperLogger;
 
     @BeforeEach
     void setUp() {
@@ -74,6 +74,7 @@ class BackgroundJobServerTest {
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
         logger = LoggerAssert.initFor(backgroundJobServer);
+        jobZooKeeperLogger = LoggerAssert.initFor(backgroundJobServer.getJobZooKeeper());
     }
 
     @AfterEach
@@ -101,8 +102,8 @@ class BackgroundJobServerTest {
         JobId anotherJobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         // THEN the job should stay in state ENQUEUED
-        await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> testService.getProcessedJobs() == 1);
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
+        await().during(5, SECONDS).atMost(10, SECONDS).until(() -> testService.getProcessedJobs() == 1);
+        await().during(5, SECONDS).atMost(10, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
 
         // WHEN we resume the server again
         backgroundJobServer.resumeProcessing();
@@ -120,6 +121,7 @@ class BackgroundJobServerTest {
                 .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
         assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
+        assertThat(jobZooKeeperLogger).hasNoWarnLogMessages();
     }
 
     @Test
@@ -237,7 +239,7 @@ class BackgroundJobServerTest {
     void testBackgroundJobServerWasKilledWhileProcessing() {
         backgroundJobServer.start();
 
-        final Job jobThatWasProcessedButBackgroundJobServerWasKilled = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId()), now().minus(2, ChronoUnit.MINUTES)).build());
+        final Job jobThatWasProcessedButBackgroundJobServerWasKilled = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer), now().minus(2, ChronoUnit.MINUTES)).build());
         await().atMost(7, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobThatWasProcessedButBackgroundJobServerWasKilled.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
         await().atMost(7, SECONDS).until(() -> storageProvider.getJobById(jobThatWasProcessedButBackgroundJobServerWasKilled.getId()).hasState(SUCCEEDED));
     }
@@ -266,7 +268,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForIoCJobWithoutInstance() {
         final Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestServiceForIoC>) (x) -> x.doWork())
+                .<TestService>withJobDetails(ts -> ts.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -288,7 +290,7 @@ class BackgroundJobServerTest {
         jobActivator.clear();
 
         final Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestService>) (x) -> x.doWork())
+                .<TestService>withJobDetails(ts -> ts.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -322,7 +324,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForJobThatCannotBeRun() {
         final Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestServiceThatCannotBeRun>) (x) -> x.doWork())
+                .<TestServiceThatCannotBeRun>withJobDetails(ts -> ts.doWork())
                 .build();
         assertThatThrownBy(() -> backgroundJobServer.getBackgroundJobRunner(job))
                 .isInstanceOf(JobRunrException.class);

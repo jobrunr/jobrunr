@@ -24,6 +24,24 @@ public class BackgroundJob {
     private static JobScheduler jobScheduler;
 
     /**
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobBuilder the jobBuilder with all the details of the job
+     * @return the id of the job
+     */
+    public static JobId create(JobBuilder jobBuilder) {
+        return jobScheduler.create(jobBuilder);
+    }
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
+     *
+     * @param jobBuilderStream the jobBuilders for which to create jobs.
+     */
+    public static void create(Stream<JobBuilder> jobBuilderStream) {
+        jobScheduler.create(jobBuilderStream);
+    }
+
+    /**
      * Creates a new fire-and-forget job based on a given lambda.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -598,6 +616,24 @@ public class BackgroundJob {
     public static <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
         verifyJobScheduler();
         return jobScheduler.scheduleRecurrently(id, duration, iocJob);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the given {@link RecurringJobBuilder}.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *
+     *      BackgroundJob.createRecurrently(aRecurringJob()
+     *                                        .withCron("* * 0 * * *")
+     *                                        .withDetails(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
+     * }</pre>
+     *
+     * @param recurringJobBuilder the builder defining the recurring job
+     * @return the id of this recurring job which can be used to alter or delete it
+     */
+    public static String createRecurrently(RecurringJobBuilder recurringJobBuilder) {
+        verifyJobScheduler();
+        return jobScheduler.createRecurrently(recurringJobBuilder);
     }
 
     /**

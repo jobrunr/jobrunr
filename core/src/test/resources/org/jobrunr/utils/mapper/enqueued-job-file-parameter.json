@@ -1,0 +1,33 @@
+{
+  "version": 0,
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithFile(java.io.File)",
+  "jobName": "an enqueued job",
+  "amountOfRetries": null,
+  "labels": [],
+  "jobDetails": {
+    "cacheable": true,
+    "className": "org.jobrunr.stubs.TestService",
+    "staticFieldName": null,
+    "methodName": "doWorkWithFile",
+    "jobParameters": [
+      {
+        "className": "java.io.File",
+        "actualClassName": "java.io.File",
+        "object": "/tmp/test.txt"
+      }
+    ]
+  },
+  "id": "${json-unit.ignore}",
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  },
+  "recurringJobId": null
+}
+

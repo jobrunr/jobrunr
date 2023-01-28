@@ -11,7 +11,7 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.CreateClusterIdIfNotExists;
-import org.jobrunr.server.tasks.UpdateRecurringJobsTask;
+import org.jobrunr.server.tasks.MigrateFromV5toV6Task;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -105,7 +105,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 isRunning = true;
                 startZooKeepers();
                 startWorkers();
-                runStartupTasks();
             }
         }
     }
@@ -162,7 +161,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
         this.isMaster = isMaster;
         if (isMaster != null) {
-            LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getName(), workDistributionStrategy.getWorkerCount());
+            LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
+            if(isMaster) {
+                runStartupTasks();
+            }
         } else {
             LOGGER.error("JobRunr BackgroundJobServer failed to start");
         }
@@ -176,8 +178,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(
-                backgroundJobServerId, workDistributionStrategy.getWorkerCount(),
-                configuration.pollIntervalInSeconds, configuration.deleteSucceededJobsAfter, configuration.permanentlyDeleteDeletedJobsAfter,
+                backgroundJobServerId, configuration.getName(), workDistributionStrategy.getWorkerCount(),
+                configuration.getPollIntervalInSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
                 firstHeartbeat, Instant.now(), isRunning, jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(),
                 jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(), jobServerStats.getProcessFreeMemory(),
                 jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad()
@@ -212,7 +214,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobDefaultFilters.addAll(jobFilters);
     }
 
-    JobDefaultFilters getJobFilters() {
+    public JobDefaultFilters getJobFilters() {
         return jobDefaultFilters;
     }
 
@@ -224,7 +226,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 .orElseThrow(() -> problematicConfigurationException("Could not find a BackgroundJobRunner: either no JobActivator is registered, your Background Job Class is not registered within the IoC container or your Job does not have a default no-arg constructor."));
     }
 
-    void processJob(Job job) {
+    public void processJob(Job job) {
         BackgroundJobPerformer backgroundJobPerformer = backgroundJobPerformerFactory.newBackgroundJobPerformer(this, job);
         jobExecutor.execute(backgroundJobPerformer);
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
@@ -254,8 +256,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.pollIntervalInSeconds, TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
@@ -282,7 +284,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
                     new CheckForNewJobRunrVersion(this),
-                    new UpdateRecurringJobsTask(this));
+                    new MigrateFromV5toV6Task(this));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
             // server is shut down immediately
@@ -321,7 +323,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private WorkDistributionStrategy createWorkDistributionStrategy(BackgroundJobServerConfiguration configuration) {
-        return configuration.backgroundJobServerWorkerPolicy.toWorkDistributionStrategy(this);
+        return configuration.getBackgroundJobServerWorkerPolicy().toWorkDistributionStrategy(this);
     }
 
     private BackgroundJobPerformerFactory loadBackgroundJobPerformerFactory() {
@@ -334,9 +336,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private JobRunrExecutor loadJobRunrExecutor() {
         ServiceLoader<JobRunrExecutor> serviceLoader = ServiceLoader.load(JobRunrExecutor.class);
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
-                .sorted((a, b) -> compare(b.getPriority(), a.getPriority()))
-                .findFirst()
-                .orElse(new ScheduledThreadPoolJobRunrExecutor(workDistributionStrategy.getWorkerCount(), "backgroundjob-worker-pool"));
+                .min((a, b) -> compare(b.getPriority(), a.getPriority()))
+                .orElseGet(() -> new ScheduledThreadPoolJobRunrExecutor(workDistributionStrategy.getWorkerCount(), "backgroundjob-worker-pool"));
     }
 
     private static class BackgroundJobServerLifecycleLock implements AutoCloseable {

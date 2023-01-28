@@ -62,7 +62,8 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR_PREFIX;
@@ -267,7 +268,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public List<JobRunrMetadata> getMetadata(final String name) {
         try {
             final SearchSourceBuilder source = new SearchSourceBuilder()
-                    .query(matchQuery(FIELD_NAME, name))
+                    .query(matchQuery(Metadata.FIELD_NAME, name))
                     .size(MAX_SIZE);
 
             final SearchResponse response = client.search(new SearchRequest()
@@ -295,7 +296,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public void deleteMetadata(final String name) {
-        final long deleted = deleteByQuery(metadataIndexName, matchQuery(FIELD_NAME, name));
+        final long deleted = deleteByQuery(metadataIndexName, matchQuery(Metadata.FIELD_NAME, name));
 
         if (deleted > 0) {
             notifyMetadataChangeListeners();

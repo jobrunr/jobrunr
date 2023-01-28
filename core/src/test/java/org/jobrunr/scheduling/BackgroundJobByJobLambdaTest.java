@@ -50,6 +50,8 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.scheduling.JobBuilder.aJob;
+import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -91,6 +93,29 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
+    void testCreateViaBuilder() {
+        UUID jobId = UUID.randomUUID();
+        BackgroundJob.create(aJob()
+                .withId(jobId)
+                .withName("My Job Name")
+                .withAmountOfRetries(3)
+                .withDetails(() -> testService.doWorkAndReturnResult("some string")));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasJobName("My Job Name")
+                .hasAmountOfRetries(3)
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testCreateViaBuilderAndAnnotationMustFail() {
+        assertThatThrownBy(() -> BackgroundJob.create(aJob()
+                .withDetails(() -> testService.doWorkWithAnnotation(3, "Jef Klak"))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
+    }
+
+    @Test
     void testEnqueueSystemOut() {
         JobId jobId = BackgroundJob.enqueue(() -> System.out.println("this is a test"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
@@ -109,7 +134,7 @@ public class BackgroundJobByJobLambdaTest {
         UUID id = UUID.randomUUID();
         JobId jobId1 = BackgroundJob.enqueue(id, () -> testService.doWork());
         JobId jobId2 = BackgroundJob.enqueue(id, () -> testService.doWork());
-        // why: no exception whould be thrown.
+        // why: no exception would be thrown.
 
         assertThat(jobId1).isEqualTo(jobId2);
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId1)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
@@ -195,6 +220,15 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testEnqueueStreamWithMethodReference() {
         BackgroundJob.enqueue(getWorkStream(), TestService::doWorkWithUUID);
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
+    }
+
+    @Test
+    void testCreateStreamWithJobBuilder() {
+        BackgroundJob.create(getWorkStream()
+                .map(uuid -> aJob().withDetails(() -> System.out.println("this is a test")))
+        );
+
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
     }
 
@@ -285,6 +319,17 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
+    void testRecurringCronJobFromBuilder() {
+        BackgroundJob.createRecurrently(aRecurringJob()
+                .withCron(every5Seconds)
+                .withDetails(() -> testService.doWork(5)));
+        await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 3);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testRecurringCronJobWithJobContext() {
         BackgroundJob.scheduleRecurrently(every5Seconds, () -> testService.doWork(5, JobContext.Null));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
@@ -311,7 +356,7 @@ public class BackgroundJobByJobLambdaTest {
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testRecurringCronJobDoesNotSkipRecurringJobsIfStopTheWorldGCOccurs() {
         TestServiceForRecurringJobsIfStopTheWorldGCOccurs testService = new TestServiceForRecurringJobsIfStopTheWorldGCOccurs();
         testService.resetProcessedJobs();
@@ -331,6 +376,17 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testRecurringIntervalJob() {
         BackgroundJob.scheduleRecurrently(Duration.ofSeconds(5), () -> testService.doWork(5));
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringIntervalJobFromBuilder() {
+        BackgroundJob.createRecurrently(aRecurringJob()
+                .withDuration(Duration.ofSeconds(5))
+                .withDetails(() -> testService.doWork(5)));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -367,7 +423,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void jobsStuckInProcessingStateAreRescheduled() {
-        Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer.getId()), now().minus(15, ChronoUnit.MINUTES)).build());
+        Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer), now().minus(15, ChronoUnit.MINUTES)).build());
         await().atMost(3, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
     }
 

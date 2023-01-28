@@ -16,7 +16,7 @@ compileTestJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'org.slf4j:slf4j-simple:2.0.3'
+    implementation 'ch.qos.logback:logback-classic:1.4.5'
 
     testImplementation 'org.jobrunr:jobrunr:[5.2.0]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.8.7'
@@ -25,8 +25,8 @@ dependencies {
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.27.0'
     testImplementation 'org.awaitility:awaitility:4.1.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
-    testImplementation 'org.testcontainers:testcontainers:1.17.3'
-    testImplementation 'org.testcontainers:junit-jupiter:1.17.3'
+    testImplementation 'org.testcontainers:testcontainers:1.17.6'
+    testImplementation 'org.testcontainers:junit-jupiter:1.17.6'
 }
 
 test {

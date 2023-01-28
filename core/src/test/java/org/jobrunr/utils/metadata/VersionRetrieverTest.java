@@ -20,12 +20,12 @@ class VersionRetrieverTest {
 
     @Test
     void gsonVersion() {
-        assertThat(VersionRetriever.getVersion(Gson.class)).isEqualTo("2.9.1");
+        assertThat(VersionRetriever.getVersion(Gson.class)).isEqualTo("2.10.1");
     }
 
     @Test
     void jacksonVersion() {
-        assertThat(VersionRetriever.getVersion(ObjectMapper.class)).isEqualTo("2.13.4");
+        assertThat(VersionRetriever.getVersion(ObjectMapper.class)).isEqualTo("2.14.1");
     }
 
 }

@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 import static java.time.Instant.now;
 import static java.util.Arrays.stream;
@@ -80,6 +81,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
         try (final Jedis jedis = getJedis(); final Transaction t = jedis.multi()) {
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_NAME, serverStatus.getName());
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_WORKER_POOL_SIZE, String.valueOf(serverStatus.getWorkerPoolSize()));
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, String.valueOf(serverStatus.getPollIntervalInSeconds()));
             t.hset(backgroundJobServerKey(keyPrefix, serverStatus), BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, String.valueOf(serverStatus.getDeleteSucceededJobsAfter()));
@@ -141,8 +143,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .mapAfterSync(Response::get)
                     .map(fieldMap -> new BackgroundJobServerStatus(
                             UUID.fromString(fieldMap.get(BackgroundJobServers.FIELD_ID)),
-                            Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
-                            Integer.parseInt(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
+                            fieldMap.get(BackgroundJobServers.FIELD_NAME),
+                            parseInt(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE)),
+                            parseInt(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS)),
                             Duration.parse(fieldMap.get(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER)),
                             Duration.parse(fieldMap.get(BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER)),
                             Instant.parse(fieldMap.get(BackgroundJobServers.FIELD_FIRST_HEARTBEAT)),
@@ -563,8 +566,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     private void updateJob(Job jobToSave, Jedis jedis) {
         jedis.watch(jobVersionKey(keyPrefix, jobToSave));
-        final int version = Integer.parseInt(jedis.get(jobVersionKey(keyPrefix, jobToSave)));
-        if (version != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
+        String versionAsString = jedis.get(jobVersionKey(keyPrefix, jobToSave));
+        if (versionAsString == null || parseInt(versionAsString) != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
         try (Transaction transaction = jedis.multi()) {
             saveJob(transaction, jobToSave);
             List<Object> result = transaction.exec();

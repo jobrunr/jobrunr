@@ -18,14 +18,25 @@ import java.util.*;
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
+import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public class JobTestBuilder {
 
+    public static List<Job>[] emptyJobList() {
+        List<Job>[] result = cast(new ArrayList[1]);
+        result[0] = new ArrayList<>();
+        return result;
+    }
+
     private UUID id;
     private Integer version;
     private String name;
+    private Integer amountOfRetries;
+    private Set<String> labels;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
@@ -74,7 +85,7 @@ public class JobTestBuilder {
     }
 
     public static JobTestBuilder aJobInProgress() {
-        return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID()));
+        return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
     }
 
     public static JobTestBuilder aScheduledJob() {
@@ -87,7 +98,7 @@ public class JobTestBuilder {
         return anEnqueuedJob()
                 .withName("a failed job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
-                .withState(new ProcessingState(UUID.randomUUID()))
+                .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
                 .withState(new FailedState("a message", new IllegalStateException()));
     }
 
@@ -95,7 +106,7 @@ public class JobTestBuilder {
         return anEnqueuedJob()
                 .withName("a succeeded job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
-                .withState(new ProcessingState(UUID.randomUUID()))
+                .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
                 .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.ofSeconds(10L, 7345L)));
     }
 
@@ -115,9 +126,9 @@ public class JobTestBuilder {
         UUID serverId = UUID.randomUUID();
         for (int i = 0; i < 4; i++) {
             jobTestBuilder.withState(new EnqueuedState());
-            jobTestBuilder.withState(new ProcessingState(serverId));
+            jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
             jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
-            if(i < 3) {
+            if (i < 3) {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
@@ -135,9 +146,9 @@ public class JobTestBuilder {
         UUID serverId = UUID.randomUUID();
         for (int i = 0; i < 11; i++) {
             jobTestBuilder.withState(new EnqueuedState());
-            jobTestBuilder.withState(new ProcessingState(serverId));
+            jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
             jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
-            if(i < 10) {
+            if (i < 10) {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
@@ -169,6 +180,20 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withAmountOfRetries(int amountOfRetries) {
+        this.amountOfRetries = amountOfRetries;
+        return this;
+    }
+
+    public JobTestBuilder withLabels(String... labels) {
+        return withLabels(asSet(labels));
+    }
+
+    public JobTestBuilder withLabels(Set<String> labels) {
+        this.labels = labels;
+        return this;
+    }
+
     public JobTestBuilder withoutName() {
         this.name = null;
         return this;
@@ -189,7 +214,7 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withJobDetails(IocJobLambda jobLambda) {
+    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
         this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;
     }
@@ -221,7 +246,7 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withProcessingState() {
-        return withState(new ProcessingState(UUID.randomUUID()));
+        return withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
     }
 
     public JobTestBuilder withSucceededState() {
@@ -258,6 +283,12 @@ public class JobTestBuilder {
         if (locker != null) {
             Whitebox.setInternalState(job, "locker", locker);
         }
+        if (amountOfRetries != null) {
+            job.setAmountOfRetries(amountOfRetries);
+        }
+        if (labels != null) {
+            job.setLabels(labels);
+        }
         job.setJobName(name);
         job.getMetadata().putAll(metadata);
 
@@ -265,6 +296,4 @@ public class JobTestBuilder {
         jobHistory.addAll(states);
         return job;
     }
-
-
 }

@@ -30,14 +30,14 @@ class JobRunrMetricsBinderTest {
     }
 
     @Test
-    void storageProviderMetricsAreAutoConfigured() {
-        assertThat(context).hasSingleBean(StorageProviderMetricsBinder.class);
+    void storageProviderMetricsAreDisabledByDefault() {
+        assertThat(context).doesNotHaveBean(BackgroundJobServerMetricsBinder.class);
     }
 
     @Test
-    @Property(name = "jobrunr.jobs.metrics.enabled", value = "false")
-    void storageProviderMetricsAreDisabledIfJobsMetricsAreDisabled() {
-        assertThat(context).doesNotHaveBean(BackgroundJobServerMetricsBinder.class);
+    @Property(name = "jobrunr.jobs.metrics.enabled", value = "true")
+    void storageProviderMetricsAreEnabledIfJobsMetricsAreEnabled() {
+        assertThat(context).hasSingleBean(StorageProviderMetricsBinder.class);
     }
 
     @Test

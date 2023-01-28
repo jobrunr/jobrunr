@@ -22,8 +22,8 @@ java {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:2.13.0.Final')
-    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.13.0.Final'
+    api platform('io.quarkus:quarkus-bom:2.15.3.Final')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.15.3.Final'
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'

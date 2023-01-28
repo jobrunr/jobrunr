@@ -38,7 +38,7 @@ import java.util.function.Predicate;
 
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -51,6 +51,7 @@ import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.*;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -385,18 +386,19 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         final Document succeededJobStats = metadataCollection.find(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID)).first();
         final long allTimeSucceededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
-        final List<Document> aggregates = jobCollection.aggregate(asList(
-                        match(ne(Jobs.FIELD_STATE, null)),
-                        group("$state", Accumulators.sum(Jobs.FIELD_STATE, 1)),
+        final List<Document> stateAggregation = jobCollection.aggregate(asList(
+                        match(ne(FIELD_STATE, null)),
+                        project(fields(excludeId(), include(FIELD_STATE))),
+                        group("$state", Accumulators.sum(FIELD_STATE, 1)),
                         limit(10)))
                 .into(new ArrayList<>());
 
-        Long scheduledCount = getCount(SCHEDULED, aggregates);
-        Long enqueuedCount = getCount(ENQUEUED, aggregates);
-        Long processingCount = getCount(PROCESSING, aggregates);
-        Long succeededCount = getCount(SUCCEEDED, aggregates);
-        Long failedCount = getCount(FAILED, aggregates);
-        Long deletedCount = getCount(DELETED, aggregates);
+        Long scheduledCount = getCount(SCHEDULED, stateAggregation);
+        Long enqueuedCount = getCount(ENQUEUED, stateAggregation);
+        Long processingCount = getCount(PROCESSING, stateAggregation);
+        Long succeededCount = getCount(SUCCEEDED, stateAggregation);
+        Long failedCount = getCount(FAILED, stateAggregation);
+        Long deletedCount = getCount(DELETED, stateAggregation);
 
         final long total = scheduledCount + enqueuedCount + processingCount + succeededCount + failedCount;
         final int recurringJobCount = (int) recurringJobCollection.countDocuments();
@@ -476,11 +478,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         }
     }
 
-    private void runMigrations(MongoClient mongoClient, String dbName, String collectionPrefix) {
+    protected void runMigrations(MongoClient mongoClient, String dbName, String collectionPrefix) {
         new MongoDBCreator(mongoClient, dbName, collectionPrefix).runMigrations();
     }
 
-    private void validateTables(MongoClient mongoClient, String dbName, String collectionPrefix) {
+    protected void validateTables(MongoClient mongoClient, String dbName, String collectionPrefix) {
         new MongoDBCreator(mongoClient, dbName, collectionPrefix).validateCollections();
     }
 

@@ -5,8 +5,10 @@ import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
-import TimeAgo from "react-timeago/lib";
 import {Delete} from "mdi-material-ui";
+import SwitchableTimeAgo from "../../utils/time-ago";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+import {Icon} from "@material-ui/core";
 
 
 const useStyles = makeStyles(() => ({
@@ -51,6 +53,10 @@ const Deleted = (props) => {
             <AccordionSummary
                 className={classes.info}
                 id="deleted-panel-header"
+                expandIcon={jobState.reason
+                    ? <ExpandMore />
+                    : <Icon />
+                }
             >
                 <Alert className={classes.alert} severity="info" icon={deletedIcon}>
                     <Typography className={classes.primaryHeading} variant="h6">
@@ -58,7 +64,7 @@ const Deleted = (props) => {
                     </Typography>
                 </Alert>
                 <Typography className={classes.secondaryHeading}>
-                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
             { jobState.reason &&
@@ -66,7 +72,6 @@ const Deleted = (props) => {
                 <div className={classes.details}>{jobState.reason}</div>
             </AccordionDetails>
             }
-
         </Accordion>
     )
 };

@@ -47,6 +47,7 @@ class JobRunrProducerTest {
         configuration.jobScheduler = new JobRunrConfiguration.JobSchedulerConfiguration();
         configuration.jobScheduler.jobDetailsGenerator = Optional.empty();
         configuration.backgroundJobServer = new JobRunrConfiguration.BackgroundJobServerConfiguration();
+        configuration.backgroundJobServer.name = Optional.empty();
         configuration.backgroundJobServer.pollIntervalInSeconds = Optional.empty();
         configuration.backgroundJobServer.workerCount = Optional.empty();
         configuration.backgroundJobServer.scheduledJobsRequestSize = Optional.empty();
@@ -109,6 +110,7 @@ class JobRunrProducerTest {
 
     @Test
     void backgroundJobServerConfigurationMapsCorrectConfigurationWhenConfigured() {
+        configuration.backgroundJobServer.name = Optional.of("test");
         configuration.backgroundJobServer.enabled = true;
         configuration.backgroundJobServer.pollIntervalInSeconds = Optional.of(5);
         configuration.backgroundJobServer.workerCount = Optional.of(4);
@@ -117,6 +119,7 @@ class JobRunrProducerTest {
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration();
         assertThat(backgroundJobServerConfiguration).isNotNull();
+        assertThat((String) getInternalState(backgroundJobServerConfiguration, "name")).isEqualTo("test");
         assertThat((int) getInternalState(backgroundJobServerConfiguration, "pollIntervalInSeconds")).isEqualTo(5);
         assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
         assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));

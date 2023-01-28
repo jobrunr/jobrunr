@@ -37,6 +37,7 @@ public class ElasticSearchDocumentMapper {
             XContentBuilder builder = JsonXContent.contentBuilder().prettyPrint();
             builder.startObject();
             builder.field(BackgroundJobServers.FIELD_ID, serverStatus.getId().toString());
+            builder.field(BackgroundJobServers.FIELD_NAME, serverStatus.getName());
             builder.field(BackgroundJobServers.FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
             builder.field(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
             builder.field(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter());
@@ -129,6 +130,7 @@ public class ElasticSearchDocumentMapper {
         Map<String, Object> fieldMap = searchHit.getSourceAsMap();
         return new BackgroundJobServerStatus(
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_ID), UUID.class),
+                autobox(fieldMap.get(BackgroundJobServers.FIELD_NAME), String.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_WORKER_POOL_SIZE), int.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS), int.class),
                 autobox(fieldMap.get(BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER), Duration.class),

@@ -78,8 +78,9 @@ dependencies {
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
-    testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
+    testFixturesApi 'org.assertj:assertj-core'
+    testFixturesApi 'io.github.artsok:rerunner-jupiter'
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'

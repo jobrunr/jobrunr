@@ -3,10 +3,8 @@ package org.jobrunr.utils.mapper.jsonb;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
-import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
+import org.jobrunr.utils.mapper.jsonb.adapters.JobLabelsAdapter;
+import org.jobrunr.utils.mapper.jsonb.serializer.*;
 
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -20,16 +18,18 @@ import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObj
 public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObject> {
 
     private final JobRunrJsonb jsonb;
+    private final JobLabelsAdapter jobLabelsAdapter;
     private final JobDetailsAdapter jobDetailsAdapter;
 
     public RecurringJobAdapter() {
         Jsonb jsonb = JsonbBuilder.create(new JsonbConfig()
                 .withNullValues(true)
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
-                .withSerializers(new PathTypeSerializer(), new DurationTypeSerializer())
-                .withDeserializers(new PathTypeDeserializer(), new DurationTypeDeserializer())
+                .withSerializers(new PathTypeSerializer(), new FileTypeSerializer(), new DurationTypeSerializer())
+                .withDeserializers(new PathTypeDeserializer(), new FileTypeDeserializer(), new DurationTypeDeserializer())
         );
         this.jsonb = new JobRunrJsonb(jsonb);
+        jobLabelsAdapter = new JobLabelsAdapter(this.jsonb);
         jobDetailsAdapter = new JobDetailsAdapter(this.jsonb);
     }
 
@@ -38,6 +38,8 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
         final JsonObjectBuilder builder = nullSafeJsonObjectBuilder()
                 .add("id", recurringJob.getId())
                 .add("jobName", recurringJob.getJobName())
+                .add("amountOfRetries", recurringJob.getAmountOfRetries())
+                .add("labels", jobLabelsAdapter.adaptToJson(recurringJob.getLabels()))
                 .add("jobSignature", recurringJob.getJobSignature())
                 .add("version", recurringJob.getVersion())
                 .add("scheduleExpression", recurringJob.getScheduleExpression())
@@ -61,6 +63,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 jsonObject.getString("createdAt")
         );
         recurringJob.setJobName(jsonObject.getString("jobName"));
+        recurringJob.setLabels(jobLabelsAdapter.adaptFromJson(jsonObject.getJsonArray("labels")));
         return recurringJob;
     }
 

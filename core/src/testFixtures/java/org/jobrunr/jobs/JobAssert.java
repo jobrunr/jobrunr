@@ -4,6 +4,7 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.data.TemporalOffset;
+import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.JobState;
@@ -13,6 +14,8 @@ import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.condition.AnyOf.anyOf;
@@ -27,8 +30,29 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return new JobAssert(job);
     }
 
+    public JobAssert hasId() {
+        Assertions.assertThat(actual.getId()).isNotNull();
+        return this;
+    }
+
+
+    public JobAssert hasId(UUID id) {
+        Assertions.assertThat(actual.getId())
+                .isNotNull()
+                .isEqualTo(id);
+        return this;
+    }
+
     public JobAssert hasJobName(String name) {
         Assertions.assertThat(actual.getJobName()).isEqualTo(name);
+        return this;
+    }
+
+    public JobAssert hasJobDetails(Class<?> clazz, String methodName, Object... args) {
+        JobRunrAssertions.assertThat(actual.getJobDetails())
+                .hasClass(clazz)
+                .hasMethodName(methodName)
+                .hasArgs(args);
         return this;
     }
 
@@ -92,6 +116,16 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasAmountOfRetries(int amountOfRetries) {
+        Assertions.assertThat(actual.getAmountOfRetries()).isEqualTo(amountOfRetries);
+        return this;
+    }
+
+    public JobAssert hasLabels(Set<String> labels) {
+        Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
+        return this;
+    }
+
     public JobAssert hasRecurringJobId(String recurringJobId) {
         Assertions.assertThat(actual.getRecurringJobId())
                 .isPresent()
@@ -100,10 +134,14 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     }
 
     public JobAssert isEqualTo(Job otherJob) {
+        return isEqualTo(otherJob, "locker");
+    }
+
+    public JobAssert isEqualTo(Job otherJob, String... fieldNamesToIgnore) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
                 .usingOverriddenEquals()
-                .ignoringFields("locker")
+                .ignoringFields(fieldNamesToIgnore)
                 .isEqualTo(otherJob);
         return this;
     }

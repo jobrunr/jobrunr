@@ -57,7 +57,7 @@ class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
                 .withState(new FailedState("Orphaned job", new IllegalStateException("Not important")))
                 .withState(new ScheduledState(Instant.now()))
                 .withState(new EnqueuedState())
-                .withState(new ProcessingState(UUID.randomUUID()))
+                .withState(new ProcessingState(UUID.randomUUID(), "Not important"))
                 .build();
 
         boolean matchesAllowedStateChange = allowedStateChange.matches(jobInProgress, jobInProgressOnOtherServer);
@@ -72,7 +72,7 @@ class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
                 .withState(new FailedState("Orphaned job", new IllegalStateException("Not important")))
                 .withState(new ScheduledState(Instant.now()))
                 .withState(new EnqueuedState())
-                .withState(new ProcessingState(UUID.randomUUID()))
+                .withState(new ProcessingState(UUID.randomUUID(), "Not important"))
                 .build();
 
         // WHEN

@@ -8,6 +8,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -21,12 +22,19 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class JobTest {
 
     @Mock
     private BackgroundJobServer backgroundJobServer;
+
+    @BeforeEach
+    void setUpBackgroundJobServer() {
+        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(aDefaultBackgroundJobServerStatus().build());
+    }
 
     @Test
     void ifIdIsNullAnIdIsCreated() {
@@ -82,7 +90,7 @@ class JobTest {
         Job job = aJob()
                 .withState(new ScheduledState(Instant.now()), Instant.now().minusSeconds(600))
                 .withState(new EnqueuedState(), Instant.now().minusSeconds(60))
-                .withState(new ProcessingState(backgroundJobServer.getId()), Instant.now().minusSeconds(10))
+                .withState(new ProcessingState(backgroundJobServer), Instant.now().minusSeconds(10))
                 .build();
         job.updateProcessing();
         job.succeeded();
@@ -97,7 +105,7 @@ class JobTest {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
 
-        job.failed("En exception occured", new RuntimeException("boem"));
+        job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
         job.scheduleAt(Instant.now(), "failure before");
@@ -112,7 +120,7 @@ class JobTest {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
 
-        job.failed("En exception occured", new RuntimeException("boem"));
+        job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
         job.scheduleAt(Instant.now(), "failure before");

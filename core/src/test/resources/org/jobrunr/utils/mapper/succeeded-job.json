@@ -2,6 +2,8 @@
   "version": 0,
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "a succeeded job",
+  "amountOfRetries": null,
+  "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "java.lang.System",
@@ -27,7 +29,8 @@
       "updatedAt": "${json-unit.ignore}",
       "state": "PROCESSING",
       "createdAt": "${json-unit.ignore}",
-      "serverId": "${json-unit.ignore}"
+      "serverId": "${json-unit.ignore}",
+      "serverName": "${json-unit.ignore}"
     },
     {
       "@class": "org.jobrunr.jobs.states.SucceededState",

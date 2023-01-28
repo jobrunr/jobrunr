@@ -9,7 +9,7 @@ compileTestFixturesJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'org.slf4j:slf4j-simple'
+    implementation 'ch.qos.logback:logback-classic'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":core"))

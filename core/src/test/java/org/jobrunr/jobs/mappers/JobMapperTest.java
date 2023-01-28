@@ -1,7 +1,10 @@
 package org.jobrunr.jobs.mappers;
 
 import org.jobrunr.JobRunrException;
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
@@ -27,6 +30,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +48,7 @@ abstract class JobMapperTest {
         jobMapper = new JobMapper(getJsonMapper());
         testService = new TestService();
 
-        lenient().when(backgroundJobServer.getId()).thenReturn(UUID.randomUUID());
+        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(aDefaultBackgroundJobServerStatus().build());
     }
 
     protected abstract JsonMapper getJsonMapper();
@@ -63,7 +67,7 @@ abstract class JobMapperTest {
 
     @Test
     void testSerializeAndDeserializeProcessingJobWithLogs() {
-        Job job = anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID())).build();
+        Job job = anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID(), "not important")).build();
         final RunnerJobContext jobContext = new RunnerJobContext(job);
         jobContext.logger().info("test 1");
         jobContext.logger().warn("test 2");
@@ -83,6 +87,17 @@ abstract class JobMapperTest {
         String jobAsString = jobMapper.serializeJob(job);
 
         assertThatCode(() -> jobMapper.deserializeJob(jobAsString)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testSerializeAndDeserializeJobWithLabel() {
+        Job job = anEnqueuedJob().withLabels("first label", "second label").build();
+
+        String jobAsString = jobMapper.serializeJob(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/jobs/mappers/enqueued-job-with-labels.json"));
+
+        final Job actualJob = jobMapper.deserializeJob(jobAsString);
+        assertThat(actualJob).isEqualTo(job);
     }
 
     @Test

@@ -6,9 +6,9 @@ import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
-import TimeAgo from "react-timeago/lib";
 import {Check} from "mdi-material-ui";
 import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
+import SwitchableTimeAgo from "../../utils/time-ago";
 
 const useStyles = makeStyles(theme => ({
     primaryHeading: {
@@ -76,7 +76,7 @@ const Succeeded = (props) => {
                     </Typography>
                 </Alert>
                 <Typography className={classes.secondaryHeading}>
-                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
             <AccordionDetails>

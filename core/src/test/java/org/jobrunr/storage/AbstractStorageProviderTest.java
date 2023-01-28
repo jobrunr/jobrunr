@@ -8,6 +8,7 @@ import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
+import org.jobrunr.utils.SleepUtils;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,11 +18,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.mockito.Mockito.times;
+import static org.jobrunr.utils.SleepUtils.sleep;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 class AbstractStorageProviderTest {
@@ -30,7 +35,7 @@ class AbstractStorageProviderTest {
     Condition<JobChangeListenerForTest> closeCalled = new Condition<>(x -> x.closeIsCalled, "Close is called");
     Condition<JobChangeListenerForTest> jobNotNull = new Condition<>(x -> x.job != null, "Has Job");
 
-    private StorageProvider storageProvider;
+    private AbstractStorageProvider storageProvider;
 
     @BeforeEach
     void setUpStorageProvider() {
@@ -44,6 +49,48 @@ class AbstractStorageProviderTest {
         storageProvider.addJobStorageOnChangeListener(changeListener);
         await()
                 .untilAsserted(() -> assertThat(changeListener.jobStats).isNotNull());
+    }
+
+    @Test
+    void jobStatsChangeListenersIsSkippedIfDBIsSlowAndStillFetchingResults() throws InterruptedException {
+        // GIVEN
+        when(storageProvider.getJobStats()).thenAnswer(i -> {
+            sleep(5500);
+            return new JobStats(now(), 5L, 0L, 1L, 1L, 0L, 3L, 0L, 0L, 1, 1);
+        });
+
+        final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
+        storageProvider.addJobStorageOnChangeListener(changeListener);
+
+        CountDownLatch countDownLatch = new CountDownLatch(5);
+        for(int i = 0; i < 5; i++) {
+            sleep(1050);
+            new Thread(() -> {
+                storageProvider.notifyJobStatsOnChangeListeners();
+                countDownLatch.countDown();
+            }).start();
+        }
+        countDownLatch.await(5, TimeUnit.SECONDS);
+
+        verify(storageProvider, times(2)).getJobStats();
+    }
+
+    @Test
+    void jobStatsChangeListenersAreNotifiedInBackgroundThread() {
+        final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
+        storageProvider.addJobStorageOnChangeListener(changeListener);
+
+        when(storageProvider.getJobStats()).thenAnswer(i -> {
+            SleepUtils.sleep(3000);
+            return new JobStats(now(), 5L, 0L, 1L, 1L, 0L, 3L, 0L, 0L, 1, 1);
+        });
+
+        long startTimeMillis = System.currentTimeMillis();
+        storageProvider.notifyJobStatsOnChangeListeners();
+        long endTimeMillis = System.currentTimeMillis();
+
+        assertThat(endTimeMillis - startTimeMillis).isLessThan(1000);
+        await().untilAsserted(() -> verify(storageProvider, atLeast(1)).getJobStats());
     }
 
     @Test

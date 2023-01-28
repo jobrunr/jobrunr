@@ -2,6 +2,8 @@
   "version": 0,
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "an enqueued job",
+  "amountOfRetries": null,
+  "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "java.lang.System",
@@ -27,6 +29,7 @@
       "state": "PROCESSING",
       "createdAt": "${json-unit.ignore}",
       "serverId": "${json-unit.ignore}",
+      "serverName": "${json-unit.ignore}",
       "updatedAt": "${json-unit.ignore}"
     }
   ],

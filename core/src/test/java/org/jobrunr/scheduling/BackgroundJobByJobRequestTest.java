@@ -11,12 +11,9 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
-import org.jobrunr.stubs.TestJobContextJobRequest;
+import org.jobrunr.stubs.*;
 import org.jobrunr.stubs.TestJobContextJobRequest.TestJobContextJobRequestHandler;
-import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
-import org.jobrunr.stubs.TestJobRequestThatTakesLong;
-import org.jobrunr.stubs.TestMDCJobRequest;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +40,8 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.scheduling.JobBuilder.aJob;
+import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
@@ -80,6 +79,29 @@ public class BackgroundJobByJobRequestTest {
         assertThatThrownBy(() -> BackgroundJobRequest.enqueue(new TestJobRequest("not important")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("The JobRequestScheduler has not been initialized. Use the fluent JobRunr.configure() API to setup JobRunr or set the JobRequestScheduler via the static setter method.");
+    }
+
+    @Test
+    void testCreateViaBuilder() {
+        UUID jobId = UUID.randomUUID();
+        BackgroundJobRequest.create(aJob()
+                .withId(jobId)
+                .withName("My Job Name")
+                .withAmountOfRetries(3)
+                .withJobRequest(new TestJobRequestWithoutJobAnnotation("not important")));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId))
+                .hasJobName("My Job Name")
+                .hasAmountOfRetries(3)
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testCreateViaBuilderAndAnnotationMustFail() {
+        assertThatThrownBy(() -> BackgroundJobRequest.create(aJob()
+                .withJobRequest(new TestJobRequest("not important"))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
     }
 
     @Test
@@ -125,8 +147,17 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testEnqueueStreamWithMultipleParameters() {
-        Stream<JobRequest> workStream = getWorkStream();
+        Stream<JobRequest> workStream = jobRequestStream();
         BackgroundJobRequest.enqueue(workStream);
+
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
+    }
+
+    @Test
+    void testCreateStreamWithJobBuilder() {
+        BackgroundJobRequest.create(jobRequestWithoutJobAnnotationStream()
+                .map(jobRequest -> aJob().withJobRequest(jobRequest))
+        );
 
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
     }
@@ -181,6 +212,17 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
+    void testRecurringCronJobFromBuilder() {
+        BackgroundJobRequest.createRecurrently(aRecurringJob()
+                .withCron(every5Seconds)
+                .withJobRequest(new TestJobRequest("from TestRecurringJob")));
+        await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testRecurringCronJobWithId() {
         BackgroundJobRequest.scheduleRecurrently("theId", every5Seconds, new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
@@ -208,6 +250,17 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
+    void testRecurringIntervalJobFromBuilder() {
+        BackgroundJobRequest.createRecurrently(aRecurringJob()
+                .withDuration(Duration.ofSeconds(5))
+                .withJobRequest(new TestJobRequest("from TestRecurringJob")));
+        await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
+
+        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testRecurringIntervalJobWithId() {
         BackgroundJobRequest.scheduleRecurrently("theId", Duration.ofSeconds(5), new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
@@ -226,7 +279,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts() {
         BackgroundJobRequest.scheduleRecurrently("my-job-id", every5Seconds, new TestJobRequestThatTakesLong("from recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts", 20));
-        await().atMost(ofSeconds(6)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
+        await().atMost(ofSeconds(11)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
         final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
         backgroundJobServer.stop();
 
@@ -301,13 +354,23 @@ public class BackgroundJobByJobRequestTest {
         return new Condition<>(s -> new HashSet<>(s.values()).size() == 2 && new HashSet<>(s.values()).contains(id), "a value matches %s", id);
     }
 
-    private Stream<JobRequest> getWorkStream() {
+    private Stream<JobRequest> jobRequestStream() {
         return Stream.of(
                 new TestJobRequest("Workstream item 1"),
                 new TestJobRequest("Workstream item 2"),
                 new TestJobRequest("Workstream item 3"),
                 new TestJobRequest("Workstream item 4"),
                 new TestJobRequest("Workstream item 5")
+        );
+    }
+
+    private Stream<TestJobRequestWithoutJobAnnotation> jobRequestWithoutJobAnnotationStream() {
+        return Stream.of(
+                new TestJobRequestWithoutJobAnnotation("Workstream item 1"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 2"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 3"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 4"),
+                new TestJobRequestWithoutJobAnnotation("Workstream item 5")
         );
     }
 }

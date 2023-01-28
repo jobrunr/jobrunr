@@ -9,6 +9,7 @@ import Alert from "@material-ui/lab/Alert";
 import TimeAgo from "react-timeago/lib";
 import {makeStyles, withStyles} from '@material-ui/core/styles';
 import {Cogs} from "mdi-material-ui";
+import SwitchableTimeAgo from "../../utils/time-ago";
 
 const useStyles = makeStyles(() => ({
     primaryHeading: {
@@ -116,14 +117,16 @@ const Processing = (props) => {
                     </Typography>
                 </Alert>
                 <Typography className={classes.secondaryHeading}>
-                    <TimeAgo date={new Date(jobState.createdAt)} title={new Date(jobState.createdAt).toString()}/>
+                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.expansionPanel}>
                 {progressBar &&
                 <ColoredLinearProgress variant="determinate" value={progressBar.progress}/>
                 }
-                <div className={classes.details}>Job is processing on server {jobState.serverId}</div>
+                <div className={classes.details}>
+                    Job is processing on server <code style={{fontSize: 'large'}}>{jobState.serverId} {jobState.serverName && <> ({jobState.serverName})</>}</code>
+                </div>
                 {logs.length > 0 &&
                 <div className={classes.console}>
                     {logs.map((log) => (

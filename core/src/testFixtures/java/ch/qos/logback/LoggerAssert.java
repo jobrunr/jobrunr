@@ -9,7 +9,10 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import java.util.Map;
+
 import static ch.qos.logback.classic.Level.*;
+import static java.util.Collections.emptyMap;
 
 public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILoggingEvent>> {
 
@@ -96,20 +99,33 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     }
 
     public LoggerAssert hasDebugMessageContaining(String message) {
-        return hasDebugMessageContaining(message, 1);
+        return hasDebugMessageContaining(message, 1, emptyMap());
     }
 
-    public LoggerAssert hasDebugMessageContaining(String message, int times) {
-        Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(DEBUG, message));
+    public LoggerAssert hasDebugMessageContaining(String message, Map<String, String> mdcData) {
+        return hasDebugMessageContaining(message, 1, mdcData);
+    }
+
+    public LoggerAssert hasDebugMessageContaining(String message, int times, Map<String, String> mdcData) {
+        Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(DEBUG, message, mdcData));
         return this;
     }
 
     public LoggerAssert hasWarningMessageContaining(String message) {
-        return hasWarningMessageContaining(message, 1);
+        return hasWarningMessageContaining(message, 1, emptyMap());
     }
 
-    public LoggerAssert hasWarningMessageContaining(String message, int times) {
-        Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(WARN, message));
+    public LoggerAssert hasWarningMessageContaining(String message, Map<String, String> mdcData) {
+        return hasWarningMessageContaining(message, 1, mdcData);
+    }
+
+    public LoggerAssert hasWarningMessageContaining(String message, int times, Map<String, String> mdcData) {
+        Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(WARN, message, mdcData));
+        return this;
+    }
+
+    public LoggerAssert hasLogEventWithMDCData(int logEvent, String mdcKey, String mdcValue) {
+        Assertions.assertThat(actual.list.get(logEvent).getMDCPropertyMap()).containsEntry(mdcKey, mdcValue);
         return this;
     }
 
@@ -125,5 +141,19 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         return new Condition<ILoggingEvent>(e -> e.getLevel().equals(level) && e.toString().replace("[" + level + "] ", "").contains(message), level + " logs with message: " + message);
     }
 
+    private Condition<ILoggingEvent> logsWithLevelAndMessageContaining(Level level, String message, Map<String, String> mdcData) {
+        return new Condition<ILoggingEvent>(e -> matchesLoggingEvent(e, level, message, mdcData), level + " logs with message: " + message);
+    }
 
+    private boolean matchesLoggingEvent(ILoggingEvent event, Level level, String message, Map<String, String> mdcData) {
+        if(event.getLevel().equals(level) && event.toString().replace("[" + level + "] ", "").contains(message)) {
+            for (String key : mdcData.keySet()) {
+                if(!event.getMDCPropertyMap().containsKey(key) || !event.getMDCPropertyMap().get(key).equals(mdcData.get(key))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 }

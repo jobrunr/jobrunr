@@ -1,10 +1,12 @@
 package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.sql.common.db.dialect.Dialect;
+import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -12,6 +14,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.stream;
+import static java.util.TimeZone.getTimeZone;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
@@ -223,7 +226,7 @@ public class Sql<T> {
         } else if (o instanceof Boolean) {
             ps.setInt(i, (boolean) o ? 1 : 0);
         } else if (o instanceof Instant) {
-            ps.setTimestamp(i, Timestamp.from((Instant) o));
+            ps.setTimestamp(i, Timestamp.from((Instant) o), Calendar.getInstance(getTimeZone(ZoneOffset.UTC)));
         } else if (o instanceof Duration) {
             ps.setString(i, o.toString());
         } else if (o instanceof Enum) {
@@ -239,7 +242,7 @@ public class Sql<T> {
     }
 
     final String parse(String query) {
-        final ParsedStatement parsedStatement = parsedStatementCache.computeIfAbsent(query.hashCode(), hash -> createParsedStatement(query));
+        final ParsedStatement parsedStatement = parsedStatementCache.computeIfAbsent(elementPrefixer(tablePrefix, query).hashCode(), hash -> createParsedStatement(query));
         paramNames.clear();
         paramNames.addAll(parsedStatement.paramNames);
         return parsedStatement.sqlStatement;
@@ -250,7 +253,8 @@ public class Sql<T> {
         return new ParsedStatement(parsedStatement, new ArrayList<>(paramNames));
     }
 
-    final String parseStatement(String query) {
+    @VisibleFor("testing")
+    String parseStatement(String query) {
         paramNames.clear();
         // I was originally using regular expressions, but they didn't work well for ignoring
         // parameter-like strings inside quotes.

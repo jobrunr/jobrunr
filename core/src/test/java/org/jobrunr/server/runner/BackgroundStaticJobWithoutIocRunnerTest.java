@@ -2,7 +2,6 @@ package org.jobrunr.server.runner;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
@@ -28,7 +27,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     @Test
     void doesNotSupportJobIfJobMethodIsNotStatic() {
         Job job = anEnqueuedJob()
-                .withJobDetails((IocJobLambda<TestService>) (ts -> ts.doWorkThatFails()))
+                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
                 .build();
 
         assertThat(backgroundStaticJobWithoutIocRunner.supports(job)).isFalse();

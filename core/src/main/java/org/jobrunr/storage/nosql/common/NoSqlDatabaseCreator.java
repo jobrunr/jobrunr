@@ -1,14 +1,18 @@
 package org.jobrunr.storage.nosql.common;
 
-import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
+import static java.lang.Thread.sleep;
+import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public abstract class NoSqlDatabaseCreator<T> {
 
@@ -21,7 +25,11 @@ public abstract class NoSqlDatabaseCreator<T> {
     }
 
     protected NoSqlDatabaseCreator(Class<? extends NoSqlStorageProvider> noSqlStorageProviderClass) {
-        this.databaseMigrationsProvider = new NoSqlDatabaseMigrationsProvider(noSqlStorageProviderClass);
+        this(singletonList(noSqlStorageProviderClass));
+    }
+
+    protected NoSqlDatabaseCreator(List<Class<? extends NoSqlStorageProvider>> noSqlStorageProviderClasses) {
+        this.databaseMigrationsProvider = new NoSqlDatabaseMigrationsProvider(noSqlStorageProviderClasses);
     }
 
     public void runMigrations() {
@@ -47,10 +55,18 @@ public abstract class NoSqlDatabaseCreator<T> {
         } else {
             LOGGER.info("Running migration {}", noSqlMigration);
             try {
-                runMigration((T) noSqlMigration.getMigration());
+                runMigration(noSqlMigration.getMigration());
                 markMigrationAsDone(noSqlMigration);
-            } catch (Exception e) {
-                throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error running database migration " + noSqlMigration.getClassName(), e));
+            } catch (Exception exceptionCausedByConcurrentMigration) {
+                try {
+                    sleep(new Random().nextInt(1000));
+                    if(isNewMigration(noSqlMigration)) {
+                        runMigration(noSqlMigration.getMigration());
+                        markMigrationAsDone(noSqlMigration);
+                    }
+                } catch(Exception e) {
+                    throw shouldNotHappenException(new IllegalStateException("Error running database migration " + noSqlMigration.getClassName(), e));
+                }
             }
         }
     }

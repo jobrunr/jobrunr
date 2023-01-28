@@ -24,7 +24,12 @@ import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalState
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
- * Defines the job with its JobDetails, History and Job Metadata
+ * Defines the job with its JobDetails, History and Job Metadata.
+ *
+ * <em>Note:</em> Jobs are managed by JobRunr and may under no circumstances be updated during Job Processing. They may be deleted though.
+ *
+ * During Job Processing, JobRunr updates the job every x amount of seconds (where x is the pollIntervalInSeconds and defaults to 15s) to distinguish
+ * running jobs from orphaned jobs (orphaned jobs are jobs that have the state in PROGRESS but are not running anymore due to JVM or container crash).
  */
 public class Job extends AbstractJob {
 
@@ -120,7 +125,7 @@ public class Job extends AbstractJob {
 
     public void startProcessingOn(BackgroundJobServer backgroundJobServer) {
         if (getState() == StateName.PROCESSING) throw new ConcurrentJobModificationException(this);
-        addJobState(new ProcessingState(backgroundJobServer.getId()));
+        addJobState(new ProcessingState(backgroundJobServer));
     }
 
     public void updateProcessing() {

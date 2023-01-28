@@ -25,8 +25,8 @@ public class StorageProviderForTest implements StorageProvider {
     }
 
     @Override
-    public String getName() {
-        return storageProvider.getName();
+    public StorageProviderInfo getStorageProviderInfo() {
+        return storageProvider.getStorageProviderInfo();
     }
 
     @Override

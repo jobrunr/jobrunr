@@ -9,6 +9,7 @@
     {
       "@class": "org.jobrunr.jobs.states.ProcessingState",
       "serverId": "${json-unit.ignore}",
+      "serverName": "${json-unit.ignore}",
       "updatedAt": "${json-unit.ignore}",
       "state": "PROCESSING",
       "createdAt": "${json-unit.ignore}"
@@ -41,6 +42,8 @@
   "version": 0,
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "an enqueued job",
+  "amountOfRetries": null,
+  "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "java.lang.System",

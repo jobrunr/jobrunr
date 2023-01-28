@@ -2,6 +2,7 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.cron.CronExpression;
@@ -45,6 +46,28 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     public JobRequestScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
         super(storageProvider, jobFilters);
         BackgroundJobRequest.setJobRequestScheduler(this);
+    }
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     * @param jobBuilder the jobBuilder with all the details of the job
+     * @return the id of the job
+     */
+    @Override
+    public JobId create(JobBuilder jobBuilder) {
+        return saveJob(jobBuilder.build());
+    }
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
+     *
+     * @param jobBuilderStream the jobBuilders for which to create jobs.
+     */
+    @Override
+    public void create(Stream<JobBuilder> jobBuilderStream) {
+        jobBuilderStream
+                .map(JobBuilder::build)
+                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 
     /**
@@ -232,6 +255,27 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     public JobId schedule(UUID id, Instant instant, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
         return schedule(id, instant, jobDetails);
+    }
+
+    /**
+     * Creates a new or alters the existing recurring job based on the recurringJobBuilder (using id, cron expression and jobRequest). JobRunr will try to find the JobRequestHandler in
+     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * If no zoneId is set on the builder the jobs will be scheduled using the systemDefault timezone.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      jobRequestScheduler.createRecurrently(aRecurringJob()
+     *                                          .withCron("* * 0 * * *")
+     *                                          .withJobRequest(new SendMailRequest(toRequestParam, subjectRequestParam, bodyRequestParam));
+     * }</pre>
+     *
+     * @param recurringJobBuilder the builder describing your recurring job.
+     * @return the id of this recurring job which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.Cron
+     */
+    @Override
+    public String createRecurrently(RecurringJobBuilder recurringJobBuilder) {
+        RecurringJob recurringJob = recurringJobBuilder.build();
+        return this.scheduleRecurrently(recurringJob);
     }
 
     /**
