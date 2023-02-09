@@ -7,11 +7,28 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! As this is an open-source project where we try to make a living from, 
-        we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to 
+        Lately we have been getting a lot of **invalid bug reports** (there was no bug) that take us a lot of time to investigate. This is team we cannot spend on improving JobRunr or the documentation. That's why we now have put in place the following community guidelines.
+        
+        ### Before creating a bug report
+        #### Have a complete and up-to-date GitHub profile
+        Hey, I'm [Ronald](https://github.com/rdehuyss), the creator and lead engineer of [JobRunr](https://www.jobrunr.io/). Nice to meet you! :wave: Who are you?
+        JobRunr is an open-source project where we try to make a living from, so we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to 
         know to whom we're talking to and providing free support to. If your Github Profile is not complete, we will probably close 
         the issue without answering. For more info, read this excellent blog post about [open-source etiquette](https://www.yegor256.com/2020/07/29/open-source-etiquette.html).
-        <br/><br/>Also, please make sure that the bug report is complete: title is not optional and code should be formatted.
+        
+        #### Have a reproducible scenario
+        Make sure that you have a reproducable scenario. We prefer Github repo's with exact steps in a README.md on how to launch the application and reproduce the bug you're having. 
+        If you do not take the time to create a reproducable scenario, why should we invest our **free time** in trying to figure out what happened? Reason for this is that I've seen people/organizations that adapt JobRunr source code, created bugs while doing so and used that in their own project.
+        Not having a reproducable scenario will deem the issue invalid. 
+        If for some reason (confidential code, time, ...) you cannot a GitHub repo that reproduces the issue, feel free to get a [Pro subscription](https://www.jobrunr.io/en/pricing/) that comes with support.
+        
+        ### After creating the issue
+        Pease make sure that the bug report is complete: title is not optional and code should be formatted. 
+        You should also not assign me or somebody else to the issue. We're a self-organizing team and monitor the JobRunr issues. We also take holidays :palm_tree: from time to time and it may take us a couple of days to answer you.
+        If you cannot wait that long, I also invite you to take a [Pro subscription](https://www.jobrunr.io/en/pricing/) that comes with better support.
+        
+        :clap: Thank you for reading this far and do know that we take this seriously - if you do too.
+        
   - type: input
     id: version
     attributes:
