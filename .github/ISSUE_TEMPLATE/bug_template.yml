@@ -11,7 +11,7 @@ body:
         we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to 
         know to whom we're talking to and providing free support to. If your Github Profile is not complete, we will probably close 
         the issue without answering. For more info, read this excellent blog post about [open-source etiquette](https://www.yegor256.com/2020/07/29/open-source-etiquette.html).
-        Also, please make sure that the bug report is complete: title is not optional and code should be formatted.
+        <br/><br/>Also, please make sure that the bug report is complete: title is not optional and code should be formatted.
   - type: input
     id: version
     attributes:
@@ -49,7 +49,7 @@ body:
     id: reproduce
     attributes:
       label: How to reproduce?
-      description: Provide a simple Github project or code fragment which shows how to reproduce the issue (ideally a Github repo).
+      description: Provide a simple Github project or code fragment which shows how to reproduce the issue (ideally a Github repo). If this is not provided, we will close your issue right away.
       placeholder: How can we reproduce the issue?
       value: >
          ```java
