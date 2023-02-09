@@ -11,12 +11,13 @@ body:
         we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to 
         know to whom we're talking to and providing free support to. If your Github Profile is not complete, we will probably close 
         the issue without answering. For more info, read this excellent blog post about [open-source etiquette](https://www.yegor256.com/2020/07/29/open-source-etiquette.html).
+        Also, please make sure that the bug report is complete: title is not optional and code should be formatted.
   - type: input
     id: version
     attributes:
       label: JobRunr Version
-      description: What version of JobRunr are you running?
-      placeholder: ex. 5.3.1
+      description: What version of JobRunr are you running? If you are not running the latest version, we will probably close it without answering.
+      placeholder: ex. 6.0.0
     validations:
       required: true
   - type: input
