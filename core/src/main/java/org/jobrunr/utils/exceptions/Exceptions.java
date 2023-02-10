@@ -54,7 +54,7 @@ public class Exceptions {
         int count = 0;
         while (count <= maxRetries) {
             try {
-                Thread.sleep(count * 20);
+                Thread.sleep(count * 20L);
                 return supplier.get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -69,7 +69,7 @@ public class Exceptions {
         int count = 0;
         while (count <= maxRetries) {
             try {
-                Thread.sleep(count * 20);
+                Thread.sleep(count * 20L);
                 runnable.run();
                 return;
             } catch (InterruptedException e) {
