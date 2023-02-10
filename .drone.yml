@@ -105,6 +105,10 @@ kind: pipeline
 type: docker
 name: sonar
 
+trigger:
+  event:
+    - custom
+
 concurrency:
   limit: 1
 
