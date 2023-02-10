@@ -26,7 +26,7 @@ import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultB
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
-public class AbstractZooKeeperTaskTest {
+public abstract class AbstractZooKeeperTaskTest {
 
     @Mock
     JobZooKeeper jobZooKeeper;
