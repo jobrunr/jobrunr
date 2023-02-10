@@ -27,8 +27,6 @@ jib {
     }
 }
 
-project(":tests:${project.name}") {
-    sonarqube {
-        skipProject = true
-    }
+sonar {
+    skipProject = true
 }

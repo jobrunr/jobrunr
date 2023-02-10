@@ -120,3 +120,7 @@ signing {
         sign publishing.publications.mavenJava
     }
 }
+
+sonar {
+    skipProject = true
+}

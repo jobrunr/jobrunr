@@ -1,6 +1,6 @@
 plugins {
     id 'com.github.ben-manes.versions' version '0.44.0'
-    id 'org.sonarqube' version '3.3'
+    id 'org.sonarqube' version '3.5.0.2730'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
     id 'signing'
 }
@@ -92,7 +92,7 @@ configure(subprojects.findAll {! ['platform'].contains(it.name)}) {
         }
     }
 
-    sonarqube {
+    sonar {
         properties {
             property "sonar.sourceEncoding", "UTF-8"
             property "sonar.projectKey", "jobrunr_jobrunr"

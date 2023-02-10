@@ -25,6 +25,6 @@ java {
     withSourcesJar()
 }
 
-sonarqube {
+sonar {
     skipProject = true
 }

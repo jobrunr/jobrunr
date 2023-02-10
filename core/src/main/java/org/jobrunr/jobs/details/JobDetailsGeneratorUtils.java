@@ -15,6 +15,8 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.*;
 
 public class JobDetailsGeneratorUtils {
 
+    private static Pattern PARAM_TYPES_PATTERN = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]"); //Regex for desc \[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
+
     private JobDetailsGeneratorUtils() {
     }
 
@@ -116,8 +118,7 @@ public class JobDetailsGeneratorUtils {
         } else {
             x0 = desc.substring(beginIndex + 1, endIndex);
         }
-        Pattern pattern = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]"); //Regex for desc \[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
-        Matcher matcher = pattern.matcher(x0);
+        Matcher matcher = PARAM_TYPES_PATTERN.matcher(x0);
         List<Class<?>> paramTypes = new ArrayList<>();
         while (matcher.find()) {
             String paramType = matcher.group();
