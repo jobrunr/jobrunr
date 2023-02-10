@@ -33,7 +33,7 @@ public class JobRunrHealthIndicatorTest {
         final JobRunrProperties jobRunrProperties = new JobRunrProperties();
         jobRunrProperties.setBackgroundJobServer(backgroundJobServerProperties);
 
-        lenient().when(backgroundJobServerProvider.getIfAvailable()).thenReturn(backgroundJobServer);
+        lenient().when(backgroundJobServerProvider.getObject()).thenReturn(backgroundJobServer);
 
         jobRunrHealthIndicator = new JobRunrHealthIndicator(jobRunrProperties, backgroundJobServerProvider);
     }
