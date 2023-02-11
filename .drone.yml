@@ -160,7 +160,7 @@ steps:
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
       - find /root/.gradle/caches/ -name "*.lock" -type f -delete
-      - ./gradlew -Djib.console=plain --no-daemon -i clean build test jacocoTestReport sonarqube
+      - ./gradlew --continue -Djib.console=plain --no-daemon -i clean build test jacocoTestReport sonarqube
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
