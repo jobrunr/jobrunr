@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobAssert;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -164,5 +165,16 @@ class RetryFilterTest {
         afterVersion = job.getJobStates().size();
         assertThat(afterVersion).isEqualTo(beforeVersion);
         assertThat(job.getState()).isEqualTo(FAILED);
+    }
+
+    @Test
+    void retryFilterRunsJobRetriesExhaustedRunnableWhenRetriesExhausted() {
+        final Job job = aFailedJobWithRetries().build();
+        retryFilter = new RetryFilter(10, 0, (failedJob) -> failedJob.setJobName("an exhausted job"));
+
+        retryFilter.onStateElection(job, job.getJobState());
+
+        JobAssert.assertThat(job)
+                .hasJobName("an exhausted job");
     }
 }
