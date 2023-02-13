@@ -31,6 +31,7 @@ public class RecurringJobsFinder {
         this.recorder = recorder;
 
         registerNonDefaultJobDetailsConstructor();
+        registerNonDefaultJobParameterConstructor();
     }
 
     public void findRecurringJobsAndScheduleThem() {
@@ -53,6 +54,14 @@ public class RecurringJobsFinder {
                 jobDetails.getStaticFieldName(),
                 jobDetails.getMethodName(),
                 jobDetails.getJobParameters()
+        ));
+    }
+
+    private void registerNonDefaultJobParameterConstructor() throws NoSuchMethodException {
+        recorderContext.registerNonDefaultConstructor(JobParameter.class.getDeclaredConstructor(String.class, String.class, Object.class), jobParameter -> Arrays.asList(
+                jobParameter.getClassName(),
+                jobParameter.getActualClassName(),
+                jobParameter.getObject()
         ));
     }
 
@@ -83,7 +92,7 @@ public class RecurringJobsFinder {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
         }
         List<JobParameter> jobParameters = new ArrayList<>();
-        if(methodInfo.parameters().size() == 1 && methodInfo.parameters().get(0).name().equals(DotName.createSimple(JobContext.class.getName()))) {
+        if(methodInfo.parameters().size() == 1 && methodInfo.parameterType(0).name().equals(DotName.createSimple(JobContext.class.getName()))) {
             jobParameters.add(JobParameter.JobContext);
         }
         final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), jobParameters);
@@ -94,7 +103,7 @@ public class RecurringJobsFinder {
     private boolean hasParametersOutsideOfJobContext(MethodInfo method) {
         if(method.parameters().isEmpty()) return false;
         else if(method.parameters().size() > 1) return true;
-        else return !method.parameters().get(0).name().equals(DotName.createSimple(JobContext.class.getName()));
+        else return !method.parameterType(0).name().equals(DotName.createSimple(JobContext.class.getName()));
     }
 
     private String getZoneId(AnnotationInstance recurringJobAnnotation) {

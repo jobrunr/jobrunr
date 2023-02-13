@@ -62,8 +62,7 @@ public class JobParameter {
     }
 
 
-
-    private static boolean isNotNullNorAnEnum(Object object) {
+    protected static boolean isNotNullNorAnEnum(Object object) {
         return object != null && !(object instanceof Enum);
     }
 }
