@@ -58,7 +58,7 @@ public class JobRunrConfiguration {
 
         /**
          * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb' and 'elasticsearch'.
+         * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
          */
         public Optional<String> type;
     }

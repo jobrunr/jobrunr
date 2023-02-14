@@ -12,10 +12,7 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrElasticSearchStorageProviderProducer;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +58,7 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void producesJobRunrProducerUsesJSONBIfCapabilityPresent() {
+    void jobRunrProducerUsesJSONBIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
@@ -71,7 +68,7 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void producesJobRunrProducerUsesJacksonIfCapabilityPresent() {
+    void jobRunrProducerUsesJacksonIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JACKSON)).thenReturn(true);
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
@@ -81,7 +78,7 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void producesJobRunrProducerUsesSqlStorageProviderIfAgroalCapabilityIsPresent() {
+    void jobRunrProducerUsesSqlStorageProviderIfAgroalCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.AGROAL)).thenReturn(true);
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
 
@@ -90,7 +87,7 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void producesJobRunrProducerUsesMongoDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
+    void jobRunrProducerUsesMongoDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
 
@@ -99,7 +96,16 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void producesJobRunrProducerUsesElasticSearchStorageProviderIfElasticSearchRestHighLevelClientCapabilityIsPresent() {
+    void jobRunrProducerUsesDocumentDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
+        lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrDocumentDBStorageProviderProducer.class.getName());
+    }
+
+    @Test
+    void jobRunrProducerUsesElasticSearchStorageProviderIfElasticSearchRestHighLevelClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)).thenReturn(true);
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
 

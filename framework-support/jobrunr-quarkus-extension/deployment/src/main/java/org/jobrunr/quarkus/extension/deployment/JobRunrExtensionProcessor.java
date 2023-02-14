@@ -19,13 +19,14 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrElasticSearchStorageProviderProducer;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
-import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.*;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+
+import static org.jobrunr.utils.CollectionUtils.asSet;
 
 /**
  * Class responsible for creating additional JobRunr beans in Quarkus.
@@ -41,15 +42,16 @@ class JobRunrExtensionProcessor {
 
     @BuildStep
     AdditionalBeanBuildItem produce(Capabilities capabilities) {
+        Set<Class<?>> additionalBeans = new HashSet<>();
+        additionalBeans.add(JobRunrProducer.class);
+        additionalBeans.add(JobRunrStarter.class);
+        additionalBeans.add(jsonMapper(capabilities));
+        additionalBeans.add(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
+        additionalBeans.addAll(storageProvider(capabilities));
+
         return AdditionalBeanBuildItem.builder()
                 .setUnremovable()
-                .addBeanClasses(
-                        JobRunrProducer.class,
-                        JobRunrStarter.class,
-                        storageProvider(capabilities),
-                        jsonMapper(capabilities),
-                        JobRunrMetricsProducer.StorageProviderMetricsProducer.class
-                )
+                .addBeanClasses(additionalBeans.toArray(new Class[0]))
                 .build();
     }
 
@@ -94,15 +96,15 @@ class JobRunrExtensionProcessor {
         throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
     }
 
-    private Class<?> storageProvider(Capabilities capabilities) {
+    private Set<Class<?>> storageProvider(Capabilities capabilities) {
         if (capabilities.isPresent(Capability.AGROAL)) {
-            return JobRunrSqlStorageProviderProducer.class;
+            return asSet(JobRunrSqlStorageProviderProducer.class);
         } else if (capabilities.isPresent(Capability.MONGODB_CLIENT)) {
-            return JobRunrMongoDBStorageProviderProducer.class;
+            return asSet(JobRunrMongoDBStorageProviderProducer.class, JobRunrDocumentDBStorageProviderProducer.class);
         } else if (capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)) {
-            return JobRunrElasticSearchStorageProviderProducer.class;
+            return asSet(JobRunrElasticSearchStorageProviderProducer.class);
         } else {
-            return JobRunrInMemoryStorageProviderProducer.class;
+            return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }
     }
 }
