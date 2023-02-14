@@ -7,12 +7,14 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.ZoneId;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -24,7 +26,7 @@ public class JobRunrRecurringJobRecorder {
 
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
-    public void schedule(BeanContainer container, String id, JobDetails jobDetails, String cron, String interval, String zoneId) {
+    public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
         JobScheduler scheduler = container.instance(JobScheduler.class);
         String jobId = getId(id);
         String optionalCronExpression = getCronExpression(cron);
@@ -42,6 +44,8 @@ public class JobRunrRecurringJobRecorder {
                 scheduler.delete(jobId);
             }
         } else {
+            JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);
+            jobDetails.setCacheable(true);
             if (isNotNullOrEmpty(optionalCronExpression)) {
                 scheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(optionalCronExpression), getZoneId(zoneId));
             } else {

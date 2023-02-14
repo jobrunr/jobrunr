@@ -43,7 +43,7 @@ public class RecurringJobsFinder {
                 final String interval = getInterval(recurringJobAnnotation);
                 final JobDetails jobDetails = getJobDetails(recurringJobAnnotation);
                 final String zoneId = getZoneId(recurringJobAnnotation);
-                recorder.schedule(beanContainer.getValue(), id, jobDetails, cron, interval, zoneId);
+                recorder.schedule(beanContainer.getValue(), id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
             }
         }
     }

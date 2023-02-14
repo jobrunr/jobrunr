@@ -9,6 +9,8 @@ import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,7 +18,9 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +38,9 @@ class JobRunrRecurringJobRecorderTest {
 
     @Mock
     Config config;
+
+    @Captor
+    ArgumentCaptor<JobDetails> jobDetailsArgumentCaptor;
 
     JobRunrRecurringJobRecorder jobRunrRecurringJobRecorder;
 
@@ -54,9 +61,13 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = null;
         final String zoneId = null;
 
-        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).scheduleRecurrently(id, jobDetails, CronExpression.create(cron), ZoneId.systemDefault());
+        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        assertThat(jobDetailsArgumentCaptor.getValue())
+                .hasClassName(jobDetails.getClassName())
+                .hasMethodName(jobDetails.getMethodName())
+                .hasArgs(jobDetails.getJobParameterValues());
     }
 
     @Test
@@ -67,9 +78,13 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = "PT10M";
         final String zoneId = null;
 
-        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).scheduleRecurrently(id, jobDetails, new Interval("PT10M"), ZoneId.systemDefault());
+        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(new Interval("PT10M")), eq(ZoneId.systemDefault()));
+        assertThat(jobDetailsArgumentCaptor.getValue())
+                .hasClassName(jobDetails.getClassName())
+                .hasMethodName(jobDetails.getMethodName())
+                .hasArgs(jobDetails.getJobParameterValues());
     }
 
     @Test
@@ -80,7 +95,7 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = "PT10M";
         final String zoneId = null;
 
-        assertThatThrownBy(() -> jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -91,7 +106,7 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = null;
         final String zoneId = null;
 
-        assertThatThrownBy(() -> jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -102,7 +117,7 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = null;
         final String zoneId = null;
 
-        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
         verify(jobScheduler).delete(id);
     }
@@ -115,7 +130,7 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = "-";
         final String zoneId = null;
 
-        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
         verify(jobScheduler).delete(id);
     }
@@ -130,9 +145,13 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = null;
         final String zoneId = null;
 
-        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).scheduleRecurrently(id, jobDetails, CronExpression.create("*/15 * * * *"), ZoneId.systemDefault());
+        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        assertThat(jobDetailsArgumentCaptor.getValue())
+                .hasClassName(jobDetails.getClassName())
+                .hasMethodName(jobDetails.getMethodName())
+                .hasArgs(jobDetails.getJobParameterValues());
     }
 
     @Test
@@ -145,8 +164,12 @@ class JobRunrRecurringJobRecorderTest {
         final String interval = "${my-recurring-job.interval-expression}";
         final String zoneId = null;
 
-        jobRunrRecurringJobRecorder.schedule(beanContainer, id, jobDetails, cron, interval, zoneId);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).scheduleRecurrently(id, jobDetails, new Interval("PT10M"), ZoneId.systemDefault());
+        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(new Interval("PT10M")), eq(ZoneId.systemDefault()));
+        assertThat(jobDetailsArgumentCaptor.getValue())
+                .hasClassName(jobDetails.getClassName())
+                .hasMethodName(jobDetails.getMethodName())
+                .hasArgs(jobDetails.getJobParameterValues());
     }
 }
