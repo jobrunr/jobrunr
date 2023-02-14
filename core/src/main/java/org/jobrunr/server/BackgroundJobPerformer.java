@@ -140,6 +140,9 @@ public class BackgroundJobPerformer implements Runnable {
         if (beforeStateElection != afterStateElection) {
             jobPerformingFilters.runOnStateAppliedFilters();
         }
+        if(afterStateElection == FAILED) {
+            jobPerformingFilters.runOnJobFailedFilters();
+        }
     }
 
     private boolean isJobDeletedWhileProcessing(Exception e) {

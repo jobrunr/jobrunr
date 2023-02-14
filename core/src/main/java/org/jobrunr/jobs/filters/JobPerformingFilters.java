@@ -12,7 +12,7 @@ public class JobPerformingFilters extends AbstractJobFilters {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobPerformingFilters.class);
 
-    private Job job;
+    private final Job job;
 
     public JobPerformingFilters(Job job, JobDefaultFilters jobFilters) {
         super(job, jobFilters);
@@ -25,6 +25,10 @@ public class JobPerformingFilters extends AbstractJobFilters {
 
     public void runOnStateAppliedFilters() {
         applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-2), job.getJobState(-1))));
+    }
+
+    public void runOnJobFailedFilters() {
+        jobFailedFilters().forEach(catchThrowable(jobFailedFilter -> jobFailedFilter.onJobFailed(job)));
     }
 
     public void runOnJobProcessingFilters() {
@@ -43,6 +47,10 @@ public class JobPerformingFilters extends AbstractJobFilters {
         return applyStateFilters(jobFilters);
     }
 
+    private Stream<JobFailedAfterRetriesFilter> jobFailedFilters() {
+        return jobFailedFilters(jobFilters);
+    }
+
     private Stream<JobServerFilter> jobServerFilters() {
         return jobServerFilters(jobFilters);
     }
@@ -55,6 +63,10 @@ public class JobPerformingFilters extends AbstractJobFilters {
         return StreamUtils.ofType(jobFilters, ApplyStateFilter.class);
     }
 
+    private static Stream<JobFailedAfterRetriesFilter> jobFailedFilters(List<JobFilter> jobFilters) {
+        return StreamUtils.ofType(jobFilters, JobFailedAfterRetriesFilter.class);
+    }
+
     private static Stream<JobServerFilter> jobServerFilters(List<JobFilter> jobFilters) {
         return StreamUtils.ofType(jobFilters, JobServerFilter.class);
     }
@@ -63,4 +75,5 @@ public class JobPerformingFilters extends AbstractJobFilters {
     Logger getLogger() {
         return LOGGER;
     }
+
 }

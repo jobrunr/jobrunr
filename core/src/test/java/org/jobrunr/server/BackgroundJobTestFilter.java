@@ -2,16 +2,18 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
+import org.jobrunr.jobs.filters.JobFailedAfterRetriesFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilter {
+public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilter, JobFailedAfterRetriesFilter {
 
-    public boolean processingPassed;
-    public boolean processedPassed;
+    public boolean onProcessingIsCalled;
+    public boolean onProcessedIsCalled;
+    public boolean onJobFailedIsCalled;
     public List<String> stateChanges = new ArrayList<>();
 
     @Override
@@ -21,11 +23,16 @@ public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilte
 
     @Override
     public void onProcessing(Job job) {
-        processingPassed = true;
+        onProcessingIsCalled = true;
     }
 
     @Override
     public void onProcessed(Job job) {
-        processedPassed = true;
+        onProcessedIsCalled = true;
+    }
+
+    @Override
+    public void onJobFailed(Job job) {
+        onJobFailedIsCalled = true;
     }
 }

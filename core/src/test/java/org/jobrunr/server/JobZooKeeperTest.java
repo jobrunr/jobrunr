@@ -111,8 +111,8 @@ class JobZooKeeperTest {
         jobZooKeeper.run();
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
-        assertThat(logAllStateChangesFilter.processingPassed).isFalse();
-        assertThat(logAllStateChangesFilter.processedPassed).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isFalse();
     }
 
     @Test
