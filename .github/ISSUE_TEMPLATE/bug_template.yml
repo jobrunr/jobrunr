@@ -1,8 +1,6 @@
 name: Bug report
 description: Create a bug report to help us improve JobRunr. 
 title: "[BUG]"
-assignees:
-  - rdehuyss
 body:
   - type: markdown
     attributes:
