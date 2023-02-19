@@ -26,6 +26,10 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.DLOAD, DLoadOperandInstruction::new);
         instructions.put(Opcodes.FLOAD, FLoadOperandInstruction::new);
         instructions.put(Opcodes.I2B, I2BOperandInstruction::new);
+        instructions.put(Opcodes.I2C, I2COperandInstruction::new);
+        instructions.put(Opcodes.I2D, I2DOperandInstruction::new);
+        instructions.put(Opcodes.I2F, I2FOperandInstruction::new);
+        instructions.put(Opcodes.I2L, I2LOperandInstruction::new);
         instructions.put(Opcodes.I2S, I2SOperandInstruction::new);
         instructions.put(Opcodes.ICONST_0, IConst0OperandInstruction::new);
         instructions.put(Opcodes.ICONST_1, IConst1OperandInstruction::new);

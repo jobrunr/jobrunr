@@ -18,7 +18,9 @@ public class CachingJobDetailsGeneratorTest extends AbstractJobDetailsGeneratorT
     public static final Set<String> TESTS_WITH_JOB_DETAILS_THAT_ARE_NOT_CACHEABLE = Set.of(
             "testIocJobLambdaWithObject",
             "testJobLambdaWithObject",
-            "testJobLambdaCallingMultiLineStatementSystemOutPrintln"
+            "testJobLambdaCallingMultiLineStatementSystemOutPrintln",
+            "testCastingOfPrimitiveIntValues",
+            "testWithSubClass"
     );
 
     @Override

@@ -304,6 +304,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("Found following MDC keys: " + result);
     }
 
+    public void doWorkWithPrimitiveInt(int intValue) {
+        System.out.println("Doing some work with a primitive int: " + intValue);
+    }
+
     public static class Work {
 
         private int workCount;

@@ -1087,6 +1087,45 @@ public abstract class AbstractJobDetailsGeneratorTest {
         assertThat(jobDetails.getClassName()).isEqualTo(TaskEvent.Task1.class.getName());
     }
 
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/694")
+    void testCachingOfPrimitiveIntValues() {
+        JobDetails jobDetails1 = createJobLambdaWithPrimitiveInt(1);
+        assertThat(jobDetails1)
+                .hasMethodName("runItInt")
+                .hasArgs(1);
+
+        JobDetails jobDetails2 = createJobLambdaWithPrimitiveInt(2);
+        assertThat(jobDetails2)
+                .hasMethodName("runItInt")
+                .hasArgs(2);
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/694")
+    void testCastingOfPrimitiveIntValues() {
+        JobDetails jobDetails = createJobLambdaWithPrimitiveIntCastedToPrimitiveLong(3);
+        assertThat(jobDetails)
+                .hasMethodName("runItLong")
+                .hasArgs(3L);
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/694")
+    void testPassingObject() {
+        TestService.Work work1 = new TestService.Work(2, "a", UUID.randomUUID());
+        JobDetails jobDetails1 = createJobLambdaWithObject(work1);
+        assertThat(jobDetails1)
+                .hasMethodName("runItWithObject")
+                .hasArgs(work1);
+
+        TestService.Work work2 = new TestService.Work(3, "b", UUID.randomUUID());
+        JobDetails jobDetails2 = createJobLambdaWithObject(work2);
+        assertThat(jobDetails2)
+                .hasMethodName("runItWithObject")
+                .hasArgs(work2);
+    }
+
     private Runnable createJobDetailsRunnable(CountDownLatch countDownLatch, String threadNbr, Map<String, JobDetails> jobDetailsResults) {
         Random random = new Random();
         return () -> {
@@ -1125,5 +1164,29 @@ public abstract class AbstractJobDetailsGeneratorTest {
         public static String getCurrentLogin() {
             return "Some string";
         }
+    }
+
+    public JobDetails createJobLambdaWithPrimitiveInt(int intValue) {
+        return toJobDetails(() -> runItInt(intValue));
+    }
+
+    public JobDetails createJobLambdaWithPrimitiveIntCastedToPrimitiveLong(int intValue) {
+        return toJobDetails(() -> runItLong(intValue));
+    }
+
+    public JobDetails createJobLambdaWithObject(TestService.Work work) {
+        return toJobDetails(() -> runItWithObject(work));
+    }
+
+    public static void runItInt(int intValue) {
+        System.out.println("runItInt, intValue:" + intValue);
+    }
+
+    public static void runItLong(long longValue) {
+        System.out.println("runItInt, longValue:" + longValue);
+    }
+
+    public static void runItWithObject(TestService.Work work) {
+        System.out.println("runItWithObject, work:" + work.getUuid());
     }
 }

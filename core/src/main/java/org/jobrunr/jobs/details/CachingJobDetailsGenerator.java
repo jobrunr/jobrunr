@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
@@ -143,9 +144,8 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 List<Field> declaredFields = new ArrayList<>(asList(jobRunrJob.getClass().getDeclaredFields()));
                 List<JobParameter> jobParameters = jobDetails.getJobParameters();
 
-                if (!declaredFields.isEmpty()
-                        && !(declaredFields.get(0).getType().getName().startsWith("java."))
-                        && (jobRunrJob instanceof JobLambda || jobRunrJob instanceof JobLambdaFromStream)) {
+                if(isParentClassPassedAsFieldToPassJobDetailsClass(declaredFields, jobDetails)
+                    || isClassPassedAsFieldToPassJobDetailsClass(declaredFields, jobDetails)) {
                     declaredFields.remove(0);
                 }
 
@@ -159,6 +159,22 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails.setCacheable(false);
                 return emptyList();
             }
+        }
+
+
+        private static boolean isParentClassPassedAsFieldToPassJobDetailsClass(List<Field> declaredFields, JobDetails jobDetails) {
+            if(declaredFields.isEmpty()) return false;
+
+            return stream(declaredFields.get(0).getType().getDeclaredFields())
+                    .map(Field::getType)
+                    .map(Class::getName)
+                    .anyMatch(x -> x.equals(jobDetails.getClassName()));
+        }
+
+        private static boolean isClassPassedAsFieldToPassJobDetailsClass(List<Field> declaredFields, JobDetails jobDetails) {
+            if(declaredFields.isEmpty()) return false;
+
+            return declaredFields.get(0).getType().getName().equals(jobDetails.getClassName());
         }
 
         private static <T> JobParameterRetriever createJobParameterRetriever(JobParameter jp, JobRunrJob jobRunrJob, Optional<T> itemFromStream, List<Field> declaredFields) throws IllegalAccessException {

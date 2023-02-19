@@ -2,15 +2,15 @@ package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.details.JobDetailsBuilder;
 
-public class I2BOperandInstruction extends ZeroOperandInstruction {
+public class I2LOperandInstruction extends ZeroOperandInstruction {
 
-    public I2BOperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
+    public I2LOperandInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 
     @Override
     public Object invokeInstruction() {
         int intValue = (int) jobDetailsBuilder.getStack().pollLast();
-        return (byte) intValue;
+        return (long) intValue;
     }
 }
