@@ -134,14 +134,19 @@ public class BackgroundJobPerformer implements Runnable {
     protected void saveAndRunStateRelatedJobFilters(Job job) {
         jobPerformingFilters.runOnStateAppliedFilters();
         StateName beforeStateElection = job.getState();
+        if (beforeStateElection == SUCCEEDED) {
+            jobPerformingFilters.runOnJobSucceededFilters();
+        } else if (beforeStateElection == FAILED) {
+            jobPerformingFilters.runOnJobFailedFilters();
+        }
         jobPerformingFilters.runOnStateElectionFilter();
         StateName afterStateElection = job.getState();
         this.backgroundJobServer.getStorageProvider().save(job);
         if (beforeStateElection != afterStateElection) {
             jobPerformingFilters.runOnStateAppliedFilters();
         }
-        if(afterStateElection == FAILED) {
-            jobPerformingFilters.runOnJobFailedFilters();
+        if (afterStateElection == FAILED) {
+            jobPerformingFilters.runOnJobFailedAfterRetriesFilters();
         }
     }
 

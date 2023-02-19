@@ -154,25 +154,48 @@ class BackgroundJobPerformerTest {
     }
 
     @Test
-    void onFailureAndRetriesAreNotExhaustedOnJobFailedFilterIsNotCalled() {
+    void onSucceededServerFilterOnSucceededIsCalled() {
+        Job job = anEnqueuedJob().build();
+
+        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(new BackgroundStaticFieldJobWithoutIocRunner());
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        backgroundJobPerformer.run();
+
+        assertThat(logAllStateChangesFilter.onSucceededIsCalled).isTrue();
+    }
+
+    @Test
+    void onFailureServerFilterOnFailedIsCalled() {
         Job job = anEnqueuedJob().build();
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         backgroundJobPerformer.run();
 
-        assertThat(logAllStateChangesFilter.onJobFailedIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onFailedIsCalled).isTrue();
     }
 
     @Test
-    void onFailureAfterAllRetriesOnJobFailedFilterIsCalled() {
+    void onFailureAndRetriesAreNotExhaustedServerFilterOnFailedAfterRetriesIsNotCalled() {
+        Job job = anEnqueuedJob().build();
+        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        backgroundJobPerformer.run();
+
+        assertThat(logAllStateChangesFilter.onFailedAfterRetriesIsCalled).isFalse();
+    }
+
+    @Test
+    void onFailureAfterAllRetriesServerFilterOnFailedAfterRetriesNotCalled() {
         Job job = aFailedJobWithRetries().withEnqueuedState(Instant.now()).build();
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         backgroundJobPerformer.run();
 
-        assertThat(logAllStateChangesFilter.onJobFailedIsCalled).isTrue();
+        assertThat(logAllStateChangesFilter.onFailedAfterRetriesIsCalled).isTrue();
     }
 
     @Test

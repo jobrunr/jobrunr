@@ -27,10 +27,6 @@ public class JobPerformingFilters extends AbstractJobFilters {
         applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-2), job.getJobState(-1))));
     }
 
-    public void runOnJobFailedFilters() {
-        jobFailedFilters().forEach(catchThrowable(jobFailedFilter -> jobFailedFilter.onJobFailed(job)));
-    }
-
     public void runOnJobProcessingFilters() {
         jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onProcessing(job)));
     }
@@ -39,16 +35,24 @@ public class JobPerformingFilters extends AbstractJobFilters {
         jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onProcessed(job)));
     }
 
+    public void runOnJobSucceededFilters() {
+        jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onSucceeded(job)));
+    }
+
+    public void runOnJobFailedFilters() {
+        jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onFailed(job)));
+    }
+
+    public void runOnJobFailedAfterRetriesFilters() {
+        jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onFailedAfterRetries(job)));
+    }
+
     private Stream<ElectStateFilter> electStateFilters() {
         return electStateFilters(jobFilters);
     }
 
     private Stream<ApplyStateFilter> applyStateFilters() {
         return applyStateFilters(jobFilters);
-    }
-
-    private Stream<JobFailedAfterRetriesFilter> jobFailedFilters() {
-        return jobFailedFilters(jobFilters);
     }
 
     private Stream<JobServerFilter> jobServerFilters() {
@@ -61,10 +65,6 @@ public class JobPerformingFilters extends AbstractJobFilters {
 
     private static Stream<ApplyStateFilter> applyStateFilters(List<JobFilter> jobFilters) {
         return StreamUtils.ofType(jobFilters, ApplyStateFilter.class);
-    }
-
-    private static Stream<JobFailedAfterRetriesFilter> jobFailedFilters(List<JobFilter> jobFilters) {
-        return StreamUtils.ofType(jobFilters, JobFailedAfterRetriesFilter.class);
     }
 
     private static Stream<JobServerFilter> jobServerFilters(List<JobFilter> jobFilters) {

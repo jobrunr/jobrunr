@@ -2,18 +2,19 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
-import org.jobrunr.jobs.filters.JobFailedAfterRetriesFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilter, JobFailedAfterRetriesFilter {
+public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilter {
 
     public boolean onProcessingIsCalled;
     public boolean onProcessedIsCalled;
-    public boolean onJobFailedIsCalled;
+    public boolean onSucceededIsCalled;
+    public boolean onFailedIsCalled;
+    public boolean onFailedAfterRetriesIsCalled;
     public List<String> stateChanges = new ArrayList<>();
 
     @Override
@@ -32,7 +33,17 @@ public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilte
     }
 
     @Override
-    public void onJobFailed(Job job) {
-        onJobFailedIsCalled = true;
+    public void onSucceeded(Job job) {
+        onSucceededIsCalled = true;
+    }
+
+    @Override
+    public void onFailed(Job job) {
+        onFailedIsCalled = true;
+    }
+
+    @Override
+    public void onFailedAfterRetries(Job job) {
+        onFailedAfterRetriesIsCalled = true;
     }
 }
