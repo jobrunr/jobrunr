@@ -7,8 +7,6 @@ import org.objectweb.asm.*;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.jobrunr.JobRunrException.shouldNotHappenException;
-
 abstract class AbstractJobDetailsFinder extends ClassVisitor {
 
     protected final JobDetailsBuilder jobDetailsBuilder;
@@ -84,13 +82,9 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
         return jobDetailsBuilder.getJobDetails();
     }
 
-    protected void parse(InputStream inputStream) {
-        try {
-            ClassReader parser = new ClassReader(inputStream);
-            parser.accept(this, ClassReader.SKIP_FRAMES);
-        } catch (IOException e) {
-            throw shouldNotHappenException(e);
-        }
+    protected void parse(InputStream inputStream) throws IOException {
+        ClassReader parser = new ClassReader(inputStream);
+        parser.accept(this, ClassReader.SKIP_FRAMES);
     }
 
 }

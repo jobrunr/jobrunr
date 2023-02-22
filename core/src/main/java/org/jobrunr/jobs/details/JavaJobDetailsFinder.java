@@ -2,10 +2,12 @@ package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.SerializedLambda;
 
 import static java.util.Arrays.stream;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getJavaClassContainingLambdaAsInputStream;
 import static org.jobrunr.utils.StringUtils.substringAfter;
 
@@ -20,9 +22,13 @@ public class JavaJobDetailsFinder extends AbstractJobDetailsFinder {
         this.jobRunrJob = jobRunrJob;
         this.serializedLambda = serializedLambda;
         this.isLambda = (serializedLambda.getImplMethodName().startsWith("lambda$") || serializedLambda.getImplMethodName().contains("$lambda-") || serializedLambda.getImplMethodName().contains("$lambda$"));
-        if(isLambda) {
-            parse(getClassContainingLambdaAsInputStream());
-        } else if(serializedLambda.getCapturedArgCount() == 1 &&
+        if (isLambda) {
+            try (InputStream classContainingLambdaInputStream = getClassContainingLambdaAsInputStream()) {
+                parse(classContainingLambdaInputStream);
+            } catch (IOException e) {
+                throw shouldNotHappenException(e);
+            }
+        } else if (serializedLambda.getCapturedArgCount() == 1 &&
                 stream(serializedLambda.getCapturedArg(0).getClass().getAnnotations())
                         .anyMatch(ann -> "kotlin.Metadata".equals(ann.annotationType().getName()))) {
             // kotlin method reference
