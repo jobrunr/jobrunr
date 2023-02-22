@@ -88,7 +88,7 @@ public abstract class AbstractJob implements Lockable {
             if (labels.size() > MAX_AMOUNT_OF_LABELS) {
                 throw new IllegalArgumentException(String.format("Per job a maximum of %d labels can be provided.", MAX_AMOUNT_OF_LABELS));
             }
-            if (labels.stream().anyMatch((label) -> label.length() > 45)) {
+            if (labels.stream().anyMatch(label -> label.length() > 45)) {
                 throw new IllegalArgumentException(String.format("Label length must be less than %d characters.", MAX_LABEL_LENGTH));
             }
             this.labels = new HashSet<>(labels);

@@ -51,7 +51,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public void setUpStorageProvider(DatabaseOptions databaseOptions) {}
+    public void setUpStorageProvider(DatabaseOptions databaseOptions) {
+        // nothing to do for InMemoryStorageProvider
+    }
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
@@ -324,7 +326,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
             throw new ConcurrentJobModificationException(job);
         }
 
-        try(JobVersioner jobVersioner = new JobVersioner(job)) {
+        try (JobVersioner jobVersioner = new JobVersioner(job)) {
             jobQueue.put(job.getId(), deepClone(job));
             jobVersioner.commitVersion();
         }

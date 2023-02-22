@@ -87,7 +87,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
             }
         }
 
-        public JobDetails getJobDetails(IocJobLambda lambda) {
+        public JobDetails getJobDetails(IocJobLambda<?> lambda) {
             if (jobDetails == null) {
                 jobDetailsLock.lock();
                 try {
@@ -144,8 +144,8 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 List<Field> declaredFields = new ArrayList<>(asList(jobRunrJob.getClass().getDeclaredFields()));
                 List<JobParameter> jobParameters = jobDetails.getJobParameters();
 
-                if(isParentClassPassedAsFieldToPassJobDetailsClass(declaredFields, jobDetails)
-                    || isClassPassedAsFieldToPassJobDetailsClass(declaredFields, jobDetails)) {
+                if (isParentClassPassedAsFieldToPassJobDetailsClass(declaredFields, jobDetails)
+                        || isClassPassedAsFieldToPassJobDetailsClass(declaredFields, jobDetails)) {
                     declaredFields.remove(0);
                 }
 
@@ -163,7 +163,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
 
         private static boolean isParentClassPassedAsFieldToPassJobDetailsClass(List<Field> declaredFields, JobDetails jobDetails) {
-            if(declaredFields.isEmpty()) return false;
+            if (declaredFields.isEmpty()) return false;
 
             return stream(declaredFields.get(0).getType().getDeclaredFields())
                     .map(Field::getType)
@@ -172,7 +172,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
         }
 
         private static boolean isClassPassedAsFieldToPassJobDetailsClass(List<Field> declaredFields, JobDetails jobDetails) {
-            if(declaredFields.isEmpty()) return false;
+            if (declaredFields.isEmpty()) return false;
 
             return declaredFields.get(0).getType().getName().equals(jobDetails.getClassName());
         }
@@ -242,7 +242,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
         @Override
         public <T> JobParameter getJobParameter(JobRunrJob job, Optional<T> itemFromStream) {
             try {
-                Object o = (Object) methodHandle.invokeExact((Object) job);
+                Object o = methodHandle.invokeExact((Object) job);
                 return new JobParameter(jobParameterClassName, o);
             } catch (Throwable throwable) {
                 throw shouldNotHappenException(throwable);
