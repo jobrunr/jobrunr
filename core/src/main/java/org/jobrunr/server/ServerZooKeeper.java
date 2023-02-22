@@ -89,9 +89,8 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private void signalBackgroundJobServerAlive() {
-        // TODO: stop server if requested?
         final BackgroundJobServerStatus serverStatus = backgroundJobServer.getServerStatus();
-        final boolean keepRunning = storageProvider.signalBackgroundJobServerAlive(serverStatus);
+        storageProvider.signalBackgroundJobServerAlive(serverStatus);
         cpuAllocationIrregularity(lastSignalAlive, serverStatus.getLastHeartbeat()).ifPresent(amountOfSeconds -> dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(amountOfSeconds)));
         lastSignalAlive = serverStatus.getLastHeartbeat();
     }

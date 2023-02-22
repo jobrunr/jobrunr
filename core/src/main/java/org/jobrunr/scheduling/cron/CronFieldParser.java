@@ -93,10 +93,8 @@ class CronFieldParser {
             if (token.length() == 2 && token.endsWith("l")) {
                 return this.parseLiteral(token.substring(0, 1));
             }
-        } else if (this.fieldType == CronFieldType.DAY) {
-            if ("l".equals(token)) {
-                return fieldType.parseLastDayOfMonth();
-            }
+        } else if (this.fieldType == CronFieldType.DAY && "l".equals(token)) {
+            return fieldType.parseLastDayOfMonth();
         }
         if (token.indexOf(',') > -1) {
             BitSet bitSet = new BitSet(this.length);

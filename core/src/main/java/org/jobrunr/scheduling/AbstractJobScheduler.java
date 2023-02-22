@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
-
 public abstract class AbstractJobScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
@@ -31,21 +29,12 @@ public abstract class AbstractJobScheduler {
     private final JobFilterUtils jobFilterUtils;
 
     /**
-     * Creates a new AbstractJobScheduler using the provided storageProvider
-     *
-     * @param storageProvider the storageProvider to use
-     */
-    public AbstractJobScheduler(StorageProvider storageProvider) {
-        this(storageProvider, emptyList());
-    }
-
-    /**
      * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters that will be used for every background job
      *
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    public AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
+    protected AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
         if (storageProvider == null)
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
         this.storageProvider = storageProvider;

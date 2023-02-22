@@ -32,7 +32,7 @@ public abstract class ZooKeeperTask {
     protected final StorageProvider storageProvider;
     protected ZooKeeperTaskInfo runInfo;
 
-    public ZooKeeperTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
+    protected ZooKeeperTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         this.jobZooKeeper = jobZooKeeper;
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();

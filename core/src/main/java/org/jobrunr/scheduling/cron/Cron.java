@@ -74,7 +74,7 @@ public class Cron {
     }
 
     public static String lastDayOfTheMonth() {
-        return String.format("0 0 L * *");
+        return "0 0 L * *";
     }
 
     public static String lastDayOfTheMonth(int hour) {

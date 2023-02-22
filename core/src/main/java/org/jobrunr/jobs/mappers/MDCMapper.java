@@ -12,11 +12,15 @@ public class MDCMapper {
     public static final String JOBRUNR_MDC_JOB_ID_KEY = "jobrunr.jobId";
     public static final String JOBRUNR_MDC_JOB_NAME_KEY = "jobrunr.jobName";
 
+    private MDCMapper() {
+        // private constructor for SonarQube
+    }
+
     public static void saveMDCContextToJob(Job job) {
         Map<String, String> mdcContext = MDC.getCopyOfContextMap();
-        if(mdcContext == null) return;
+        if (mdcContext == null) return;
         mdcContext.forEach((key, value) -> {
-            if(value != null) {
+            if (value != null) {
                 job.getMetadata().put(JOBRUNR_MDC_KEY + "-" + key, value);
             }
         });

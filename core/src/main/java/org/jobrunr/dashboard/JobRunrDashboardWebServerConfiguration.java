@@ -1,7 +1,5 @@
 package org.jobrunr.dashboard;
 
-import org.jobrunr.configuration.JobRunrConfiguration;
-
 /**
  * This class allows to configure the JobRunrDashboard
  */
