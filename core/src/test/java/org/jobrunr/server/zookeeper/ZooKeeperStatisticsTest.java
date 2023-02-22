@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,10 +28,28 @@ class ZooKeeperStatisticsTest {
     }
 
     @Test
-    void ifRunTookTooLongANotificationIsShown() {
-        statistics.logRun(2, true,5, now().minusSeconds(15), now());
+    void ifOneRunTookTooLongNoNotificationIsShown() {
+        statistics.logRun(2, true, 5, now().minusSeconds(15), now());
+
+        verify(dashboardNotificationManager, never()).notify(any(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class));
+    }
+
+    @Test
+    void ifThreeConsecutiveRunsTookTooLongANotificationIsShown() {
+        statistics.logRun(2, true, 5, now().minusSeconds(45), now().minusSeconds(30));
+        statistics.logRun(3, true, 5, now().minusSeconds(30), now().minusSeconds(15));
+        statistics.logRun(4, true, 5, now().minusSeconds(15), now());
 
         verify(dashboardNotificationManager).notify(any(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class));
+    }
+
+    @Test
+    void ifThreeNotConsecutiveRunsTookTooLongNoNotificationIsShown() {
+        statistics.logRun(2, true, 5, now().minusSeconds(45), now().minusSeconds(30));
+        statistics.logRun(3, true, 5, now().minusSeconds(30), now().minusSeconds(15));
+        statistics.logRun(4, true, 5, now().minusSeconds(15), now().minusSeconds(11));
+
+        verify(dashboardNotificationManager, never()).notify(any(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class));
     }
 
     @Test
@@ -46,16 +65,16 @@ class ZooKeeperStatisticsTest {
     }
 
     @Test
-    void ifRunFailsOnceThenSucceedsAgainExceptionCounterIsZero() {
+    void ifRunFailsOnceThenSucceedsAgainexceptionCounterIsZero() {
         statistics.handleException(new RuntimeException("Ex 1"));
 
         statistics.logRun(1, true, 5, now().minusSeconds(1), now());
 
-        assertThat(statistics).hasFieldOrPropertyWithValue("exceptionCount", 0);
+        assertThat(statistics).hasFieldOrPropertyWithValue("exceptionCounter", 0);
     }
 
     @Test
-    void ifRunFails3TimesThenSucceedsMultipleTimesAgainExceptionCounterIsZero() {
+    void ifRunFails3TimesThenSucceedsMultipleTimesAgainexceptionCounterIsZero() {
         statistics.handleException(new RuntimeException("Ex 1"));
         statistics.handleException(new RuntimeException("Ex 2"));
         statistics.handleException(new RuntimeException("Ex 3"));
@@ -66,6 +85,6 @@ class ZooKeeperStatisticsTest {
         statistics.logRun(1, true, 5, now().minusSeconds(1), now());
         statistics.logRun(1, true, 5, now().minusSeconds(1), now());
 
-        assertThat(statistics).hasFieldOrPropertyWithValue("exceptionCount", 0);
+        assertThat(statistics).hasFieldOrPropertyWithValue("exceptionCounter", 0);
     }
 }
