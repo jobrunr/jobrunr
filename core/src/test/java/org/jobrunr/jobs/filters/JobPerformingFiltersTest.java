@@ -60,7 +60,7 @@ class JobPerformingFiltersTest {
         JobPerformingFilters jobPerformingFilters = jobPerformingFilters(aJobWithACustomElectStateJobFilter);
         jobPerformingFilters.runOnStateAppliedFilters();
         jobPerformingFilters.runOnJobProcessingFilters();
-        jobPerformingFilters.runOnJobProcessedFilters();
+        jobPerformingFilters.runOnJobProcessingSucceededFilters();
         Map<String, Object> metadata = Whitebox.getInternalState(aJobWithACustomElectStateJobFilter, "metadata");
 
         assertThat(metadata)

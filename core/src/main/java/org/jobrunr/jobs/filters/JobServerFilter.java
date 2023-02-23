@@ -25,28 +25,30 @@ public interface JobServerFilter extends JobFilter {
     }
 
     /**
-     * This hook is called when the Job has been processed successfully (note that the job still has the <code>PROCESSING</code> state).
-     * This method will not be called when the job failed to process.
+     * This hook is called when the Job processing succeeded (note that the job still has the <code>PROCESSING</code> state).
      *
      * @param job the job that has been processed successfully.
+     * @deprecated Please use {@link JobServerFilter#onProcessingSucceeded(Job)}
      */
+    @Deprecated
     default void onProcessed(Job job) {
     }
 
     /**
-     * This hook is called when a Job succeeded
+     * This hook is called when the Job processing succeeded (note that the job still has the <code>PROCESSING</code> state).
      *
-     * @param job the job that succeeded.
+     * @param job the job that has been processed successfully.
      */
-    default void onSucceeded(Job job) {
+    default void onProcessingSucceeded(Job job) {
     }
 
     /**
-     * This hook is called when a Job failed (but it will be retried thanks to the <code>RetryFilter</code> if the retries are not exhausted).
+     * This hook is called when the Job processing failed (note that the job still has the <code>PROCESSING</code> state).
      *
-     * @param job the job that failed.
+     * @param job the job that has been processed successfully.
+     * @param e   the exception that occurred.
      */
-    default void onFailed(Job job) {
+    default void onProcessingFailed(Job job, Exception e) {
     }
 
     /**

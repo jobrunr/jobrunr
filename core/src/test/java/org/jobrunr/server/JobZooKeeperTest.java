@@ -112,7 +112,7 @@ class JobZooKeeperTest {
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
-        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
     }
 
     @Test
@@ -152,7 +152,7 @@ class JobZooKeeperTest {
                 );
         when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
 
-        for(int i = 0; i <= 5 ; i++) {
+        for (int i = 0; i <= 5; i++) {
             jobZooKeeper.run();
         }
 

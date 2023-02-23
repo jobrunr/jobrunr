@@ -68,7 +68,7 @@ class BackgroundJobPerformerTest {
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING");
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isTrue();
-        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isTrue();
         assertThat(logger)
                 .hasNoErrorLogMessages()
                 .hasInfoMessage("Job finished successfully but it was already deleted - ignoring illegal state change from DELETED to SUCCEEDED");
@@ -100,7 +100,7 @@ class BackgroundJobPerformerTest {
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING");
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isTrue();
-        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
         assertThat(logger)
                 .hasNoErrorLogMessages()
                 .hasInfoMessage("Job processing failed but it was already deleted - ignoring illegal state change from DELETED to FAILED");
@@ -131,7 +131,8 @@ class BackgroundJobPerformerTest {
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isTrue();
-        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingFailedIsCalled).isFalse();
     }
 
     @Test
@@ -146,34 +147,12 @@ class BackgroundJobPerformerTest {
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED", "FAILED->SCHEDULED");
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isTrue();
-        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingFailedIsCalled).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
 
         assertThat(logger)
                 .hasNoErrorLogMessages()
                 .hasWarningMessageContaining("processing failed: An exception occurred during the performance of the job");
-    }
-
-    @Test
-    void onSucceededServerFilterOnSucceededIsCalled() {
-        Job job = anEnqueuedJob().build();
-
-        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(new BackgroundStaticFieldJobWithoutIocRunner());
-
-        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
-        backgroundJobPerformer.run();
-
-        assertThat(logAllStateChangesFilter.onSucceededIsCalled).isTrue();
-    }
-
-    @Test
-    void onFailureServerFilterOnFailedIsCalled() {
-        Job job = anEnqueuedJob().build();
-        when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(null);
-
-        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
-        backgroundJobPerformer.run();
-
-        assertThat(logAllStateChangesFilter.onFailedIsCalled).isTrue();
     }
 
     @Test

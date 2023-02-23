@@ -38,7 +38,7 @@ class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
-        assertThat(logAllStateChangesFilter.onProcessedIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
     }
 
     @Test

@@ -12,8 +12,8 @@ public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilte
 
     public boolean onProcessingIsCalled;
     public boolean onProcessedIsCalled;
-    public boolean onSucceededIsCalled;
-    public boolean onFailedIsCalled;
+    public boolean onProcessingSucceededIsCalled;
+    public boolean onProcessingFailedIsCalled;
     public boolean onFailedAfterRetriesIsCalled;
     public List<String> stateChanges = new ArrayList<>();
 
@@ -33,13 +33,13 @@ public class BackgroundJobTestFilter implements ApplyStateFilter, JobServerFilte
     }
 
     @Override
-    public void onSucceeded(Job job) {
-        onSucceededIsCalled = true;
+    public void onProcessingSucceeded(Job job) {
+        onProcessingSucceededIsCalled = true;
     }
 
     @Override
-    public void onFailed(Job job) {
-        onFailedIsCalled = true;
+    public void onProcessingFailed(Job job, Exception e) {
+        onProcessingFailedIsCalled = true;
     }
 
     @Override

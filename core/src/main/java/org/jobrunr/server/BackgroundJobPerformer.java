@@ -87,7 +87,10 @@ public class BackgroundJobPerformer implements Runnable {
             jobPerformingFilters.runOnJobProcessingFilters();
             BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
             backgroundJobRunner.run(job);
-            jobPerformingFilters.runOnJobProcessedFilters();
+            jobPerformingFilters.runOnJobProcessingSucceededFilters();
+        } catch (Exception e) {
+            jobPerformingFilters.runOnJobProcessingFailedFilters(e);
+            throw e;
         } finally {
             backgroundJobServer.getJobZooKeeper().stopProcessing(job);
             JobRunrDashboardLogger.clearJob();
@@ -134,11 +137,6 @@ public class BackgroundJobPerformer implements Runnable {
     protected void saveAndRunStateRelatedJobFilters(Job job) {
         jobPerformingFilters.runOnStateAppliedFilters();
         StateName beforeStateElection = job.getState();
-        if (beforeStateElection == SUCCEEDED) {
-            jobPerformingFilters.runOnJobSucceededFilters();
-        } else if (beforeStateElection == FAILED) {
-            jobPerformingFilters.runOnJobFailedFilters();
-        }
         jobPerformingFilters.runOnStateElectionFilter();
         StateName afterStateElection = job.getState();
         this.backgroundJobServer.getStorageProvider().save(job);
