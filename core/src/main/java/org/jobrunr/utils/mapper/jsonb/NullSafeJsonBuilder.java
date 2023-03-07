@@ -74,7 +74,7 @@ public class NullSafeJsonBuilder implements JsonObjectBuilder {
     }
 
     public NullSafeJsonBuilder add(String name, Integer value) {
-        if (value != null) add(name, value);
+        if (value != null) add(name, value.intValue());
         else addNull(name);
         return this;
     }

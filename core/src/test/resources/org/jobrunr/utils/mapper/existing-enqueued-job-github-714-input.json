@@ -1,0 +1,30 @@
+{
+  "jobSignature": "java.lang.System.out.println(java.lang.String)",
+  "jobName": "an enqueued job",
+  "jobDetails": {
+    "cacheable": true,
+    "className": "java.lang.System",
+    "staticFieldName": "out",
+    "methodName": "println",
+    "jobParameters": [
+      {
+        "className": "java.lang.String",
+        "actualClassName": "java.lang.String",
+        "object": "a test"
+      }
+    ]
+  },
+  "id": "8bf98a10-f673-4fd8-9b9c-43ded0030910",
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "2023-03-07T10:00:00.000Z"
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  },
+  "recurringJobId": null,
+  "version": 0
+}

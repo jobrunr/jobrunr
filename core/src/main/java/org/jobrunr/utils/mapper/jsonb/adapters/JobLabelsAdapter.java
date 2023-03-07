@@ -27,8 +27,10 @@ public class JobLabelsAdapter implements JsonbAdapter<Set<String>, JsonArray> {
     @Override
     public Set<String> adaptFromJson(JsonArray jsonArray) {
         final Set<String> result = new TreeSet<>();
-        for (JsonValue jsonValue : jsonArray) {
-            result.add(((JsonString)jsonValue).getString());
+        if (jsonArray != null) {
+            for (JsonValue jsonValue : jsonArray) {
+                result.add(((JsonString) jsonValue).getString());
+            }
         }
         return result;
     }

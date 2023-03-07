@@ -26,6 +26,7 @@ public abstract class AbstractJob implements Lockable {
     protected AbstractJob() {
         // used for deserialization
         this.locker = new Lock();
+        this.labels = new HashSet<>();
     }
 
     protected AbstractJob(JobDetails jobDetails) {
@@ -37,7 +38,6 @@ public abstract class AbstractJob implements Lockable {
         this.jobDetails = jobDetails;
         this.version = version;
         this.jobSignature = JobUtils.getJobSignature(jobDetails);
-        this.labels = new HashSet<>();
     }
 
     public abstract Object getId();

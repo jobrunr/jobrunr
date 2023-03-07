@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.jobrunr.JobRunrAssertions.*;
 import static org.jobrunr.jobs.JobTestBuilder.*;
@@ -230,6 +231,30 @@ public abstract class AbstractJsonMapperTest {
         final String jobAsString = jsonMapper.serialize(job);
         final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/536")
+    void testSerializeAndDeserializeRecurringJobsComingFrom5() {
+        // recurring jobs created in 5.0.0
+        final String recurringJobAsStringFrom5 = contentOfResource("/org/jobrunr/utils/mapper/existing-recurring-job-github-714-input.json");
+
+        final RecurringJob actualRecurringJob = jsonMapper.deserialize(recurringJobAsStringFrom5, RecurringJob.class);
+        assertThat(actualRecurringJob)
+                .isNotNull()
+                .hasLabels(emptySet());
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/536")
+    void testSerializeAndDeserializeJobsComingFrom5() {
+        // jobs created in 5.0.0
+        final String enqueuedJobAsStringFrom5 = contentOfResource("/org/jobrunr/utils/mapper/existing-enqueued-job-github-714-input.json");
+
+        final Job actualJob = jsonMapper.deserialize(enqueuedJobAsStringFrom5, Job.class);
+        assertThat(actualJob)
+                .isNotNull()
+                .hasLabels(emptySet());
     }
 
     @Test
