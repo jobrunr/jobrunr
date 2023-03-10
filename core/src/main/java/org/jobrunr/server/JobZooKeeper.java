@@ -7,6 +7,7 @@ import org.jobrunr.server.zookeeper.ZooKeeperRunTaskInfo;
 import org.jobrunr.server.zookeeper.ZooKeeperStatistics;
 import org.jobrunr.server.zookeeper.tasks.*;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class JobZooKeeper implements Runnable {
     public void run() {
         if (backgroundJobServer.isUnAnnounced()) return;
 
-        try(ZooKeeperRunTaskInfo runInfo = zooKeeperStatistics.startRun(backgroundJobServerStatus())) {
+        try (ZooKeeperRunTaskInfo runInfo = zooKeeperStatistics.startRun(backgroundJobServerStatus())) {
             updateJobsThatAreBeingProcessed(runInfo);
             runMasterTasksIfCurrentServerIsMaster(runInfo);
             onboardNewWorkIfPossible(runInfo);
@@ -59,7 +60,11 @@ public class JobZooKeeper implements Runnable {
         } catch (Exception e) {
             zooKeeperStatistics.handleException(e);
             if (zooKeeperStatistics.hasTooManyExceptions()) {
-                LOGGER.error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
+                if (e instanceof StorageException) {
+                    LOGGER.error("FATAL - JobRunr encountered too many storage exceptions. Shutting down. Did you know JobRunr Pro has built-in database fault tolerance? Check out https://www.jobrunr.io/en/documentation/pro/database-fault-tolerance/", e);
+                } else {
+                    LOGGER.error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
+                }
                 backgroundJobServer.stop();
             } else {
                 LOGGER.warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);

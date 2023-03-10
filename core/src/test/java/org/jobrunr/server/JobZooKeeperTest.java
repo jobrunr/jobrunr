@@ -1,15 +1,15 @@
 package org.jobrunr.server;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +50,7 @@ class JobZooKeeperTest {
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
     private BackgroundJobTestFilter logAllStateChangesFilter;
+    private ListAppender<ILoggingEvent> logger;
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
@@ -57,6 +58,7 @@ class JobZooKeeperTest {
         logAllStateChangesFilter = new BackgroundJobTestFilter();
         backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         jobZooKeeper = initializeJobZooKeeper();
+        logger = LoggerAssert.initFor(jobZooKeeper);
     }
 
     @Test
@@ -157,6 +159,22 @@ class JobZooKeeperTest {
         }
 
         verify(backgroundJobServer).stop();
+        assertThat(logger).hasErrorMessage("FATAL - JobRunr encountered too many processing exceptions. Shutting down.");
+    }
+
+    @Test
+    void jobZooKeeperStopsAndLogsStorageProviderExceptionIfTooManyStorageExceptions() {
+        Job aJobInProgress = aJobInProgress().build();
+
+        jobZooKeeper.startProcessing(aJobInProgress, mock(Thread.class));
+        when(storageProvider.save(anyList())).thenThrow(new StorageException("a storage exception"));
+
+        for (int i = 0; i <= 5; i++) {
+            jobZooKeeper.run();
+        }
+
+        verify(backgroundJobServer).stop();
+        assertThat(logger).hasErrorMessage("FATAL - JobRunr encountered too many storage exceptions. Shutting down. Did you know JobRunr Pro has built-in database fault tolerance? Check out https://www.jobrunr.io/en/documentation/pro/database-fault-tolerance/");
     }
 
     private JobZooKeeper initializeJobZooKeeper() {
