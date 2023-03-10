@@ -158,6 +158,11 @@ public class TestService implements TestServiceInterface {
         System.out.println("I will always succeed thanks to my SunIsAlwaysShiningElectStateFilter... ");
     }
 
+    @Job(jobFilters = {JobFilterWithNoDefaultConstructor.class})
+    public void doWorkWithCustomJobFilterThatNeedsDependencyInjection() {
+        System.out.println("I will never succeed... ");
+    }
+
     public String doWorkAndReturnResult(String someString) {
         return "Hello to you to " + someString;
     }
@@ -386,6 +391,13 @@ public class TestService implements TestServiceInterface {
             if (ENQUEUED.equals(newState.getName())) {
                 job.succeeded();
             }
+        }
+    }
+
+    public static class JobFilterWithNoDefaultConstructor implements JobServerFilter {
+
+        public JobFilterWithNoDefaultConstructor(String justAnArgumentSoAnExceptionIsThrown) {
+            // filters in the free version need a no-arg constructor
         }
     }
 

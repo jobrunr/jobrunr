@@ -141,6 +141,12 @@ public class ReflectionUtils {
         return declaredConstructor.newInstance(params);
     }
 
+    public static <T> T newInstanceCE(Class<T> clazz) throws ReflectiveOperationException {
+        Constructor<T> defaultConstructor = clazz.getDeclaredConstructor();
+        makeAccessible(defaultConstructor);
+        return defaultConstructor.newInstance();
+    }
+
     public static <T> T newInstance(Class<T> clazz) {
         try {
             Constructor<T> defaultConstructor = clazz.getDeclaredConstructor();

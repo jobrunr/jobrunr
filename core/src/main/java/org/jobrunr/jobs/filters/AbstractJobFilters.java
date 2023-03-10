@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceCE;
 
 public abstract class AbstractJobFilters {
 
@@ -84,8 +85,16 @@ public abstract class AbstractJobFilters {
     private static List<JobFilter> getOtherJobFilter(org.jobrunr.jobs.annotations.Job jobAnnotation) {
         return Stream.of(jobAnnotation.jobFilters())
                 .filter(jobFilter -> !ElectStateFilter.class.isAssignableFrom(jobFilter))
-                .map(ReflectionUtils::newInstance)
+                .map(AbstractJobFilters::createInstance)
                 .collect(toList());
+    }
+
+    private static JobFilter createInstance(Class<? extends JobFilter> jobFilterClass) {
+        try {
+            return newInstanceCE(jobFilterClass);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Do you want to use JobFilter Beans? This is only possible in the Pro version. Check out https://www.jobrunr.io/en/documentation/pro/job-filters/", e);
+        }
     }
 
     <T extends JobFilter> Consumer<T> catchThrowable(Consumer<T> consumer) {

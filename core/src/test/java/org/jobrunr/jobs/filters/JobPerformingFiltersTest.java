@@ -9,12 +9,10 @@ import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.states.StateName.*;
 
 class JobPerformingFiltersTest {
@@ -67,6 +65,17 @@ class JobPerformingFiltersTest {
                 .containsKey("onStateApplied")
                 .containsKey("onProcessing")
                 .containsKey("onProcessed");
+    }
+
+    @Test
+    void ifOtherFilterUsesDependencyInjectionThisWillThrowRuntimeException() {
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters();
+
+        Job aJobWithoutJobFilters = aJobInProgress().withJobDetails(() -> testService.doWorkWithCustomJobFilterThatNeedsDependencyInjection()).build();
+
+        assertThatThrownBy(() -> jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnJobProcessingFilters())
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Do you want to use JobFilter Beans? This is only possible in the Pro version. Check out https://www.jobrunr.io/en/documentation/pro/job-filters/");
     }
 
     @Test
