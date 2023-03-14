@@ -17,8 +17,8 @@ public class JobRunrDocumentDBStorageProviderProducer {
     @DefaultBean
     @Singleton
     public StorageProvider storageProvider(MongoClient mongoClient, JobMapper jobMapper, JobRunrConfiguration configuration) {
-        if(configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("documentdb")) return null;
-
+        if (!configuration.database.type.isPresent() || !configuration.database.type.get().equalsIgnoreCase("documentdb")) return null;
+        
         String databaseName = configuration.database.databaseName.orElse(null);
         String tablePrefix = configuration.database.tablePrefix.orElse(null);
         DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;

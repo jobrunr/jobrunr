@@ -41,13 +41,13 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem produce(Capabilities capabilities) {
+    AdditionalBeanBuildItem produce(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
         Set<Class<?>> additionalBeans = new HashSet<>();
         additionalBeans.add(JobRunrProducer.class);
         additionalBeans.add(JobRunrStarter.class);
         additionalBeans.add(jsonMapper(capabilities));
         additionalBeans.add(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
-        additionalBeans.addAll(storageProvider(capabilities));
+        additionalBeans.addAll(storageProvider(capabilities, jobRunrConfiguration));
 
         return AdditionalBeanBuildItem.builder()
                 .setUnremovable()
@@ -96,15 +96,32 @@ class JobRunrExtensionProcessor {
         throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
     }
 
-    private Set<Class<?>> storageProvider(Capabilities capabilities) {
-        if (capabilities.isPresent(Capability.AGROAL)) {
+    private Set<Class<?>> storageProvider(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
+        String databaseType = jobRunrConfiguration.database.type.orElse(null);
+        if ("sql".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.AGROAL)) {
+            throw new IllegalStateException("You configured 'sql' as a JobRunr Database Type but the AGROAL capability is not available");
+        } else if ("mongodb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
+            throw new IllegalStateException("You configured 'mongodb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
+        } else if ("documentdb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
+            throw new IllegalStateException("You configured 'documentdb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
+        } else if ("elasticsearch".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)) {
+            throw new IllegalStateException("You configured 'elasticsearch' as a JobRunr Database Type but the ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT capability is not available");
+        }
+
+        if (isCapabilityPresentAndConfigured(capabilities, Capability.AGROAL, "sql", databaseType)) {
             return asSet(JobRunrSqlStorageProviderProducer.class);
-        } else if (capabilities.isPresent(Capability.MONGODB_CLIENT)) {
-            return asSet(JobRunrMongoDBStorageProviderProducer.class, JobRunrDocumentDBStorageProviderProducer.class);
-        } else if (capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)) {
+        } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "mongodb", databaseType)) {
+            return asSet(JobRunrMongoDBStorageProviderProducer.class);
+        } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
+            return asSet(JobRunrDocumentDBStorageProviderProducer.class);
+        } else if (isCapabilityPresentAndConfigured(capabilities, Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT, "elasticsearch", databaseType)) {
             return asSet(JobRunrElasticSearchStorageProviderProducer.class);
         } else {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }
+    }
+
+    private static boolean isCapabilityPresentAndConfigured(Capabilities capabilities, String capability, String requestedDatabaseType, String databaseType) {
+        return capabilities.isPresent(capability) && (databaseType == null || requestedDatabaseType.equalsIgnoreCase(databaseType));
     }
 }

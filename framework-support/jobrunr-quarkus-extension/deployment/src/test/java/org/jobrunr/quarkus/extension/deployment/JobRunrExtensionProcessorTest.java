@@ -35,6 +35,8 @@ class JobRunrExtensionProcessorTest {
 
     JobRunrConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
+    JobRunrConfiguration.DatabaseConfiguration databaseConfiguration;
+
     JobRunrExtensionProcessor jobRunrExtensionProcessor;
 
     @BeforeEach
@@ -43,12 +45,15 @@ class JobRunrExtensionProcessorTest {
         jobRunrConfiguration = new JobRunrConfiguration();
         backgroundJobServerConfiguration = new JobRunrConfiguration.BackgroundJobServerConfiguration();
         jobRunrConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
+        databaseConfiguration = new JobRunrConfiguration.DatabaseConfiguration();
+        databaseConfiguration.type = Optional.empty();
+        jobRunrConfiguration.database = databaseConfiguration;
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
     @Test
     void producesJobRunrProducer() {
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrProducer.class.getName())
@@ -61,7 +66,7 @@ class JobRunrExtensionProcessorTest {
     void jobRunrProducerUsesJSONBIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName());
@@ -71,7 +76,7 @@ class JobRunrExtensionProcessorTest {
     void jobRunrProducerUsesJacksonIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JACKSON)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrProducer.JobRunrJacksonJsonMapperProducer.class.getName());
@@ -80,7 +85,7 @@ class JobRunrExtensionProcessorTest {
     @Test
     void jobRunrProducerUsesSqlStorageProviderIfAgroalCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.AGROAL)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrSqlStorageProviderProducer.class.getName());
@@ -89,25 +94,28 @@ class JobRunrExtensionProcessorTest {
     @Test
     void jobRunrProducerUsesMongoDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(JobRunrMongoDBStorageProviderProducer.class.getName());
+                .contains(JobRunrMongoDBStorageProviderProducer.class.getName())
+                .doesNotContain(JobRunrDocumentDBStorageProviderProducer.class.getName());
     }
 
     @Test
     void jobRunrProducerUsesDocumentDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        databaseConfiguration.type = Optional.of("documentdb");
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(JobRunrDocumentDBStorageProviderProducer.class.getName());
+                .contains(JobRunrDocumentDBStorageProviderProducer.class.getName())
+                .doesNotContain(JobRunrMongoDBStorageProviderProducer.class.getName());
     }
 
     @Test
     void jobRunrProducerUsesElasticSearchStorageProviderIfElasticSearchRestHighLevelClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrElasticSearchStorageProviderProducer.class.getName());
