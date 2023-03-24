@@ -270,22 +270,33 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useJmxExtensions() {
-        return useJmxExtensionsIf(true);
+        return useJmxExtensionsIf(true, true);
+    }
+
+    /**
+     * If called, this method will register JMX Extensions to monitor JobRunr via JMX
+     *
+     * @param reportJobStatistics allows to enable or disable reporting of job statistics (note: there is a performance hit on your {@link StorageProvider} by enabling it)
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useJmxExtensions(boolean reportJobStatistics) {
+        return useJmxExtensionsIf(true, reportJobStatistics);
     }
 
     /**
      * Enables JMX Extensions to monitor JobRunr via JMX if the guard is true
      *
-     * @param guard whether to start the JXM Extensions or not.
+     * @param guard               whether to start the JXM Extensions or not.
+     * @param reportJobStatistics allows to enable or disable reporting of job statistics (note: there is a performance hit on your {@link StorageProvider} by enabling it)
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useJmxExtensionsIf(boolean guard) {
+    public JobRunrConfiguration useJmxExtensionsIf(boolean guard, boolean reportJobStatistics) {
         if (guard) {
             if (backgroundJobServer == null)
                 throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
             if (storageProvider == null)
                 throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
-            this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider);
+            this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider, reportJobStatistics);
         }
         return this;
     }

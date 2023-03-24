@@ -16,18 +16,25 @@ public class JobRunrJMXExtensions implements JobStatsChangeListener, JobStatsMBe
 
     private JobStats jobStats;
 
-    public JobRunrJMXExtensions(BackgroundJobServer backgroundJobServer, StorageProvider storageProvider) {
+    public JobRunrJMXExtensions(BackgroundJobServer backgroundJobServer, StorageProvider storageProvider, boolean reportJobStatistics) {
         try {
-            onChange(storageProvider.getJobStats());
-            storageProvider.addJobStorageOnChangeListener(this);
-
             MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+
+            // BackgroundJobServer JMX info
             StandardMBean backgroundJobServerMBean = new StandardMBean(backgroundJobServer, BackgroundJobServerMBean.class);
-            StandardMBean backgroundJobServerStatusMBean = new StandardMBean(backgroundJobServer.getServerStatus(), BackgroundJobServerStatusMBean.class);
-            StandardMBean backgroundJobServerStatsMBean = new StandardMBean(this, JobStatsMBean.class);
             server.registerMBean(backgroundJobServerMBean, new ObjectName("org.jobrunr.server:type=BackgroundJobServerInfo,name=BackgroundJobServer"));
+
+            // BackgroundJobServer Status JMX Info
+            StandardMBean backgroundJobServerStatusMBean = new StandardMBean(backgroundJobServer.getServerStatus(), BackgroundJobServerStatusMBean.class);
             server.registerMBean(backgroundJobServerStatusMBean, new ObjectName("org.jobrunr.server:type=BackgroundJobServerInfo,name=BackgroundJobServerStatus"));
-            server.registerMBean(backgroundJobServerStatsMBean, new ObjectName("org.jobrunr.server:type=BackgroundJobServerInfo,name=BackgroundJobServerStatistics"));
+
+            if (reportJobStatistics) {
+                // JobStats JMX Info
+                onChange(storageProvider.getJobStats());
+                storageProvider.addJobStorageOnChangeListener(this);
+                StandardMBean backgroundJobServerStatsMBean = new StandardMBean(this, JobStatsMBean.class);
+                server.registerMBean(backgroundJobServerStatsMBean, new ObjectName("org.jobrunr.server:type=BackgroundJobServerInfo,name=BackgroundJobServerStatistics"));
+            }
         } catch (JMException e) {
             throw new RuntimeException(e);
         }
