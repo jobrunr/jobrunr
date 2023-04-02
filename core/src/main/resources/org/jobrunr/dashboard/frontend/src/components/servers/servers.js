@@ -19,6 +19,9 @@ import MuiDialogContent from '@material-ui/core/DialogContent';
 import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
+import Grid from "@material-ui/core/Grid";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -27,6 +30,9 @@ const useStyles = makeStyles(theme => ({
     root: {
         width: '100%',
         backgroundColor: theme.palette.background.paper,
+    },
+    backgroundJobServerActions: {
+        margin: '1rem',
     },
     noItemsFound: {
         padding: '1rem'
@@ -66,19 +72,17 @@ const Servers = React.memo(() => {
 
     const [isLoading, setIsLoading] = React.useState(true);
     const [servers, setServers] = React.useState([]);
-    const [open, setOpen] = React.useState(false);
     const [currentServer, setCurrentServer] = React.useState(null);
+    const [showProDialog, setShowProDialog] = React.useState(false);
 
     const handleOpen = (server) => {
         setCurrentServer(server);
-        setOpen(true);
     };
 
     const handleClose = () => {
-        setOpen(false);
         setCurrentServer(null);
+        setShowProDialog(false);
     };
-
 
     React.useEffect(() => {
         fetch(`/api/servers`)
@@ -113,6 +117,18 @@ const Servers = React.memo(() => {
                         {servers.length < 1
                             ? <Typography variant="body1" className={classes.noItemsFound}>No servers found</Typography>
                             : <>
+                                <Grid item xs={12} container>
+                                    <Grid item xs={6}>
+                                        <ButtonGroup className={classes.backgroundJobServerActions}>
+                                            <Button variant="outlined" color="primary" onClick={() => setShowProDialog(true)}>
+                                                Pause all processing
+                                            </Button>
+                                            <Button variant="outlined" color="primary" onClick={() => setShowProDialog(true)}>
+                                                Resume all processing
+                                            </Button>
+                                        </ButtonGroup>
+                                    </Grid>
+                                </Grid>
                                 <TableContainer>
                                     <Table className={classes.table} aria-label="servers overview">
                                         <TableHead>
@@ -183,7 +199,7 @@ const Servers = React.memo(() => {
             }
 
             {currentServer &&
-                <Dialog fullWidth="true" maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <Dialog fullWidth="true" maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={true}>
                     <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
                         Server info <code>{currentServer.id}</code>
                     </MuiDialogTitle>
@@ -284,6 +300,21 @@ const Servers = React.memo(() => {
                                 </TableBody>
                             </Table>
                         </TableContainer>
+                    </MuiDialogContent>
+                </Dialog>
+            }
+
+            {showProDialog &&
+                <Dialog fullWidth={true} maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={true}>
+                    <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
+                        Get JobRunr Pro now!
+                    </MuiDialogTitle>
+                    <MuiDialogContent dividers>
+                        Do you need to pause background job processing in JobRunr? Upgrade to JobRunr Pro today and unlock this powerful feature, along with a
+                        host of other advanced capabilities to take your job management to the next level.<br/><br/>
+                        <i>Unleash the full potential of your job processing</i> - upgrade to <a href={'https://www.jobrunr.io/en/get-jobrunr-pro/'}
+                                                                                                 rel={'noreferrer'}
+                                                                                                 target={'_blank'}>JobRunr Pro</a>!
                     </MuiDialogContent>
                 </Dialog>
             }

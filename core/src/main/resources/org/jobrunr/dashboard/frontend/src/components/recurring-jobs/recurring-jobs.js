@@ -22,13 +22,14 @@ import VersionFooter from "../utils/version-footer";
 import {useHistory, useLocation} from "react-router-dom";
 import TablePagination from "@material-ui/core/TablePagination";
 import JobLabel from "../utils/job-label";
+import RecurringJobsFilterPanel from "./recurring-jobs-filter-panel";
 
 const useStyles = makeStyles(theme => ({
     root: {
         display: 'flex',
     },
     jobRunrProNotice: {
-        margin: "-2rem 0 0.5rem 0",
+        margin: "1rem 0 0.5rem 0",
         textAlign: "right"
     },
     recurringJobActions: {
@@ -45,6 +46,10 @@ const RecurringJobs = (props) => {
     const location = useLocation();
 
     const urlSearchParams = new URLSearchParams(location.search);
+    const urlSearchParamsForPro = new URLSearchParams(location.search);
+    urlSearchParamsForPro.delete('state');
+    urlSearchParamsForPro.delete('page');
+
     const page = urlSearchParams.get('page');
     const [isLoading, setIsLoading] = React.useState(true);
     const [recurringJobPage, setRecurringJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
@@ -54,7 +59,7 @@ const RecurringJobs = (props) => {
     React.useEffect(() => {
         getRecurringJobs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page]);
+    }, [page, location.search]);
 
     const getRecurringJobs = () => {
         setIsLoading(true);
@@ -150,93 +155,109 @@ const RecurringJobs = (props) => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <div className={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just a click away.</div>
+                    <RecurringJobsFilterPanel/>
+                    <div className={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/"
+                                                                                                            target="_blank" rel="noreferrer"
+                                                                                                            title="Support the development of JobRunr by getting a Pro license!">JobRunr
+                        Pro</a> that's just a click away.
+                    </div>
                     <Paper className={classes.paper}>
-                        {recurringJobs.length < 1
-                            ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
-                                found</Typography>
-                            : <>
-                                <Grid item xs={3} container>
-                                    <ButtonGroup className={classes.recurringJobActions}
-                                                 disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
-                                        <Button variant="outlined" color="primary"
-                                                onClick={triggerSelectedRecurringJobs}>
-                                            Trigger
-                                        </Button>
-                                        <Button variant="outlined" color="primary"
-                                                onClick={deleteSelectedRecurringJobs}>
-                                            Delete
-                                        </Button>
-                                    </ButtonGroup>
-                                </Grid>
-                                <TableContainer>
-                                    <Table className={classes.table} aria-label="recurring jobs overview">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell padding="checkbox">
-                                                    <Checkbox
-                                                        checked={recurringJobs.every(recurringJob => recurringJob.selected)}
-                                                        onClick={selectAll}/>
-                                                </TableCell>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
-                                                <TableCell>Job name</TableCell>
-                                                <TableCell>Cron</TableCell>
-                                                <TableCell>Time zone</TableCell>
-                                                <TableCell>Next run</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {recurringJobs.map(recurringJob => (
-                                                <TableRow key={recurringJob.id}>
+                        <> {Array.from(urlSearchParamsForPro).length > 0
+                            ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>
+                                Looking 🔍 for a specific recurring job in JobRunr, but can't search for it in the free version? <a
+                                href={'https://www.jobrunr.io/en/get-jobrunr-pro/'} rel={'noreferrer'}
+                                target={'_blank'}>Upgrade to JobRunr Pro today</a> and unlock
+                                powerful search functionality to easily find the jobs you need. 😎 <br/><br/>
+                                Take your job management to the next level 🚀 - <a href={'https://www.jobrunr.io/en/get-jobrunr-pro/'} rel={'noreferrer'}
+                                                                                  target={'_blank'}>get JobRunr Pro now</a>!
+                            </Typography>
+                            : <> {recurringJobs.length < 1
+                                ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs found</Typography>
+                                : <>
+                                    <Grid item xs={3} container>
+                                        <ButtonGroup className={classes.recurringJobActions}
+                                                     disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
+                                            <Button variant="outlined" color="primary"
+                                                    onClick={triggerSelectedRecurringJobs}>
+                                                Trigger
+                                            </Button>
+                                            <Button variant="outlined" color="primary"
+                                                    onClick={deleteSelectedRecurringJobs}>
+                                                Delete
+                                            </Button>
+                                        </ButtonGroup>
+                                    </Grid>
+                                    <TableContainer>
+                                        <Table className={classes.table} aria-label="recurring jobs overview">
+                                            <TableHead>
+                                                <TableRow>
                                                     <TableCell padding="checkbox">
-                                                        <Checkbox checked={recurringJob.selected}
-                                                                  onClick={(event) => selectRecurringJob(event, recurringJob)}/>
+                                                        <Checkbox
+                                                            checked={recurringJobs.every(recurringJob => recurringJob.selected)}
+                                                            onClick={selectAll}/>
                                                     </TableCell>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        {recurringJob.id}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
-                                                        {recurringJob.jobName}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {recurringJob.scheduleExpression.startsWith('P')
-                                                            ? recurringJob.scheduleExpression
-                                                            : cronstrue.toString(recurringJob.scheduleExpression)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {recurringJob.zoneId}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TimeAgo date={new Date(recurringJob.nextRun)}
-                                                                 title={new Date(recurringJob.nextRun).toString()}/>
-                                                    </TableCell>
+                                                    <TableCell className={classes.idColumn}>Id</TableCell>
+                                                    <TableCell>Job name</TableCell>
+                                                    <TableCell>Cron</TableCell>
+                                                    <TableCell>Time zone</TableCell>
+                                                    <TableCell>Next run</TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                <TablePagination
-                                    id="recurring-jobs-table-pagination"
-                                    component="div"
-                                    rowsPerPageOptions={[]}
-                                    count={recurringJobPage.total}
-                                    rowsPerPage={recurringJobPage.limit}
-                                    page={recurringJobPage.currentPage}
-                                    onPageChange={handleChangePage}
-                                />
+                                            </TableHead>
+                                            <TableBody>
+                                                {recurringJobs.map(recurringJob => (
+                                                    <TableRow key={recurringJob.id}>
+                                                        <TableCell padding="checkbox">
+                                                            <Checkbox checked={recurringJob.selected}
+                                                                      onClick={(event) => selectRecurringJob(event, recurringJob)}/>
+                                                        </TableCell>
+                                                        <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                            {recurringJob.id}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
+                                                            {recurringJob.jobName}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {recurringJob.scheduleExpression.startsWith('P')
+                                                                ? recurringJob.scheduleExpression
+                                                                : cronstrue.toString(recurringJob.scheduleExpression)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {recurringJob.zoneId}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TimeAgo date={new Date(recurringJob.nextRun)}
+                                                                     title={new Date(recurringJob.nextRun).toString()}/>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                    <TablePagination
+                                        id="recurring-jobs-table-pagination"
+                                        component="div"
+                                        rowsPerPageOptions={[]}
+                                        count={recurringJobPage.total}
+                                        rowsPerPage={recurringJobPage.limit}
+                                        page={recurringJobPage.currentPage}
+                                        onPageChange={handleChangePage}
+                                    />
+                                </>
+                            }
                             </>
                         }
+                        </>
                     </Paper>
                     <VersionFooter/>
                 </>
             }
             {apiStatus &&
-            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
-                <Alert severity={apiStatus.severity}>
-                    {apiStatus.message}
-                </Alert>
-            </Snackbar>
+                <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
+                    <Alert severity={apiStatus.severity}>
+                        {apiStatus.message}
+                    </Alert>
+                </Snackbar>
             }
         </div>
     )
