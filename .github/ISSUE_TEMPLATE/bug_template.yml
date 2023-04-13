@@ -12,6 +12,9 @@ body:
         :wave: Hey, I'm [Ronald](https://github.com/rdehuyss), the creator and lead engineer of [JobRunr](https://www.jobrunr.io/). Nice to meet you! Who are you?
         <br />JobRunr is an open-source project where we try to make a living from, so we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to know to whom we're talking to and providing free support to. If your Github Profile is not complete, we will probably close the issue without answering. For more info, read this excellent blog post about [open-source etiquette](https://www.yegor256.com/2020/07/29/open-source-etiquette.html).
         
+        ### Don't post questions here!
+        If you have a question, please review the [docs](https://www.jobrunr.io/en/documentation/) - they are really extensive. If you still can't find your answer there, then go to the discussions and ask there. Maintaining this takes a lot of time and discussions are sometines other people help there too which gives me time to improve JobRunr itself.
+        
         ### Have a reproducible scenario
         Make sure that you have a reproducable scenario. We prefer Github repo's with exact steps in a `README.md` on how to launch the application and how to reproduce the bug you're having. If you do not take the time to create a reproducable scenario, why should we invest our **free time** in trying to figure out what happened? Reason for this is that I've seen people/organizations that adapted JobRunr source code, created bugs while doing so, used that in their own project and then created bug reports here. Not having a reproducable scenario will deem the issue invalid. 
         <br />If for some reason (confidential code, time, ...) you cannot a GitHub repo that reproduces the issue, feel free to get a [Pro subscription](https://www.jobrunr.io/en/pricing/) that comes with support.
