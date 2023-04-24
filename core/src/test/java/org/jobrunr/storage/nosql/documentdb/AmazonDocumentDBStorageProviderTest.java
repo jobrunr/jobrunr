@@ -17,12 +17,13 @@ import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.Disabled;
 
 import java.util.Arrays;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
-//@Disabled("Can only be run when having an SSH connection an Amazon EC2 instance which tunnels all requests to the DocumentDB cluster")
+@Disabled("Can only be run when having an SSH connection an Amazon EC2 instance which tunnels all requests to the DocumentDB cluster")
 public class AmazonDocumentDBStorageProviderTest extends StorageProviderTest {
 
     private static MongoClient mongoClient;
