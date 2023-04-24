@@ -16,7 +16,7 @@ import java.util.UUID;
 
 /**
  * The StorageProvider allows to store, retrieve and delete background jobs.
- *
+ * <p>
  * This API is public and JobRunr major version will change of this StorageProvider API changes.
  *
  * @since 0.9.0
@@ -32,7 +32,7 @@ public interface StorageProvider extends AutoCloseable {
     /**
      * This method allows to reinitialize the StorageProvider.
      * It can be used if you are using Flyway or Liquibase to setup your database manually.
-     *
+     * <p>
      * By default, this method is automatically called on construction of the StorageProvider
      *
      * @param databaseOptions defines whether to set up the StorageProvider or validate whether the StorageProvider is set up correctly.
@@ -63,13 +63,40 @@ public interface StorageProvider extends AutoCloseable {
 
     void deleteMetadata(String name);
 
+    /**
+     * Save the {@link Job} and increases the version if saving succeeded.
+     *
+     * @param job the job to save
+     * @return the same job with an increased version
+     * @throws ConcurrentJobModificationException if the already stored job was newer then the given version
+     */
     Job save(Job job);
 
+    /**
+     * Deletes the {@link Job} with the given id and returns the amount of deleted jobs (either 0 or 1).
+     *
+     * @param id the id of the Job to delete
+     * @return 1 if the job with the given id was deleted, 0 otherwise
+     */
     int deletePermanently(UUID id);
 
-    Job getJobById(UUID id);
+    /**
+     * Returns the {@link Job} with the given id or throws a {@link JobNotFoundException} if the job does not exist
+     *
+     * @param id the id of the Job to fetch
+     * @return the requested Job
+     * @throws JobNotFoundException if the job is not found or does not exist anymore.
+     */
+    Job getJobById(UUID id) throws JobNotFoundException;
 
-    List<Job> save(List<Job> jobs);
+    /**
+     * Saves a list of {@link Job Jobs} and increases the version of each successfully saved {@link Job}.
+     *
+     * @param jobs the list of jobs to save
+     * @return the same list of jobs with an increased version
+     * @throws ConcurrentJobModificationException if any already stored job was newer then the given version
+     */
+    List<Job> save(List<Job> jobs) throws ConcurrentJobModificationException;
 
     List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest);
 
@@ -87,22 +114,54 @@ public interface StorageProvider extends AutoCloseable {
 
     boolean recurringJobExists(String recurringJobId, StateName... states);
 
+    /**
+     * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten
+     *
+     * @param recurringJob the RecurringJob to save
+     * @return the same RecurringJob
+     */
     RecurringJob saveRecurringJob(RecurringJob recurringJob);
 
     @Deprecated
     long countRecurringJobs();
 
+    /**
+     * Returns a list {@link RecurringJob RecurringJobs}.
+     *
+     * @return a list {@link RecurringJob RecurringJobs}.
+     */
     RecurringJobsResult getRecurringJobs();
 
     boolean recurringJobsUpdated(Long recurringJobsUpdatedHash);
 
+    /**
+     * Deletes the {@link RecurringJob} with the given id.
+     *
+     * @param id the id of the RecurringJob to delete
+     * @return 1 if the RecurringJob with the given id was deleted, 0 otherwise
+     */
     int deleteRecurringJob(String id);
 
+    /**
+     * Returns the statistics of the jobs (amount enqueued, amount scheduled, ...)
+     * <em><strong>Important</strong>: in most cases, this results in a intensive query. JobRunr is designed to not call this method too often to limit
+     * database CPU utilization. If you need access to this info, please use a {@link org.jobrunr.storage.listeners.JobStatsChangeListener} and register
+     * it using the {@link StorageProvider#addJobStorageOnChangeListener(StorageProviderChangeListener)}.</em>
+     *
+     * @return the {@link JobStats}
+     */
     JobStats getJobStats();
 
     void publishTotalAmountOfSucceededJobs(int amount);
 
-    default Job getJobById(JobId jobId) {
+    /**
+     * Returns the {@link Job} with the given id or throws a {@link JobNotFoundException} if the job does not exist
+     *
+     * @param jobId the id of the Job to fetch
+     * @return the requested Job
+     * @throws JobNotFoundException if the job is not found or does not exist anymore.
+     */
+    default Job getJobById(JobId jobId) throws JobNotFoundException {
         return getJobById(jobId.asUUID());
     }
 
