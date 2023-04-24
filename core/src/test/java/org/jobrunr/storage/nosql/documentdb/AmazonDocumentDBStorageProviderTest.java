@@ -17,13 +17,12 @@ import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.Disabled;
 
 import java.util.Arrays;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
-@Disabled("Can only be run when having an SSH connection an Amazon EC2 instance which tunnels all requests to the DocumentDB cluster")
+//@Disabled("Can only be run when having an SSH connection an Amazon EC2 instance which tunnels all requests to the DocumentDB cluster")
 public class AmazonDocumentDBStorageProviderTest extends StorageProviderTest {
 
     private static MongoClient mongoClient;
@@ -45,8 +44,8 @@ public class AmazonDocumentDBStorageProviderTest extends StorageProviderTest {
     }
 
     private MongoClient mongoClient() {
-        String username = "jobrunruser";
-        String password = "jobrunruser";
+        String username = "jobrunr";
+        String password = "jobrunr123";
 
         String clusterEndpoint = "127.0.0.1:27017";
 
@@ -61,6 +60,7 @@ public class AmazonDocumentDBStorageProviderTest extends StorageProviderTest {
             mongoClient = MongoClients.create(
                     MongoClientSettings.builder()
                             .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(serverAddress)))
+                            .retryWrites(false)
                             .credential(credential)
                             .codecRegistry(codecRegistry)
                             .build());

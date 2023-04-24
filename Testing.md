@@ -119,6 +119,38 @@ private MongoClient mongoClient(){
         }
 ```
 
+## DocumentDB
+
+- Start new DocumentDB instance in cloud with username jobrunr and password jobrunr123.
+  note: TLS must be enabled, see https://stackoverflow.com/questions/68322959/why-am-i-getting-connection-timed-out-when-connecting-to-aws-document-db-from-my
+- Create a new Ubuntu EC2 instance in the same VPC (Virtual Private Cloud) and GENERATE a new key pair (will be downloaded automatically). Call it
+  default-documentdb.pem
+- chmod 400 default-documentdb.pem
+- Change the Inbound Rules of the EC2 instance and ADD A NEW rule to allow access from everywhere
+- Create a new DocumentDB cluster parameter group and disable TLS
+- Assign the new Cluster Parameter Group to the DocumentDB cluster
+- Restart the cluster
+- Use the link provided by Amazon and create a ConnectionString with it passing it to the client
+
+```java
+    @Bean
+private MongoClient mongoClient(){
+        CodecRegistry codecRegistry=CodecRegistries.fromRegistries(
+        CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
+        MongoClientSettings.getDefaultCodecRegistry()
+        );
+        if(mongoClient==null){
+        mongoClient=MongoClients.create(
+        MongoClientSettings.builder()
+        .applyConnectionString(new ConnectionString("mongodb://jobrunr:jobrunr123@docdb-2023-04-24-09-47-54.cluster-cjpre4alt9oy.us-east-1.docdb.amazonaws.com:27017/?replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false"))
+        .codecRegistry(codecRegistry)
+        .build());
+
+        }
+        return mongoClient;
+        }
+```
+
 ## ElasticSearch
 
 `docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.9.1`

@@ -9,7 +9,6 @@ import org.bson.UuidRepresentation;
 import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
-import org.jobrunr.storage.nosql.mongo.MongoDBCreator;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.utils.resilience.RateLimiter;
 
@@ -56,12 +55,12 @@ public class AmazonDocumentDBStorageProvider extends MongoDBStorageProvider {
 
     @Override
     protected void runMigrations(MongoClient mongoClient, String dbName, String collectionPrefix) {
-        new MongoDBCreator(mongoClient, dbName, collectionPrefix).runMigrations();
+        new AmazonDocumentDBCreator(mongoClient, dbName, collectionPrefix).runMigrations();
     }
 
     @Override
     protected void validateTables(MongoClient mongoClient, String dbName, String collectionPrefix) {
-        new MongoDBCreator(mongoClient, dbName, collectionPrefix).validateCollections();
+        new AmazonDocumentDBCreator(mongoClient, dbName, collectionPrefix).validateCollections();
     }
 
     public static AmazonDocumentDBStorageProvider amazonDocumentDBStorageProviderWithDefaultSetting(String hostName, int port, MongoCredential credential) {
