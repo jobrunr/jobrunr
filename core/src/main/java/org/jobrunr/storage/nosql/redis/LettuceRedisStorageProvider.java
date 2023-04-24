@@ -86,7 +86,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("LattuceRedisStorageProvider only supports CREATE as databaseOptions.");
+        if (DatabaseOptions.CREATE != databaseOptions)
+            throw new IllegalArgumentException("LattuceRedisStorageProvider only supports CREATE as databaseOptions.");
         new LettuceRedisDBCreator(this, pool, keyPrefix).runMigrations();
     }
 
@@ -249,7 +250,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
             Map<String, String> fieldMap = commands.hgetall(metadataKey(keyPrefix, toId(name, owner)));
-            if(fieldMap.isEmpty()) return null;
+            if (fieldMap.isEmpty()) return null;
 
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
@@ -469,7 +470,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
-            List<Boolean> existsJob = stream(states)
+            List<Boolean> existsJob = stream(getStateNames(states))
                     .map(stateName -> commands.sismember(recurringJobKey(keyPrefix, stateName), recurringJobId))
                     .collect(toList());
             return existsJob.stream().filter(b -> b).findAny().orElse(false);
@@ -649,6 +650,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         commands.zrem(scheduledJobsKey(keyPrefix), id);
         Stream.of(StateName.values()).forEach(stateName -> commands.zrem(jobQueueForStateKey(keyPrefix, stateName), id));
         Stream.of(StateName.values()).forEach(stateName -> commands.srem(jobDetailsKey(keyPrefix, stateName), getJobSignature(job.getJobDetails())));
+        job.getRecurringJobId().ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> commands.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
     }
 
     private long getCounterValue(RedisFuture<Long> countResponse) {

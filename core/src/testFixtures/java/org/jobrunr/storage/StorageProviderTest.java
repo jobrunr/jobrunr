@@ -328,7 +328,7 @@ public abstract class StorageProviderTest {
         Job enqueuedJob = storageProvider.save(job);
 
         job.startProcessingOn(backgroundJobServer);
-        try(ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
+        try (ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
             assertThatThrownBy(() -> storageProvider.save(enqueuedJob))
                     .isInstanceOf(StorageException.class);
         }
@@ -361,7 +361,6 @@ public abstract class StorageProviderTest {
         assertThat(asList(createdJob1, createdJob4)).allMatch(dbJob -> dbJob.getVersion() == 2);
         assertThat(asList(createdJob2, createdJob3)).allMatch(dbJob -> dbJob.getVersion() == 1);
     }
-
 
 
     @Test
@@ -440,6 +439,7 @@ public abstract class StorageProviderTest {
         Job scheduledJob = recurringJob.toScheduledJob();
 
         storageProvider.save(scheduledJob);
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId())).isTrue();
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isTrue();
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED)).isTrue();
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED, PROCESSING, SUCCEEDED)).isFalse();
@@ -454,6 +454,9 @@ public abstract class StorageProviderTest {
         storageProvider.save(scheduledJob);
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isFalse();
         assertThat(storageProvider.recurringJobExists(recurringJob.getId(), ENQUEUED, DELETED)).isTrue();
+
+        storageProvider.deletePermanently(scheduledJob.getId());
+        assertThat(storageProvider.recurringJobExists(recurringJob.getId())).isFalse();
     }
 
     @Test
@@ -499,7 +502,7 @@ public abstract class StorageProviderTest {
         final List<Job> savedJobs = storageProvider.save(jobs);
         savedJobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
 
-        try(ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
+        try (ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
             assertThatThrownBy(() -> storageProvider.save(savedJobs))
                     .isInstanceOf(StorageException.class);
         }
@@ -657,11 +660,11 @@ public abstract class StorageProviderTest {
 
         Job job = anEnqueuedJob().build();
         storageProvider.save(job);
-        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSize(1));
 
         job.delete("For test");
         storageProvider.save(job);
-        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSize(2));
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)
@@ -671,11 +674,11 @@ public abstract class StorageProviderTest {
 
         final List<Job> jobs = asList(anEnqueuedJob().build(), anEnqueuedJob().build());
         storageProvider.save(jobs);
-        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSize(1));
 
         jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
         storageProvider.save(jobs);
-        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(2));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSize(2));
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)
@@ -687,7 +690,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.deleteJobsPermanently(ENQUEUED, now());
 
-        await().untilAsserted(() ->  assertThat(onChangeListener.changes).hasSize(1));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSize(1));
     }
 
     @Test

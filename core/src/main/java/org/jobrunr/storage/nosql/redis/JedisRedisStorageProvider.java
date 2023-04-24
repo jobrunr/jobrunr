@@ -73,7 +73,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if(DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
+        if (DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
         new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
 
@@ -225,7 +225,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public JobRunrMetadata getMetadata(String name, String owner) {
         try (final Jedis jedis = getJedis()) {
             Map<String, String> fieldMap = jedis.hgetAll(metadataKey(keyPrefix, toId(name, owner)));
-            if(fieldMap.isEmpty()) return null;
+            if (fieldMap.isEmpty()) return null;
 
             return new JobRunrMetadata(
                     fieldMap.get(Metadata.FIELD_NAME),
@@ -326,9 +326,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
         try (final Jedis jedis = getJedis()) {
             List<String> jobsByState;
-            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
-            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0, (int) pageRequest.getOffset(), pageRequest.getLimit());
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
@@ -357,9 +357,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis()) {
             List<String> jobsByState;
             // we only support what is used by frontend
-            if ("updatedAt:ASC" .equals(pageRequest.getOrder())) {
+            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else if ("updatedAt:DESC" .equals(pageRequest.getOrder())) {
+            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
                 jobsByState = jedis.zrevrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
             } else {
                 throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
@@ -436,7 +436,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
-            List<Response<Boolean>> existsJob = stream(states)
+            List<Response<Boolean>> existsJob = stream(StateName.getStateNames(states))
                     .map(stateName -> p.sismember(recurringJobKey(keyPrefix, stateName), recurringJobId))
                     .collect(toList());
             p.sync();
@@ -605,5 +605,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         transaction.zrem(scheduledJobsKey(keyPrefix), id);
         Stream.of(StateName.values()).forEach(stateName -> transaction.zrem(jobQueueForStateKey(keyPrefix, stateName), id));
         Stream.of(StateName.values()).forEach(stateName -> transaction.srem(jobDetailsKey(keyPrefix, stateName), getJobSignature(job.getJobDetails())));
+        job.getRecurringJobId().ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> transaction.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
     }
 }

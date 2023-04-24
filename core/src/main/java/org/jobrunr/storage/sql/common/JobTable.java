@@ -66,7 +66,7 @@ public class JobTable extends Sql<Job> {
     }
 
     public Job save(Job jobToSave) throws SQLException {
-        try(JobVersioner jobVersioner = new JobVersioner(jobToSave)) {
+        try (JobVersioner jobVersioner = new JobVersioner(jobToSave)) {
             if (jobVersioner.isNewJob()) {
                 insertOneJob(jobToSave);
             } else {
@@ -82,7 +82,7 @@ public class JobTable extends Sql<Job> {
     public List<Job> save(List<Job> jobs) throws SQLException {
         if (jobs.isEmpty()) return jobs;
 
-        try(JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
+        try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             try {
                 if (jobListVersioner.areNewJobs()) {
                     insertAllJobs(jobs);
@@ -144,6 +144,10 @@ public class JobTable extends Sql<Job> {
     }
 
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
+        if (states.length < 1) {
+            return with(FIELD_RECURRING_JOB_ID, recurringJobId)
+                    .selectExists("from jobrunr_jobs where recurringJobId = :recurringJobId");
+        }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
                 .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
     }

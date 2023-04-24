@@ -244,7 +244,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         return jobQueue.values().stream()
                 .anyMatch(job ->
-                        asList(states).contains(job.getState())
+                        asList(getStateNames(states)).contains(job.getState())
                                 && job.getRecurringJobId()
                                 .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
                                 .orElse(false));

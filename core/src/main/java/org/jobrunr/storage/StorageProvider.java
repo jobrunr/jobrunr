@@ -112,6 +112,13 @@ public interface StorageProvider extends AutoCloseable {
 
     boolean exists(JobDetails jobDetails, StateName... states);
 
+    /**
+     * Returns true when a {@link Job} created by the {@link RecurringJob} with the given id exists with one of the given states.
+     *
+     * @param recurringJobId the id of the RecurringJob for which the check whether a Job exists
+     * @param states         the possible states for the Job (can be empty)
+     * @return true if a Job exists created by a RecurringJob with the given id.
+     */
     boolean recurringJobExists(String recurringJobId, StateName... states);
 
     /**

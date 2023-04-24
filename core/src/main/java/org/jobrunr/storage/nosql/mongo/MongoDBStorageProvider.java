@@ -341,6 +341,9 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        if (states.length < 1) {
+            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
+        }
         return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
     }
 
@@ -362,7 +365,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                 sort(ascending(RecurringJobs.FIELD_CREATED_AT)),
                 group("$last_modified_hash", Accumulators.sum(RecurringJobs.FIELD_CREATED_AT, '$' + RecurringJobs.FIELD_CREATED_AT)),
                 limit(1)));
-        if(lastModifiedHash.first() != null) {
+        if (lastModifiedHash.first() != null) {
             Long value = lastModifiedHash.first().getLong(RecurringJobs.FIELD_CREATED_AT);
             return !recurringJobsUpdatedHash.equals(value);
         }
