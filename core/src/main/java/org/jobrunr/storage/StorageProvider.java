@@ -85,12 +85,13 @@ public interface StorageProvider extends AutoCloseable {
     Job save(Job job) throws ConcurrentJobModificationException;
 
     /**
-     * Deletes the {@link Job} with the given id and returns the amount of deleted jobs (either 0 or 1).
+     * Saves a list of {@link Job Jobs} and increases the version of each successfully saved {@link Job}.
      *
-     * @param id the id of the Job to delete
-     * @return 1 if the job with the given id was deleted, 0 otherwise
+     * @param jobs the list of jobs to save
+     * @return the same list of jobs with an increased version
+     * @throws ConcurrentJobModificationException if any already stored job was newer then the given version
      */
-    int deletePermanently(UUID id);
+    List<Job> save(List<Job> jobs) throws ConcurrentJobModificationException;
 
     /**
      * Returns the {@link Job} with the given id or throws a {@link JobNotFoundException} if the job does not exist
@@ -112,15 +113,6 @@ public interface StorageProvider extends AutoCloseable {
         return getJobById(jobId.asUUID());
     }
 
-    /**
-     * Saves a list of {@link Job Jobs} and increases the version of each successfully saved {@link Job}.
-     *
-     * @param jobs the list of jobs to save
-     * @return the same list of jobs with an increased version
-     * @throws ConcurrentJobModificationException if any already stored job was newer then the given version
-     */
-    List<Job> save(List<Job> jobs) throws ConcurrentJobModificationException;
-
     List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest);
 
     List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest);
@@ -128,6 +120,14 @@ public interface StorageProvider extends AutoCloseable {
     List<Job> getJobs(StateName state, PageRequest pageRequest);
 
     Page<Job> getJobPage(StateName state, PageRequest pageRequest);
+
+    /**
+     * Deletes the {@link Job} with the given id and returns the amount of deleted jobs (either 0 or 1).
+     *
+     * @param id the id of the Job to delete
+     * @return 1 if the job with the given id was deleted, 0 otherwise
+     */
+    int deletePermanently(UUID id);
 
     int deleteJobsPermanently(StateName state, Instant updatedBefore);
 
