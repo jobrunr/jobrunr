@@ -39,8 +39,20 @@ public interface StorageProvider extends AutoCloseable {
      */
     void setUpStorageProvider(DatabaseOptions databaseOptions);
 
+    /**
+     * Allows to listen for changes related to {@link Job jobs}.
+     *
+     * @param listener the listener to notify if there are any changes.
+     * @see org.jobrunr.storage.listeners.JobChangeListener
+     * @see org.jobrunr.storage.listeners.JobStatsChangeListener
+     */
     void addJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
+    /**
+     * Remove the given listener that listens for changes to {@link Job Jobs}
+     *
+     * @param listener the listener to remove
+     */
     void removeJobStorageOnChangeListener(StorageProviderChangeListener listener);
 
     void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus);
@@ -70,7 +82,7 @@ public interface StorageProvider extends AutoCloseable {
      * @return the same job with an increased version
      * @throws ConcurrentJobModificationException if the already stored job was newer then the given version
      */
-    Job save(Job job);
+    Job save(Job job) throws ConcurrentJobModificationException;
 
     /**
      * Deletes the {@link Job} with the given id and returns the amount of deleted jobs (either 0 or 1).
@@ -88,6 +100,17 @@ public interface StorageProvider extends AutoCloseable {
      * @throws JobNotFoundException if the job is not found or does not exist anymore.
      */
     Job getJobById(UUID id) throws JobNotFoundException;
+
+    /**
+     * Returns the {@link Job} with the given id or throws a {@link JobNotFoundException} if the job does not exist
+     *
+     * @param jobId the id of the Job to fetch
+     * @return the requested Job
+     * @throws JobNotFoundException if the job is not found or does not exist anymore.
+     */
+    default Job getJobById(JobId jobId) throws JobNotFoundException {
+        return getJobById(jobId.asUUID());
+    }
 
     /**
      * Saves a list of {@link Job Jobs} and increases the version of each successfully saved {@link Job}.
@@ -160,17 +183,6 @@ public interface StorageProvider extends AutoCloseable {
     JobStats getJobStats();
 
     void publishTotalAmountOfSucceededJobs(int amount);
-
-    /**
-     * Returns the {@link Job} with the given id or throws a {@link JobNotFoundException} if the job does not exist
-     *
-     * @param jobId the id of the Job to fetch
-     * @return the requested Job
-     * @throws JobNotFoundException if the job is not found or does not exist anymore.
-     */
-    default Job getJobById(JobId jobId) throws JobNotFoundException {
-        return getJobById(jobId.asUUID());
-    }
 
     void close();
 
