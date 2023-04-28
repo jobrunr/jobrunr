@@ -1,6 +1,7 @@
 import java.text.SimpleDateFormat
 
 plugins {
+    id 'com.github.ben-manes.versions' version '0.46.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
@@ -8,8 +9,8 @@ plugins {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:2.7.6')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.7.6')
+    api platform('org.springframework.boot:spring-boot-dependencies:2.7.11')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.7.11')
     api project(':core')
 
     api 'org.springframework.boot:spring-boot-starter'
@@ -39,6 +40,12 @@ dependencies {
     testImplementation 'io.micrometer:micrometer-core'
 }
 
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        it.candidate.version.startsWith('3')
+    }
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
@@ -46,7 +53,7 @@ java {
 
 jar {
     manifest {
-        attributes 'Automatic-Module-Name' : 'org.jobrunr.spring.boot-2.starter'
+        attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot-2.starter'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
@@ -94,7 +101,7 @@ publishing {
                 }
 
                 versionMapping {
-                    usage('java-runtime'){
+                    usage('java-runtime') {
                         fromResolutionResult()
                     }
                 }
