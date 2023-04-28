@@ -1,6 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure.metrics;
 
 import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.inject.Instance;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,11 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.enterprise.inject.Instance;
-
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrMetricsStarterTest {

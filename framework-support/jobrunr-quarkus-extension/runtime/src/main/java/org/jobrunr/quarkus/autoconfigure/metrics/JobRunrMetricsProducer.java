@@ -2,15 +2,14 @@ package org.jobrunr.quarkus.autoconfigure.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.arc.DefaultBean;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
-
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 @Singleton
 public class JobRunrMetricsProducer {
@@ -26,7 +25,7 @@ public class JobRunrMetricsProducer {
         @DefaultBean
         @Singleton
         public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
-            if(configuration.jobs.metrics.enabled) {
+            if (configuration.jobs.metrics.enabled) {
                 return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
             }
             return null;
@@ -41,7 +40,7 @@ public class JobRunrMetricsProducer {
         @DefaultBean
         @Singleton
         public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
-            if(configuration.backgroundJobServer.metrics.enabled) {
+            if (configuration.backgroundJobServer.metrics.enabled) {
                 return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
             }
             return null;

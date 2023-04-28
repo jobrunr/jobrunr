@@ -1,18 +1,18 @@
 package org.jobrunr.quarkus.autoconfigure.storage;
 
 import io.quarkus.arc.DefaultBean;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.sql.DataSource;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
@@ -23,7 +23,7 @@ public class JobRunrSqlStorageProviderProducer {
     @DefaultBean
     @Singleton
     public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrConfiguration configuration) {
-        if(configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("sql")) return null;
+        if (configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("sql")) return null;
 
         String tablePrefix = configuration.database.tablePrefix.orElse(null);
         DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;

@@ -1,13 +1,12 @@
 package org.jobrunr.quarkus.autoconfigure.metrics;
 
 import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
 import org.jboss.logging.Logger;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
-
-import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Instance;
 
 @Dependent
 public class JobRunrMetricsStarter {

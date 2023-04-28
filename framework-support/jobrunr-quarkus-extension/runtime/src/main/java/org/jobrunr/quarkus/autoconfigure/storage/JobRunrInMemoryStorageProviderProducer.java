@@ -1,12 +1,12 @@
 package org.jobrunr.quarkus.autoconfigure.storage;
 
 import io.quarkus.arc.DefaultBean;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 
-import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
 
 public class JobRunrInMemoryStorageProviderProducer {
 
