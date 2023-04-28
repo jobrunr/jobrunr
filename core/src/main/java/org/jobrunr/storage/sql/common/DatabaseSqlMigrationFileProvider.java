@@ -28,7 +28,7 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseSqlMigrationFileProvider {
 
-    private static Map<String, Class<? extends SqlStorageProvider>> databaseTypes  = new HashMap<String, Class<? extends SqlStorageProvider>>() {{
+    private static Map<String, Class<? extends SqlStorageProvider>> databaseTypes = new HashMap<String, Class<? extends SqlStorageProvider>>() {{
         put("db2", DB2StorageProvider.class);
         put("h2", H2StorageProvider.class);
         put("mariadb", MariaDbStorageProvider.class);
@@ -40,10 +40,10 @@ public class DatabaseSqlMigrationFileProvider {
     }};
 
     public static void main(String[] args) {
-        if(args.length < 1 || !databaseTypes.containsKey(args[0].toLowerCase())) {
+        if (args.length < 1 || !databaseTypes.containsKey(args[0].toLowerCase())) {
             System.out.println("Error: insufficient arguments");
             System.out.println();
-            System.out.println("usage: java -cp jobrunr-${jobrunr.version}.jar org.jobrunr.storage.sql.common.DatabaseSqlMigrationFileProvider {databaseType} ({tablePrefix})");
+            System.out.println("usage: java -cp jobrunr-${jobrunr.version}.jar;slf4j-api.jar org.jobrunr.storage.sql.common.DatabaseSqlMigrationFileProvider {databaseType} ({tablePrefix})");
             System.out.println("  where databaseType is one of 'db2', 'h2', 'mariadb', 'mysql', 'oracle', 'postgres', 'sqlite', 'sqlserver'");
             return;
         }
