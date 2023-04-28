@@ -18,7 +18,7 @@ dependencies {
         api 'com.google.code.gson:gson:2.10.1'
         api 'org.eclipse:yasson:1.0.11' //todo upgrade after MicroProfile and Quarkus upgraded
         api 'io.micrometer:micrometer-core:1.10.6'
-        api 'io.insert-koin:koin-core:2.2.2'
+        api 'io.insert-koin:koin-core:3.4.0'
 
         api 'org.xerial:sqlite-jdbc:3.40.0.0'
         api 'com.h2database:h2:2.1.214'
