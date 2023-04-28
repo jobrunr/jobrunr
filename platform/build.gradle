@@ -20,7 +20,7 @@ dependencies {
         api 'io.micrometer:micrometer-core:1.10.6'
         api 'io.insert-koin:koin-core:3.4.0'
 
-        api 'org.xerial:sqlite-jdbc:3.40.0.0'
+        api 'org.xerial:sqlite-jdbc:3.41.2.1'
         api 'com.h2database:h2:2.1.214'
         api 'org.postgresql:postgresql:42.6.0'
         api 'com.google.cloud.sql:postgres-socket-factory:1.1.0'
