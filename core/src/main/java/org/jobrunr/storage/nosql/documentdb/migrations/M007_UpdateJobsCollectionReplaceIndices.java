@@ -19,28 +19,24 @@ public class M007_UpdateJobsCollectionReplaceIndices extends MongoMigration {
 
         MongoCollection<Document> jobCollection = jobrunrDatabase.getCollection(collectionName, Document.class);
 
-        runMongoCommand(jobCollection::dropIndexes);
+        dropIndexes(jobCollection);
 
         // idx for recurring jobs that need to be fetched by JobZooKeeper ProcessRecurringJobsTask
-        runMongoCommand(() ->
-                jobCollection.createIndex(
-                        compoundIndex(ascending(FIELD_STATE), ascending(FIELD_RECURRING_JOB_ID)),
-                        new IndexOptions().name("recurringJobPartialIdx")));
+        createIndex(jobCollection,
+                compoundIndex(ascending(FIELD_STATE), ascending(FIELD_RECURRING_JOB_ID)),
+                new IndexOptions().name("recurringJobPartialIdx"));
 
         // idx for scheduled jobs that need to be fetched by JobZooKeeper ProcessScheduledJobsTask
-        runMongoCommand(() ->
-                jobCollection.createIndex(
-                        compoundIndex(ascending(FIELD_STATE), ascending(FIELD_SCHEDULED_AT)),
-                        new IndexOptions().name("scheduledPartialIdx")));
+        createIndex(jobCollection,
+                compoundIndex(ascending(FIELD_STATE), ascending(FIELD_SCHEDULED_AT)),
+                new IndexOptions().name("scheduledPartialIdx"));
 
         // idx for UI by state and DistinctJobSignatures
-        runMongoCommand(() ->
-                jobCollection.createIndex(
-                        compoundIndex(ascending(FIELD_STATE), ascending(FIELD_UPDATED_AT)),
-                        new IndexOptions().name("jobsByStateUpdatedAtAscIdx")));
-        runMongoCommand(() ->
-                jobCollection.createIndex(
-                        compoundIndex(ascending(FIELD_STATE), descending(FIELD_UPDATED_AT)),
-                        new IndexOptions().name("jobsByStateUpdatedAtDescIdx")));
+        createIndex(jobCollection,
+                compoundIndex(ascending(FIELD_STATE), ascending(FIELD_UPDATED_AT)),
+                new IndexOptions().name("jobsByStateUpdatedAtAscIdx"));
+        createIndex(jobCollection,
+                compoundIndex(ascending(FIELD_STATE), descending(FIELD_UPDATED_AT)),
+                new IndexOptions().name("jobsByStateUpdatedAtDescIdx"));
     }
 }

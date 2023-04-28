@@ -2,6 +2,7 @@ package org.jobrunr.utils.exceptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Exceptions {
@@ -55,6 +56,10 @@ public class Exceptions {
     }
 
     public static <T> T retryOnException(Supplier<T> supplier, int maxRetries, long timeSeed) {
+        return retryOnException(supplier, e -> true, maxRetries, timeSeed);
+    }
+
+    public static <T, E extends RuntimeException> T retryOnException(Supplier<T> supplier, Function<E, Boolean> retry, int maxRetries, long timeSeed) {
         int count = 0;
         while (count <= maxRetries) {
             try {
@@ -63,17 +68,27 @@ public class Exceptions {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (RuntimeException e) {
+                E exception = (E) e;
+                if (!retry.apply(exception)) throw e;
                 if (++count >= maxRetries) throw e;
             }
         }
         throw new IllegalStateException("Cannot happen");
     }
 
-    public static void retryOnException(Runnable runnable, int maxRetries) {
-        retryOnException(runnable, maxRetries, 20);
+    public static <E extends RuntimeException> void retryOnException(Runnable runnable, int maxRetries) {
+        retryOnException(runnable, e -> true, maxRetries);
     }
 
-    public static void retryOnException(Runnable runnable, int maxRetries, long timeSeed) {
+    public static <E extends RuntimeException> void retryOnException(Runnable runnable, int maxRetries, long timeSeed) {
+        retryOnException(runnable, e -> true, maxRetries, timeSeed);
+    }
+
+    public static <E extends RuntimeException> void retryOnException(Runnable runnable, Function<E, Boolean> retry, int maxRetries) {
+        retryOnException(runnable, retry, maxRetries, 20);
+    }
+
+    public static <E extends RuntimeException> void retryOnException(Runnable runnable, Function<E, Boolean> retry, int maxRetries, long timeSeed) {
         int count = 0;
         while (count <= maxRetries) {
             try {
@@ -83,6 +98,8 @@ public class Exceptions {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (RuntimeException e) {
+                E exception = (E) e;
+                if (!retry.apply(exception)) throw e;
                 if (++count >= maxRetries) throw e;
             }
         }

@@ -2,6 +2,7 @@ package org.jobrunr.storage.nosql.mongo.migrations;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import org.bson.Document;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
@@ -19,7 +20,9 @@ public class M006_UpdateRecurringJobsCollectionAddCreatedAtIndex extends MongoMi
         MongoCollection<Document> recurringJobCollection = jobrunrDatabase.getCollection(collectionName, Document.class);
 
         if (StreamSupport.stream(recurringJobCollection.listIndexes().spliterator(), false).noneMatch(doc -> doc.getString("name").contains(RecurringJobs.FIELD_CREATED_AT))) {
-            runMongoCommand(() -> recurringJobCollection.createIndex(Indexes.ascending(RecurringJobs.FIELD_CREATED_AT)));
+            createIndex(recurringJobCollection,
+                    Indexes.ascending(RecurringJobs.FIELD_CREATED_AT),
+                    new IndexOptions().name("createdAtIdx"));
         }
     }
 }
