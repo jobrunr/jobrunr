@@ -18,7 +18,7 @@ const JobRunrApiNotification = (props) => {
     const [notification, setNotification] = React.useState(null);
 
     React.useEffect(() => {
-        fetch(`https://api.jobrunr.io/api/notifications`)
+        fetch(`https://api.jobrunr.io/api/notifications/jobrunr`)
             .then(res => res.json())
             .then(response => {
                 setNotification(response);
@@ -27,10 +27,10 @@ const JobRunrApiNotification = (props) => {
     }, []);
 
 
-    if(notification) {
+    if (notification) {
         return <Alert className={classes.alert} severity="info">
             <AlertTitle><h4 className={classes.alertTitle}>{notification.title}</h4></AlertTitle>
-            <span dangerouslySetInnerHTML={{ __html: notification.body }} />
+            <span dangerouslySetInnerHTML={{__html: notification.body}}/>
         </Alert>
     }
     return null;
