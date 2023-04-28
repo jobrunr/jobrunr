@@ -19,7 +19,7 @@ public class M006_UpdateRecurringJobsCollectionAddCreatedAtIndex extends MongoMi
         MongoCollection<Document> recurringJobCollection = jobrunrDatabase.getCollection(collectionName, Document.class);
 
         if (StreamSupport.stream(recurringJobCollection.listIndexes().spliterator(), false).noneMatch(doc -> doc.getString("name").contains(RecurringJobs.FIELD_CREATED_AT))) {
-            recurringJobCollection.createIndex(Indexes.ascending(RecurringJobs.FIELD_CREATED_AT));
+            runMongoCommand(() -> recurringJobCollection.createIndex(Indexes.ascending(RecurringJobs.FIELD_CREATED_AT)));
         }
     }
 }

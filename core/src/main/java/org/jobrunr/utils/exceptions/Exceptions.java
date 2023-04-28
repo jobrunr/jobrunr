@@ -51,10 +51,14 @@ public class Exceptions {
     }
 
     public static <T> T retryOnException(Supplier<T> supplier, int maxRetries) {
+        return retryOnException(supplier, maxRetries, 20L);
+    }
+
+    public static <T> T retryOnException(Supplier<T> supplier, int maxRetries, long timeSeed) {
         int count = 0;
         while (count <= maxRetries) {
             try {
-                Thread.sleep(count * 20L);
+                Thread.sleep(count * timeSeed);
                 return supplier.get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -66,10 +70,14 @@ public class Exceptions {
     }
 
     public static void retryOnException(Runnable runnable, int maxRetries) {
+        retryOnException(runnable, maxRetries, 20);
+    }
+
+    public static void retryOnException(Runnable runnable, int maxRetries, long timeSeed) {
         int count = 0;
         while (count <= maxRetries) {
             try {
-                Thread.sleep(count * 20L);
+                Thread.sleep(count * timeSeed);
                 runnable.run();
                 return;
             } catch (InterruptedException e) {
