@@ -83,6 +83,7 @@
       <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.test" target="11" />
       <module name="JobRunr.language-support.jobrunr-kotlin-14-support.test" target="11" />
       <module name="JobRunr.language-support.jobrunr-kotlin-15-support.test" target="11" />
+      <module name="JobRunr.language-support.jobrunr-kotlin-16-support.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
