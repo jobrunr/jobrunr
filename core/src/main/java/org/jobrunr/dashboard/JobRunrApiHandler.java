@@ -28,16 +28,14 @@ public class JobRunrApiHandler extends RestHttpHandler {
         this.storageProvider = storageProvider;
         this.allowAnonymousDataUsage = allowAnonymousDataUsage;
 
-        get("/problems", getProblems());
-        delete("/problems/:type", deleteProblemByType());
-
-        get("/job-signatures", getDistinctJobSignatures());
-
         get("/jobs", findJobByState());
 
         get("/jobs/:id", getJobById());
         delete("/jobs/:id", deleteJobById());
         post("/jobs/:id/requeue", requeueJobById());
+
+        get("/problems", getProblems());
+        delete("/problems/:type", deleteProblemByType());
 
         get("/recurring-jobs", getRecurringJobs());
         delete("/recurring-jobs/:id", deleteRecurringJob());
@@ -93,10 +91,6 @@ public class JobRunrApiHandler extends RestHttpHandler {
         };
     }
 
-    private HttpRequestHandler getDistinctJobSignatures() {
-        return (request, response) -> response.asJson(storageProvider.getDistinctJobSignatures(StateName.values()));
-    }
-
     private HttpRequestHandler getRecurringJobs() {
         return (request, response) -> {
             PageRequest pageRequest = request.fromQueryParams(PageRequest.class);
@@ -142,10 +136,10 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private VersionUIModel getVersionUIModel() {
-        if (versionUIModel != null) return versionUIModel;
-        if (allowAnonymousDataUsage) {
+        if(versionUIModel != null) return versionUIModel;
+        if(allowAnonymousDataUsage) {
             final JobRunrMetadata metadata = storageProvider.getMetadata("id", "cluster");
-            if (metadata != null) {
+            if(metadata != null) {
                 final String storageProviderType = storageProvider instanceof ThreadSafeStorageProvider
                         ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getSimpleName()
                         : storageProvider.getClass().getSimpleName();
@@ -161,14 +155,14 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private ProblemsManager problemsManager() {
-        if (this.problemsManager == null) {
+        if(this.problemsManager == null) {
             this.problemsManager = new ProblemsManager(storageProvider);
         }
         return this.problemsManager;
     }
 
     private RecurringJobsResult recurringJobResults() {
-        if (recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
+        if(recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
             recurringJobsResult = storageProvider.getRecurringJobs();
         }
         return recurringJobsResult;

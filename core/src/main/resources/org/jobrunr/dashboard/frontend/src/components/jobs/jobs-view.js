@@ -8,7 +8,6 @@ import LoadingIndicator from "../LoadingIndicator";
 import JobsTable from "../utils/jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import VersionFooter from "../utils/version-footer";
-import JobsFilterPanel from "./jobs-filter-panel";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -17,7 +16,7 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: theme.palette.background.paper,
     },
     jobRunrProNotice: {
-        margin: "1rem 0 0.5rem 0",
+        margin: "-2rem 0 0.5rem 0",
         textAlign: "right"
     },
     content: {
@@ -88,7 +87,6 @@ const JobsView = (props) => {
                 ? <LoadingIndicator/>
                 :
                 <>
-                    <JobsFilterPanel/>
                     {jobState === 'ENQUEUED' &&
                         <div className={classes.jobRunrProNotice}>Do you want instant job processing? That comes out of the box with <a
                             href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
@@ -100,9 +98,7 @@ const JobsView = (props) => {
                             title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
                     }
                     {jobState !== 'ENQUEUED' && jobState !== 'FAILED' &&
-                        <div className={classes.jobRunrProNotice}>Supercharge your job management with <a
-                            href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
-                            title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
+                        <div className={classes.jobRunrProNotice}>Are you trying to find a certain job here? With <a href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> you would have already found it.</div>
                     }
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>
