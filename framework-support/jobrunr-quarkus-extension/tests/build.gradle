@@ -1,11 +1,11 @@
 plugins {
     id 'java-library'
-    id 'io.quarkus' version '3.0.1.Final'
+    id 'io.quarkus' version '3.0.2.Final'
 }
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.0.1.Final')
+    api platform('io.quarkus:quarkus-bom:3.0.2.Final')
 
     api project(':framework-support:jobrunr-quarkus-extension:runtime')
     api project(':framework-support:jobrunr-quarkus-extension:deployment')
