@@ -1,8 +1,8 @@
 package org.jobrunr.server.zookeeper;
 
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.PollIntervalInSecondsTimeBoxIsTooSmallNotification;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +26,8 @@ public class ZooKeeperStatistics {
         this.runTookToLongCounter = 0;
     }
 
-    public ZooKeeperRunTaskInfo startRun(BackgroundJobServerStatus backgroundJobServerStatus) {
-        return new ZooKeeperRunTaskInfo(this, backgroundJobServerStatus, ++runCounter);
+    public ZooKeeperRunTaskInfo startRun(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        return new ZooKeeperRunTaskInfo(this, backgroundJobServerConfiguration, ++runCounter);
     }
 
     public void handleException(Exception e) {

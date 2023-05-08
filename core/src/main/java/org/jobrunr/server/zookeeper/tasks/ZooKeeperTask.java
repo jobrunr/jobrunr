@@ -8,7 +8,6 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -99,8 +98,8 @@ public abstract class ZooKeeperTask {
                 .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
     }
 
-    BackgroundJobServerStatus serverStatus() {
-        return runInfo.getBackgroundJobServerStatus();
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
+        return runInfo.getBackgroundJobServerConfiguration();
     }
 
     Instant runStartTime() {

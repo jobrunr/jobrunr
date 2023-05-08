@@ -1,7 +1,7 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -18,11 +18,11 @@ public class ProcessingState extends AbstractJobState {
     }
 
     public ProcessingState(BackgroundJobServer backgroundJobServer) {
-        this(backgroundJobServer.getServerStatus());
+        this(backgroundJobServer.getConfiguration());
     }
 
-    public ProcessingState(BackgroundJobServerStatus backgroundJobServerStatus) {
-        this(backgroundJobServerStatus.getId(), backgroundJobServerStatus.getName());
+    public ProcessingState(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        this(backgroundJobServerConfiguration.getId(), backgroundJobServerConfiguration.getName());
     }
 
     public ProcessingState(UUID serverId, String serverName) {
