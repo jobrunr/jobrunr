@@ -25,7 +25,7 @@ dependencies {
         api 'org.postgresql:postgresql:42.6.0'
         api 'com.google.cloud.sql:postgres-socket-factory:1.1.0'
         api 'com.oracle.database.jdbc:ojdbc8:23.2.0.0'
-        api 'org.mariadb.jdbc:mariadb-java-client:3.1.3'
+        api 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
         api 'mysql:mysql-connector-java:8.0.33'
         api 'com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre8'
         api 'com.ibm.db2:jcc:11.5.8.0'
@@ -36,7 +36,7 @@ dependencies {
         api 'redis.clients:jedis:4.3.2'
         api 'io.lettuce:lettuce-core:6.2.4.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:4.9.1'
-        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.7'
+        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.10'
 
         api 'org.junit.jupiter:junit-jupiter:5.9.3'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
