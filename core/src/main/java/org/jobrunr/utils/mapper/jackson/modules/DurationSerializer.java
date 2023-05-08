@@ -8,15 +8,16 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Duration;
 
-public class DurationSerializer extends StdSerializer<Duration> {
 
+public class DurationSerializer extends StdSerializer<Duration> {
+    
     protected DurationSerializer() {
         super(Duration.class);
     }
 
     @Override
     public void serialize(Duration duration, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeNumber(new BigDecimal(duration.getSeconds() + "." + String.format("%09d", duration.getNano())).toString());
+        jsonGenerator.writeNumber(BigDecimal.valueOf(duration.toNanos()).scaleByPowerOfTen(-9).toString());
     }
 
 }
