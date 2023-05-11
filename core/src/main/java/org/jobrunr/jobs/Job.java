@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -27,11 +28,13 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
  * Defines the job with its JobDetails, History and Job Metadata.
  *
  * <em>Note:</em> Jobs are managed by JobRunr and may under no circumstances be updated during Job Processing. They may be deleted though.
- *
+ * <p>
  * During Job Processing, JobRunr updates the job every x amount of seconds (where x is the pollIntervalInSeconds and defaults to 15s) to distinguish
  * running jobs from orphaned jobs (orphaned jobs are jobs that have the state in PROGRESS but are not running anymore due to JVM or container crash).
  */
 public class Job extends AbstractJob {
+
+    private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)");
 
     private final UUID id;
     private final CopyOnWriteArrayList<JobState> jobHistory;
@@ -187,6 +190,6 @@ public class Job extends AbstractJob {
     }
 
     private void clearMetadata() {
-        metadata.entrySet().removeIf(entry -> !(entry.getKey().matches("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)")));
+        metadata.entrySet().removeIf(entry -> !METADATA_PATTERN.matcher(entry.getKey()).matches());
     }
 }
