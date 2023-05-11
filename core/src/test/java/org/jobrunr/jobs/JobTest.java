@@ -22,7 +22,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.*;
-import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,7 +33,7 @@ class JobTest {
 
     @BeforeEach
     void setUpBackgroundJobServer() {
-        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(aDefaultBackgroundJobServerStatus().build());
+        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
     }
 
     @Test
@@ -133,7 +133,7 @@ class JobTest {
     @Test
     void jobLoggingAndProgressIsNotClearedIfMoreThan10Retries() {
         Job job = anEnqueuedJob().build();
-        for(int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             job.startProcessingOn(backgroundJobServer);
 
             JobDashboardLogger jobDashboardLogger = new JobDashboardLogger(job);

@@ -1,6 +1,7 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.server.jmx.BackgroundJobServerStatusMBean;
+import org.jobrunr.server.jmx.JobServerStats;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -25,8 +26,11 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final Long processAllocatedMemory;
     private final Double processCpuLoad;
 
-    public BackgroundJobServerStatus(String name, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter) {
-        this(UUID.randomUUID(), name, workerPoolSize, pollIntervalInSeconds, deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, null, null, false, null, null, null, null, null, null, null);
+    public BackgroundJobServerStatus(UUID id, String name, int workerCount, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, JobServerStats jobServerStats) {
+        this(id, name, workerCount, pollIntervalInSeconds, deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, isRunning,
+                jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(),
+                jobServerStats.getProcessMaxMemory(), jobServerStats.getProcessFreeMemory(),
+                jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());
     }
 
     public BackgroundJobServerStatus(UUID id, String name, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {

@@ -5,6 +5,7 @@ import org.jobrunr.server.configuration.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.UUID;
 
 import static java.lang.Math.min;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -23,6 +24,7 @@ public class BackgroundJobServerConfiguration {
     private int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    private UUID id = UUID.randomUUID();
     private String name = getHostName();
     private Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
     private Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
@@ -40,6 +42,18 @@ public class BackgroundJobServerConfiguration {
      */
     public static BackgroundJobServerConfiguration usingStandardBackgroundJobServerConfiguration() {
         return new BackgroundJobServerConfiguration();
+    }
+
+    /**
+     * Allows to set the id for the {@link BackgroundJobServer}
+     *
+     * @param id the id of this BackgroundJobServer (used in the dashboard and to see whether server is still up & running)
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andId(UUID id) {
+        if (id == null) throw new IllegalArgumentException("The id can not be null");
+        this.id = id;
+        return this;
     }
 
     /**
@@ -158,6 +172,10 @@ public class BackgroundJobServerConfiguration {
     public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
         return this;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {

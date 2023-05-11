@@ -9,13 +9,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.*;
 
 class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
@@ -64,7 +65,7 @@ class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
         startProcessingJob(job);
 
         // WHEN
-        runTask(task, aDefaultBackgroundJobServerStatus().withWorkerSize(0).build());
+        runTask(task);
 
         // THEN
         verify(storageProvider).save(singletonList(job));
@@ -114,10 +115,9 @@ class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
 
     Thread startProcessingJobAndReturnThread(Job job) {
         final Thread threadMock = mock(Thread.class);
-        when(backgroundJobServer.getServerStatus()).thenReturn(aDefaultBackgroundJobServerStatus()
-                        .withId()
-                        .withName("my-host-name")
-                        .build());
+        when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration()
+                .andId(UUID.randomUUID())
+                .andName("my-host-name"));
 
         job.startProcessingOn(backgroundJobServer);
 

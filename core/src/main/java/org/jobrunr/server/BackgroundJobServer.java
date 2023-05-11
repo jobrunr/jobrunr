@@ -43,7 +43,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
 
-    private final UUID backgroundJobServerId;
     private final BackgroundJobServerConfiguration configuration;
     private final StorageProvider storageProvider;
     private final DashboardNotificationManager dashboardNotificationManager;
@@ -74,10 +73,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (storageProvider == null)
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
 
-        this.backgroundJobServerId = UUID.randomUUID();
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
-        this.dashboardNotificationManager = new DashboardNotificationManager(backgroundJobServerId, storageProvider);
+        this.dashboardNotificationManager = new DashboardNotificationManager(configuration.getId(), storageProvider);
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
@@ -90,7 +88,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public UUID getId() {
-        return backgroundJobServerId;
+        return configuration.getId();
     }
 
     public void start() {
@@ -162,7 +160,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.isMaster = isMaster;
         if (isMaster != null) {
             LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
-            if(isMaster) {
+            if (isMaster) {
                 runStartupTasks();
             }
         } else {
@@ -177,13 +175,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public BackgroundJobServerStatus getServerStatus() {
-        return new BackgroundJobServerStatus(
-                backgroundJobServerId, configuration.getName(), workDistributionStrategy.getWorkerCount(),
+        return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
                 configuration.getPollIntervalInSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
-                firstHeartbeat, Instant.now(), isRunning, jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(),
-                jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(), jobServerStats.getProcessFreeMemory(),
-                jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad()
-        );
+                firstHeartbeat, Instant.now(), isRunning, jobServerStats);
     }
 
     public JobZooKeeper getJobZooKeeper() {

@@ -1,6 +1,10 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.arc.DefaultBean;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
@@ -16,11 +20,6 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
-
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.CDI;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

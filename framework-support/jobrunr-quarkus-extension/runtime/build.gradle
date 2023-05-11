@@ -22,8 +22,8 @@ java {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:2.15.3.Final')
-    annotationProcessor 'io.quarkus:quarkus-extension-processor:2.15.3.Final'
+    api platform('io.quarkus:quarkus-bom:3.0.2.Final')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.0.2.Final'
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
@@ -52,7 +52,7 @@ java {
 
 jar {
     manifest {
-        attributes 'Automatic-Module-Name' : 'org.jobrunr.quarkus'
+        attributes 'Automatic-Module-Name': 'org.jobrunr.quarkus'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
@@ -96,7 +96,7 @@ publishing {
                 }
 
                 versionMapping {
-                    usage('java-runtime'){
+                    usage('java-runtime') {
                         fromResolutionResult()
                     }
                 }

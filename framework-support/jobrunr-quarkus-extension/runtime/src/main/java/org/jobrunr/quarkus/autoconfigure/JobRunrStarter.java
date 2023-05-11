@@ -2,13 +2,13 @@ package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Instance;
 
 @Dependent
 public class JobRunrStarter {

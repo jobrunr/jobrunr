@@ -34,7 +34,7 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
     }
 
     private List<RecurringJob> getRecurringJobs() {
-        if(storageProvider.recurringJobsUpdated(recurringJobs.getLastModifiedHash())) {
+        if (storageProvider.recurringJobsUpdated(recurringJobs.getLastModifiedHash())) {
             this.recurringJobs = storageProvider.getRecurringJobs();
         }
         return this.recurringJobs;
@@ -44,25 +44,25 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
         LOGGER.debug("Found {} recurring jobs.", recurringJobs.size());
 
         Instant from = runStartTime();
-        Instant upUntil = runStartTime().plusSeconds(serverStatus().getPollIntervalInSeconds());
+        Instant upUntil = runStartTime().plusSeconds(backgroundJobServerConfiguration().getPollIntervalInSeconds());
 
         List<Job> allJobsToSchedule = new ArrayList<>();
         for (RecurringJob recurringJob : recurringJobs) {
             List<Job> jobsToSchedule = getJobsToSchedule(recurringJob, from, upUntil);
-            if(jobsToSchedule.isEmpty()) {
+            if (jobsToSchedule.isEmpty()) {
                 LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
-            } else if(jobsToSchedule.size() > 1) {
+            } else if (jobsToSchedule.size() > 1) {
                 LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size());
                 allJobsToSchedule.addAll(jobsToSchedule);
-            } else if(isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
+            } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
                 LOGGER.debug("Recurring job '{}' is already scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
-            } else if(jobsToSchedule.size() == 1) {
+            } else if (jobsToSchedule.size() == 1) {
                 LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
                 allJobsToSchedule.addAll(jobsToSchedule);
             }
             registerRecurringJobRun(recurringJob, upUntil);
         }
-        if(isNotNullOrEmpty(allJobsToSchedule)) {
+        if (isNotNullOrEmpty(allJobsToSchedule)) {
             storageProvider.save(allJobsToSchedule);
         }
     }

@@ -30,7 +30,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +48,7 @@ abstract class JobMapperTest {
         jobMapper = new JobMapper(getJsonMapper());
         testService = new TestService();
 
-        lenient().when(backgroundJobServer.getServerStatus()).thenReturn(aDefaultBackgroundJobServerStatus().build());
+        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
     }
 
     protected abstract JsonMapper getJsonMapper();
@@ -174,7 +174,7 @@ abstract class JobMapperTest {
                 .hasClassName(TestService.class.getName())
                 .hasMethodName("doWork")
                 .hasArg(arg -> arg instanceof JobParameterNotDeserializableException
-                                && ((JobParameterNotDeserializableException) arg).getClassName().equals("i.dont.exist.Class"));
+                        && ((JobParameterNotDeserializableException) arg).getClassName().equals("i.dont.exist.Class"));
 
         String jobAsJsonAfterDeserialization = jobMapper.serializeJob(actualJob);
         Job actualJobAfterDeserialization = jobMapper.deserializeJob(jobAsJsonAfterDeserialization);

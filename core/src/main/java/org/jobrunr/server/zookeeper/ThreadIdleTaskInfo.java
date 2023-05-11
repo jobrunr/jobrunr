@@ -1,23 +1,23 @@
 package org.jobrunr.server.zookeeper;
 
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.zookeeper.tasks.ZooKeeperTaskInfo;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 
 import java.time.Instant;
 
 public class ThreadIdleTaskInfo implements ZooKeeperTaskInfo {
 
-    private final BackgroundJobServerStatus backgroundJobServerStatus;
+    private final BackgroundJobServerConfiguration getBackgroundJobServerConfiguration;
     private final Instant runStartTime;
 
-    public ThreadIdleTaskInfo(BackgroundJobServerStatus backgroundJobServerStatus) {
-        this.backgroundJobServerStatus = backgroundJobServerStatus;
+    public ThreadIdleTaskInfo(BackgroundJobServerConfiguration getBackgroundJobServerConfiguration) {
+        this.getBackgroundJobServerConfiguration = getBackgroundJobServerConfiguration;
         this.runStartTime = Instant.now();
     }
 
     @Override
-    public BackgroundJobServerStatus getBackgroundJobServerStatus() {
-        return backgroundJobServerStatus;
+    public BackgroundJobServerConfiguration getBackgroundJobServerConfiguration() {
+        return getBackgroundJobServerConfiguration;
     }
 
     @Override

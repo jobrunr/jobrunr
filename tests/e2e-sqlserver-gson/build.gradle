@@ -1,12 +1,12 @@
 plugins {
-    id 'com.google.cloud.tools.jib' version '3.2.1'
+    id 'com.google.cloud.tools.jib' version '3.3.1'
 }
 
 dependencies {
     implementation project(':core')
     implementation project(':tests:e2e-base')
     implementation 'ch.qos.logback:logback-classic'
-    implementation ('com.microsoft.sqlserver:mssql-jdbc') {
+    implementation('com.microsoft.sqlserver:mssql-jdbc') {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
     implementation 'com.google.code.gson:gson'

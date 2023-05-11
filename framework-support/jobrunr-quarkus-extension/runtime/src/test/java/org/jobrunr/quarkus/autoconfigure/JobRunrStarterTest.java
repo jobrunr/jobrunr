@@ -2,6 +2,7 @@ package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.inject.Instance;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
@@ -11,11 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.enterprise.inject.Instance;
-
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrStarterTest {

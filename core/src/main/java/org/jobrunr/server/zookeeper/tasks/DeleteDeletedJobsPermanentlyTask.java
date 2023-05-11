@@ -15,7 +15,7 @@ public class DeleteDeletedJobsPermanentlyTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for deleted jobs that can be deleted permanently...");
-        int totalAmountOfPermanentlyDeletedJobs = storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(serverStatus().getDeleteSucceededJobsAfter()));
+        int totalAmountOfPermanentlyDeletedJobs = storageProvider.deleteJobsPermanently(StateName.DELETED, now().minus(backgroundJobServerConfiguration().getDeleteSucceededJobsAfter()));
         LOGGER.debug("Found {} deleted jobs that were permanently deleted as part of JobRunr maintenance", totalAmountOfPermanentlyDeletedJobs);
     }
 }

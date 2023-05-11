@@ -6,7 +6,6 @@ import org.jobrunr.server.zookeeper.ThreadIdleTaskInfo;
 import org.jobrunr.server.zookeeper.ZooKeeperRunTaskInfo;
 import org.jobrunr.server.zookeeper.ZooKeeperStatistics;
 import org.jobrunr.server.zookeeper.tasks.*;
-import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +51,7 @@ public class JobZooKeeper implements Runnable {
     public void run() {
         if (backgroundJobServer.isUnAnnounced()) return;
 
-        try (ZooKeeperRunTaskInfo runInfo = zooKeeperStatistics.startRun(backgroundJobServerStatus())) {
+        try (ZooKeeperRunTaskInfo runInfo = zooKeeperStatistics.startRun(backgroundJobServerConfiguration())) {
             updateJobsThatAreBeingProcessed(runInfo);
             runMasterTasksIfCurrentServerIsMaster(runInfo);
             onboardNewWorkIfPossible(runInfo);
@@ -86,8 +85,8 @@ public class JobZooKeeper implements Runnable {
         onboardNewWorkTask.run(runInfo);
     }
 
-    BackgroundJobServerStatus backgroundJobServerStatus() {
-        return backgroundJobServer.getServerStatus();
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
+        return backgroundJobServer.getConfiguration();
     }
 
     public void startProcessing(Job job, Thread thread) {
@@ -116,6 +115,6 @@ public class JobZooKeeper implements Runnable {
 
     public void notifyThreadIdle() {
         this.occupiedWorkers.decrementAndGet();
-        onboardNewWorkTask.run(new ThreadIdleTaskInfo(backgroundJobServerStatus()));
+        onboardNewWorkTask.run(new ThreadIdleTaskInfo(backgroundJobServerConfiguration()));
     }
 }

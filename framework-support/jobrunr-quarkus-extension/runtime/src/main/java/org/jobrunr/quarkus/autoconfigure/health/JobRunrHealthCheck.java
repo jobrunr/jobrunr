@@ -1,5 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure.health;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
@@ -7,8 +9,6 @@ import org.eclipse.microprofile.health.Readiness;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
 
 @Readiness
 @ApplicationScoped
