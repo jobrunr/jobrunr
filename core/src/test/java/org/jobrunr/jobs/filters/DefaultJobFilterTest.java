@@ -2,6 +2,7 @@ package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,17 @@ class DefaultJobFilterTest {
     @BeforeEach
     void setup() {
         defaultJobFilter = new DefaultJobFilter();
+    }
+
+    @Test
+    void testDisplayNameByAnnotationReplacesVariables() {
+        Job job = anEnqueuedJob().withoutName()
+                .withJobDetails(() -> testService.doWorkWithAnnotationAndJobContext(67656, "the almighty user", JobContext.Null))
+                .build();
+
+        defaultJobFilter.onCreating(job);
+
+        assertThat(job).hasJobName("Doing some hard work for user the almighty user with id 67656");
     }
 
     @Test
