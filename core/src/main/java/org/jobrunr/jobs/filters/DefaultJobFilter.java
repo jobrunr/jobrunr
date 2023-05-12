@@ -75,15 +75,22 @@ public class DefaultJobFilter implements JobClientFilter {
     }
 
     private String resolveParameters(String name, AbstractJob abstractJob) {
-        String jobName = replaceJobParameters(name, abstractJob.getJobDetails());
-        return replaceMDCVariables(jobName);
+        String jobName = name;
+        if (name.contains("%")) {
+            jobName = replaceJobParameters(jobName, abstractJob.getJobDetails());
+            jobName = replaceMDCVariables(jobName);
+        }
+        return jobName;
     }
 
     private String replaceJobParameters(String name, JobDetails jobDetails) {
         String finalName = name;
-        for (int i = 0; i < jobDetails.getJobParameters().size(); i++) {
-            if (jobDetails.getJobParameterValues()[i] != null) {
-                finalName = finalName.replace("%" + i, jobDetails.getJobParameterValues()[i].toString());
+
+        if (finalName.contains("%")) {
+            for (int i = 0; i < jobDetails.getJobParameters().size(); i++) {
+                if (jobDetails.getJobParameterValues()[i] != null) {
+                    finalName = finalName.replace("%" + i, jobDetails.getJobParameterValues()[i].toString());
+                }
             }
         }
         return finalName;
