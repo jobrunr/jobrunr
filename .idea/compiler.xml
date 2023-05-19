@@ -15,22 +15,6 @@
     <annotationProcessing>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.0.6/9fe351d82f9dd4eea27f726df98b74d352292dff/spring-boot-autoconfigure-processor-3.0.6.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.0.6/40ac53fa1e5c53d15c7058603e26dd03a99223ae/spring-boot-configuration-processor-3.0.6.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.11/d6acaaab811dfd9af75e828f3a2ba202584328a1/spring-boot-autoconfigure-processor-2.7.11.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.11/fcf32e175b048ec937da6491c1896a2d06675637/spring-boot-configuration-processor-2.7.11.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
         <option name="micronaut.processing.annotations" value="org.jobrunr.*" />
         <option name="micronaut.processing.group" value="org.jobrunr" />
         <option name="micronaut.processing.incremental" value="true" />
@@ -76,6 +60,22 @@
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.12/c00c58983dfec254cc3520f176ddfee9364b5004/spring-boot-autoconfigure-processor-2.7.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.12/5a6e41b3c5b2e52dcc05c2ebfc408e218d73075e/spring-boot-configuration-processor-2.7.12.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.1.0/baff2fdd507d9ecf650e44719e116c0e43c940a1/spring-boot-autoconfigure-processor-3.1.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.1.0/6364a0d4d16f77885a86a51906d68107674eebbd/spring-boot-configuration-processor-3.1.0.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
