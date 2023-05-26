@@ -1,5 +1,5 @@
 <p align="center">
- <img src="https://user-images.githubusercontent.com/567842/80095933-1181c900-8569-11ea-85e7-14129b3f8142.png" alt="JobRunr logo"></img>
+ <a href="https://www.jobrunr.io/en/" target="_blank"><img src="https://user-images.githubusercontent.com/567842/80095933-1181c900-8569-11ea-85e7-14129b3f8142.png" alt="JobRunr logo"></img></a>
 </p>  
 <p align="center">
 The ultimate library to perform background processing on the JVM.<br/>
