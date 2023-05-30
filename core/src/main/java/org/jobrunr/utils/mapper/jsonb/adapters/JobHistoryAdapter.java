@@ -1,10 +1,10 @@
 package org.jobrunr.utils.mapper.jsonb.adapters;
 
+import jakarta.json.*;
+import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
-import javax.json.*;
-import javax.json.bind.adapter.JsonbAdapter;
 import java.util.ArrayList;
 import java.util.List;
 

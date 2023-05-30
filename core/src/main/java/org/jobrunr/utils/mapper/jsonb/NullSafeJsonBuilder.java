@@ -1,7 +1,8 @@
 package org.jobrunr.utils.mapper.jsonb;
 
-import javax.json.*;
-import javax.json.bind.Jsonb;
+import jakarta.json.*;
+import jakarta.json.bind.Jsonb;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.UUID;

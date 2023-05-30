@@ -1,7 +1,8 @@
 package org.jobrunr.utils.mapper.jsonb;
 
-import javax.json.JsonValue;
-import javax.json.bind.Jsonb;
+import jakarta.json.JsonValue;
+import jakarta.json.bind.Jsonb;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;

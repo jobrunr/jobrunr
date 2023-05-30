@@ -1,8 +1,9 @@
 package org.jobrunr.utils.mapper.jsonb.serializer;
 
-import javax.json.bind.serializer.JsonbSerializer;
-import javax.json.bind.serializer.SerializationContext;
-import javax.json.stream.JsonGenerator;
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.serializer.SerializationContext;
+import jakarta.json.stream.JsonGenerator;
+
 import java.nio.file.Path;
 
 public class PathTypeSerializer implements JsonbSerializer<Path> {

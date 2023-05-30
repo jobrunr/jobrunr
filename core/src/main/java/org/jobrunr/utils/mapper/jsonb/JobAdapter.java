@@ -1,5 +1,11 @@
 package org.jobrunr.utils.mapper.jsonb;
 
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.states.JobState;
@@ -9,12 +15,6 @@ import org.jobrunr.utils.mapper.jsonb.adapters.JobLabelsAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobMetadataAdapter;
 import org.jobrunr.utils.mapper.jsonb.serializer.*;
 
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import javax.json.bind.adapter.JsonbAdapter;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;

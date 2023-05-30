@@ -1,14 +1,14 @@
 package org.jobrunr.utils.mapper.jsonb;
 
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.JsonbException;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import javax.json.bind.JsonbException;
 import java.io.OutputStream;
 
 public class JsonbJsonMapper implements JsonMapper {
