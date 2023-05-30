@@ -341,7 +341,7 @@ public class JobRunrConfiguration {
             return new JacksonJsonMapper();
         } else if (classExists("com.google.gson.Gson")) {
             return new GsonJsonMapper();
-        } else if (classExists("javax.json.bind.JsonbBuilder")) {
+        } else if (classExists("jakarta.json.bind.JsonbBuilder")) {
             return new JsonbJsonMapper();
         } else {
             throw new JsonMapperException("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath");
