@@ -7,6 +7,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.utils.annotations.Because;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Objects;
 
@@ -26,6 +27,19 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
         assertThatThrownBy(super::testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter)
                 .isInstanceOf(JobParameterJsonMapperException.class)
                 .hasCauseInstanceOf(InvalidDefinitionException.class);
+    }
+
+    // we cannot use records as the test fixtures are compiled with Java 11 and they are used by other people
+    // for JobRunr 7, bump the testfixtures to Java 17 and test with an actual record
+    // Note for future self: I'm really sorry about this :-s
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/779")
+    @Deprecated
+    void testCreatorHasDefaultVisibilityInJacksonObjectMapper() {
+        Object objectMapper = Whitebox.getInternalState(jsonMapper, "objectMapper");
+        Object configOverrides = Whitebox.getInternalState(objectMapper, "_configOverrides");
+        Object visibilityChecker = Whitebox.getInternalState(configOverrides, "_visibilityChecker");
+        assertThat(visibilityChecker.toString()).contains("creator=ANY");
     }
 
     @Test
