@@ -147,6 +147,11 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work... " + processedJobs);
     }
 
+    @Job(name = "Doing some work with input")
+    public void doWork(String input) {
+        System.out.println("Doing some work with input " + input);
+    }
+
     @Job(labels = "label-%0 - %1")
     public void doWorkWithJobAnnotationAndLabels(int i, String s) {
         processedJobs++;

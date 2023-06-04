@@ -153,7 +153,11 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                     parameterRetrievers.add(createJobParameterRetriever(jp, jobRunrJob, itemFromStream, declaredFields));
                 }
 
-                jobDetails.setCacheable(declaredFields.isEmpty() && jobParameters.size() == parameterRetrievers.size());
+                jobDetails.setCacheable(
+                        declaredFields.isEmpty()
+                                && jobParameters.size() == parameterRetrievers.size()
+                                && (!itemFromStream.isPresent() || parameterRetrievers.stream().anyMatch(r -> r instanceof ItemFromStreamJobParameterRetriever))
+                );
                 return parameterRetrievers;
             } catch (Exception e) {
                 jobDetails.setCacheable(false);

@@ -43,6 +43,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
@@ -71,6 +72,10 @@ public abstract class AbstractJobDetailsGeneratorTest {
         return jobDetailsGenerator.toJobDetails(job);
     }
 
+    protected <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> jobLambda) {
+        return jobDetailsGenerator.toJobDetails(itemFromStream, jobLambda);
+    }
+
     protected JobDetails toJobDetails(IocJobLambda<TestService> iocJobLambda) {
         return jobDetailsGenerator.toJobDetails(iocJobLambda);
     }
@@ -78,10 +83,10 @@ public abstract class AbstractJobDetailsGeneratorTest {
     @Test
     @Disabled("for debugging")
     void logByteCode() {
-        //String name = AbstractJobDetailsGeneratorTest.class.getName();
-        //String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+        String name = AbstractJobDetailsGeneratorTest.class.getName();
+        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
 
-        String location = "/Users/rdehuyss/Projects/Personal/jobrunr/jobrunr/language-support/jobrunr-kotlin-16-support/build/classes/kotlin/test/org/jobrunr/scheduling/JobSchedulerTest.class";
+        //String location = "/Users/rdehuyss/Projects/Personal/jobrunr/jobrunr/language-support/jobrunr-kotlin-16-support/build/classes/kotlin/test/org/jobrunr/scheduling/JobSchedulerTest.class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 
@@ -470,7 +475,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         }
     }
 
-    @RepeatedIfExceptionsTest(repeats = 3)
+    @Test
     void testJobLambdaCallingMultiLineStatementSystemOutPrintln() {
         final List<UUID> workStream = getWorkStream().collect(toList());
         LocalDateTime now = LocalDateTime.now();
@@ -1126,6 +1131,20 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasArgs(work2);
     }
 
+    @Test
+    void testStreamWithMethodInvocationInLambda() {
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+
+        toJobDetails(id1, (id) -> testService.doWork(id.toString()));
+        JobDetails jobDetails = toJobDetails(id2, (id) -> testService.doWork(id.toString()));
+
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWork")
+                .hasArgs(id2.toString());
+    }
+
     private Runnable createJobDetailsRunnable(CountDownLatch countDownLatch, String threadNbr, Map<String, JobDetails> jobDetailsResults) {
         Random random = new Random();
         return () -> {
@@ -1189,4 +1208,5 @@ public abstract class AbstractJobDetailsGeneratorTest {
     public static void runItWithObject(TestService.Work work) {
         System.out.println("runItWithObject, work:" + work.getUuid());
     }
+
 }
