@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link, useHistory, useLocation} from "react-router-dom";
+import {Link, useHistory, useParams} from "react-router-dom";
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
@@ -58,7 +58,6 @@ const useStyles = makeStyles(() => ({
 const JobView = (props) => {
     const classes = useStyles();
     const history = useHistory();
-    const location = useLocation();
 
     const [apiStatus, setApiStatus] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -66,7 +65,7 @@ const JobView = (props) => {
     const [stateBreadcrumb, setStateBreadcrumb] = React.useState({});
     const [jobStates, setJobStates] = React.useState([]);
     const [order, setOrder] = React.useState(true);
-    const jobId = props.match.params.id;
+    const {jobId} = useParams();
 
     React.useEffect(() => {
         getJob(jobId);
@@ -76,7 +75,7 @@ const JobView = (props) => {
         eventSource.addEventListener('close', e => eventSource.close());
         return () => eventSource.close();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.job, jobId]);
+    }, [jobId]);
 
     React.useEffect(() => {
         if (job) {
@@ -186,14 +185,14 @@ const JobView = (props) => {
                                         <Grid item xs={6} container className={classes.jobDetails} justify="flex-end">
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
-                                                <Button variant="outlined" color="primary" onClick={requeueJob}>
-                                                    Requeue
-                                                </Button>
+                                                    <Button variant="outlined" color="primary" onClick={requeueJob}>
+                                                        Requeue
+                                                    </Button>
                                                 }
                                                 {stateBreadcrumb.state !== 'DELETED' &&
-                                                <Button variant="outlined" color="primary" onClick={deleteJob}>
-                                                    Delete
-                                                </Button>
+                                                    <Button variant="outlined" color="primary" onClick={deleteJob}>
+                                                        Delete
+                                                    </Button>
                                                 }
                                             </ButtonGroup>
                                         </Grid>
@@ -252,11 +251,11 @@ const JobView = (props) => {
                             </Grid>
                         </Grid>
                         {apiStatus &&
-                        <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
-                            <Alert severity={apiStatus.severity}>
-                                {apiStatus.message}
-                            </Alert>
-                        </Snackbar>
+                            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
+                                <Alert severity={apiStatus.severity}>
+                                    {apiStatus.message}
+                                </Alert>
+                            </Snackbar>
                         }
                     </>
                 }

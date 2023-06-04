@@ -45,7 +45,7 @@ const AdminUI = function () {
                 <main className={classes.content}>
                     <Switch>
                         <Route path="/dashboard/overview" component={Overview}/>
-                        <Route path="/dashboard/jobs/:id" component={WithSidebar(Sidebar, JobView)}/>
+                        <Route path="/dashboard/jobs/:jobId" component={WithSidebar(Sidebar, JobView)}/>
                         <Route path="/dashboard/jobs" component={WithSidebar(Sidebar, JobsView)}/>
                         <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
                         <Route path="/dashboard/servers" component={Servers}/>
