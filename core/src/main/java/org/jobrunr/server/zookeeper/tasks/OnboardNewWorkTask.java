@@ -28,8 +28,9 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
                 LOGGER.trace("Looking for enqueued jobs... ");
                 final PageRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
                 if (workPageRequest.getLimit() > 0) {
-                    final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest);
-                    enqueuedJobs.forEach(backgroundJobServer::processJob);
+                    final List<Job> enqueuedJobs = storageProvider.getJobs(StateName.ENQUEUED, workPageRequest)
+                            .stream().filter(j -> j.getLabels().contains(backgroundJobServer.getConfiguration().getName()))
+                            .toList();
                     LOGGER.debug("Found {} enqueued jobs to process.", enqueuedJobs.size());
                 }
             }
