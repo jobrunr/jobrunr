@@ -82,6 +82,16 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasStateChange() {
+        Assertions.assertThat(actual.hasStateChange()).isTrue();
+        return this;
+    }
+
+    public JobAssert hasNoStateChange() {
+        Assertions.assertThat(actual.hasStateChange()).isFalse();
+        return this;
+    }
+
     public JobAssert hasMetadata(String key) {
         Assertions.assertThat(actual.getMetadata()).containsKey(key);
         return this;
@@ -99,7 +109,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasMetadataOnlyContainingJobProgressAndLogging() {
         for (String key : actual.getMetadata().keySet()) {
-            if(!(key.startsWith(JobDashboardLogger.JOBRUNR_LOG_KEY) || key.startsWith(JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY))) {
+            if (!(key.startsWith(JobDashboardLogger.JOBRUNR_LOG_KEY) || key.startsWith(JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY))) {
                 throw new AssertionError("Job has metadata key '" + key + "' which is not allowed");
             }
         }
@@ -134,7 +144,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     }
 
     public JobAssert isEqualTo(Job otherJob) {
-        return isEqualTo(otherJob, "locker");
+        return isEqualTo(otherJob, "locker", "newState");
     }
 
     public JobAssert isEqualTo(Job otherJob, String... fieldNamesToIgnore) {

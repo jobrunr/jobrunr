@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
@@ -113,6 +114,24 @@ class JobZooKeeperTest {
         jobZooKeeper.run();
 
         assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
+    }
+
+    @Test
+    void ifNoStateChangeHappensStateChangeFiltersAreNotInvoked() {
+        Job aJobInProgress = aJobInProgress().build();
+
+        try (JobVersioner jobVersioner = new JobVersioner(aJobInProgress)) {
+            jobZooKeeper.startProcessing(aJobInProgress, mock(Thread.class));
+            jobVersioner.commitVersion();
+        }
+
+        for (int i = 0; i <= 5; i++) {
+            jobZooKeeper.run();
+        }
+
+        assertThat(logAllStateChangesFilter.stateChanges).isEmpty();
         assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
         assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
     }

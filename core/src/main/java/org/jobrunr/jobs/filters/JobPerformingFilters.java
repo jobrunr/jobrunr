@@ -20,11 +20,15 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     public void runOnStateElectionFilter() {
-        electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
+        if (job.hasStateChange()) {
+            electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
+        }
     }
 
     public void runOnStateAppliedFilters() {
-        applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-2), job.getJobState(-1))));
+        if (job.hasStateChange()) {
+            applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-2), job.getJobState(-1))));
+        }
     }
 
     public void runOnJobProcessingFilters() {

@@ -101,6 +101,86 @@ class JobTest {
     }
 
     @Test
+    void hasJobStateChangeIsAddedOnStateChangeAndIsClearedOnceItIsPersisted() {
+        // GIVEN
+        Job job = aScheduledJob().build();
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.enqueue();
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.startProcessingOn(backgroundJobServer);
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN (!!!!)
+        job.updateProcessing();
+        // THEN (!!!!)
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.failed("fail", new Exception());
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.enqueue();
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.startProcessingOn(backgroundJobServer);
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.succeeded();
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+
+        // WHEN
+        job.delete("Deleted");
+        // THEN
+        assertThat(job).hasStateChange();
+        // WHEN
+        job.onJobPersisted();
+        // THEN
+        assertThat(job).hasNoStateChange();
+    }
+
+    @Test
     void metadataIsClearedWhenAJobSucceeds() {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");

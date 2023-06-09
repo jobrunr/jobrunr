@@ -27,8 +27,10 @@ public class JobVersioner implements AutoCloseable {
 
     @Override
     public void close() {
-        if(!isVersionCommitted) {
+        if (!isVersionCommitted) {
             job.setVersion(initialJobVersion);
+        } else {
+            job.onJobPersisted();
         }
     }
 }

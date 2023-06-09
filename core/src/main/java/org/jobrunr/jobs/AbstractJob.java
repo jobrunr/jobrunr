@@ -104,4 +104,7 @@ public abstract class AbstractJob implements Lockable {
         return locker.lock();
     }
 
+    void onJobPersisted() {
+        // hook which is called after a job is persisted to the StorageProvider
+    }
 }

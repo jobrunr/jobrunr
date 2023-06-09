@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +80,26 @@ class JobPerformingFiltersTest {
     }
 
     @Test
+    void ifNoStateChangeHappensFilterIsNotInvoked() {
+        JobTestFilter jobTestFilter = new JobTestFilter();
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(jobTestFilter);
+
+        Job aJobInProgress = aJobInProgress().build();
+        try (JobVersioner jobVersioner = new JobVersioner(aJobInProgress)) {
+            // saved to DB within this construct
+            jobVersioner.commitVersion();
+        }
+
+
+        jobPerformingFilters(aJobInProgress, jobDefaultFilters).runOnStateElectionFilter();
+        jobPerformingFilters(aJobInProgress, jobDefaultFilters).runOnStateAppliedFilters();
+
+        assertThat(jobTestFilter)
+                .hasFieldOrPropertyWithValue("onStateElectionInvoked", false)
+                .hasFieldOrPropertyWithValue("onStateAppliedInvoked", false);
+    }
+
+    @Test
     void exceptionsAreCatched() {
         JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(new JobFilterThatThrowsAnException());
 
@@ -116,6 +137,27 @@ class JobPerformingFiltersTest {
         @Override
         public void onStateApplied(Job job, JobState oldState, JobState newState) {
             throw new RuntimeException("boem!");
+        }
+    }
+
+    private static class JobTestFilter implements ElectStateFilter, ApplyStateFilter {
+
+        private boolean onStateElectionInvoked;
+        private boolean onStateAppliedInvoked;
+
+        public JobTestFilter() {
+            this.onStateElectionInvoked = false;
+            this.onStateAppliedInvoked = false;
+        }
+
+        @Override
+        public void onStateElection(Job job, JobState newState) {
+            this.onStateElectionInvoked = true;
+        }
+
+        @Override
+        public void onStateApplied(Job job, JobState oldState, JobState newState) {
+            this.onStateAppliedInvoked = true;
         }
     }
 
