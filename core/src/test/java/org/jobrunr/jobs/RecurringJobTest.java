@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 
 class RecurringJobTest {
 
@@ -104,6 +106,7 @@ class RecurringJobTest {
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
                 .hasJobName("the recurring job")
+                .hasState(SCHEDULED)
                 .hasStateChange();
     }
 
@@ -121,9 +124,10 @@ class RecurringJobTest {
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
                 .hasJobName("the recurring job")
+                .hasState(ENQUEUED)
+                .hasStateChange()
                 .hasAmountOfRetries(3)
-                .hasLabels(Set.of("some label"))
-                .hasStateChange();
+                .hasLabels(Set.of("some label"));
     }
 
     @Test
