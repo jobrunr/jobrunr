@@ -1,11 +1,15 @@
 package org.jobrunr.jobs.states;
 
+import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 class FailedStateTest {
@@ -75,6 +79,36 @@ class FailedStateTest {
         assertThatThrownBy(failedState::getException)
                 .isInstanceOf(IllegalStateException.class)
                 .hasRootCauseInstanceOf(ReflectiveOperationException.class);
+    }
+
+    @Test
+    void getExceptionForJobClassNotFoundException() {
+        final FailedState failedState = new FailedState("JobRunr message", new JobClassNotFoundException(jobDetails().build()));
+
+        setInternalState(failedState, "exception", null);
+
+        assertThat(failedState.getException())
+                .isInstanceOf(JobClassNotFoundException.class);
+    }
+
+    @Test
+    void getExceptionForJobMethodNotFoundException() {
+        final FailedState failedState = new FailedState("JobRunr message", new JobMethodNotFoundException(jobDetails().build()));
+
+        setInternalState(failedState, "exception", null);
+
+        assertThat(failedState.getException())
+                .isInstanceOf(JobMethodNotFoundException.class);
+    }
+
+    @Test
+    void getExceptionForJobNotFoundException() {
+        final FailedState failedState = new FailedState("JobRunr message", new JobNotFoundException("some message"));
+
+        setInternalState(failedState, "exception", null);
+
+        assertThat(failedState.getException())
+                .isInstanceOf(JobNotFoundException.class);
     }
 
     public static class CustomException extends Exception {
