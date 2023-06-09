@@ -103,7 +103,8 @@ class RecurringJobTest {
 
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
-                .hasJobName("the recurring job");
+                .hasJobName("the recurring job")
+                .hasStateChange();
     }
 
     @Test
@@ -121,7 +122,8 @@ class RecurringJobTest {
                 .hasRecurringJobId("the-recurring-job")
                 .hasJobName("the recurring job")
                 .hasAmountOfRetries(3)
-                .hasLabels(Set.of("some label"));
+                .hasLabels(Set.of("some label"))
+                .hasStateChange();
     }
 
     @Test

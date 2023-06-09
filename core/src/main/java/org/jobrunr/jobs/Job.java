@@ -70,6 +70,7 @@ public class Job extends AbstractJob {
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : UUID.randomUUID();
         this.jobHistory = new CopyOnWriteArrayList<>(jobHistory);
+        this.newState = this.jobHistory.get(this.jobHistory.size() - 1);
         this.metadata = metadata;
     }
 
