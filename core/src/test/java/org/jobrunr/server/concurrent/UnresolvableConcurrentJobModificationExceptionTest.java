@@ -15,7 +15,7 @@ class UnresolvableConcurrentJobModificationExceptionTest {
         final Job jobFromStorage = aFailedJob().build();
 
         final ConcurrentJobModificationResolveResult resolveResult = ConcurrentJobModificationResolveResult.failed(localJob, jobFromStorage);
-        final UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException = new UnresolvableConcurrentJobModificationException(singletonList(resolveResult));
+        final UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException = new UnresolvableConcurrentJobModificationException(singletonList(resolveResult), new Exception());
 
         final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().asMarkDown();
         assertThat(markDown)
@@ -29,7 +29,7 @@ class UnresolvableConcurrentJobModificationExceptionTest {
         final Job jobFromStorage = aFailedJob().build();
 
         final ConcurrentJobModificationResolveResult resolveResult = ConcurrentJobModificationResolveResult.failed(localJob, jobFromStorage);
-        final UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException = new UnresolvableConcurrentJobModificationException(singletonList(resolveResult));
+        final UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException = new UnresolvableConcurrentJobModificationException(singletonList(resolveResult), new Exception());
 
         final String markDown = unresolvableConcurrentJobModificationException.getDiagnosticsInfo().asMarkDown();
         assertThat(markDown)

@@ -16,8 +16,8 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
 
     private final List<ConcurrentJobModificationResolveResult> concurrentJobModificationResolveResults;
 
-    public UnresolvableConcurrentJobModificationException(List<ConcurrentJobModificationResolveResult> concurrentJobModificationResolveResults) {
-        super(concurrentJobModificationResolveResults.stream().map(ConcurrentJobModificationResolveResult::getLocalJob).collect(toList()));
+    public UnresolvableConcurrentJobModificationException(List<ConcurrentJobModificationResolveResult> concurrentJobModificationResolveResults, Exception cause) {
+        super(concurrentJobModificationResolveResults.stream().map(ConcurrentJobModificationResolveResult::getLocalJob).collect(toList()), cause);
         this.concurrentJobModificationResolveResults = concurrentJobModificationResolveResults;
     }
 

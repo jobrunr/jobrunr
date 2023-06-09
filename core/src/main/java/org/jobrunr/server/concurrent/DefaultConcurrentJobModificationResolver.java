@@ -49,7 +49,7 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
                 .collect(toList());
 
         if (!failedToResolve.isEmpty()) {
-            throw new UnresolvableConcurrentJobModificationException(failedToResolve);
+            throw new UnresolvableConcurrentJobModificationException(failedToResolve, e);
         }
     }
 
