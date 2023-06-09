@@ -236,7 +236,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
             }
             jobVersioner.commitVersion();
         } catch (MongoWriteException e) {
-            if (e.getError().getCode() == 11000) throw new ConcurrentJobModificationException(job);
+            if (e.getError().getCode() == 11000) throw new ConcurrentJobModificationException(job, e);
             throw new StorageException(e);
         } catch (MongoException e) {
             throw new StorageException(e);

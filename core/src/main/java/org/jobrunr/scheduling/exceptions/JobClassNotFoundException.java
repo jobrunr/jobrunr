@@ -7,8 +7,4 @@ public class JobClassNotFoundException extends JobNotFoundException {
     public JobClassNotFoundException(JobDetails jobDetails) {
         super(jobDetails);
     }
-
-    public JobClassNotFoundException(String message) {
-        super(message);
-    }
 }

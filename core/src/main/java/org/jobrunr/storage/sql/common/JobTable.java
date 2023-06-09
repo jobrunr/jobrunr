@@ -74,7 +74,7 @@ public class JobTable extends Sql<Job> {
             }
             jobVersioner.commitVersion();
         } catch (ConcurrentSqlModificationException e) {
-            throw new ConcurrentJobModificationException(jobToSave);
+            throw new ConcurrentJobModificationException(jobToSave, e);
         }
         return jobToSave;
     }
@@ -94,7 +94,7 @@ public class JobTable extends Sql<Job> {
             } catch (ConcurrentSqlModificationException e) {
                 List<Job> concurrentUpdatedJobs = cast(e.getFailedItems());
                 jobListVersioner.rollbackVersions(concurrentUpdatedJobs);
-                throw new ConcurrentJobModificationException(concurrentUpdatedJobs);
+                throw new ConcurrentJobModificationException(concurrentUpdatedJobs, e);
             }
         }
     }

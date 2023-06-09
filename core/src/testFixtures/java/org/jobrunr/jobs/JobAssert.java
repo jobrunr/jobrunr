@@ -144,7 +144,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     }
 
     public JobAssert isEqualTo(Job otherJob) {
-        return isEqualTo(otherJob, "locker", "newState");
+        return isEqualTo(otherJob, "locker", "newState", "jobHistory.exception");
     }
 
     public JobAssert isEqualTo(Job otherJob, String... fieldNamesToIgnore) {

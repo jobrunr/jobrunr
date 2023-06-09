@@ -10,7 +10,7 @@ public class SevereJobRunrException extends JobRunrException implements Dashboar
     private final DiagnosticsAware diagnosticsAware;
 
     public SevereJobRunrException(String message, DiagnosticsAware diagnosticsAware) {
-        super(message);
+        super(message, (Exception) diagnosticsAware); // an ArchUnit test enforces that DiagnosticAware is always an Exception
         this.diagnosticsAware = diagnosticsAware;
     }
 

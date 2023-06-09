@@ -74,7 +74,7 @@ public class BackgroundJobPerformer implements Runnable {
             return job.hasState(PROCESSING);
         } catch (ConcurrentJobModificationException e) {
             // processing already started on other server
-            LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet());
+            LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet(), e);
             return false;
         }
     }
@@ -104,7 +104,7 @@ public class BackgroundJobPerformer implements Runnable {
             saveAndRunStateRelatedJobFilters(job);
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
-                LOGGER.info("Job finished successfully but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo());
+                LOGGER.info("Job finished successfully but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo(), ex);
             } else {
                 throw ex;
             }
@@ -125,7 +125,7 @@ public class BackgroundJobPerformer implements Runnable {
             }
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
-                LOGGER.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo());
+                LOGGER.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo(), ex);
             } else {
                 throw ex;
             }

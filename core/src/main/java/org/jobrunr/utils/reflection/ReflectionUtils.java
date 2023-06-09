@@ -291,7 +291,7 @@ public class ReflectionUtils {
         });
     }
 
-    private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) {
+    private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) throws NoSuchMethodException {
         Constructor<?>[] constructors = clazz.getConstructors();
 
         for (Constructor<?> constructor : constructors) {
@@ -308,7 +308,8 @@ public class ReflectionUtils {
                 if (argumentsMatch) return cast(constructor);
             }
         }
-        throw new JobNotFoundException(clazz, "<init>", args);
+
+        return clazz.getConstructor(args);
     }
 
     /**

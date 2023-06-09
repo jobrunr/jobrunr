@@ -8,6 +8,7 @@ import static org.jobrunr.utils.exceptions.Exceptions.getStackTraceAsString;
 @SuppressWarnings({"FieldMayBeFinal", "CanBeFinal"}) // because of JSON-B
 public class FailedState extends AbstractJobState {
 
+    private transient Exception exception;
     private String message;
     private String exceptionType;
     private String exceptionMessage;
@@ -30,6 +31,7 @@ public class FailedState extends AbstractJobState {
     public FailedState(String message, Exception exception) {
         super(StateName.FAILED);
         this.message = message;
+        this.exception = exception;
         this.exceptionType = exception.getClass().getName();
         this.exceptionMessage = exception.getMessage();
         this.exceptionCauseType = hasCause(exception) ? exception.getCause().getClass().getName() : null;
@@ -67,6 +69,7 @@ public class FailedState extends AbstractJobState {
     }
 
     public Exception getException() {
+        if (exception != null) return exception;
         try {
             final Class<? extends Exception> exceptionClass = ReflectionUtils.toClass(getExceptionType());
             if (getExceptionCauseType() != null) {
