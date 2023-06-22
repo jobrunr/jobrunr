@@ -1,21 +1,18 @@
 DROP VIEW jobrunr_jobs_stats;
 CREATE VIEW jobrunr_jobs_stats AS
-select coalesce(max((select job_stat_results.count where state IS NULL)), 0)        as total,
-       coalesce(max((select job_stat_results.count where state = 'SCHEDULED')), 0)  as scheduled,
-       coalesce(max((select job_stat_results.count where state = 'ENQUEUED')), 0)   as enqueued,
-       coalesce(max((select job_stat_results.count where state = 'PROCESSING')), 0) as processing,
-       coalesce(max((select job_stat_results.count where state = 'FAILED')), 0)     as failed,
-       coalesce(max((select job_stat_results.count where state = 'SUCCEEDED')), 0)  as succeeded,
-       coalesce((select cast(cast(value as char(10)) as decimal(10, 0))
-                 from jobrunr_metadata jm
-                 where jm.id = 'succeeded-jobs-counter-cluster'), 0)                                     as allTimeSucceeded,
-       coalesce(max((select job_stat_results.count where state = 'DELETED')), 0)    as deleted,
-       (select count(*) from jobrunr_backgroundjobservers)                                               as nbrOfBackgroundJobServers,
-       (select count(*) from jobrunr_recurring_jobs)                                                     as nbrOfRecurringJobs
-from (SELECT state, count(*) as count
-      FROM jobrunr_jobs
-      GROUP BY state
-      WITH ROLLUP) job_stat_results;
+SELECT COUNT(*)                                                      AS total,
+       COUNT(IF(state = 'SCHEDULED', 1, NULL))                       AS scheduled,
+       COUNT(IF(state = 'ENQUEUED', 1, NULL))                        AS enqueued,
+       COUNT(IF(state = 'PROCESSING', 1, NULL))                      AS processing,
+       COUNT(IF(state = 'FAILED', 1, NULL))                          AS failed,
+       COUNT(IF(state = 'SUCCEEDED', 1, NULL))                       AS succeeded,
+       COUNT(IF(state = 'DELETED', 1, NULL))                         AS deleted,
+       (SELECT COUNT(*) FROM jobrunr_backgroundjobservers)           AS nbrOfBackgroundJobServers,
+       (SELECT COUNT(*) FROM jobrunr_recurring_jobs)                 AS nbrOfRecurringJobs,
+       COALESCE((SELECT CAST(CAST(value AS char(10)) AS decimal(10, 0))
+                 FROM jobrunr_metadata jm
+                 WHERE jm.id = 'succeeded-jobs-counter-cluster'), 0) AS allTimeSucceeded
+FROM jobrunr_jobs;
 
 DROP INDEX jobrunr_job_updated_at_idx ON jobrunr_jobs;
 CREATE INDEX jobrunr_jobs_state_updated_idx ON jobrunr_jobs (state ASC, updatedAt ASC);
