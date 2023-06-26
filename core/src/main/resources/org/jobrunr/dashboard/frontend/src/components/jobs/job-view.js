@@ -101,7 +101,7 @@ const JobView = (props) => {
     }
 
     const deleteJob = () => {
-        fetch(`/api/jobs/${props.match.params.id}`, {
+        fetch(`/api/jobs/${jobId}`, {
             method: 'DELETE',
         })
             .then(res => {
@@ -114,7 +114,7 @@ const JobView = (props) => {
             .catch(error => console.error(error));
     };
     const requeueJob = () => {
-        fetch(`/api/jobs/${props.match.params.id}/requeue`, {
+        fetch(`/api/jobs/${jobId}/requeue`, {
             method: 'POST',
         })
             .then(res => {
