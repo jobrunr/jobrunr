@@ -260,14 +260,14 @@ steps:
       - name: reports
         path: /tmp/reports
 
-  - name: upload-to-github
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: GITHUB_TOKEN
-      files: core/build/libs/*
-    when:
-      event: tag
+  #  - name: upload-to-github
+  #    image: plugins/github-release
+  #    settings:
+  #      api_key:
+  #        from_secret: GITHUB_TOKEN
+  #      files: core/build/libs/*
+  #    when:
+  #      event: tag
 
   - name: upload-to-maven-central
     image: jobrunr.io/build-container:1.1
