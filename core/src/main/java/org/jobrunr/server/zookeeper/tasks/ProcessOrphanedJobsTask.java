@@ -27,7 +27,12 @@ public class ProcessOrphanedJobsTask extends ZooKeeperTask {
         final Instant updatedBefore = runStartTime().minus(ofSeconds(backgroundJobServerConfiguration().getPollIntervalInSeconds()).multipliedBy(4));
         Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(orphanedJobsSupplier,
-                job -> job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.")),
+                this::changeJobStateToFailedAndRunJobFilter,
                 totalAmountOfOrphanedJobs -> LOGGER.debug("Found {} orphan jobs.", totalAmountOfOrphanedJobs));
+    }
+
+    private void changeJobStateToFailedAndRunJobFilter(Job job) {
+        job.failed("Orphaned job", new IllegalThreadStateException("Job was too long in PROCESSING state without being updated."));
+        jobFilterUtils.runOnStateAppliedFilters(job);
     }
 }

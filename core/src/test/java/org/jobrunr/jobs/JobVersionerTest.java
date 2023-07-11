@@ -52,38 +52,4 @@ class JobVersionerTest {
 
         assertThat(job).hasVersion(5);
     }
-
-    @Test
-    void testJobVersionerOnCommitVersionHasStateChangeIsCleared() {
-        // GIVEN
-        Job job = aScheduledJob().build();
-
-        // THEN
-        assertThat(job).hasStateChange();
-
-        // WHEN
-        try (JobVersioner jobVersioner = new JobVersioner(job)) {
-            jobVersioner.commitVersion();
-        }
-
-        // THEN
-        assertThat(job).hasNoStateChange();
-    }
-
-    @Test
-    void testJobVersionerOnRollbackStateChangeIsNotCleared() {
-        // GIVEN
-        Job job = aScheduledJob().build();
-
-        // THEN
-        assertThat(job).hasStateChange();
-
-        // WHEN
-        try (JobVersioner jobVersioner = new JobVersioner(job)) {
-            // commit did not succeed due to StorageProvider exception
-        }
-
-        // THEN
-        assertThat(job).hasStateChange();
-    }
 }

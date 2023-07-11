@@ -15,7 +15,7 @@ public class UpdateJobsInProgressTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.debug("Updating currently processed jobs... ");
-        processJobList(new ArrayList<>(jobZooKeeper.getJobsInProgress()), this::updateCurrentlyProcessingJob);
+        processJobList(new ArrayList<>(jobZooKeeper.getJobsInProgress()), this::updateCurrentlyProcessingJob, false);
     }
 
     private void updateCurrentlyProcessingJob(Job job) {

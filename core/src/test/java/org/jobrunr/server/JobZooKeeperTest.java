@@ -5,7 +5,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
@@ -122,10 +121,7 @@ class JobZooKeeperTest {
     void ifNoStateChangeHappensStateChangeFiltersAreNotInvoked() {
         Job aJobInProgress = aJobInProgress().build();
 
-        try (JobVersioner jobVersioner = new JobVersioner(aJobInProgress)) {
-            jobZooKeeper.startProcessing(aJobInProgress, mock(Thread.class));
-            jobVersioner.commitVersion();
-        }
+        jobZooKeeper.startProcessing(aJobInProgress, mock(Thread.class));
 
         for (int i = 0; i <= 5; i++) {
             jobZooKeeper.run();

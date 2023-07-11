@@ -79,12 +79,6 @@
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
-      <module name="JobRunr.framework-support.jobrunr-spring-boot-native.test" target="11" />
-      <module name="JobRunr.framework-support.jobrunr-spring-boot-starter.test" target="11" />
-      <module name="JobRunr.language-support.jobrunr-kotlin-14-support.test" target="11" />
-      <module name="JobRunr.language-support.jobrunr-kotlin-15-support.test" target="11" />
-      <module name="JobRunr.language-support.jobrunr-kotlin-16-support.test" target="11" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8" />
   </component>
 </project>

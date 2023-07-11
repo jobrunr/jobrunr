@@ -82,16 +82,6 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
-    public JobAssert hasStateChange() {
-        Assertions.assertThat(actual.hasStateChange()).isTrue();
-        return this;
-    }
-
-    public JobAssert hasNoStateChange() {
-        Assertions.assertThat(actual.hasStateChange()).isFalse();
-        return this;
-    }
-
     public JobAssert hasMetadata(String key) {
         Assertions.assertThat(actual.getMetadata()).containsKey(key);
         return this;

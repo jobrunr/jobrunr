@@ -14,13 +14,13 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobTestFilter;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
 import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
 import org.jobrunr.utils.GCUtils;
-import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -64,13 +65,16 @@ public class BackgroundJobByJobLambdaTest {
     private StorageProviderForTest storageProvider;
     private BackgroundJobServer backgroundJobServer;
     private static final String every5Seconds = "*/5 * * * * *";
+    private BackgroundJobTestFilter logAllStateChangesFilter;
 
     @BeforeEach
     void setUpTests() {
         testService = new TestService();
         testService.reset();
         storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
+        logAllStateChangesFilter = new BackgroundJobTestFilter();
         JobRunr.configure()
+                .withJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
                 .initialize();
@@ -242,6 +246,7 @@ public class BackgroundJobByJobLambdaTest {
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatFails());
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED", "FAILED->SCHEDULED");
     }
 
     @Test
@@ -370,7 +375,6 @@ public class BackgroundJobByJobLambdaTest {
         // THEN
         await().atMost(65, SECONDS)
                 .untilAsserted(() -> assertThat(logger).hasInfoMessageContaining("JobRunr recovered from long GC and all jobs were executed"));
-        SleepUtils.sleep(20000);
     }
 
     @Test
@@ -422,9 +426,12 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
-    void jobsStuckInProcessingStateAreRescheduled() {
-        Job job = storageProvider.save(anEnqueuedJob().withState(new ProcessingState(backgroundJobServer), now().minus(15, ChronoUnit.MINUTES)).build());
-        await().atMost(3, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
+    void orphanedJobsStuckInProcessingStateAreRescheduled() {
+        Job orphanedJob = anEnqueuedJob().withState(new ProcessingState(backgroundJobServer), now().minus(15, MINUTES)).build();
+        Job job = storageProvider.save(orphanedJob);
+        await().atMost(3, SECONDS)
+                .untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("PROCESSING->FAILED", "FAILED->SCHEDULED");
     }
 
     @Test
@@ -438,6 +445,7 @@ public class BackgroundJobByJobLambdaTest {
             storageProvider.getJobById(jobId).hasState(PROCESSING);
         });
         await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)

@@ -40,7 +40,6 @@ public class Job extends AbstractJob {
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
-    private transient JobState newState;
 
     private Job() {
         // used for deserialization
@@ -70,7 +69,6 @@ public class Job extends AbstractJob {
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : UUID.randomUUID();
         this.jobHistory = new CopyOnWriteArrayList<>(jobHistory);
-        this.newState = this.jobHistory.get(this.jobHistory.size() - 1);
         this.metadata = metadata;
     }
 
@@ -118,10 +116,6 @@ public class Job extends AbstractJob {
 
     public boolean hasState(StateName state) {
         return getState().equals(state);
-    }
-
-    public boolean hasStateChange() {
-        return newState != null;
     }
 
     public void enqueue() {
@@ -193,16 +187,9 @@ public class Job extends AbstractJob {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
         this.jobHistory.add(jobState);
-        this.newState = jobState;
     }
 
     private void clearMetadata() {
         metadata.entrySet().removeIf(entry -> !METADATA_PATTERN.matcher(entry.getKey()).matches());
-    }
-
-    @Override
-    void onJobPersisted() {
-        super.onJobPersisted();
-        this.newState = null;
     }
 }

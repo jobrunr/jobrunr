@@ -174,7 +174,9 @@ public class BackgroundJobByIoCJobLambdaTest {
     @Test
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
         JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkThatFails());
-        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
+        await().atMost(FIVE_SECONDS)
+                .untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
+
     }
 
     @Test

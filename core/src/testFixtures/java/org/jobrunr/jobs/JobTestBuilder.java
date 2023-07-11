@@ -294,7 +294,6 @@ public class JobTestBuilder {
 
         List<JobState> jobHistory = getInternalState(job, "jobHistory");
         jobHistory.addAll(states);
-        setInternalState(job, "newState", jobHistory.get(jobHistory.size() - 1));
         return job;
     }
 }
