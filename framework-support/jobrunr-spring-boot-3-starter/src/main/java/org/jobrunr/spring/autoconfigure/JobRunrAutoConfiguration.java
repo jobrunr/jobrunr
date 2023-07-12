@@ -23,6 +23,7 @@ import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -41,7 +42,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
  * A Spring Boot AutoConfiguration class for JobRunr
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-@Configuration
+@AutoConfiguration
 @EnableConfigurationProperties(JobRunrProperties.class)
 @ComponentScan(basePackages = {"org.jobrunr.scheduling"})
 public class JobRunrAutoConfiguration {
