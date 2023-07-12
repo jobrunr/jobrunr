@@ -164,7 +164,6 @@ public class JobRunrAutoConfiguration {
         }
     }
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Configuration
     @ConditionalOnClass(HealthIndicator.class)
     @ConditionalOnEnabledHealthIndicator("jobrunr")
