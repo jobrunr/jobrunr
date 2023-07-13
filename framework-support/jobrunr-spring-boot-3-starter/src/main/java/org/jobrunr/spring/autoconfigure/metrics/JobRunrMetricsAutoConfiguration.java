@@ -9,15 +9,13 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@AutoConfigureAfter({JobRunrAutoConfiguration.class, MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class})
+@AutoConfiguration(after = {JobRunrAutoConfiguration.class, MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class})
 @ConditionalOnClass(Metrics.class)
 @ConditionalOnBean({MeterRegistry.class})
 public class JobRunrMetricsAutoConfiguration {

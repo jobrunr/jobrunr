@@ -6,17 +6,15 @@ import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.documentdb.AmazonDocumentDBStorageProvider;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@AutoConfiguration(after = MongoAutoConfiguration.class)
 @ConditionalOnBean(MongoClient.class)
-@AutoConfigureAfter(MongoAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "documentdb", matchIfMissing = false)
 public class JobRunrDocumentDBStorageAutoConfiguration {
 
