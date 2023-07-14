@@ -21,7 +21,6 @@ dependencies {
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter'
-    api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-actuator'
     annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
