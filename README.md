@@ -136,7 +136,7 @@ Configuration
 ------------
 #### Do you like to work Spring based?
 
-Add the [*jobrunr-spring-boot-starter*](https://search.maven.org/artifact/org.jobrunr/jobrunr-spring-boot-starter) to your dependencies and you're almost ready to go! Just set up your `application.properties`:
+Add the [*jobrunr-spring-boot-3-starter*](https://search.maven.org/artifact/org.jobrunr/jobrunr-spring-boot-3-starter) to your dependencies and you're almost ready to go! Just set up your `application.properties`:
 
 ```
 # the job-scheduler is enabled by default
