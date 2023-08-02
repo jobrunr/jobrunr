@@ -1,6 +1,8 @@
 package org.jobrunr.server.zookeeper.tasks;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.filters.JobDefaultFilters;
+import org.jobrunr.server.BackgroundJobTestFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,15 +20,18 @@ import static org.mockito.Mockito.when;
 
 class ProcessOrphanedJobsTaskTest extends AbstractZooKeeperTaskTest {
 
+    BackgroundJobTestFilter logAllStateChangesFilter;
     ProcessOrphanedJobsTask task;
 
     @BeforeEach
     void setUpTask() {
+        logAllStateChangesFilter = new BackgroundJobTestFilter();
+        when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
         task = new ProcessOrphanedJobsTask(jobZooKeeper, backgroundJobServer);
     }
 
     @Test
-    void testTask() {
+    void testTaskAndStateChangeFilters() {
         final Job orphanedJob = aJobInProgress().build();
         when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
@@ -38,5 +43,6 @@ class ProcessOrphanedJobsTaskTest extends AbstractZooKeeperTaskTest {
 
         verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
         assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
+        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("PROCESSING->FAILED", "FAILED->SCHEDULED");
     }
 }
