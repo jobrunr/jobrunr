@@ -165,7 +165,7 @@ public class JobRunrApplication {
                           .using(dataSource))
                 .useBackgroundJobServer()
                 .useDashboard()
-                .initialize();
+                .initialize().getJobScheduler();
     }
 }
 ```
