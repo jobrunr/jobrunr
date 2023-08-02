@@ -12,9 +12,9 @@ dependencies {
         api 'org.ow2.asm:asm:9.5'
         api 'org.ow2.asm:asm-util:9.5'
 
-        api 'com.fasterxml.jackson.core:jackson-databind:2.15.1'
-        api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.1'
-        api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.15.1'
+        api 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+        api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
+        api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2'
         api 'com.google.code.gson:gson:2.10.1'
         api 'org.eclipse:yasson:3.0.3'
         api 'io.micrometer:micrometer-core:1.11.0'
