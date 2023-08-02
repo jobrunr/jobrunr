@@ -66,14 +66,13 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.1.0.Final/fcd06a04487d84afea9698b78c63fd36a6a1fe92/quarkus-extension-processor-3.1.0.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.2.3.Final/dee310e9e1e13a6ad6067987a49f2e94b4b499c3/quarkus-extension-processor-3.2.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.15.3/f6e1d8a8819f854b681c8eaa57fd59a42329e10c/jsoup-1.15.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.2/3931045688efd93c1d248d9b2939b536b83b0541/javaparser-core-3.25.2.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.15.0/89b0fd554928425a776a6e97ed010034312af21d/jackson-annotations-2.15.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.15.0/12f334a1dc9c6d2854c43ae314024dde8b3ad572/jackson-core-2.15.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.15.0/d41caa3a4e9f85382702a059a65c512f85ac230/jackson-databind-2.15.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/ch.randelshofer/fastdoubleparser/0.8.0/85c25540369921659556ead85e02c99ef0d24280/fastdoubleparser-0.8.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.3/55a960eea36e9ae20e48c500c3dd356b33331f1f/javaparser-core-3.25.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.15.2/4724a65ac8e8d156a24898d50fd5dbd3642870b8/jackson-annotations-2.15.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.15.2/a6fe1836469a69b3ff66037c324d75fc66ef137c/jackson-core-2.15.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.15.2/9353b021f10c307c00328f52090de2bdb4b6ff9c/jackson-databind-2.15.2.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
