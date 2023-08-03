@@ -75,6 +75,15 @@ class DefaultConcurrentJobModificationResolverTest {
                 .isInstanceOf(UnresolvableConcurrentJobModificationException.class);
     }
 
+    @ParameterizedTest
+    @MethodSource("getJobsThatWereSucceededInDifferentStates")
+    void concurrentStateChangeWhileSucceededInStorageProviderIsAllowed(Job localJob, Job storageProviderJob) {
+        when(storageProvider.getJobById(localJob.getId())).thenReturn(storageProviderJob);
+
+        assertThatCode(() -> concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(localJob)))
+                .doesNotThrowAnyException();
+    }
+
     @Test
     void concurrentStateChangeFromProcessingToDeletedIsAllowedAndInterruptsThread() {
         final Job job1 = aJobInProgress().build();
@@ -140,9 +149,19 @@ class DefaultConcurrentJobModificationResolverTest {
     static Stream<Arguments> getJobsThatAreInProgressInDifferentStates() {
         final Job jobInProgress = aJobInProgress().withVersion(2).build();
         return Stream.of(
-                arguments(jobInProgress, aCopyOf(jobInProgress).withVersion(3).withSucceededState().build()),
+                arguments(jobInProgress, aCopyOf(jobInProgress).withVersion(3).withEnqueuedState(Instant.now()).build()),
                 arguments(jobInProgress, aCopyOf(jobInProgress).withVersion(3).withFailedState().build()),
                 arguments(jobInProgress, aCopyOf(jobInProgress).withVersion(3).withScheduledState().build())
+        );
+    }
+
+    static Stream<Arguments> getJobsThatWereSucceededInDifferentStates() {
+        final Job succeededJob = aJobInProgress().withSucceededState().build();
+        return Stream.of(
+                arguments(aScheduledJob().build(), succeededJob),
+                arguments(anEnqueuedJob().build(), succeededJob),
+                arguments(aJobInProgress().build(), succeededJob),
+                arguments(aFailedJob().build(), succeededJob)
         );
     }
 

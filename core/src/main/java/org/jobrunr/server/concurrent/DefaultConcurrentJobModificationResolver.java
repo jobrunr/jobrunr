@@ -29,14 +29,12 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
         this.storageProvider = storageProvider;
         allowedConcurrentStateChanges = Arrays.asList(
                 new PermanentlyDeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
-                new DeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
-                new DeletedWhileSucceededConcurrentStateChange(),
-                new DeletedWhileFailedConcurrentStateChange(),
-                new DeletedWhileEnqueuedConcurrentStateChange(),
-                new DeletedWhileScheduledConcurrentStateChange(),
+                new DeletedWhileAnyOtherConcurrentStateChange(jobZooKeeper),
                 new JobStateChangedWhileProcessingConcurrentStateChange(jobZooKeeper),
+                new SucceededWhileAnyOtherConcurrentStateChange(jobZooKeeper),
                 new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(jobZooKeeper),
-                new ScheduledTooEarlyByJobZooKeeperConcurrentStateChange(storageProvider)
+                new ScheduledTooEarlyByJobZooKeeperConcurrentStateChange(storageProvider),
+                new SystemSleptConcurrentStateChange()
         );
     }
 

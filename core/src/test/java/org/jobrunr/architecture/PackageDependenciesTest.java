@@ -9,6 +9,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.architecture.PackageDependenciesTest.DoNotIncludeTestFixtures;
 import org.jobrunr.server.BackgroundJobPerformer;
+import org.jobrunr.server.Java11OrHigherInternalDesktopUtil;
 import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 
@@ -78,6 +79,12 @@ class PackageDependenciesTest {
             .and().resideOutsideOfPackage("org.jobrunr.server.jmx..")
             .and().resideOutsideOfPackage("org.jobrunr.server.metrics..")
             .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "org.slf4j..", "java..");
+
+    @ArchTest
+    ArchRule jobRunrServerClassesShouldNotDependOnJavaAwtDependenciesTest = noClasses()
+            .that().resideInAPackage("org.jobrunr.server..")
+            .and().doNotHaveFullyQualifiedName(Java11OrHigherInternalDesktopUtil.class.getName())
+            .should().dependOnClassesThat().resideInAPackage("java.awt..");
 
     @ArchTest
     ArchRule jobRunrServerJmxClassesDependenciesTest = classes()
@@ -154,4 +161,19 @@ class PackageDependenciesTest {
     ArchRule jobRunrUtilsJsonBMapperClassesDependenciesTest = classes()
             .that().resideInAPackage("org.jobrunr.utils.mapper.jsonb..")
             .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "jakarta.json..", "java..");
+
+    static final class DoNotIncludeMainResources implements ImportOption {
+
+        @Override
+        public boolean includes(Location location) {
+            if (location.contains("Java11OrHigherInternalDesktopUtil")) {
+                System.out.println(location);
+                return false;
+            }
+            if (location.contains("/build/resources/")) {
+                return false;
+            }
+            return true;
+        }
+    }
 }

@@ -15,6 +15,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.jobrunr.server.DesktopUtils.hasSystemSleptRecently;
+import static org.jobrunr.server.DesktopUtils.systemSupportsSleepDetection;
+
 public class ServerZooKeeper implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
@@ -36,6 +39,9 @@ public class ServerZooKeeper implements Runnable {
         this.restartAttempts = new AtomicInteger();
         this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();
+        LOGGER.debug(systemSupportsSleepDetection()
+                ? "JobRunr can detect desktop sleeping."
+                : "JobRunr can not detect desktop sleeping.");
     }
 
     @Override
@@ -140,6 +146,8 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private Optional<Integer> cpuAllocationIrregularity(Instant lastSignalAlive, Instant lastHeartbeat) {
+        if (systemSupportsSleepDetection() && hasSystemSleptRecently()) return Optional.empty();
+
         final Instant now = Instant.now();
         final int amount1OfSec = (int) Math.abs(lastHeartbeat.getEpochSecond() - lastSignalAlive.getEpochSecond());
         final int amount2OfSec = (int) (now.getEpochSecond() - lastSignalAlive.getEpochSecond());
