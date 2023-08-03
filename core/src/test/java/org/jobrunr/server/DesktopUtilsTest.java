@@ -9,7 +9,11 @@ class DesktopUtilsTest {
     @Test
     void testSupportSystemSleepDetection() {
         boolean supportsSystemSleepDetection = DesktopUtils.systemSupportsSleepDetection();
-        assertThat(supportsSystemSleepDetection).isTrue();
+        if (System.getenv("CI") != null) {
+            assertThat(supportsSystemSleepDetection).isFalse();
+        } else {
+            assertThat(supportsSystemSleepDetection).isTrue();
+        }
     }
 
 }
