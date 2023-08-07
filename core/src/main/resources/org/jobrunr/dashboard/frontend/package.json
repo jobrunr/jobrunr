@@ -20,8 +20,8 @@
     "react-timeago": "^5.2.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-scripts --openssl-legacy-provider start",
+    "build": "react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "owasp": "owasp-dependency-check --project \"JobRunr\" -f HTML JSON"
