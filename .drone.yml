@@ -27,11 +27,6 @@ steps:
     image: jobrunr.io/build-container:1.2
     commands:
       - whoami
-      - ls /root/.nvm/versions/node/
-      - ls /root/.nvm/versions/node/v18.17.0
-      - ls /root/.nvm/versions/node/v18.17.0/bin
-      - ln -s /root/.nvm/versions/node/v18.17.0/bin/node /usr/bin/node
-      - /root/.nvm/versions/node/v18.17.0/bin/npm -version
       - which npm
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
