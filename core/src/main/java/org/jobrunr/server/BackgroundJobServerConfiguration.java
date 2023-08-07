@@ -47,7 +47,7 @@ public class BackgroundJobServerConfiguration {
     /**
      * Allows to set the id for the {@link BackgroundJobServer}
      *
-     * @param id the id of this BackgroundJobServer (used in the dashboard and to see whether server is still up & running)
+     * @param id the id of this BackgroundJobServer (used in the dashboard and to see whether server is still up &amp; running)
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andId(UUID id) {

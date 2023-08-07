@@ -23,39 +23,6 @@ steps:
       - name: dockersock
         path: /var/run/docker.sock
 
-  - name: restore-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      restore: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
-  - name: build-frontend
-    image: node:12
-    commands:
-      - cd core/src/main/resources/org/jobrunr/dashboard/frontend
-      - npm install
-      - npm run build
-
-  - name: save-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      rebuild: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
   - name: build
     image: jobrunr.io/build-container:1.1
     commands:
@@ -69,6 +36,12 @@ steps:
         path: /var/run/docker.sock
       - name: gradle-cache
         path: /root/.gradle/caches
+      - name: gradle-project-cache
+        path: /drone/src/.gradle
+      - name: frontend-node-modules-cache
+        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
+      - name: frontend-build-cache
+        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
       - name: maven-local
         path: /root/.m2
       - name: reports
@@ -90,9 +63,15 @@ volumes:
   - name: gradle-cache
     host:
       path: /tmp/jobrunr/cache/gradle
-  - name: node-modules-cache
+  - name: gradle-project-cache
     host:
-      path: /tmp/jobrunr/cache/node_modules
+      path: /tmp/jobrunr/cache/gradle-project
+  - name: frontend-node-modules-cache
+    host:
+      path: /tmp/jobrunr/cache/frontend-node-modules
+  - name: frontend-build-cache
+    host:
+      path: /tmp/jobrunr/cache/frontend-build
   - name: maven-local
     host:
       path: /tmp/jobrunr/cache/m2
@@ -121,39 +100,6 @@ steps:
       - name: dockersock
         path: /var/run/docker.sock
 
-  - name: restore-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      restore: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
-  - name: build-frontend
-    image: node:12
-    commands:
-      - cd core/src/main/resources/org/jobrunr/dashboard/frontend
-      - npm install
-      - npm run build
-
-  - name: save-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      rebuild: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
   - name: build
     image: jobrunr.io/build-container:1.1
     commands:
@@ -167,6 +113,12 @@ steps:
         path: /var/run/docker.sock
       - name: gradle-cache
         path: /root/.gradle/caches
+      - name: gradle-project-cache
+        path: /drone/src/.gradle
+      - name: frontend-node-modules-cache
+        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
+      - name: frontend-build-cache
+        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
       - name: maven-local
         path: /root/.m2
       - name: reports
@@ -188,9 +140,15 @@ volumes:
   - name: gradle-cache
     host:
       path: /tmp/jobrunr/cache/gradle
-  - name: node-modules-cache
+  - name: gradle-project-cache
     host:
-      path: /tmp/jobrunr/cache/node_modules
+      path: /tmp/jobrunr/cache/gradle-project
+  - name: frontend-node-modules-cache
+    host:
+      path: /tmp/jobrunr/cache/frontend-node-modules
+  - name: frontend-build-cache
+    host:
+      path: /tmp/jobrunr/cache/frontend-build
   - name: maven-local
     host:
       path: /tmp/jobrunr/cache/m2
@@ -209,39 +167,6 @@ trigger:
     - tag
 
 steps:
-  - name: restore-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      restore: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
-  - name: build-frontend
-    image: node:12
-    commands:
-      - cd core/src/main/resources/org/jobrunr/dashboard/frontend
-      - npm install
-      - npm run build
-
-  - name: save-node-modules-cache
-    image: meltwater/drone-cache
-    settings:
-      backend: "filesystem"
-      rebuild: true
-      cache_key: "node_modules"
-      archive_format: "gzip"
-      mount:
-        - 'core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules'
-    volumes:
-      - name: node-modules-cache
-        path: /tmp/cache
-
   - name: build
     image: jobrunr.io/build-container:1.1
     commands:
@@ -255,6 +180,12 @@ steps:
         path: /var/run/docker.sock
       - name: gradle-cache
         path: /root/.gradle/caches
+      - name: gradle-project-cache
+        path: /drone/src/.gradle
+      - name: frontend-node-modules-cache
+        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
+      - name: frontend-build-cache
+        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
       - name: maven-local
         path: /root/.m2
       - name: reports
@@ -317,9 +248,15 @@ volumes:
   - name: gradle-cache
     host:
       path: /tmp/jobrunr/cache/gradle
-  - name: node-modules-cache
+  - name: gradle-project-cache
     host:
-      path: /tmp/jobrunr/cache/node_modules
+      path: /tmp/jobrunr/cache/gradle-project
+  - name: frontend-node-modules-cache
+    host:
+      path: /tmp/jobrunr/cache/frontend-node-modules
+  - name: frontend-build-cache
+    host:
+      path: /tmp/jobrunr/cache/frontend-build
   - name: maven-local
     host:
       path: /tmp/jobrunr/cache/m2
