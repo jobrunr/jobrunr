@@ -26,6 +26,7 @@ steps:
   - name: build
     image: jobrunr.io/build-container:1.2
     commands:
+      - echo "$USER"
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
       - find /root/.gradle/caches/ -name "*.lock" -type f -delete
