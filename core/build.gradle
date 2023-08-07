@@ -106,11 +106,11 @@ task npmRunBuild() {
     doLast {
         exec {
             workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
-            commandLine 'sh', '-c', 'npm install'
+            commandLine 'bash', '-c', 'npm install'
         }
         exec {
             workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
-            commandLine 'sh', '-c', 'npm run build'
+            commandLine 'bash', '-c', 'npm run build'
         }
         println "JobRunr Frontend is build"
     }

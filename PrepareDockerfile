@@ -6,6 +6,7 @@ SHELL ["/bin/bash", "--login", "-i", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 RUN source /root/.bashrc
 RUN nvm install 18
+RUN npm -v
 
 ENV GRADLE_VERSION 8.1.1
 COPY gradle /home/gradle/gradle
