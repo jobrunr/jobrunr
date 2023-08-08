@@ -16,7 +16,7 @@ sourceSets {
             exclude '**/public/'
             exclude '**/src/'
             exclude '**/jsconfig.json'
-            exclude '**/cypress.json'
+            exclude '**/cypress.config.js'
             exclude '**/package.json'
             exclude '**/package-lock.json'
         }
