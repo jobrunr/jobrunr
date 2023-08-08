@@ -29,6 +29,7 @@ steps:
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
+      - ./gradlew -Djib.console=plain --no-daemon clean build test --fail-fast
       - ./gradlew -Djib.console=plain --no-daemon -i clean build test --fail-fast
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
@@ -38,8 +39,6 @@ steps:
         path: /root/.gradle
       - name: gradle-project-cache
         path: /drone/src/.gradle
-      - name: gradle-core-build-dir
-        path: /drone/src/core/build
       - name: frontend-node-modules-cache
         path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
       - name: frontend-build-cache
@@ -68,9 +67,6 @@ volumes:
   - name: gradle-project-cache
     host:
       path: /tmp/jobrunr/cache/gradle-project
-  - name: gradle-core-build-dir
-    host:
-      path: /tmp/jobrunr/cache/gradle-build-dir
   - name: frontend-node-modules-cache
     host:
       path: /tmp/jobrunr/cache/frontend-node-modules
@@ -111,6 +107,7 @@ steps:
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
+      - ./gradlew --continue -Djib.console=plain --no-daemon clean build test jacocoTestReport sonarqube
       - ./gradlew --continue -Djib.console=plain --no-daemon -i clean build test jacocoTestReport sonarqube
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
@@ -120,8 +117,6 @@ steps:
         path: /root/.gradle
       - name: gradle-project-cache
         path: /drone/src/.gradle
-      - name: gradle-core-build-dir
-        path: /drone/src/core/build
       - name: frontend-node-modules-cache
         path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
       - name: frontend-build-cache
@@ -150,9 +145,6 @@ volumes:
   - name: gradle-project-cache
     host:
       path: /tmp/jobrunr/cache/gradle-project
-  - name: gradle-core-build-dir
-    host:
-      path: /tmp/jobrunr/cache/gradle-build-dir
   - name: frontend-node-modules-cache
     host:
       path: /tmp/jobrunr/cache/frontend-node-modules
@@ -185,6 +177,7 @@ steps:
       - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
       - ./gradlew --no-daemon -i clean assemble
+      - ./gradlew --no-daemon -i -i clean assemble
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
@@ -192,8 +185,6 @@ steps:
         path: /root/.gradle
       - name: gradle-project-cache
         path: /drone/src/.gradle
-      - name: gradle-core-build-dir
-        path: /drone/src/core/build
       - name: frontend-node-modules-cache
         path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
       - name: frontend-build-cache
@@ -263,9 +254,6 @@ volumes:
   - name: gradle-project-cache
     host:
       path: /tmp/jobrunr/cache/gradle-project
-  - name: gradle-core-build-dir
-    host:
-      path: /tmp/jobrunr/cache/gradle-build-dir
   - name: frontend-node-modules-cache
     host:
       path: /tmp/jobrunr/cache/frontend-node-modules
