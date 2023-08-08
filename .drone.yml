@@ -34,16 +34,12 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
-      - name: gradle-cache
-        path: /root/.gradle
-      - name: gradle-project-cache
-        path: /drone/src/.gradle
-      - name: frontend-node-modules-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
-      - name: frontend-build-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
-      - name: maven-local
+      - name: maven-cache
         path: /root/.m2
+      - name: gradle-root-cache
+        path: /root/.gradle
+      - name: project-dir
+        path: /drone/src
       - name: reports
         path: /tmp/reports
 
@@ -60,24 +56,18 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
-  - name: gradle-cache
+  - name: maven-cache
     host:
-      path: /tmp/jobrunr/cache/gradle
-  - name: gradle-project-cache
+      path: /volume2/docker/jobrunr-services/drone-work-dir/m2/cache
+  - name: gradle-root-cache
     host:
-      path: /tmp/jobrunr/cache/gradle-project
-  - name: frontend-node-modules-cache
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-root
+  - name: project-dir
     host:
-      path: /tmp/jobrunr/cache/frontend-node-modules
-  - name: frontend-build-cache
-    host:
-      path: /tmp/jobrunr/cache/frontend-build
-  - name: maven-local
-    host:
-      path: /tmp/jobrunr/cache/m2
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/project-dir
   - name: reports
     host:
-      path: /tmp/jobrunr/reports
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
 
 ---
 kind: pipeline
@@ -111,16 +101,12 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
-      - name: gradle-cache
-        path: /root/.gradle
-      - name: gradle-project-cache
-        path: /drone/src/.gradle
-      - name: frontend-node-modules-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
-      - name: frontend-build-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
-      - name: maven-local
+      - name: maven-cache
         path: /root/.m2
+      - name: gradle-root-cache
+        path: /root/.gradle
+      - name: project-dir
+        path: /drone/src
       - name: reports
         path: /tmp/reports
 
@@ -137,24 +123,18 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
-  - name: gradle-cache
+  - name: maven-cache
     host:
-      path: /tmp/jobrunr/cache/gradle
-  - name: gradle-project-cache
+      path: /volume2/docker/jobrunr-services/drone-work-dir/m2/cache
+  - name: gradle-root-cache
     host:
-      path: /tmp/jobrunr/cache/gradle-project
-  - name: frontend-node-modules-cache
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-root
+  - name: project-dir
     host:
-      path: /tmp/jobrunr/cache/frontend-node-modules
-  - name: frontend-build-cache
-    host:
-      path: /tmp/jobrunr/cache/frontend-build
-  - name: maven-local
-    host:
-      path: /tmp/jobrunr/cache/m2
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/project-dir
   - name: reports
     host:
-      path: /tmp/jobrunr/reports
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
 
 
 ---
@@ -178,16 +158,12 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
-      - name: gradle-cache
-        path: /root/.gradle
-      - name: gradle-project-cache
-        path: /drone/src/.gradle
-      - name: frontend-node-modules-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
-      - name: frontend-build-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
-      - name: maven-local
+      - name: maven-cache
         path: /root/.m2
+      - name: gradle-root-cache
+        path: /root/.gradle
+      - name: project-dir
+        path: /drone/src
       - name: reports
         path: /tmp/reports
 
@@ -245,21 +221,15 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
-  - name: gradle-cache
+  - name: maven-cache
     host:
-      path: /tmp/jobrunr/cache/gradle
-  - name: gradle-project-cache
+      path: /volume2/docker/jobrunr-services/drone-work-dir/m2/cache
+  - name: gradle-root-cache
     host:
-      path: /tmp/jobrunr/cache/gradle-project
-  - name: frontend-node-modules-cache
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-root
+  - name: project-dir
     host:
-      path: /tmp/jobrunr/cache/frontend-node-modules
-  - name: frontend-build-cache
-    host:
-      path: /tmp/jobrunr/cache/frontend-build
-  - name: maven-local
-    host:
-      path: /tmp/jobrunr/cache/m2
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/project-dir
   - name: reports
     host:
-      path: /tmp/jobrunr/reports
+      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
