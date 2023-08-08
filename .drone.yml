@@ -27,16 +27,15 @@ steps:
     image: jobrunr.io/build-container:1.3
     commands:
       - rm -rf /tmp/reports/*
-      - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
-      - find /root/.gradle/caches/ -name "*.lock" -type f -delete
+      - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
-      - ./gradlew -Djib.console=plain --no-daemon -i clean build test --fail-fast
+      - ./gradlew -Djib.console=plain --no-daemon clean build test --fail-fast
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
       - name: gradle-cache
-        path: /root/.gradle/caches
+        path: /root/.gradle
       - name: gradle-project-cache
         path: /drone/src/.gradle
       - name: frontend-node-modules-cache
@@ -105,15 +104,15 @@ steps:
     image: jobrunr.io/build-container:1.3
     commands:
       - rm -rf /tmp/reports/*
-      - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
-      - find /root/.gradle/caches/ -name "*.lock" -type f -delete
-      - ./gradlew --continue -Djib.console=plain --no-daemon -i clean build test jacocoTestReport sonarqube
+      - find /root/.gradle -name "*.lock" -type f -delete
+      - find /drone/src/.gradle -name "*.lock" -type f -delete
+      - ./gradlew --continue -Djib.console=plain --no-daemon clean build test jacocoTestReport sonarqube
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
       - name: gradle-cache
-        path: /root/.gradle/caches
+        path: /root/.gradle
       - name: gradle-project-cache
         path: /drone/src/.gradle
       - name: frontend-node-modules-cache
@@ -173,14 +172,14 @@ steps:
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
-      - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
-      - find /root/.gradle/caches/ -name "*.lock" -type f -delete
+      - find /root/.gradle -name "*.lock" -type f -delete
+      - find /drone/src/.gradle -name "*.lock" -type f -delete
       - ./gradlew --no-daemon -i clean assemble
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
       - name: gradle-cache
-        path: /root/.gradle/caches
+        path: /root/.gradle
       - name: gradle-project-cache
         path: /drone/src/.gradle
       - name: frontend-node-modules-cache
