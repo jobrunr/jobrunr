@@ -31,8 +31,8 @@ public class CypressTestContainer extends GenericContainer<CypressTestContainer>
             if (Files.exists(Paths.get("/drone"))) {
                 this
                         .withCopyFileToContainer(MountableFile.forClasspathResource("/org/jobrunr/dashboard/frontend"), "/e2e")
-                        .withCopyFileToContainer(MountableFile.forHostPath(new File("/drone/core/src/main/resources/org/jobrunr/dashboard/frontend/cypress").getPath()), "/e2e/cypress")
-                        .withCopyFileToContainer(MountableFile.forHostPath(new File("/drone/core/src/main/resources/org/jobrunr/dashboard/frontend/cypress.config.js").getPath()), "/e2e/cypress.config.js");
+                        .withCopyFileToContainer(MountableFile.forHostPath(new File("../../core/src/main/resources/org/jobrunr/dashboard/frontend/cypress").getPath()), "/e2e/cypress")
+                        .withCopyFileToContainer(MountableFile.forHostPath(new File("../../core/src/main/resources/org/jobrunr/dashboard/frontend/cypress.config.js").getPath()), "/e2e/cypress.config.js");
             } else {
                 this
                         .withClasspathResourceMapping("/org/jobrunr/dashboard/frontend", "/e2e", BindMode.READ_WRITE)
