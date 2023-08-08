@@ -10,7 +10,7 @@ RUN npm -v
 RUN ln -s /root/.nvm/versions/node/v18.17.0/bin/npm /usr/bin/npm
 RUN ln -s /root/.nvm/versions/node/v18.17.0/bin/node /usr/bin/node
 
-ENV GRADLE_VERSION 8.1.1
+ENV GRADLE_VERSION 8.2.1
 COPY gradle /home/gradle/gradle
 COPY gradlew /home/gradle/gradlew
 RUN /home/gradle/gradlew -version

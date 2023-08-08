@@ -18,13 +18,13 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.2 .
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.3 .
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
 
   - name: build
-    image: jobrunr.io/build-container:1.2
+    image: jobrunr.io/build-container:1.3
     commands:
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
@@ -95,13 +95,13 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.2 .
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.3 .
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
 
   - name: build
-    image: jobrunr.io/build-container:1.2
+    image: jobrunr.io/build-container:1.3
     commands:
       - rm -rf /tmp/reports/*
       - rm -rf /root/.gradle/caches/$GRADLE_VERSION/
@@ -168,7 +168,7 @@ trigger:
 
 steps:
   - name: build
-    image: jobrunr.io/build-container:1.2
+    image: jobrunr.io/build-container:1.3
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
@@ -201,7 +201,7 @@ steps:
   #      event: tag
 
   - name: upload-to-maven-central
-    image: jobrunr.io/build-container:1.2
+    image: jobrunr.io/build-container:1.3
     environment:
       SIGNING_KEY:
         from_secret: SIGNING_KEY
@@ -218,7 +218,7 @@ steps:
         path: /root/.m2
 
   - name: update and push readme
-    image: jobrunr.io/build-container:1.2
+    image: jobrunr.io/build-container:1.3
     environment:
       GITHUB_PAT:
         from_secret: GITHUB_TOKEN
