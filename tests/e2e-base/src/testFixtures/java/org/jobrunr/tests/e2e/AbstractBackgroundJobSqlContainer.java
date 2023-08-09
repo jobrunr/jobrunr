@@ -34,6 +34,8 @@ public abstract class AbstractBackgroundJobSqlContainer extends AbstractBackgrou
     protected String getJdbcUrl(JdbcDatabaseContainer sqlContainer) {
         return sqlContainer.getJdbcUrl()
                 .replace("localhost", sqlContainer.getNetworkAliases().get(0).toString())
+                .replace(sqlContainer.getContainerIpAddress(), sqlContainer.getNetworkAliases().get(0).toString())
+                .replace(sqlContainer.getContainerInfo().getNetworkSettings().getIpAddress(), sqlContainer.getNetworkAliases().get(0).toString())
                 .replace(String.valueOf(sqlContainer.getFirstMappedPort()), sqlContainer.getExposedPorts().get(0).toString());
     }
 
