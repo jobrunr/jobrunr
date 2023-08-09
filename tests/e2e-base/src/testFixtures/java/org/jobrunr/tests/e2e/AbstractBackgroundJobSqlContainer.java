@@ -5,6 +5,8 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+
 public abstract class AbstractBackgroundJobSqlContainer extends AbstractBackgroundJobContainer {
 
     private final JdbcDatabaseContainer sqlContainer;
@@ -32,11 +34,16 @@ public abstract class AbstractBackgroundJobSqlContainer extends AbstractBackgrou
     }
 
     protected String getJdbcUrl(JdbcDatabaseContainer sqlContainer) {
-        return sqlContainer.getJdbcUrl()
+        String jdbcUrl = sqlContainer.getJdbcUrl()
                 .replace("localhost", sqlContainer.getNetworkAliases().get(0).toString())
-                .replace(sqlContainer.getContainerIpAddress(), sqlContainer.getNetworkAliases().get(0).toString())
-                .replace(sqlContainer.getContainerInfo().getNetworkSettings().getIpAddress(), sqlContainer.getNetworkAliases().get(0).toString())
                 .replace(String.valueOf(sqlContainer.getFirstMappedPort()), sqlContainer.getExposedPorts().get(0).toString());
+        if (isNotNullOrEmpty(sqlContainer.getContainerIpAddress())) {
+            jdbcUrl = jdbcUrl.replace(sqlContainer.getContainerIpAddress(), sqlContainer.getNetworkAliases().get(0).toString());
+        }
+        if (isNotNullOrEmpty(sqlContainer.getContainerInfo().getNetworkSettings().getIpAddress())) {
+            jdbcUrl = jdbcUrl.replace(sqlContainer.getContainerInfo().getNetworkSettings().getIpAddress(), sqlContainer.getNetworkAliases().get(0).toString());
+        }
+        return jdbcUrl;
     }
 
     public StorageProvider getStorageProviderForClient() {
