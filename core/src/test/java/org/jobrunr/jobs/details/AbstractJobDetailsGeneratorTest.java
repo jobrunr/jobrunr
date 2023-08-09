@@ -29,7 +29,6 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -41,6 +40,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
@@ -1071,12 +1071,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
         thread3.start();
         thread4.start();
 
-        if (System.getenv("CI") != null) {
-            countDownLatch.await(1000, TimeUnit.SECONDS);
-        } else {
-            countDownLatch.await(250, TimeUnit.SECONDS);
-        }
-        assertThat(jobDetailsResults).hasSize(2000);
+        await().untilAsserted(() -> assertThat(jobDetailsResults).hasSize(2000));
         jobDetailsResults.keySet().stream()
                 .forEach(key -> {
                     Integer givenInput = parseInt(substringAfterLast(key, "-"));
