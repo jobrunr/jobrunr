@@ -98,6 +98,13 @@ compileTestFixturesJava {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+normalization {
+    runtimeClasspath {
+        ignore '**/MANIFEST.MF'
+        ignore '**/frontend/**'
+    }
+}
+
 task npmRunBuild() {
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
