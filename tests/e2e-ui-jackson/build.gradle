@@ -19,6 +19,8 @@ dependencies {
 }
 
 test.dependsOn(jibDockerBuild)
+test.outputs.cacheIf { false }
+
 jib {
     from {
         image = "gcr.io/distroless/java:11"
