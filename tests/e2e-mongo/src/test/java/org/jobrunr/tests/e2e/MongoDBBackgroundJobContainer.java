@@ -5,23 +5,21 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 
-public class MongoDBJacksonBackgroundJobContainer extends AbstractBackgroundJobContainer {
+public class MongoDBBackgroundJobContainer extends AbstractBackgroundJobContainer {
 
     private final GenericContainer mongoContainer;
-    private final Network network;
 
-    public MongoDBJacksonBackgroundJobContainer(GenericContainer mongoContainer, Network network) {
-        super("jobrunr-e2e-mongo-jackson:1.0");
+    public MongoDBBackgroundJobContainer(GenericContainer mongoContainer, Network network) {
+        super("jobrunr-e2e-mongo:1.0");
         this.mongoContainer = mongoContainer;
-        this.network = network;
+        this.withNetwork(network);
     }
 
     @Override
     public void start() {
         this
                 .dependsOn(mongoContainer)
-                .withNetwork(network)
-                .withEnv("MONGO_HOST", "mongo")
+                .withEnv("MONGO_HOST", mongoContainer.getNetworkAliases().get(0).toString())
                 .withEnv("MONGO_PORT", String.valueOf(27017));
 
         super.start();

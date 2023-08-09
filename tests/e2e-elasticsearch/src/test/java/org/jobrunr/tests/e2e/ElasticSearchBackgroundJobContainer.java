@@ -8,23 +8,21 @@ import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.testcontainers.containers.Network;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
-public class ElasticSearchJacksonBackgroundJobContainer extends AbstractBackgroundJobContainer {
+public class ElasticSearchBackgroundJobContainer extends AbstractBackgroundJobContainer {
 
     private final ElasticsearchContainer elasticSearchContainer;
-    private final Network network;
 
-    public ElasticSearchJacksonBackgroundJobContainer(ElasticsearchContainer elasticSearch, Network network) {
-        super("jobrunr-e2e-elasticsearch-jackson:1.0");
+    public ElasticSearchBackgroundJobContainer(ElasticsearchContainer elasticSearch, Network network) {
+        super("jobrunr-e2e-elasticsearch:1.0");
         this.elasticSearchContainer = elasticSearch;
-        this.network = network;
+        this.withNetwork(network);
     }
 
     @Override
     public void start() {
         this
                 .dependsOn(elasticSearchContainer)
-                .withNetwork(network)
-                .withEnv("ELASTICSEARCH_HOST", "elasticsearch")
+                .withEnv("ELASTICSEARCH_HOST", elasticSearchContainer.getNetworkAliases().get(0))
                 .withEnv("ELASTICSEARCH_PORT", String.valueOf(9200));
 
         super.start();

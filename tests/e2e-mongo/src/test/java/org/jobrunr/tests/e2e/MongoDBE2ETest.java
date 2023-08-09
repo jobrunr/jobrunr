@@ -7,18 +7,18 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class RedisJacksonE2ETest extends AbstractE2ETest {
+public class MongoDBE2ETest extends AbstractE2ETest {
 
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final GenericContainer redisContainer = new GenericContainer("redis")
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8")
             .withNetwork(network)
-            .withNetworkAliases("redis")
-            .withExposedPorts(6379);
+            .withNetworkAliases("mongo")
+            .withExposedPorts(27017);
 
     @Container
-    private static final RedisBackgroundJobContainer backgroundJobServer = new RedisBackgroundJobContainer(redisContainer, network);
+    private static final MongoDBBackgroundJobContainer backgroundJobServer = new MongoDBBackgroundJobContainer(mongoContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {
@@ -29,5 +29,4 @@ public class RedisJacksonE2ETest extends AbstractE2ETest {
     protected AbstractBackgroundJobContainer backgroundJobServer() {
         return backgroundJobServer;
     }
-
 }

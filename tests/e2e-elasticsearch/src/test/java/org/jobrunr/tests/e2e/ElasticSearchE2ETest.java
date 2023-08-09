@@ -9,7 +9,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @Disabled("My NAS only has 8GB of RAM which is not enough for Elastic and thus this test is flaky")
-public class ElasticSearchJacksonE2ETest extends AbstractE2EJacksonTest {
+public class ElasticSearchE2ETest extends AbstractE2ETest {
 
     private static final Network network = Network.newNetwork();
 
@@ -20,7 +20,7 @@ public class ElasticSearchJacksonE2ETest extends AbstractE2EJacksonTest {
             .withExposedPorts(9200);
 
     @Container
-    private static final ElasticSearchJacksonBackgroundJobContainer backgroundJobServer = new ElasticSearchJacksonBackgroundJobContainer(elasticSearchContainer, network);
+    private static final ElasticSearchBackgroundJobContainer backgroundJobServer = new ElasticSearchBackgroundJobContainer(elasticSearchContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

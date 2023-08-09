@@ -6,23 +6,21 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import redis.clients.jedis.JedisPool;
 
-public class RedisJacksonBackgroundJobContainer extends AbstractBackgroundJobContainer {
+public class RedisBackgroundJobContainer extends AbstractBackgroundJobContainer {
 
     private final GenericContainer redisContainer;
-    private final Network network;
 
-    public RedisJacksonBackgroundJobContainer(GenericContainer redisContainer, Network network) {
-        super("jobrunr-e2e-redis-jackson:1.0");
+    public RedisBackgroundJobContainer(GenericContainer redisContainer, Network network) {
+        super("jobrunr-e2e-redis:1.0");
         this.redisContainer = redisContainer;
-        this.network = network;
+        this.withNetwork(network);
     }
 
     @Override
     public void start() {
         this
                 .dependsOn(redisContainer)
-                .withNetwork(network)
-                .withEnv("REDIS_HOST", "redis")
+                .withEnv("REDIS_HOST", redisContainer.getNetworkAliases().get(0).toString())
                 .withEnv("REDIS_PORT", String.valueOf(6379));
 
         super.start();

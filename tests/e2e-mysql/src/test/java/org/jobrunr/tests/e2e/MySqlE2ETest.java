@@ -2,17 +2,22 @@ package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class MySqlJacksonE2ETest extends AbstractE2EJacksonTest {
+public class MySqlE2ETest extends AbstractE2ETest {
+
+    private static final Network network = Network.newNetwork();
 
     @Container
-    private static final MySQLContainer sqlContainer = new MySQLContainer<>();
+    private static final MySQLContainer sqlContainer = new MySQLContainer<>()
+            .withNetwork(network)
+            .withNetworkAliases("mysql");
 
     @Container
-    private static final MySqlJacksonBackgroundJobContainer backgroundJobServer = new MySqlJacksonBackgroundJobContainer(sqlContainer);
+    private static final MySqlBackgroundJobContainer backgroundJobServer = new MySqlBackgroundJobContainer(sqlContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

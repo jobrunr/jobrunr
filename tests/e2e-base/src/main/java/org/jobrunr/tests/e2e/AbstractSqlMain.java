@@ -17,6 +17,11 @@ public abstract class AbstractSqlMain extends AbstractMain {
     protected StorageProvider initStorageProvider() throws Exception {
         if (getEnvOrProperty("JOBRUNR_JDBC_URL") == null) {
             throw new IllegalStateException("Cannot start BackgroundJobServer: environment variable JOBRUNR_JDBC_URL is not set");
+        } else {
+            System.out.println("Using JDBC Info:");
+            System.out.println("JOBRUNR_JDBC_URL: " + getEnvOrProperty("JOBRUNR_JDBC_URL"));
+            System.out.println("JOBRUNR_JDBC_USERNAME: " + getEnvOrProperty("JOBRUNR_JDBC_USERNAME"));
+            System.out.println("JOBRUNR_JDBC_PASSWORD: " + getEnvOrProperty("JOBRUNR_JDBC_PASSWORD"));
         }
 
         DataSource dataSource = createDataSource(

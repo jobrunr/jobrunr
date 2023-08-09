@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 @Testcontainers
 public class CypressGsonUIE2ETest {
@@ -30,6 +31,12 @@ public class CypressGsonUIE2ETest {
                 .contains("All specs passed!");
 
         System.out.println("UI Tests succeeded:\n\n" + cypressContainer.getLogs());
+    }
+
+    @Test
+    void onlyGsonIsOnClasspath() {
+        assertThat(classExists("com.google.gson.Gson")).isTrue();
+        assertThat(classExists("com.fasterxml.jackson.databind.ObjectMapper")).isFalse();
     }
 
 }

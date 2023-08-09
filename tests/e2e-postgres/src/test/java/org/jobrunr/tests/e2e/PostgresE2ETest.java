@@ -1,24 +1,23 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class MongoDBJacksonE2ETest extends AbstractE2EJacksonTest {
+public class PostgresE2ETest extends AbstractE2ETest {
 
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8")
+    private static final PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>()
             .withNetwork(network)
-            .withNetworkAliases("mongo")
-            .withExposedPorts(27017);
+            .withNetworkAliases("postgres");
 
     @Container
-    private static final MongoDBJacksonBackgroundJobContainer backgroundJobServer = new MongoDBJacksonBackgroundJobContainer(mongoContainer, network);
+    private static final PostgresBackgroundJobContainer backgroundJobServer = new PostgresBackgroundJobContainer(sqlContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {
@@ -26,7 +25,7 @@ public class MongoDBJacksonE2ETest extends AbstractE2EJacksonTest {
     }
 
     @Override
-    protected AbstractBackgroundJobContainer backgroundJobServer() {
+    protected AbstractBackgroundJobSqlContainer backgroundJobServer() {
         return backgroundJobServer;
     }
 }

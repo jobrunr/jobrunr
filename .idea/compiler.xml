@@ -78,6 +78,24 @@
         <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8" />
+    <bytecodeTargetLevel target="1.8">
+      <module name="JobRunr.tests.e2e-elasticsearch-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-elasticsearch-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-json-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-mariadb-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-mariadb-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-mongo-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-mongo-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-mysql-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-mysql-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-oracle-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-oracle-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-postgres-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-postgres-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-redis-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-redis-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-sqlserver-gson.test" target="11" />
+      <module name="JobRunr.tests.e2e-sqlserver-jackson.test" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
