@@ -65,7 +65,7 @@ volumes:
       path: /volume2/docker/jobrunr-services/drone-work-dir/m2/cache
   - name: gradle-cache
     host:
-      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-root
+      path: /volume2/docker/jobrunr-services/drone-work-dir/gradle/cache
   - name: gradle-project-cache
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-project
@@ -142,7 +142,7 @@ volumes:
       path: /volume2/docker/jobrunr-services/drone-work-dir/m2/cache
   - name: gradle-cache
     host:
-      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-root
+      path: /volume2/docker/jobrunr-services/drone-work-dir/gradle/cache
   - name: gradle-project-cache
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-project
@@ -250,7 +250,7 @@ volumes:
       path: /volume2/docker/jobrunr-services/drone-work-dir/m2/cache
   - name: gradle-cache
     host:
-      path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-root
+      path: /volume2/docker/jobrunr-services/drone-work-dir/gradle/cache
   - name: gradle-project-cache
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/gradle-project
