@@ -22,6 +22,11 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
     }
 
     @Override
+    public String getMessage() {
+        return super.getMessage() + "\n\n" + getDiagnosticsInfo().asMarkDown();
+    }
+
+    @Override
     public DiagnosticsBuilder getDiagnosticsInfo() {
         return diagnostics()
                 .withTitle("Concurrent modified jobs:")
@@ -34,6 +39,8 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
 
         diagnostics
                 .withLine("Job id: " + localJob.getId())
+                .withIndentedLine("Job Name: " + localJob.getJobName())
+                .withIndentedLine("Job Signature: " + localJob.getJobSignature())
                 .withIndentedLine("Local version: " + localJob.getVersion() + "; Storage version: " + jobFromStorage.getVersion())
                 .withIndentedLine("Local state: " + getJobStates(localJob))
                 .withIndentedLine("Storage state: " + getJobStates(jobFromStorage));
