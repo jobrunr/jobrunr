@@ -26,6 +26,13 @@ java {
     withSourcesJar()
 }
 
+normalization {
+    runtimeClasspath {
+        ignore '**/MANIFEST.MF'
+        ignore '**/frontend/**'
+    }
+}
+
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
     systemProperty "platform.quarkus.native.builder-image", false

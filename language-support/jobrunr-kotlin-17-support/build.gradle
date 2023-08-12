@@ -29,6 +29,13 @@ java {
     withSourcesJar()
 }
 
+normalization {
+    runtimeClasspath {
+        ignore '**/MANIFEST.MF'
+        ignore '**/frontend/**'
+    }
+}
+
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }

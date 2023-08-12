@@ -51,6 +51,13 @@ java {
     withSourcesJar()
 }
 
+normalization {
+    runtimeClasspath {
+        ignore '**/MANIFEST.MF'
+        ignore '**/frontend/**'
+    }
+}
+
 jar {
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot-2.starter'
