@@ -1,12 +1,13 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
+import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-//@RunTestBetween(from = "00:00", to = "03:00")
+@RunTestBetween(from = "00:00", to = "03:00")
 @Testcontainers
 public class OracleE2ETest extends AbstractE2ETest {
 
