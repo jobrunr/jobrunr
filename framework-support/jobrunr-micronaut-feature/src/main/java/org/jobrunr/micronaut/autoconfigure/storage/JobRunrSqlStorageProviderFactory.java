@@ -39,8 +39,8 @@ public class JobRunrSqlStorageProviderFactory {
                 .map(datasourceName -> beanContext.getBean(DataSource.class, Qualifiers.byName(datasourceName)))
                 .orElseGet(() -> beanContext.getBean(DataSource.class));
         Class superClass = dataSource.getClass();
-        while(superClass != null) {
-            if("io.micronaut.transaction.jdbc.DelegatingDataSource".equals(superClass.getName())) {
+        while (superClass != null) {
+            if ("io.micronaut.data.connection.jdbc.advice.DelegatingDataSource".equals(superClass.getName())) {
                 return DelegatingDatasourceExtractor.extract(dataSource);
             } else {
                 superClass = superClass.getSuperclass();

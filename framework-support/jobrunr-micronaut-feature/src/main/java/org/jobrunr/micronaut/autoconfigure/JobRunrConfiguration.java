@@ -3,8 +3,8 @@ package org.jobrunr.micronaut.autoconfigure;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.core.bind.annotation.Bindable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.Optional;
 
