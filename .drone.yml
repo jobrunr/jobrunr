@@ -167,14 +167,23 @@ trigger:
     - tag
 
 steps:
-  - name: build
+  - name: build-and-upload-to-maven-central
     image: jobrunr.io/build-container:1.3
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
-      - ./gradlew --no-daemon -i clean assemble
+      - ./gradlew --no-daemon -i clean assemble publishToSonatype
+    environment:
+      SIGNING_KEY:
+        from_secret: SIGNING_KEY
+      SIGNING_PASSWORD:
+        from_secret: SIGNING_PASSWORD
+      ORG_GRADLE_PROJECT_sonatypeUsername:
+        from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
+      ORG_GRADLE_PROJECT_sonatypePassword:
+        from_secret: ORG_GRADLE_PROJECT_sonatypePassword
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
@@ -199,23 +208,6 @@ steps:
   #      files: core/build/libs/*
   #    when:
   #      event: tag
-
-  - name: upload-to-maven-central
-    image: jobrunr.io/build-container:1.3
-    environment:
-      SIGNING_KEY:
-        from_secret: SIGNING_KEY
-      SIGNING_PASSWORD:
-        from_secret: SIGNING_PASSWORD
-      ORG_GRADLE_PROJECT_sonatypeUsername:
-        from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
-      ORG_GRADLE_PROJECT_sonatypePassword:
-        from_secret: ORG_GRADLE_PROJECT_sonatypePassword
-    commands:
-      - ./gradlew --no-daemon publishToSonatype
-    volumes:
-      - name: maven-local
-        path: /root/.m2
 
   - name: update and push readme
     image: jobrunr.io/build-container:1.3

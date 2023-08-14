@@ -38,7 +38,6 @@ dependencies {
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'io.micronaut.test:micronaut-test-junit5'
-
     testImplementation 'io.micronaut:micronaut-jackson-databind'
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
