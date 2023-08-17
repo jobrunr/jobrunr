@@ -44,33 +44,29 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
     }
 
     private JobParameter getJobParameter(JsonParser jsonParser, String className, String actualClassName, JsonNode objectJsonNode) throws JsonProcessingException {
-        try {
-            Class<Object> valueType = toClass(getActualClassName(className, actualClassName));
-            if (objectJsonNode.isArray() && !Collection.class.isAssignableFrom(valueType) && !valueType.isArray()) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
-                final JsonNode jsonNodeInArray = objectJsonNode.get(1);
-                final Object object = jsonParser.getCodec().treeToValue(jsonNodeInArray, valueType);
+        Class<Object> valueType = toClass(getActualClassName(className, actualClassName));
+        if (objectJsonNode.isArray() && !Collection.class.isAssignableFrom(valueType) && !valueType.isArray()) { // why: regression form 4.0.1: See https://github.com/jobrunr/jobrunr/issues/254
+            final JsonNode jsonNodeInArray = objectJsonNode.get(1);
+            final Object object = jsonParser.getCodec().treeToValue(jsonNodeInArray, valueType);
+            return new JobParameter(className, object);
+        } else {
+            try {
+                final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, valueType);
                 return new JobParameter(className, object);
-            } else {
-                try {
-                    final Object object = jsonParser.getCodec().treeToValue(objectJsonNode, valueType);
+            } catch (MismatchedInputException e) { // last attempts
+                // is it an Enum?
+                if (valueType.isEnum()) {
+                    ArrayNode arrayNode = (ArrayNode) jsonParser.getCodec().createArrayNode();
+                    arrayNode.add(valueType.getName());
+                    arrayNode.add(objectJsonNode);
+                    final Object object = jsonParser.getCodec().treeToValue(arrayNode, valueType);
                     return new JobParameter(className, object);
-                } catch (MismatchedInputException e) { // last attempts
-                    // is it an Enum?
-                    if (valueType.isEnum()) {
-                        ArrayNode arrayNode = (ArrayNode) jsonParser.getCodec().createArrayNode();
-                        arrayNode.add(valueType.getName());
-                        arrayNode.add(objectJsonNode);
-                        final Object object = jsonParser.getCodec().treeToValue(arrayNode, valueType);
-                        return new JobParameter(className, object);
-                    } else {
-                        // another try for Kotlin
-                        final Object object = objectMapper.treeToValue(objectJsonNode, valueType);
-                        return new JobParameter(className, object);
-                    }
+                } else {
+                    // another try for Kotlin
+                    final Object object = objectMapper.treeToValue(objectJsonNode, valueType);
+                    return new JobParameter(className, object);
                 }
             }
-        } catch (Exception e) {
-            return new JobParameter(new JobParameterNotDeserializableException(getActualClassName(className, actualClassName), e.getMessage()));
         }
     }
 
