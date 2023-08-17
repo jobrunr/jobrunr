@@ -25,9 +25,9 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
 
     private final ObjectMapper objectMapper;
 
-    protected JobParameterDeserializer() {
+    protected JobParameterDeserializer(ObjectMapper objectMapper) {
         super(JobParameter.class);
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper == null ? new ObjectMapper() : objectMapper;
     }
 
     @Override
