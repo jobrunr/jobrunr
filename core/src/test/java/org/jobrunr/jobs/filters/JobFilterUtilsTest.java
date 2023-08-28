@@ -1,7 +1,7 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.BackgroundJobTestFilter;
+import org.jobrunr.server.LogAllStateChangesFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,13 +12,13 @@ import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 
 class JobFilterUtilsTest {
 
-    private BackgroundJobTestFilter backgroundJobTestFilter;
+    private LogAllStateChangesFilter logAllStateChangesFilter;
     private JobFilterUtils jobFilterUtils;
 
     @BeforeEach
     void setUpJobFilterUtils() {
-        backgroundJobTestFilter = new BackgroundJobTestFilter();
-        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(backgroundJobTestFilter);
+        logAllStateChangesFilter = new LogAllStateChangesFilter();
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(logAllStateChangesFilter);
         jobFilterUtils = new JobFilterUtils(jobDefaultFilters);
     }
 
@@ -28,7 +28,7 @@ class JobFilterUtilsTest {
 
         jobFilterUtils.runOnStateAppliedFilters(List.of(aJobInProgress), true);
 
-        assertThat(backgroundJobTestFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING");
+        assertThat(logAllStateChangesFilter.getStateChanges(aJobInProgress)).containsExactly("ENQUEUED->PROCESSING");
     }
 
     @Test
@@ -37,6 +37,6 @@ class JobFilterUtilsTest {
 
         jobFilterUtils.runOnStateAppliedFilters(List.of(aJobInProgress), false);
 
-        assertThat(backgroundJobTestFilter.stateChanges).isEmpty();
+        assertThat(logAllStateChangesFilter.getStateChanges(aJobInProgress)).isEmpty();
     }
 }

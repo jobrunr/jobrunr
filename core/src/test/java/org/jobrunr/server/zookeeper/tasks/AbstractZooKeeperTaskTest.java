@@ -7,8 +7,8 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.server.BackgroundJobTestFilter;
 import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.zookeeper.ZooKeeperStatistics;
 import org.jobrunr.storage.StorageProvider;
@@ -36,7 +36,7 @@ public abstract class AbstractZooKeeperTaskTest {
     @Captor
     ArgumentCaptor<List<Job>> jobsToSaveArgumentCaptor;
 
-    BackgroundJobTestFilter logAllStateChangesFilter;
+    LogAllStateChangesFilter logAllStateChangesFilter;
     ZooKeeperStatistics zooKeeperStatistics;
     ListAppender<ILoggingEvent> logger;
     private BackgroundJobServerConfiguration backgroundJobServerConfiguration;
@@ -45,7 +45,7 @@ public abstract class AbstractZooKeeperTaskTest {
     void setUpTaskDependencies() {
         backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
 
-        logAllStateChangesFilter = new BackgroundJobTestFilter();
+        logAllStateChangesFilter = new LogAllStateChangesFilter();
         lenient().when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         lenient().when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
         lenient().when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));

@@ -14,7 +14,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.BackgroundJobTestFilter;
+import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProviderForTest;
 import org.jobrunr.stubs.StaticTestService;
@@ -65,14 +65,14 @@ public class BackgroundJobByJobLambdaTest {
     private StorageProviderForTest storageProvider;
     private BackgroundJobServer backgroundJobServer;
     private static final String every5Seconds = "*/5 * * * * *";
-    private BackgroundJobTestFilter logAllStateChangesFilter;
+    private LogAllStateChangesFilter logAllStateChangesFilter;
 
     @BeforeEach
     void setUpTests() {
         testService = new TestService();
         testService.reset();
         storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
-        logAllStateChangesFilter = new BackgroundJobTestFilter();
+        logAllStateChangesFilter = new LogAllStateChangesFilter();
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
@@ -246,7 +246,7 @@ public class BackgroundJobByJobLambdaTest {
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatFails());
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED", "FAILED->SCHEDULED");
+        assertThat(logAllStateChangesFilter.getStateChanges(jobId)).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->FAILED", "FAILED->SCHEDULED");
     }
 
     @Test
@@ -431,7 +431,7 @@ public class BackgroundJobByJobLambdaTest {
         Job job = storageProvider.save(orphanedJob);
         await().atMost(3, SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getJobById(job.getId())).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("PROCESSING->FAILED", "FAILED->SCHEDULED");
+        assertThat(logAllStateChangesFilter.getStateChanges(job)).containsExactly("PROCESSING->FAILED", "FAILED->SCHEDULED");
     }
 
     @Test
@@ -445,7 +445,7 @@ public class BackgroundJobByJobLambdaTest {
             storageProvider.getJobById(jobId).hasState(PROCESSING);
         });
         await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
+        assertThat(logAllStateChangesFilter.getStateChanges(jobId)).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)
@@ -589,6 +589,13 @@ public class BackgroundJobByJobLambdaTest {
         assertThat(storageProvider.getJobById(jobId)).hasJobName("Doing some hard work for user John Doe (customerId: 1)");
     }
 
+    @Test
+    void testIssue645() {
+        TestService.GithubIssue645 githubIssue645 = new TestService.GithubIssue645();
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkForIssue645(githubIssue645.getId(), githubIssue645));
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+    }
+
     interface SomeJobInterface {
         void doWork();
     }
@@ -633,5 +640,13 @@ public class BackgroundJobByJobLambdaTest {
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());
+    }
+
+    static class SomeObjectWithAnId {
+
+        public UUID getId() {
+            return UUID.randomUUID();
+        }
+
     }
 }

@@ -49,13 +49,13 @@ class JobZooKeeperTest {
 
     private BackgroundJobServerStatus backgroundJobServerStatus;
     private JobZooKeeper jobZooKeeper;
-    private BackgroundJobTestFilter logAllStateChangesFilter;
+    private LogAllStateChangesFilter logAllStateChangesFilter;
     private ListAppender<ILoggingEvent> logger;
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
         when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
-        logAllStateChangesFilter = new BackgroundJobTestFilter();
+        logAllStateChangesFilter = new LogAllStateChangesFilter();
         backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         jobZooKeeper = initializeJobZooKeeper();
         logger = LoggerAssert.initFor(jobZooKeeper);
@@ -112,9 +112,9 @@ class JobZooKeeperTest {
 
         jobZooKeeper.run();
 
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SCHEDULED->ENQUEUED");
-        assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
-        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.getStateChanges(job)).containsExactly("SCHEDULED->ENQUEUED");
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(job)).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(job)).isFalse();
     }
 
     @Test
@@ -127,9 +127,9 @@ class JobZooKeeperTest {
             jobZooKeeper.run();
         }
 
-        assertThat(logAllStateChangesFilter.stateChanges).isEmpty();
-        assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
-        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.getStateChanges(aJobInProgress)).isEmpty();
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(aJobInProgress)).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(aJobInProgress)).isFalse();
     }
 
     @Test

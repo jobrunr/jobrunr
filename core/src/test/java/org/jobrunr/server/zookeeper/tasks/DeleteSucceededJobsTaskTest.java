@@ -30,15 +30,20 @@ class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
 
     @Test
     void testTask() {
-        when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(asList(aSucceededJob().build(), aSucceededJob().build()), emptyJobList());
+        Job succeededJob1 = aSucceededJob().build();
+        Job succeededJob2 = aSucceededJob().build();
+        when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(asList(succeededJob1, succeededJob2), emptyJobList());
         runTask(task);
 
         verify(storageProvider).save(anyList());
         verify(storageProvider).publishTotalAmountOfSucceededJobs(2);
 
-        assertThat(logAllStateChangesFilter.stateChanges).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
-        assertThat(logAllStateChangesFilter.onProcessingIsCalled).isFalse();
-        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled).isFalse();
+        assertThat(logAllStateChangesFilter.getStateChanges(succeededJob1)).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
+        assertThat(logAllStateChangesFilter.getStateChanges(succeededJob2)).containsExactly("SUCCEEDED->DELETED", "SUCCEEDED->DELETED");
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(succeededJob1)).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(succeededJob2)).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(succeededJob1)).isFalse();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(succeededJob2)).isFalse();
     }
 
     @Test

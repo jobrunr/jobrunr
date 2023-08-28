@@ -318,6 +318,10 @@ public class TestService implements TestServiceInterface {
         System.out.println("Doing some work with a primitive int: " + intValue);
     }
 
+    public void doWorkForIssue645(Long id, GithubIssue645 someObject) {
+        System.out.println("Doing work for github issue 645 " + id.toString() + "; " + someObject);
+    }
+
     public static class Work {
 
         private int workCount;
@@ -476,6 +480,18 @@ public class TestService implements TestServiceInterface {
             System.out.println("Running job for issue 335 " + id);
         }
 
+    }
+
+    public static class GithubIssue645 {
+        private Long id;
+
+        public GithubIssue645() {
+            this.id = 2L;
+        }
+
+        public Long getId() {
+            return id;
+        }
     }
 
     public enum Task {

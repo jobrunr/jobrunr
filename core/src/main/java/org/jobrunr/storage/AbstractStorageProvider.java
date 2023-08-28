@@ -23,7 +23,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final Set<StorageProviderChangeListener> onChangeListeners;
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
-    private final ReentrantLock reentrantLock;
+    private final ReentrantLock timerReentrantLock;
     private final ReentrantLock notifyJobStatsChangeListenersReentrantLock;
     private volatile Timer timer;
 
@@ -31,7 +31,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
-        this.reentrantLock = new ReentrantLock();
+        this.timerReentrantLock = new ReentrantLock();
         this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
     }
 
@@ -79,7 +79,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 } catch (Exception e) {
                     logError(e);
                 } finally {
-                    if(notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
+                    if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
                         notifyJobStatsChangeListenersReentrantLock.unlock();
                     }
                 }
@@ -152,31 +152,23 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     void startTimerToSendUpdates() {
-        if (timer == null) {
-            try {
-                if (reentrantLock.tryLock()) {
-                    timer = new Timer(true);
-                    timer.schedule(new NotifyOnChangeListeners(), 3000, 5000);
-                }
-            } finally {
-                reentrantLock.unlock();
-            }
+        if (timer == null && timerReentrantLock.tryLock()) {
+            timer = new Timer(true);
+            timer.schedule(new NotifyOnChangeListeners(), 3000, 5000);
+            timerReentrantLock.unlock();
         }
     }
 
     void stopTimerToSendUpdates() {
-        if (timer != null) {
-            boolean canCancelTimer = timer != null && reentrantLock.tryLock();
-            if (canCancelTimer) {
-                timer.cancel();
-                timer = null;
-                reentrantLock.unlock();
-            }
+        if (timer != null && timerReentrantLock.tryLock()) {
+            timer.cancel();
+            timer = null;
+            timerReentrantLock.unlock();
         }
     }
 
     private void logError(Exception e) {
-        if (reentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
+        if (timerReentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 
