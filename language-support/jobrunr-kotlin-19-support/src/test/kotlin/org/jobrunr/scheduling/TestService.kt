@@ -4,8 +4,18 @@ import org.jobrunr.jobs.annotations.Job
 
 class TestService {
 
+    data class MyStateObject(val name: String, val age: Int)
+
     fun doWork(s: String) {
         println(s)
+    }
+
+    fun doWorkWithPair(s: Pair<String, String>) {
+        println("Pair: " + s.first + "; " + s.second)
+    }
+
+    fun doWorkWithDataClass(mso: MyStateObject) {
+        println("Pair: " + mso.name + "; " + mso.age)
     }
 
     @Job(name = "Some neat Job Display Name")

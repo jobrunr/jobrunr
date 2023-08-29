@@ -73,6 +73,34 @@ class JobSchedulerTest {
     }
 
     @Test
+    fun `test enqueue lambda with service dependency and pair to test kotlin module`() {
+        val testService = TestService()
+
+        val jobId = jobScheduler.enqueue { testService.doWorkWithPair(Pair("firstMessage", "secondMessage")) }
+
+        await().atMost(Durations.TEN_SECONDS).until {
+            storageProvider.getJobById(jobId).state == SUCCEEDED
+        }
+
+        val job = storageProvider.getJobById(jobId)
+        assertThat(job).hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
+    @Test
+    fun `test enqueue lambda with service dependency and data class to test kotlin module`() {
+        val testService = TestService()
+
+        val jobId = jobScheduler.enqueue { testService.doWorkWithDataClass(TestService.MyStateObject("Test", 20)) }
+
+        await().atMost(Durations.TEN_SECONDS).until {
+            storageProvider.getJobById(jobId).state == SUCCEEDED
+        }
+
+        val job = storageProvider.getJobById(jobId)
+        assertThat(job).hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
+    @Test
     fun `test enqueue lambda with service dependency and job name`() {
         val testService = TestService()
         val input = "Hello!"
