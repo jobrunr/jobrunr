@@ -1,11 +1,15 @@
 package org.jobrunr.quarkus.extension.deployment;
 
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.metrics.MetricsCapabilityBuildItem;
+import io.quarkus.deployment.recording.RecorderContext;
 import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
+import org.jboss.jandex.IndexView;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
@@ -13,6 +17,7 @@ import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.storage.*;
+import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrExtensionProcessorTest {
@@ -60,6 +65,37 @@ class JobRunrExtensionProcessorTest {
                 .contains(JobRunrStarter.class.getName())
                 .contains(JobRunrInMemoryStorageProviderProducer.class.getName())
                 .contains(JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName());
+    }
+
+    @Test
+    void producesJobRunrRecurringJobsFinderIfJobSchedulerIsEnabled() throws NoSuchMethodException {
+        RecorderContext recorderContext = mock(RecorderContext.class);
+        CombinedIndexBuildItem combinedIndex = mock(CombinedIndexBuildItem.class);
+        when(combinedIndex.getIndex()).thenReturn(mock(IndexView.class));
+        BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
+        JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
+
+        jobRunrConfiguration.jobScheduler = new JobRunrConfiguration.JobSchedulerConfiguration();
+        jobRunrConfiguration.jobScheduler.enabled = true;
+
+        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrConfiguration);
+
+        verify(recorderContext, times(2)).registerNonDefaultConstructor(any(), any());
+    }
+
+    @Test
+    void producesNoJobRunrRecurringJobsFinderIfJobSchedulerIsNotEnabled() throws NoSuchMethodException {
+        RecorderContext recorderContext = mock(RecorderContext.class);
+        CombinedIndexBuildItem combinedIndex = mock(CombinedIndexBuildItem.class);
+        BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
+        JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
+
+        jobRunrConfiguration.jobScheduler = new JobRunrConfiguration.JobSchedulerConfiguration();
+        jobRunrConfiguration.jobScheduler.enabled = false;
+
+        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrConfiguration);
+
+        verifyNoInteractions(recorderContext);
     }
 
     @Test
