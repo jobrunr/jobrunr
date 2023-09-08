@@ -46,6 +46,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -129,7 +130,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
                 // wrapper types
                 .registerType(Boolean.class, allMemberCategories).registerType(Byte.class, allMemberCategories).registerType(Character.class, allMemberCategories).registerType(Double.class, allMemberCategories).registerType(Float.class, allMemberCategories).registerType(Integer.class, allMemberCategories).registerType(Long.class, allMemberCategories).registerType(Short.class, allMemberCategories)
                 // Java core types
-                .registerType(Instant.class, allMemberCategories).registerType(UUID.class, allMemberCategories).registerType(Enum.class, allMemberCategories).registerType(Duration.class, allMemberCategories).registerType(ConcurrentHashMap.class, allMemberCategories).registerType(ConcurrentLinkedQueue.class, allMemberCategories).registerType(Set.class, allMemberCategories).registerType(HashSet.class, allMemberCategories).registerType(List.class, allMemberCategories).registerType(ArrayList.class, allMemberCategories)
+                .registerType(Instant.class, allMemberCategories).registerType(UUID.class, allMemberCategories).registerType(Enum.class, allMemberCategories).registerType(Duration.class, allMemberCategories).registerType(ConcurrentHashMap.class, allMemberCategories).registerType(ConcurrentLinkedQueue.class, allMemberCategories).registerType(Set.class, allMemberCategories).registerType(HashSet.class, allMemberCategories).registerType(List.class, allMemberCategories).registerType(ArrayList.class, allMemberCategories).registerType(CopyOnWriteArrayList.class, allMemberCategories)
                 // JobRunr States
                 .registerType(StateName.class, allMemberCategories).registerType(JobState.class, allMemberCategories).registerType(AbstractJobState.class, allMemberCategories).registerType(ScheduledState.class, allMemberCategories).registerType(EnqueuedState.class, allMemberCategories).registerType(ProcessingState.class, allMemberCategories).registerType(FailedState.class, allMemberCategories).registerType(SucceededState.class, allMemberCategories).registerType(DeletedState.class, allMemberCategories).registerType(JobFilter.class, allMemberCategories).registerType(ElectStateFilter.class, allMemberCategories)
                 // JobRunr Job
@@ -152,7 +153,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static void registerNoSqlStorageProvider(RuntimeHints runtimeHints, Class<? extends StorageProvider> storageProviderClass, Class<?> migrationProviderClass, String pathToMigrations) {
         boolean isStorageProviderOnClasspath = registerHintByClassName(runtimeHints, storageProviderClass.getName());
-        if(isStorageProviderOnClasspath) {
+        if (isStorageProviderOnClasspath) {
             registerAllAssignableTypesOf(runtimeHints, migrationProviderClass);
             runtimeHints.resources().registerPattern(pathToMigrations);
         }
@@ -175,9 +176,9 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
     }
 
     private static boolean isARecurringJob(String className) {
-        if(isNullOrEmpty(className))
+        if (isNullOrEmpty(className))
             return false;
-        if(className.startsWith("java") || className.startsWith("org.springframework") || className.startsWith("org.jobrunr"))
+        if (className.startsWith("java") || className.startsWith("org.springframework") || className.startsWith("org.jobrunr"))
             return false;
 
         try {
