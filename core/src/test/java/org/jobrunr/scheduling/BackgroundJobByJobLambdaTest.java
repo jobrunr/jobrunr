@@ -21,6 +21,7 @@ import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
 import org.jobrunr.utils.GCUtils;
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -594,6 +595,19 @@ public class BackgroundJobByJobLambdaTest {
         TestService.GithubIssue645 githubIssue645 = new TestService.GithubIssue645();
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkForIssue645(githubIssue645.getId(), githubIssue645));
         await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/829")
+    void jobRunrCallsJobFiltersUsingGlobalFilter() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork("with input"));
+
+        await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
+
+        assertThat(logAllStateChangesFilter.onCreatingIsCalled(jobId)).isTrue();
+        assertThat(logAllStateChangesFilter.onCreatedIsCalled(jobId)).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(jobId)).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessedIsCalled(jobId)).isTrue();
     }
 
     interface SomeJobInterface {

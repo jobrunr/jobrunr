@@ -1,15 +1,19 @@
 package org.jobrunr.server;
 
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
+import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 
 import java.util.*;
 
-public class LogAllStateChangesFilter implements ApplyStateFilter, JobServerFilter {
+public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilter, JobServerFilter {
 
+    private final Map<String, Boolean> onCreatingIsCalled;
+    private final Map<String, Boolean> onCreatedIsCalled;
     private final Map<UUID, Boolean> onProcessingIsCalled;
     private final Map<UUID, Boolean> onProcessedIsCalled;
     private final Map<UUID, Boolean> onProcessingSucceededIsCalled;
@@ -18,6 +22,8 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobServerFilt
     private final Map<UUID, List<String>> stateChanges;
 
     public LogAllStateChangesFilter() {
+        onCreatingIsCalled = new HashMap<>();
+        onCreatedIsCalled = new HashMap<>();
         onProcessingIsCalled = new HashMap<>();
         onProcessedIsCalled = new HashMap<>();
         onProcessingSucceededIsCalled = new HashMap<>();
@@ -35,6 +41,16 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobServerFilt
         } else {
             jobStateChanges.add(oldState.getName() + "->" + newState.getName());
         }
+    }
+
+    @Override
+    public void onCreating(AbstractJob job) {
+        this.onCreatingIsCalled.put(job.getId().toString(), true);
+    }
+
+    @Override
+    public void onCreated(AbstractJob job) {
+        this.onCreatedIsCalled.put(job.getId().toString(), true);
     }
 
     @Override
@@ -60,6 +76,14 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobServerFilt
     @Override
     public void onFailedAfterRetries(Job job) {
         this.onFailedAfterRetriesIsCalled.put(job.getId(), true);
+    }
+
+    public boolean onCreatingIsCalled(JobId jobId) {
+        return onCreatingIsCalled.get(jobId.toString());
+    }
+
+    public boolean onCreatedIsCalled(JobId jobId) {
+        return onCreatedIsCalled.get(jobId.toString());
     }
 
     public boolean onProcessingIsCalled(Job job) {
@@ -135,6 +159,8 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobServerFilt
     }
 
     public void clear() {
+        onCreatingIsCalled.clear();
+        onCreatedIsCalled.clear();
         onProcessingIsCalled.clear();
         onProcessedIsCalled.clear();
         onProcessingSucceededIsCalled.clear();
