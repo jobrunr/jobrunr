@@ -2,6 +2,7 @@ package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 
+import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ public class JavaJobDetailsBuilder extends JobDetailsBuilder {
         for (int i = 0; i < serializedLambda.getCapturedArgCount(); i++) {
             final Object capturedArg = serializedLambda.getCapturedArg(i);
             result.add(capturedArg);
-            if (isPrimitiveLongOrDouble(isIoCJobLambda, paramTypesFromDescriptor, i, capturedArg)) { //why: If the local variable at index is of type double or long, it occupies both index and index + 1. See https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
+            if (isPrimitiveLongOrDouble(serializedLambda.getImplMethodKind(), paramTypesFromDescriptor, i, capturedArg)) { //why: If the local variable at index is of type double or long, it occupies both index and index + 1. See https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html
                 result.add(null);
             }
         }
@@ -34,12 +35,13 @@ public class JavaJobDetailsBuilder extends JobDetailsBuilder {
         return result;
     }
 
-    private static boolean isPrimitiveLongOrDouble(boolean isIoCJobLambda, Class<?>[] paramTypesFromDescriptor, int captureArgCounter, Object capturedArg) {
-        if (isIoCJobLambda) {
+    private static boolean isPrimitiveLongOrDouble(int implMethodKind, Class<?>[] paramTypesFromDescriptor, int captureArgCounter, Object capturedArg) {
+        if (MethodHandleInfo.REF_invokeStatic == implMethodKind) {
             return isPrimitiveLongOrDouble(paramTypesFromDescriptor[captureArgCounter], capturedArg);
-        } else {
+        } else if (MethodHandleInfo.REF_invokeSpecial == implMethodKind) {
             return captureArgCounter > 0 && isPrimitiveLongOrDouble(paramTypesFromDescriptor[captureArgCounter - 1], capturedArg);
         }
+        return false;
     }
 
     private static boolean isPrimitiveLongOrDouble(Class<?> paramTypeFromDescriptor, Object capturedArg) {

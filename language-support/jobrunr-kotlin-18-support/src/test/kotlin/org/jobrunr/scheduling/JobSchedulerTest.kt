@@ -188,6 +188,21 @@ class JobSchedulerTest {
             .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
+    @Test
+    fun enqueueJobWithPayload() {
+        enqueueBugJob(JobPayload(2, 1))
+    }
+
+    fun enqueueBugJob(jobPayload: JobPayload) {
+        val testService = TestService()
+
+        val funId = jobPayload.someId
+        val anotherFunId = jobPayload.anotherId
+        jobScheduler.enqueue {
+            testService.doSomethingWithIds(funId, anotherFunId)
+        }
+    }
+
     fun doSomething() {
         println("hello")
     }
@@ -222,4 +237,6 @@ class JobSchedulerTest {
     class ExampleWrapper @JsonCreator constructor(
         @get:JsonValue val value: Int
     )
+
+    data class JobPayload(val someId: Long, val anotherId: Long)
 }

@@ -13,4 +13,9 @@ class TestService {
         println("$s $jobName")
     }
 
+    @Job(name = "Do something with ids", retries = 3)
+    fun doSomethingWithIds(someId: Long, anotherId: Long) {
+        print("having fun with ids $someId, $anotherId")
+    }
+
 }
