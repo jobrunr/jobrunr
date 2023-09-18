@@ -4,15 +4,29 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
+import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceDirectoryBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.metrics.MetricsCapabilityBuildItem;
 import io.quarkus.deployment.recording.RecorderContext;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationValue;
+import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
+import org.jobrunr.dashboard.ui.model.VersionUIModel;
+import org.jobrunr.dashboard.ui.model.problems.*;
+import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
+import org.jobrunr.jobs.states.*;
 import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
@@ -21,12 +35,20 @@ import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.storage.*;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
+import org.jobrunr.storage.*;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import static org.jobrunr.jobs.context.JobDashboardLogger.JobDashboardLogLine;
+import static org.jobrunr.jobs.context.JobDashboardLogger.JobDashboardLogLines;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+
+// TODO add JobRequestHandlers support
 
 /**
  * Class responsible for creating additional JobRunr beans in Quarkus.
@@ -88,6 +110,56 @@ class JobRunrExtensionProcessor {
         return null;
     }
 
+    @BuildStep
+    ReflectiveClassBuildItem registerForReflection(CombinedIndexBuildItem indexBuildItem) {
+        return ReflectiveClassBuildItem.builder(
+                // wrapper types
+                Boolean.class.getName(), Byte.class.getName(), Character.class.getName(), Float.class.getName(), Integer.class.getName(), Long.class.getName(), Short.class.getName(),
+                // Java core types
+                ArrayList.class.getName(), ConcurrentHashMap.class.getName(), ConcurrentLinkedQueue.class.getName(), CopyOnWriteArrayList.class.getName(), Duration.class.getName(), HashSet.class.getName(), Instant.class.getName(), UUID.class.getName(),
+                // JobRunr States
+                AbstractJobState.class.getName(), DeletedState.class.getName(), EnqueuedState.class.getName(), FailedState.class.getName(), JobState.class.getName(), ProcessingState.class.getName(), ScheduledState.class.getName(), StateName.class.getName(), SucceededState.class.getName(),
+                // JobRunr Job
+                AbstractJob.class.getName(), CachingJobDetailsGenerator.class.getName(), Job.class.getName(), JobDetails.class.getName(), JobDetailsAsmGenerator.class.getName(), JobParameter.class.getName(), RecurringJob.class.getName(),
+                // JobRunr Dashboard
+                BackgroundJobServerStatus.class.getName(), JobDashboardLogLine.class.getName(), JobDashboardLogLines.class.getName(), JobStats.class.getName(), JobStatsExtended.class.getName(), JobStatsExtended.Estimation.class.getName(), JobRunrMetadata.class.getName(), Page.class.getName(), PageRequest.class.getName(), RecurringJobUIModel.class.getName(), VersionUIModel.class.getName(),
+                // JobRunr Dashboard Problems
+                CpuAllocationIrregularityProblem.class.getName(), NewJobRunrVersionProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName()
+        ).methods().fields().build();
+    }
+
+    @BuildStep
+    void registerStaticResources(
+            BuildProducer<NativeImageResourceDirectoryBuildItem> nativeImageResourceDirectoryProducer,
+            JobRunrConfiguration jobRunrConfiguration
+    ) {
+        if (jobRunrConfiguration.dashboard.enabled) {
+            nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/dashboard/frontend/build"));
+        }
+
+        if ("sql".equalsIgnoreCase(jobRunrConfiguration.database.type.orElse(null))) {
+            nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/storage/sql"));
+        }
+    }
+
+    @BuildStep
+    public void registerLambdaCapturingTypeResources(
+            CombinedIndexBuildItem indexBuildItem,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
+            BuildProducer<NativeImageResourceBuildItem> nativeImageResource
+    ) {
+        Collection<AnnotationInstance> registerForReflectionAnnotations = indexBuildItem.getIndex().getAnnotations(RegisterForReflection.class);
+
+        for (AnnotationInstance annotationInstance : registerForReflectionAnnotations) {
+            AnnotationValue lambdaCapturingTypes = annotationInstance.value("lambdaCapturingTypes");
+            if (lambdaCapturingTypes != null) {
+                for (AnnotationValue lambdaCapturingType : lambdaCapturingTypes.asArrayList()) {
+                    String classResource = lambdaCapturingType.asString().replace('.', '/') + ".class";
+                    nativeImageResource.produce(new NativeImageResourceBuildItem(classResource));
+                }
+            }
+        }
+    }
 
     private Class<?> jsonMapper(Capabilities capabilities) {
         if (capabilities.isPresent(Capability.JSONB)) {
