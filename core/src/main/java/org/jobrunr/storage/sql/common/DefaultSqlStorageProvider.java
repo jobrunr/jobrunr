@@ -185,10 +185,17 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> save(List<Job> jobs) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
-            final List<Job> savedJobs = jobTable(conn).save(jobs);
-            transaction.commit();
-            notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
-            return savedJobs;
+            try {
+                final List<Job> savedJobs = jobTable(conn).save(jobs);
+                transaction.commit();
+                notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
+                return savedJobs;
+            } catch (ConcurrentJobModificationException e) {
+                // even in case of a ConcurrentJobModificationException, we still want to commit the jobs that were saved successfully
+                // to be compatible with NoSQL databases
+                transaction.commit();
+                throw e;
+            }
         } catch (SQLException e) {
             throw new StorageException(e);
         }

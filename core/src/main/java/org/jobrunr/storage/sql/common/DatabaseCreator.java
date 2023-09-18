@@ -30,7 +30,7 @@ public class DatabaseCreator {
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
 
     public static void main(String[] args) {
-        if(args.length < 3) {
+        if (args.length < 3) {
             System.out.println("Error: insufficient arguments");
             System.out.println();
             System.out.println("usage: java -cp jobrunr-${jobrunr.version}.jar org.jobrunr.storage.sql.common.DatabaseCreator {jdbcUrl} {userName} {password} ({tablePrefix})");
@@ -88,7 +88,7 @@ public class DatabaseCreator {
 
     public void validateTables() {
         try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn, false);
+             final Transaction tran = new Transaction(conn);
              final Statement pSt = conn.createStatement()) {
             for (String table : JOBRUNR_TABLES) {
                 try (ResultSet rs = pSt.executeQuery("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(table))) {
@@ -109,7 +109,7 @@ public class DatabaseCreator {
 
     protected void runMigration(SqlMigration migration) {
         LOGGER.info("Running migration {}", migration);
-        try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn, false)) {
+        try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
             if (!isEmptyMigration(migration)) {
                 runMigrationStatement(conn, migration);
             }
@@ -149,14 +149,14 @@ public class DatabaseCreator {
 
     protected boolean isMigrationApplied(SqlMigration migration) {
         try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn, false);
+             final Transaction tran = new Transaction(conn);
              final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
             boolean result = false;
             pSt.setString(1, migration.getFileName());
             try (ResultSet rs = pSt.executeQuery()) {
                 if (rs.next()) {
                     int numberOfRows = rs.getInt(1);
-                    if(numberOfRows > 1) {
+                    if (numberOfRows > 1) {
                         throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
                                 "Please cleanup the migrations_table and remove duplicate entries.");
                     }
@@ -191,7 +191,7 @@ public class DatabaseCreator {
             if (isNullOrEmpty(tablePrefix)) {
                 return new NoOpTablePrefixStatementUpdater();
             } else {
-                try(Connection connection = connectionProvider.getConnection()) {
+                try (Connection connection = connectionProvider.getConnection()) {
                     final String databaseProductName = connection.getMetaData().getDatabaseProductName();
                     if ("Oracle".equals(databaseProductName) || databaseProductName.startsWith("DB2")) {
                         return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
