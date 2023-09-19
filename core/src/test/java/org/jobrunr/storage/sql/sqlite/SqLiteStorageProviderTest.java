@@ -12,6 +12,8 @@ class SqLiteStorageProviderTest extends SqlStorageProviderTest {
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
+            deleteFile("/tmp/jobrunr-test.db");
+
             dataSource = new SQLiteDataSource();
             dataSource.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
         }

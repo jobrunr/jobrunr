@@ -10,6 +10,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -68,6 +71,14 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
             getDatabaseCleaner(dataSource).dropAllTablesAndViews();
         } else {
             getDatabaseCleaner(dataSource).deleteAllDataInTables();
+        }
+    }
+
+    protected void deleteFile(String file) {
+        try {
+            Files.delete(Path.of(file));
+        } catch (IOException e) {
+            // nothing to do
         }
     }
 

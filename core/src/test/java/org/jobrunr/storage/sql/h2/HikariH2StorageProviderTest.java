@@ -16,8 +16,10 @@ public class HikariH2StorageProviderTest extends SqlStorageProviderTest {
 
     protected HikariDataSource getDataSource(boolean autoCommit) {
         if (dataSource == null) {
-            HikariConfig config = new HikariConfig();
+            deleteFile("/tmp/test-hikari.mv.db");
+            deleteFile("/tmp/test-hikari.trace.db");
 
+            HikariConfig config = new HikariConfig();
             config.setJdbcUrl("jdbc:h2:/tmp/test-hikari");
             config.setUsername("sa");
             config.setPassword("sa");

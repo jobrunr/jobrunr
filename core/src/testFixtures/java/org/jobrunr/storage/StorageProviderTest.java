@@ -359,7 +359,12 @@ public abstract class StorageProviderTest {
                 .has(failedJob(createdJob3));
 
         assertThat(asList(createdJob1, createdJob4)).allMatch(dbJob -> dbJob.getVersion() == 2);
-        assertThat(asList(createdJob2, createdJob3)).allMatch(dbJob -> dbJob.getVersion() == 1);
+        assertThat(asList(createdJob2, createdJob3)).allMatch(dbJob -> dbJob.getVersion() == 1); // as we don't know the version in the DB, we keep the original version
+
+        assertThat(storageProvider.getJobById(createdJob1.getId())).hasVersion(2); // save all jobs failed so has version 1
+        assertThat(storageProvider.getJobById(createdJob2.getId())).hasVersion(2); // already saved with succeeded state and has version 2
+        assertThat(storageProvider.getJobById(createdJob3.getId())).hasVersion(2); // already saved with deleted state and has version 2
+        assertThat(storageProvider.getJobById(createdJob4.getId())).hasVersion(2); // save all jobs failed so has version 1
     }
 
 
@@ -784,7 +789,7 @@ public abstract class StorageProviderTest {
     public static abstract class ThrowingStorageProvider implements AutoCloseable {
 
         private final StorageProvider storageProvider;
-        private String fieldNameForReset;
+        private final String fieldNameForReset;
         private Object originalState;
 
         public ThrowingStorageProvider(StorageProvider storageProvider, String fieldNameForReset) {

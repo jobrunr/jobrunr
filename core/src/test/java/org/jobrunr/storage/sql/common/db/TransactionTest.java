@@ -20,7 +20,7 @@ class TransactionTest {
     @Test
     void testTransactionSucceedsWithAutocommitTrue() throws SQLException {
         //GIVEN
-        when(connection.getAutoCommit()).thenReturn(true);
+        when(connection.getAutoCommit()).thenReturn(true, false);
         final Transaction transaction = new Transaction(connection);
 
         //WHEN
@@ -28,9 +28,9 @@ class TransactionTest {
         transaction.close();
 
         //THEN
-        verify(connection, never()).commit();
+        verify(connection).commit();
         verify(connection, never()).rollback();
-        verify(connection, never()).setAutoCommit(anyBoolean());
+        verify(connection).setAutoCommit(true);
     }
 
     @Test
@@ -52,7 +52,7 @@ class TransactionTest {
     @Test
     void testTransactionFailsWithAutocommitTrue() throws SQLException {
         //GIVEN
-        when(connection.getAutoCommit()).thenReturn(true);
+        when(connection.getAutoCommit()).thenReturn(true, false);
         final Transaction transaction = new Transaction(connection);
 
         //WHEN
@@ -60,8 +60,8 @@ class TransactionTest {
 
         //THEN
         verify(connection, never()).commit();
-        verify(connection, never()).rollback();
-        verify(connection, never()).setAutoCommit(anyBoolean());
+        verify(connection).rollback();
+        verify(connection).setAutoCommit(true);
     }
 
     @Test
@@ -77,36 +77,5 @@ class TransactionTest {
         verify(connection, never()).commit();
         verify(connection).rollback();
         verify(connection, never()).setAutoCommit(anyBoolean());
-    }
-
-    @Test
-    void testTransactionSucceedsWithAutocommitTrueButOverriddenInTransaction() throws SQLException {
-        //GIVEN
-        when(connection.getAutoCommit()).thenReturn(true);
-        final Transaction transaction = new Transaction(connection, false);
-
-        //WHEN
-        transaction.commit();
-        transaction.close();
-
-        //THEN
-        verify(connection).commit();
-        verify(connection, never()).rollback();
-        verify(connection).setAutoCommit(true);
-    }
-
-    @Test
-    void testTransactionFailsWithAutocommitTrueButOverriddenInTransaction() throws SQLException {
-        //GIVEN
-        when(connection.getAutoCommit()).thenReturn(true);
-        final Transaction transaction = new Transaction(connection, false);
-
-        //WHEN
-        transaction.close();
-
-        //THEN
-        verify(connection, never()).commit();
-        verify(connection).rollback();
-        verify(connection).setAutoCommit(true);
     }
 }
