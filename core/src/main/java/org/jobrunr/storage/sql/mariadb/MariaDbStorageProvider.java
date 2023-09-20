@@ -27,13 +27,14 @@ public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
 
     public MariaDbStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         super(dataSource, new AnsiDialect(), tablePrefix, databaseOptions);
-        try(Connection connection = dataSource.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             String driverName = connection.getMetaData().getDriverName();
             int driverMajorVersion = connection.getMetaData().getDriverMajorVersion();
-            if(driverName.toLowerCase().contains("mariadb") && driverMajorVersion >= 3) {
+            int driverMinorVersion = connection.getMetaData().getDriverMinorVersion();
+            if (driverName.toLowerCase().contains("mariadb") && driverMajorVersion >= 3 && driverMinorVersion < 2) {
                 String url = connection.getMetaData().getURL();
-                if(!url.contains("useBulkStmts=false")) {
-                    throw new IllegalStateException("JobRunr requires a MariaDB connection with useBulkStmts=false as otherwise optimistic locking cannot be validated.");
+                if (!url.contains("useBulkStmts=false")) {
+                    throw new IllegalStateException("JobRunr with a MariaDB Driver in range [3.0-3.2) requires a MariaDB connection with useBulkStmts=false as otherwise optimistic locking cannot be validated.");
                 }
             }
         } catch (SQLException e) {
