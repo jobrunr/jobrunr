@@ -2,13 +2,13 @@ import java.text.SimpleDateFormat
 
 plugins {
     id 'java-library'
-    id 'io.micronaut.library' version '4.0.2'
+    id 'io.micronaut.library' version '4.1.1'
     id 'maven-publish'
     id 'signing'
 }
 
 micronaut {
-    version '4.0.3'
+    version '4.1.1'
 }
 
 java {
