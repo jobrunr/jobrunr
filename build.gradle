@@ -69,6 +69,11 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         testImplementation 'org.mockito:mockito-junit-jupiter'
     }
 
+    tasks.clean.doFirst {
+        delete "/tmp/reports/$project.name"
+        println "Deleted /tmp/reports/$project.name"
+    }
+
     test {
         finalizedBy jacocoTestReport
         reports.junitXml.destination = file("/tmp/reports/$project.name")
