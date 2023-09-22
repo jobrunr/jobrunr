@@ -2,7 +2,6 @@ package org.jobrunr.quarkus.autoconfigure.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.arc.DefaultBean;
-import io.quarkus.arc.properties.UnlessBuildProperty;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
