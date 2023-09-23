@@ -143,13 +143,14 @@ class JobRunrExtensionProcessor {
                 CpuAllocationIrregularityProblem.class.getName(), NewJobRunrVersionProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName()
         ).methods().fields().build());
 
+        Collection<ClassInfo> storageProviderImpls = indexBuildItem.getIndex().getAllKnownImplementors(StorageProvider.class);
         Collection<ClassInfo> jobRequestHandlerImpls = indexBuildItem.getIndex().getAllKnownImplementors(JobRequestHandler.class);
         Collection<ClassInfo> jobRequestImpls = indexBuildItem.getIndex().getAllKnownImplementors(JobRequest.class);
         Collection<ClassInfo> recurringClasses = indexBuildItem.getIndex().getAnnotations(DotName.createSimple(Recurring.class)).stream()
                 .map(annotationInstance -> annotationInstance.target().asMethod().declaringClass())
                 .collect(Collectors.toList());
 
-        String[] applicationClassNamesToRegister = Stream.of(jobRequestHandlerImpls.stream(), jobRequestImpls.stream(), recurringClasses.stream())
+        String[] applicationClassNamesToRegister = Stream.of(storageProviderImpls.stream(), jobRequestHandlerImpls.stream(), jobRequestImpls.stream(), recurringClasses.stream())
                 .flatMap(s -> s)
                 .map(classInfo -> classInfo.name().toString())
                 .toArray(String[]::new);
