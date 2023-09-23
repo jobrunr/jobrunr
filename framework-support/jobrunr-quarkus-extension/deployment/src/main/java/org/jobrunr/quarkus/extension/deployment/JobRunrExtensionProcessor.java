@@ -43,6 +43,15 @@ import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.storage.*;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.storage.sql.db2.DB2StorageProvider;
+import org.jobrunr.storage.sql.h2.H2StorageProvider;
+import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
+import org.jobrunr.storage.sql.mysql.MySqlStorageProvider;
+import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
+import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
+import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
+import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -127,7 +136,6 @@ class JobRunrExtensionProcessor {
             BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
             CombinedIndexBuildItem indexBuildItem
     ) {
-
         reflectiveClassProducer.produce(ReflectiveClassBuildItem.builder(
                 // wrapper types
                 Boolean.class.getName(), Byte.class.getName(), Character.class.getName(), Float.class.getName(), Integer.class.getName(), Long.class.getName(), Short.class.getName(),
@@ -140,7 +148,9 @@ class JobRunrExtensionProcessor {
                 // JobRunr Dashboard
                 BackgroundJobServerStatus.class.getName(), JobDashboardLogLine.class.getName(), JobDashboardLogLines.class.getName(), JobStats.class.getName(), JobStatsExtended.class.getName(), JobStatsExtended.Estimation.class.getName(), JobRunrMetadata.class.getName(), Page.class.getName(), PageRequest.class.getName(), RecurringJobUIModel.class.getName(), VersionUIModel.class.getName(),
                 // JobRunr Dashboard Problems
-                CpuAllocationIrregularityProblem.class.getName(), NewJobRunrVersionProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName()
+                CpuAllocationIrregularityProblem.class.getName(), NewJobRunrVersionProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName(),
+                // Storage Providers
+                DefaultSqlStorageProvider.class.getName(), DB2StorageProvider.class.getName(), H2StorageProvider.class.getName(), MariaDbStorageProvider.class.getName(), MySqlStorageProvider.class.getName(), OracleStorageProvider.class.getName(), PostgresStorageProvider.class.getName(), SQLServerStorageProvider.class.getName(), SqLiteStorageProvider.class.getName()
         ).methods().fields().build());
 
         Collection<ClassInfo> storageProviderImpls = indexBuildItem.getIndex().getAllKnownImplementors(StorageProvider.class);
