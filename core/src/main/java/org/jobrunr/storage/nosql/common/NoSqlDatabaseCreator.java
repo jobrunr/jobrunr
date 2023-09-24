@@ -18,8 +18,6 @@ public abstract class NoSqlDatabaseCreator<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NoSqlDatabaseCreator.class);
 
-    private static Random randomTimeOnFailure = new Random();
-
     private final NoSqlDatabaseMigrationsProvider databaseMigrationsProvider;
 
     protected NoSqlDatabaseCreator(NoSqlStorageProvider noSqlStorageProvider) {
@@ -61,7 +59,7 @@ public abstract class NoSqlDatabaseCreator<T> {
                 markMigrationAsDone(noSqlMigration);
             } catch (Exception exceptionCausedByConcurrentMigration) {
                 try {
-                    sleep(randomTimeOnFailure.nextInt(1000));
+                    sleep(new Random().nextInt(1000));
                     if(isNewMigration(noSqlMigration)) {
                         runMigration(noSqlMigration.getMigration());
                         markMigrationAsDone(noSqlMigration);
