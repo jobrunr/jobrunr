@@ -84,7 +84,6 @@ class JobRunrExtensionProcessor {
         additionalBeans.add(JobRunrProducer.class);
         additionalBeans.add(JobRunrStarter.class);
         additionalBeans.add(jsonMapper(capabilities));
-        additionalBeans.add(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
         additionalBeans.addAll(storageProvider(capabilities, jobRunrConfiguration));
 
         return AdditionalBeanBuildItem.builder()

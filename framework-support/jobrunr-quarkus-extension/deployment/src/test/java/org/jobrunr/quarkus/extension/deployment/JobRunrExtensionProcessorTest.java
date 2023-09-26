@@ -61,10 +61,12 @@ class JobRunrExtensionProcessorTest {
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(JobRunrProducer.class.getName())
-                .contains(JobRunrStarter.class.getName())
-                .contains(JobRunrInMemoryStorageProviderProducer.class.getName())
-                .contains(JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName());
+                .containsOnly(
+                        JobRunrProducer.class.getName(),
+                        JobRunrStarter.class.getName(),
+                        JobRunrInMemoryStorageProviderProducer.class.getName(),
+                        JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName()
+                );
     }
 
     @Test
