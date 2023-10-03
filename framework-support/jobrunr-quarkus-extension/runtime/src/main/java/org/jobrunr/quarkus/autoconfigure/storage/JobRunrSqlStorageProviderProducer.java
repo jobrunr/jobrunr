@@ -8,7 +8,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
@@ -22,7 +22,7 @@ public class JobRunrSqlStorageProviderProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrConfiguration configuration) {
+    public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
         if (configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("sql")) return null;
 
         String tablePrefix = configuration.database.tablePrefix.orElse(null);
@@ -32,7 +32,7 @@ public class JobRunrSqlStorageProviderProducer {
         return storageProvider;
     }
 
-    private DataSource getDataSource(Instance<DataSource> dataSources, JobRunrConfiguration configuration) {
+    private DataSource getDataSource(Instance<DataSource> dataSources, JobRunrRuntimeConfiguration configuration) {
         return dataSources.select(DataSource.class, toAnnotationQualifier(configuration.database.datasource)).get();
     }
 

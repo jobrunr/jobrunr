@@ -31,14 +31,17 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 public class JobRunrProducer {
 
     @Inject
-    JobRunrConfiguration configuration;
+    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+
+    @Inject
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Produces
     @DefaultBean
     @Singleton
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        if (configuration.jobScheduler.enabled) {
-            final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.jobScheduler.jobDetailsGenerator.orElse(CachingJobDetailsGenerator.class.getName()));
+        if (jobRunrBuildTimeConfiguration.jobScheduler.enabled) {
+            final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler.jobDetailsGenerator.orElse(CachingJobDetailsGenerator.class.getName()));
             return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         }
         return null;
@@ -48,7 +51,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
-        if (configuration.jobScheduler.enabled) {
+        if (jobRunrBuildTimeConfiguration.jobScheduler.enabled) {
             return new JobRequestScheduler(storageProvider, emptyList());
         }
         return null;
@@ -58,16 +61,16 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
-        if (configuration.backgroundJobServer.enabled) {
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer.enabled) {
             final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
-            configuration.backgroundJobServer.name.ifPresent(backgroundJobServerConfiguration::andName);
-            configuration.backgroundJobServer.pollIntervalInSeconds.ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
-            configuration.backgroundJobServer.workerCount.ifPresent(backgroundJobServerConfiguration::andWorkerCount);
-            configuration.backgroundJobServer.deleteSucceededJobsAfter.ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
-            configuration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter.ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
-            configuration.backgroundJobServer.scheduledJobsRequestSize.ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
-            configuration.backgroundJobServer.orphanedJobsRequestSize.ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
-            configuration.backgroundJobServer.succeededsJobRequestSize.ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
+            jobRunrRuntimeConfiguration.backgroundJobServer.name.ifPresent(backgroundJobServerConfiguration::andName);
+            jobRunrRuntimeConfiguration.backgroundJobServer.pollIntervalInSeconds.ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
+            jobRunrRuntimeConfiguration.backgroundJobServer.workerCount.ifPresent(backgroundJobServerConfiguration::andWorkerCount);
+            jobRunrRuntimeConfiguration.backgroundJobServer.deleteSucceededJobsAfter.ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
+            jobRunrRuntimeConfiguration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter.ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+            jobRunrRuntimeConfiguration.backgroundJobServer.scheduledJobsRequestSize.ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
+            jobRunrRuntimeConfiguration.backgroundJobServer.orphanedJobsRequestSize.ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
+            jobRunrRuntimeConfiguration.backgroundJobServer.succeededsJobRequestSize.ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
             return backgroundJobServerConfiguration;
         }
         return null;
@@ -77,9 +80,9 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        if (configuration.backgroundJobServer.enabled) {
-            int defaultNbrOfRetries = configuration.jobs.defaultNumberOfRetries.orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
-            int retryBackOffTimeSeed = configuration.jobs.retryBackOffTimeSeed.orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer.enabled) {
+            int defaultNbrOfRetries = jobRunrRuntimeConfiguration.jobs.defaultNumberOfRetries.orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
+            int retryBackOffTimeSeed = jobRunrRuntimeConfiguration.jobs.retryBackOffTimeSeed.orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
             BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
             backgroundJobServer.setJobFilters(singletonList(new RetryFilter(defaultNbrOfRetries, retryBackOffTimeSeed)));
             return backgroundJobServer;
@@ -91,13 +94,13 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration() {
-        if (configuration.dashboard.enabled) {
+        if (jobRunrBuildTimeConfiguration.dashboard.enabled) {
             final JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration = usingStandardDashboardConfiguration();
-            configuration.dashboard.port.ifPresent(dashboardWebServerConfiguration::andPort);
-            if (configuration.dashboard.username.isPresent() && configuration.dashboard.password.isPresent()) {
-                dashboardWebServerConfiguration.andBasicAuthentication(configuration.dashboard.username.get(), configuration.dashboard.password.get());
+            jobRunrRuntimeConfiguration.dashboard.port.ifPresent(dashboardWebServerConfiguration::andPort);
+            if (jobRunrRuntimeConfiguration.dashboard.username.isPresent() && jobRunrRuntimeConfiguration.dashboard.password.isPresent()) {
+                dashboardWebServerConfiguration.andBasicAuthentication(jobRunrRuntimeConfiguration.dashboard.username.get(), jobRunrRuntimeConfiguration.dashboard.password.get());
             }
-            dashboardWebServerConfiguration.andAllowAnonymousDataUsage(configuration.miscellaneous.allowAnonymousDataUsage);
+            dashboardWebServerConfiguration.andAllowAnonymousDataUsage(jobRunrRuntimeConfiguration.miscellaneous.allowAnonymousDataUsage);
             return dashboardWebServerConfiguration;
         }
         return null;
@@ -107,7 +110,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration) {
-        if (configuration.dashboard.enabled) {
+        if (jobRunrBuildTimeConfiguration.dashboard.enabled) {
             return new JobRunrDashboardWebServer(storageProvider, jobRunrJsonMapper, dashboardWebServerConfiguration);
         }
         return null;

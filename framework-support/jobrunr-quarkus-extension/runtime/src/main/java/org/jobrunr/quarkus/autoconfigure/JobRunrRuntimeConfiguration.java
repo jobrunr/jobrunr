@@ -8,8 +8,8 @@ import io.quarkus.runtime.annotations.ConfigRoot;
 import java.time.Duration;
 import java.util.Optional;
 
-@ConfigRoot(name = "jobrunr", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
-public class JobRunrConfiguration {
+@ConfigRoot(name = "jobrunr", phase = ConfigPhase.RUN_TIME)
+public class JobRunrRuntimeConfiguration {
 
     public DatabaseConfiguration database;
 
@@ -22,12 +22,6 @@ public class JobRunrConfiguration {
     public DashboardConfiguration dashboard;
 
     public MiscellaneousConfiguration miscellaneous;
-
-    /**
-     * Whether or not an health check is published in case the smallrye-health extension is present.
-     */
-    @ConfigItem(name = "health.enabled", defaultValue = "true")
-    public boolean healthEnabled;
 
     @ConfigGroup
     public static class DatabaseConfiguration {
@@ -78,24 +72,10 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<Integer> retryBackOffTimeSeed;
-
-        /**
-         * Configures MicroMeter metrics related to jobs
-         */
-        @ConfigItem
-        public MetricsConfiguration metrics;
     }
 
     @ConfigGroup
     public static class JobSchedulerConfiguration {
-
-        /**
-         * Enables the scheduling of jobs.
-         */
-        @ConfigItem(defaultValue = "true")
-        public boolean enabled;
-
-
         /**
          * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
          * JobDetailsGenerator, and it should have a default no-argument constructor.
@@ -112,12 +92,6 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<String> name;
-
-        /**
-         * Enables the background processing of jobs.
-         */
-        @ConfigItem(defaultValue = "false")
-        public boolean enabled;
 
         /**
          * Sets the workerCount for the BackgroundJobServer which defines the maximum number of jobs that will be run in parallel.
@@ -161,22 +135,10 @@ public class JobRunrConfiguration {
          */
         @ConfigItem
         public Optional<Duration> permanentlyDeleteDeletedJobsAfter;
-
-        /**
-         * Configures MicroMeter metrics related to the background job server
-         */
-        @ConfigItem
-        public MetricsConfiguration metrics;
     }
 
     @ConfigGroup
     public static class DashboardConfiguration {
-
-        /**
-         * Enables the JobRunr dashboard.
-         */
-        @ConfigItem(defaultValue = "false")
-        public boolean enabled;
 
         /**
          * The port on which the Dashboard should run
@@ -206,16 +168,6 @@ public class JobRunrConfiguration {
          */
         @ConfigItem(defaultValue = "true")
         public boolean allowAnonymousDataUsage;
-    }
-
-    @ConfigGroup
-    public static class MetricsConfiguration {
-
-        /**
-         * Configures whether metrics are reported to MicroMeter.
-         */
-        @ConfigItem(defaultValue = "false")
-        public boolean enabled;
     }
 }
 
