@@ -2,7 +2,8 @@ package org.jobrunr.quarkus.autoconfigure.health;
 
 import jakarta.enterprise.inject.Instance;
 import org.eclipse.microprofile.health.HealthCheckResponse;
-import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class JobRunrHealthCheckTest {
 
-    private JobRunrConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    private JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
     @Mock
     private Instance<BackgroundJobServer> backgroundJobServerProviderInstance;
@@ -29,13 +30,13 @@ class JobRunrHealthCheckTest {
 
     @BeforeEach
     void setUpHealthIndicator() {
-        final JobRunrConfiguration jobRunrConfiguration = new JobRunrConfiguration();
-        backgroundJobServerConfiguration = new JobRunrConfiguration.BackgroundJobServerConfiguration();
-        jobRunrConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
+        final JobRunrBuildTimeConfiguration jobRunrRuntimeConfiguration = new JobRunrBuildTimeConfiguration();
+        backgroundJobServerConfiguration = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
+        jobRunrRuntimeConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
 
         lenient().when(backgroundJobServerProviderInstance.get()).thenReturn(backgroundJobServer);
 
-        jobRunrHealthCheck = new JobRunrHealthCheck(jobRunrConfiguration, backgroundJobServerProviderInstance);
+        jobRunrHealthCheck = new JobRunrHealthCheck(jobRunrRuntimeConfiguration, backgroundJobServerProviderInstance);
     }
 
     @Test
@@ -59,5 +60,4 @@ class JobRunrHealthCheckTest {
 
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
     }
-
 }

@@ -34,9 +34,7 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.jobs.states.*;
 import org.jobrunr.quarkus.annotations.Recurring;
-import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
-import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
+import org.jobrunr.quarkus.autoconfigure.*;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
@@ -79,12 +77,12 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem produce(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
+    AdditionalBeanBuildItem produce(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
         Set<Class<?>> additionalBeans = new HashSet<>();
         additionalBeans.add(JobRunrProducer.class);
         additionalBeans.add(JobRunrStarter.class);
         additionalBeans.add(jsonMapper(capabilities));
-        additionalBeans.addAll(storageProvider(capabilities, jobRunrConfiguration));
+        additionalBeans.addAll(storageProvider(capabilities, jobRunrBuildTimeConfiguration));
 
         return AdditionalBeanBuildItem.builder()
                 .setUnremovable()
@@ -93,14 +91,14 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem addMetrics(Optional<MetricsCapabilityBuildItem> metricsCapability, JobRunrConfiguration jobRunrConfiguration) {
+    AdditionalBeanBuildItem addMetrics(Optional<MetricsCapabilityBuildItem> metricsCapability, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
         if (metricsCapability.isPresent() && metricsCapability.get().metricsSupported(MetricsFactory.MICROMETER)) {
             final AdditionalBeanBuildItem.Builder additionalBeanBuildItemBuilder = AdditionalBeanBuildItem.builder()
                     .setUnremovable()
                     .addBeanClasses(JobRunrMetricsStarter.class)
                     .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
 
-            if (jobRunrConfiguration.backgroundJobServer.enabled) {
+            if (jobRunrBuildTimeConfiguration.backgroundJobServer.enabled) {
                 additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
             }
             return additionalBeanBuildItemBuilder
@@ -111,16 +109,16 @@ class JobRunrExtensionProcessor {
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder, JobRunrConfiguration jobRunrConfiguration) throws NoSuchMethodException {
-        if (jobRunrConfiguration.jobScheduler.enabled) {
+    void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) throws NoSuchMethodException {
+        if (jobRunrBuildTimeConfiguration.jobScheduler.enabled) {
             new RecurringJobsFinder(recorderContext, index, beanContainer, recorder).findRecurringJobsAndScheduleThem();
         }
     }
 
     @BuildStep
-    HealthBuildItem addHealthCheck(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
+    HealthBuildItem addHealthCheck(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
         if (capabilities.isPresent(Capability.SMALLRYE_HEALTH)) {
-            return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrConfiguration.healthEnabled);
+            return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrBuildTimeConfiguration.healthEnabled);
         }
         return null;
     }
@@ -172,13 +170,13 @@ class JobRunrExtensionProcessor {
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerStaticResources(
             BuildProducer<NativeImageResourceDirectoryBuildItem> nativeImageResourceDirectoryProducer,
-            JobRunrConfiguration jobRunrConfiguration
+            JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration
     ) {
-        if (jobRunrConfiguration.dashboard.enabled) {
+        if (jobRunrBuildTimeConfiguration.dashboard.enabled) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/dashboard/frontend/build"));
         }
 
-        if ("sql".equalsIgnoreCase(jobRunrConfiguration.database.type.orElse(null))) {
+        if ("sql".equalsIgnoreCase(jobRunrBuildTimeConfiguration.database.type.orElse(null))) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/storage/sql"));
         }
     }
@@ -210,8 +208,8 @@ class JobRunrExtensionProcessor {
         throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
     }
 
-    private Set<Class<?>> storageProvider(Capabilities capabilities, JobRunrConfiguration jobRunrConfiguration) {
-        String databaseType = jobRunrConfiguration.database.type.orElse(null);
+    private Set<Class<?>> storageProvider(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
+        String databaseType = jobRunrBuildTimeConfiguration.database.type.orElse(null);
         if ("sql".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.AGROAL)) {
             throw new IllegalStateException("You configured 'sql' as a JobRunr Database Type but the AGROAL capability is not available");
         } else if ("mongodb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
