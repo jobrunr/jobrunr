@@ -9,15 +9,15 @@ version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 dependencies {
     constraints {
         api 'org.slf4j:slf4j-api:2.0.9'
-        api 'org.ow2.asm:asm:9.5'
-        api 'org.ow2.asm:asm-util:9.5'
+        api 'org.ow2.asm:asm:9.6'
+        api 'org.ow2.asm:asm-util:9.6'
 
         api 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3'
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3'
         api 'com.google.code.gson:gson:2.10.1'
         api 'org.eclipse:yasson:3.0.3'
-        api 'io.micrometer:micrometer-core:1.11.4'
+        api 'io.micrometer:micrometer-core:1.11.5'
         api 'io.insert-koin:koin-core:3.5.0'
 
         api 'org.xerial:sqlite-jdbc:3.43.0.0'
@@ -45,7 +45,7 @@ dependencies {
         api 'com.tngtech.archunit:archunit-junit5:1.1.0'
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.38.0'
         api 'org.mockito:mockito-inline:5.2.0'
-        api 'org.mockito:mockito-junit-jupiter:5.5.0'
+        api 'org.mockito:mockito-junit-jupiter:5.6.0'
         api 'ch.qos.logback:logback-classic:1.4.11'
         api 'org.testcontainers:testcontainers:1.19.1'
         api 'org.testcontainers:junit-jupiter:1.19.1'
