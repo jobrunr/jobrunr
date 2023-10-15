@@ -768,7 +768,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     private long count(final List<StringTermsBucket> buckets, final StateName state) {
         return buckets
                 .stream()
-                .filter(bucket -> Objects.equals(state.name(), bucket.key()))
+                .filter(bucket -> Objects.equals(state.name(), bucket.key().stringValue()))
                 .map(StringTermsBucket::docCount)
                 .findFirst()
                 .orElse(0L);

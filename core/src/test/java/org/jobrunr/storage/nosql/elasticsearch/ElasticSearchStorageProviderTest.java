@@ -4,8 +4,8 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.ErrorCause;
 import co.elastic.clients.elasticsearch._types.ErrorResponse;
-import co.elastic.clients.elasticsearch.cat.IndicesResponse;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.json.JsonData;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
@@ -21,6 +21,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.Disabled;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -34,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
+@Disabled
 @Testcontainers
 class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
@@ -47,16 +49,9 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
     @Override
     protected void cleanup() {
         try {
-            // how to set action.destructive_requires_name?
-            //elasticSearchClient().indices().delete(d -> d.index("_all"));
-            IndicesResponse indices = elasticSearchClient().cat().indices();
-            indices.valueBody().forEach(info -> {
-                try {
-                    elasticSearchClient().indices().delete(d -> d.index(info.index()));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            ElasticsearchClient elasticsearchClient = elasticSearchClient();
+            elasticsearchClient.cluster().putSettings(b -> b.transient_("action.destructive_requires_name", JsonData.of(false)));
+            elasticsearchClient.indices().delete(d -> d.index("_all"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

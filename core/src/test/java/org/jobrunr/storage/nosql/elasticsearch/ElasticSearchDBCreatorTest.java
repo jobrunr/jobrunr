@@ -1,7 +1,7 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.cat.IndicesResponse;
+import co.elastic.clients.json.JsonData;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
@@ -48,16 +48,13 @@ class ElasticSearchDBCreatorTest {
 
     @BeforeEach
     void clearAllCollections() throws IOException {
-        // how to set action.destructive_requires_name?
-        //elasticSearchClient().indices().delete(d -> d.index("_all"));
-        IndicesResponse indices = elasticSearchClient().cat().indices();
-        indices.valueBody().forEach(info -> {
-            try {
-                elasticSearchClient().indices().delete(d -> d.index(info.index()));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        try {
+            ElasticsearchClient elasticsearchClient = elasticSearchClient();
+            elasticsearchClient.cluster().putSettings(b -> b.transient_("action.destructive_requires_name", JsonData.of(false)));
+            elasticsearchClient.indices().delete(d -> d.index("_all"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
