@@ -1,11 +1,16 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.cat.IndicesResponse;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.client.RequestOptions;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationByClass;
@@ -31,14 +36,28 @@ import static org.assertj.core.api.Assertions.*;
 class ElasticSearchDBCreatorTest {
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.10.1").withExposedPorts(9200);
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.3")
+            .withEnv("ES_JAVA_OPTS", "-Xmx2048m")
+            .withEnv("xpack.security.enabled", Boolean.FALSE.toString())
+            .withPassword("password")
+            .withExposedPorts(9200);
+
 
     @Mock
     private ElasticSearchStorageProvider elasticSearchStorageProviderMock;
 
     @BeforeEach
     void clearAllCollections() throws IOException {
-        elasticSearchClient().indices().delete(new DeleteIndexRequest("_all"), RequestOptions.DEFAULT);
+        // how to set action.destructive_requires_name?
+        //elasticSearchClient().indices().delete(d -> d.index("_all"));
+        IndicesResponse indices = elasticSearchClient().cat().indices();
+        indices.valueBody().forEach(info -> {
+            try {
+                elasticSearchClient().indices().delete(d -> d.index(info.index()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Test
@@ -53,7 +72,7 @@ class ElasticSearchDBCreatorTest {
 
         assertThat(elasticSearchDBCreator.isNewMigration(new NoSqlMigrationByClass(M001_CreateJobsIndex.class))).isFalse();
         assertThat(elasticSearchDBCreator.isNewMigration(new NoSqlMigrationByClass(M002_CreateRecurringJobsIndex.class))).isFalse();
-        assertThat(elasticSearchClient().indices().get(new GetIndexRequest("*"), RequestOptions.DEFAULT).getIndices()).hasSize(5);
+        assertThat(elasticSearchClient().indices().get(g -> g.index("*")).result()).hasSize(5);
     }
 
     @Test
@@ -66,7 +85,7 @@ class ElasticSearchDBCreatorTest {
         elasticSearchDBCreator.runMigrations();
 
         assertThatCode(elasticSearchDBCreator::validateIndices).doesNotThrowAnyException();
-        assertThat(elasticSearchClient().indices().get(new GetIndexRequest("*"), RequestOptions.DEFAULT).getIndices()).hasSize(5);
+        assertThat(elasticSearchClient().indices().get(g -> g.index("*")).result()).hasSize(5);
     }
 
     @Test
@@ -95,10 +114,18 @@ class ElasticSearchDBCreatorTest {
         assertThatCode(elasticSearchDBCreator::runMigrations).doesNotThrowAnyException();
     }
 
-    private RestHighLevelClient elasticSearchClient() {
-        return new RestHighLevelClient(
-                RestClient.builder(
-                        new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getMappedPort(9200), "http")));
+    private ElasticsearchClient elasticSearchClient() {
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(
+                AuthScope.ANY,
+                new UsernamePasswordCredentials("elastic", "password")
+        );
 
+        final RestClient http = RestClient
+                .builder(HttpHost.create(elasticSearchContainer.getHttpHostAddress()))
+                .setHttpClientConfigCallback(cb -> cb.setDefaultCredentialsProvider(credentialsProvider))
+                .build();
+        final ElasticsearchTransport transport = new RestClientTransport(http, new JacksonJsonpMapper());
+        return new ElasticsearchClient(transport);
     }
 }

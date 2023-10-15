@@ -1,43 +1,62 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.ErrorCause;
+import co.elastic.clients.elasticsearch._types.ErrorResponse;
+import co.elastic.clients.elasticsearch.cat.IndicesResponse;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpHost;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.client.RequestOptions;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
-import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Disabled;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
+import java.util.function.Function;
 
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
-@Disabled
 @Testcontainers
 class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.10.1").withExposedPorts(9200);
-
-    private static RestHighLevelClient restHighLevelClient;
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.3")
+            .withEnv("ES_JAVA_OPTS", "-Xmx2048m")
+            .withEnv("xpack.security.enabled", Boolean.FALSE.toString())
+            .withPassword("password")
+            .withExposedPorts(9200);
 
     @Override
     protected void cleanup() {
         try {
-            getElasticSearchClient().indices().delete(new DeleteIndexRequest("_all"), RequestOptions.DEFAULT);
+            // how to set action.destructive_requires_name?
+            //elasticSearchClient().indices().delete(d -> d.index("_all"));
+            IndicesResponse indices = elasticSearchClient().cat().indices();
+            indices.valueBody().forEach(info -> {
+                try {
+                    elasticSearchClient().indices().delete(d -> d.index(info.index()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -45,9 +64,9 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(getElasticSearchClient(), DatabaseOptions.CREATE, rateLimit().withoutLimits());
-        elasticSearchStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        return elasticSearchStorageProvider;
+        final ElasticSearchStorageProvider provider = new ElasticSearchStorageProvider(elasticSearchClient(), CREATE, rateLimit().withoutLimits());
+        provider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+        return provider;
     }
 
     @Override
@@ -55,18 +74,21 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
         return new ThrowingElasticSearchStorageProvider(storageProvider);
     }
 
-    @AfterAll
-    public static void closeElasticSearch() throws IOException {
-        restHighLevelClient.close();
-    }
+    private ElasticsearchClient elasticSearchClient() {
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(
+                AuthScope.ANY,
+                new UsernamePasswordCredentials("elastic", "password")
+        );
 
-    private static RestHighLevelClient getElasticSearchClient() {
-        if (restHighLevelClient == null) {
-            restHighLevelClient = new RestHighLevelClient(
-                    RestClient.builder(
-                            new HttpHost(elasticSearchContainer.getHost(), elasticSearchContainer.getMappedPort(9200), "http")));
-        }
-        return restHighLevelClient;
+        final RestClient http = RestClient
+                .builder(HttpHost.create(elasticSearchContainer.getHttpHostAddress()))
+                .setHttpClientConfigCallback(cb -> cb.setDefaultCredentialsProvider(credentialsProvider))
+                .build();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        final ElasticsearchTransport transport = new RestClientTransport(http, new JacksonJsonpMapper(objectMapper));
+        return new ElasticsearchClient(transport);
     }
 
     public static class ThrowingElasticSearchStorageProvider extends ThrowingStorageProvider {
@@ -76,11 +98,13 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
         }
 
         @Override
-        protected void makeStorageProviderThrowException(StorageProvider storageProvider) throws Exception {
-            RestHighLevelClient clientMock = mock(RestHighLevelClient.class);
-            when(clientMock.index(any(), any())).thenThrow(new ElasticsearchException("Some index exception"));
-            when(clientMock.bulk(any(), any())).thenThrow(new ElasticsearchException("Some bulk index exception"));
-            setInternalState(storageProvider, "client", clientMock);
+        protected void makeStorageProviderThrowException(StorageProvider provider) throws Exception {
+            ElasticsearchClient client = mock(ElasticsearchClient.class);
+            ErrorResponse errorResponse = mock(ErrorResponse.class);
+            when(errorResponse.error()).thenReturn(mock(ErrorCause.class));
+            doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).index(any(Function.class));
+            doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).bulk(any(BulkRequest.class));
+            setInternalState(provider, "client", client);
         }
     }
 }
