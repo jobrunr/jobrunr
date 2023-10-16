@@ -1,11 +1,13 @@
 package org.jobrunr.tests.e2e;
 
 import org.jobrunr.storage.StorageProvider;
+import org.junit.jupiter.api.Disabled;
 import org.testcontainers.containers.Network;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Disabled("My NAS only has 8GB of RAM which is not enough for Elastic and thus this test is flaky")
 @Testcontainers
 public class ElasticSearchE2ETest extends AbstractE2ETest {
 
