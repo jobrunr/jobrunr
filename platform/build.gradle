@@ -36,7 +36,7 @@ dependencies {
         api 'redis.clients:jedis:5.0.0'
         api 'io.lettuce:lettuce-core:6.2.6.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:4.10.2'
-        api 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.13'
+        api 'co.elastic.clients:elasticsearch-java:8.10.3'
 
         api 'org.junit.jupiter:junit-jupiter:5.10.0'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'

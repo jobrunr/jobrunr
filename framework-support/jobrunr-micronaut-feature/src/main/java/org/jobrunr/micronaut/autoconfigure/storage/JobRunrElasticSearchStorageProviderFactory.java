@@ -1,19 +1,20 @@
 package org.jobrunr.micronaut.autoconfigure.storage;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Requires;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.micronaut.autoconfigure.JobRunrConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils;
+import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 
 @Factory
-@Requires(classes = {RestHighLevelClient.class})
-@Requires(beans = {RestHighLevelClient.class})
+@Requires(classes = {ElasticsearchClient.class})
+@Requires(beans = {ElasticsearchClient.class})
 @Requires(property = "jobrunr.database.type", value = "elasticsearch", defaultValue = "elasticsearch")
 public class JobRunrElasticSearchStorageProviderFactory {
 
@@ -22,10 +23,11 @@ public class JobRunrElasticSearchStorageProviderFactory {
 
     @Singleton
     @Primary
-    public StorageProvider elasticSearchStorageProvider(RestHighLevelClient restHighLevelClient, JobMapper jobMapper) {
+    public StorageProvider elasticSearchStorageProvider(ElasticsearchClient elasticsearchClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
-        org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider elasticSearchStorageProvider = new org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider(restHighLevelClient, tablePrefix, databaseOptions);
+        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(elasticsearchClient);
+        new ElasticSearchStorageProvider(elasticsearchClient, tablePrefix, databaseOptions);
         elasticSearchStorageProvider.setJobMapper(jobMapper);
         return elasticSearchStorageProvider;
     }
