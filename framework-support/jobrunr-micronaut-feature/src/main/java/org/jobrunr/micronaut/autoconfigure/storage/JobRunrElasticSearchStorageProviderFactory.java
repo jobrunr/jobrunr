@@ -26,8 +26,7 @@ public class JobRunrElasticSearchStorageProviderFactory {
     public StorageProvider elasticSearchStorageProvider(ElasticsearchClient elasticsearchClient, JobMapper jobMapper) {
         String tablePrefix = configuration.getDatabase().getTablePrefix().orElse(null);
         StorageProviderUtils.DatabaseOptions databaseOptions = configuration.getDatabase().isSkipCreate() ? StorageProviderUtils.DatabaseOptions.SKIP_CREATE : StorageProviderUtils.DatabaseOptions.CREATE;
-        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(elasticsearchClient);
-        new ElasticSearchStorageProvider(elasticsearchClient, tablePrefix, databaseOptions);
+        ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(elasticsearchClient, tablePrefix, databaseOptions);
         elasticSearchStorageProvider.setJobMapper(jobMapper);
         return elasticSearchStorageProvider;
     }
