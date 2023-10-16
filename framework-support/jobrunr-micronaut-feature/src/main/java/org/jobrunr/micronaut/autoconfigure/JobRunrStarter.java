@@ -1,8 +1,8 @@
 package org.jobrunr.micronaut.autoconfigure;
 
+import io.micronaut.context.event.ShutdownEvent;
+import io.micronaut.context.event.StartupEvent;
 import io.micronaut.runtime.event.annotation.EventListener;
-import io.micronaut.runtime.server.event.ServerShutdownEvent;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
@@ -27,7 +27,7 @@ public class JobRunrStarter {
     private Optional<JobRunrDashboardWebServer> dashboardWebServer;
 
     @EventListener
-    void startup(ServerStartupEvent event) {
+    void startup(StartupEvent event) {
         if (configuration.getBackgroundJobServer().isEnabled()) {
             backgroundJobServer.get().start();
         }
@@ -37,7 +37,7 @@ public class JobRunrStarter {
     }
 
     @EventListener
-    void shutdown(ServerShutdownEvent event) {
+    void shutdown(ShutdownEvent event) {
         if (configuration.getBackgroundJobServer().isEnabled()) {
             backgroundJobServer.get().stop();
         }

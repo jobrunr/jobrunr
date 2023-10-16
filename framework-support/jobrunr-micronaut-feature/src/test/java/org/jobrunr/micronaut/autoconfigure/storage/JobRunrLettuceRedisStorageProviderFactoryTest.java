@@ -6,10 +6,10 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
@@ -22,11 +22,6 @@ class JobRunrLettuceRedisStorageProviderFactoryTest {
     @Inject
     ApplicationContext context;
 
-    @BeforeEach
-    void setupRedisClient() {
-        context.registerSingleton(redisClient());
-    }
-
     @Test
     void lettuceRedisStorageProviderAutoConfigurationTest() {
         assertThat(context).hasSingleBean(StorageProvider.class);
@@ -36,6 +31,7 @@ class JobRunrLettuceRedisStorageProviderFactoryTest {
         assertThat(context).doesNotHaveBean(InMemoryStorageProvider.class);
     }
 
+    @Singleton
     public RedisClient redisClient() {
         RedisClient redisClient = mock(RedisClient.class);
         StatefulRedisConnection connection = mock(StatefulRedisConnection.class);
