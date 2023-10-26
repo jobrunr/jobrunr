@@ -7,16 +7,19 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers
 @Disabled("My NAS only has 8GB of RAM which is not enough for Elastic and thus this test is flaky")
+@Testcontainers
 public class ElasticSearchE2ETest extends AbstractE2ETest {
 
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:7.10.1")
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.3")
             .withNetwork(network)
             .withNetworkAliases("elasticsearch")
+            .withEnv("ES_JAVA_OPTS", "-Xmx2048m")
+            .withEnv("xpack.security.enabled", Boolean.FALSE.toString())
+            .withPassword("password")
             .withExposedPorts(9200);
 
     @Container

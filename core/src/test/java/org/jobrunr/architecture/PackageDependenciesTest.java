@@ -110,7 +110,7 @@ class PackageDependenciesTest {
     ArchRule jobRunrStorageElasticSearchClassesDependenciesTest = classes()
             .that().resideInAPackage("org.jobrunr.storage.nosql.elasticsearch..")
             .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.elasticsearch..", "org.apache.http..", "org.slf4j..", "java..")
+                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "co.elastic..", "org.elasticsearch.client..", "org.apache.http..", "jakarta.json..", "org.slf4j..", "java..")
                             .or(are(equivalentTo(JobRunrException.class)))
             );
 

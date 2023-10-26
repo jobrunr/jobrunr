@@ -38,7 +38,10 @@ import org.jobrunr.quarkus.autoconfigure.*;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
-import org.jobrunr.quarkus.autoconfigure.storage.*;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
@@ -216,8 +219,6 @@ class JobRunrExtensionProcessor {
             throw new IllegalStateException("You configured 'mongodb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
         } else if ("documentdb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
             throw new IllegalStateException("You configured 'documentdb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
-        } else if ("elasticsearch".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)) {
-            throw new IllegalStateException("You configured 'elasticsearch' as a JobRunr Database Type but the ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT capability is not available");
         }
 
         if (isCapabilityPresentAndConfigured(capabilities, Capability.AGROAL, "sql", databaseType)) {
@@ -226,8 +227,6 @@ class JobRunrExtensionProcessor {
             return asSet(JobRunrMongoDBStorageProviderProducer.class);
         } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
             return asSet(JobRunrDocumentDBStorageProviderProducer.class);
-        } else if (isCapabilityPresentAndConfigured(capabilities, Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT, "elasticsearch", databaseType)) {
-            return asSet(JobRunrElasticSearchStorageProviderProducer.class);
         } else {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }

@@ -22,8 +22,8 @@ java {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.2.6.Final')
-    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.2.6.Final'
+    api platform('io.quarkus:quarkus-bom:3.4.3')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.4.3'
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
@@ -34,15 +34,15 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'org.eclipse:yasson'
-
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'co.elastic.clients:elasticsearch-java'
+    compileOnly 'org.graalvm.sdk:graal-sdk'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testImplementation 'co.elastic.clients:elasticsearch-java'
 }
 
 java {

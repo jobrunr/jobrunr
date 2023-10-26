@@ -5,15 +5,24 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import org.jobrunr.storage.StorageProvider;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 
 @MicronautTest(rebuildContext = true)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class JobRunrHealthIndicatorRegistrationTest {
 
     @Inject
     ApplicationContext context;
+
+    @Test
+    void aFirstTestThatReloadsTheContextToMakeFlakyTestWork() {
+        assertThat(context).hasSingleBean(StorageProvider.class);
+    }
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
