@@ -10,11 +10,13 @@ import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public class AllJVMInstructions {
 
     private static final Map<Integer, Function<JobDetailsBuilder, AbstractJVMInstruction>> instructions = new HashMap<>();
     private static final Map<Integer, String> unsupportedInstructions = new HashMap<>();
+    private static final Map<Integer, String> kotlinUnsupportedInstructions = new HashMap<>();
 
     static {
         instructions.put(Opcodes.AASTORE, AAStoreInstruction::new);
@@ -71,6 +73,8 @@ public class AllJVMInstructions {
                 .forEach(instr -> unsupportedInstructions.put(instr, "You are dividing two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
         asList(Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM)
                 .forEach(instr -> unsupportedInstructions.put(instr, "You are calculating the remainder (%) for two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+
+        kotlinUnsupportedInstructions.put(Opcodes.ACONST_NULL, "You are (probably) using Kotlin default parameter values which is not supported by JobRunr.");
     }
 
     private AllJVMInstructions() {
@@ -82,6 +86,8 @@ public class AllJVMInstructions {
         if (instructionBuilder == null) {
             if (unsupportedInstructions.containsKey(opcode)) {
                 throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(unsupportedInstructions.get(opcode)));
+            } else if (classExists("kotlin.KotlinVersion") && kotlinUnsupportedInstructions.containsKey(opcode)) {
+                throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(kotlinUnsupportedInstructions.get(opcode)));
             }
             throw JobRunrException.shouldNotHappenException(new IllegalArgumentException("Instruction " + opcode + " not found"));
         }
