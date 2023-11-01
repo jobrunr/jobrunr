@@ -65,18 +65,18 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.16/d141c68043fcf3a278ee9b7119298bcd5b2884c4/spring-boot-autoconfigure-processor-2.7.16.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.16/4f118a21283b38e36ddb92aa7abb28ac8f98bc8b/spring-boot-configuration-processor-2.7.16.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.1.4/9cd591b0102ec6f99ee89bed86633e2ce32deaa7/spring-boot-autoconfigure-processor-3.1.4.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.1.4/7113c079f7f9fedad3fbac9997340c57a865cf73/spring-boot-configuration-processor-3.1.4.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.17/d887e51dd906736d1babc1126817e53231dcd579/spring-boot-autoconfigure-processor-2.7.17.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.17/299f97eea012babd839e789c6aad8162343cbb36/spring-boot-configuration-processor-2.7.17.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
