@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -52,9 +53,9 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         }
 
         ListIterator objectOnStackIterator = jobDetailsBuilder.getStack().listIterator(jobDetailsBuilder.getStack().size());
-        while(objectOnStackIterator.hasPrevious()) {
+        while (objectOnStackIterator.hasPrevious()) {
             Object jobOnStack = objectOnStackIterator.previous();
-            if(jobOnStack != null) {
+            if (jobOnStack != null && !jobOnStack.getClass().isSynthetic() && !Proxy.isProxyClass(jobOnStack.getClass())) {
                 Class<Object> jobClass = toClass(className);
                 if (jobClass.isAssignableFrom(jobOnStack.getClass())) {
                     return jobOnStack.getClass().getName();

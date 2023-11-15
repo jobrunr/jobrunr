@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
 import java.io.File;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -1143,6 +1146,29 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasArgs(id2.toString());
     }
 
+    @Test
+    void testCreateJobWithProxyClassImplementingInterfaceRespectsInterface() {
+        TestServiceInterface testServiceProxy = (TestServiceInterface) Proxy.newProxyInstance(TestServiceInterface.class.getClassLoader(), new Class[]{TestServiceInterface.class}, new DummyProxyInvocationHandler());
+        JobDetails jobDetails = toJobDetails(() -> testServiceProxy.doWork());
+
+        assertThat(jobDetails)
+                .hasClass(TestServiceInterface.class)
+                .hasMethodName("doWork")
+                .hasNoArgs();
+    }
+
+    @Test
+    void testCreateJobWithSyntheticClassImplementingInterfaceRespectsInterface() {
+        TestServiceInterface testService = () -> System.out.println("A Java 8 lambda is a synthetic class...");
+        assertThat(testService.getClass()).matches(Class::isSynthetic);
+
+        JobDetails jobDetails = toJobDetails(() -> testService.doWork());
+        assertThat(jobDetails)
+                .hasClass(TestServiceInterface.class)
+                .hasMethodName("doWork")
+                .hasNoArgs();
+    }
+
     private Runnable createJobDetailsRunnable(CountDownLatch countDownLatch, String threadNbr, Map<String, JobDetails> jobDetailsResults) {
         Random random = new Random();
         return () -> {
@@ -1205,6 +1231,14 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     public static void runItWithObject(TestService.Work work) {
         System.out.println("runItWithObject, work:" + work.getUuid());
+    }
+
+    private static class DummyProxyInvocationHandler implements InvocationHandler {
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("Invoking method " + method.getName() + " on object " + proxy);
+            return null;
+        }
     }
 
 }
