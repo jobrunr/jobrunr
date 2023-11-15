@@ -5,7 +5,7 @@ import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.StorageProvider;
@@ -19,13 +19,13 @@ public class JobRunrMetricsProducer {
 
     public static class StorageProviderMetricsProducer {
         @Inject
-        JobRunrConfiguration configuration;
+        JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
         @Produces
         @DefaultBean
         @Singleton
         public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
-            if (configuration.jobs.metrics.enabled) {
+            if (jobRunrBuildTimeConfiguration.jobs.metrics.enabled) {
                 return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
             }
             return null;
@@ -34,13 +34,13 @@ public class JobRunrMetricsProducer {
 
     public static class BackgroundJobServerMetricsProducer {
         @Inject
-        JobRunrConfiguration configuration;
+        JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
         @Produces
         @DefaultBean
         @Singleton
         public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
-            if (configuration.backgroundJobServer.metrics.enabled) {
+            if (jobRunrBuildTimeConfiguration.backgroundJobServer.metrics.enabled) {
                 return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
             }
             return null;
