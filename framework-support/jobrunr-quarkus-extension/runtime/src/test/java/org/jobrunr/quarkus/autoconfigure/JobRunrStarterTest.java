@@ -17,11 +17,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class JobRunrStarterTest {
 
-    JobRunrConfiguration configuration;
+    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
-    JobRunrConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
-    JobRunrConfiguration.DashboardConfiguration dashboardConfiguration;
+    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardConfiguration;
 
     @Mock
     Instance<BackgroundJobServer> backgroundJobServerInstance;
@@ -45,17 +45,17 @@ class JobRunrStarterTest {
 
     @BeforeEach
     void setUpJobRunrMetricsStarter() {
-        configuration = new JobRunrConfiguration();
-        backgroundJobServerConfiguration = new JobRunrConfiguration.BackgroundJobServerConfiguration();
-        dashboardConfiguration = new JobRunrConfiguration.DashboardConfiguration();
-        configuration.backgroundJobServer = backgroundJobServerConfiguration;
-        configuration.dashboard = dashboardConfiguration;
+        jobRunrBuildTimeConfiguration = new JobRunrBuildTimeConfiguration();
+        backgroundJobServerConfiguration = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
+        dashboardConfiguration = new JobRunrBuildTimeConfiguration.DashboardConfiguration();
+        jobRunrBuildTimeConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
+        jobRunrBuildTimeConfiguration.dashboard = dashboardConfiguration;
 
         lenient().when(backgroundJobServerInstance.get()).thenReturn(backgroundJobServer);
         lenient().when(dashboardWebServerInstance.get()).thenReturn(dashboardWebServer);
         lenient().when(storageProviderInstance.get()).thenReturn(storageProvider);
 
-        jobRunrStarter = new JobRunrStarter(configuration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
+        jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
     }
 
     @Test

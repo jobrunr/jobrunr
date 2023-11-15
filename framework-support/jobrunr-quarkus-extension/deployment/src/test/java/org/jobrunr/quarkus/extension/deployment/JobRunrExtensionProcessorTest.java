@@ -10,7 +10,7 @@ import io.quarkus.deployment.recording.RecorderContext;
 import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import org.jboss.jandex.IndexView;
-import org.jobrunr.quarkus.autoconfigure.JobRunrConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
@@ -36,29 +36,29 @@ class JobRunrExtensionProcessorTest {
     @Mock
     Capabilities capabilities;
 
-    JobRunrConfiguration jobRunrConfiguration;
+    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
-    JobRunrConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
-    JobRunrConfiguration.DatabaseConfiguration databaseConfiguration;
+    JobRunrBuildTimeConfiguration.DatabaseConfiguration databaseConfiguration;
 
     JobRunrExtensionProcessor jobRunrExtensionProcessor;
 
     @BeforeEach
     void setUpExtensionProcessor() {
         jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
-        jobRunrConfiguration = new JobRunrConfiguration();
-        backgroundJobServerConfiguration = new JobRunrConfiguration.BackgroundJobServerConfiguration();
-        jobRunrConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
-        databaseConfiguration = new JobRunrConfiguration.DatabaseConfiguration();
+        jobRunrBuildTimeConfiguration = new JobRunrBuildTimeConfiguration();
+        backgroundJobServerConfiguration = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
+        jobRunrBuildTimeConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
+        databaseConfiguration = new JobRunrBuildTimeConfiguration.DatabaseConfiguration();
         databaseConfiguration.type = Optional.empty();
-        jobRunrConfiguration.database = databaseConfiguration;
+        jobRunrBuildTimeConfiguration.database = databaseConfiguration;
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
     @Test
     void producesJobRunrProducer() {
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .containsOnly(
@@ -77,10 +77,10 @@ class JobRunrExtensionProcessorTest {
         BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
         JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
 
-        jobRunrConfiguration.jobScheduler = new JobRunrConfiguration.JobSchedulerConfiguration();
-        jobRunrConfiguration.jobScheduler.enabled = true;
+        jobRunrBuildTimeConfiguration.jobScheduler = new JobRunrBuildTimeConfiguration.JobSchedulerConfiguration();
+        jobRunrBuildTimeConfiguration.jobScheduler.enabled = true;
 
-        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrConfiguration);
+        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
 
         verify(recorderContext, times(2)).registerNonDefaultConstructor(any(), any());
     }
@@ -92,10 +92,10 @@ class JobRunrExtensionProcessorTest {
         BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
         JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
 
-        jobRunrConfiguration.jobScheduler = new JobRunrConfiguration.JobSchedulerConfiguration();
-        jobRunrConfiguration.jobScheduler.enabled = false;
+        jobRunrBuildTimeConfiguration.jobScheduler = new JobRunrBuildTimeConfiguration.JobSchedulerConfiguration();
+        jobRunrBuildTimeConfiguration.jobScheduler.enabled = false;
 
-        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrConfiguration);
+        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
 
         verifyNoInteractions(recorderContext);
     }
@@ -104,7 +104,7 @@ class JobRunrExtensionProcessorTest {
     void jobRunrProducerUsesJSONBIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName());
@@ -114,7 +114,7 @@ class JobRunrExtensionProcessorTest {
     void jobRunrProducerUsesJacksonIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JACKSON)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrProducer.JobRunrJacksonJsonMapperProducer.class.getName());
@@ -123,7 +123,7 @@ class JobRunrExtensionProcessorTest {
     @Test
     void jobRunrProducerUsesSqlStorageProviderIfAgroalCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.AGROAL)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrSqlStorageProviderProducer.class.getName());
@@ -132,7 +132,7 @@ class JobRunrExtensionProcessorTest {
     @Test
     void jobRunrProducerUsesMongoDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrMongoDBStorageProviderProducer.class.getName())
@@ -143,7 +143,7 @@ class JobRunrExtensionProcessorTest {
     void jobRunrProducerUsesDocumentDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
         databaseConfiguration.type = Optional.of("documentdb");
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrDocumentDBStorageProviderProducer.class.getName())
@@ -153,7 +153,7 @@ class JobRunrExtensionProcessorTest {
     @Test
     void jobRunrProducerUsesElasticSearchStorageProviderIfElasticSearchRestHighLevelClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrConfiguration);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrElasticSearchStorageProviderProducer.class.getName());
@@ -162,7 +162,7 @@ class JobRunrExtensionProcessorTest {
     @Test
     void addHealthCheckAddsHealthBuildItemIfSmallRyeHealthCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.SMALLRYE_HEALTH)).thenReturn(true);
-        final HealthBuildItem healthBuildItem = jobRunrExtensionProcessor.addHealthCheck(capabilities, jobRunrConfiguration);
+        final HealthBuildItem healthBuildItem = jobRunrExtensionProcessor.addHealthCheck(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(healthBuildItem.getHealthCheckClass())
                 .isEqualTo(JobRunrHealthCheck.class.getName());
@@ -171,28 +171,28 @@ class JobRunrExtensionProcessorTest {
     @Test
     void addHealthCheckDoesNotAddHealthBuildItemIfSmallRyeHealthCapabilityIsNotPresent() {
         lenient().when(capabilities.isPresent(Capability.SMALLRYE_HEALTH)).thenReturn(false);
-        final HealthBuildItem healthBuildItem = jobRunrExtensionProcessor.addHealthCheck(capabilities, jobRunrConfiguration);
+        final HealthBuildItem healthBuildItem = jobRunrExtensionProcessor.addHealthCheck(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(healthBuildItem).isNull();
     }
 
     @Test
     void addMetricsDoesNotAddMetricsIfNotEnabled() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.empty(), jobRunrConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.empty(), jobRunrBuildTimeConfiguration);
 
         assertThat(metricsBeanBuildItem).isNull();
     }
 
     @Test
     void addMetricsDoesNotAddMetricsIfEnabledButNoMicroMeterSupport() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> false)), jobRunrConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> false)), jobRunrBuildTimeConfiguration);
 
         assertThat(metricsBeanBuildItem).isNull();
     }
 
     @Test
     void addMetricsDoesAddStorageProviderMetricsIfEnabledAndMicroMeterSupport() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
 
         assertThat(metricsBeanBuildItem.getBeanClasses())
                 .contains(JobRunrMetricsStarter.class.getName())
@@ -204,7 +204,7 @@ class JobRunrExtensionProcessorTest {
     void addMetricsDoesAddStorageProviderAndBackgroundJobServerMetricsIfEnabledAndMicroMeterSupport() {
         backgroundJobServerConfiguration.enabled = true;
 
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
 
         assertThat(metricsBeanBuildItem.getBeanClasses())
                 .contains(JobRunrMetricsStarter.class.getName())
