@@ -56,6 +56,7 @@ class JobRunrProducerTest {
         jobRunrRuntimeConfiguration.backgroundJobServer = new JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration();
         jobRunrRuntimeConfiguration.backgroundJobServer.name = Optional.empty();
         jobRunrRuntimeConfiguration.backgroundJobServer.pollIntervalInSeconds = Optional.empty();
+        jobRunrRuntimeConfiguration.backgroundJobServer.maintenancePollIntervalInSeconds = Optional.empty();
         jobRunrRuntimeConfiguration.backgroundJobServer.workerCount = Optional.empty();
         jobRunrRuntimeConfiguration.backgroundJobServer.scheduledJobsRequestSize = Optional.empty();
         jobRunrRuntimeConfiguration.backgroundJobServer.orphanedJobsRequestSize = Optional.empty();
@@ -122,6 +123,7 @@ class JobRunrProducerTest {
 
         jobRunrRuntimeConfiguration.backgroundJobServer.name = Optional.of("test");
         jobRunrRuntimeConfiguration.backgroundJobServer.pollIntervalInSeconds = Optional.of(5);
+        jobRunrRuntimeConfiguration.backgroundJobServer.maintenancePollIntervalInSeconds = Optional.of(20);
         jobRunrRuntimeConfiguration.backgroundJobServer.workerCount = Optional.of(4);
         jobRunrRuntimeConfiguration.backgroundJobServer.deleteSucceededJobsAfter = Optional.of(Duration.of(1, HOURS));
         jobRunrRuntimeConfiguration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter = Optional.of(Duration.of(1, DAYS));
@@ -130,6 +132,7 @@ class JobRunrProducerTest {
         assertThat(backgroundJobServerConfiguration).isNotNull();
         assertThat((String) getInternalState(backgroundJobServerConfiguration, "name")).isEqualTo("test");
         assertThat((int) getInternalState(backgroundJobServerConfiguration, "pollIntervalInSeconds")).isEqualTo(5);
+        assertThat((int) getInternalState(backgroundJobServerConfiguration, "maintenancePollIntervalInSeconds")).isEqualTo(20);
         assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
         assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
     }

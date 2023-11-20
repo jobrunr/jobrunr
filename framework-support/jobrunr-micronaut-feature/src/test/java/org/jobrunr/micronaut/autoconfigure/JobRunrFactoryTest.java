@@ -112,5 +112,16 @@ class JobRunrFactoryTest {
                 .hasSucceededJobRequestSize(3);
     }
 
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.poll-interval-in-seconds", value = "30")
+    @Property(name = "jobrunr.background-job-server.maintenance-poll-interval-in-seconds", value = "120")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountPollIntervalInSeconds() {
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfiguration)
+                .hasMaintenancePollIntervalInSeconds(120)
+                .hasPollIntervalInSeconds(30);
+    }
 
 }

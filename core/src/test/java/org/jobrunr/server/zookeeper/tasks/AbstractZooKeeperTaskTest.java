@@ -43,7 +43,7 @@ public abstract class AbstractZooKeeperTaskTest {
 
     @BeforeEach
     void setUpTaskDependencies() {
-        backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+        backgroundJobServerConfiguration = getBackgroundJobServerConfiguration();
 
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         lenient().when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
@@ -64,6 +64,10 @@ public abstract class AbstractZooKeeperTaskTest {
     void runTask(ZooKeeperTask task) {
         logger = LoggerAssert.initFor(jobZooKeeper);
         task.run(zooKeeperStatistics.startRun());
+    }
+
+    protected BackgroundJobServerConfiguration getBackgroundJobServerConfiguration() {
+        return usingStandardBackgroundJobServerConfiguration();
     }
 
 }

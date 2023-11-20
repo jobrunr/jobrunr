@@ -22,7 +22,11 @@ public class MaintenanceZooKeeper implements Runnable {
 
     public MaintenanceZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
-        this.zooKeeperStatistics = new ZooKeeperStatistics("MaintenanceZooKeeper", 60, backgroundJobServer.getDashboardNotificationManager());
+        this.zooKeeperStatistics = new ZooKeeperStatistics(
+                "MaintenanceZooKeeper",
+                backgroundJobServer.getConfiguration().getMaintenancePollIntervalInSeconds(),
+                backgroundJobServer.getDashboardNotificationManager()
+        );
         this.deleteSucceededJobsTask = new DeleteSucceededJobsTask(backgroundJobServer);
         this.deleteDeletedJobsPermanentlyTask = new DeleteDeletedJobsPermanentlyTask(backgroundJobServer);
     }

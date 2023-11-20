@@ -140,9 +140,9 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-            assertThat(context).hasSingleBean(BackgroundJobServer.class);
-            assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
-        });
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
+                });
     }
 
     @Test
@@ -163,10 +163,10 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("org.jobrunr.jobs.default-number-of-retries=3")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-            assertThat(context).hasSingleBean(BackgroundJobServer.class);
-            assertThat(context.getBean(BackgroundJobServer.class))
-                    .hasRetryFilter(3);
-        });
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context.getBean(BackgroundJobServer.class))
+                            .hasRetryFilter(3);
+                });
     }
 
     @Test
@@ -181,6 +181,19 @@ public class JobRunrAutoConfigurationTest {
                             .hasScheduledJobRequestSize(1)
                             .hasOrphanedJobRequestSize(2)
                             .hasSucceededJobRequestSize(3);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountPollIntervalInSeconds() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.poll-interval-in-seconds=30")
+                .withPropertyValues("org.jobrunr.background-job-server.maintenance-poll-interval-in-seconds=120")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasMaintenancePollIntervalInSeconds(120)
+                            .hasPollIntervalInSeconds(30);
                 });
     }
 
@@ -245,10 +258,10 @@ public class JobRunrAutoConfigurationTest {
                         "org.jobrunr.database.type=sql"
                 )
                 .withUserConfiguration(SqlDataSourceConfiguration.class, ElasticSearchStorageProviderConfiguration.class).run((context) -> {
-            assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
-            assertThat(context).hasSingleBean(JobScheduler.class);
-        });
+                    assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
+                    assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
+                    assertThat(context).hasSingleBean(JobScheduler.class);
+                });
     }
 
     @Test

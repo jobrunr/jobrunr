@@ -17,9 +17,11 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+import static java.time.Duration.ofSeconds;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -31,6 +33,7 @@ import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultB
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
 class MaintenanceZooKeeperTest {
@@ -65,6 +68,13 @@ class MaintenanceZooKeeperTest {
                                 .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper)
                 );
         logger = LoggerAssert.initFor(maintenanceZooKeeper);
+    }
+
+    @Test
+    void testUsesMaintenancePollIntervalInSeconds() {
+        assertThat((Duration) getInternalState(
+                getInternalState(maintenanceZooKeeper, "zooKeeperStatistics"), "pollIntervalDuration")
+        ).isEqualTo(ofSeconds(60));
     }
 
     @Test

@@ -29,12 +29,13 @@ import java.util.Spliterator;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Integer.compare;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -54,6 +55,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final WorkDistributionStrategy workDistributionStrategy;
     private final ServerZooKeeper serverZooKeeper;
     private final JobZooKeeper jobZooKeeper;
+    private final MaintenanceZooKeeper maintenanceZooKeeper;
     private final BackgroundJobServerLifecycleLock lifecycleLock;
     private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
     private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
@@ -85,6 +87,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.workDistributionStrategy = createWorkDistributionStrategy(configuration);
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
+        this.maintenanceZooKeeper = createMaintenanceZookeeper();
         this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
@@ -187,6 +190,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return jobZooKeeper;
     }
 
+    public MaintenanceZooKeeper getMaintenanceZooKeeper() {
+        return maintenanceZooKeeper;
+    }
+
     public StorageProvider getStorageProvider() {
         return storageProvider;
     }
@@ -254,12 +261,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startZooKeepers() {
-        zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(3, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(maintenanceZooKeeper, 2, configuration.getMaintenancePollIntervalInSeconds(), SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, HOURS);
     }
 
     private void stopZooKeepers() {
@@ -305,7 +313,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (executorService == null) return;
         executorService.shutdown();
         try {
-            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(10, SECONDS)) {
                 LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most 10 seconds)");
                 executorService.shutdownNow();
             }
@@ -321,6 +329,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private JobZooKeeper createJobZooKeeper() {
         return new JobZooKeeper(this);
+    }
+
+    private MaintenanceZooKeeper createMaintenanceZookeeper() {
+        return new MaintenanceZooKeeper(this);
     }
 
     private ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {

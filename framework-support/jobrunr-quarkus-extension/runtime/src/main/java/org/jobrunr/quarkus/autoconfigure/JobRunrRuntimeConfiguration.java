@@ -120,9 +120,17 @@ public class JobRunrRuntimeConfiguration {
 
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
+         * and Servers are still up.
          */
         @ConfigItem
         public Optional<Integer> pollIntervalInSeconds;
+
+        /**
+         * Set the maintenancePollIntervalInSeconds for the BackgroundJobServer to see whether there are maintenance tasks
+         * to perform (e.g., job (logical and permanent) deletion).
+         */
+        @ConfigItem
+        public Optional<Integer> maintenancePollIntervalInSeconds;
 
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.

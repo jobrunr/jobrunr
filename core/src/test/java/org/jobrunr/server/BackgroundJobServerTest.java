@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -43,7 +44,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,7 +71,14 @@ class BackgroundJobServerTest {
         JobRunr.configure()
                 .useJobActivator(jobActivator)
                 .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5), false)
+                .useBackgroundJobServer(
+                        usingStandardBackgroundJobServerConfiguration()
+                                .andPollIntervalInSeconds(5)
+                                .andMaintenancePollIntervalInSeconds(5)
+                                .andDeleteSucceededJobsAfter(ofSeconds(5))
+                                .andPermanentlyDeleteDeletedJobsAfter(ofSeconds(5)),
+                        false
+                )
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
         logger = LoggerAssert.initFor(backgroundJobServer);
@@ -348,6 +356,30 @@ class BackgroundJobServerTest {
 
         await().atMost(10, SECONDS)
                 .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer failed to start"));
+    }
+
+    @Test
+    void succeededJobsAreDeleted() {
+        backgroundJobServer.start();
+
+        final Job aSucceededJob = aSucceededJob().build();
+
+        storageProvider.save(aSucceededJob);
+
+        assertThat(storageProvider.getJobById(aSucceededJob.getId())).hasState(SUCCEEDED);
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider).hasJobs(DELETED, 1));
+    }
+
+    @Test
+    void deletedJobsAreDeletedPermanently() {
+        backgroundJobServer.start();
+
+        final Job aDeletedJob = aDeletedJob().build();
+
+        storageProvider.save(aDeletedJob);
+
+        assertThat(storageProvider.getJobById(aDeletedJob.getId())).hasState(DELETED);
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider).hasJobs(DELETED, 0));
     }
 
     private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {

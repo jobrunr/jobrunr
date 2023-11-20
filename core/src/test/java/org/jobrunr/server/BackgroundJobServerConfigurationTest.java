@@ -39,9 +39,22 @@ class BackgroundJobServerConfigurationTest {
     }
 
     @Test
+    void ifDefaultMaintenancePollIntervalInSecondsSmallerThan5ThenExceptionIsThrown() {
+        assertThatThrownBy(() -> backgroundJobServerConfiguration.andMaintenancePollIntervalInSeconds(4))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
+    }
+
+    @Test
     void ifDefaultPollIntervalInSeconds5OrHigherThenNoExceptionIsThrown() {
         assertThatCode(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(5)).doesNotThrowAnyException();
         assertThatCode(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(15)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void ifDefaultMaintenancePollIntervalInSeconds5OrHigherThenNoExceptionIsThrown() {
+        assertThatCode(() -> backgroundJobServerConfiguration.andMaintenancePollIntervalInSeconds(5)).doesNotThrowAnyException();
+        assertThatCode(() -> backgroundJobServerConfiguration.andMaintenancePollIntervalInSeconds(15)).doesNotThrowAnyException();
     }
 
 }

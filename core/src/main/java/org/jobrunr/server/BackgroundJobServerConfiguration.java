@@ -16,14 +16,17 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 public class BackgroundJobServerConfiguration {
 
     public static final int DEFAULT_POLL_INTERVAL_IN_SECONDS = 15;
+    public static final int DEFAULT_MAINTENANCE_POLL_INTERVAL_IN_SECONDS = 60;
     public static final int DEFAULT_PAGE_REQUEST_SIZE = 1000;
     public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
-    public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
+    public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
 
     private int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    private int maintenancePollIntervalInSeconds = DEFAULT_MAINTENANCE_POLL_INTERVAL_IN_SECONDS;
+
     private UUID id = UUID.randomUUID();
     private String name = getHostName();
     private Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
@@ -70,15 +73,28 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the pollIntervalInSeconds for the BackgroundJobServer
+     * Allows to set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
+     * and Servers are still up.
      *
      * @param pollIntervalInSeconds the pollIntervalInSeconds
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andPollIntervalInSeconds(int pollIntervalInSeconds) {
-        if (pollIntervalInSeconds < 5)
-            throw new IllegalArgumentException("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
+        validatePollIntervalInSeconds(pollIntervalInSeconds);
         this.pollIntervalInSeconds = pollIntervalInSeconds;
+        return this;
+    }
+
+    /**
+     * Allows to set the pollIntervalInSeconds for the BackgroundJobServer to see whether there are maintenance tasks
+     * to perform (e.g., job (logical and permanent) deletion).
+     *
+     * @param pollIntervalInSeconds the pollIntervalInSeconds
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andMaintenancePollIntervalInSeconds(int pollIntervalInSeconds) {
+        validatePollIntervalInSeconds(pollIntervalInSeconds);
+        this.maintenancePollIntervalInSeconds = pollIntervalInSeconds;
         return this;
     }
 
@@ -198,6 +214,10 @@ public class BackgroundJobServerConfiguration {
         return pollIntervalInSeconds;
     }
 
+    public int getMaintenancePollIntervalInSeconds() {
+        return maintenancePollIntervalInSeconds;
+    }
+
     public Duration getDeleteSucceededJobsAfter() {
         return deleteSucceededJobsAfter;
     }
@@ -221,5 +241,10 @@ public class BackgroundJobServerConfiguration {
         } catch (UnknownHostException e) {
             return "Unable to determine hostname";
         }
+    }
+
+    private static void validatePollIntervalInSeconds(int pollIntervalInSeconds) {
+        if (pollIntervalInSeconds < 5)
+            throw new IllegalArgumentException("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
     }
 }

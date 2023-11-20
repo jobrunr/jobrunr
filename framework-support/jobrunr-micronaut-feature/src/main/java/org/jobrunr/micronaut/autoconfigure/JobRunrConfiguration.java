@@ -121,8 +121,15 @@ public interface JobRunrConfiguration {
 
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
+         * and Servers are still up.
          */
         Optional<Integer> getPollIntervalInSeconds();
+
+        /**
+         * Set the maintenancePollIntervalInSeconds for the BackgroundJobServer to see whether there are maintenance tasks
+         * to perform (e.g., job (logical and permanent) deletion).
+         */
+        Optional<Integer> getMaintenancePollIntervalInSeconds();
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.

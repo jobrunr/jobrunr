@@ -29,4 +29,14 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
         return this;
     }
 
+    public BackgroundJobServerConfigurationAssert hasPollIntervalInSeconds(int pollIntervalInSeconds) {
+        Assertions.assertThat(actual.getPollIntervalInSeconds()).isEqualTo(pollIntervalInSeconds);
+        return this;
+    }
+
+    public BackgroundJobServerConfigurationAssert hasMaintenancePollIntervalInSeconds(int pollIntervalInSeconds) {
+        Assertions.assertThat(actual.getMaintenancePollIntervalInSeconds()).isEqualTo(pollIntervalInSeconds);
+        return this;
+    }
+
 }

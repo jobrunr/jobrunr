@@ -8,6 +8,9 @@ import org.springframework.boot.convert.DurationUnit;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+import static org.jobrunr.server.BackgroundJobServerConfiguration.DEFAULT_MAINTENANCE_POLL_INTERVAL_IN_SECONDS;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL_IN_SECONDS;
+
 @ConfigurationProperties(prefix = "org.jobrunr")
 public class JobRunrProperties {
 
@@ -243,8 +246,15 @@ public class JobRunrProperties {
 
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
+         * and Servers are still up.
          */
-        private Integer pollIntervalInSeconds = 15;
+        private Integer pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+
+        /**
+         * Set the maintenancePollIntervalInSeconds for the BackgroundJobServer to see whether there are maintenance tasks
+         * to perform (e.g., job (logical and permanent) deletion).
+         */
+        private Integer maintenancePollIntervalInSeconds = DEFAULT_MAINTENANCE_POLL_INTERVAL_IN_SECONDS;
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
@@ -310,6 +320,14 @@ public class JobRunrProperties {
 
         public void setPollIntervalInSeconds(Integer pollIntervalInSeconds) {
             this.pollIntervalInSeconds = pollIntervalInSeconds;
+        }
+
+        public Integer getMaintenancePollIntervalInSeconds() {
+            return maintenancePollIntervalInSeconds;
+        }
+
+        public void setMaintenancePollIntervalInSeconds(Integer maintenancePollIntervalInSeconds) {
+            this.maintenancePollIntervalInSeconds = maintenancePollIntervalInSeconds;
         }
 
         public Integer getScheduledJobsRequestSize() {

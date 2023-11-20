@@ -1,15 +1,22 @@
 package org.jobrunr.server.zookeeper.tasks;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
+import static java.time.Duration.ofHours;
+import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
@@ -20,12 +27,28 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
+    @Captor
+    ArgumentCaptor<Instant> updatedBeforeCaptor;
 
     DeleteSucceededJobsTask task;
 
     @BeforeEach
     void setUpTask() {
         task = new DeleteSucceededJobsTask(backgroundJobServer);
+    }
+
+    @Override
+    protected BackgroundJobServerConfiguration getBackgroundJobServerConfiguration() {
+        return super.getBackgroundJobServerConfiguration().andDeleteSucceededJobsAfter(ofHours(12));
+    }
+
+    @Test
+    void testUsesDeleteSucceededJobsAfterConfiguration() {
+        runTask(task);
+
+        verify(storageProvider).getJobs(eq(SUCCEEDED), updatedBeforeCaptor.capture(), any());
+
+        assertThat(updatedBeforeCaptor.getValue()).isCloseTo(now().minus(ofHours(12)), within(500, ChronoUnit.MILLIS));
     }
 
     @Test

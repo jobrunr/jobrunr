@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.Instant;
 
+import static java.time.Duration.ofSeconds;
+
 
 public class ZooKeeperStatistics {
 
@@ -23,7 +25,7 @@ public class ZooKeeperStatistics {
     public ZooKeeperStatistics(String zooKeeperName, int pollIntervalInSeconds, DashboardNotificationManager dashboardNotificationManager) {
         this.zooKeeperName = zooKeeperName;
         this.dashboardNotificationManager = dashboardNotificationManager;
-        this.pollIntervalDuration = Duration.ofSeconds(pollIntervalInSeconds);
+        this.pollIntervalDuration = ofSeconds(pollIntervalInSeconds);
         this.runCounter = 0L;
         this.exceptionCounter = 0;
         this.runTookToLongCounter = 0;
