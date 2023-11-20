@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling
 
 import org.jobrunr.jobs.annotations.Job
+import java.util.*
 
 class TestService {
 
@@ -8,6 +9,10 @@ class TestService {
 
     fun doWork(s: String) {
         println(s)
+    }
+
+    fun doWorkWithDefaultParameter(id: UUID = UUID.randomUUID()) {
+        println("id: $id")
     }
 
     fun doWorkWithPair(s: Pair<String, String>) {

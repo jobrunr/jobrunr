@@ -8,11 +8,12 @@ plugins {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.2.6.Final')
-    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.2.6.Final'
+    api platform('io.quarkus:quarkus-bom:3.4.3')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.4.3'
 
     api project(':core')
-    api project(':framework-support:jobrunr-quarkus-extension:runtime') // why: https://quarkus.io/guides/building-my-first-extension
+    api project(':framework-support:jobrunr-quarkus-extension:runtime')
+    // why: https://quarkus.io/guides/building-my-first-extension
     api 'io.quarkus:quarkus-core-deployment'
     api 'io.quarkus:quarkus-arc-deployment'
     api 'io.quarkus:quarkus-smallrye-health-spi'

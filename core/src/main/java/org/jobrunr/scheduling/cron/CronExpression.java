@@ -6,6 +6,8 @@ import java.time.*;
 import java.util.BitSet;
 import java.util.Calendar;
 
+import static java.time.Duration.between;
+
 /**
  * Schedule class represents a parsed crontab expression.
  *
@@ -138,7 +140,7 @@ public class CronExpression extends Schedule {
         boolean daysOfWeekStartAsterisk = token.startsWith("*");
 
         if (token.length() == 2 && token.endsWith("l")) {
-            if(cronExpression.isLastDayOfMonth) {
+            if (cronExpression.isLastDayOfMonth) {
                 throw new InvalidCronExpressionException("You can only specify the last day of month week in either the DAY field or in the DAY_OF_WEEK field, not both.");
             }
             if (!daysToken.equalsIgnoreCase("*")) {
@@ -378,9 +380,10 @@ public class CronExpression extends Schedule {
 
     public void validateSchedule() {
         Instant base = Instant.EPOCH;
-        Instant fiveSeconds = base.plusSeconds(SMALLEST_SCHEDULE_IN_SECONDS);
 
-        if (next(base, base, ZoneOffset.UTC).isBefore(fiveSeconds)) {
+        Instant i1 = next(base, base, ZoneOffset.UTC);
+        Instant i2 = next(base, i1, ZoneOffset.UTC);
+        if (between(i1, i2).getSeconds() < SMALLEST_SCHEDULE_IN_SECONDS) {
             throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
         }
     }
