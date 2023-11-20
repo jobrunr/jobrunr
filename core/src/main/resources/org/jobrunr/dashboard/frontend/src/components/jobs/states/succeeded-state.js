@@ -49,6 +49,8 @@ const getDuration = (duration) => {
         }
         if (seconds > 0) {
             result += seconds.toFixed(2) + " seconds"
+        } else if (result === '') {
+            result += "less than 10ms"
         }
         return result;
     } catch (e) {
@@ -76,7 +78,7 @@ const Succeeded = (props) => {
                     </Typography>
                 </Alert>
                 <Typography className={classes.secondaryHeading}>
-                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
+                    <SwitchableTimeAgo date={new Date(jobState.createdAt)}/>
                 </Typography>
             </AccordionSummary>
             <AccordionDetails>
