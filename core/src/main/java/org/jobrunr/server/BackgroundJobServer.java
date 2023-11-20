@@ -168,6 +168,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
             if (isMaster) {
                 runStartupTasks();
+                startMasterExclusiveZooKeepers();
             }
         } else {
             LOGGER.error("JobRunr BackgroundJobServer failed to start");
@@ -261,11 +262,15 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startZooKeepers() {
-        zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(3, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), SECONDS);
+    }
+
+    private void startMasterExclusiveZooKeepers() {
+        zookeeperThreadPool.setCorePoolSize(3);
         zookeeperThreadPool.scheduleWithFixedDelay(maintenanceZooKeeper, 2, configuration.getMaintenancePollIntervalInSeconds(), SECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, HOURS);
     }
