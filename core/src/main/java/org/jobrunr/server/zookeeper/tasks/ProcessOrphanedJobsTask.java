@@ -12,7 +12,7 @@ import static java.time.Duration.ofSeconds;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
-public class ProcessOrphanedJobsTask extends ZooKeeperTask {
+public class ProcessOrphanedJobsTask extends JobZooKeeperTask {
 
     private final int pageRequestSize;
 

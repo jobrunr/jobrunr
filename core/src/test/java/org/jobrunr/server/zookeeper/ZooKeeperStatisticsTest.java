@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,30 +25,30 @@ class ZooKeeperStatisticsTest {
 
     @BeforeEach
     void setUp() {
-        statistics = new ZooKeeperStatistics(dashboardNotificationManager);
+        statistics = new ZooKeeperStatistics("MaintenanceZooKeeper", 15, dashboardNotificationManager);
     }
 
     @Test
     void ifOneRunTookTooLongNoNotificationIsShown() {
-        statistics.logRun(2, true, 5, now().minusSeconds(15), now());
+        statistics.logRun(2, true, ofSeconds(5), now().minusSeconds(15), now());
 
         verify(dashboardNotificationManager, never()).notify(any(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class));
     }
 
     @Test
     void ifThreeConsecutiveRunsTookTooLongANotificationIsShown() {
-        statistics.logRun(2, true, 5, now().minusSeconds(45), now().minusSeconds(30));
-        statistics.logRun(3, true, 5, now().minusSeconds(30), now().minusSeconds(15));
-        statistics.logRun(4, true, 5, now().minusSeconds(15), now());
+        statistics.logRun(2, true, ofSeconds(5), now().minusSeconds(45), now().minusSeconds(30));
+        statistics.logRun(3, true, ofSeconds(5), now().minusSeconds(30), now().minusSeconds(15));
+        statistics.logRun(4, true, ofSeconds(5), now().minusSeconds(15), now());
 
         verify(dashboardNotificationManager).notify(any(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class));
     }
 
     @Test
     void ifThreeNotConsecutiveRunsTookTooLongNoNotificationIsShown() {
-        statistics.logRun(2, true, 5, now().minusSeconds(45), now().minusSeconds(30));
-        statistics.logRun(3, true, 5, now().minusSeconds(30), now().minusSeconds(15));
-        statistics.logRun(4, true, 5, now().minusSeconds(15), now().minusSeconds(11));
+        statistics.logRun(2, true, ofSeconds(5), now().minusSeconds(45), now().minusSeconds(30));
+        statistics.logRun(3, true, ofSeconds(5), now().minusSeconds(30), now().minusSeconds(15));
+        statistics.logRun(4, true, ofSeconds(5), now().minusSeconds(15), now().minusSeconds(11));
 
         verify(dashboardNotificationManager, never()).notify(any(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class));
     }
@@ -68,7 +69,7 @@ class ZooKeeperStatisticsTest {
     void ifRunFailsOnceThenSucceedsAgainexceptionCounterIsZero() {
         statistics.handleException(new RuntimeException("Ex 1"));
 
-        statistics.logRun(1, true, 5, now().minusSeconds(1), now());
+        statistics.logRun(1, true, ofSeconds(5), now().minusSeconds(1), now());
 
         assertThat(statistics).hasFieldOrPropertyWithValue("exceptionCounter", 0);
     }
@@ -79,11 +80,11 @@ class ZooKeeperStatisticsTest {
         statistics.handleException(new RuntimeException("Ex 2"));
         statistics.handleException(new RuntimeException("Ex 3"));
 
-        statistics.logRun(1, true, 5, now().minusSeconds(1), now());
-        statistics.logRun(1, true, 5, now().minusSeconds(1), now());
-        statistics.logRun(1, true, 5, now().minusSeconds(1), now());
-        statistics.logRun(1, true, 5, now().minusSeconds(1), now());
-        statistics.logRun(1, true, 5, now().minusSeconds(1), now());
+        statistics.logRun(1, true, ofSeconds(5), now().minusSeconds(1), now());
+        statistics.logRun(1, true, ofSeconds(5), now().minusSeconds(1), now());
+        statistics.logRun(1, true, ofSeconds(5), now().minusSeconds(1), now());
+        statistics.logRun(1, true, ofSeconds(5), now().minusSeconds(1), now());
+        statistics.logRun(1, true, ofSeconds(5), now().minusSeconds(1), now());
 
         assertThat(statistics).hasFieldOrPropertyWithValue("exceptionCounter", 0);
     }

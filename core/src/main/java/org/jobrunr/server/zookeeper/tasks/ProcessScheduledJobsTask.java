@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import static java.time.Instant.now;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
-public class ProcessScheduledJobsTask extends ZooKeeperTask {
+public class ProcessScheduledJobsTask extends JobZooKeeperTask {
 
     private final int pageRequestSize;
 

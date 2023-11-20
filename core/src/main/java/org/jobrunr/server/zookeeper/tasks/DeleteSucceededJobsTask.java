@@ -2,7 +2,6 @@ package org.jobrunr.server.zookeeper.tasks;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.JobZooKeeper;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,8 +15,8 @@ public class DeleteSucceededJobsTask extends ZooKeeperTask {
 
     private final int pageRequestSize;
 
-    public DeleteSucceededJobsTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
-        super(jobZooKeeper, backgroundJobServer);
+    public DeleteSucceededJobsTask(BackgroundJobServer backgroundJobServer) {
+        super(backgroundJobServer);
         this.pageRequestSize = backgroundJobServer.getConfiguration().getSucceededJobsRequestSize();
     }
 

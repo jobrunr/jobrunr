@@ -25,7 +25,7 @@ class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
 
     @BeforeEach
     void setUpTask() {
-        task = new DeleteSucceededJobsTask(jobZooKeeper, backgroundJobServer);
+        task = new DeleteSucceededJobsTask(backgroundJobServer);
     }
 
     @Test

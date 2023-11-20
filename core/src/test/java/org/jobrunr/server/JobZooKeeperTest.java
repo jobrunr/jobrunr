@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.*;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
@@ -54,10 +54,17 @@ class JobZooKeeperTest {
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
-        when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+        when(backgroundJobServer.getConfiguration()).thenReturn(backgroundJobServerConfiguration);
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         jobZooKeeper = initializeJobZooKeeper();
+        lenient().when(backgroundJobServer.getConcurrentJobModificationResolver())
+                .thenReturn(
+                        backgroundJobServerConfiguration
+                                .getConcurrentJobModificationPolicy()
+                                .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper)
+                );
         logger = LoggerAssert.initFor(jobZooKeeper);
     }
 
@@ -134,17 +141,17 @@ class JobZooKeeperTest {
 
     @Test
     void severeJobRunrExceptionsAreLoggedToStorageProvider() {
-        Job succeededJob1 = aSucceededJob().build();
-        Job succeededJob2 = aSucceededJob().build();
+        Job aJobInProgress1 = aJobInProgress().build();
+        Job aJobInProgress2 = aJobInProgress().build();
 
-        when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
-        when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+        when(storageProvider.getJobById(aJobInProgress1.getId())).thenReturn(aJobInProgress1);
+        when(storageProvider.getJobById(aJobInProgress2.getId())).thenReturn(aJobInProgress2);
+        lenient().when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
-                        asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
+                        asList(aJobInProgress1, aJobInProgress2, aJobInProgress().build(), aJobInProgress().build(), aJobInProgress().build()),
                         emptyJobList()
                 );
-        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
+        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(aJobInProgress1, aJobInProgress2)));
 
         jobZooKeeper.run();
 
@@ -158,16 +165,16 @@ class JobZooKeeperTest {
 
     @Test
     void jobZooKeeperStopsIfTooManyExceptions() {
-        Job succeededJob1 = aSucceededJob().build();
-        Job succeededJob2 = aSucceededJob().build();
+        Job aJobInProgress1 = aJobInProgress().build();
+        Job aJobInProgress2 = aJobInProgress().build();
 
-        when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
-        when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+        when(storageProvider.getJobById(aJobInProgress1.getId())).thenReturn(aJobInProgress1);
+        when(storageProvider.getJobById(aJobInProgress2.getId())).thenReturn(aJobInProgress2);
+        lenient().when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
-                        asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build())
+                        asList(aJobInProgress1, aJobInProgress2, aJobInProgress().build(), aJobInProgress().build(), aJobInProgress().build())
                 );
-        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(succeededJob1, succeededJob2)));
+        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(asList(aJobInProgress1, aJobInProgress2)));
 
         for (int i = 0; i <= 5; i++) {
             jobZooKeeper.run();

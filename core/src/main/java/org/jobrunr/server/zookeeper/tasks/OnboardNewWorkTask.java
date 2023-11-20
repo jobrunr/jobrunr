@@ -10,7 +10,7 @@ import org.jobrunr.storage.PageRequest;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class OnboardNewWorkTask extends ZooKeeperTask {
+public class OnboardNewWorkTask extends JobZooKeeperTask {
 
     private final ReentrantLock reentrantLock;
     private final WorkDistributionStrategy workDistributionStrategy;

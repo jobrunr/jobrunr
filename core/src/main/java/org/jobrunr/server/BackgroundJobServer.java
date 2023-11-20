@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
+import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
@@ -55,6 +56,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final JobZooKeeper jobZooKeeper;
     private final BackgroundJobServerLifecycleLock lifecycleLock;
     private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
+    private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
@@ -83,6 +85,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.workDistributionStrategy = createWorkDistributionStrategy(configuration);
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
+        this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
     }
@@ -204,6 +207,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return workDistributionStrategy;
     }
 
+    public ConcurrentJobModificationResolver getConcurrentJobModificationResolver() {
+        return concurrentJobModificationResolver;
+    }
+
     public void setJobFilters(List<JobFilter> jobFilters) {
         this.jobDefaultFilters.addAll(jobFilters);
     }
@@ -314,6 +321,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private JobZooKeeper createJobZooKeeper() {
         return new JobZooKeeper(this);
+    }
+
+    private ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
+        return this.configuration
+                .getConcurrentJobModificationPolicy()
+                .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
     }
 
     private WorkDistributionStrategy createWorkDistributionStrategy(BackgroundJobServerConfiguration configuration) {

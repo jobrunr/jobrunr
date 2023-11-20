@@ -6,7 +6,7 @@ import org.jobrunr.server.JobZooKeeper;
 
 import java.util.ArrayList;
 
-public class UpdateJobsInProgressTask extends ZooKeeperTask {
+public class UpdateJobsInProgressTask extends JobZooKeeperTask {
 
     public UpdateJobsInProgressTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         super(jobZooKeeper, backgroundJobServer);

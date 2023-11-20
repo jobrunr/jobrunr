@@ -6,7 +6,6 @@ import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobZooKeeper;
-import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
@@ -24,20 +23,16 @@ public abstract class ZooKeeperTask {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
 
-    protected final JobZooKeeper jobZooKeeper;
     protected final BackgroundJobServer backgroundJobServer;
     protected final StorageProvider storageProvider;
     protected final JobFilterUtils jobFilterUtils;
-    private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
 
     protected ZooKeeperTaskInfo runInfo;
 
-    protected ZooKeeperTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
-        this.jobZooKeeper = jobZooKeeper;
+    protected ZooKeeperTask(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
-        this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
     }
 
     public void run(ZooKeeperTaskInfo runInfo) {
@@ -76,7 +71,7 @@ public abstract class ZooKeeperTask {
                 jobFilterUtils.runOnStateAppliedFilters(jobs, executeJobServerFilters);
             } catch (ConcurrentJobModificationException concurrentJobModificationException) {
                 try {
-                    concurrentJobModificationResolver.resolve(concurrentJobModificationException);
+                    backgroundJobServer.getConcurrentJobModificationResolver().resolve(concurrentJobModificationException);
                 } catch (UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException) {
                     throw new SevereJobRunrException("Could not resolve ConcurrentJobModificationException", unresolvableConcurrentJobModificationException);
                 }
@@ -97,14 +92,8 @@ public abstract class ZooKeeperTask {
         return runInfo.pollIntervalInSecondsTimeBoxIsAboutToPass();
     }
 
-    ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
-        return backgroundJobServer.getConfiguration()
-                .getConcurrentJobModificationPolicy()
-                .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
-    }
-
     BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
-        return runInfo.getBackgroundJobServerConfiguration();
+        return backgroundJobServer.getConfiguration();
     }
 
     Instant runStartTime() {

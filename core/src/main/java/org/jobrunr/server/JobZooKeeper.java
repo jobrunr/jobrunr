@@ -33,15 +33,13 @@ public class JobZooKeeper implements Runnable {
 
     public JobZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;
-        this.zooKeeperStatistics = new ZooKeeperStatistics(backgroundJobServer.getDashboardNotificationManager());
+        this.zooKeeperStatistics = new ZooKeeperStatistics("JobZooKeeper", backgroundJobServer.getConfiguration().getPollIntervalInSeconds(), backgroundJobServer.getDashboardNotificationManager());
         this.updateJobsInProgressTask = new UpdateJobsInProgressTask(this, backgroundJobServer);
         this.onboardNewWorkTask = new OnboardNewWorkTask(this, backgroundJobServer);
         this.masterTasks = asList(
                 new ProcessRecurringJobsTask(this, backgroundJobServer),
                 new ProcessScheduledJobsTask(this, backgroundJobServer),
-                new ProcessOrphanedJobsTask(this, backgroundJobServer),
-                new DeleteSucceededJobsTask(this, backgroundJobServer),
-                new DeleteDeletedJobsPermanentlyTask(this, backgroundJobServer)
+                new ProcessOrphanedJobsTask(this, backgroundJobServer)
         );
         this.jobsCurrentlyInProgress = new ConcurrentHashMap<>();
         this.occupiedWorkers = new AtomicInteger();
@@ -51,7 +49,7 @@ public class JobZooKeeper implements Runnable {
     public void run() {
         if (backgroundJobServer.isUnAnnounced()) return;
 
-        try (ZooKeeperRunTaskInfo runInfo = zooKeeperStatistics.startRun(backgroundJobServerConfiguration())) {
+        try (ZooKeeperRunTaskInfo runInfo = zooKeeperStatistics.startRun()) {
             updateJobsThatAreBeingProcessed(runInfo);
             runMasterTasksIfCurrentServerIsMaster(runInfo);
             onboardNewWorkIfPossible(runInfo);
@@ -115,6 +113,6 @@ public class JobZooKeeper implements Runnable {
 
     public void notifyThreadIdle() {
         this.occupiedWorkers.decrementAndGet();
-        onboardNewWorkTask.run(new ThreadIdleTaskInfo(backgroundJobServerConfiguration()));
+        onboardNewWorkTask.run(new ThreadIdleTaskInfo());
     }
 }

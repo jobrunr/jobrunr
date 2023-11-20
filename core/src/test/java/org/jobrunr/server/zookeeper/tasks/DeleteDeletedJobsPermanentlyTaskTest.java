@@ -14,7 +14,7 @@ class DeleteDeletedJobsPermanentlyTaskTest extends AbstractZooKeeperTaskTest {
 
     @BeforeEach
     void setUpTask() {
-        task = new DeleteDeletedJobsPermanentlyTask(jobZooKeeper, backgroundJobServer);
+        task = new DeleteDeletedJobsPermanentlyTask(backgroundJobServer);
     }
 
     @Test

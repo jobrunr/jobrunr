@@ -15,7 +15,7 @@ import java.util.Map;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 
-public class ProcessRecurringJobsTask extends ZooKeeperTask {
+public class ProcessRecurringJobsTask extends JobZooKeeperTask {
 
     private final Map<String, Instant> recurringJobRuns;
     private RecurringJobsResult recurringJobs;

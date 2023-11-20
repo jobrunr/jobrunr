@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import static java.time.Instant.now;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ZooKeeperTaskTest extends AbstractZooKeeperTaskTest {
@@ -20,7 +19,7 @@ public class ZooKeeperTaskTest extends AbstractZooKeeperTaskTest {
 
     @Test
     void masterTasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
-        ZooKeeperRunTaskInfo zooKeeperRunTaskInfo = zooKeeperStatistics.startRun(usingStandardBackgroundJobServerConfiguration());
+        ZooKeeperRunTaskInfo zooKeeperRunTaskInfo = zooKeeperStatistics.startRun();
         setRunStartTimeInPast(zooKeeperRunTaskInfo, 15);
 
         task.run(zooKeeperRunTaskInfo);

@@ -51,16 +51,19 @@ public abstract class AbstractZooKeeperTaskTest {
         lenient().when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
         lenient().when(backgroundJobServer.getConfiguration()).thenReturn(backgroundJobServerConfiguration);
         lenient().when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(new BasicWorkDistributionStrategy(backgroundJobServer, 2));
-        zooKeeperStatistics = new ZooKeeperStatistics(null);
+        lenient()
+                .when(backgroundJobServer.getConcurrentJobModificationResolver())
+                .thenReturn(
+                        backgroundJobServerConfiguration
+                                .getConcurrentJobModificationPolicy()
+                                .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper)
+                );
+        zooKeeperStatistics = new ZooKeeperStatistics("MaintenanceZooKeeper", 15, null);
     }
 
     void runTask(ZooKeeperTask task) {
-        runTask(task, backgroundJobServerConfiguration);
-    }
-
-    void runTask(ZooKeeperTask task, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
         logger = LoggerAssert.initFor(jobZooKeeper);
-        task.run(zooKeeperStatistics.startRun(backgroundJobServerConfiguration));
+        task.run(zooKeeperStatistics.startRun());
     }
 
 }

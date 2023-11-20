@@ -171,3 +171,6 @@ dependency-check-bin
 dependency-check-reports
 package-lock.json
 /renovate.js
+
+bin
+.vscode
