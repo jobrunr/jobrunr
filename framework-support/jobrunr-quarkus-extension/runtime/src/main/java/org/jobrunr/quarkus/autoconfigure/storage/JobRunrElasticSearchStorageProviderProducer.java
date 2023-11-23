@@ -17,11 +17,11 @@ public class JobRunrElasticSearchStorageProviderProducer {
     @DefaultBean
     @Singleton
     public StorageProvider storageProvider(ElasticsearchClient elasticsearchClient, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
-        if (configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("elasticsearch"))
+        if (configuration.database().type().isPresent() && !configuration.database().type().get().equalsIgnoreCase("elasticsearch"))
             return null;
 
-        String tablePrefix = configuration.database.tablePrefix.orElse(null);
-        DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
+        String tablePrefix = configuration.database().tablePrefix().orElse(null);
+        DatabaseOptions databaseOptions = configuration.database().skipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
         ElasticSearchStorageProvider elasticSearchStorageProvider = new ElasticSearchStorageProvider(elasticsearchClient, tablePrefix, databaseOptions);
         elasticSearchStorageProvider.setJobMapper(jobMapper);
         return elasticSearchStorageProvider;

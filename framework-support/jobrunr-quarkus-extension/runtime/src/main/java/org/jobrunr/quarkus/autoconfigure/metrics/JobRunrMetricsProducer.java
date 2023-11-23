@@ -25,7 +25,7 @@ public class JobRunrMetricsProducer {
         @DefaultBean
         @Singleton
         public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
-            if (jobRunrBuildTimeConfiguration.jobs.metrics.enabled) {
+            if (jobRunrBuildTimeConfiguration.jobs().metrics().enabled()) {
                 return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
             }
             return null;
@@ -40,7 +40,7 @@ public class JobRunrMetricsProducer {
         @DefaultBean
         @Singleton
         public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
-            if (jobRunrBuildTimeConfiguration.backgroundJobServer.metrics.enabled) {
+            if (jobRunrBuildTimeConfiguration.backgroundJobServer().metrics().enabled()) {
                 return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
             }
             return null;

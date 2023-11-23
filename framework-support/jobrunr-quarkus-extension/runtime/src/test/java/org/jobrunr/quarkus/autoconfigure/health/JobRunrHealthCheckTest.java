@@ -3,7 +3,7 @@ package org.jobrunr.quarkus.autoconfigure.health;
 import jakarta.enterprise.inject.Instance;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class JobRunrHealthCheckTest {
 
-    private JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    @Mock
+    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+
+    @Mock
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
     @Mock
     private Instance<BackgroundJobServer> backgroundJobServerProviderInstance;
@@ -30,24 +34,22 @@ class JobRunrHealthCheckTest {
 
     @BeforeEach
     void setUpHealthIndicator() {
-        final JobRunrBuildTimeConfiguration jobRunrRuntimeConfiguration = new JobRunrBuildTimeConfiguration();
-        backgroundJobServerConfiguration = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
-        jobRunrRuntimeConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
+        when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
 
         lenient().when(backgroundJobServerProviderInstance.get()).thenReturn(backgroundJobServer);
 
-        jobRunrHealthCheck = new JobRunrHealthCheck(jobRunrRuntimeConfiguration, backgroundJobServerProviderInstance);
+        jobRunrHealthCheck = new JobRunrHealthCheck(jobRunrBuildTimeConfiguration, backgroundJobServerProviderInstance);
     }
 
     @Test
     void givenDisabledBackgroundJobServer_ThenHealthIsOutOfService() {
-        backgroundJobServerConfiguration.enabled = false;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
     }
 
     @Test
     void givenEnabledBackgroundJobServerAndBackgroundJobServerRunning_ThenHealthIsUp() {
-        backgroundJobServerConfiguration.enabled = true;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
         when(backgroundJobServer.isRunning()).thenReturn(true);
 
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
@@ -55,7 +57,7 @@ class JobRunrHealthCheckTest {
 
     @Test
     void givenEnabledBackgroundJobServerAndBackgroundJobServerStopped_ThenHealthIsDown() {
-        backgroundJobServerConfiguration.enabled = true;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
         when(backgroundJobServer.isRunning()).thenReturn(false);
 
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
