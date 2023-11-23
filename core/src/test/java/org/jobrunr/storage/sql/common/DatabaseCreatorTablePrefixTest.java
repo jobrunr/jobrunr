@@ -93,7 +93,8 @@ class DatabaseCreatorTablePrefixTest {
 
         assertThat(getAllExecutedStatements())
                 .areAtLeastOne(stringContaining("CREATE TABLE SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs"))
-                .areAtLeastOne(stringContaining("CREATE INDEX SOME_PREFIX_jobrunr_state_idx ON SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs (state)"));
+                .areAtLeastOne(stringContaining("CREATE INDEX SOME_PREFIX_jobrunr_state_idx ON SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs (state)"))
+                .areAtLeastOne(stringContaining("DROP INDEX SOME_PREFIX_jobrunr_job_updated_at_idx ON SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs"));
     }
 
     @NotNull
