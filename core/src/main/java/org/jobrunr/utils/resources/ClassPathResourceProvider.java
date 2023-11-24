@@ -4,7 +4,10 @@ import org.jobrunr.JobRunrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -77,6 +80,26 @@ public class ClassPathResourceProvider implements AutoCloseable {
             if ("wsjar".equals(uri.getScheme())) { // support for openliberty
                 uri = new URI(uri.toString().replace("wsjar", "jar"));
             }
+            if ("vfs".equals(uri.getScheme())) {    // support for Jboss/Wildfly
+                // Reflection as we cannot afford a dependency to Jboss/WildFly
+                Object virtualFile = url.openConnection().getContent();
+                Class virtualFileClass = virtualFile.getClass();
+
+                try {
+                    Method getChildrenRecursivelyMethod = virtualFileClass.getMethod("getChildrenRecursively");
+                    Method getPhysicalFileMethod = virtualFileClass.getMethod("getPhysicalFile");
+
+                    List virtualFiles = (List) getChildrenRecursivelyMethod.invoke(virtualFile);
+                    for (Object child : virtualFiles) {
+                        getPhysicalFileMethod.invoke(child);// side effect: create real-world files
+                    }
+                    File rootDir = (File) getPhysicalFileMethod.invoke(virtualFile);
+                    uri = URI.create(org.jobrunr.utils.resources.VfsFilesystemProvider.SCHEME + rootDir.toURI());
+                } catch (InvocationTargetException | NoSuchMethodException | IllegalArgumentException |
+                         IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
             FileSystemProvider fileSystemProvider = getFileSystemProvider(uri);
             return fileSystemProvider.toPath(uri);
@@ -117,9 +140,10 @@ public class ClassPathResourceProvider implements AutoCloseable {
 
     private FileSystemProvider getFileSystemProviderByScheme(String scheme) {
         switch (scheme) {
-            case "jar": return new JarFileSystemProvider();
-            case "resource": return new ResourcesFileSystemProvider();
-            case "file": return new PathFileSystemProvider();
+            case "jar": return new org.jobrunr.utils.resources.JarFileSystemProvider();
+            case "resource": return new org.jobrunr.utils.resources.ResourcesFileSystemProvider();
+            case "file": return new org.jobrunr.utils.resources.PathFileSystemProvider();
+            case "vfs": return new org.jobrunr.utils.resources.VfsFilesystemProvider();
             default: throw new IllegalArgumentException("Unknown FileSystem required " + scheme);
         }
     }
