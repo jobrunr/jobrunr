@@ -1,4 +1,4 @@
-create table jobrunr_job_counters
+CREATE TABLE jobrunr_job_counters
 (
     name   NCHAR(36) PRIMARY KEY,
     amount int NOT NULL
@@ -17,7 +17,7 @@ VALUES ('FAILED', 0);
 INSERT INTO jobrunr_job_counters (name, amount)
 VALUES ('SUCCEEDED', 0);
 
-create view jobrunr_jobs_stats
+CREATE VIEW jobrunr_jobs_stats
 as
 select count(*)                                                                           as total,
        (select count(*) from jobrunr_jobs jobs where jobs.state = 'AWAITING')             as awaiting,
