@@ -47,7 +47,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     compileTestJava {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        compileTestJava.options.encoding = 'UTF-8'
+        options.encoding = "UTF-8"
     }
 
     javadoc {
