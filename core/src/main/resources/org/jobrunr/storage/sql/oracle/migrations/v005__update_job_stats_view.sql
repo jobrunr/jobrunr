@@ -1,6 +1,6 @@
-drop view jobrunr_jobs_stats;
+DROP VIEW jobrunr_jobs_stats;
 
-create view jobrunr_jobs_stats
+CREATE VIEW jobrunr_jobs_stats
 as
 select (select count(*) from jobrunr_jobs jobs)                                 as total,
        (select count(*) from jobrunr_jobs jobs where jobs.state = 'AWAITING')   as awaiting,

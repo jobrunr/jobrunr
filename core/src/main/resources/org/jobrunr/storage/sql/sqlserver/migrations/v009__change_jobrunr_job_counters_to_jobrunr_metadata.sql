@@ -16,7 +16,7 @@ VALUES ('succeeded-jobs-counter-cluster', 'succeeded-jobs-counter', 'cluster',
 DROP VIEW jobrunr_jobs_stats;
 DROP TABLE jobrunr_job_counters;
 
-create view jobrunr_jobs_stats
+CREATE VIEW jobrunr_jobs_stats
 as
 select count(*)                                                                 as total,
        (select count(*) from jobrunr_jobs jobs where jobs.state = 'AWAITING')   as awaiting,
