@@ -8,6 +8,17 @@ plugins {
     id 'signing'
 }
 
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    options.release = 11
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 processResources {
     filter ReplaceTokens, tokens: [
             "version": project.version
