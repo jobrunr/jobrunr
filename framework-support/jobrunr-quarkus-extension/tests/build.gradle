@@ -3,6 +3,12 @@ plugins {
     id 'io.quarkus' version '3.2.6.Final'
 }
 
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    options.release = 11
+}
+
 dependencies {
     api platform(project(':platform'))
     api platform('io.quarkus:quarkus-bom:3.2.6.Final')

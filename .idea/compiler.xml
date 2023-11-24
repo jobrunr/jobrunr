@@ -79,7 +79,7 @@
         <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
+    <bytecodeTargetLevel target="17">
       <module name="JobRunr.tests.e2e-elasticsearch-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-jackson.test" target="11" />
       <module name="JobRunr.tests.e2e-json-gson.test" target="11" />
