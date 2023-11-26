@@ -186,7 +186,7 @@ public abstract class AbstractPipelinedStream<T> implements Stream<T> {
         return Stream.iterate(seed, f);
     }
 
-    public static <T1> Stream<T1> generate(Supplier<? extends T1> s) {
+    public static <T1> Stream<T1> generate(Supplier<T1> s) {
         return Stream.generate(s);
     }
 
