@@ -83,12 +83,12 @@ class OffsetBasedPageRequestTest {
         OffsetBasedPageRequest page3OffsetBasedPageRequest = Paging.OffsetBasedPage.next(jobPage2);
 
         assertThat(page1OffsetBasedPageRequest)
-                .hasFieldOrPropertyWithValue("order", "jobName:ASC")
+                .hasFieldOrPropertyWithValue("order", "updatedAt:ASC")
                 .hasFieldOrPropertyWithValue("offset", 0L)
                 .hasFieldOrPropertyWithValue("limit", 2);
 
         assertThat(page3OffsetBasedPageRequest)
-                .hasFieldOrPropertyWithValue("order", "jobName:ASC")
+                .hasFieldOrPropertyWithValue("order", "updatedAt:ASC")
                 .hasFieldOrPropertyWithValue("offset", 4L)
                 .hasFieldOrPropertyWithValue("limit", 2);
     }
