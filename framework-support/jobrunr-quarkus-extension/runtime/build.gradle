@@ -33,12 +33,13 @@ java {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.4.3')
-    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.4.3'
+    api platform('io.quarkus:quarkus-bom:3.5.3')
+    annotationProcessor 'io.quarkus:quarkus-extension-processor:3.5.3'
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
     implementation 'io.quarkus:quarkus-arc'
+    compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'io.quarkus:quarkus-micrometer'
 
     metricsApi 'io.quarkus:quarkus-smallrye-health'
