@@ -9,6 +9,7 @@ import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
@@ -74,8 +75,13 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
             String methodClassName = jsonObject.getString(FIELD_CLASS_NAME);
             String actualClassName = jsonObject.getString(FIELD_ACTUAL_CLASS_NAME, null);
             try {
-                Object object = jsonb.fromJsonValue(jsonObject.get("object"), toClass(getActualClassName(methodClassName, actualClassName)));
-                result.add(new JobParameter(methodClassName, object));
+                Class<Object> objectClass = toClass(getActualClassName(methodClassName, actualClassName));
+                if (JobContext.class.equals(objectClass)) {
+                    result.add(new JobParameter(methodClassName, null));
+                } else {
+                    Object object = jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
+                    result.add(new JobParameter(methodClassName, object));
+                }
             } catch (Exception e) {
                 result.add(new JobParameter(new JobParameterNotDeserializableException(getActualClassName(methodClassName, actualClassName), e.getMessage())));
             }
