@@ -172,7 +172,7 @@ class JobSchedulerTest {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
 
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJob(SUCCEEDED)
         assertThat(job)
                 .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
@@ -185,7 +185,7 @@ class JobSchedulerTest {
         await().atMost(35, TimeUnit.SECONDS).until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJob(SUCCEEDED)
         assertThat(job)
                 .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
@@ -197,7 +197,7 @@ class JobSchedulerTest {
         await().until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJob(SUCCEEDED)
         assertThat(job)
                 .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
@@ -210,7 +210,7 @@ class JobSchedulerTest {
         await().until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJob(SUCCEEDED)
         assertThat(job)
                 .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
