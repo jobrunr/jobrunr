@@ -18,6 +18,8 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
@@ -26,9 +28,30 @@ class JobRunrProducerTest {
 
     JobRunrProducer jobRunrProducer;
 
+    @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+    @Mock
+    JobRunrBuildTimeConfiguration.JobSchedulerConfiguration jobSchedulerBuildTimeConfiguration;
+    @Mock
+    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerBuildTimeConfiguration;
+    @Mock
+    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardBuildTimeConfiguration;
 
+
+    @Mock
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.DatabaseConfiguration databaseRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.JobsConfiguration jobsRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.JobSchedulerConfiguration jobSchedulerRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.DashboardConfiguration dashboardRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.MiscellaneousConfiguration miscellaneousRunTimeConfiguration;
 
     @Mock
     StorageProvider storageProvider;
@@ -41,33 +64,16 @@ class JobRunrProducerTest {
 
     @BeforeEach
     void setUp() {
-        jobRunrBuildTimeConfiguration = new JobRunrBuildTimeConfiguration();
-        jobRunrBuildTimeConfiguration.jobScheduler = new JobRunrBuildTimeConfiguration.JobSchedulerConfiguration();
-        jobRunrBuildTimeConfiguration.backgroundJobServer = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
-        jobRunrBuildTimeConfiguration.dashboard = new JobRunrBuildTimeConfiguration.DashboardConfiguration();
+        lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerBuildTimeConfiguration);
+        lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerBuildTimeConfiguration);
+        lenient().when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardBuildTimeConfiguration);
 
-        jobRunrRuntimeConfiguration = new JobRunrRuntimeConfiguration();
-        jobRunrRuntimeConfiguration.database = new JobRunrRuntimeConfiguration.DatabaseConfiguration();
-        jobRunrRuntimeConfiguration.jobs = new JobRunrRuntimeConfiguration.JobsConfiguration();
-        jobRunrRuntimeConfiguration.jobs.defaultNumberOfRetries = Optional.empty();
-        jobRunrRuntimeConfiguration.jobs.retryBackOffTimeSeed = Optional.empty();
-        jobRunrRuntimeConfiguration.jobScheduler = new JobRunrRuntimeConfiguration.JobSchedulerConfiguration();
-        jobRunrRuntimeConfiguration.jobScheduler.jobDetailsGenerator = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer = new JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration();
-        jobRunrRuntimeConfiguration.backgroundJobServer.name = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.pollIntervalInSeconds = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.workerCount = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.scheduledJobsRequestSize = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.orphanedJobsRequestSize = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.succeededsJobRequestSize = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.deleteSucceededJobsAfter = Optional.empty();
-        jobRunrRuntimeConfiguration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter = Optional.empty();
-        jobRunrRuntimeConfiguration.dashboard = new JobRunrRuntimeConfiguration.DashboardConfiguration();
-        jobRunrRuntimeConfiguration.dashboard.port = Optional.empty();
-        jobRunrRuntimeConfiguration.dashboard.username = Optional.empty();
-        jobRunrRuntimeConfiguration.dashboard.password = Optional.empty();
-        jobRunrRuntimeConfiguration.miscellaneous = new JobRunrRuntimeConfiguration.MiscellaneousConfiguration();
-        jobRunrRuntimeConfiguration.miscellaneous.allowAnonymousDataUsage = true;
+        lenient().when(jobRunrRuntimeConfiguration.database()).thenReturn(databaseRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
 
         jobRunrProducer = new JobRunrProducer();
         setInternalState(jobRunrProducer, "jobRunrBuildTimeConfiguration", jobRunrBuildTimeConfiguration);
@@ -76,55 +82,55 @@ class JobRunrProducerTest {
 
     @Test
     void jobSchedulerIsNotSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.jobScheduler.enabled = false;
+        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNull();
     }
 
     @Test
     void jobSchedulerIsSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.jobScheduler.enabled = true;
+        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNotNull();
     }
 
     @Test
     void jobRequestSchedulerIsNotSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.jobScheduler.enabled = false;
+        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNull();
     }
 
     @Test
     void jobRequestSchedulerIsSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.jobScheduler.enabled = true;
+        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
     }
 
     @Test
     void backgroundJobServerConfigurationIsNotSetupWhenNotConfigured() {
-        jobRunrBuildTimeConfiguration.backgroundJobServer.enabled = false;
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.backgroundJobServerConfiguration()).isNull();
     }
 
     @Test
     void backgroundJobServerConfigurationIsSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.backgroundJobServer.enabled = true;
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.backgroundJobServerConfiguration()).isNotNull();
     }
 
     @Test
     void backgroundJobServerConfigurationMapsCorrectConfigurationWhenConfigured() {
-        jobRunrBuildTimeConfiguration.backgroundJobServer.enabled = true;
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        jobRunrRuntimeConfiguration.backgroundJobServer.name = Optional.of("test");
-        jobRunrRuntimeConfiguration.backgroundJobServer.pollIntervalInSeconds = Optional.of(5);
-        jobRunrRuntimeConfiguration.backgroundJobServer.workerCount = Optional.of(4);
-        jobRunrRuntimeConfiguration.backgroundJobServer.deleteSucceededJobsAfter = Optional.of(Duration.of(1, HOURS));
-        jobRunrRuntimeConfiguration.backgroundJobServer.permanentlyDeleteDeletedJobsAfter = Optional.of(Duration.of(1, DAYS));
+        when(backgroundJobServerRunTimeConfiguration.name()).thenReturn(Optional.of("test"));
+        when(backgroundJobServerRunTimeConfiguration.pollIntervalInSeconds()).thenReturn(Optional.of(5));
+        when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(4));
+        when(backgroundJobServerRunTimeConfiguration.deleteSucceededJobsAfter()).thenReturn(Optional.of(Duration.of(1, HOURS)));
+        when(backgroundJobServerRunTimeConfiguration.permanentlyDeleteDeletedJobsAfter()).thenReturn(Optional.of(Duration.of(1, DAYS)));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration();
         assertThat(backgroundJobServerConfiguration).isNotNull();
@@ -136,42 +142,42 @@ class JobRunrProducerTest {
 
     @Test
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
-        jobRunrBuildTimeConfiguration.backgroundJobServer.enabled = false;
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.backgroundJobServer.enabled = true;
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
     }
 
     @Test
     void dashboardWebServerConfigurationIsNotSetupWhenNotConfigured() {
-        jobRunrBuildTimeConfiguration.dashboard.enabled = false;
+        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.dashboardWebServerConfiguration()).isNull();
     }
 
     @Test
     void dashboardWebServerConfigurationIsSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.dashboard.enabled = true;
+        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.dashboardWebServerConfiguration()).isNotNull();
     }
 
     @Test
     void dashboardWebServerIsNotSetupWhenNotConfigured() {
-        jobRunrBuildTimeConfiguration.dashboard.enabled = false;
+        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.dashboardWebServer(storageProvider, jsonMapper, usingStandardDashboardConfiguration())).isNull();
     }
 
     @Test
     void dashboardWebServerIsSetupWhenConfigured() {
-        jobRunrBuildTimeConfiguration.dashboard.enabled = true;
+        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.dashboardWebServer(storageProvider, jsonMapper, usingStandardDashboardConfiguration())).isNotNull();
     }

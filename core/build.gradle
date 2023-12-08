@@ -45,11 +45,12 @@ dependencies {
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'co.elastic.clients:elasticsearch-java'
 
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'io.micrometer:micrometer-core'
@@ -78,7 +79,7 @@ dependencies {
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testImplementation 'co.elastic.clients:elasticsearch-java'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'

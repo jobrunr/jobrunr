@@ -11,6 +11,9 @@ import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import org.jboss.jandex.IndexView;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DatabaseConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.JobSchedulerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
@@ -39,23 +42,26 @@ class JobRunrExtensionProcessorTest {
     @Mock
     Capabilities capabilities;
 
+    @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
-    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    @Mock
+    JobSchedulerConfiguration jobSchedulerConfiguration;
 
-    JobRunrBuildTimeConfiguration.DatabaseConfiguration databaseConfiguration;
+    @Mock
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+
+    @Mock
+    DatabaseConfiguration databaseConfiguration;
 
     JobRunrExtensionProcessor jobRunrExtensionProcessor;
 
     @BeforeEach
     void setUpExtensionProcessor() {
         jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
-        jobRunrBuildTimeConfiguration = new JobRunrBuildTimeConfiguration();
-        backgroundJobServerConfiguration = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
-        jobRunrBuildTimeConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
-        databaseConfiguration = new JobRunrBuildTimeConfiguration.DatabaseConfiguration();
-        databaseConfiguration.type = Optional.empty();
-        jobRunrBuildTimeConfiguration.database = databaseConfiguration;
+        lenient().when(jobRunrBuildTimeConfiguration.database()).thenReturn(databaseConfiguration);
+        lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
+        lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
@@ -80,8 +86,7 @@ class JobRunrExtensionProcessorTest {
         BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
         JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
 
-        jobRunrBuildTimeConfiguration.jobScheduler = new JobRunrBuildTimeConfiguration.JobSchedulerConfiguration();
-        jobRunrBuildTimeConfiguration.jobScheduler.enabled = true;
+        when(jobSchedulerConfiguration.enabled()).thenReturn(true);
 
         jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
 
@@ -95,8 +100,7 @@ class JobRunrExtensionProcessorTest {
         BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
         JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
 
-        jobRunrBuildTimeConfiguration.jobScheduler = new JobRunrBuildTimeConfiguration.JobSchedulerConfiguration();
-        jobRunrBuildTimeConfiguration.jobScheduler.enabled = false;
+        when(jobSchedulerConfiguration.enabled()).thenReturn(false);
 
         jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
 
@@ -145,7 +149,7 @@ class JobRunrExtensionProcessorTest {
     @Test
     void jobRunrProducerUsesDocumentDBStorageProviderIfMongoDBClientCapabilityIsPresent() {
         lenient().when(capabilities.isPresent(Capability.MONGODB_CLIENT)).thenReturn(true);
-        databaseConfiguration.type = Optional.of("documentdb");
+        when(databaseConfiguration.type()).thenReturn(Optional.of("documentdb"));
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
@@ -196,7 +200,7 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void addMetricsDoesAddStorageProviderAndBackgroundJobServerMetricsIfEnabledAndMicroMeterSupport() {
-        backgroundJobServerConfiguration.enabled = true;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
 
         final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
 

@@ -29,19 +29,19 @@ public class JobRunrStarter {
     }
 
     void startup(@Observes StartupEvent event) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer.enabled) {
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
             backgroundJobServerInstance.get().start();
         }
-        if (jobRunrBuildTimeConfiguration.dashboard.enabled) {
+        if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
             dashboardWebServerInstance.get().start();
         }
     }
 
     void shutdown(@Observes ShutdownEvent event) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer.enabled) {
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
             backgroundJobServerInstance.get().stop();
         }
-        if (jobRunrBuildTimeConfiguration.dashboard.enabled) {
+        if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
             dashboardWebServerInstance.get().stop();
         }
         storageProviderInstance.get().close();

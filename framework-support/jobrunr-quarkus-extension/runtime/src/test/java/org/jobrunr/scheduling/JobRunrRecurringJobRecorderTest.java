@@ -47,7 +47,7 @@ class JobRunrRecurringJobRecorderTest {
     @BeforeEach
     void setUpJobRunrRecorder() {
         jobRunrRecurringJobRecorder = new JobRunrRecurringJobRecorder();
-        when(beanContainer.instance(JobScheduler.class)).thenReturn(jobScheduler);
+        when(beanContainer.beanInstance(JobScheduler.class)).thenReturn(jobScheduler);
 
         ConfigProviderResolver.setInstance(configProviderResolver);
         when(configProviderResolver.getConfig()).thenReturn(config);

@@ -3,8 +3,10 @@ package org.jobrunr.micronaut.autoconfigure.storage;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -18,13 +20,18 @@ import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 
 @MicronautTest
 @Property(name = "jobrunr.database.skip-create", value = "true")
-class JobRunrSqlStorageProviderFactoryTest {
+@Property(name = "jobrunr.database.datasource", value = "jobrunr")
+class JobRunrNamedSqlStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;
 
     @Test
-    void sqlStorageProviderAutoConfigurationTestWithDefaultDataSource() throws SQLException {
+    void sqlStorageProviderAutoConfigurationTestWithMultipleNamedDataSources() throws SQLException {
+        // GIVEN
+        context.registerSingleton(dataSource());
+        context.registerSingleton(DataSource.class, dataSource(), Qualifiers.byName("jobrunr"));
+
         // WHEN & THEN
         assertThat(context).hasSingleBean(StorageProvider.class);
         assertThat(context.getBean(StorageProvider.class))
@@ -35,6 +42,12 @@ class JobRunrSqlStorageProviderFactoryTest {
 
     @Singleton
     public DataSource dataSource() throws SQLException {
+        return Mocks.dataSource();
+    }
+
+    @Singleton
+    @Named("jobrunr")
+    public DataSource jobRunrDataSource() throws SQLException {
         return Mocks.dataSource();
     }
 
