@@ -36,7 +36,7 @@ dependencies {
         api 'redis.clients:jedis:5.0.1'
         api 'io.lettuce:lettuce-core:6.2.6.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:4.11.0'
-        api 'co.elastic.clients:elasticsearch-java:8.10.3'
+        api 'co.elastic.clients:elasticsearch-java:8.11.2'
 
         api 'org.junit.jupiter:junit-jupiter:5.10.0'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
@@ -46,7 +46,7 @@ dependencies {
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.38.0'
         api 'org.mockito:mockito-inline:5.2.0'
         api 'org.mockito:mockito-junit-jupiter:5.6.0'
-        api 'ch.qos.logback:logback-classic:1.4.11'
+        api 'ch.qos.logback:logback-classic:1.4.14'
         api 'org.testcontainers:testcontainers:1.19.1'
         api 'org.testcontainers:junit-jupiter:1.19.1'
         api 'org.testcontainers:jdbc:1.19.1'
