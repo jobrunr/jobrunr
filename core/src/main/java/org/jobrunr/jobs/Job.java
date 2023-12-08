@@ -20,8 +20,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
@@ -40,6 +39,7 @@ public class Job extends AbstractJob {
     static {
         ALLOWED_SORT_COLUMNS.put(FIELD_CREATED_AT, Job::getCreatedAt);
         ALLOWED_SORT_COLUMNS.put(FIELD_UPDATED_AT, Job::getUpdatedAt);
+        ALLOWED_SORT_COLUMNS.put(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof ScheduledState ? ((ScheduledState) job.getJobState()).getScheduledAt() : null);
     }
 
     private final UUID id;

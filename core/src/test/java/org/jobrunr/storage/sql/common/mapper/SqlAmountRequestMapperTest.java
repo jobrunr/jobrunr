@@ -25,16 +25,16 @@ class SqlAmountRequestMapperTest {
         final AmountRequest pageRequest = ascOnCreatedAt(2);
         assertThat(amountMapper.orderClause(pageRequest)).isEqualTo(" ORDER BY createdAt ASC");
     }
-    
+
     @Test
     void mapWithSomeIllegalStuff1() {
-        final AmountRequest pageRequest = new AmountRequest("priority:ASC,\"delete * from jobtable\"createdAt:DESC", 2);
-        assertThat(amountMapper.orderClause(pageRequest)).isEqualTo(" ORDER BY priority ASC");
+        final AmountRequest pageRequest = new AmountRequest("createdAt:ASC,\"delete * from jobtable\"updatedAt:DESC", 2);
+        assertThat(amountMapper.orderClause(pageRequest)).isEqualTo(" ORDER BY createdAt ASC");
     }
 
     @Test
     void mapWithSomeIllegalStuff2() {
-        final AmountRequest pageRequest = new AmountRequest("priority:\"delete * from jobtable\",createdAt:DESC", 2);
+        final AmountRequest pageRequest = new AmountRequest("updatedAt:\"delete * from jobtable\",createdAt:DESC", 2);
         assertThatThrownBy(() -> amountMapper.orderClause(pageRequest))
                 .isInstanceOf(IllegalArgumentException.class);
     }
