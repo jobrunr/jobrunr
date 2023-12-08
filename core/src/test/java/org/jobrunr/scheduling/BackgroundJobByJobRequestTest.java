@@ -10,7 +10,7 @@ import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProviderForTest;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.*;
 import org.jobrunr.stubs.TestJobContextJobRequest.TestJobContextJobRequestHandler;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
@@ -46,14 +46,14 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 
 public class BackgroundJobByJobRequestTest {
 
-    private StorageProviderForTest storageProvider;
+    private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
 
     private static final String every5Seconds = "*/5 * * * * *";
 
     @BeforeEach
     public void setUpTests() {
-        storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
+        storageProvider = new InMemoryStorageProvider();
         SimpleJobActivator jobActivator = new SimpleJobActivator(
                 new TestJobRequestHandler(),
                 new TestJobContextJobRequestHandler()

@@ -16,7 +16,7 @@ import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProviderForTest;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
@@ -63,7 +63,7 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 public class BackgroundJobByJobLambdaTest {
 
     private TestService testService;
-    private StorageProviderForTest storageProvider;
+    private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
     private static final String every5Seconds = "*/5 * * * * *";
     private LogAllStateChangesFilter logAllStateChangesFilter;
@@ -72,7 +72,7 @@ public class BackgroundJobByJobLambdaTest {
     void setUpTests() {
         testService = new TestService();
         testService.reset();
-        storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
+        storageProvider = new InMemoryStorageProvider();
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)

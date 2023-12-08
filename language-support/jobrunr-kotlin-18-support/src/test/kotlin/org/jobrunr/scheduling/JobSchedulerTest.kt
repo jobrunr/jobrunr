@@ -12,7 +12,6 @@ import org.jobrunr.scheduling.cron.Cron
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.server.JobActivator
 import org.jobrunr.storage.InMemoryStorageProvider
-import org.jobrunr.storage.StorageProviderForTest
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
@@ -22,7 +21,7 @@ import java.util.concurrent.TimeUnit
 class JobSchedulerTest {
 
     @Mock
-    private val storageProvider = StorageProviderForTest(InMemoryStorageProvider()).also {
+    private val storageProvider = InMemoryStorageProvider().also {
         it.setJobMapper(JobMapper(JacksonJsonMapper()))
     }
 

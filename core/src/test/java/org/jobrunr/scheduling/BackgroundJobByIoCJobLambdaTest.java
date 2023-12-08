@@ -8,7 +8,7 @@ import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProviderForTest;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Work;
 import org.jobrunr.stubs.TestServiceForIoC;
@@ -43,7 +43,7 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BackgroundJobByIoCJobLambdaTest {
 
-    private StorageProviderForTest storageProvider;
+    private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
     private TestServiceForIoC testServiceForIoC;
     private TestServiceInterface testServiceInterface;
@@ -52,7 +52,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @BeforeEach
     public void setUpTests() {
-        storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
+        storageProvider = new InMemoryStorageProvider();
         testServiceForIoC = new TestServiceForIoC("a constructor arg");
         testServiceInterface = testServiceForIoC;
         SimpleJobActivator jobActivator = new SimpleJobActivator(testServiceForIoC, new TestService());
