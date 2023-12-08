@@ -2,7 +2,6 @@ package org.jobrunr.storage.sql.oracle;
 
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
-import org.jobrunr.storage.sql.common.db.dialect.OracleDialect;
 
 import javax.sql.DataSource;
 

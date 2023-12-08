@@ -10,6 +10,7 @@ import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +32,7 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -76,7 +77,7 @@ class JobZooKeeperTest {
         jobZooKeeper = initializeJobZooKeeper();
 
         final Job job = anEnqueuedJob().withId().build();
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(singletonList(job));
+        lenient().when(storageProvider.getJobList(eq(ENQUEUED), any())).thenReturn(singletonList(job));
 
         job.startProcessingOn(backgroundJobServer);
         jobZooKeeper.startProcessing(job, mock(Thread.class));
@@ -93,7 +94,7 @@ class JobZooKeeperTest {
         final Job enqueuedJob = anEnqueuedJob().build();
         final List<Job> jobs = List.of(enqueuedJob);
 
-        lenient().when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(jobs);
+        lenient().when(storageProvider.getJobList(eq(ENQUEUED), any())).thenReturn(jobs);
 
         jobZooKeeper.run();
 
@@ -104,7 +105,7 @@ class JobZooKeeperTest {
     void allStateChangesArePassingViaTheApplyStateFilterOnSuccess() {
         Job job = aScheduledJob().build();
 
-        when(storageProvider.getScheduledJobs(any(Instant.class), any()))
+        when(storageProvider.getScheduledJobs(any(Instant.class), any(AmountRequest.class)))
                 .thenReturn(
                         singletonList(job),
                         emptyJobList()
@@ -139,7 +140,7 @@ class JobZooKeeperTest {
 
         when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
         when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+        lenient().when(storageProvider.getJobList(eq(SUCCEEDED), any(Instant.class), any()))
                 .thenReturn(
                         asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build()),
                         emptyJobList()
@@ -163,7 +164,7 @@ class JobZooKeeperTest {
 
         when(storageProvider.getJobById(succeededJob1.getId())).thenReturn(succeededJob1);
         when(storageProvider.getJobById(succeededJob2.getId())).thenReturn(succeededJob2);
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+        lenient().when(storageProvider.getJobList(eq(SUCCEEDED), any(Instant.class), any()))
                 .thenReturn(
                         asList(succeededJob1, succeededJob2, aSucceededJob().build(), aSucceededJob().build(), aSucceededJob().build())
                 );

@@ -33,7 +33,7 @@ class ProcessOrphanedJobsTaskTest extends AbstractZooKeeperTaskTest {
     @Test
     void testTaskAndStateChangeFilters() {
         final Job orphanedJob = aJobInProgress().build();
-        when(storageProvider.getJobs(eq(PROCESSING), any(Instant.class), any()))
+        when(storageProvider.getJobList(eq(PROCESSING), any(Instant.class), any()))
                 .thenReturn(
                         singletonList(orphanedJob),
                         emptyJobList()

@@ -3,10 +3,7 @@ package org.jobrunr.storage;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
-
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert, StorageProvider> {
 
@@ -19,7 +16,7 @@ public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert,
     }
 
     public StorageProviderAssert hasJobs(StateName stateName, int count) {
-        Assertions.assertThat(actual.getJobPage(stateName, ascOnUpdatedAt(0)).getTotal()).isEqualTo(count);
+        Assertions.assertThat(actual.countJobs(stateName)).isEqualTo(count);
         return this;
     }
 
@@ -27,8 +24,6 @@ public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert,
         String jobMapperField = "jobMapper";
         if (MongoDBStorageProvider.class.equals(actual.getClass())) {
             jobMapperField = "jobDocumentMapper";
-        } else if (ElasticSearchStorageProvider.class.equals(actual.getClass())) {
-            jobMapperField = "documentMapper";
         }
 
         Assertions.assertThat(actual).extracting(jobMapperField).isNotNull();

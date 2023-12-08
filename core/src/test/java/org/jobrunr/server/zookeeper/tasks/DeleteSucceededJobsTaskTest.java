@@ -32,7 +32,7 @@ class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
     void testTask() {
         Job succeededJob1 = aSucceededJob().build();
         Job succeededJob2 = aSucceededJob().build();
-        when(storageProvider.getJobs(eq(SUCCEEDED), any(), any())).thenReturn(asList(succeededJob1, succeededJob2), emptyJobList());
+        when(storageProvider.getJobList(eq(SUCCEEDED), any(), any())).thenReturn(asList(succeededJob1, succeededJob2), emptyJobList());
         runTask(task);
 
         verify(storageProvider).save(anyList());
@@ -51,7 +51,7 @@ class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
     void taskMovesSucceededJobsToDeletedStateAlsoForMethodsThatDontExistAnymore() {
         Job job = aSucceededJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
 
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+        lenient().when(storageProvider.getJobList(eq(SUCCEEDED), any(Instant.class), any()))
                 .thenReturn(
                         singletonList(job),
                         emptyJobList());
@@ -68,7 +68,7 @@ class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
     @Test
     void taskMovesSucceededJobsToDeletedStateAlsoForInterfacesWithMethodsThatDontExistAnymore() {
         // GIVEN
-        lenient().when(storageProvider.getJobs(eq(SUCCEEDED), any(Instant.class), any()))
+        lenient().when(storageProvider.getJobList(eq(SUCCEEDED), any(Instant.class), any()))
                 .thenReturn(
                         asList(aSucceededJob()
                                 .withJobDetails(jobDetails()

@@ -6,7 +6,7 @@ import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
-import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
+import org.jobrunr.storage.sql.common.db.AnsiDialect;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

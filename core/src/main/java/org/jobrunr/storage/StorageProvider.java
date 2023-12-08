@@ -8,11 +8,16 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.PageRequest;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 /**
  * The StorageProvider allows to store, retrieve and delete background jobs.
@@ -113,13 +118,77 @@ public interface StorageProvider extends AutoCloseable {
         return getJobById(jobId.asUUID());
     }
 
-    List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest);
+    /**
+     * Returns the first (oldest) job matching the given {@link StateName}.
+     *
+     * @param state the StateName to test each {@link Job} against
+     * @return the first {@link Job} found, null if no {@link Job} matches the {@link StateName}.
+     */
+    default Job getJob(StateName state) {
+        List<Job> jobList = getJobList(state, ascOnUpdatedAt(1));
+        if (jobList.isEmpty()) return null;
+        return jobList.get(0);
+    }
 
-    List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest);
+    /**
+     * Returns the first (oldest) job matching the given {@link StateName} and {@link Instant}.
+     *
+     * @param state         the StateName to test each {@link Job} against
+     * @param updatedBefore the Instant to test each {@link Job} updatedAt against
+     * @return the first {@link Job} found, null if no {@link Job} matches the {@link StateName} and updated before {@link Instant}.
+     */
+    default Job getJob(StateName state, Instant updatedBefore) {
+        List<Job> jobList = getJobList(state, updatedBefore, ascOnUpdatedAt(1));
+        if (jobList.isEmpty()) return null;
+        return jobList.get(0);
+    }
 
-    List<Job> getJobs(StateName state, PageRequest pageRequest);
+    /**
+     * Counts all the jobs matching the given {@link StateName}.
+     *
+     * @param state the StateName to test each {@link Job} against
+     * @return the amount of jobs matching the given {@link StateName}.
+     */
+    long countJobs(StateName state);
 
-    Page<Job> getJobPage(StateName state, PageRequest pageRequest);
+    /**
+     * Returns all the jobs matching the given {@link StateName}, {@link Instant} and {@link AmountRequest}.
+     *
+     * @param state         the StateName to test each {@link Job} against
+     * @param updatedBefore the Instant to test each {@link Job} updatedAt against
+     * @param amountRequest the amount and the order in which to return the {@link Job jobs}.
+     * @return a list of jobs matching the parameters.
+     */
+    List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest);
+
+    default Page<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
+        long totalJobs = countJobs(state);
+        if (totalJobs == 0) return pageRequest.emptyPage();
+        return pageRequest.mapToNewPage(totalJobs, getJobList(state, updatedBefore, pageRequest));
+    }
+
+    /**
+     * Returns all the jobs matching the given {@link StateName} and {@link AmountRequest}.
+     *
+     * @param state         the StateName to test each {@link Job} against
+     * @param amountRequest the amount and the order in which to return the {@link Job jobs}.
+     * @return a list of jobs matching the parameters.
+     */
+    List<Job> getJobList(StateName state, AmountRequest amountRequest);
+
+    default Page<Job> getJobs(StateName state, PageRequest pageRequest) {
+        long totalJobs = countJobs(state);
+        if (totalJobs == 0) return pageRequest.emptyPage();
+        return pageRequest.mapToNewPage(totalJobs, getJobList(state, pageRequest));
+    }
+
+    List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest);
+
+    default Page<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
+        long totalJobs = countJobs(SCHEDULED);
+        if (totalJobs == 0) return pageRequest.emptyPage();
+        return pageRequest.mapToNewPage(totalJobs, getScheduledJobs(scheduledBefore, (AmountRequest) pageRequest));
+    }
 
     /**
      * Deletes the {@link Job} with the given id and returns the amount of deleted jobs (either 0 or 1).

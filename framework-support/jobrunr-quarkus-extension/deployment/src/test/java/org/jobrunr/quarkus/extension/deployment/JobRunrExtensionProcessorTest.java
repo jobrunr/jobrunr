@@ -16,7 +16,10 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
-import org.jobrunr.quarkus.autoconfigure.storage.*;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -148,15 +151,6 @@ class JobRunrExtensionProcessorTest {
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrDocumentDBStorageProviderProducer.class.getName())
                 .doesNotContain(JobRunrMongoDBStorageProviderProducer.class.getName());
-    }
-
-    @Test
-    void jobRunrProducerUsesElasticSearchStorageProviderIfElasticSearchRestHighLevelClientCapabilityIsPresent() {
-        lenient().when(capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)).thenReturn(true);
-        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
-
-        assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(JobRunrElasticSearchStorageProviderProducer.class.getName());
     }
 
     @Test

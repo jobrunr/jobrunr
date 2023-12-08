@@ -9,6 +9,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.util.List;
@@ -72,9 +73,9 @@ public class JobRunrApiHandler extends RestHttpHandler {
     private HttpRequestHandler findJobByState() {
         return (request, response) ->
                 response.asJson(
-                        storageProvider.getJobPage(
+                        storageProvider.getJobs(
                                 request.queryParam("state", StateName.class, StateName.ENQUEUED),
-                                request.fromQueryParams(PageRequest.class)
+                                request.fromQueryParams(OffsetBasedPageRequest.class)
                         ));
     }
 
@@ -93,7 +94,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler getRecurringJobs() {
         return (request, response) -> {
-            PageRequest pageRequest = request.fromQueryParams(PageRequest.class);
+            OffsetBasedPageRequest pageRequest = request.fromQueryParams(OffsetBasedPageRequest.class);
             RecurringJobsResult recurringJobs = recurringJobResults();
             final List<RecurringJobUIModel> recurringJobUIModels = recurringJobs
                     .stream()
@@ -101,7 +102,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
                     .limit(pageRequest.getLimit())
                     .map(RecurringJobUIModel::new)
                     .collect(Collectors.toList());
-            Page<RecurringJobUIModel> result = new Page<>(recurringJobs.size(), recurringJobUIModels, pageRequest);
+            Page<RecurringJobUIModel> result = pageRequest.mapToNewPage(recurringJobs.size(), recurringJobUIModels);
             response.asJson(result);
         };
     }
@@ -136,10 +137,10 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private VersionUIModel getVersionUIModel() {
-        if(versionUIModel != null) return versionUIModel;
-        if(allowAnonymousDataUsage) {
+        if (versionUIModel != null) return versionUIModel;
+        if (allowAnonymousDataUsage) {
             final JobRunrMetadata metadata = storageProvider.getMetadata("id", "cluster");
-            if(metadata != null) {
+            if (metadata != null) {
                 final String storageProviderType = storageProvider instanceof ThreadSafeStorageProvider
                         ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getSimpleName()
                         : storageProvider.getClass().getSimpleName();
@@ -155,14 +156,14 @@ public class JobRunrApiHandler extends RestHttpHandler {
     }
 
     private ProblemsManager problemsManager() {
-        if(this.problemsManager == null) {
+        if (this.problemsManager == null) {
             this.problemsManager = new ProblemsManager(storageProvider);
         }
         return this.problemsManager;
     }
 
     private RecurringJobsResult recurringJobResults() {
-        if(recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
+        if (recurringJobsResult == null || storageProvider.recurringJobsUpdated(recurringJobsResult.getLastModifiedHash())) {
             recurringJobsResult = storageProvider.getRecurringJobs();
         }
         return recurringJobsResult;

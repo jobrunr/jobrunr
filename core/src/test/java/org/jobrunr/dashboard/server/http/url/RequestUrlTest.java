@@ -1,7 +1,7 @@
 package org.jobrunr.dashboard.server.http.url;
 
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -70,7 +70,7 @@ class RequestUrlTest {
     @Test
     void testToRequestUrlWithQueryParams() {
         RequestUrl requestUrl = new MatchUrl("/api/jobs/enqueued?offset=2&limit=2&order=updatedAt:DESC").toRequestUrl("/api/jobs/:state");
-        PageRequest pageRequest = requestUrl.fromQueryParams(PageRequest.class);
+        OffsetBasedPageRequest pageRequest = requestUrl.fromQueryParams(OffsetBasedPageRequest.class);
         assertThat(pageRequest.getOffset()).isEqualTo(2);
         assertThat(pageRequest.getLimit()).isEqualTo(2);
         assertThat(pageRequest.getOrder()).isEqualTo("updatedAt:DESC");

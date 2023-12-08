@@ -8,13 +8,12 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
+import org.jobrunr.storage.navigation.AmountRequest;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 
 public class StorageProviderForTest implements StorageProvider {
 
@@ -120,27 +119,23 @@ public class StorageProviderForTest implements StorageProvider {
     }
 
     @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return storageProvider.getJobs(state, updatedBefore, pageRequest);
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return storageProvider.getJobList(state, amountRequest);
     }
 
     @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return storageProvider.getScheduledJobs(scheduledBefore, pageRequest);
-    }
-
-    public Long countJobs(StateName state) {
-        return storageProvider.getJobPage(state, ascOnUpdatedAt(0)).getTotal();
+    public long countJobs(StateName state) {
+        return storageProvider.countJobs(state);
     }
 
     @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        return storageProvider.getJobs(state, pageRequest);
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        return storageProvider.getJobList(state, updatedBefore, amountRequest);
     }
 
     @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        return storageProvider.getJobPage(state, pageRequest);
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
     }
 
     @Override

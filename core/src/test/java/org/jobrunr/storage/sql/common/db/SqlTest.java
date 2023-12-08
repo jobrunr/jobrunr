@@ -3,8 +3,7 @@ package org.jobrunr.storage.sql.common.db;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.storage.sql.common.db.dialect.Dialect;
-import org.jobrunr.storage.sql.common.db.dialect.H2Dialect;
+import org.jobrunr.storage.sql.h2.H2Dialect;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
@@ -21,7 +20,7 @@ class SqlTest {
         DataSource dataSource = getH2DataSource("without-tableprefix");
         Dialect dialect = new H2Dialect();
 
-        try(Connection connection = dataSource.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             TestSql testSqlWithoutPrefix1 = new TestSql(connection, dialect, null);
             assertThat(testSqlWithoutPrefix1.aCachedSelectStatementThatReturnsTheCount()).isEqualTo(1L);
             assertThat(testSqlWithoutPrefix1.parseStatementCounter).isEqualTo(1L);
@@ -37,7 +36,7 @@ class SqlTest {
         DataSource dataSource = getH2DataSource("with-tableprefix");
         Dialect dialect = new H2Dialect();
 
-        try(Connection connection = dataSource.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             TestSql testSqlWithoutPrefix = new TestSql(connection, dialect, null);
             assertThat(testSqlWithoutPrefix.aCachedSelectStatementThatReturnsTheCount()).isEqualTo(1L);
 
@@ -59,7 +58,7 @@ class SqlTest {
         }
 
         @Override
-        String parseStatement(String query) {
+        protected String parseStatement(String query) {
             parseStatementCounter++;
             return super.parseStatement(query);
         }
@@ -71,10 +70,10 @@ class SqlTest {
         dataSource.setUser("sa");
         dataSource.setPassword("sa");
 
-        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();){
-           statement.execute("create table jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
-           statement.execute("insert into jobrunr_jobs (ID, jobSignature) values (1, 'Not important')");
-           statement.execute("create table prefix_jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
+            statement.execute("create table jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
+            statement.execute("insert into jobrunr_jobs (ID, jobSignature) values (1, 'Not important')");
+            statement.execute("create table prefix_jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
         }
 
         return dataSource;

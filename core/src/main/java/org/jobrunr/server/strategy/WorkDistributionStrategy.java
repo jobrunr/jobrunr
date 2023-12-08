@@ -1,6 +1,6 @@
 package org.jobrunr.server.strategy;
 
-import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.navigation.AmountRequest;
 
 public interface WorkDistributionStrategy {
 
@@ -8,5 +8,5 @@ public interface WorkDistributionStrategy {
 
     boolean canOnboardNewWork();
 
-    PageRequest getWorkPageRequest();
+    AmountRequest getWorkPageRequest();
 }

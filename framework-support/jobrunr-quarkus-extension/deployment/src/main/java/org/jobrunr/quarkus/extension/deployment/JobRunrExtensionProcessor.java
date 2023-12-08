@@ -34,13 +34,20 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.jobs.states.*;
 import org.jobrunr.quarkus.annotations.Recurring;
-import org.jobrunr.quarkus.autoconfigure.*;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
+import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
-import org.jobrunr.quarkus.autoconfigure.storage.*;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.storage.sql.db2.DB2StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
@@ -143,7 +150,7 @@ class JobRunrExtensionProcessor {
                 // JobRunr Job
                 AbstractJob.class.getName(), CachingJobDetailsGenerator.class.getName(), Job.class.getName(), JobDetails.class.getName(), JobDetailsAsmGenerator.class.getName(), JobParameter.class.getName(), RecurringJob.class.getName(),
                 // JobRunr Dashboard
-                BackgroundJobServerStatus.class.getName(), JobDashboardLogLine.class.getName(), JobDashboardLogLines.class.getName(), JobStats.class.getName(), JobStatsExtended.class.getName(), JobStatsExtended.Estimation.class.getName(), JobRunrMetadata.class.getName(), Page.class.getName(), PageRequest.class.getName(), RecurringJobUIModel.class.getName(), VersionUIModel.class.getName(),
+                BackgroundJobServerStatus.class.getName(), JobDashboardLogLine.class.getName(), JobDashboardLogLines.class.getName(), JobStats.class.getName(), JobStatsExtended.class.getName(), JobStatsExtended.Estimation.class.getName(), JobRunrMetadata.class.getName(), Page.class.getName(), AmountRequest.class.getName(), OffsetBasedPageRequest.class.getName(), RecurringJobUIModel.class.getName(), VersionUIModel.class.getName(),
                 // JobRunr Dashboard Problems
                 CpuAllocationIrregularityProblem.class.getName(), NewJobRunrVersionProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName(),
                 // Storage Providers
@@ -226,8 +233,6 @@ class JobRunrExtensionProcessor {
             return asSet(JobRunrMongoDBStorageProviderProducer.class);
         } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
             return asSet(JobRunrDocumentDBStorageProviderProducer.class);
-        } else if (isCapabilityPresentAndConfigured(capabilities, Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT, "elasticsearch", databaseType)) {
-            return asSet(JobRunrElasticSearchStorageProviderProducer.class);
         } else {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }
