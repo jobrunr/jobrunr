@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-public class VfsFilesystemProvider extends org.jobrunr.utils.resources.PathFileSystemProvider {
+public class VfsFilesystemProvider extends PathFileSystemProvider {
 
     public static final String SCHEME = "vfs://";
     private final Set<Path> extractedFiles;
