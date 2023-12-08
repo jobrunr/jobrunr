@@ -67,7 +67,7 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.5.3/cedf5de2568a3d709346ed6e96d27e198d7cdbde/quarkus-extension-processor-3.5.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.6.1/3a6a3717042a3923d33613f493ef48a0116d9f9e/quarkus-extension-processor-3.6.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.15.3/f6e1d8a8819f854b681c8eaa57fd59a42329e10c/jsoup-1.15.3.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.5/a226d06df852056427a372042defe76b6e0aede/javaparser-core-3.25.5.jar" />
