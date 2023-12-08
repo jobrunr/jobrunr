@@ -50,6 +50,7 @@ dependencies {
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'io.micrometer:micrometer-core'
