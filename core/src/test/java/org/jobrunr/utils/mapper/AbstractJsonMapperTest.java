@@ -21,8 +21,14 @@ import java.util.UUID;
 import static java.time.Instant.now;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
-import static org.jobrunr.JobRunrAssertions.*;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJson;
+import static org.jobrunr.JobRunrAssertions.contentOfResource;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 public abstract class AbstractJsonMapperTest {
@@ -280,5 +286,34 @@ public abstract class AbstractJsonMapperTest {
         Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(deserializedJob.getJobDetails())
                 .hasArgs(Task.PROGRAMMING);
+    }
+
+    @Test
+    void testCanSerializeAndDeserializeWithAllFieldsNotNull() {
+        Job job = anEnqueuedJob()
+                .withAmountOfRetries(6)
+                .withRecurringJobId("my-recurring-job")
+                .withJobDetails(() -> testService.doWorkWithEnum(Task.PROGRAMMING))
+                .withProcessingState()
+                .withFailedState()
+                .withScheduledState()
+                .withEnqueuedState(Instant.now())
+                .withProcessingState()
+                .withSucceededState()
+                .build();
+
+        String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/complete-job.json"));
+
+        Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(deserializedJob.getJobDetails())
+                .hasArgs(Task.PROGRAMMING);
+    }
+
+    @Test
+    void testCanDeserializeFromV6WithSomeFieldsNull() {
+        String serializedJobInV6 = contentOfResource("/org/jobrunr/utils/mapper/complete-job-v6.0.json");
+
+        assertThatCode(() -> jsonMapper.deserialize(serializedJobInV6, Job.class)).doesNotThrowAnyException();
     }
 }

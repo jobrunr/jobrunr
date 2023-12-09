@@ -5,7 +5,13 @@ import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
-import org.jobrunr.jobs.states.*;
+import org.jobrunr.jobs.states.DeletedState;
+import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.resilience.Lock;
 import org.mockito.internal.util.reflection.Whitebox;
@@ -13,11 +19,18 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -32,10 +45,12 @@ public class JobTestBuilder {
         return result;
     }
 
+
     private UUID id;
     private Integer version;
     private String name;
     private Integer amountOfRetries;
+    private String recurringJobId;
     private Set<String> labels;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
@@ -185,6 +200,11 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withRecurringJobId(String recurringJobId) {
+        this.recurringJobId = recurringJobId;
+        return this;
+    }
+
     public JobTestBuilder withLabels(String... labels) {
         return withLabels(asSet(labels));
     }
@@ -290,6 +310,7 @@ public class JobTestBuilder {
             job.setLabels(labels);
         }
         job.setJobName(name);
+        job.setRecurringJobId(recurringJobId);
         job.getMetadata().putAll(metadata);
 
         List<JobState> jobHistory = getInternalState(job, "jobHistory");

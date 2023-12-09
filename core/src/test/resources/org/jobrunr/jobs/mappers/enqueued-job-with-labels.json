@@ -1,7 +1,6 @@
 {
   "id": "${json-unit.ignore}",
   "jobName": "an enqueued job",
-  "amountOfRetries": null,
   "labels": [
     "first label",
     "second label"
@@ -30,6 +29,5 @@
       "state": "ENQUEUED",
       "@class": "org.jobrunr.jobs.states.EnqueuedState"
     }
-  ],
-  "recurringJobId": null
+  ]
 }

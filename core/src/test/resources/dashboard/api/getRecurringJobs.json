@@ -8,12 +8,10 @@
       "version": 0,
       "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
       "jobName": "Import sales data",
-      "amountOfRetries": null,
       "labels": [],
       "jobDetails": {
         "cacheable": true,
         "className": "org.jobrunr.stubs.TestService",
-        "staticFieldName": null,
         "methodName": "doWork",
         "jobParameters": [
           {
@@ -34,12 +32,10 @@
       "version": 0,
       "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
       "jobName": "Generate sales reports",
-      "amountOfRetries": null,
       "labels": [],
       "jobDetails": {
         "cacheable": true,
         "className": "org.jobrunr.stubs.TestService",
-        "staticFieldName": null,
         "methodName": "doWork",
         "jobParameters": [
           {
