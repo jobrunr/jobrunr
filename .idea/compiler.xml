@@ -82,6 +82,8 @@
     <bytecodeTargetLevel target="17">
       <module name="JobRunr.tests.e2e-elasticsearch-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-elasticsearch.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-elasticsearch.test" target="11" />
       <module name="JobRunr.tests.e2e-json-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-mariadb-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-mariadb-jackson.test" target="11" />
@@ -95,6 +97,8 @@
       <module name="JobRunr.tests.e2e-postgres-jackson.test" target="11" />
       <module name="JobRunr.tests.e2e-redis-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-redis-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-redis.main" target="1.8" />
+      <module name="JobRunr.tests.e2e-redis.test" target="11" />
       <module name="JobRunr.tests.e2e-sqlserver-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-sqlserver-jackson.test" target="11" />
     </bytecodeTargetLevel>

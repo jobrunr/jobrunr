@@ -2,8 +2,6 @@
   "currentPage": 0,
   "hasNext": false,
   "hasPrevious": false,
-  "nextPage": null,
-  "previousPage": null,
   "items": [
     {
       "@class": "${json-unit.ignore-element}",
