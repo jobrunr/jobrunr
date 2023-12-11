@@ -1,18 +1,18 @@
 package org.jobrunr.storage.nosql.elasticsearch.migrations;
 
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.jobrunr.storage.StorageProviderUtils;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 
 import java.io.IOException;
 
+import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_JOB_AS_JSON;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider.DEFAULT_RECURRING_JOB_INDEX_NAME;
 
 public class M002_CreateRecurringJobsIndex extends ElasticSearchMigration {
 
     @Override
-    public void runMigration(RestHighLevelClient client, String indexPrefix) throws IOException {
+    public void runMigration(ElasticsearchClient client, String indexPrefix) throws IOException {
         final String recurringJobIndexName = elementPrefixer(indexPrefix, DEFAULT_RECURRING_JOB_INDEX_NAME);
         if (indexExists(client, recurringJobIndexName))
             return; //why: to be compatible with existing installations not using Migrations yet
@@ -20,15 +20,12 @@ public class M002_CreateRecurringJobsIndex extends ElasticSearchMigration {
         createIndex(client, recurringJobIndex(recurringJobIndexName));
     }
 
-    private static CreateIndexRequest recurringJobIndex(String recurringJobIndexName) {
-        return new CreateIndexRequest(recurringJobIndexName)
-                .mapping(mapping(
-                        (sb, map) -> {
-                            sb.append(StorageProviderUtils.RecurringJobs.FIELD_JOB_AS_JSON);
-                            map.put("type", "text");
-                            map.put("index", false);
-                            map.put("store", true);
-                        }
-                ));
+    private static CreateIndexRequest recurringJobIndex(String name) {
+        return new CreateIndexRequest.Builder()
+                .index(name)
+                .mappings(m -> m
+                        .properties(FIELD_JOB_AS_JSON, p -> p.text(t -> t.index(false).store(true)))
+                )
+                .build();
     }
 }

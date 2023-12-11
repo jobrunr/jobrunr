@@ -21,7 +21,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.lenient;
 
@@ -43,6 +47,15 @@ class JobTest {
 
         Job jobWithNullIdProvided = new Job(null, jobDetails().build());
         assertThat(jobWithNullIdProvided.getId()).isNotNull();
+    }
+
+    @Test
+    void ifIdIsNullThenTimeBasedIdsAreCreated() {
+        Job job1 = new Job(jobDetails().build());
+        Job job2 = new Job(jobDetails().build());
+        String job1IdSubstring = job1.getId().toString().substring(0, 6);
+        String job2IdSubstring = job2.getId().toString().substring(0, 6);
+        assertThat(job1IdSubstring).isEqualTo(job2IdSubstring);
     }
 
     @Test

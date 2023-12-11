@@ -23,17 +23,17 @@ public class JobRunrSqlStorageProviderProducer {
     @DefaultBean
     @Singleton
     public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
-        if (configuration.database.type.isPresent() && !configuration.database.type.get().equalsIgnoreCase("sql")) return null;
+        if (configuration.database().type().isPresent() && !configuration.database().type().get().equalsIgnoreCase("sql")) return null;
 
-        String tablePrefix = configuration.database.tablePrefix.orElse(null);
-        DatabaseOptions databaseOptions = configuration.database.skipCreate ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
+        String tablePrefix = configuration.database().tablePrefix().orElse(null);
+        DatabaseOptions databaseOptions = configuration.database().skipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;
         StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(dataSources, configuration), tablePrefix, databaseOptions);
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
     }
 
     private DataSource getDataSource(Instance<DataSource> dataSources, JobRunrRuntimeConfiguration configuration) {
-        return dataSources.select(DataSource.class, toAnnotationQualifier(configuration.database.datasource)).get();
+        return dataSources.select(DataSource.class, toAnnotationQualifier(configuration.database().datasource())).get();
     }
 
     private static Annotation toAnnotationQualifier(Optional<String> dataSourceName) {

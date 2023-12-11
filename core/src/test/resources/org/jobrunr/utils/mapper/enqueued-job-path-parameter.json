@@ -2,12 +2,10 @@
   "version": 0,
   "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithPath(sun.nio.fs.UnixPath)",
   "jobName": "an enqueued job",
-  "amountOfRetries": null,
   "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "org.jobrunr.stubs.TestService",
-    "staticFieldName": null,
     "methodName": "doWorkWithPath",
     "jobParameters": [
       {
@@ -27,6 +25,5 @@
   ],
   "metadata": {
     "@class": "java.util.concurrent.ConcurrentHashMap"
-  },
-  "recurringJobId":null
+  }
 }

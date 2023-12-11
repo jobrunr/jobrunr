@@ -1,17 +1,27 @@
 package org.jobrunr.utils.mapper.jsonb.adapters;
 
-import jakarta.json.*;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.*;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CACHEABLE;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETERS;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_STATIC_FIELD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
@@ -48,7 +58,9 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
     public JobDetails adaptFromJson(JsonObject jsonObject) throws Exception {
         final JobDetails jobDetails = new JobDetails(
                 jsonObject.getString(FIELD_CLASS_NAME),
-                jsonObject.isNull(FIELD_STATIC_FIELD_NAME) ? null : jsonObject.getString(FIELD_STATIC_FIELD_NAME),
+                jsonObject.containsKey(FIELD_STATIC_FIELD_NAME)
+                        ? (jsonObject.isNull(FIELD_STATIC_FIELD_NAME) ? null : jsonObject.getString(FIELD_STATIC_FIELD_NAME))
+                        : null,
                 jsonObject.getString(FIELD_METHOD_NAME),
                 getJobDetailsParameters(jsonObject.getJsonArray(FIELD_JOB_PARAMETERS))
         );
@@ -63,8 +75,13 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
             String methodClassName = jsonObject.getString(FIELD_CLASS_NAME);
             String actualClassName = jsonObject.getString(FIELD_ACTUAL_CLASS_NAME, null);
             try {
-                Object object = jsonb.fromJsonValue(jsonObject.get("object"), toClass(getActualClassName(methodClassName, actualClassName)));
-                result.add(new JobParameter(methodClassName, object));
+                Class<Object> objectClass = toClass(getActualClassName(methodClassName, actualClassName));
+                if (JobContext.class.equals(objectClass)) {
+                    result.add(new JobParameter(methodClassName, JobContext.Null));
+                } else {
+                    Object object = jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
+                    result.add(new JobParameter(methodClassName, object));
+                }
             } catch (Exception e) {
                 result.add(new JobParameter(new JobParameterNotDeserializableException(getActualClassName(methodClassName, actualClassName), e.getMessage())));
             }

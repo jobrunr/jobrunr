@@ -12,8 +12,7 @@ import java.util.stream.Stream;
 import static java.time.LocalDateTime.now;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZoneOffset.UTC;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class CronExpressionTest {
@@ -164,6 +163,23 @@ class CronExpressionTest {
         assertThatThrownBy(() -> CronExpression.create("0 0 0 l * 5L"))
                 .isInstanceOf(InvalidCronExpressionException.class)
                 .hasMessage("You can only specify the last day of month week in either the DAY field or in the DAY_OF_WEEK field, not both.");
+    }
+
+    @Test
+    void validateScheduleWorks() {
+        assertThatCode(() -> CronExpression.create("1,16,32 * * * * *").validateSchedule())
+                .doesNotThrowAnyException();
+
+        assertThatCode(() -> CronExpression.create("1 0 0 1 1 *").validateSchedule())
+                .doesNotThrowAnyException();
+
+        assertThatThrownBy(() -> CronExpression.create("1,4 * * * * *").validateSchedule())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("The smallest interval for recurring jobs is 5 seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.");
+
+        assertThatThrownBy(() -> CronExpression.create("5-59 * * * * *").validateSchedule())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("The smallest interval for recurring jobs is 5 seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.");
     }
 
     static Stream<Arguments> startInstantCronExpressionAndResultInstant() {
@@ -716,7 +732,7 @@ class CronExpressionTest {
                 arguments("0 0 0 29 2 5", "2019-01-01 00:00:00", "2019-02-01 00:00:00"),
 
                 // github issue 31
-                arguments("36 9 * * *","2020-09-08 09:40:00",  "2020-09-09 09:36:00"),
+                arguments("36 9 * * *", "2020-09-08 09:40:00", "2020-09-09 09:36:00"),
 
                 // last day of month
                 arguments("0 0 0 * * 4l", "2019-01-01 00:00:00", "2019-01-31 00:00:00"),

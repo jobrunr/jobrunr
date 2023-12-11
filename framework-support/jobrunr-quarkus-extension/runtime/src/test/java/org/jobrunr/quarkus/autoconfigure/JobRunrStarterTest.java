@@ -4,6 +4,8 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.inject.Instance;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DashboardConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +19,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class JobRunrStarterTest {
 
+    @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
-    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    @Mock
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
-    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardConfiguration;
+    @Mock
+    DashboardConfiguration dashboardConfiguration;
 
     @Mock
     Instance<BackgroundJobServer> backgroundJobServerInstance;
@@ -45,11 +50,8 @@ class JobRunrStarterTest {
 
     @BeforeEach
     void setUpJobRunrMetricsStarter() {
-        jobRunrBuildTimeConfiguration = new JobRunrBuildTimeConfiguration();
-        backgroundJobServerConfiguration = new JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration();
-        dashboardConfiguration = new JobRunrBuildTimeConfiguration.DashboardConfiguration();
-        jobRunrBuildTimeConfiguration.backgroundJobServer = backgroundJobServerConfiguration;
-        jobRunrBuildTimeConfiguration.dashboard = dashboardConfiguration;
+        when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
+        when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
 
         lenient().when(backgroundJobServerInstance.get()).thenReturn(backgroundJobServer);
         lenient().when(dashboardWebServerInstance.get()).thenReturn(dashboardWebServer);
@@ -60,7 +62,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStartBackgroundJobServerIfNotConfigured() {
-        backgroundJobServerConfiguration.enabled = false;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
 
         jobRunrStarter.startup(new StartupEvent());
 
@@ -69,7 +71,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStartsBackgroundJobServerIfConfigured() {
-        backgroundJobServerConfiguration.enabled = true;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
 
         jobRunrStarter.startup(new StartupEvent());
 
@@ -78,7 +80,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStartDashboardIfNotConfigured() {
-        dashboardConfiguration.enabled = false;
+        when(dashboardConfiguration.enabled()).thenReturn(false);
 
         jobRunrStarter.startup(new StartupEvent());
 
@@ -87,7 +89,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStartsDashboardIfConfigured() {
-        dashboardConfiguration.enabled = true;
+        when(dashboardConfiguration.enabled()).thenReturn(true);
 
         jobRunrStarter.startup(new StartupEvent());
 
@@ -96,7 +98,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStopBackgroundJobServerIfNotConfigured() {
-        backgroundJobServerConfiguration.enabled = false;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
 
         jobRunrStarter.shutdown(new ShutdownEvent());
 
@@ -105,7 +107,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStopsBackgroundJobServerIfConfigured() {
-        backgroundJobServerConfiguration.enabled = true;
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
 
         jobRunrStarter.shutdown(new ShutdownEvent());
 
@@ -114,7 +116,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStopsDashboardIfNotConfigured() {
-        dashboardConfiguration.enabled = false;
+        when(dashboardConfiguration.enabled()).thenReturn(false);
 
         jobRunrStarter.shutdown(new ShutdownEvent());
 
@@ -123,7 +125,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStopsDashboardIfConfigured() {
-        dashboardConfiguration.enabled = true;
+        when(dashboardConfiguration.enabled()).thenReturn(true);
 
         jobRunrStarter.shutdown(new ShutdownEvent());
 
