@@ -42,7 +42,6 @@
   "version": 0,
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "an enqueued job",
-  "amountOfRetries": null,
   "labels": [],
   "jobDetails": {
     "cacheable": true,
@@ -56,6 +55,5 @@
         "object": "a test"
       }
     ]
-  },
-  "recurringJobId":null
+  }
 }

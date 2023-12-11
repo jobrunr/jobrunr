@@ -29,14 +29,12 @@
         }
       ],
       "jobName": "an enqueued job",
-      "amountOfRetries": null,
       "labels": [],
       "jobSignature": "java.lang.System.out.println(java.lang.String)",
       "metadata": {
         "@class": "java.util.concurrent.ConcurrentHashMap"
       },
-      "version": 1,
-      "recurringJobId": null
+      "version": 1
     }
   ],
   "limit": 20,

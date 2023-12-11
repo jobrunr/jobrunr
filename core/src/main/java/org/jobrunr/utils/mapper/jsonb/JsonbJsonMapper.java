@@ -25,7 +25,6 @@ public class JsonbJsonMapper implements JsonMapper {
 
     protected JsonbConfig initJsonbConfig(JsonbConfig jsonbConfig) {
         return jsonbConfig
-                .withNullValues(true)
                 .withSerializers(new DurationTypeSerializer())
                 .withDeserializers(new DurationTypeDeserializer())
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())

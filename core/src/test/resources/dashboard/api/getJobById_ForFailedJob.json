@@ -1,7 +1,6 @@
 {
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "failed job",
-  "amountOfRetries": null,
   "labels": [],
   "jobDetails": {
     "cacheable": true,
@@ -22,9 +21,7 @@
       "@class": "org.jobrunr.jobs.states.ScheduledState",
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
-      "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
-      "reason": null
+      "scheduledAt": "${json-unit.ignore}"
     },
     {
       "@class": "org.jobrunr.jobs.states.EnqueuedState",
@@ -45,9 +42,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -56,7 +50,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 1 of 10"
     },
     {
@@ -78,9 +71,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -89,7 +79,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 2 of 10"
     },
     {
@@ -111,9 +100,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -122,7 +108,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 3 of 10"
     },
     {
@@ -144,9 +129,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -155,7 +137,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 4 of 10"
     },
     {
@@ -177,9 +158,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -188,7 +166,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 5 of 10"
     },
     {
@@ -210,9 +187,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -221,7 +195,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 6 of 10"
     },
     {
@@ -243,9 +216,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -254,7 +224,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 7 of 10"
     },
     {
@@ -276,9 +245,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -287,7 +253,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 8 of 10"
     },
     {
@@ -309,9 +274,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -320,7 +282,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 9 of 10"
     },
     {
@@ -342,9 +303,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     },
@@ -353,7 +311,6 @@
       "state": "SCHEDULED",
       "createdAt": "${json-unit.ignore}",
       "scheduledAt": "${json-unit.ignore}",
-      "recurringJobId": null,
       "reason": "Retry attempt 10 of 10"
     },
     {
@@ -375,9 +332,6 @@
       "createdAt": "${json-unit.ignore}",
       "message": "An exception occurred",
       "exceptionType": "java.lang.IllegalStateException",
-      "exceptionMessage": null,
-      "exceptionCauseType": null,
-      "exceptionCauseMessage": null,
       "stackTrace": "${json-unit.ignore}",
       "doNotRetry": false
     }
@@ -385,6 +339,5 @@
   "metadata": {
     "@class": "java.util.concurrent.ConcurrentHashMap"
   },
-  "version": 1,
-  "recurringJobId":null
+  "version": 1
 }
