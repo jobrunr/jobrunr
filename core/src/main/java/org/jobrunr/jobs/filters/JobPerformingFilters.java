@@ -32,7 +32,6 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     public void runOnJobProcessingSucceededFilters() {
-        jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onProcessed(job)));
         jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onProcessingSucceeded(job)));
     }
 
