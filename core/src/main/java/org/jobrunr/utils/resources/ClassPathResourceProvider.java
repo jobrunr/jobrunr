@@ -4,7 +4,10 @@ import org.jobrunr.JobRunrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -76,12 +79,33 @@ public class ClassPathResourceProvider implements AutoCloseable {
             URI uri = url.toURI();
             if ("wsjar".equals(uri.getScheme())) { // support for openliberty
                 uri = new URI(uri.toString().replace("wsjar", "jar"));
+            } else if ("vfs".equals(uri.getScheme())) {    // support for Jboss/Wildfly
+                uri = handleVfsScheme(url);
             }
-
             FileSystemProvider fileSystemProvider = getFileSystemProvider(uri);
             return fileSystemProvider.toPath(uri);
         } catch (IOException | URISyntaxException e) {
             throw JobRunrException.shouldNotHappenException(e);
+        }
+    }
+
+    private URI handleVfsScheme(URL url) throws IOException {
+        // Reflection as we cannot afford a dependency to Jboss/WildFly
+        Object virtualFile = url.openConnection().getContent();
+        Class virtualFileClass = virtualFile.getClass();
+
+        try {
+            Method getChildrenRecursivelyMethod = virtualFileClass.getMethod("getChildrenRecursively");
+            Method getPhysicalFileMethod = virtualFileClass.getMethod("getPhysicalFile");
+
+            List virtualFiles = (List) getChildrenRecursivelyMethod.invoke(virtualFile);
+            for (Object child : virtualFiles) {
+                getPhysicalFileMethod.invoke(child);// side effect: create real-world files
+            }
+            File rootDir = (File) getPhysicalFileMethod.invoke(virtualFile);
+            return URI.create(VfsFilesystemProvider.SCHEME + rootDir.toURI());
+        } catch ( IllegalArgumentException | ReflectiveOperationException  e) {
+            throw JobRunrException.shouldNotHappenException(new RuntimeException("Can not extract files from vfs!", e));
         }
     }
 
@@ -120,6 +144,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
             case "jar": return new JarFileSystemProvider();
             case "resource": return new ResourcesFileSystemProvider();
             case "file": return new PathFileSystemProvider();
+            case "vfs": return new VfsFilesystemProvider();
             default: throw new IllegalArgumentException("Unknown FileSystem required " + scheme);
         }
     }
