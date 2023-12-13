@@ -28,16 +28,6 @@ public interface JobServerFilter extends JobFilter {
      * This hook is called when the Job processing succeeded (note that the job still has the <code>PROCESSING</code> state).
      *
      * @param job the job that has been processed successfully.
-     * @deprecated Please use {@link JobServerFilter#onProcessingSucceeded(Job)}
-     */
-    @Deprecated
-    default void onProcessed(Job job) {
-    }
-
-    /**
-     * This hook is called when the Job processing succeeded (note that the job still has the <code>PROCESSING</code> state).
-     *
-     * @param job the job that has been processed successfully.
      */
     default void onProcessingSucceeded(Job job) {
     }

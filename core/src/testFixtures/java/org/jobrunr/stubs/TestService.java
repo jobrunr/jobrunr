@@ -22,7 +22,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 
 public class TestService implements TestServiceInterface {
 
@@ -443,10 +445,6 @@ public class TestService implements TestServiceInterface {
             job.getMetadata().put("onProcessing", "");
         }
 
-        @Override
-        public void onProcessed(org.jobrunr.jobs.Job job) {
-            job.getMetadata().put("onProcessed", "");
-        }
     }
 
     public interface Command<T> {
