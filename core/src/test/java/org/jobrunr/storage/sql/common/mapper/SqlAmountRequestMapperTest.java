@@ -29,7 +29,7 @@ class SqlAmountRequestMapperTest {
     @Test
     void mapWithSomeIllegalStuff1() {
         final AmountRequest pageRequest = new AmountRequest("createdAt:ASC,\"delete * from jobtable\"updatedAt:DESC", 2);
-        assertThat(amountMapper.orderClause(pageRequest)).isEqualTo(" ORDER BY priority ASC");
+        assertThat(amountMapper.orderClause(pageRequest)).isEqualTo(" ORDER BY createdAt ASC");
     }
 
     @Test
