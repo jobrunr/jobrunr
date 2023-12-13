@@ -2,7 +2,6 @@ package org.jobrunr.jobs.mappers;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
@@ -25,7 +24,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.JobRunrAssertions.*;
+import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJson;
+import static org.jobrunr.JobRunrAssertions.contentOfResource;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -117,7 +118,7 @@ abstract class JobMapperTest {
                         .withClassName(TestService.class)
                         .withMethodName("doWork")
                         .withJobParameter(5)
-                        .withJobParameter(JobParameter.JobContext)
+                        .withJobParameter(JobContext.Null)
                 )
                 .build();
 

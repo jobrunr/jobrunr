@@ -2,10 +2,19 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
-import org.jobrunr.jobs.states.*;
+import org.jobrunr.jobs.states.DeletedState;
+import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.IllegalJobStateChangeException;
+import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.utils.streams.StreamUtils;
+import org.jobrunr.utils.uuid.UUIDv7Factory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -42,10 +51,16 @@ public class Job extends AbstractJob {
         ALLOWED_SORT_COLUMNS.put(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof ScheduledState ? ((ScheduledState) job.getJobState()).getScheduledAt() : null);
     }
 
+    private static final UUIDv7Factory UUID_FACTORY = UUIDv7Factory.builder().withIncrementPlus1().build();
+
     private final UUID id;
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
+
+    public static UUID newUUID() {
+        return UUID_FACTORY.create();
+    }
 
     private Job() {
         // used for deserialization
@@ -73,7 +88,7 @@ public class Job extends AbstractJob {
     public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
         super(jobDetails, version);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
-        this.id = id != null ? id : UUID.randomUUID();
+        this.id = id != null ? id : newUUID();
         this.jobHistory = new CopyOnWriteArrayList<>(jobHistory);
         this.metadata = metadata;
     }

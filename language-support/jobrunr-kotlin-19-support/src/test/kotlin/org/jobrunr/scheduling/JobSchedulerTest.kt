@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
+import org.jobrunr.JobRunrAssertions
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.mappers.JobMapper
@@ -53,6 +54,15 @@ class JobSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job).hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
+    @Test
+    fun `test enqueue lambda with default parameter throws exception`() {
+        val testService = TestService()
+        JobRunrAssertions.assertThatCode { jobScheduler.enqueue { testService.doWorkWithDefaultParameter() } }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Unsupported lambda")
+            .hasRootCauseMessage("You are (probably) using Kotlin default parameter values which is not supported by JobRunr.")
     }
 
     @Test

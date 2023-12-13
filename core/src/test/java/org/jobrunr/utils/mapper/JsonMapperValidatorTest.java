@@ -3,6 +3,7 @@ package org.jobrunr.utils.mapper;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,7 +23,7 @@ public class JsonMapperValidatorTest {
 
     @Test
     void testInvalidJacksonJsonMapperNoJavaTimeModule() {
-        assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper())))
+        assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper().registerModule(new Jdk8Module()))))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.");
         //.hasRootCauseMessage("Java 8 date/time type `java.time.Instant` not supported by default: add Module \"com.fasterxml.jackson.datatype:jackson-datatype-jsr310\" to enable handling (through reference chain: org.jobrunr.jobs.Job[\"jobStates\"]->java.util.Collections$UnmodifiableRandomAccessList[0]->org.jobrunr.jobs.states.ProcessingState[\"createdAt\"])");
@@ -30,7 +31,7 @@ public class JsonMapperValidatorTest {
 
     @Test
     void testInvalidJacksonJsonMapperNoISO8601TimeFormat() {
-        assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper().registerModule(new JavaTimeModule()))))
+        assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper().registerModule(new Jdk8Module()).registerModule(new JavaTimeModule()))))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.")
                 .hasRootCauseMessage("Timestamps are wrongly formatted for JobRunr. They should be in ISO8601 format.");
@@ -39,6 +40,7 @@ public class JsonMapperValidatorTest {
     @Test
     void testInvalidJacksonJsonMapperPropertiesInsteadOfFields() {
         assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper()
+                        .registerModule(new Jdk8Module())
                         .registerModule(new JavaTimeModule())
                         .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
                 ))
@@ -47,8 +49,7 @@ public class JsonMapperValidatorTest {
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.")
                 .hasRootCauseMessage("Job Serialization should use fields and not getters/setters.");
     }
-
-
+    
     @Test
     void testInvalidJacksonJsonMapperNoPolymorphism() {
         assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper()

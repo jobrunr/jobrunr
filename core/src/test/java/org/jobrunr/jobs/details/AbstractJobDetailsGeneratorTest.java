@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.details;
 
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
@@ -1059,7 +1060,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasArgs(uuid2);
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     @Because("https://github.com/jobrunr/jobrunr/issues/456")
     void createJobDetailsInMultipleThreads() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(4);

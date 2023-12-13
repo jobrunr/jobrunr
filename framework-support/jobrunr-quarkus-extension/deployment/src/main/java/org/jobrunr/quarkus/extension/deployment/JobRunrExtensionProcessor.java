@@ -34,11 +34,16 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.jobs.states.*;
 import org.jobrunr.quarkus.annotations.Recurring;
-import org.jobrunr.quarkus.autoconfigure.*;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
+import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
-import org.jobrunr.quarkus.autoconfigure.storage.*;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
@@ -98,7 +103,7 @@ class JobRunrExtensionProcessor {
                     .addBeanClasses(JobRunrMetricsStarter.class)
                     .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
 
-            if (jobRunrBuildTimeConfiguration.backgroundJobServer.enabled) {
+            if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
                 additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
             }
             return additionalBeanBuildItemBuilder
@@ -110,7 +115,7 @@ class JobRunrExtensionProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) throws NoSuchMethodException {
-        if (jobRunrBuildTimeConfiguration.jobScheduler.enabled) {
+        if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
             new RecurringJobsFinder(recorderContext, index, beanContainer, recorder).findRecurringJobsAndScheduleThem();
         }
     }
@@ -118,7 +123,7 @@ class JobRunrExtensionProcessor {
     @BuildStep
     HealthBuildItem addHealthCheck(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
         if (capabilities.isPresent(Capability.SMALLRYE_HEALTH)) {
-            return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrBuildTimeConfiguration.healthEnabled);
+            return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrBuildTimeConfiguration.healthEnabled());
         }
         return null;
     }
@@ -172,11 +177,11 @@ class JobRunrExtensionProcessor {
             BuildProducer<NativeImageResourceDirectoryBuildItem> nativeImageResourceDirectoryProducer,
             JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration
     ) {
-        if (jobRunrBuildTimeConfiguration.dashboard.enabled) {
+        if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/dashboard/frontend/build"));
         }
 
-        if ("sql".equalsIgnoreCase(jobRunrBuildTimeConfiguration.database.type.orElse(null))) {
+        if ("sql".equalsIgnoreCase(jobRunrBuildTimeConfiguration.database().type().orElse(null))) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/storage/sql"));
         }
     }
@@ -209,15 +214,13 @@ class JobRunrExtensionProcessor {
     }
 
     private Set<Class<?>> storageProvider(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
-        String databaseType = jobRunrBuildTimeConfiguration.database.type.orElse(null);
+        String databaseType = jobRunrBuildTimeConfiguration.database().type().orElse(null);
         if ("sql".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.AGROAL)) {
             throw new IllegalStateException("You configured 'sql' as a JobRunr Database Type but the AGROAL capability is not available");
         } else if ("mongodb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
             throw new IllegalStateException("You configured 'mongodb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
         } else if ("documentdb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
             throw new IllegalStateException("You configured 'documentdb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
-        } else if ("elasticsearch".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT)) {
-            throw new IllegalStateException("You configured 'elasticsearch' as a JobRunr Database Type but the ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT capability is not available");
         }
 
         if (isCapabilityPresentAndConfigured(capabilities, Capability.AGROAL, "sql", databaseType)) {
@@ -226,8 +229,6 @@ class JobRunrExtensionProcessor {
             return asSet(JobRunrMongoDBStorageProviderProducer.class);
         } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
             return asSet(JobRunrDocumentDBStorageProviderProducer.class);
-        } else if (isCapabilityPresentAndConfigured(capabilities, Capability.ELASTICSEARCH_REST_HIGH_LEVEL_CLIENT, "elasticsearch", databaseType)) {
-            return asSet(JobRunrElasticSearchStorageProviderProducer.class);
         } else {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }

@@ -27,7 +27,7 @@ public class JobRunrRecurringJobRecorder {
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
     public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
-        JobScheduler scheduler = container.instance(JobScheduler.class);
+        JobScheduler scheduler = container.beanInstance(JobScheduler.class);
         String jobId = getId(id);
         String optionalCronExpression = getCronExpression(cron);
         String optionalInterval = getInterval(interval);

@@ -2,11 +2,9 @@
   "version": 0,
   "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Long)",
   "jobName": "an enqueued job",
-  "amountOfRetries": null,
   "labels": [],
   "jobDetails": {
     "className": "org.jobrunr.stubs.TestService",
-    "staticFieldName": null,
     "methodName": "doWork",
     "jobParameters": [
       {
@@ -27,6 +25,5 @@
   ],
   "metadata": {
     "@class": "java.util.concurrent.ConcurrentHashMap"
-  },
-  "recurringJobId":null
+  }
 }

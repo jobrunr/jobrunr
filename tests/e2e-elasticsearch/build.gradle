@@ -7,7 +7,8 @@ dependencies {
     implementation project(':tests:e2e-base')
     implementation 'ch.qos.logback:logback-classic'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'co.elastic.clients:elasticsearch-java'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":tests:e2e-base"))
