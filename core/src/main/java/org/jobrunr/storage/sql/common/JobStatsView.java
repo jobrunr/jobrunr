@@ -1,9 +1,9 @@
 package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
-import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 
 import java.sql.Connection;
 import java.time.Instant;
@@ -18,7 +18,6 @@ public class JobStatsView extends Sql<JobStats> {
     public JobStats getJobStats() {
         Instant instant = Instant.now();
         return this
-                .withOrderLimitAndOffset("total ASC", 1, 0)
                 .select("* from jobrunr_jobs_stats")
                 .map(resultSet -> toJobStats(resultSet, instant))
                 .findFirst()

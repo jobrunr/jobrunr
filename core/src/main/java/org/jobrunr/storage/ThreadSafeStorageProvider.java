@@ -8,6 +8,7 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.MultiLock;
 
@@ -124,23 +125,23 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return storageProvider.getJobs(state, updatedBefore, pageRequest);
+    public long countJobs(StateName state) {
+        return storageProvider.countJobs(state);
     }
 
     @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return storageProvider.getScheduledJobs(scheduledBefore, pageRequest);
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        return storageProvider.getJobList(state, updatedBefore, amountRequest);
     }
 
     @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        return storageProvider.getJobs(state, pageRequest);
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return storageProvider.getJobList(state, amountRequest);
     }
 
     @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        return storageProvider.getJobPage(state, pageRequest);
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
     }
 
     @Override

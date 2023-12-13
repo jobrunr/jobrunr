@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.time.Instant.now;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class ProcessScheduledJobsTask extends ZooKeeperTask {
 

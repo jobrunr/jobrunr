@@ -77,7 +77,8 @@ public abstract class ZooKeeperTask {
             } catch (ConcurrentJobModificationException concurrentJobModificationException) {
                 try {
                     concurrentJobModificationResolver.resolve(concurrentJobModificationException);
-                } catch (UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException) {
+                } catch (
+                        UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException) {
                     throw new SevereJobRunrException("Could not resolve ConcurrentJobModificationException", unresolvableConcurrentJobModificationException);
                 }
             }

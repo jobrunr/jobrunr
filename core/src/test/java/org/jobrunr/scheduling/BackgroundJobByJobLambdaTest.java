@@ -16,7 +16,7 @@ import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProviderForTest;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
@@ -55,7 +55,7 @@ import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 /**
  * Must be public as used as a background job
@@ -63,7 +63,7 @@ import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
 public class BackgroundJobByJobLambdaTest {
 
     private TestService testService;
-    private StorageProviderForTest storageProvider;
+    private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
     private static final String every5Seconds = "*/5 * * * * *";
     private LogAllStateChangesFilter logAllStateChangesFilter;
@@ -72,7 +72,7 @@ public class BackgroundJobByJobLambdaTest {
     void setUpTests() {
         testService = new TestService();
         testService.reset();
-        storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
+        storageProvider = new InMemoryStorageProvider();
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)
@@ -320,7 +320,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently(every5Seconds, () -> testService.doWork(5));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 3);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -331,7 +331,7 @@ public class BackgroundJobByJobLambdaTest {
                 .withDetails(() -> testService.doWork(5)));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 3);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -340,7 +340,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently(every5Seconds, () -> testService.doWork(5, JobContext.Null));
         await().atMost(65, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -349,7 +349,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently("theId", every5Seconds, () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -358,7 +358,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently("theId", every5Seconds, systemDefault(), () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -383,7 +383,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently(Duration.ofSeconds(5), () -> testService.doWork(5));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -394,7 +394,7 @@ public class BackgroundJobByJobLambdaTest {
                 .withDetails(() -> testService.doWork(5)));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -403,7 +403,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently("theId", Duration.ofSeconds(5), () -> testService.doWork(5));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJob(SUCCEEDED);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -413,8 +413,8 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently("recurring-job-2", every5Seconds, systemDefault(), () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
 
-        final Job job1 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        final Job job2 = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(1);
+        final Job job1 = storageProvider.getJob(SUCCEEDED);
+        final Job job2 = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(1);
         assertThat(storageProvider.getJobById(job1.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
         assertThat(storageProvider.getJobById(job2.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }

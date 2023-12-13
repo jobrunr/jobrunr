@@ -1,11 +1,11 @@
 package org.jobrunr.server.strategy;
 
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
@@ -32,7 +32,7 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
     }
 
     @Override
-    public PageRequest getWorkPageRequest() {
+    public AmountRequest getWorkPageRequest() {
         final int occupiedWorkerCount = getOccupiedWorkerCount();
 
         final int limit = workerCount - occupiedWorkerCount;

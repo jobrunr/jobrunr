@@ -8,16 +8,16 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Transaction;
-import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -213,42 +213,36 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
+    public long countJobs(StateName state) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, pageRequest);
+            return jobTable(conn).countJobs(state);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsByState(state, pageRequest);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-
-    }
-
-    @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsByState(state, updatedBefore, pageRequest);
+            return jobTable(conn).selectJobsByState(state, updatedBefore, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            long count = jobTable(conn).countJobs(state);
-            if (count > 0 && pageRequest.getLimit() > 0) {
-                List<Job> jobs = jobTable(conn).selectJobsByState(state, pageRequest);
-                return new Page<>(count, jobs, pageRequest);
-            }
-            return new Page<>(count, new ArrayList<>(), pageRequest);
+            return jobTable(conn).selectJobsByState(state, amountRequest);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

@@ -9,19 +9,18 @@ import org.jobrunr.utils.streams.StreamUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
@@ -35,6 +34,13 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class Job extends AbstractJob {
 
     private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)");
+    public static Map<String, Function<Job, Comparable>> ALLOWED_SORT_COLUMNS = new HashMap<>();
+
+    static {
+        ALLOWED_SORT_COLUMNS.put(FIELD_CREATED_AT, Job::getCreatedAt);
+        ALLOWED_SORT_COLUMNS.put(FIELD_UPDATED_AT, Job::getUpdatedAt);
+        ALLOWED_SORT_COLUMNS.put(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof ScheduledState ? ((ScheduledState) job.getJobState()).getScheduledAt() : null);
+    }
 
     private final UUID id;
     private final CopyOnWriteArrayList<JobState> jobHistory;

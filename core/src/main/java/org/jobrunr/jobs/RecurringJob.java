@@ -5,16 +5,23 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
+import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 
 public class RecurringJob extends AbstractJob {
+
+    public static Map<String, Function<RecurringJob, Comparable>> ALLOWED_SORT_COLUMNS = new HashMap<>();
+
+    static {
+        ALLOWED_SORT_COLUMNS.put(StorageProviderUtils.RecurringJobs.FIELD_ID, RecurringJob::getId);
+        ALLOWED_SORT_COLUMNS.put(StorageProviderUtils.RecurringJobs.FIELD_CREATED_AT, RecurringJob::getCreatedAt);
+    }
 
     private String id;
     private String scheduleExpression;
@@ -57,6 +64,7 @@ public class RecurringJob extends AbstractJob {
 
     /**
      * Returns the next job to for this recurring job based on the current instant.
+     *
      * @return the next job to for this recurring job based on the current instant.
      */
     public Job toScheduledJob() {
@@ -105,10 +113,10 @@ public class RecurringJob extends AbstractJob {
     private String validateAndSetId(String input) {
         String result = Optional.ofNullable(input).orElse(getJobSignature().replace(" ", "").replace("$", "_")); //why: to support inner classes
 
-        if(result.length() >= 128 && input == null) {
+        if (result.length() >= 128 && input == null) {
             //why: id's should be identical for identical recurring jobs as otherwise we would generate duplicate recurring jobs after restarts
             result = StringUtils.md5Checksum(result);
-        } else if(result.length() >= 128) {
+        } else if (result.length() >= 128) {
             throw new IllegalArgumentException("The id of a recurring job must be smaller than 128 characters.");
         } else if (!result.matches("[\\dA-Za-z-_(),.]+")) {
             throw new IllegalArgumentException("The id of a recurring job can only contain letters and numbers.");

@@ -21,17 +21,18 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.*;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.storage.nosql.mongo.mapper.BackgroundJobServerStatusDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.JobDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MetadataDocumentMapper;
-import org.jobrunr.storage.nosql.mongo.mapper.MongoDBPageRequestMapper;
+import org.jobrunr.storage.nosql.mongo.mapper.MongoDBAmountRequestMapper;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -51,7 +52,8 @@ import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.*;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -61,7 +63,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     public static final String DEFAULT_DB_NAME = "jobrunr";
 
-    private static final MongoDBPageRequestMapper pageRequestMapper = new MongoDBPageRequestMapper();
+    private static final MongoDBAmountRequestMapper pageRequestMapper = new MongoDBAmountRequestMapper();
 
     private final String databaseName;
     private final MongoClient mongoClient;
@@ -126,7 +128,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         setUpStorageProvider(databaseOptions);
 
         jobrunrDatabase = mongoClient.getDatabase(databaseName);
-        jobCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, Jobs.NAME), Document.class);
+        jobCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, NAME), Document.class);
         recurringJobCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, RecurringJobs.NAME), Document.class);
         backgroundJobServerCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, BackgroundJobServers.NAME), Document.class);
         metadataCollection = jobrunrDatabase.getCollection(elementPrefixer(collectionPrefix, Metadata.NAME), Document.class);
@@ -162,7 +164,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         if (updateResult.getModifiedCount() < 1) {
             throw new ServerTimedOutException(serverStatus, new StorageException("BackgroundJobServer with id " + serverStatus.getId() + " was not found"));
         }
-        final Document document = this.backgroundJobServerCollection.find(eq(toMongoId(Jobs.FIELD_ID), serverStatus.getId())).projection(include(BackgroundJobServers.FIELD_IS_RUNNING)).first();
+        final Document document = this.backgroundJobServerCollection.find(eq(toMongoId(FIELD_ID), serverStatus.getId())).projection(include(BackgroundJobServers.FIELD_IS_RUNNING)).first();
         return document != null && document.getBoolean(BackgroundJobServers.FIELD_IS_RUNNING);
     }
 
@@ -247,7 +249,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public int deletePermanently(UUID id) {
-        final DeleteResult result = jobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
+        final DeleteResult result = jobCollection.deleteOne(eq(toMongoId(FIELD_ID), id));
         final int deletedCount = (int) result.getDeletedCount();
         notifyJobStatsOnChangeListenersIf(deletedCount > 0);
         return deletedCount;
@@ -255,11 +257,31 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public Job getJobById(UUID id) {
-        final Document document = jobCollection.find(eq(toMongoId(Jobs.FIELD_ID), id)).projection(include(Jobs.FIELD_JOB_AS_JSON)).first();
+        final Document document = jobCollection.find(eq(toMongoId(FIELD_ID), id)).projection(include(FIELD_JOB_AS_JSON)).first();
         if (document != null) {
             return jobDocumentMapper.toJob(document);
         }
         throw new JobNotFoundException(id);
+    }
+
+    @Override
+    public long countJobs(StateName state) {
+        return jobCollection.countDocuments(eq(FIELD_STATE, state.name()));
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        return findJobs(and(eq(FIELD_STATE, state.name()), lt(FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))), amountRequest);
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return findJobs(eq(FIELD_STATE, state.name()), amountRequest);
+    }
+
+    @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        return findJobs(and(eq(FIELD_STATE, SCHEDULED), lt(FIELD_SCHEDULED_AT, toMicroSeconds(scheduledBefore))), amountRequest);
     }
 
     @Override
@@ -279,8 +301,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                     //ugly workaround as we do not know which document did not update due to concurrent modification exception. So, we download them all and compare the lastUpdated
                     final Map<UUID, Job> mongoDbDocuments = new HashMap<>();
                     jobCollection
-                            .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
-                            .projection(include(Jobs.FIELD_JOB_AS_JSON))
+                            .find(in(toMongoId(FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
+                            .projection(include(FIELD_JOB_AS_JSON))
                             .map(jobDocumentMapper::toJob)
                             .forEach(job -> mongoDbDocuments.put(job.getId(), job));
 
@@ -300,28 +322,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return findJobs(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))), pageRequest);
-    }
-
-    @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return findJobs(and(eq(Jobs.FIELD_STATE, SCHEDULED.name()), lt(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(scheduledBefore))), pageRequest);
-    }
-
-    @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        return findJobs(eq(Jobs.FIELD_STATE, state.name()), pageRequest);
-    }
-
-    @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        return getJobPage(eq(Jobs.FIELD_STATE, state.name()), pageRequest);
-    }
-
-    @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
-        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_CREATED_AT, toMicroSeconds(updatedBefore))));
+        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(FIELD_STATE, state.name()), lt(FIELD_CREATED_AT, toMicroSeconds(updatedBefore))));
         final long deletedCount = deleteResult.getDeletedCount();
         notifyJobStatsOnChangeListenersIf(deletedCount > 0);
         return (int) deletedCount;
@@ -330,26 +332,26 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public Set<String> getDistinctJobSignatures(StateName... states) {
         return jobCollection
-                .distinct(Jobs.FIELD_JOB_SIGNATURE, in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), String.class)
+                .distinct(FIELD_JOB_SIGNATURE, in(FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), String.class)
                 .into(new HashSet<>());
     }
 
     @Override
     public boolean exists(JobDetails jobDetails, StateName... states) {
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)))) > 0;
+        return jobCollection.countDocuments(and(in(FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)))) > 0;
     }
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         if (states.length < 1) {
-            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
+            return jobCollection.countDocuments(eq(FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
         }
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
+        return jobCollection.countDocuments(and(in(FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
     }
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
-        recurringJobCollection.replaceOne(eq(toMongoId(Jobs.FIELD_ID), recurringJob.getId()), jobDocumentMapper.toInsertDocument(recurringJob), new ReplaceOptions().upsert(true));
+        recurringJobCollection.replaceOne(eq(toMongoId(FIELD_ID), recurringJob.getId()), jobDocumentMapper.toInsertDocument(recurringJob), new ReplaceOptions().upsert(true));
         return recurringJob;
     }
 
@@ -379,7 +381,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public int deleteRecurringJob(String id) {
-        final DeleteResult deleteResult = recurringJobCollection.deleteOne(eq(toMongoId(Jobs.FIELD_ID), id));
+        final DeleteResult deleteResult = recurringJobCollection.deleteOne(eq(toMongoId(FIELD_ID), id));
         return (int) deleteResult.getDeletedCount();
     }
 
@@ -427,13 +429,9 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, amount), new UpdateOptions().upsert(true));
     }
 
-    private long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
-    }
-
     private Long getCount(StateName stateName, List<Document> aggregates) {
-        Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
-        BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger(Jobs.FIELD_STATE)).orElse(defaultValue);
+        Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(FIELD_ID)));
+        BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger(FIELD_STATE)).orElse(defaultValue);
         long aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
         return aggregateCount;
     }
@@ -442,23 +440,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         return "_" + id;
     }
 
-
-    private Page<Job> getJobPage(Bson query, PageRequest pageRequest) {
-        long count = jobCollection.countDocuments(query);
-        if (count > 0) {
-            List<Job> jobs = findJobs(query, pageRequest);
-            return new Page<>(count, jobs, pageRequest);
-        }
-        return new Page<>(0, new ArrayList<>(), pageRequest);
-    }
-
-    private List<Job> findJobs(Bson query, PageRequest pageRequest) {
+    private List<Job> findJobs(Bson query, AmountRequest amountRequest) {
         return jobCollection
                 .find(query)
-                .sort(pageRequestMapper.map(pageRequest))
-                .skip((int) pageRequest.getOffset())
-                .limit(pageRequest.getLimit())
-                .projection(include(Jobs.FIELD_JOB_AS_JSON))
+                .sort(pageRequestMapper.mapToSort(amountRequest))
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .projection(include(FIELD_JOB_AS_JSON))
                 .map(jobDocumentMapper::toJob)
                 .into(new ArrayList<>());
     }
@@ -492,7 +480,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     // used to perform query analysis for performance tuning
     private void explainQuery(Bson query) {
         Document explainDocument = new Document();
-        explainDocument.put("find", Jobs.NAME);
+        explainDocument.put("find", NAME);
         explainDocument.put("filter", query);
         Document command = new Document();
         command.put("explain", explainDocument);
