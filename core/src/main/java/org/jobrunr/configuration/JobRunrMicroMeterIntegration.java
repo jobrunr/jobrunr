@@ -8,7 +8,7 @@ import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 
 /**
  * A wrapper around a Micrometer {@link MeterRegistry} that allows to integrate Micrometer with JobRunr.
- *
+ * <p>
  * This wrapper is needed as otherwise the JobRunrConfiguration class would have a dependency on Micrometer which is optional.
  */
 public class JobRunrMicroMeterIntegration implements AutoCloseable {
@@ -23,14 +23,15 @@ public class JobRunrMicroMeterIntegration implements AutoCloseable {
 
     public void initialize(StorageProvider storageProvider, BackgroundJobServer backgroundJobServer) {
         storageProviderMetricsBinder = new StorageProviderMetricsBinder(storageProvider, meterRegistry);
-        if(backgroundJobServer != null) {
+        if (backgroundJobServer != null) {
             backgroundJobServerMetricsBinder = new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
         }
     }
 
+    @Override
     public void close() {
         storageProviderMetricsBinder.close();
-        if(backgroundJobServerMetricsBinder != null) {
+        if (backgroundJobServerMetricsBinder != null) {
             backgroundJobServerMetricsBinder.close();
         }
     }

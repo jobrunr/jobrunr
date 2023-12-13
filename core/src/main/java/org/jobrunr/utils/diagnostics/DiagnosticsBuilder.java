@@ -140,7 +140,7 @@ public class DiagnosticsBuilder {
             final StringWriter writer = new StringWriter();
             new Thread(() -> IOUtils.copyStreamNoException(process.getInputStream(), writer)).start();
 
-            final int exitValue = process.waitFor();
+            final int ignored = process.waitFor();
             final String processOutput = writer.toString();
             return processOutput;
         } catch (InterruptedException e) {

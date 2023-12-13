@@ -72,7 +72,7 @@ public final class UUIDv7Factory {
     // Used to preserve monotonicity when the system clock is
     // adjusted by NTP after a small clock drift or when the
     // system clock jumps back by 1 second due to leap second.
-    protected static final int CLOCK_DRIFT_TOLERANCE = 10_000;
+    static final int CLOCK_DRIFT_TOLERANCE = 10_000;
 
 
     private final Clock clock;

@@ -20,7 +20,7 @@ import java.util.UUID;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 
 /**
- * This class is used to build a {@link Job} using a job lambda or a {@Link JobRequest}.
+ * This class is used to build a {@link Job} using a job lambda or a {@link JobRequest}.
  * <p>
  * You can use it as follows:
  * <h5>A job lambda example:</h5>
@@ -66,8 +66,9 @@ public class JobBuilder {
 
     /**
      * Allows to set the id of the job. If a job with that id already exists, JobRunr will not save it again.
+     *
      * @param jobId the id of the job
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public JobBuilder withId(UUID jobId) {
         this.jobId = jobId;
@@ -76,8 +77,9 @@ public class JobBuilder {
 
     /**
      * Allows to set the name of the job for the dashboard.
+     *
      * @param jobName the name of the job for the dashboard
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public JobBuilder withName(String jobName) {
         this.jobName = jobName;
@@ -86,8 +88,9 @@ public class JobBuilder {
 
     /**
      * Allows to specify the duration after which the job should be enqueued.
+     *
      * @param duration the duration after which the job should be enqueued
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public JobBuilder scheduleIn(Duration duration) {
         this.scheduleAt = Instant.now().plus(duration);
@@ -96,8 +99,9 @@ public class JobBuilder {
 
     /**
      * Allows to specify the instant on which the job will be enqueued.
+     *
      * @param scheduleAt the instant on which the job will be enqueued
-     * @return  the same builder instance which provides a fluent api
+     * @return the same builder instance which provides a fluent api
      */
     public JobBuilder scheduleAt(Instant scheduleAt) {
         this.scheduleAt = scheduleAt;
@@ -186,7 +190,7 @@ public class JobBuilder {
      * @return the actual {@link Job} to create
      */
     protected Job build(JobDetailsGenerator jobDetailsGenerator) {
-        if(jobLambda == null) {
+        if (jobLambda == null) {
             throw new IllegalArgumentException("A jobLambda must be present.");
         }
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
@@ -199,7 +203,7 @@ public class JobBuilder {
      * @return the actual {@link Job} to create
      */
     protected Job build() {
-        if(jobRequest == null) {
+        if (jobRequest == null) {
             throw new IllegalArgumentException("JobRequest must be present.");
         }
         JobDetails jobDetails = new JobDetails(jobRequest);
@@ -207,7 +211,7 @@ public class JobBuilder {
     }
 
     private Job build(JobDetails jobDetails) {
-        if(JobUtils.getJobAnnotation(jobDetails).isPresent()) {
+        if (JobUtils.getJobAnnotation(jobDetails).isPresent()) {
             throw new IllegalStateException("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
         }
 
@@ -219,7 +223,7 @@ public class JobBuilder {
     }
 
     private void setJobName(Job job) {
-        if(jobName != null) {
+        if (jobName != null) {
             job.setJobName(jobName);
         }
     }

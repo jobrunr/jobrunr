@@ -18,6 +18,7 @@ public class Interval extends Schedule {
         this.duration = Duration.parse(durationExpression);
     }
 
+    @Override
     public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();

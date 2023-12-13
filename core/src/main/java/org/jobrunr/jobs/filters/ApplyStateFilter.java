@@ -12,6 +12,8 @@ import org.jobrunr.jobs.states.JobState;
 public interface ApplyStateFilter extends JobFilter {
 
     /**
+     * Will be invoked on state change of a {@link Job}
+     *
      * @param job      the job in which to apply the filter
      * @param oldState the previous state - can be null
      * @param newState the new state

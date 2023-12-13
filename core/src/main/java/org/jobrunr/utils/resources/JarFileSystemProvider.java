@@ -2,8 +2,16 @@ package org.jobrunr.utils.resources;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.ProviderNotFoundException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
@@ -13,6 +21,7 @@ public class JarFileSystemProvider implements FileSystemProvider {
 
     private final Map<String, FileSystem> openFileSystems = new HashMap<>();
 
+    @Override
     public Path toPath(URI uri) throws IOException {
         try {
             if (!"jar".equals(uri.getScheme())) {
@@ -51,7 +60,7 @@ public class JarFileSystemProvider implements FileSystemProvider {
         // Nested filesystems need to be closed in order
         List<String> fileSystemNames = new ArrayList<>(openFileSystems.keySet());
 
-        for(int i = 3; i >= 0; i--) {
+        for (int i = 3; i >= 0; i--) {
             int finalI = i;
             List<String> fileSystemsToClose = fileSystemNames.stream()
                     .filter(fsName -> fsName.chars().filter(ch -> ch == '!').count() == finalI)
@@ -65,7 +74,7 @@ public class JarFileSystemProvider implements FileSystemProvider {
     private void close(String fileSystemName) {
         try {
             openFileSystems.remove(fileSystemName).close();
-        } catch (IOException e ){
+        } catch (IOException e) {
             // nothing more we can do
         }
     }

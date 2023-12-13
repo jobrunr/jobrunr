@@ -19,6 +19,7 @@ public class Lock implements AutoCloseable {
         return this.semaphore.availablePermits() < 1;
     }
 
+    @Override
     public void close() {
         unlock();
     }

@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 import static java.util.Objects.requireNonNull;
@@ -37,10 +41,12 @@ class BatchCollector<T> implements Collector<T, List<T>, List<T>> {
         this.batchProcessor = requireNonNull(batchProcessor);
     }
 
+    @Override
     public Supplier<List<T>> supplier() {
         return ArrayList::new;
     }
 
+    @Override
     public BiConsumer<List<T>, T> accumulator() {
         return (ts, t) -> {
             ts.add(t);
@@ -51,6 +57,7 @@ class BatchCollector<T> implements Collector<T, List<T>, List<T>> {
         };
     }
 
+    @Override
     public BinaryOperator<List<T>> combiner() {
         return (ts, ots) -> {
             // process each parallel list without checking for batch size
@@ -62,6 +69,7 @@ class BatchCollector<T> implements Collector<T, List<T>, List<T>> {
         };
     }
 
+    @Override
     public Function<List<T>, List<T>> finisher() {
         return ts -> {
             batchProcessor.accept(ts);
@@ -69,6 +77,7 @@ class BatchCollector<T> implements Collector<T, List<T>, List<T>> {
         };
     }
 
+    @Override
     public Set<Characteristics> characteristics() {
         return Collections.emptySet();
     }

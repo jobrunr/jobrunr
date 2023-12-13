@@ -6,6 +6,7 @@ public class SqlServerDatabaseTablePrefixStatementUpdater extends AnsiDatabaseTa
         super(tablePrefix);
     }
 
+    @Override
     protected String updateStatementWithTablePrefixForIndexStatement(String statement) {
         return statement
                 .replace("CREATE UNIQUE INDEX jobrunr_", "CREATE UNIQUE INDEX " + indexPrefix + DEFAULT_PREFIX)

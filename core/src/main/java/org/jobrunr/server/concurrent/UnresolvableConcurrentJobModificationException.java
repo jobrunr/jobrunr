@@ -30,7 +30,7 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
     public DiagnosticsBuilder getDiagnosticsInfo() {
         return diagnostics()
                 .withTitle("Concurrent modified jobs:")
-                .with(concurrentJobModificationResolveResults, ((resolveResult, diagnosticsBuilder) -> appendDiagnosticsInfo(diagnosticsBuilder, resolveResult)));
+                .with(concurrentJobModificationResolveResults, (resolveResult, diagnosticsBuilder) -> appendDiagnosticsInfo(diagnosticsBuilder, resolveResult));
     }
 
     private void appendDiagnosticsInfo(DiagnosticsBuilder diagnostics, ConcurrentJobModificationResolveResult resolveResult) {
