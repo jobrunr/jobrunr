@@ -8,14 +8,17 @@ import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilter, JobServerFilter {
 
     private final Map<String, Boolean> onCreatingIsCalled;
     private final Map<String, Boolean> onCreatedIsCalled;
     private final Map<UUID, Boolean> onProcessingIsCalled;
-    private final Map<UUID, Boolean> onProcessedIsCalled;
     private final Map<UUID, Boolean> onProcessingSucceededIsCalled;
     private final Map<UUID, Boolean> onProcessingFailedIsCalled;
     private final Map<UUID, Boolean> onFailedAfterRetriesIsCalled;
@@ -25,7 +28,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         onCreatingIsCalled = new HashMap<>();
         onCreatedIsCalled = new HashMap<>();
         onProcessingIsCalled = new HashMap<>();
-        onProcessedIsCalled = new HashMap<>();
         onProcessingSucceededIsCalled = new HashMap<>();
         onProcessingFailedIsCalled = new HashMap<>();
         onFailedAfterRetriesIsCalled = new HashMap<>();
@@ -56,11 +58,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
     @Override
     public void onProcessing(Job job) {
         this.onProcessingIsCalled.put(job.getId(), true);
-    }
-
-    @Override
-    public void onProcessed(Job job) {
-        this.onProcessedIsCalled.put(job.getId(), true);
     }
 
     @Override
@@ -96,18 +93,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
 
     public boolean onProcessingIsCalled(UUID jobId) {
         return this.onProcessingIsCalled.getOrDefault(jobId, false);
-    }
-
-    public boolean onProcessedIsCalled(Job job) {
-        return onProcessedIsCalled(job.getId());
-    }
-
-    public boolean onProcessedIsCalled(JobId jobId) {
-        return onProcessedIsCalled(jobId.asUUID());
-    }
-
-    public boolean onProcessedIsCalled(UUID jobId) {
-        return this.onProcessedIsCalled.getOrDefault(jobId, false);
     }
 
     public boolean onProcessingSucceededIsCalled(Job job) {
@@ -162,7 +147,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         onCreatingIsCalled.clear();
         onCreatedIsCalled.clear();
         onProcessingIsCalled.clear();
-        onProcessedIsCalled.clear();
         onProcessingSucceededIsCalled.clear();
         onProcessingFailedIsCalled.clear();
         onFailedAfterRetriesIsCalled.clear();

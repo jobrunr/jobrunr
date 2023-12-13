@@ -3,7 +3,6 @@ package org.jobrunr.jobs.filters;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.utils.JobUtils;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.StateName.FAILED_STATES;
@@ -79,14 +78,7 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     private int getMaxNumberOfRetries(Job job) {
-        if(job.getAmountOfRetries() != null) return job.getAmountOfRetries();
-        return getMaxNumberOfRetriesViaJobAnnotation(job);
-    }
-
-    @Deprecated // this will be removed in JobRunr 6
-    private int getMaxNumberOfRetriesViaJobAnnotation(Job job) {
-        return JobUtils.getJobAnnotation(job.getJobDetails())
-                .map(jobAnnotation -> jobAnnotation.retries() > org.jobrunr.jobs.annotations.Job.NBR_OF_RETRIES_NOT_PROVIDED ? jobAnnotation.retries() : null)
-                .orElse(this.numberOfRetries);
+        if (job.getAmountOfRetries() != null) return job.getAmountOfRetries();
+        return this.numberOfRetries;
     }
 }
