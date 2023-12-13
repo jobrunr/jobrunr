@@ -11,6 +11,6 @@ public class SQLServerDialect implements Dialect {
 
     @Override
     public String limitAndOffset() {
-        return "OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY";
+        return "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY";
     }
 }

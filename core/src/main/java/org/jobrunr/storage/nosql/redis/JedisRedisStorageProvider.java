@@ -8,6 +8,7 @@ import org.jobrunr.storage.*;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -311,17 +312,56 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
-        return null;
+        try (final Jedis jedis = getJedis()) {
+            List<String> jobsByState;
+            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore),
+                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0,
+                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+            }
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
     }
 
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
-        return null;
+        try (final Jedis jedis = getJedis()) {
+            List<String> jobsByState;
+            int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
+            // we only support what is used by frontend
+            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrange(jobQueueForStateKey(keyPrefix, state), offset, offset + amountRequest.getLimit() - 1);
+            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrevrange(jobQueueForStateKey(keyPrefix, state), offset, offset + amountRequest.getLimit() - 1);
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+            }
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
     }
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
-        return null;
+        try (final Jedis jedis = getJedis()) {
+            int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
+            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(scheduledJobsKey(keyPrefix), 0, toMicroSeconds(now()), offset, amountRequest.getLimit()), jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
     }
 
     @Override
