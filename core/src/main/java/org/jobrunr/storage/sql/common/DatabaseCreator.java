@@ -4,7 +4,11 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.*;
+import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +16,12 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -93,7 +102,7 @@ public class DatabaseCreator {
             for (String table : JOBRUNR_TABLES) {
                 try (ResultSet rs = pSt.executeQuery("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(table))) {
                     if (rs.next()) {
-                        int count = rs.getInt(1);
+                        int ignored = rs.getInt(1);
                     }
                 }
             }

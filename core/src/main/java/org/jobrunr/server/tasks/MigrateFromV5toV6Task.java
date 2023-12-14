@@ -30,7 +30,7 @@ public class MigrateFromV5toV6Task implements Runnable {
     @Override
     public void run() {
         JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
-        if(metadata != null && "6.0.0".equals(metadata.getValue())) return;
+        if (metadata != null && "6.0.0".equals(metadata.getValue())) return;
 
         migrateScheduledJobsIfNecessary();
 
@@ -38,7 +38,7 @@ public class MigrateFromV5toV6Task implements Runnable {
     }
 
     private void migrateScheduledJobsIfNecessary() {
-        if(!(SqlStorageProvider.class.isAssignableFrom(storageProvider.getStorageProviderInfo().getImplementationClass()))) {
+        if (!SqlStorageProvider.class.isAssignableFrom(storageProvider.getStorageProviderInfo().getImplementationClass())) {
             LOGGER.info("Migration of scheduled jobs from v5 to v6 not needed as not using an SqlStorageProvider");
             return;
         }
@@ -52,13 +52,13 @@ public class MigrateFromV5toV6Task implements Runnable {
                 Job scheduledJob = storageProvider.getJobById(jobId);
                 scheduledJobsToMigrate.add(scheduledJob);
 
-                if(scheduledJobsToMigrate.size() >= 1000) {
+                if (scheduledJobsToMigrate.size() >= 1000) {
                     storageProvider.save(scheduledJobsToMigrate);
                     scheduledJobsToMigrate.clear();
                 }
             }
 
-            if(!scheduledJobsToMigrate.isEmpty()) {
+            if (!scheduledJobsToMigrate.isEmpty()) {
                 storageProvider.save(scheduledJobsToMigrate);
                 scheduledJobsToMigrate.clear();
             }
@@ -73,7 +73,7 @@ public class MigrateFromV5toV6Task implements Runnable {
         PageRequest pageRequest = ascOnUpdatedAt(5000);
         final List<UUID> allScheduledJobsId = new ArrayList<>();
         List<Job> scheduledJobs = this.storageProvider.getScheduledJobs(Instant.parse("2100-01-01T00:00:00Z"), pageRequest);
-        while(!scheduledJobs.isEmpty()) {
+        while (!scheduledJobs.isEmpty()) {
             allScheduledJobsId.addAll(scheduledJobs.stream().map(Job::getId).collect(toList()));
             pageRequest = pageRequest.nextPage();
             scheduledJobs = this.storageProvider.getScheduledJobs(Instant.parse("2100-01-01T00:00:00Z"), pageRequest);

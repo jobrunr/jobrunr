@@ -6,19 +6,19 @@ package org.jobrunr.jobs.lambdas;
  *
  * <pre>{@code
  *
- *     &commat;Inject
+ *     @Inject
  *     MyService myService;
  *
- *     BackgroundJob.enqueue(myService -&gt; myService.doWork("some argument"))
+ *     BackgroundJob.enqueue(myService -> myService.doWork("some argument"))
  * }</pre>
  * <p>
  * or
  * <pre>{@code
  *
- *     &commat;Inject
+ *     @Inject
  *     MyService myService;
  *
- *     jobScheduler.enqueue(myService -&gt; myService.doWork("some argument"))
+ *     jobScheduler.enqueue(myService -> myService.doWork("some argument"))
  * }</pre>
  * <p>
  * This functional interface allows you to enqueue background jobs while having an actual instance available of your service.

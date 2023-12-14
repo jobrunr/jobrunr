@@ -184,6 +184,7 @@ public interface StorageProvider extends AutoCloseable {
 
     void publishTotalAmountOfSucceededJobs(int amount);
 
+    @Override
     void close();
 
     class StorageProviderInfo {

@@ -17,7 +17,9 @@ import org.slf4j.MDC;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
 public class BackgroundJobPerformer implements Runnable {
@@ -35,6 +37,7 @@ public class BackgroundJobPerformer implements Runnable {
         this.job = job;
     }
 
+    @Override
     public void run() {
         try {
             backgroundJobServer.getJobZooKeeper().notifyThreadOccupied();

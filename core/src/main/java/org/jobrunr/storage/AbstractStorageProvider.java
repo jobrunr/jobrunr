@@ -2,13 +2,21 @@ package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.storage.listeners.*;
+import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
+import org.jobrunr.storage.listeners.JobChangeListener;
+import org.jobrunr.storage.listeners.JobStatsChangeListener;
+import org.jobrunr.storage.listeners.MetadataChangeListener;
+import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -174,6 +182,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     class NotifyOnChangeListeners extends TimerTask {
 
+        @Override
         public void run() {
             notifyJobStatsOnChangeListeners();
             notifyJobChangeListeners();

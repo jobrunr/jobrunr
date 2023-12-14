@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class VfsFilesystemProvider extends PathFileSystemProvider {
 
@@ -21,7 +22,7 @@ public class VfsFilesystemProvider extends PathFileSystemProvider {
     @Override
     public Path toPath(URI uri) throws IOException {
         uri = URI.create(uri.toString().substring(SCHEME.length()));
-        Path path =  super.toPath(uri);
+        Path path = super.toPath(uri);
         extractedFiles.add(path);
         return path;
     }
@@ -29,10 +30,12 @@ public class VfsFilesystemProvider extends PathFileSystemProvider {
     @Override
     public void close() throws IOException {
         for (Path path : extractedFiles) {
-            Files.walk(path)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
+            try (Stream<Path> filesToDelete = Files.walk(path)) {
+                filesToDelete
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            }
         }
         super.close();
     }

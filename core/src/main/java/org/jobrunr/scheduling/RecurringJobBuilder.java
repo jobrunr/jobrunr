@@ -19,7 +19,7 @@ import static java.time.ZoneId.systemDefault;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 
 /**
- * This class is used to build a {@link RecurringJob} using a job lambda or a {@Link JobRequest}.
+ * This class is used to build a {@link RecurringJob} using a job lambda or a {@link JobRequest}.
  * <p>
  * You can use it as follows:
  * <h5>A job lambda example:</h5>
