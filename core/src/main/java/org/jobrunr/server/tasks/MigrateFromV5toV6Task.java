@@ -39,7 +39,7 @@ public class MigrateFromV5toV6Task implements Runnable {
     }
 
     private void migrateScheduledJobsIfNecessary() {
-        if (!(SqlStorageProvider.class.isAssignableFrom(storageProvider.getStorageProviderInfo().getImplementationClass()))) {
+        if (!SqlStorageProvider.class.isAssignableFrom(storageProvider.getStorageProviderInfo().getImplementationClass())) {
             LOGGER.info("Migration of scheduled jobs from v5 to v6 not needed as not using an SqlStorageProvider");
             return;
         }

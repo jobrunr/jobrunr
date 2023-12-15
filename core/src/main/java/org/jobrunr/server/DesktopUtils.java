@@ -70,6 +70,7 @@ public class DesktopUtils {
             return false;
         }
 
+        @Override
         public Instant getLastSystemAwakeTime() {
             return Instant.MIN;
         }

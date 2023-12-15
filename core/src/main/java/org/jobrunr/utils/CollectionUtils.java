@@ -1,6 +1,13 @@
 package org.jobrunr.utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
@@ -66,6 +73,42 @@ public class CollectionUtils {
     public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2) {
         final Map<K, V> result = mapOf(key1, value1);
         result.put(key2, value2);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2, K key3, V value3) {
+        final Map<K, V> result = mapOf(key1, value1, key2, value2);
+        result.put(key3, value3);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4) {
+        final Map<K, V> result = mapOf(key1, value1, key2, value2, key3, value3);
+        result.put(key4, value4);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5, V value5) {
+        final Map<K, V> result = mapOf(key1, value1, key2, value2, key3, value3, key4, value4);
+        result.put(key5, value5);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5, V value5, K key6, V value6) {
+        final Map<K, V> result = mapOf(key1, value1, key2, value2, key3, value3, key4, value4, key5, value5);
+        result.put(key6, value6);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5, V value5, K key6, V value6, K key7, V value7) {
+        final Map<K, V> result = mapOf(key1, value1, key2, value2, key3, value3, key4, value4, key5, value5, key6, value6);
+        result.put(key7, value7);
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapOf(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5, V value5, K key6, V value6, K key7, V value7, K key8, V value8) {
+        final Map<K, V> result = mapOf(key1, value1, key2, value2, key3, value3, key4, value4, key5, value5, key6, value6, key7, value7);
+        result.put(key8, value8);
         return result;
     }
 }

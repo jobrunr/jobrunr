@@ -2,7 +2,13 @@ package org.jobrunr.scheduling.cron;
 
 import org.jobrunr.scheduling.Schedule;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.BitSet;
 import java.util.Calendar;
 
@@ -378,6 +384,7 @@ public class CronExpression extends Schedule {
         return updatedDays;
     }
 
+    @Override
     public void validateSchedule() {
         Instant base = Instant.EPOCH;
 

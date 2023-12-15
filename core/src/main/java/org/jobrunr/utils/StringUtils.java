@@ -2,9 +2,10 @@ package org.jobrunr.utils;
 
 import java.math.BigInteger;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class StringUtils {
 
@@ -74,7 +75,7 @@ public class StringUtils {
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");
             m.reset();
-            m.update(input.getBytes());
+            m.update(input.getBytes(UTF_8));
             byte[] digest = m.digest();
             BigInteger bigInt = new BigInteger(1, digest);
             String hashResult = bigInt.toString(16);
@@ -89,7 +90,7 @@ public class StringUtils {
 
     public static String urlEncode(String string) {
         try {
-            return URLEncoder.encode(string, StandardCharsets.UTF_8.toString());
+            return URLEncoder.encode(string, UTF_8.toString());
         } catch (Exception e) {
             return string;
         }

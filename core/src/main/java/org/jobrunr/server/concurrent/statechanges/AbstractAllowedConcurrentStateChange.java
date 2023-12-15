@@ -21,6 +21,7 @@ public abstract class AbstractAllowedConcurrentStateChange implements AllowedCon
      * @param storageProviderState the storage provider state to match. May not be null.
      * @return true if this {@link AllowedConcurrentStateChange} can resolve the concurrent state change, false otherwise.
      */
+    @Override
     public boolean matches(StateName localState, StateName storageProviderState) {
         return (this.localState == null || this.localState == localState) && this.storageProviderState == storageProviderState;
     }

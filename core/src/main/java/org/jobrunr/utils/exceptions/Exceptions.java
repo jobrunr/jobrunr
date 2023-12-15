@@ -76,11 +76,11 @@ public class Exceptions {
         throw new IllegalStateException("Cannot happen");
     }
 
-    public static <E extends RuntimeException> void retryOnException(Runnable runnable, int maxRetries) {
+    public static void retryOnException(Runnable runnable, int maxRetries) {
         retryOnException(runnable, e -> true, maxRetries);
     }
 
-    public static <E extends RuntimeException> void retryOnException(Runnable runnable, int maxRetries, long timeSeed) {
+    public static void retryOnException(Runnable runnable, int maxRetries, long timeSeed) {
         retryOnException(runnable, e -> true, maxRetries, timeSeed);
     }
 

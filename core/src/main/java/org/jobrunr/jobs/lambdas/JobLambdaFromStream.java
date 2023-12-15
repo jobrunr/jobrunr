@@ -6,7 +6,7 @@ package org.jobrunr.jobs.lambdas;
  *
  * <pre>{@code
  *
- *     &commat;Inject
+ *     @Inject
  *     MyService myService;
  *
  *     Stream<User> userStream = userRepository.getAllUsers();
@@ -16,7 +16,7 @@ package org.jobrunr.jobs.lambdas;
  * or
  * <pre>{@code
  *
- *      &commat;Inject
+ *      @Inject
  *      MyService myService;
  *
  *      Stream<User> userStream = userRepository.getAllUsers();

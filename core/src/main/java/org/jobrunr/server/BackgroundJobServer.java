@@ -6,7 +6,11 @@ import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
-import org.jobrunr.server.runner.*;
+import org.jobrunr.server.runner.BackgroundJobRunner;
+import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
+import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
+import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
+import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
@@ -87,10 +91,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
     }
 
+    @Override
     public UUID getId() {
         return configuration.getId();
     }
 
+    @Override
     public void start() {
         start(true);
     }
@@ -107,6 +113,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    @Override
     public void pauseProcessing() {
         if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
         if (isPaused()) return;
@@ -117,6 +124,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    @Override
     public void resumeProcessing() {
         if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
         if (isProcessing()) return;
@@ -127,6 +135,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    @Override
     public void stop() {
         if (isStopped()) return;
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
@@ -168,12 +177,14 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    @Override
     public boolean isRunning() {
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
             return isRunning;
         }
     }
 
+    @Override
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
                 configuration.getPollIntervalInSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),

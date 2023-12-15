@@ -2,7 +2,14 @@ package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.JobZooKeeper;
-import org.jobrunr.server.concurrent.statechanges.*;
+import org.jobrunr.server.concurrent.statechanges.AllowedConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.DeletedWhileAnyOtherConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.JobPerformedOnOtherBackgroundJobServerConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.JobStateChangedWhileProcessingConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.PermanentlyDeletedWhileProcessingConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.ScheduledTooEarlyByJobZooKeeperConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.SucceededWhileAnyOtherConcurrentStateChange;
+import org.jobrunr.server.concurrent.statechanges.SystemSleptConcurrentStateChange;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.StorageProvider;
@@ -38,6 +45,7 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
         );
     }
 
+    @Override
     public void resolve(ConcurrentJobModificationException e) {
         final List<Job> concurrentUpdatedJobs = e.getConcurrentUpdatedJobs();
         final List<ConcurrentJobModificationResolveResult> failedToResolve = concurrentUpdatedJobs
