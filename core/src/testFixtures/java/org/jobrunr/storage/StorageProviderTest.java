@@ -14,6 +14,7 @@ import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.exceptions.Exceptions;
@@ -617,6 +618,28 @@ public abstract class StorageProviderTest {
         assertThatJobs(storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), AmountBasedList.ascOnUpdatedAt(100)))
                 .hasSize(1)
                 .contains(job1);
+    }
+
+    @Test
+    void testScheduledJobsPage() {
+        Job job1 = anEnqueuedJob().withState(new ScheduledState(now())).build();
+        Job job2 = anEnqueuedJob().withState(new ScheduledState(now().plusSeconds(1))).build();
+        Job job3 = anEnqueuedJob().withState(new ScheduledState(now().plusSeconds(2))).build();
+        final List<Job> jobs = asList(job1, job2, job3);
+
+        storageProvider.save(jobs);
+
+        Page<Job> jobPage1 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPage.ascOnUpdatedAt(2));
+
+        assertThatJobs(jobPage1.getItems())
+                .hasSize(2)
+                .contains(job1, job2);
+
+        Page<Job> jobPage2 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPageRequest.fromString(jobPage1.getNextPage()));
+
+        assertThatJobs(jobPage2.getItems())
+                .hasSize(1)
+                .contains(job3);
     }
 
     @Test

@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 /**
  * The StorageProvider allows to store, retrieve and delete background jobs.
@@ -116,31 +115,6 @@ public interface StorageProvider extends AutoCloseable {
      */
     default Job getJobById(JobId jobId) throws JobNotFoundException {
         return getJobById(jobId.asUUID());
-    }
-
-    /**
-     * Returns the first (oldest) job matching the given {@link StateName}.
-     *
-     * @param state the StateName to test each {@link Job} against
-     * @return the first {@link Job} found, null if no {@link Job} matches the {@link StateName}.
-     */
-    default Job getJob(StateName state) {
-        List<Job> jobList = getJobList(state, ascOnUpdatedAt(1));
-        if (jobList.isEmpty()) return null;
-        return jobList.get(0);
-    }
-
-    /**
-     * Returns the first (oldest) job matching the given {@link StateName} and {@link Instant}.
-     *
-     * @param state         the StateName to test each {@link Job} against
-     * @param updatedBefore the Instant to test each {@link Job} updatedAt against
-     * @return the first {@link Job} found, null if no {@link Job} matches the {@link StateName} and updated before {@link Instant}.
-     */
-    default Job getJob(StateName state, Instant updatedBefore) {
-        List<Job> jobList = getJobList(state, updatedBefore, ascOnUpdatedAt(1));
-        if (jobList.isEmpty()) return null;
-        return jobList.get(0);
     }
 
     /**

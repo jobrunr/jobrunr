@@ -7,13 +7,13 @@ import org.jobrunr.storage.sql.common.db.Dialect;
 
 import static org.jobrunr.jobs.Job.ALLOWED_SORT_COLUMNS;
 
-public class SqlPageRequestMapper {
+public class SqlJobPageRequestMapper {
 
     private final JobTable jobTable;
     private final SqlAmountRequestMapper sqlAmountRequestMapper;
     private final SqlOffsetBasedPageRequestMapper sqlOffsetBasedPageRequestMapper;
 
-    public SqlPageRequestMapper(JobTable jobTable, Dialect dialect) {
+    public SqlJobPageRequestMapper(JobTable jobTable, Dialect dialect) {
         this.jobTable = jobTable;
         this.sqlAmountRequestMapper = new SqlAmountRequestMapper(dialect, ALLOWED_SORT_COLUMNS.keySet());
         this.sqlOffsetBasedPageRequestMapper = new SqlOffsetBasedPageRequestMapper(dialect, ALLOWED_SORT_COLUMNS.keySet());

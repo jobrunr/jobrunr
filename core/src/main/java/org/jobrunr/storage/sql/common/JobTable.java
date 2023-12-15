@@ -10,7 +10,7 @@ import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
 import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
-import org.jobrunr.storage.sql.common.mapper.SqlPageRequestMapper;
+import org.jobrunr.storage.sql.common.mapper.SqlJobPageRequestMapper;
 import org.jobrunr.utils.JobUtils;
 
 import java.sql.Connection;
@@ -34,10 +34,10 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class JobTable extends Sql<Job> {
 
     private final JobMapper jobMapper;
-    private final SqlPageRequestMapper pageRequestMapper;
+    private final SqlJobPageRequestMapper pageRequestMapper;
 
     public JobTable(Connection connection, Dialect dialect, String tablePrefix, JobMapper jobMapper) {
-        this.pageRequestMapper = new SqlPageRequestMapper(this, dialect);
+        this.pageRequestMapper = new SqlJobPageRequestMapper(this, dialect);
         this.jobMapper = jobMapper;
         this
                 .using(connection, dialect, tablePrefix, "jobrunr_jobs")

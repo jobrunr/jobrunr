@@ -231,7 +231,7 @@ public class BackgroundJobByIoCJobLambdaTest {
         BackgroundJob.<TestService>scheduleRecurrently(every5Seconds, x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJob(SUCCEEDED);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 

@@ -15,9 +15,9 @@ class AmountRequestTest {
 
     @Test
     void testOffsetBasedPageRequestWithEmptyString() {
-        AmountRequest amountRequest = AmountRequest.fromString("");
+        OffsetBasedPageRequest offsetBasedPageRequest = OffsetBasedPageRequest.fromString("");
 
-        assertThat(amountRequest).isNull();
+        assertThat(offsetBasedPageRequest).isNull();
     }
 
 }
