@@ -356,7 +356,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         try (final Jedis jedis = getJedis()) {
             int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
-            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(scheduledJobsKey(keyPrefix), 0, toMicroSeconds(now()), offset, amountRequest.getLimit()), jedis)
+            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(scheduledJobsKey(keyPrefix), 0, toMicroSeconds(scheduledBefore), offset, amountRequest.getLimit()), jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
                     .mapAfterSync(Response::get)
                     .map(jobMapper::deserializeJob)

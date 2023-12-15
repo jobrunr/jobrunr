@@ -385,7 +385,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisCommands<String, String> commands = connection.sync();
             return new LettuceRedisPipelinedStream<>(
                     commands.zrangebyscore(scheduledJobsKey(keyPrefix),
-                            Range.create(0, toMicroSeconds(now())),
+                            Range.create(0, toMicroSeconds(scheduledBefore)),
                             Limit.create(
                                     amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0,
                                     amountRequest.getLimit())
