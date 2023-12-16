@@ -12,7 +12,10 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.*;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaStaticMethod;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptor;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.isClassAssignableToObject;
 
 public class InvokeStaticInstruction extends VisitMethodInstruction {
@@ -25,7 +28,7 @@ public class InvokeStaticInstruction extends VisitMethodInstruction {
 
     @Override
     public Object invokeInstruction() {
-        if (isLastInstruction()) {
+        if (isLastJobDetailsInstruction()) {
             jobDetailsBuilder.setClassName(getClassName());
             jobDetailsBuilder.setMethodName(getMethodName());
             jobDetailsBuilder.setJobParameters(getJobParameters());
@@ -44,7 +47,7 @@ public class InvokeStaticInstruction extends VisitMethodInstruction {
     private Object getObject() {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         List<Object> parameters = getParametersUsingParamTypes(paramTypes);
-        if(isKotlinNullCheck()) return null;
+        if (isKotlinNullCheck()) return null;
         Object result = createObjectViaStaticMethod(getClassName(), getMethodName(), paramTypes, parameters.toArray());
         return result;
     }

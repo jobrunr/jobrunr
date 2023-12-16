@@ -15,7 +15,6 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.util.Textifier;
 
@@ -46,7 +45,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
@@ -84,12 +82,13 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     @Test
-    @Disabled("for debugging")
+        //@Disabled("for debugging")
     void logByteCode() {
         String name = AbstractJobDetailsGeneratorTest.class.getName();
-        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+        //String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
 
         //String location = "/Users/rdehuyss/Projects/Personal/jobrunr/jobrunr/language-support/jobrunr-kotlin-16-support/build/classes/kotlin/test/org/jobrunr/scheduling/JobSchedulerTest.class";
+        String location = "/Users/rdehuyss/Projects/Personal/jobrunr/bugs/quarkus-kotlin-jobrunr-error-example/target/classes/service/impl/ExampleServiceImpl.class";
         assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
     }
 

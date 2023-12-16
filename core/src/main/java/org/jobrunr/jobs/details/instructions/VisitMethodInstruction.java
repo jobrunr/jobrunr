@@ -32,8 +32,8 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
         return descriptor.endsWith(")V");
     }
 
-    protected boolean isLastInstruction() {
-        return jobDetailsBuilder.getInstructions().isEmpty();
+    protected boolean isLastJobDetailsInstruction() {
+        return jobDetailsBuilder.getInstructions().stream().noneMatch(x -> x instanceof JobDetailsInstruction);
     }
 
     protected List<Object> getParametersUsingParamTypes(Class<?>[] paramTypesAsArray) {
