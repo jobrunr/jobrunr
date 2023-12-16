@@ -14,6 +14,12 @@ public class InvokeStaticInstruction extends JobDetailsInstruction {
         super(jobDetailsBuilder);
     }
 
+    @Override
+    public Object invokeInstruction() {
+        if (isKotlinNullCheck()) return null;
+        return super.invokeInstruction();
+    }
+
     protected Object getObject() {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         List<Object> parameters = getParametersUsingParamTypes(paramTypes);
@@ -23,7 +29,7 @@ public class InvokeStaticInstruction extends JobDetailsInstruction {
     }
 
     private boolean isKotlinNullCheck() {
-        return getClassName().startsWith("kotlin.") && getMethodName().equals("checkNotNullParameter");
+        return getClassName().startsWith("kotlin.") && (getMethodName().equals("checkNotNullParameter") || getMethodName().equals("checkNotNullExpressionValue"));
     }
 
     String getClassName() {
