@@ -79,14 +79,14 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         return name;
     }
 
-    private Object getObject() {
+    protected Object getObject() {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         final Object ownerObject = jobDetailsBuilder.getStack().remove(jobDetailsBuilder.getStack().size() - 1 - paramTypes.length);
         return createObjectViaMethod(ownerObject, name, paramTypes, getParametersUsingParamTypes(paramTypes).toArray());
     }
 
     private Optional<String> findInheritedClassName(String className) {
-        if (jobDetailsBuilder.getLocalVariable(0) != null) {
+        if (jobDetailsBuilder.getLocalVariable(0) != null && jobDetailsBuilder.getLocalVariable(0).getClass().getDeclaredFields().length > 0) {
             final Field declaredField = jobDetailsBuilder.getLocalVariable(0).getClass().getDeclaredFields()[0];
             final Object valueFromField = getValueFromField(declaredField, jobDetailsBuilder.getLocalVariable(0));
             if (toClass(className).isAssignableFrom(valueFromField.getClass())) {
@@ -96,7 +96,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         return Optional.empty();
     }
 
-    private List<JobParameter> getJobParameters() {
+    protected List<JobParameter> getJobParameters() {
         final List<Class<?>> paramTypesFromDescriptor = findParamTypesFromDescriptor(descriptor);
         final LinkedList<Class<?>> paramTypes = new LinkedList<>(paramTypesFromDescriptor);
 
