@@ -61,6 +61,8 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.GETSTATIC, GetStaticInstruction::new);
         instructions.put(Opcodes.RETURN, ReturnOperandInstruction::new);
         instructions.put(Opcodes.SIPUSH, SingleIntOperandInstruction::new);
+        // needed to support Jacoco
+        instructions.put(Opcodes.BASTORE, BAStoreOperandInstruction::new);
 
         String mathematicalPerformanceSuffix = " - for performance reasons it is better to do the calculation outside of the job lambda";
         asList(Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD)
