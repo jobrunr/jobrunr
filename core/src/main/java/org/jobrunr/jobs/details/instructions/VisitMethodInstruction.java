@@ -33,7 +33,7 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
     }
 
     protected boolean isLastJobDetailsInstruction() {
-        return jobDetailsBuilder.getInstructions().stream().noneMatch(x -> x instanceof JobDetailsInstruction);
+        return jobDetailsBuilder.getInstructions().stream().noneMatch(JobDetailsInstruction.class::isInstance);
     }
 
     protected List<Object> getParametersUsingParamTypes(Class<?>[] paramTypesAsArray) {
