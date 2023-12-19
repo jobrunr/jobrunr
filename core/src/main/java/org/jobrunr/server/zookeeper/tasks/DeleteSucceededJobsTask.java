@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class DeleteSucceededJobsTask extends ZooKeeperTask {
 
@@ -25,7 +25,7 @@ public class DeleteSucceededJobsTask extends ZooKeeperTask {
     protected void runTask() {
         LOGGER.trace("Looking for succeeded jobs that can go to the deleted state... ");
         final Instant updatedBefore = now().minus(backgroundJobServerConfiguration().getDeleteSucceededJobsAfter());
-        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobs(SUCCEEDED, updatedBefore, ascOnUpdatedAt(pageRequestSize));
+        Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobList(SUCCEEDED, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(succeededJobsSupplier, job -> job.delete("JobRunr maintenance - deleting succeeded job"), this::handleTotalAmountOfSucceededJobs);
     }
 

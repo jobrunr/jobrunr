@@ -30,7 +30,7 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
     void testTask() {
         Job enqueuedJob1 = anEnqueuedJob().build();
         Job enqueuedJob2 = anEnqueuedJob().build();
-        when(storageProvider.getJobs(eq(ENQUEUED), any())).thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
+        when(storageProvider.getJobList(eq(ENQUEUED), any())).thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
         runTask(task);
 
         verify(backgroundJobServer).processJob(enqueuedJob1);
@@ -39,7 +39,7 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
 
     @Test
     void taskIsNotDoneConcurrently() throws InterruptedException {
-        when(storageProvider.getJobs(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
+        when(storageProvider.getJobList(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
             sleep(100);
             return emptyList();
         });
@@ -57,6 +57,6 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
         thread2.start();
 
         countDownLatch.await();
-        verify(storageProvider, times(1)).getJobs(eq(ENQUEUED), any());
+        verify(storageProvider, times(1)).getJobList(eq(ENQUEUED), any());
     }
 }

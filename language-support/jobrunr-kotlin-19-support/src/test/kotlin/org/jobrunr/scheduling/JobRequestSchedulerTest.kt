@@ -10,24 +10,24 @@ import org.jobrunr.jobs.lambdas.JobRequestHandler
 import org.jobrunr.jobs.states.StateName.*
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.storage.InMemoryStorageProvider
-import org.jobrunr.storage.StorageProviderForTest
+import org.jobrunr.storage.StorageProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class JobRequestSchedulerTest {
 
-    private lateinit var storageProvider: StorageProviderForTest
+    private lateinit var storageProvider: StorageProvider
 
     @BeforeEach
     fun setUp() {
-        storageProvider = StorageProviderForTest(InMemoryStorageProvider())
+        storageProvider = InMemoryStorageProvider()
         JobRunr.configure()
-            .useStorageProvider(storageProvider)
-            .useBackgroundJobServer(
-                usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5)
-            )
-            .initialize()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(
+                        usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5)
+                )
+                .initialize()
     }
 
     @AfterEach
@@ -56,8 +56,8 @@ class JobRequestSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-            .hasJobName("Some neat Job Display Name")
-            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+                .hasJobName("Some neat Job Display Name")
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     class AnnotationFoundKotlinJobRequest(val input: String) : JobRequest {
@@ -85,7 +85,7 @@ class JobRequestSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-            .hasJobName("Some neat Job Display Name")
-            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+                .hasJobName("Some neat Job Display Name")
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 }

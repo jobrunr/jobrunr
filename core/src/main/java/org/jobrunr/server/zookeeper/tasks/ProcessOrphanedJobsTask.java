@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 import static java.time.Duration.ofSeconds;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class ProcessOrphanedJobsTask extends ZooKeeperTask {
 
@@ -25,7 +25,7 @@ public class ProcessOrphanedJobsTask extends ZooKeeperTask {
     protected void runTask() {
         LOGGER.trace("Looking for orphan jobs... ");
         final Instant updatedBefore = runStartTime().minus(ofSeconds(backgroundJobServerConfiguration().getPollIntervalInSeconds()).multipliedBy(4));
-        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobs(PROCESSING, updatedBefore, ascOnUpdatedAt(pageRequestSize));
+        Supplier<List<Job>> orphanedJobsSupplier = () -> storageProvider.getJobList(PROCESSING, updatedBefore, ascOnUpdatedAt(pageRequestSize));
         processJobList(orphanedJobsSupplier,
                 this::changeJobStateToFailedAndRunJobFilter,
                 totalAmountOfOrphanedJobs -> LOGGER.debug("Found {} orphan jobs.", totalAmountOfOrphanedJobs));

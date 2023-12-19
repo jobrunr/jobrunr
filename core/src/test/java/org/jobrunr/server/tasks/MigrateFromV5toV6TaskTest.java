@@ -3,8 +3,10 @@ package org.jobrunr.server.tasks;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.Page;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.mockito.Mockito.*;
@@ -64,25 +64,20 @@ class MigrateFromV5toV6TaskTest {
     void doesMigrationsOfAllScheduledJobsIfStorageProviderIsAnSqlStorageProvider() {
         doReturn(PostgresStorageProvider.class).when(storageProviderInfo).getImplementationClass();
 
-
-        when(storageProvider.getScheduledJobs(any(), any())).thenReturn(
-                aLotOfScheduledJobs(5000),
-                aLotOfScheduledJobs(500),
-                Collections.emptyList()
-        );
+        when(storageProvider.getScheduledJobs(any(), any()))
+                .thenAnswer(i -> aLotOfScheduledJobs(i.getArgument(1, OffsetBasedPageRequest.class), 5500));
 
         task.run();
 
-        verify(storageProvider, times(3)).getScheduledJobs(any(), any());
+        verify(storageProvider, times(2)).getScheduledJobs(any(), any());
         verify(storageProvider, times(6)).save(anyList());
     }
 
-    private List<Job> aLotOfScheduledJobs(int amountOfScheduledJobs) {
+    private Page<Job> aLotOfScheduledJobs(OffsetBasedPageRequest pageRequest, int totalAmountOfScheduledJobs) {
         ArrayList<Job> jobs = new ArrayList<>();
-        for(int i = 0; i < amountOfScheduledJobs; i++) {
+        for (int i = (int) pageRequest.getOffset(); i < (pageRequest.getOffset() == 0 ? pageRequest.getLimit() : totalAmountOfScheduledJobs); i++) {
             jobs.add(aScheduledJob().build());
         }
-        return jobs;
+        return pageRequest.mapToNewPage(totalAmountOfScheduledJobs, jobs);
     }
-
 }

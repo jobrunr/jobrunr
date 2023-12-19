@@ -3,8 +3,9 @@ package org.jobrunr.server.tasks;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.Page;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.stream.Collectors.toList;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.OffsetBasedPage.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.OffsetBasedPage.next;
 
 public class MigrateFromV5toV6Task implements Runnable {
 
@@ -70,13 +71,15 @@ public class MigrateFromV5toV6Task implements Runnable {
     }
 
     private List<UUID> getScheduledJobIdsToMigrate() {
-        PageRequest pageRequest = ascOnUpdatedAt(5000);
+        OffsetBasedPageRequest pageRequest = ascOnUpdatedAt(5000);
         final List<UUID> allScheduledJobsId = new ArrayList<>();
-        List<Job> scheduledJobs = this.storageProvider.getScheduledJobs(Instant.parse("2100-01-01T00:00:00Z"), pageRequest);
-        while (!scheduledJobs.isEmpty()) {
-            allScheduledJobsId.addAll(scheduledJobs.stream().map(Job::getId).collect(toList()));
-            pageRequest = pageRequest.nextPage();
-            scheduledJobs = this.storageProvider.getScheduledJobs(Instant.parse("2100-01-01T00:00:00Z"), pageRequest);
+        Instant scheduledBefore = Instant.parse("2100-01-01T00:00:00Z");
+        Page<Job> scheduledJobPage = this.storageProvider.getScheduledJobs(scheduledBefore, pageRequest);
+        while (scheduledJobPage != null && scheduledJobPage.hasItems()) {
+            scheduledJobPage.getItems().forEach(j -> allScheduledJobsId.add(j.getId()));
+            scheduledJobPage = scheduledJobPage.hasNextPage()
+                    ? this.storageProvider.getScheduledJobs(scheduledBefore, next(scheduledJobPage))
+                    : null;
         }
         return allScheduledJobsId;
     }

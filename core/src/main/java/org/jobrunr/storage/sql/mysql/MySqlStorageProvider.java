@@ -3,7 +3,7 @@ package org.jobrunr.storage.sql.mysql;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
-import org.jobrunr.storage.sql.common.db.dialect.AnsiDialect;
+import org.jobrunr.storage.sql.common.db.AnsiDialect;
 import org.jobrunr.utils.exceptions.Exceptions;
 
 import javax.sql.DataSource;

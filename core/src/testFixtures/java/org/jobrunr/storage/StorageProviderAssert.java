@@ -6,8 +6,6 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
-
 public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert, StorageProvider> {
 
     private StorageProviderAssert(StorageProvider storageProvider) {
@@ -19,7 +17,7 @@ public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert,
     }
 
     public StorageProviderAssert hasJobs(StateName stateName, int count) {
-        Assertions.assertThat(actual.getJobPage(stateName, ascOnUpdatedAt(0)).getTotal()).isEqualTo(count);
+        Assertions.assertThat(actual.countJobs(stateName)).isEqualTo(count);
         return this;
     }
 

@@ -52,6 +52,25 @@ public class StringUtils {
         return null;
     }
 
+    /**
+     * Returns the String between the given open and close String. If the closing String is not present, it will return everything after the opening String.
+     *
+     * @param s     the String containing the substring, may be null
+     * @param open  the String before the substring, may not be null
+     * @param close the String after the substring, may not be null
+     * @return Returns the String between the given open and close String when possible or everything after the opening String.
+     */
+    public static String lenientSubstringBetween(String s, String open, String close) {
+        if (s != null && s.contains(open)) {
+            String result = substringAfter(s, open);
+            if (result.contains(close)) {
+                return substringBefore(result, close);
+            }
+            return result;
+        }
+        return null;
+    }
+
     public static String md5Checksum(String input) {
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");

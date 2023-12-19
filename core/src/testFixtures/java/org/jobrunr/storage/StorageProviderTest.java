@@ -10,8 +10,11 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.storage.Paging.AmountBasedList;
+import org.jobrunr.storage.Paging.OffsetBasedPage;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.exceptions.Exceptions;
@@ -50,8 +53,6 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aBackgroundJobServerStatusBasedOn;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
-import static org.jobrunr.storage.PageRequest.descOnUpdatedAt;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
@@ -214,7 +215,7 @@ public abstract class StorageProviderTest {
         Job createdJob = storageProvider.save(scheduledJob);
         Job savedScheduledJob = storageProvider.getJobById(createdJob.getId());
         assertThat(savedScheduledJob).isEqualTo(createdJob);
-        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), ascOnUpdatedAt(1000))).contains(createdJob);
+        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), AmountBasedList.ascOnUpdatedAt(1000))).contains(createdJob);
         assertThat(storageProvider.exists(scheduledJob.getJobDetails(), SCHEDULED)).isTrue();
 
         // ENQUEUE
@@ -222,8 +223,8 @@ public abstract class StorageProviderTest {
         storageProvider.save(savedScheduledJob);
         Job savedEnqueuedJob = storageProvider.getJobById(createdJob.getId());
         assertThat(savedEnqueuedJob).isEqualTo(savedScheduledJob);
-        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), ascOnUpdatedAt(1000))).isEmpty();
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, ascOnUpdatedAt(1000))).contains(savedEnqueuedJob);
+        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, AmountBasedList.ascOnUpdatedAt(1000))).contains(savedEnqueuedJob);
         assertThat(storageProvider.exists(scheduledJob.getJobDetails(), SCHEDULED)).isFalse();
         assertThat(storageProvider.exists(scheduledJob.getJobDetails(), ENQUEUED)).isTrue();
 
@@ -232,8 +233,8 @@ public abstract class StorageProviderTest {
         storageProvider.save(savedEnqueuedJob);
         Job savedProcessingJob = storageProvider.getJobById(createdJob.getId());
         assertThat(savedProcessingJob).isEqualTo(savedEnqueuedJob);
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, ascOnUpdatedAt(1000))).isEmpty();
-        assertThatJobs(storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000))).contains(savedProcessingJob);
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(PROCESSING, AmountBasedList.ascOnUpdatedAt(1000))).contains(savedProcessingJob);
 
         // FAILED & RESCHEDULED
         savedProcessingJob.failed("A failure", new RuntimeException());
@@ -241,46 +242,46 @@ public abstract class StorageProviderTest {
         storageProvider.save(savedProcessingJob);
         Job savedRescheduledJob = storageProvider.getJobById(createdJob.getId());
         assertThat(savedRescheduledJob).isEqualTo(savedProcessingJob);
-        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), ascOnUpdatedAt(1000))).contains(savedRescheduledJob);
-        assertThatJobs(storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), AmountBasedList.ascOnUpdatedAt(1000))).contains(savedRescheduledJob);
+        assertThatJobs(storageProvider.getJobList(PROCESSING, AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
 
         // ENQUEUED
         savedRescheduledJob.enqueue();
         storageProvider.save(savedRescheduledJob);
         Job savedEnqueuedJobRetry = storageProvider.getJobById(createdJob.getId());
         assertThat(savedEnqueuedJobRetry).isEqualTo(savedRescheduledJob);
-        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), ascOnUpdatedAt(1000))).isEmpty();
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, ascOnUpdatedAt(1000))).contains(savedEnqueuedJobRetry);
+        assertThatJobs(storageProvider.getScheduledJobs(Instant.now(), AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, AmountBasedList.ascOnUpdatedAt(1000))).contains(savedEnqueuedJobRetry);
 
         // PROCESSING
         savedEnqueuedJobRetry.startProcessingOn(backgroundJobServer);
         storageProvider.save(savedEnqueuedJobRetry);
         Job savedProcessingJobRetry = storageProvider.getJobById(createdJob.getId());
         assertThat(savedProcessingJobRetry).isEqualTo(savedEnqueuedJobRetry);
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, ascOnUpdatedAt(1000))).isEmpty();
-        assertThatJobs(storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000))).contains(savedProcessingJobRetry);
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(PROCESSING, AmountBasedList.ascOnUpdatedAt(1000))).contains(savedProcessingJobRetry);
 
         // SUCCEEDED
         savedProcessingJobRetry.succeeded();
         storageProvider.save(savedProcessingJobRetry);
         Job savedSucceededJob = storageProvider.getJobById(createdJob.getId());
         assertThat(savedSucceededJob).isEqualTo(savedProcessingJobRetry);
-        assertThatJobs(storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000))).isEmpty();
-        assertThatJobs(storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000))).contains(savedSucceededJob);
+        assertThatJobs(storageProvider.getJobList(PROCESSING, AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(SUCCEEDED, AmountBasedList.ascOnUpdatedAt(1000))).contains(savedSucceededJob);
 
         // DELETED
         savedSucceededJob.delete("By test");
         storageProvider.save(savedSucceededJob);
         Job fetchedDeletedJob = storageProvider.getJobById(createdJob.getId());
         assertThat(fetchedDeletedJob).hasState(DELETED);
-        assertThatJobs(storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000))).isEmpty();
-        assertThatJobs(storageProvider.getJobs(DELETED, ascOnUpdatedAt(1000))).contains(fetchedDeletedJob);
+        assertThatJobs(storageProvider.getJobList(SUCCEEDED, AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(DELETED, AmountBasedList.ascOnUpdatedAt(1000))).contains(fetchedDeletedJob);
 
         // DELETED PERMANENTLY
         final int permanentlyDeletedJobs = storageProvider.deletePermanently(createdJob.getId());
         assertThat(permanentlyDeletedJobs).isEqualTo(1);
         assertThatThrownBy(() -> storageProvider.getJobById(savedEnqueuedJob.getId())).isInstanceOf(JobNotFoundException.class);
-        assertThatJobs(storageProvider.getJobs(DELETED, ascOnUpdatedAt(1000))).isEmpty();
+        assertThatJobs(storageProvider.getJobList(DELETED, AmountBasedList.ascOnUpdatedAt(1000))).isEmpty();
     }
 
     @Test
@@ -484,13 +485,13 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider).hasJobs(ENQUEUED, 0);
         assertThat(storageProvider).hasJobs(PROCESSING, 3);
 
-        List<Job> fetchedJobsAsc = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(100));
+        List<Job> fetchedJobsAsc = storageProvider.getJobList(PROCESSING, AmountBasedList.ascOnUpdatedAt(100));
         assertThatJobs(fetchedJobsAsc)
                 .hasSize(3)
                 .containsAll(savedJobs);
         assertThat(fetchedJobsAsc).extracting("jobName").containsExactly("1", "2", "3");
 
-        List<Job> fetchedJobsDesc = storageProvider.getJobs(PROCESSING, descOnUpdatedAt(100));
+        List<Job> fetchedJobsDesc = storageProvider.getJobList(PROCESSING, AmountBasedList.descOnUpdatedAt(100));
         assertThatJobs(fetchedJobsDesc)
                 .hasSize(3)
                 .containsAll(savedJobs);
@@ -528,12 +529,12 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        Page<Job> fetchedJobsAscOnPriorityAndAscOnCreated = storageProvider.getJobPage(ENQUEUED, ascOnUpdatedAt(50));
+        Page<Job> fetchedJobsAscOnPriorityAndAscOnCreated = storageProvider.getJobs(ENQUEUED, OffsetBasedPage.ascOnUpdatedAt(50));
         assertThatJobs(fetchedJobsAscOnPriorityAndAscOnCreated.getItems())
                 .hasSize(5)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3), jobs.get(4));
 
-        Page<Job> fetchedJobsDescOnUpdatedAt = storageProvider.getJobPage(ENQUEUED, descOnUpdatedAt(50));
+        Page<Job> fetchedJobsDescOnUpdatedAt = storageProvider.getJobs(ENQUEUED, OffsetBasedPage.descOnUpdatedAt(50));
         assertThatJobs(fetchedJobsDescOnUpdatedAt.getItems())
                 .hasSize(5)
                 .containsExactly(jobs.get(4), jobs.get(3), jobs.get(2), jobs.get(1), jobs.get(0));
@@ -551,12 +552,12 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        Page<Job> fetchedJobsAsc = storageProvider.getJobPage(ENQUEUED, ascOnUpdatedAt(2, 2));
+        Page<Job> fetchedJobsAsc = storageProvider.getJobs(ENQUEUED, OffsetBasedPage.ascOnUpdatedAt(2, 2));
         assertThatJobs(fetchedJobsAsc.getItems())
                 .hasSize(2)
                 .containsExactly(jobs.get(2), jobs.get(3));
 
-        Page<Job> fetchedJobsDesc = storageProvider.getJobPage(ENQUEUED, descOnUpdatedAt(2, 2));
+        Page<Job> fetchedJobsDesc = storageProvider.getJobs(ENQUEUED, OffsetBasedPage.descOnUpdatedAt(2, 2));
         assertThatJobs(fetchedJobsDesc.getItems())
                 .hasSize(2)
                 .containsExactly(jobs.get(2), jobs.get(1));
@@ -572,19 +573,19 @@ public abstract class StorageProviderTest {
         );
         storageProvider.save(jobs);
 
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, now().minus(3, HOURS), ascOnUpdatedAt(100)))
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, now().minus(3, HOURS), AmountBasedList.ascOnUpdatedAt(100)))
                 .hasSize(2)
                 .containsExactly(jobs.get(0), jobs.get(1));
 
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), ascOnUpdatedAt(100)))
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, now().minus(1, HOURS), AmountBasedList.ascOnUpdatedAt(100)))
                 .hasSize(3)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2));
 
-        assertThatJobs(storageProvider.getJobs(ENQUEUED, now().minus(1, HOURS), descOnUpdatedAt(100)))
+        assertThatJobs(storageProvider.getJobList(ENQUEUED, now().minus(1, HOURS), AmountBasedList.descOnUpdatedAt(100)))
                 .hasSize(3)
                 .containsExactly(jobs.get(2), jobs.get(1), jobs.get(0));
 
-        assertThatJobs(storageProvider.getJobs(PROCESSING, now().minus(1, HOURS), ascOnUpdatedAt(100)))
+        assertThatJobs(storageProvider.getJobList(PROCESSING, now().minus(1, HOURS), AmountBasedList.ascOnUpdatedAt(100)))
                 .isEmpty();
     }
 
@@ -601,7 +602,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.deleteJobsPermanently(ENQUEUED, now().minus(1, HOURS));
 
-        List<Job> fetchedJobs = storageProvider.getJobs(ENQUEUED, ascOnUpdatedAt(100));
+        List<Job> fetchedJobs = storageProvider.getJobList(ENQUEUED, AmountBasedList.ascOnUpdatedAt(100));
 
         assertThat(fetchedJobs).hasSize(1);
     }
@@ -614,9 +615,31 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        assertThatJobs(storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), ascOnUpdatedAt(100)))
+        assertThatJobs(storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), AmountBasedList.ascOnUpdatedAt(100)))
                 .hasSize(1)
                 .contains(job1);
+    }
+
+    @Test
+    void testScheduledJobsPage() {
+        Job job1 = anEnqueuedJob().withState(new ScheduledState(now())).build();
+        Job job2 = anEnqueuedJob().withState(new ScheduledState(now().plusSeconds(1))).build();
+        Job job3 = anEnqueuedJob().withState(new ScheduledState(now().plusSeconds(2))).build();
+        final List<Job> jobs = asList(job1, job2, job3);
+
+        storageProvider.save(jobs);
+
+        Page<Job> jobPage1 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPage.ascOnUpdatedAt(2));
+
+        assertThatJobs(jobPage1.getItems())
+                .hasSize(2)
+                .contains(job1, job2);
+
+        Page<Job> jobPage2 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPageRequest.fromString(jobPage1.getNextPage()));
+
+        assertThatJobs(jobPage2.getItems())
+                .hasSize(1)
+                .contains(job3);
     }
 
     @Test
@@ -746,7 +769,7 @@ public abstract class StorageProviderTest {
 
         AtomicInteger atomicInteger = new AtomicInteger();
         storageProvider
-                .getJobs(ENQUEUED, ascOnUpdatedAt(10000))
+                .getJobList(ENQUEUED, AmountBasedList.ascOnUpdatedAt(10000))
                 .stream()
                 .parallel()
                 .peek(job -> {

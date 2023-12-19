@@ -10,7 +10,7 @@ import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
-import org.jobrunr.storage.StorageProviderForTest;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.*;
 import org.jobrunr.stubs.TestJobContextJobRequest.TestJobContextJobRequestHandler;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
@@ -43,18 +43,18 @@ import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.storage.PageRequest.ascOnUpdatedAt;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BackgroundJobByJobRequestTest {
 
-    private StorageProviderForTest storageProvider;
+    private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
 
     private static final String every5Seconds = "*/5 * * * * *";
 
     @BeforeEach
     public void setUpTests() {
-        storageProvider = new StorageProviderForTest(new InMemoryStorageProvider());
+        storageProvider = new InMemoryStorageProvider();
         SimpleJobActivator jobActivator = new SimpleJobActivator(
                 new TestJobRequestHandler(),
                 new TestJobContextJobRequestHandler()
@@ -207,7 +207,7 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.scheduleRecurrently(every5Seconds, new TestJobRequest("from testRecurringJob"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -218,7 +218,7 @@ public class BackgroundJobByJobRequestTest {
                 .withJobRequest(new TestJobRequest("from TestRecurringJob")));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -227,7 +227,7 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.scheduleRecurrently("theId", every5Seconds, new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -236,7 +236,7 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.scheduleRecurrently("theId", every5Seconds, systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -245,7 +245,7 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.scheduleRecurrently(Duration.ofSeconds(5), new TestJobRequest("from testRecurringJob"));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -256,7 +256,7 @@ public class BackgroundJobByJobRequestTest {
                 .withJobRequest(new TestJobRequest("from TestRecurringJob")));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -265,7 +265,7 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.scheduleRecurrently("theId", Duration.ofSeconds(5), new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobs(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
@@ -280,7 +280,7 @@ public class BackgroundJobByJobRequestTest {
     void recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts() {
         BackgroundJobRequest.scheduleRecurrently("my-job-id", every5Seconds, new TestJobRequestThatTakesLong("from recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts", 20));
         await().atMost(ofSeconds(11)).until(() -> storageProvider.countJobs(PROCESSING) == 1);
-        final UUID jobId = storageProvider.getJobs(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
+        final UUID jobId = storageProvider.getJobList(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
         backgroundJobServer.stop();
 
         backgroundJobServer.start();

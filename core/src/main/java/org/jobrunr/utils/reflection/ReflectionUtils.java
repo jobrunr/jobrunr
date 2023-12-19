@@ -116,10 +116,8 @@ public class ReflectionUtils {
 
     public static <T> T newInstanceAndSetFieldValues(Class<T> clazz, Map<String, String> fieldValues) {
         T t = newInstance(clazz);
-        Field[] declaredFields = clazz.getDeclaredFields();
-        for (Field field : declaredFields) {
-            setFieldUsingAutoboxing(field, t, fieldValues.get(field.getName()));
-        }
+        fieldValues.forEach((key, value) -> findField(clazz, key)
+                .ifPresent(f -> setFieldUsingAutoboxing(f, t, value)));
         return t;
     }
 

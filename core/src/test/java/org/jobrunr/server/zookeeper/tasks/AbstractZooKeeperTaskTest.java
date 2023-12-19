@@ -43,6 +43,10 @@ public abstract class AbstractZooKeeperTaskTest {
 
     @BeforeEach
     void setUpTaskDependencies() {
+        setUpTaskDependencies(storageProvider);
+    }
+
+    void setUpTaskDependencies(StorageProvider storageProvider) {
         backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
 
         logAllStateChangesFilter = new LogAllStateChangesFilter();

@@ -76,7 +76,7 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
             closeable.close();
         } catch (Exception e) {
             //nothing we can do here
-            if(closeable instanceof Connection) {
+            if (closeable instanceof Connection) {
                 LOGGER.error("Could not close connection", e);
             }
         }

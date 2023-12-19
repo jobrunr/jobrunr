@@ -15,7 +15,6 @@ import co.elastic.clients.json.JsonData;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import co.elastic.clients.util.ObjectBuilder;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
@@ -28,6 +27,9 @@ import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
+import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
@@ -49,6 +51,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static org.jobrunr.jobs.Job.ALLOWED_SORT_COLUMNS;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
@@ -411,6 +414,41 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
+    public long countJobs(StateName state) {
+        try {
+            final QueryVariant query = bool()
+                    .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
+                    .build();
+            return countJobs(query);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        final QueryVariant query = withStateAndUpdatedBefore(state, updatedBefore);
+        return findJobs(query, amountRequest);
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        final QueryVariant query = bool()
+                .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
+                .build();
+        return findJobs(query, amountRequest);
+    }
+
+    @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        final QueryVariant query = QueryBuilders.range()
+                .field(FIELD_SCHEDULED_AT)
+                .to(Long.toString(scheduledBefore.toEpochMilli()))
+                .build();
+        return findJobs(query, amountRequest);
+    }
+
+    @Override
     public List<Job> save(final List<Job> jobs) {
         try (final JobListVersioner versioner = new JobListVersioner(jobs)) {
             versioner.validateJobs();
@@ -454,82 +492,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             notifyJobStatsOnChangeListenersIf(!jobs.isEmpty());
             return jobs;
         } catch (final ElasticsearchException | IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public List<Job> getJobs(final StateName state, final Instant updatedBefore, final PageRequest pageRequest) {
-        try {
-            final QueryVariant query = withStateAndUpdatedBefore(state, updatedBefore);
-
-            final SearchResponse<Map> response = searchJobs(query, pageRequest);
-            return response
-                    .hits()
-                    .hits()
-                    .stream()
-                    .map(documentMapper::toJob)
-                    .collect(toList());
-        } catch (final IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public List<Job> getScheduledJobs(final Instant scheduledBefore, final PageRequest pageRequest) {
-        try {
-            final QueryVariant query =
-                    QueryBuilders.range()
-                            .field(FIELD_SCHEDULED_AT)
-                            .to(Long.toString(scheduledBefore.toEpochMilli()))
-                            .build();
-
-            final SearchResponse<Map> response = searchJobs(query, pageRequest);
-            return response
-                    .hits()
-                    .hits()
-                    .stream()
-                    .map(documentMapper::toJob)
-                    .collect(toList());
-        } catch (final IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public List<Job> getJobs(final StateName state, final PageRequest pageRequest) {
-        try {
-            final QueryVariant query = bool()
-                    .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
-                    .build();
-
-            final SearchResponse<Map> response = searchJobs(query, pageRequest);
-
-            return response
-                    .hits()
-                    .hits()
-                    .stream()
-                    .map(documentMapper::toJob)
-                    .collect(toList());
-        } catch (IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        try {
-            final QueryVariant query = bool()
-                    .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
-                    .build();
-
-            long count = countJobs(query);
-            if (count > 0) {
-                List<Job> jobs = getJobs(state, pageRequest);
-                return new Page<>(count, jobs, pageRequest);
-            }
-            return new Page<>(0, new ArrayList<>(), pageRequest);
-        } catch (IOException e) {
             throw new StorageException(e);
         }
     }
@@ -807,20 +769,24 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         return response.count();
     }
 
-    SearchResponse<Map> searchJobs(
-            final QueryVariant query,
-            final PageRequest page) throws IOException {
-
-        return client.search(
-                s -> s
-                        .index(jobIndexName)
-                        .query(query._toQuery())
-                        .from((int) page.getOffset())
-                        .size(page.getLimit())
-                        .storedFields(Jobs.FIELD_JOB_AS_JSON)
-                        .sort(sort -> sortJobs(page, sort)),
-                MAP_CLASS
-        );
+    private List<Job> findJobs(final QueryVariant query, final AmountRequest amountRequest) {
+        try {
+            return client.search(
+                            s -> s
+                                    .index(jobIndexName)
+                                    .query(query._toQuery())
+                                    .from(amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                                    .size(amountRequest.getLimit())
+                                    .storedFields(Jobs.FIELD_JOB_AS_JSON)
+                                    .sort(sortJobs(amountRequest)),
+                            MAP_CLASS
+                    ).hits().hits()
+                    .stream()
+                    .map(documentMapper::toJob)
+                    .collect(toList());
+        } catch (final IOException e) {
+            throw new StorageException(e);
+        }
     }
 
     private static Query shouldMatch(final StateName... states) {
@@ -833,21 +799,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         return query.build()._toQuery();
     }
 
-    private static ObjectBuilder<SortOptions> sortJobs(final PageRequest page, final SortOptions.Builder s) {
-        final String order = page.getOrder();
-
-        final SortOrder o;
-        if (Objects.equals(order, "updatedAt:ASC")) {
-            o = Asc;
-        } else if (Objects.equals(order, "updatedAt:DESC")) {
-            o = Desc;
-        } else {
-            throw new IllegalArgumentException("Unknown sort: " + order);
+    private static List<SortOptions> sortJobs(final AmountRequest amountRequest) {
+        List<SortOptions> sortOptions = new ArrayList<>();
+        List<OrderTerm> orderTerms = amountRequest.getAllOrderTerms(ALLOWED_SORT_COLUMNS.keySet());
+        for (OrderTerm orderTerm : orderTerms) {
+            sortOptions.add(
+                    new SortOptions.Builder().field(
+                            f -> f.field(orderTerm.getFieldName()).order(OrderTerm.Order.ASC == orderTerm.getOrder() ? Asc : Desc)
+                    ).build()
+            );
         }
-
-        return s
-                .field(f -> f.field(FIELD_UPDATED_AT)
-                        .order(o));
+        return sortOptions;
     }
 
     private static ElasticsearchClient newClient(final HttpHost host) {

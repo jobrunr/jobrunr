@@ -3,24 +3,30 @@ package org.jobrunr.storage.sql.common;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageException;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
+import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
-import org.jobrunr.storage.sql.common.db.dialect.Dialect;
+import org.jobrunr.storage.sql.common.mapper.SqlAmountRequestMapper;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
+import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
+    private final SqlAmountRequestMapper amountRequestMapper;
 
     public BackgroundJobServerTable(Connection connection, Dialect dialect, String tablePrefix) {
+        this.amountRequestMapper = new SqlAmountRequestMapper(dialect, asSet(FIELD_FIRST_HEARTBEAT));
         this
                 .using(connection, dialect, tablePrefix, "jobrunr_backgroundjobservers")
                 .with(FIELD_ID, BackgroundJobServerStatus::getId)
@@ -93,11 +99,14 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
     }
 
     public UUID getLongestRunningBackgroundJobServerId() {
-        return withOrderLimitAndOffset("firstHeartbeat ASC", 1, 0)
-                .select("id from jobrunr_backgroundjobservers")
+        return select("id from jobrunr_backgroundjobservers", new AmountRequest(FIELD_FIRST_HEARTBEAT, 1))
                 .map(sqlResultSet -> sqlResultSet.asUUID(FIELD_ID))
                 .findFirst()
                 .orElseThrow(() -> shouldNotHappenException("No servers available?!"));
+    }
+
+    private Stream<SqlResultSet> select(String statement, AmountRequest pageRequest) {
+        return super.select(statement, amountRequestMapper.mapToSqlQuery(pageRequest, this));
     }
 
     private BackgroundJobServerStatus toBackgroundJobServerStatus(SqlResultSet resultSet) {
