@@ -23,6 +23,12 @@ public class JobPerformingFilters extends AbstractJobFilters {
         electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
     }
 
+    public void runOnStateAppliedFiltersForPreviousState() {
+        if (job.getJobStates().size() >= 3) {
+            applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-3), job.getJobState(-2))));
+        }
+    }
+
     public void runOnStateAppliedFilters() {
         applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-2), job.getJobState(-1))));
     }
