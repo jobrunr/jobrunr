@@ -12,11 +12,15 @@ import org.jobrunr.jobs.states.JobState;
 public interface ApplyStateFilter extends JobFilter {
 
     /**
-     * Will be invoked on state change of a {@link Job}
+     * Will be invoked on state change of a {@link Job}.
+     * <p>
+     * <em>Note:</em> this filter may be called twice in a row in case that the {@link RetryFilter} intervened.
+     * In such a case, the job provided will have in both cases the final state after the update by the {@link RetryFilter}.
+     * The {@code oldState} and {@code newState} parameters will however be representing all the different state changes.
      *
-     * @param job      the job in which to apply the filter
-     * @param oldState the previous state - can be null
-     * @param newState the new state
+     * @param job      the job for which to apply the filter.
+     * @param oldState the previous state of the job - can be null
+     * @param newState the new state of the job. In most cases, this will match the actual state of the job unless the {@link RetryFilter} intervened.
      */
     void onStateApplied(Job job, JobState oldState, JobState newState);
 }
