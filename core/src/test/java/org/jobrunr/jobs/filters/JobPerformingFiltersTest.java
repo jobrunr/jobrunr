@@ -2,10 +2,15 @@ package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
 
@@ -23,14 +28,22 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.Mockito.lenient;
 
+@ExtendWith(MockitoExtension.class)
 class JobPerformingFiltersTest {
 
     private TestService testService;
 
+    @Mock
+    BackgroundJobServer backgroundJobServer;
+
     @BeforeEach
     void setUp() {
         testService = new TestService();
+
+        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
     }
 
     @Test
@@ -109,6 +122,52 @@ class JobPerformingFiltersTest {
         Job aJobMethodThatDoesNotExist = anEnqueuedJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
         assertThatCode(() -> jobPerformingFilters(aJobMethodThatDoesNotExist).runOnStateElectionFilter()).doesNotThrowAnyException();
         assertThatCode(() -> jobPerformingFilters(aJobMethodThatDoesNotExist).runOnStateAppliedFilters()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testAllFilters() {
+        Job job = anEnqueuedJob().build();
+
+        LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(logAllStateChangesFilter);
+
+        job.startProcessingOn(backgroundJobServer);
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
+        assertThatCode(() -> jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFiltersForPreviousState());
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+        jobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingFilters();
+
+        job.failed("Exception occurred", new RuntimeException());
+        jobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingFailedFilters(new RuntimeException());
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFiltersForPreviousState();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+
+        job.enqueue();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+
+        job.startProcessingOn(backgroundJobServer);
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+        jobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingFilters();
+
+        job.succeeded();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+        jobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingSucceededFilters();
+
+        assertThat(logAllStateChangesFilter.getStateChanges(job))
+                .containsExactly(
+                        "ENQUEUED->PROCESSING",
+                        "PROCESSING->FAILED",
+                        "FAILED->SCHEDULED",
+                        "SCHEDULED->ENQUEUED",
+                        "ENQUEUED->PROCESSING",
+                        "PROCESSING->SUCCEEDED");
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(job)).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingFailedIsCalled(job)).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(job)).isTrue();
     }
 
     private JobPerformingFilters jobPerformingFilters(Job job) {
