@@ -2,8 +2,16 @@ package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.utils.annotations.VisibleFor;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -25,7 +33,7 @@ public class Sql<T> {
     private final Map<String, Object> params;
     private final Map<String, Function<T, ?>> paramSuppliers;
 
-    private Dialect dialect;
+    protected Dialect dialect;
     private String tablePrefix;
     private String suffix = "";
 

@@ -1,10 +1,21 @@
 package org.jobrunr.storage.nosql.redis;
 
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobListVersioner;
+import org.jobrunr.jobs.JobVersioner;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.*;
+import org.jobrunr.storage.AbstractStorageProvider;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.storage.ServerTimedOutException;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.navigation.AmountRequest;
@@ -12,7 +23,11 @@ import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
-import redis.clients.jedis.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
+import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.time.Duration;
@@ -30,11 +45,29 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobCreatedAtKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -428,17 +461,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
-            List<Response<Boolean>> existsJob = stream(states)
-                    .map(stateName -> p.sismember(jobDetailsKey(keyPrefix, stateName), getJobSignature(jobDetails)))
-                    .collect(toList());
-            p.sync();
-            return existsJob.stream().map(Response::get).filter(b -> b).findAny().orElse(false);
-        }
-    }
-
-    @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
             List<Response<Boolean>> existsJob = stream(StateName.getStateNames(states))
@@ -481,13 +503,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
             return new RecurringJobsResult(recurringJobs);
-        }
-    }
-
-    @Override
-    public long countRecurringJobs() {
-        try (final Jedis jedis = getJedis()) {
-            return jedis.scard(recurringJobsKey(keyPrefix));
         }
     }
 

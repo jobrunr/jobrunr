@@ -1,11 +1,11 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.storage.navigation.AmountRequest;
@@ -145,6 +145,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public List<Job> getJobsToProcess(BackgroundJobServer backgroundJobServer, AmountRequest amountRequest) {
+        return storageProvider.getJobsToProcess(backgroundJobServer, amountRequest);
+    }
+
+    @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         return storageProvider.deleteJobsPermanently(state, updatedBefore);
     }
@@ -152,11 +157,6 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public Set<String> getDistinctJobSignatures(StateName... states) {
         return storageProvider.getDistinctJobSignatures(states);
-    }
-
-    @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        return storageProvider.exists(jobDetails, states);
     }
 
     @Override
@@ -172,12 +172,6 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public RecurringJobsResult getRecurringJobs() {
         return storageProvider.getRecurringJobs();
-    }
-
-    @Override
-    @Deprecated
-    public long countRecurringJobs() {
-        return storageProvider.countRecurringJobs();
     }
 
     @Override
