@@ -10,6 +10,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
@@ -72,7 +73,6 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 public abstract class StorageProviderTest {
 
     protected StorageProvider storageProvider;
-    protected StorageProvider throwingStorageProvider;
     protected BackgroundJobServer backgroundJobServer;
     protected JobMapper jobMapper;
 
@@ -377,25 +377,32 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testGetJobsToProcess() {
+    void testGetJobsToProcessReturnsJobInProcessingStateAndCallFilters() {
+        // GIVEN
         Job scheduledJob = aScheduledJob().build();
         Job enqueuedJob1 = aJob().withEnqueuedState(now().minusSeconds(20)).build();
         Job enqueuedJob2 = aJob().withEnqueuedState(now().minusSeconds(15)).build();
         Job enqueuedJob3 = aJob().withEnqueuedState(now().minusSeconds(10)).build();
         Job enqueuedJob4 = aJob().withEnqueuedState(now().minusSeconds(5)).build();
         Job jobInProgress = aJobInProgress().build();
-        Job succeededJob = aJobInProgress().build();
-        Job failedJob = aJobInProgress().build();
-        Job deletedJob = aJobInProgress().build();
-
+        Job succeededJob = aSucceededJob().build();
+        Job failedJob = aFailedJob().build();
+        Job deletedJob = aDeletedJob().build();
         storageProvider.save(asList(scheduledJob, enqueuedJob1, enqueuedJob2, enqueuedJob3, enqueuedJob4, jobInProgress, succeededJob, failedJob, deletedJob));
 
+        LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
+        backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
+
+        // WHEN
         List<Job> jobsToProcess = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
+
+        // THEN
         assertThatJobs(jobsToProcess)
                 .hasSize(3)
                 .allMatch(job -> job.hasState(PROCESSING))
                 .extracting("id")
                 .contains(enqueuedJob1.getId(), enqueuedJob2.getId(), enqueuedJob3.getId());
+        assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
     }
 
     @Test

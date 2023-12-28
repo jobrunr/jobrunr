@@ -23,20 +23,15 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
 
     @Override
     protected void runTask() {
-        try {
-            if (backgroundJobServer.isRunning() && reentrantLock.tryLock()) {
-                LOGGER.trace("Looking for enqueued jobs... ");
-                final AmountRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
-                if (workPageRequest.getLimit() > 0) {
-                    final List<Job> enqueuedJobs = storageProvider.getJobList(StateName.ENQUEUED, workPageRequest);
-                    enqueuedJobs.forEach(backgroundJobServer::processJob);
-                    LOGGER.debug("Found {} enqueued jobs to process.", enqueuedJobs.size());
-                }
+        if (backgroundJobServer.isRunning() && reentrantLock.tryLock()) {
+            LOGGER.trace("Looking for enqueued jobs... ");
+            final AmountRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
+            if (workPageRequest.getLimit() > 0) {
+                final List<Job> enqueuedJobs = storageProvider.getJobList(StateName.ENQUEUED, workPageRequest);
+                enqueuedJobs.forEach(backgroundJobServer::processJob);
+                LOGGER.debug("Found {} enqueued jobs to process.", enqueuedJobs.size());
             }
-        } finally {
-            if (reentrantLock.isHeldByCurrentThread()) {
-                reentrantLock.unlock();
-            }
+            reentrantLock.unlock();
         }
     }
 }

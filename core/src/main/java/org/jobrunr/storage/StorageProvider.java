@@ -168,6 +168,7 @@ public interface StorageProvider extends AutoCloseable {
             List<Job> actualSavedJobs = new ArrayList<>(jobs);
             Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
             actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
+            jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs, true);
             return actualSavedJobs;
         }
     }

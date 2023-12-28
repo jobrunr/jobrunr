@@ -22,6 +22,8 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
     private final Map<UUID, Boolean> onProcessingSucceededIsCalled;
     private final Map<UUID, Boolean> onProcessingFailedIsCalled;
     private final Map<UUID, Boolean> onFailedAfterRetriesIsCalled;
+    private final Map<UUID, Boolean> onBatchJobSucceededIsCalled;
+    private final Map<UUID, Boolean> onBatchJobFailedIsCalled;
     private final Map<UUID, List<String>> stateChanges;
 
     public LogAllStateChangesFilter() {
@@ -31,6 +33,8 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         onProcessingSucceededIsCalled = new HashMap<>();
         onProcessingFailedIsCalled = new HashMap<>();
         onFailedAfterRetriesIsCalled = new HashMap<>();
+        onBatchJobSucceededIsCalled = new HashMap<>();
+        onBatchJobFailedIsCalled = new HashMap<>();
         this.stateChanges = new HashMap<>();
     }
 
@@ -131,6 +135,17 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         return this.onFailedAfterRetriesIsCalled.getOrDefault(jobId, false);
     }
 
+    public List<String> getStateChanges() {
+        if (this.stateChanges.size() != 1) throw new IllegalStateException("There are more than 1 jobs with statechanges");
+        return getStateChanges(this.stateChanges.keySet().iterator().next());
+    }
+
+    public List<String> getAllStateChanges() {
+        List<String> allStateChanges = new ArrayList<>();
+        this.stateChanges.values().forEach(allStateChanges::addAll);
+        return allStateChanges;
+    }
+
     public List<String> getStateChanges(Job job) {
         return getStateChanges(job.getId());
     }
@@ -150,6 +165,8 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         onProcessingSucceededIsCalled.clear();
         onProcessingFailedIsCalled.clear();
         onFailedAfterRetriesIsCalled.clear();
+        onBatchJobSucceededIsCalled.clear();
+        onBatchJobFailedIsCalled.clear();
         stateChanges.clear();
     }
 }
