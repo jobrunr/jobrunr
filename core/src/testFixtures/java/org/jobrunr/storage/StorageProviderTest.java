@@ -10,6 +10,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -63,18 +66,24 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aBackgroundJobServerStatusBasedOn;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
+@ExtendWith(MockitoExtension.class)
 public abstract class StorageProviderTest {
 
     protected StorageProvider storageProvider;
     protected BackgroundJobServer backgroundJobServer;
     protected JobMapper jobMapper;
+
+    protected BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
@@ -82,7 +91,10 @@ public abstract class StorageProviderTest {
         final JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
         JobRunr.configure();
         storageProvider = getStorageProvider();
-        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper);
+
+        backgroundJobServerConfiguration = spy(usingStandardBackgroundJobServerConfiguration());
+
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration);
         jobMapper = new JobMapper(jsonMapper);
     }
 
@@ -402,6 +414,41 @@ public abstract class StorageProviderTest {
                 .allMatch(job -> job.hasState(PROCESSING))
                 .extracting("id")
                 .contains(enqueuedJob1.getId(), enqueuedJob2.getId(), enqueuedJob3.getId());
+        assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
+    }
+
+    @Test
+    void testGetJobsToProcessOnExceptionReturnsJobInProcessingStateAndCallFilters() {
+        // GIVEN
+        UUID backgroundJobServerId = UUID.randomUUID();
+        Job scheduledJob = aScheduledJob().build();
+        Job enqueuedJob1 = aJob().withEnqueuedState(now().minusSeconds(20)).build();
+        Job enqueuedJob2 = aJob().withEnqueuedState(now().minusSeconds(15)).build();
+        Job enqueuedJob3 = aJob().withEnqueuedState(now().minusSeconds(10)).build();
+        Job enqueuedJob4 = aJob().withEnqueuedState(now().minusSeconds(5)).build();
+        Job jobInProgress = aJobInProgress().build();
+        Job succeededJob = aSucceededJob().build();
+        Job failedJob = aFailedJob().build();
+        Job deletedJob = aDeletedJob().build();
+        storageProvider.save(asList(scheduledJob, enqueuedJob1, enqueuedJob2, enqueuedJob3, enqueuedJob4, jobInProgress, succeededJob, failedJob, deletedJob));
+
+        LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
+        backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
+        // simulate concurrent JobModification Exception
+        when(backgroundJobServerConfiguration.getId())
+                .thenReturn(backgroundJobServerId)
+                .thenReturn(backgroundJobServerId)
+                .thenThrow(new ConcurrentJobModificationException(enqueuedJob3));
+
+        // WHEN
+        List<Job> jobsToProcess = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
+
+        // THEN
+        assertThatJobs(jobsToProcess)
+                .hasSize(2)
+                .allMatch(job -> job.hasState(PROCESSING))
+                .extracting("id")
+                .contains(enqueuedJob1.getId(), enqueuedJob2.getId());
         assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
     }
 

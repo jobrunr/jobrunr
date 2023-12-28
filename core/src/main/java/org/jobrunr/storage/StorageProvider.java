@@ -154,7 +154,6 @@ public interface StorageProvider extends AutoCloseable {
         return pageRequest.mapToNewPage(totalJobs, getJobList(state, pageRequest));
     }
 
-
     default List<Job> getJobsToProcess(BackgroundJobServer backgroundJobServer, AmountRequest amountRequest) {
         JobFilterUtils jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
         List<Job> jobs = getJobList(ENQUEUED, amountRequest);
