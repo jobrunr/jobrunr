@@ -10,11 +10,12 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.JobTestBuilder.emptyJobList;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
 
@@ -30,7 +31,7 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
     void testTask() {
         Job enqueuedJob1 = anEnqueuedJob().build();
         Job enqueuedJob2 = anEnqueuedJob().build();
-        when(storageProvider.getJobList(eq(ENQUEUED), any())).thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
+        when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any())).thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
         runTask(task);
 
         verify(backgroundJobServer).processJob(enqueuedJob1);
@@ -39,7 +40,7 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
 
     @Test
     void taskIsNotDoneConcurrently() throws InterruptedException {
-        when(storageProvider.getJobList(eq(ENQUEUED), any())).thenAnswer((invocationOnMock) -> {
+        when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any())).thenAnswer((invocationOnMock) -> {
             sleep(100);
             return emptyList();
         });
@@ -57,6 +58,6 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
         thread2.start();
 
         countDownLatch.await();
-        verify(storageProvider, times(1)).getJobList(eq(ENQUEUED), any());
+        verify(storageProvider, times(1)).getJobsToProcess(eq(backgroundJobServer), any());
     }
 }

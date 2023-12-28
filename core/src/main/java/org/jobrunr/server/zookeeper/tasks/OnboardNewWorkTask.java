@@ -1,7 +1,6 @@
 package org.jobrunr.server.zookeeper.tasks;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -27,7 +26,7 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
             LOGGER.trace("Looking for enqueued jobs... ");
             final AmountRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
             if (workPageRequest.getLimit() > 0) {
-                final List<Job> enqueuedJobs = storageProvider.getJobList(StateName.ENQUEUED, workPageRequest);
+                final List<Job> enqueuedJobs = storageProvider.getJobsToProcess(backgroundJobServer, workPageRequest);
                 enqueuedJobs.forEach(backgroundJobServer::processJob);
                 LOGGER.debug("Found {} enqueued jobs to process.", enqueuedJobs.size());
             }
