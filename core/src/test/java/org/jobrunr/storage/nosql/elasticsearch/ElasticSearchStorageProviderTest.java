@@ -21,7 +21,6 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.Disabled;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -32,10 +31,11 @@ import java.util.function.Function;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
-@Disabled
+//@Disabled
 @Testcontainers
 class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
@@ -96,9 +96,9 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
         protected void makeStorageProviderThrowException(StorageProvider provider) throws Exception {
             ElasticsearchClient client = mock(ElasticsearchClient.class);
             ErrorResponse errorResponse = mock(ErrorResponse.class);
-            when(errorResponse.error()).thenReturn(mock(ErrorCause.class));
-            doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).index(any(Function.class));
-            doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).bulk(any(BulkRequest.class));
+            lenient().when(errorResponse.error()).thenReturn(mock(ErrorCause.class));
+            lenient().doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).index(any(Function.class));
+            lenient().doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).bulk(any(BulkRequest.class));
             setInternalState(provider, "client", client);
         }
     }
