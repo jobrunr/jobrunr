@@ -5,6 +5,7 @@ import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.jobrunr.jobs.filters.JobPerformingFilters;
 import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
+import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.server.runner.BackgroundJobRunner;
@@ -71,6 +72,8 @@ public class BackgroundJobPerformer implements Runnable {
 
     private boolean updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart() {
         try {
+            if (hasProcessingStateByStorageProvider()) return true;
+            
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
             LOGGER.debug("Job(id={}, jobName='{}') processing started", job.getId(), job.getJobName());
@@ -149,6 +152,10 @@ public class BackgroundJobPerformer implements Runnable {
         if (afterStateElection == FAILED) {
             jobPerformingFilters.runOnJobFailedAfterRetriesFilters();
         }
+    }
+
+    private boolean hasProcessingStateByStorageProvider() {
+        return job.hasState(PROCESSING) && backgroundJobServer.getConfiguration().getId().equals(job.<ProcessingState>getJobState().getServerId());
     }
 
     private boolean isJobDeletedWhileProcessing(Exception e) {
