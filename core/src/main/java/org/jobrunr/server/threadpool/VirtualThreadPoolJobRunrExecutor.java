@@ -9,15 +9,17 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.getMethod;
 public class VirtualThreadPoolJobRunrExecutor implements JobRunrExecutor {
 
     private final ExecutorService executorService;
+    private final int workerCount;
     private boolean started;
 
-    public VirtualThreadPoolJobRunrExecutor() {
+    public VirtualThreadPoolJobRunrExecutor(int workerCount) {
+        this.workerCount = workerCount;
         executorService = createVirtualThreadExecutorService();
     }
 
     @Override
-    public int getPriority() {
-        return 0;
+    public int getWorkerCount() {
+        return workerCount;
     }
 
     @Override
