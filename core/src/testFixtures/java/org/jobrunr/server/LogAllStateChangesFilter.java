@@ -22,8 +22,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
     private final Map<UUID, Boolean> onProcessingSucceededIsCalled;
     private final Map<UUID, Boolean> onProcessingFailedIsCalled;
     private final Map<UUID, Boolean> onFailedAfterRetriesIsCalled;
-    private final Map<UUID, Boolean> onBatchJobSucceededIsCalled;
-    private final Map<UUID, Boolean> onBatchJobFailedIsCalled;
     private final Map<UUID, List<String>> stateChanges;
 
     public LogAllStateChangesFilter() {
@@ -33,8 +31,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         onProcessingSucceededIsCalled = new HashMap<>();
         onProcessingFailedIsCalled = new HashMap<>();
         onFailedAfterRetriesIsCalled = new HashMap<>();
-        onBatchJobSucceededIsCalled = new HashMap<>();
-        onBatchJobFailedIsCalled = new HashMap<>();
         this.stateChanges = new HashMap<>();
     }
 
@@ -165,8 +161,6 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         onProcessingSucceededIsCalled.clear();
         onProcessingFailedIsCalled.clear();
         onFailedAfterRetriesIsCalled.clear();
-        onBatchJobSucceededIsCalled.clear();
-        onBatchJobFailedIsCalled.clear();
         stateChanges.clear();
     }
 }

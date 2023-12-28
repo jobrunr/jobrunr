@@ -72,8 +72,8 @@ public class BackgroundJobPerformer implements Runnable {
 
     private boolean updateJobStateToProcessingRunJobFiltersAndReturnIfProcessingCanStart() {
         try {
-            if (hasProcessingStateByStorageProvider()) return true;
-            
+            if (hasProcessingStateProvidedByStorageProvider()) return true;
+
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
             LOGGER.debug("Job(id={}, jobName='{}') processing started", job.getId(), job.getJobName());
@@ -154,7 +154,7 @@ public class BackgroundJobPerformer implements Runnable {
         }
     }
 
-    private boolean hasProcessingStateByStorageProvider() {
+    private boolean hasProcessingStateProvidedByStorageProvider() {
         return job.hasState(PROCESSING) && backgroundJobServer.getConfiguration().getId().equals(job.<ProcessingState>getJobState().getServerId());
     }
 

@@ -68,7 +68,7 @@ public class Job extends AbstractJob {
         return UUID_FACTORY.create();
     }
 
-    protected Job() {
+    private Job() {
         // used for deserialization
         this.id = null;
         this.jobHistory = new CopyOnWriteArrayList<>();
