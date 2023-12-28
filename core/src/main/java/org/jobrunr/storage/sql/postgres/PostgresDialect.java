@@ -1,18 +1,8 @@
 package org.jobrunr.storage.sql.postgres;
 
-import org.jobrunr.storage.sql.common.db.Dialect;
+import org.jobrunr.storage.sql.common.db.AnsiDialect;
 
-public class PostgresDialect implements Dialect {
-
-    @Override
-    public String limit() {
-        return "LIMIT :limit";
-    }
-
-    @Override
-    public String limitAndOffset() {
-        return "LIMIT :limit OFFSET :offset";
-    }
+public class PostgresDialect extends AnsiDialect {
 
     @Override
     public String selectForUpdateSkipLocked() {

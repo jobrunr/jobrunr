@@ -1,24 +1,14 @@
 package org.jobrunr.storage.sql.mariadb;
 
-import org.jobrunr.storage.sql.common.db.Dialect;
+import org.jobrunr.storage.sql.common.db.AnsiDialect;
 import org.jobrunr.utils.VersionNumber;
 
-public class MariaDbDialect implements Dialect {
+public class MariaDbDialect extends AnsiDialect {
 
     private final boolean supportsSelectForUpdateSkipLocked;
 
-    public MariaDbDialect(String databaseName, String databaseVersion, String databaseDriverVersion) {
+    public MariaDbDialect(String databaseName, String databaseVersion) {
         this.supportsSelectForUpdateSkipLocked = isMariaDb("10.6", databaseName, databaseVersion);
-    }
-
-    @Override
-    public String limit() {
-        return "LIMIT :limit";
-    }
-
-    @Override
-    public String limitAndOffset() {
-        return "LIMIT :limit OFFSET :offset";
     }
 
     @Override

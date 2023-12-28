@@ -68,8 +68,7 @@ public class MariaDbStorageProvider extends DefaultSqlStorageProvider {
 
             final String databaseProductName = connection.getMetaData().getDatabaseProductName();
             final String databaseProductVersion = connection.getMetaData().getDatabaseProductVersion();
-            final String databaseDriverVersion = connection.getMetaData().getDriverVersion();
-            return new MariaDbDialect(databaseProductName, databaseProductVersion, databaseDriverVersion);
+            return new MariaDbDialect(databaseProductName, databaseProductVersion);
         } catch (SQLException e) {
             // unable to determine DB version
         }
