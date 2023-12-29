@@ -39,7 +39,7 @@ public class JobRunrAssertions extends Assertions {
     }
 
     public static <T extends Job> IdListAssert<T> assertThatJobs(List<T> jobs) {
-        return (IdListAssert<T>) new IdListAssert<>(jobs).usingRecursiveFieldByFieldElementComparatorIgnoringFields("locker", "jobHistory.exception");
+        return (IdListAssert<T>) new IdListAssert<>(jobs).usingRecursiveFieldByFieldElementComparatorIgnoringFields("locker", "jobHistory.exception", "stateIndexBeforeStateChange");
     }
 
     public static JobAssert assertThat(Job job) {
