@@ -65,7 +65,7 @@ public class Job extends AbstractJob {
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
-    private volatile Integer stateIndexBeforeStateChange;
+    private transient Integer stateIndexBeforeStateChange;
 
     public static UUID newUUID() {
         return UUID_FACTORY.create();
