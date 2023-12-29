@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -269,14 +271,14 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
                 List<Job> jobsToProcess = jobTable(conn).save(jobs);
                 transaction.commit();
                 jobFilterUtils.runOnStateAppliedFilters(jobsToProcess, true);
-                return jobsToProcess;
+                return jobsToProcess.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
             } catch (ConcurrentJobModificationException e) {
                 List<Job> actualSavedJobs = new ArrayList<>(jobs);
                 Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
                 actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
                 transaction.commit();
                 jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs, true);
-                return actualSavedJobs;
+                return actualSavedJobs.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
             }
         } catch (SQLException e) {
             throw new StorageException(e);

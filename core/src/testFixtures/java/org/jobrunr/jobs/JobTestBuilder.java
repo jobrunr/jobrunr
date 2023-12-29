@@ -269,6 +269,10 @@ public class JobTestBuilder {
         return withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
     }
 
+    public JobTestBuilder withProcessingState(UUID backgroundJobServerId) {
+        return withState(new ProcessingState(backgroundJobServerId, DEFAULT_SERVER_NAME));
+    }
+
     public JobTestBuilder withSucceededState() {
         return withState(new SucceededState(ofMillis(10), ofMillis(3)));
     }

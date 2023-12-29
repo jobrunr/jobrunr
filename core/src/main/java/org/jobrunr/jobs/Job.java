@@ -18,6 +18,7 @@ import org.jobrunr.utils.uuid.UUIDv7Factory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
@@ -63,6 +65,7 @@ public class Job extends AbstractJob {
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
+    private volatile Integer stateIndexBeforeStateChange;
 
     public static UUID newUUID() {
         return UUID_FACTORY.create();
@@ -145,6 +148,18 @@ public class Job extends AbstractJob {
         return getState().equals(state);
     }
 
+    /**
+     * This method is only to be called by JobRunr itself. It may not be called externally as it will break the {@link org.jobrunr.jobs.filters.JobFilter JobFilters}
+     *
+     * @return all the stateChanges since they were last retrieved.
+     */
+    public List<JobState> getStateChangesForJobFilters() {
+        if (stateIndexBeforeStateChange == null) return emptyList();
+        List<JobState> stateChanges = new ArrayList<>(jobHistory.subList(stateIndexBeforeStateChange, jobHistory.size()));
+        stateIndexBeforeStateChange = null;
+        return stateChanges;
+    }
+
     public void enqueue() {
         addJobState(new EnqueuedState());
     }
@@ -210,6 +225,7 @@ public class Job extends AbstractJob {
     }
 
     private void addJobState(JobState jobState) {
+        if (stateIndexBeforeStateChange == null) stateIndexBeforeStateChange = this.jobHistory.size();
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }

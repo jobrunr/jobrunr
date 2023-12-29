@@ -62,9 +62,10 @@ class BackgroundJobPerformerTest {
 
     @Test
     void onStartIfJobIsProcessingByStorageProviderItStaysInProcessingAndThenSucceeded() throws Exception {
-        Job job = anEnqueuedJob().build();
+        Job job = anEnqueuedJob()
+                .withProcessingState(backgroundJobServer.getConfiguration().getId())
+                .build();
 
-        job.startProcessingOn(backgroundJobServer);
         mockBackgroundJobRunner(job, jobFromStorage -> {});
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);

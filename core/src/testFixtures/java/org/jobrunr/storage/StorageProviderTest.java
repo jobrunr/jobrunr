@@ -418,6 +418,40 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testGetJobsToProcessTakesStateElectionFiltersIntoAccount() {
+        // GIVEN
+        Job scheduledJob = aScheduledJob().build();
+        Job enqueuedJob1 = aJob().withEnqueuedState(now().minusSeconds(20)).build();
+        Job enqueuedJob2 = aJob().withJobDetails(TestService::tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter).withEnqueuedState(now().minusSeconds(15)).build();
+        Job enqueuedJob3 = aJob().withEnqueuedState(now().minusSeconds(10)).build();
+        Job enqueuedJob4 = aJob().withEnqueuedState(now().minusSeconds(5)).build();
+        Job jobInProgress = aJobInProgress().build();
+        Job succeededJob = aSucceededJob().build();
+        Job failedJob = aFailedJob().build();
+        Job deletedJob = aDeletedJob().build();
+        storageProvider.save(asList(scheduledJob, enqueuedJob1, enqueuedJob2, enqueuedJob3, enqueuedJob4, jobInProgress, succeededJob, failedJob, deletedJob));
+
+        LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
+        backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
+
+        // WHEN
+        List<Job> jobsToProcess = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
+
+        // THEN
+        assertThatJobs(jobsToProcess)
+                .hasSize(2)
+                .allMatch(job -> job.hasState(PROCESSING))
+                .extracting("id")
+                .contains(enqueuedJob1.getId(), enqueuedJob3.getId());
+        assertThat(logAllStateChangesFilter.getStateChanges(enqueuedJob1))
+                .containsOnly("ENQUEUED->PROCESSING");
+        assertThat(logAllStateChangesFilter.getStateChanges(enqueuedJob2))
+                .containsOnly("ENQUEUED->PROCESSING", "PROCESSING->DELETED", "DELETED->SCHEDULED");
+        assertThat(logAllStateChangesFilter.getStateChanges(enqueuedJob3))
+                .containsOnly("ENQUEUED->PROCESSING");
+    }
+
+    @Test
     void testGetJobsToProcessOnExceptionReturnsJobInProcessingStateAndCallFilters() {
         // GIVEN
         UUID backgroundJobServerId = UUID.randomUUID();

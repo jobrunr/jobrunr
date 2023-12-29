@@ -18,8 +18,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 
 /**
@@ -162,13 +164,13 @@ public interface StorageProvider extends AutoCloseable {
             jobFilterUtils.runOnStateElectionFilter(jobs, true);
             List<Job> jobsToProcess = save(jobs);
             jobFilterUtils.runOnStateAppliedFilters(jobsToProcess, true);
-            return jobsToProcess;
+            return jobsToProcess.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
         } catch (ConcurrentJobModificationException e) {
             List<Job> actualSavedJobs = new ArrayList<>(jobs);
             Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
             actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
             jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs, true);
-            return actualSavedJobs;
+            return actualSavedJobs.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
         }
     }
 
