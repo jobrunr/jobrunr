@@ -4,7 +4,6 @@ import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.utils.CollectionUtils;
-import org.jobrunr.utils.JobUtils;
 import org.jobrunr.utils.StringUtils;
 import org.slf4j.MDC;
 
@@ -15,6 +14,7 @@ import java.util.regex.Pattern;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.utils.JobUtils.getJobAnnotation;
 import static org.jobrunr.utils.JobUtils.getReadableNameFromJobDetails;
 
 public class DefaultJobFilter implements JobClientFilter {
@@ -105,9 +105,5 @@ public class DefaultJobFilter implements JobClientFilter {
         }
         matcher.appendTail(result);
         return result.toString();
-    }
-
-    private Optional<Job> getJobAnnotation(JobDetails jobDetails) {
-        return JobUtils.getJobAnnotation(jobDetails);
     }
 }

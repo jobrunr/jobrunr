@@ -412,8 +412,7 @@ public abstract class StorageProviderTest {
         assertThatJobs(jobsToProcess)
                 .hasSize(3)
                 .allMatch(job -> job.hasState(PROCESSING))
-                .extracting("id")
-                .contains(enqueuedJob1.getId(), enqueuedJob2.getId(), enqueuedJob3.getId());
+                .containsExactlyComparingById(enqueuedJob1, enqueuedJob2, enqueuedJob3);
         assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
     }
 
@@ -441,8 +440,7 @@ public abstract class StorageProviderTest {
         assertThatJobs(jobsToProcess)
                 .hasSize(2)
                 .allMatch(job -> job.hasState(PROCESSING))
-                .extracting("id")
-                .contains(enqueuedJob1.getId(), enqueuedJob3.getId());
+                .containsExactlyComparingById(enqueuedJob1, enqueuedJob3);
         assertThat(logAllStateChangesFilter.getStateChanges(enqueuedJob1))
                 .containsOnly("ENQUEUED->PROCESSING");
         assertThat(logAllStateChangesFilter.getStateChanges(enqueuedJob2))
@@ -481,8 +479,7 @@ public abstract class StorageProviderTest {
         assertThatJobs(jobsToProcess)
                 .hasSize(2)
                 .allMatch(job -> job.hasState(PROCESSING))
-                .extracting("id")
-                .contains(enqueuedJob1.getId(), enqueuedJob2.getId());
+                .containsExactlyComparingById(enqueuedJob1, enqueuedJob2);
         assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
     }
 
