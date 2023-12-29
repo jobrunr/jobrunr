@@ -1,6 +1,8 @@
 package org.jobrunr.server.zookeeper.tasks;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.storage.StorageException;
+import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +34,23 @@ class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
         Job enqueuedJob1 = anEnqueuedJob().build();
         Job enqueuedJob2 = anEnqueuedJob().build();
         when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any())).thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
+        runTask(task);
+
+        verify(backgroundJobServer).processJob(enqueuedJob1);
+        verify(backgroundJobServer).processJob(enqueuedJob2);
+    }
+
+    @Test
+    void testTaskCanHappenAgainAfterException() {
+        Job enqueuedJob1 = anEnqueuedJob().build();
+        Job enqueuedJob2 = anEnqueuedJob().build();
+        when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any()))
+                .thenThrow(new StorageException("Some error occurred"))
+                .thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
+
+        new Thread(() -> runTask(task)).start();
+        SleepUtils.sleep(500);
+
         runTask(task);
 
         verify(backgroundJobServer).processJob(enqueuedJob1);
