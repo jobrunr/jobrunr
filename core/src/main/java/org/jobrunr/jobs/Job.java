@@ -154,6 +154,7 @@ public class Job extends AbstractJob {
      * @return all the stateChanges since they were last retrieved.
      */
     public List<JobState> getStateChangesForJobFilters() {
+        if (jobHistory.size() == 1) return new ArrayList<>(jobHistory);
         if (stateIndexBeforeStateChange == null) return emptyList();
         List<JobState> stateChanges = new ArrayList<>(jobHistory.subList(stateIndexBeforeStateChange, jobHistory.size()));
         stateIndexBeforeStateChange = null;

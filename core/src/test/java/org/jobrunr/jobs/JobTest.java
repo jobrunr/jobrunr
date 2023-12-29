@@ -115,7 +115,7 @@ class JobTest {
     @Test
     void testStateChangesOnlyOneStateChange() {
         Job job = anEnqueuedJob().build();
-        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
 
         job.startProcessingOn(backgroundJobServer);
         job.updateProcessing();
@@ -125,7 +125,7 @@ class JobTest {
     @Test
     void testStateChangesMultipleStateChanges() {
         Job job = anEnqueuedJob().build();
-        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
 
         job.delete("Via jobfilter");
         job.scheduleAt(now().plusSeconds(10), "Via jobfilter");
@@ -135,7 +135,7 @@ class JobTest {
     @Test
     void testStateChangesResetsStateChanges() {
         Job job = anEnqueuedJob().build();
-        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
         job.startProcessingOn(backgroundJobServer);
 
         assertThat(job.getStateChangesForJobFilters()).hasSize(1);
