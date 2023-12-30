@@ -89,17 +89,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return completeVersion;
     }
 
-    private String toFullyQualifiedVersion(String version) {
-        String newString = "0000000000".concat(version);
-        return newString.substring(newString.length() - 10);
-    }
-
     public static VersionNumber of(String version) {
         return new VersionNumber(version);
     }
 
-    public static boolean isOlderOrEqualTo(String baseLine, String actualVersion) {
-        return of(baseLine).isOlderOrEqualTo(of(actualVersion));
+    public static boolean isOlderOrEqualTo(String actualVersion, String baseLine) {
+        return of(actualVersion).isOlderOrEqualTo(of(baseLine));
     }
 
     public static boolean isNewerOrEqualTo(String actualVersion, String baseLine) {
