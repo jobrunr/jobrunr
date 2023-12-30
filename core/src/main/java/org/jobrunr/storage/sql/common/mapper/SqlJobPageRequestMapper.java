@@ -20,7 +20,7 @@ public class SqlJobPageRequestMapper {
     }
 
     public String map(AmountRequest request) {
-        if (request instanceof OffsetBasedPageRequest) {
+        if (request instanceof OffsetBasedPageRequest && ((OffsetBasedPageRequest) request).getOffset() > 0L) {
             return sqlOffsetBasedPageRequestMapper.mapToSqlQuery((OffsetBasedPageRequest) request, jobTable);
         } else {
             return sqlAmountRequestMapper.mapToSqlQuery(request, jobTable);

@@ -406,13 +406,23 @@ public abstract class StorageProviderTest {
         backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
 
         // WHEN
-        List<Job> jobsToProcess = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
+        List<Job> jobsToProcess1 = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
 
         // THEN
-        assertThatJobs(jobsToProcess)
+        assertThatJobs(jobsToProcess1)
                 .hasSize(3)
                 .allMatch(job -> job.hasState(PROCESSING))
                 .containsExactlyComparingById(enqueuedJob1, enqueuedJob2, enqueuedJob3);
+        assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
+
+        // WHEN
+        List<Job> jobsToProcess2 = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
+
+        // THEN
+        assertThatJobs(jobsToProcess2)
+                .hasSize(1)
+                .allMatch(job -> job.hasState(PROCESSING))
+                .containsExactlyComparingById(enqueuedJob4);
         assertThat(logAllStateChangesFilter.getAllStateChanges()).containsOnly("ENQUEUED->PROCESSING");
     }
 
