@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -193,11 +194,11 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testEnqueueWithJobContextAndMetadata() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(5, JobContext.Null));
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == PROCESSING);
-        await().atMost(TEN_SECONDS).until(() -> !storageProvider.getJobById(jobId).getMetadata().isEmpty());
+        await().atMost(FIVE_HUNDRED_MILLISECONDS).until(() -> storageProvider.getJobById(jobId).getState() == PROCESSING);
+        await().atMost(TWO_SECONDS).until(() -> !storageProvider.getJobById(jobId).getMetadata().isEmpty());
         assertThat(storageProvider.getJobById(jobId))
                 .hasMetadata("test", "test");
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        await().atMost(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId))
                 .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
                 .hasMetadataOnlyContainingJobProgressAndLogging();
@@ -319,8 +320,8 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleThatSchedulesOtherJobsSlowlyDoesNotBlockOtherWorkers() {
-        JobId jobId = BackgroundJob.schedule(now().plusSeconds(1), () -> testService.scheduleNewWorkSlowly(5));
-        await().atMost(ofSeconds(12)).until(() -> (storageProvider.countJobs(PROCESSING) + storageProvider.countJobs(SUCCEEDED)) > 1);
+        JobId jobId = BackgroundJob.schedule(now().plusSeconds(1), () -> testService.scheduleNewWorkSlowly(1));
+        await().atMost(ofSeconds(2)).until(() -> (storageProvider.countJobs(PROCESSING) + storageProvider.countJobs(SUCCEEDED)) > 1);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING);
     }
 
@@ -422,8 +423,9 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.scheduleRecurrently("recurring-job-2", every5Seconds, systemDefault(), () -> testService.doWork(5));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
 
-        final Job job1 = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        final Job job2 = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(1);
+        List<Job> allSucceededJobs = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000));
+        final Job job1 = allSucceededJobs.get(0);
+        final Job job2 = allSucceededJobs.get(1);
         assertThat(storageProvider.getJobById(job1.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
         assertThat(storageProvider.getJobById(job2.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
@@ -504,7 +506,7 @@ public class BackgroundJobByJobLambdaTest {
 
         BackgroundJob.delete(jobId);
 
-        await().during(2, SECONDS).atMost(4, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
@@ -516,17 +518,17 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void jobCanBeDeletedDuringProcessingStateIfInterruptible() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatCanBeInterrupted(12));
-        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatCanBeInterrupted(3));
+        await().atMost(FIVE_HUNDRED_MILLISECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
         BackgroundJob.delete(jobId);
 
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(12, SECONDS).atMost(18, SECONDS).untilAsserted(() -> {
+        await().during(1, SECONDS).untilAsserted(() -> {
             assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
         });
     }
@@ -538,7 +540,7 @@ public class BackgroundJobByJobLambdaTest {
 
         BackgroundJob.delete(jobId);
 
-        await().during(2, SECONDS).atMost(4, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });

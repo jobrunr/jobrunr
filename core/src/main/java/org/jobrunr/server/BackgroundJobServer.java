@@ -154,9 +154,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public boolean isAnnounced() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-            return isMaster != null;
-        }
+//        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        return isMaster != null;
+//        }
     }
 
     public boolean isUnAnnounced() {
@@ -183,9 +183,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public boolean isRunning() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-            return isRunning;
-        }
+//        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        return isRunning;
+//        }
     }
 
     @Override
@@ -246,9 +246,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     boolean isStopped() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-            return zookeeperThreadPool == null;
-        }
+        //try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        return zookeeperThreadPool == null;
+        //}
     }
 
     boolean isPaused() {
@@ -352,12 +352,20 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         public BackgroundJobServerLifecycleLock lock() {
             if (reentrantLock.isHeldByCurrentThread()) return this;
 
+            System.out.println("Locking: " + Thread.currentThread().getStackTrace()[2]);
+            System.out.println("\t" + Thread.currentThread().getStackTrace()[3]);
+            System.out.println("\t" + Thread.currentThread().getStackTrace()[4]);
+            System.out.println("\t" + Thread.currentThread().getStackTrace()[5]);
             reentrantLock.lock();
+            System.out.println("Locked: " + Thread.currentThread().getStackTrace()[2]);
+            System.out.println("\t" + Thread.currentThread().getStackTrace()[3]);
             return this;
         }
 
         @Override
         public void close() {
+            System.out.println("Unlocking: " + Thread.currentThread().getStackTrace()[2]);
+            System.out.println("\t" + Thread.currentThread().getStackTrace()[3]);
             reentrantLock.unlock();
         }
     }

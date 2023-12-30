@@ -88,7 +88,7 @@ public class TestService implements TestServiceInterface {
         processedJobs += count;
         LOGGER.debug("Doing some work... " + processedJobs + "; jobId: " + jobContext.getJobId());
         jobContext.saveMetadata("test", "test");
-        Thread.sleep(6000L);
+        Thread.sleep(600L);
     }
 
     public void doWork(int countA, int countB) {
@@ -263,16 +263,13 @@ public class TestService implements TestServiceInterface {
         }
     }
 
-    public void scheduleNewWorkSlowly(int amount) {
-        try {
-            for (int i = 0; i < amount; i++) {
-                int finalI = i;
-                BackgroundJob.enqueue(() -> doWork(finalI));
-                Thread.sleep(10000);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void scheduleNewWorkSlowly(int amount) throws InterruptedException {
+        for (int i = 0; i < amount; i++) {
+            int finalI = i;
+            BackgroundJob.enqueue(() -> doWork(finalI));
+            Thread.sleep(1400);
         }
+        System.out.println("scheduleNewWorkSlowly is done");
     }
 
     @Job(jobFilters = {SkipProcessingElectStateFilter.class})
