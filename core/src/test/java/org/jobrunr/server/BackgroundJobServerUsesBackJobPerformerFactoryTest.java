@@ -2,6 +2,7 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
+import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -22,7 +23,11 @@ import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobServerUsesBackJobPerformerFactoryTest {
@@ -33,15 +38,11 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
 
     @Mock
     private JobRunrExecutor jobRunrExecutor;
-    @Mock
-    private ServiceLoader<JobRunrExecutor> jobRunrExecutorServiceLoader;
 
     @BeforeEach
     void setUp() {
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
         jobActivator = new SimpleJobActivator(new TestServiceForIoC("an argument"));
-
-        when(jobRunrExecutorServiceLoader.iterator()).thenReturn(Stream.of(jobRunrExecutor).iterator());
     }
 
     @Test
@@ -57,10 +58,12 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
             ServiceLoader<BackgroundJobPerformerFactory> backgroundJobPerformerFactoryServiceLoader = mock(ServiceLoader.class);
             when(backgroundJobPerformerFactoryServiceLoader.iterator()).thenReturn(Stream.of(minPriorityJobPerformerFactory, maxPriorityJobPerformerFactory).iterator());
 
-            serviceLoaderMock.when(() -> ServiceLoader.load(JobRunrExecutor.class)).thenReturn(jobRunrExecutorServiceLoader);
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
-            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, mock(JsonMapper.class), jobActivator, usingStandardBackgroundJobServerConfiguration());
+            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
+                    storageProvider, mock(JsonMapper.class), jobActivator,
+                    usingStandardBackgroundJobServerConfiguration()
+                            .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();
 
             // WHEN
@@ -81,16 +84,17 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
     @Test
     void testProcessJobUsesDefaultBackgroundJobPerformerFactoryWhenNoneAvailable() {
         try (MockedStatic<ServiceLoader> serviceLoaderMock = Mockito.mockStatic(ServiceLoader.class)) {
-
             // GIVEN
             ServiceLoader<BackgroundJobPerformerFactory> backgroundJobPerformerFactoryServiceLoader = mock(ServiceLoader.class);
             when(backgroundJobPerformerFactoryServiceLoader.iterator())
                     .thenReturn(Stream.<BackgroundJobPerformerFactory>empty().iterator());
 
-            serviceLoaderMock.when(() -> ServiceLoader.load(JobRunrExecutor.class)).thenReturn(jobRunrExecutorServiceLoader);
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
-            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, mock(JsonMapper.class), jobActivator, usingStandardBackgroundJobServerConfiguration());
+            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
+                    storageProvider, mock(JsonMapper.class), jobActivator,
+                    usingStandardBackgroundJobServerConfiguration()
+                            .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();
 
             // WHEN
