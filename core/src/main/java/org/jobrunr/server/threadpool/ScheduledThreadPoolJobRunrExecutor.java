@@ -10,16 +10,22 @@ import java.util.concurrent.TimeUnit;
 public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobRunrExecutor.class);
+    private final int workerCount;
+    
+    public ScheduledThreadPoolJobRunrExecutor(int corePoolSize) {
+        this(corePoolSize, "backgroundjob-zookeeper-pool");
+    }
 
     public ScheduledThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
         super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
+        this.workerCount = corePoolSize;
         setMaximumPoolSize(corePoolSize * 2);
         setKeepAliveTime(1, TimeUnit.MINUTES);
     }
 
     @Override
-    public int getPriority() {
-        return 10;
+    public int getWorkerCount() {
+        return workerCount;
     }
 
     @Override
