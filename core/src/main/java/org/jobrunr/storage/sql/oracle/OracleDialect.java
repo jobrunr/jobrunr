@@ -14,4 +14,20 @@ public class OracleDialect implements Dialect {
         return "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY";
     }
 
+    @Override
+    public String selectForUpdateSkipLocked() {
+        // although it appears that Oracle supports select for update skip locked, there are problems with it
+        // see: https://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
+        return " FOR UPDATE SKIP LOCKED";
+    }
+
+    @Override
+    public String escape(String toEscape) {
+        if (toEscape.endsWith(selectForUpdateSkipLocked())) {
+            return toEscape
+                    .replaceFirst(" where ", " where ROWNUM <= :limit and ")
+                    .replace(" FETCH NEXT :limit ROWS ONLY", "");
+        }
+        return toEscape;
+    }
 }

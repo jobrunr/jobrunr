@@ -1,7 +1,6 @@
 package org.jobrunr.server.zookeeper.tasks;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -23,18 +22,16 @@ public class OnboardNewWorkTask extends ZooKeeperTask {
 
     @Override
     protected void runTask() {
-        try {
-            if (backgroundJobServer.isRunning() && reentrantLock.tryLock()) {
+        if (backgroundJobServer.isRunning() && reentrantLock.tryLock()) {
+            try {
                 LOGGER.trace("Looking for enqueued jobs... ");
                 final AmountRequest workPageRequest = workDistributionStrategy.getWorkPageRequest();
                 if (workPageRequest.getLimit() > 0) {
-                    final List<Job> enqueuedJobs = storageProvider.getJobList(StateName.ENQUEUED, workPageRequest);
+                    final List<Job> enqueuedJobs = storageProvider.getJobsToProcess(backgroundJobServer, workPageRequest);
                     enqueuedJobs.forEach(backgroundJobServer::processJob);
                     LOGGER.debug("Found {} enqueued jobs to process.", enqueuedJobs.size());
                 }
-            }
-        } finally {
-            if (reentrantLock.isHeldByCurrentThread()) {
+            } finally {
                 reentrantLock.unlock();
             }
         }

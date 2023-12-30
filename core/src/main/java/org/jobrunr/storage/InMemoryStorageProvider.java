@@ -1,6 +1,9 @@
 package org.jobrunr.storage;
 
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobVersioner;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
@@ -11,7 +14,11 @@ import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,10 +29,17 @@ import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -233,15 +247,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        String actualJobSignature = getJobSignature(jobDetails);
-        return jobQueue.values().stream()
-                .anyMatch(job ->
-                        asList(states).contains(job.getState())
-                                && actualJobSignature.equals(getJobSignature(job.getJobDetails())));
-    }
-
-    @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         return jobQueue.values().stream()
                 .anyMatch(job ->
@@ -261,12 +266,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public RecurringJobsResult getRecurringJobs() {
         return new RecurringJobsResult(recurringJobs);
-    }
-
-    @Override
-    @Deprecated
-    public long countRecurringJobs() {
-        return recurringJobs.size();
     }
 
     @Override

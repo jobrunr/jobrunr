@@ -32,7 +32,8 @@ import java.util.function.Function;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @Disabled
@@ -96,9 +97,9 @@ class ElasticSearchStorageProviderTest extends StorageProviderTest {
         protected void makeStorageProviderThrowException(StorageProvider provider) throws Exception {
             ElasticsearchClient client = mock(ElasticsearchClient.class);
             ErrorResponse errorResponse = mock(ErrorResponse.class);
-            when(errorResponse.error()).thenReturn(mock(ErrorCause.class));
-            doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).index(any(Function.class));
-            doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).bulk(any(BulkRequest.class));
+            lenient().when(errorResponse.error()).thenReturn(mock(ErrorCause.class));
+            lenient().doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).index(any(Function.class));
+            lenient().doThrow(new ElasticsearchException("Some index exception", errorResponse)).when(client).bulk(any(BulkRequest.class));
             setInternalState(provider, "client", client);
         }
     }

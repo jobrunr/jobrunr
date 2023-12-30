@@ -22,5 +22,4 @@ public class OracleStorageProvider extends DefaultSqlStorageProvider {
     public OracleStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
         super(dataSource, new OracleDialect(), tablePrefix, databaseOptions);
     }
-
 }

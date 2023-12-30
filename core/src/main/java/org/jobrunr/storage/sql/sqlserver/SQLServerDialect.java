@@ -13,4 +13,18 @@ public class SQLServerDialect implements Dialect {
     public String limitAndOffset() {
         return "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY";
     }
+
+    @Override
+    public String escape(String toEscape) {
+        if (toEscape.endsWith(selectForUpdateSkipLocked())) {
+            return toEscape.substring(0, toEscape.length() - selectForUpdateSkipLocked().length())
+                    .replaceFirst(" where ", " with(UPDLOCK, ROWLOCK, READPAST) where ");
+        }
+        return toEscape;
+    }
+
+    @Override
+    public String selectForUpdateSkipLocked() {
+        return " SELECTFORUPDATE";
+    }
 }

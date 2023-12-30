@@ -32,7 +32,11 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobPerformerTest {
@@ -54,6 +58,42 @@ class BackgroundJobPerformerTest {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
+    }
+
+    @Test
+    void onStartIfJobIsProcessingByStorageProviderItStaysInProcessingAndThenSucceeded() throws Exception {
+        Job job = anEnqueuedJob()
+                .withProcessingState(backgroundJobServer.getConfiguration().getId())
+                .build();
+
+        mockBackgroundJobRunner(job, jobFromStorage -> {});
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(backgroundJobPerformer);
+        backgroundJobPerformer.run();
+
+        assertThat(logAllStateChangesFilter.getStateChanges(job)).containsExactly("PROCESSING->SUCCEEDED");
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(job)).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(job)).isTrue();
+        assertThat(logger)
+                .hasNoErrorLogMessages();
+    }
+
+    @Test
+    void onStartIfJobIsNotProcessingByStorageProviderItGoesToProcessingAndThenSucceeded() throws Exception {
+        Job job = anEnqueuedJob().build();
+
+        mockBackgroundJobRunner(job, jobFromStorage -> {});
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(backgroundJobPerformer);
+        backgroundJobPerformer.run();
+
+        assertThat(logAllStateChangesFilter.getStateChanges(job)).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
+        assertThat(logAllStateChangesFilter.onProcessingIsCalled(job)).isTrue();
+        assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(job)).isTrue();
+        assertThat(logger)
+                .hasNoErrorLogMessages();
     }
 
     @Test
@@ -310,5 +350,4 @@ class BackgroundJobPerformerTest {
         }).when(backgroundJobRunnerMock).run(Mockito.any());
         when(backgroundJobServer.getBackgroundJobRunner(job)).thenReturn(backgroundJobRunnerMock);
     }
-
 }

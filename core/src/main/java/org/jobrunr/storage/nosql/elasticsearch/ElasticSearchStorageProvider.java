@@ -1,12 +1,28 @@
 package org.jobrunr.storage.nosql.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.*;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.InlineScript;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.VersionType;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.SumAggregate;
-import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import co.elastic.clients.elasticsearch.core.*;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.CountResponse;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
+import co.elastic.clients.elasticsearch.core.DeleteResponse;
+import co.elastic.clients.elasticsearch.core.GetResponse;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.UpdateResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
@@ -19,10 +35,21 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobListVersioner;
+import org.jobrunr.jobs.JobVersioner;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.*;
+import org.jobrunr.storage.AbstractStorageProvider;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.storage.ServerTimedOutException;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
@@ -36,7 +63,12 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import static co.elastic.clients.elasticsearch._types.Refresh.True;
 import static co.elastic.clients.elasticsearch._types.ScriptBuilders.inline;
@@ -52,11 +84,23 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.jobrunr.jobs.Job.ALLOWED_SORT_COLUMNS;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
-import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
@@ -64,7 +108,6 @@ import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_CREAT
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_JOB_AS_JSON;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR_PREFIX;
-import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -554,20 +597,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public boolean exists(final JobDetails jobDetails, final StateName... states) {
-        try {
-            final QueryVariant query = bool()
-                    .must(shouldMatch(states))
-                    .must(must -> must.match(match -> match.field(FIELD_JOB_SIGNATURE).query(getJobSignature(jobDetails))))
-                    .build();
-
-            return countJobs(query) > 0;
-        } catch (IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public boolean recurringJobExists(final String recurringJobId, final StateName... states) {
         try {
             final QueryVariant query = bool()
@@ -635,15 +664,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             final SumAggregate parsedSum = response.aggregations().get(FIELD_CREATED_AT).sum();
 
             return !recurringJobsUpdatedHash.equals(Double.valueOf(parsedSum.value()).longValue());
-        } catch (final IOException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public long countRecurringJobs() {
-        try {
-            return getCount(recurringJobIndexName);
         } catch (final IOException e) {
             throw new StorageException(e);
         }

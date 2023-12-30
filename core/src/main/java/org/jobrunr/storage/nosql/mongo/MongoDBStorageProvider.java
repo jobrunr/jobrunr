@@ -5,8 +5,17 @@ import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.*;
-import com.mongodb.client.model.*;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
@@ -16,11 +25,21 @@ import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobListVersioner;
+import org.jobrunr.jobs.JobVersioner;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.AbstractStorageProvider;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.*;
+import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.storage.ServerTimedOutException;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
@@ -33,13 +52,30 @@ import org.jobrunr.utils.resilience.RateLimiter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.limit;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.project;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.lt;
+import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Projections.excludeId;
+import static com.mongodb.client.model.Projections.fields;
+import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -48,12 +84,23 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
-import static org.jobrunr.storage.StorageProviderUtils.*;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata;
+import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.getIdAsUUID;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
-import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -298,15 +345,14 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                 final BulkWriteResult bulkWriteResult = jobCollection.bulkWrite(jobsToUpdate);
                 if (bulkWriteResult.getModifiedCount() != jobs.size()) {
                     //ugly workaround as we do not know which document did not update due to concurrent modification exception. So, we download them all and compare the lastUpdated
-                    final Map<UUID, Job> mongoDbDocuments = new HashMap<>();
+                    final Map<UUID, Long> mongoDbDocuments = new HashMap<>();
                     jobCollection
                             .find(in(toMongoId(Jobs.FIELD_ID), jobs.stream().map(Job::getId).collect(toList())))
-                            .projection(include(Jobs.FIELD_JOB_AS_JSON))
-                            .map(jobDocumentMapper::toJob)
-                            .forEach(job -> mongoDbDocuments.put(job.getId(), job));
+                            .projection(include(Jobs.FIELD_ID, FIELD_UPDATED_AT))
+                            .forEach(doc -> mongoDbDocuments.put(getIdAsUUID(doc), doc.getLong(FIELD_UPDATED_AT)));
 
                     final List<Job> concurrentModifiedJobs = jobs.stream()
-                            .filter(job -> !job.getUpdatedAt().equals(mongoDbDocuments.get(job.getId()).getUpdatedAt()))
+                            .filter(job -> toMicroSeconds(job.getUpdatedAt()) != mongoDbDocuments.get(job.getId()))
                             .collect(toList());
                     jobListVersioner.rollbackVersions(concurrentModifiedJobs);
                     throw new ConcurrentJobModificationException(concurrentModifiedJobs);
@@ -333,11 +379,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         return jobCollection
                 .distinct(Jobs.FIELD_JOB_SIGNATURE, in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), String.class)
                 .into(new HashSet<>());
-    }
-
-    @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_JOB_SIGNATURE, getJobSignature(jobDetails)))) > 0;
     }
 
     @Override
@@ -371,11 +412,6 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
             return !recurringJobsUpdatedHash.equals(value);
         }
         return !recurringJobsUpdatedHash.equals(0L);
-    }
-
-    @Override
-    public long countRecurringJobs() {
-        return recurringJobCollection.countDocuments();
     }
 
     @Override

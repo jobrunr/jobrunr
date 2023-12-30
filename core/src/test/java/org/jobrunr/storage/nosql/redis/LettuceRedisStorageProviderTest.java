@@ -17,8 +17,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @Testcontainers
@@ -73,12 +73,12 @@ public class LettuceRedisStorageProviderTest extends StorageProviderTest {
             GenericObjectPool genericObjectPoolMock = mock(GenericObjectPool.class);
             StatefulRedisConnection<String, String> connection = mock(StatefulRedisConnection.class);
             RedisCommands<String, String> commands = mock(RedisCommands.class);
-            when(genericObjectPoolMock.borrowObject()).thenReturn(connection);
-            when(connection.sync()).thenReturn(commands);
+            lenient().when(genericObjectPoolMock.borrowObject()).thenReturn(connection);
+            lenient().when(connection.sync()).thenReturn(commands);
 
             String versionMatcher = endsWith("version");
-            when(commands.get(versionMatcher)).thenReturn("1");
-            when(commands.unwatch()).thenThrow(new RedisException("some exception"));
+            lenient().when(commands.get(versionMatcher)).thenReturn("1");
+            lenient().when(commands.unwatch()).thenThrow(new RedisException("some exception"));
             setInternalState(storageProvider, "pool", genericObjectPoolMock);
         }
     }

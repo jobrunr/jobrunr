@@ -14,8 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -101,9 +100,9 @@ class JobTest {
     @Test
     void succeededLatencyOnlyTakesIntoAccountStateFromEnqueuedToProcessing() {
         Job job = aJob()
-                .withState(new ScheduledState(Instant.now()), Instant.now().minusSeconds(600))
-                .withState(new EnqueuedState(), Instant.now().minusSeconds(60))
-                .withState(new ProcessingState(backgroundJobServer), Instant.now().minusSeconds(10))
+                .withState(new ScheduledState(now()), now().minusSeconds(600))
+                .withState(new EnqueuedState(), now().minusSeconds(60))
+                .withState(new ProcessingState(backgroundJobServer), now().minusSeconds(10))
                 .build();
         job.updateProcessing();
         job.succeeded();
@@ -114,6 +113,36 @@ class JobTest {
     }
 
     @Test
+    void testStateChangesOnlyOneStateChange() {
+        Job job = anEnqueuedJob().build();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+
+        job.startProcessingOn(backgroundJobServer);
+        job.updateProcessing();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+    }
+
+    @Test
+    void testStateChangesMultipleStateChanges() {
+        Job job = anEnqueuedJob().build();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+
+        job.delete("Via jobfilter");
+        job.scheduleAt(now().plusSeconds(10), "Via jobfilter");
+        assertThat(job.getStateChangesForJobFilters()).hasSize(2);
+    }
+
+    @Test
+    void testStateChangesResetsStateChanges() {
+        Job job = anEnqueuedJob().build();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        job.startProcessingOn(backgroundJobServer);
+
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+    }
+
+    @Test
     void metadataIsClearedWhenAJobSucceeds() {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
@@ -121,7 +150,7 @@ class JobTest {
         job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
-        job.scheduleAt(Instant.now(), "failure before");
+        job.scheduleAt(now(), "failure before");
         assertThat(job).hasMetadata("key", "value");
 
         job.succeeded();
@@ -136,7 +165,7 @@ class JobTest {
         job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
-        job.scheduleAt(Instant.now(), "failure before");
+        job.scheduleAt(now(), "failure before");
         assertThat(job).hasMetadata("key", "value");
 
         job.delete("From UI");
@@ -153,7 +182,7 @@ class JobTest {
             jobDashboardLogger.info("Message " + i);
 
             job.failed("Job failed", new IllegalStateException("Not important"));
-            job.scheduleAt(Instant.now(), "Retry");
+            job.scheduleAt(now(), "Retry");
             job.enqueue();
         }
 

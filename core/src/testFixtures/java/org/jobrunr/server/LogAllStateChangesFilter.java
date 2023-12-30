@@ -131,6 +131,17 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
         return this.onFailedAfterRetriesIsCalled.getOrDefault(jobId, false);
     }
 
+    public List<String> getStateChanges() {
+        if (this.stateChanges.size() != 1) throw new IllegalStateException("There are more than 1 jobs with statechanges");
+        return getStateChanges(this.stateChanges.keySet().iterator().next());
+    }
+
+    public List<String> getAllStateChanges() {
+        List<String> allStateChanges = new ArrayList<>();
+        this.stateChanges.values().forEach(allStateChanges::addAll);
+        return allStateChanges;
+    }
+
     public List<String> getStateChanges(Job job) {
         return getStateChanges(job.getId());
     }

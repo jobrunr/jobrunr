@@ -17,6 +17,10 @@ public interface Dialect {
 
     String limitAndOffset();
 
+    default String selectForUpdateSkipLocked() {
+        return "";
+    }
+
     default String escape(String toEscape) {
         return toEscape;
     }

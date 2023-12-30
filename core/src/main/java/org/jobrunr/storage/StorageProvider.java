@@ -1,21 +1,27 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.PageRequest;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 
 /**
@@ -150,6 +156,24 @@ public interface StorageProvider extends AutoCloseable {
         return pageRequest.mapToNewPage(totalJobs, getJobList(state, pageRequest));
     }
 
+    default List<Job> getJobsToProcess(BackgroundJobServer backgroundJobServer, AmountRequest amountRequest) {
+        JobFilterUtils jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
+        List<Job> jobs = getJobList(ENQUEUED, amountRequest);
+        try {
+            jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
+            jobFilterUtils.runOnStateElectionFilter(jobs, true);
+            List<Job> jobsToProcess = save(jobs);
+            jobFilterUtils.runOnStateAppliedFilters(jobsToProcess, true);
+            return jobsToProcess.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
+        } catch (ConcurrentJobModificationException e) {
+            List<Job> actualSavedJobs = new ArrayList<>(jobs);
+            Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
+            actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
+            jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs, true);
+            return actualSavedJobs.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
+        }
+    }
+
     List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest);
 
     default Page<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
@@ -170,8 +194,6 @@ public interface StorageProvider extends AutoCloseable {
 
     Set<String> getDistinctJobSignatures(StateName... states);
 
-    boolean exists(JobDetails jobDetails, StateName... states);
-
     /**
      * Returns true when a {@link Job} created by the {@link RecurringJob} with the given id exists with one of the given states.
      *
@@ -188,9 +210,6 @@ public interface StorageProvider extends AutoCloseable {
      * @return the same RecurringJob
      */
     RecurringJob saveRecurringJob(RecurringJob recurringJob);
-
-    @Deprecated
-    long countRecurringJobs();
 
     /**
      * Returns a list {@link RecurringJob RecurringJobs}.

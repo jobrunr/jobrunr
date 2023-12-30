@@ -15,8 +15,8 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @Testcontainers
@@ -69,11 +69,11 @@ public class JedisRedisStorageProviderTest extends StorageProviderTest {
             JedisPool jedisPoolMock = mock(JedisPool.class);
             Jedis jedisMock = mock(Jedis.class);
             Transaction transactionMock = mock(Transaction.class);
-            when(jedisPoolMock.getResource()).thenReturn(jedisMock);
+            lenient().when(jedisPoolMock.getResource()).thenReturn(jedisMock);
             String versionMatcher = endsWith("version");
-            when(jedisMock.get(versionMatcher)).thenReturn("1");
-            when(jedisMock.multi()).thenReturn(transactionMock);
-            when(jedisMock.unwatch()).thenThrow(new JedisException("some exception"));
+            lenient().when(jedisMock.get(versionMatcher)).thenReturn("1");
+            lenient().when(jedisMock.multi()).thenReturn(transactionMock);
+            lenient().when(jedisMock.unwatch()).thenThrow(new JedisException("some exception"));
             setInternalState(storageProvider, "jedisPool", jedisPoolMock);
         }
     }

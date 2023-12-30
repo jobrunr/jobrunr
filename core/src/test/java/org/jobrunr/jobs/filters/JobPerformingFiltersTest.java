@@ -77,6 +77,7 @@ class JobPerformingFiltersTest {
     @Test
     void ifOtherFilterIsProvidedItIsUsed() {
         Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
+        aJobWithACustomElectStateJobFilter.startProcessingOn(backgroundJobServer);
         JobPerformingFilters jobPerformingFilters = jobPerformingFilters(aJobWithACustomElectStateJobFilter);
         jobPerformingFilters.runOnStateAppliedFilters();
         jobPerformingFilters.runOnJobProcessingFilters();
@@ -133,14 +134,12 @@ class JobPerformingFiltersTest {
 
         job.startProcessingOn(backgroundJobServer);
         jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
-        assertThatCode(() -> jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFiltersForPreviousState());
         jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
         jobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingFilters();
 
         job.failed("Exception occurred", new RuntimeException());
         jobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingFailedFilters(new RuntimeException());
         jobPerformingFilters(job, jobDefaultFilters).runOnStateElectionFilter();
-        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFiltersForPreviousState();
         jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
 
         job.enqueue();

@@ -27,7 +27,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
@@ -40,9 +42,9 @@ public class FrontEndDevelopment {
         StorageProvider storageProvider = inMemoryStorageProvider();
 
         //StubDataProvider.using(storageProvider)
-                //.addALotOfEnqueuedJobsThatTakeSomeTime()
-                //.addALotOfEnqueuedJobsThatTakeSomeTime()
-                //.addSomeRecurringJobs();
+        //.addALotOfEnqueuedJobsThatTakeSomeTime()
+        //.addALotOfEnqueuedJobsThatTakeSomeTime()
+        //.addSomeRecurringJobs();
 
         storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
@@ -89,7 +91,7 @@ public class FrontEndDevelopment {
         return false;
     }
 
-    private static class ExceptionWithDiagnostics implements SevereJobRunrException.DiagnosticsAware {
+    private static class ExceptionWithDiagnostics extends Exception implements SevereJobRunrException.DiagnosticsAware {
 
         @Override
         public DiagnosticsBuilder getDiagnosticsInfo() {
