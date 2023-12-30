@@ -18,7 +18,7 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
  */
 public class BackgroundJobServerConfiguration {
 
-    public static final int DEFAULT_POLL_INTERVAL_IN_SECONDS = 15;
+    public static final Duration DEFAULT_POLL_INTERVAL = Duration.ofSeconds(15);
     public static final int DEFAULT_PAGE_REQUEST_SIZE = 1000;
     public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
     public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
@@ -26,7 +26,7 @@ public class BackgroundJobServerConfiguration {
     private int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     private int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
-    private int pollIntervalInSeconds = DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    private Duration pollInterval = DEFAULT_POLL_INTERVAL;
     private UUID id = UUID.randomUUID();
     private String name = getHostName();
     private Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
@@ -79,9 +79,17 @@ public class BackgroundJobServerConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andPollIntervalInSeconds(int pollIntervalInSeconds) {
-        if (pollIntervalInSeconds < 5)
-            throw new IllegalArgumentException("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
-        this.pollIntervalInSeconds = pollIntervalInSeconds;
+        return this.andPollInterval(Duration.ofSeconds(pollIntervalInSeconds));
+    }
+
+    /**
+     * Allows to set the pollInterval duration for the BackgroundJobServer
+     *
+     * @param pollInterval the pollInterval duration
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andPollInterval(Duration pollInterval) {
+        this.pollInterval = pollInterval;
         return this;
     }
 
@@ -197,8 +205,8 @@ public class BackgroundJobServerConfiguration {
         return succeededJobsRequestSize;
     }
 
-    public int getPollIntervalInSeconds() {
-        return pollIntervalInSeconds;
+    public Duration getPollInterval() {
+        return pollInterval;
     }
 
     public Duration getDeleteSucceededJobsAfter() {

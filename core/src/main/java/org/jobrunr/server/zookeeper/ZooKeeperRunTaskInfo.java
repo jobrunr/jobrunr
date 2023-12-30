@@ -26,7 +26,7 @@ public class ZooKeeperRunTaskInfo implements ZooKeeperTaskInfo, AutoCloseable {
 
     @Override
     public boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
-        final Duration durationPollIntervalTimeBox = Duration.ofMillis((long) backgroundJobServerConfiguration.getPollIntervalInSeconds() * 950);
+        final Duration durationPollIntervalTimeBox = Duration.ofMillis(backgroundJobServerConfiguration.getPollInterval().toMillis() * 950);
         final Duration durationRunTime = Duration.between(runStartTime, now());
         return durationRunTime.compareTo(durationPollIntervalTimeBox) >= 0;
     }
@@ -47,6 +47,6 @@ public class ZooKeeperRunTaskInfo implements ZooKeeperTaskInfo, AutoCloseable {
 
     @Override
     public void close() {
-        zooKeeperStatistics.logRun(runIndex, runSucceeded, backgroundJobServerConfiguration.getPollIntervalInSeconds(), runStartTime, Instant.now());
+        zooKeeperStatistics.logRun(runIndex, runSucceeded, backgroundJobServerConfiguration.getPollInterval(), runStartTime, Instant.now());
     }
 }

@@ -32,12 +32,12 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
@@ -46,9 +46,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Durations.FIVE_HUNDRED_MILLISECONDS;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
+import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
@@ -84,7 +87,7 @@ public class BackgroundJobByJobLambdaTest {
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
 
         backgroundJobServer = JobRunr.getBackgroundJobServer();
@@ -262,7 +265,7 @@ public class BackgroundJobByJobLambdaTest {
         UUID id = UUID.randomUUID();
         JobId jobId1 = BackgroundJob.schedule(id, now(), () -> testService.doWork());
         JobId jobId2 = BackgroundJob.schedule(id, now().plusSeconds(20), () -> testService.doWork());
-        // why: no exception whould be thrown.
+        // why: no exception should be thrown.
 
         assertThat(jobId1).isEqualTo(jobId2);
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId1)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED));
@@ -270,41 +273,40 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleWithZonedDateTime() {
-        JobId jobId = BackgroundJob.schedule(ZonedDateTime.now().plusSeconds(7), () -> testService.doWork());
-        await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
+        JobId jobId = BackgroundJob.schedule(ZonedDateTime.now().plus(ofMillis(2500)), () -> testService.doWork());
+        await().during(TWO_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testScheduleWithOffsetDateTime() {
-        JobId jobId = BackgroundJob.schedule(OffsetDateTime.now().plusSeconds(7), () -> testService.doWork());
-        await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
+        JobId jobId = BackgroundJob.schedule(OffsetDateTime.now().plus(ofMillis(1500)), () -> testService.doWork());
+        await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testScheduleWithLocalDateTime() {
-        JobId jobId = BackgroundJob.schedule(LocalDateTime.now().plusSeconds(7), () -> testService.doWork());
-        await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
+        JobId jobId = BackgroundJob.schedule(LocalDateTime.now().plus(ofMillis(1500)), () -> testService.doWork());
+        await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testScheduleWithInstant() {
-        JobId jobId = BackgroundJob.schedule(now().plusSeconds(7), () -> testService.doWork());
-        await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
+        JobId jobId = BackgroundJob.schedule(now().plus(ofMillis(1500)), () -> testService.doWork());
+        await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
     void testScheduleUsingDateTimeInTheFutureIsNotEnqueued() {
-        JobId jobId = BackgroundJob.schedule(now().plus(100, ChronoUnit.DAYS), () -> testService.doWork());
-        await().during(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
+        JobId jobId = BackgroundJob.schedule(now().plusSeconds(100), () -> testService.doWork());
+        await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED);
     }
 
@@ -444,15 +446,15 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void jobCanBeUpdatedInTheBackgroundAndThenGoToSucceededState() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(10));
-        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(3));
+        await().atMost(1, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        await().atMost(2, SECONDS).untilAsserted(() -> {
             final Job job = storageProvider.getJobById(jobId);
             ProcessingState processingState = job.getJobState();
             assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
             storageProvider.getJobById(jobId).hasState(PROCESSING);
         });
-        await().atMost(6, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
+        await().atMost(3, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasState(SUCCEEDED));
         assertThat(logAllStateChangesFilter.getStateChanges(jobId)).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
     }
 
@@ -461,7 +463,7 @@ public class BackgroundJobByJobLambdaTest {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
         BackgroundJob.delete(jobId);
 
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        await().atMost(3, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
         });
@@ -472,7 +474,7 @@ public class BackgroundJobByJobLambdaTest {
         JobId jobId = BackgroundJob.schedule(now().plusSeconds(10), () -> testService.doWorkThatTakesLong(12));
         BackgroundJob.delete(jobId);
 
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        await().atMost(3, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, DELETED);
         });
@@ -480,34 +482,34 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void jobCanBeDeletedDuringProcessingState_jobRethrowsInterruptedException() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
-        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(3));
+        await().atMost(FIVE_HUNDRED_MILLISECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
         BackgroundJob.delete(jobId);
 
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(6, SECONDS).atMost(12, SECONDS).untilAsserted(() -> {
+        await().during(1, SECONDS).untilAsserted(() -> {
             assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
         });
     }
 
     @Test
     void jobCanBeDeletedDuringProcessingState_jobInterruptCurrentThread() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongInterruptThread(12));
-        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongInterruptThread(3));
+        await().atMost(FIVE_HUNDRED_MILLISECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
         BackgroundJob.delete(jobId);
 
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        await().during(2, SECONDS).atMost(4, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(12, SECONDS).atMost(18, SECONDS).untilAsserted(() -> {
+        await().during(1, SECONDS).untilAsserted(() -> {
             assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
         });
     }
@@ -531,17 +533,17 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void jobCanBeDeletedDuringProcessingState_InterruptedExceptionCatched() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongCatchInterruptException(12));
-        await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLongCatchInterruptException(3));
+        await().atMost(FIVE_HUNDRED_MILLISECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
 
         BackgroundJob.delete(jobId);
 
-        await().atMost(6, SECONDS).untilAsserted(() -> {
+        await().during(2, SECONDS).atMost(4, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(12, SECONDS).atMost(18, SECONDS).untilAsserted(() -> {
+        await().during(1, SECONDS).untilAsserted(() -> {
             assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
         });
     }
@@ -549,7 +551,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void processingCanBeSkippedUsingElectStateFilters() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter());
-        await().during(3, SECONDS).atMost(6, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SCHEDULED));
+        await().during(1, SECONDS).atMost(2, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SCHEDULED));
 
         assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED, SCHEDULED);
     }

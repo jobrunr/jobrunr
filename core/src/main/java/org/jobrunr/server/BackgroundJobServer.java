@@ -19,12 +19,14 @@ import org.jobrunr.server.tasks.MigrateFromV5toV6Task;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -76,6 +78,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null)
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
+        if (pollIntervalIsTooSmallForStorageProvider(configuration.getPollInterval(), storageProvider))
+            throw new IllegalArgumentException("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
@@ -187,7 +191,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     @Override
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
-                configuration.getPollIntervalInSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
+                (int) configuration.getPollInterval().getSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
                 firstHeartbeat, Instant.now(), isRunning, jobServerStats);
     }
 
@@ -261,8 +265,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
@@ -336,6 +340,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
                 .min((a, b) -> compare(b.getPriority(), a.getPriority()))
                 .orElseGet(BasicBackgroundJobPerformerFactory::new);
+    }
+
+    private boolean pollIntervalIsTooSmallForStorageProvider(Duration pollInterval, StorageProvider storageProvider) {
+        return pollInterval.compareTo(Duration.ofSeconds(5)) < 0 && !(storageProvider instanceof InMemoryStorageProvider);
     }
 
     private static class BackgroundJobServerLifecycleLock implements AutoCloseable {
