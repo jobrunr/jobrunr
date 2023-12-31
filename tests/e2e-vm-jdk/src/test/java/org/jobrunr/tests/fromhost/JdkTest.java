@@ -121,10 +121,9 @@ class JdkTest {
         try {
             buildAndTestContainer
                     .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
-                    .withStartupTimeout(Duration.ofMinutes(1))
+                    .withStartupTimeout(Duration.ofMinutes(2))
                     .start();
         } finally {
-            System.out.println(buildAndTestContainer.getLogs());
             return buildAndTestContainer.getLogs();
         }
     }
