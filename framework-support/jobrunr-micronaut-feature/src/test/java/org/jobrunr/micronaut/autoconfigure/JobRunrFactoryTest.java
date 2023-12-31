@@ -100,6 +100,8 @@ class JobRunrFactoryTest {
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.name", value = "test")
+    @Property(name = "jobrunr.background-job-server.worker-count", value = "4")
     @Property(name = "jobrunr.background-job-server.scheduled-jobs-request-size", value = "1")
     @Property(name = "jobrunr.background-job-server.orphaned-jobs-request-size", value = "2")
     @Property(name = "jobrunr.background-job-server.succeeded-jobs-request-size", value = "3")
@@ -107,10 +109,10 @@ class JobRunrFactoryTest {
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
 
         assertThat(backgroundJobServerConfiguration)
+                .hasName("test")
+                .hasWorkerCount(4)
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
                 .hasSucceededJobRequestSize(3);
     }
-
-
 }

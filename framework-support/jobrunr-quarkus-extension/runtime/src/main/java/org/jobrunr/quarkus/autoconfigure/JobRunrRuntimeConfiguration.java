@@ -4,6 +4,7 @@ import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -105,6 +106,12 @@ public interface JobRunrRuntimeConfiguration {
          * By default, this will be determined by the amount of available processor.
          */
         Optional<Integer> workerCount();
+
+        /**
+         * Sets the Thread Type for the BackgroundJobServer.
+         * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
+         */
+        Optional<BackgroundJobServerThreadType> threadType();
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.

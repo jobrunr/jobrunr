@@ -1,6 +1,9 @@
 package org.jobrunr.server;
 
-import org.jobrunr.server.configuration.*;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
+import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
+import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
+import org.jobrunr.server.configuration.DefaultConcurrentJobModificationPolicy;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -89,7 +92,7 @@ public class BackgroundJobServerConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andWorkerCount(int workerCount) {
-        this.backgroundJobServerWorkerPolicy = new FixedSizeBackgroundJobServerWorkerPolicy(workerCount);
+        this.backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy(workerCount);
         return this;
     }
 

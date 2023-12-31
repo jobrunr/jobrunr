@@ -14,6 +14,8 @@ import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
+import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -23,7 +25,11 @@ import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.autoconfigure.condition.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.ApplicationContext;
@@ -33,6 +39,7 @@ import org.springframework.context.annotation.Configuration;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
@@ -79,8 +86,11 @@ public class JobRunrAutoConfiguration {
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
         JobRunrProperties.BackgroundJobServer backgroundJobServerProperties = properties.getBackgroundJobServer();
 
+        BackgroundJobServerThreadType threadType = ofNullable(backgroundJobServerProperties.getThreadType()).orElse(BackgroundJobServerThreadType.getDefaultThreadType());
+        int workerCount = ofNullable(backgroundJobServerProperties.getWorkerCount()).orElse(threadType.getDefaultWorkerCount());
+        backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType));
+
         map.from(backgroundJobServerProperties::getName).whenNonNull().to(backgroundJobServerConfiguration::andName);
-        map.from(backgroundJobServerProperties::getWorkerCount).whenNonNull().to(backgroundJobServerConfiguration::andWorkerCount);
         map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
         map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);

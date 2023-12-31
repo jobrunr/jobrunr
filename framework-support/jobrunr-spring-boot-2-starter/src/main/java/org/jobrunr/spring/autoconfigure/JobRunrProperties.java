@@ -2,6 +2,7 @@ package org.jobrunr.spring.autoconfigure;
 
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 
@@ -242,6 +243,12 @@ public class JobRunrProperties {
         private Integer workerCount;
 
         /**
+         * Sets the Thread Type for the BackgroundJobServer.
+         * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
+         */
+        private BackgroundJobServerThreadType threadType;
+
+        /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
         private Integer pollIntervalInSeconds = 15;
@@ -302,6 +309,14 @@ public class JobRunrProperties {
 
         public void setWorkerCount(Integer workerCount) {
             this.workerCount = workerCount;
+        }
+
+        public BackgroundJobServerThreadType getThreadType() {
+            return threadType;
+        }
+
+        public void setThreadType(BackgroundJobServerThreadType threadType) {
+            this.threadType = threadType;
         }
 
         public Integer getPollIntervalInSeconds() {
