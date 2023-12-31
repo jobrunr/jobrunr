@@ -6,36 +6,47 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
 import org.jobrunr.tests.e2e.services.Work;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 class E2EJDKTest {
 
-    private TestService testService;
+    private static final TestService testService = new TestService();
 
-    @BeforeEach
-    public void startJobRunr() {
-        testService = new TestService();
+    private static final InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
 
+    @BeforeAll
+    public static void startJobRunr() {
         JobRunr
                 .configure()
-                .useStorageProvider(new InMemoryStorageProvider())
-                .useJobActivator(this::jobActivator)
+                .useStorageProvider(storageProvider)
+                .useJobActivator(E2EJDKTest::jobActivator)
                 .useDashboard()
                 .useBackgroundJobServer()
                 .initialize();
     }
 
-    @AfterEach
-    public void stopJobRunr() {
+    @BeforeEach
+    public void clearStorageProviderExceptBackgroundJobServers() {
+        ((Map) getInternalState(storageProvider, "jobQueue")).clear();
+        ((List) getInternalState(storageProvider, "recurringJobs")).clear();
+        ((Map) getInternalState(storageProvider, "metadata")).clear();
+    }
+
+    @AfterAll
+    public static void stopJobRunr() {
         JobRunr
                 .destroy();
     }
@@ -46,7 +57,11 @@ class E2EJDKTest {
 
         await()
                 .atMost(30, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThatJson(getSucceededJobs()).inPath("$.items[0].jobHistory[2].state").asString().contains("SUCCEEDED"));
+                .untilAsserted(() -> {
+                    String succeededJobs = getSucceededJobs();
+                    assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
+                    assertThatJson(succeededJobs).inPath("$.items[0].jobHistory[2].state").isEqualTo("SUCCEEDED");
+                });
     }
 
     @Test
@@ -55,7 +70,11 @@ class E2EJDKTest {
 
         await()
                 .atMost(30, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThatJson(getSucceededJobs()).inPath("$.items[0].jobHistory[2].state").asString().contains("SUCCEEDED"));
+                .untilAsserted(() -> {
+                    String succeededJobs = getSucceededJobs();
+                    assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
+                    assertThatJson(succeededJobs).inPath("$.items[0].jobHistory[2].state").isEqualTo("SUCCEEDED");
+                });
     }
 
     @Test
@@ -64,7 +83,11 @@ class E2EJDKTest {
 
         await()
                 .atMost(30, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThatJson(getSucceededJobs()).inPath("$.items[0].jobHistory[2].state").asString().contains("SUCCEEDED"));
+                .untilAsserted(() -> {
+                    String succeededJobs = getSucceededJobs();
+                    assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
+                    assertThatJson(succeededJobs).inPath("$.items[0].jobHistory[2].state").isEqualTo("SUCCEEDED");
+                });
     }
 
     @Test
@@ -73,14 +96,18 @@ class E2EJDKTest {
 
         await()
                 .atMost(30, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThatJson(getSucceededJobs()).inPath("$.items[0].jobHistory[2].state").asString().contains("SUCCEEDED"));
+                .untilAsserted(() -> {
+                    String succeededJobs = getSucceededJobs();
+                    assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
+                    assertThatJson(succeededJobs).inPath("$.items[0].jobHistory[2].state").isEqualTo("SUCCEEDED");
+                });
     }
 
     private String getSucceededJobs() {
         return getJson("http://localhost:8000/api/jobs?state=SUCCEEDED");
     }
 
-    private <T> T jobActivator(Class<T> clazz) {
+    private static <T> T jobActivator(Class<T> clazz) {
         return (T) testService;
     }
 }
