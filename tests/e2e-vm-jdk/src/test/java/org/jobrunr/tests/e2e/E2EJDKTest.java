@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 
 class E2EJDKTest {
 
@@ -40,9 +40,10 @@ class E2EJDKTest {
 
     @BeforeEach
     public void clearStorageProviderExceptBackgroundJobServers() {
-        ((Map) getInternalState(storageProvider, "jobQueue")).clear();
-        ((List) getInternalState(storageProvider, "recurringJobs")).clear();
-        ((Map) getInternalState(storageProvider, "metadata")).clear();
+        // we cannot use whitebox as it is compiled with Java > 8 and some tests will fail
+        ((Map) getValueFromFieldOrProperty(storageProvider, "jobQueue")).clear();
+        ((List) getValueFromFieldOrProperty(storageProvider, "recurringJobs")).clear();
+        ((Map) getValueFromFieldOrProperty(storageProvider, "metadata")).clear();
     }
 
     @AfterAll
