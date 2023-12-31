@@ -2,9 +2,17 @@ package org.jobrunr.utils;
 
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class VersionNumberTest {
+
+    @Test
+    void testVersionNumberConstructor() {
+        assertThatCode(() -> new VersionNumber("5.0.0")).doesNotThrowAnyException();
+        assertThatCode(() -> new VersionNumber("7.0.0-alpha.1")).doesNotThrowAnyException();
+        assertThatCode(() -> new VersionNumber("23.ea.3")).doesNotThrowAnyException();
+    }
 
     @Test
     void testVersionNumber() {
@@ -38,6 +46,7 @@ class VersionNumberTest {
 
     @Test
     void testVersionNumberIsOlderThan() {
+        assertThat(VersionNumber.isOlderThan("1.8.0_191", "1.8")).isFalse();
         assertThat(VersionNumber.isOlderThan("6.0.0", "6.0.0")).isFalse();
         assertThat(VersionNumber.isOlderThan("5.0.0", "6.0.0")).isTrue();
         assertThat(VersionNumber.isOlderThan("9.0.0", "10.0.0")).isTrue();

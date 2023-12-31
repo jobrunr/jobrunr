@@ -9,7 +9,7 @@ import java.util.function.Function;
 import static org.jobrunr.utils.VersionNumber.isNewerOrEqualTo;
 
 public enum BackgroundJobServerThreadType {
-    PlatformThreads("8") {
+    PlatformThreads("1.8") {
         @Override
         public Function<Integer, JobRunrExecutor> getJobRunrExecutor() {
             return ScheduledThreadPoolJobRunrExecutor::new;

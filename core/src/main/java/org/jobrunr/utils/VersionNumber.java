@@ -2,7 +2,6 @@ package org.jobrunr.utils;
 
 import java.util.Objects;
 
-import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -13,10 +12,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     private final String completeVersion;
     private final String version;
-    private final int majorVersion;
-    private final int minorVersion;
-    private final int patchVersion;
-    private final int updateVersion;
+    private final String majorVersion;
+    private final String minorVersion;
+    private final String patchVersion;
+    private final String updateVersion;
     private final String qualifier;
 
     public VersionNumber(String completeVersion) {
@@ -24,10 +23,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.version = substringBefore(completeVersion, "-");
         this.qualifier = substringAfter(completeVersion, "-");
         String[] split = this.version.split("\\.");
-        this.majorVersion = split.length > 0 ? parseInt(split[0]) : 0;
-        this.minorVersion = split.length > 1 ? parseInt(split[1]) : 0;
-        this.patchVersion = split.length > 2 ? parseInt(substringBefore(split[2], "_")) : 0;
-        this.updateVersion = split.length > 2 ? parseInt(ofNullable(substringAfter(split[2], "_")).orElse("0")) : 0;
+        this.majorVersion = split.length > 0 ? split[0] : "0";
+        this.minorVersion = split.length > 1 ? split[1] : "0";
+        this.patchVersion = split.length > 2 ? substringBefore(split[2], "_") : "0";
+        this.updateVersion = split.length > 2 ? ofNullable(substringAfter(split[2], "_")).orElse("0") : "0";
     }
 
     public String getCompleteVersion() {
@@ -68,17 +67,17 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public int compareTo(VersionNumber o) {
-        if (majorVersion < o.majorVersion) return -1;
-        else if (majorVersion > o.majorVersion) return 1;
+        int majorVersionComparison = compareVersionNumber(majorVersion, o.majorVersion);
+        if (majorVersionComparison != 0) return majorVersionComparison;
 
-        if (minorVersion < o.minorVersion) return -1;
-        else if (minorVersion > o.minorVersion) return 1;
+        int minorVersionComparison = compareVersionNumber(minorVersion, o.minorVersion);
+        if (minorVersionComparison != 0) return minorVersionComparison;
 
-        if (patchVersion < o.patchVersion) return -1;
-        else if (patchVersion > o.patchVersion) return 1;
+        int patchVersionComparison = compareVersionNumber(patchVersion, o.patchVersion);
+        if (patchVersionComparison != 0) return patchVersionComparison;
 
-        if (updateVersion < o.updateVersion) return -1;
-        else if (updateVersion > o.updateVersion) return 1;
+        int updateVersionComparison = compareVersionNumber(updateVersion, o.updateVersion);
+        if (updateVersionComparison != 0) return updateVersionComparison;
 
         if (isNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
             return 0;
@@ -94,6 +93,13 @@ public class VersionNumber implements Comparable<VersionNumber> {
     @Override
     public String toString() {
         return completeVersion;
+    }
+
+    private int compareVersionNumber(String myself, String other) {
+        if (myself.length() != other.length()) return myself.length() - other.length();
+        else if (myself.compareTo(other) < 0) return -1;
+        else if (myself.compareTo(other) > 0) return 1;
+        return 0;
     }
 
     public static VersionNumber of(String version) {
