@@ -28,7 +28,7 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
             LOGGER.info("Running inside CI / Drone Build Container");
             this
                     .withFileSystemBind(Paths.get("/tmp/jobrunr/cache/gradle-wrapper").toString(), "/root/.gradle/wrapper/dists", BindMode.READ_WRITE)
-                    .withFileSystemBind(Paths.get("/root/.m2").toString(), "/root/.m2", BindMode.READ_WRITE);
+                    .withFileSystemBind("/volume2/docker/jobrunr-services/drone-work-dir/m2/cache", "/root/.m2", BindMode.READ_WRITE);
         } else {
             LOGGER.info("Running on developer machine");
             this
