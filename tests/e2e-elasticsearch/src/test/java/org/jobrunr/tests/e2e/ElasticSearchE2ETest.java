@@ -14,7 +14,7 @@ public class ElasticSearchE2ETest extends AbstractE2ETest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.3")
+    private final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.3")
             .withNetwork(network)
             .withNetworkAliases("elasticsearch")
             .withEnv("ES_JAVA_OPTS", "-Xmx2048m")
@@ -23,7 +23,7 @@ public class ElasticSearchE2ETest extends AbstractE2ETest {
             .withExposedPorts(9200);
 
     @Container
-    private static final ElasticSearchBackgroundJobContainer backgroundJobServer = new ElasticSearchBackgroundJobContainer(elasticSearchContainer, network);
+    private final ElasticSearchBackgroundJobContainer backgroundJobServer = new ElasticSearchBackgroundJobContainer(elasticSearchContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

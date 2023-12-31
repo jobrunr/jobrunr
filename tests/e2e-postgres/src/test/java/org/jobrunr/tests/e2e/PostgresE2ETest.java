@@ -12,12 +12,12 @@ public class PostgresE2ETest extends AbstractE2ETest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>()
+    private final PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>()
             .withNetwork(network)
             .withNetworkAliases("postgres");
 
     @Container
-    private static final PostgresBackgroundJobContainer backgroundJobServer = new PostgresBackgroundJobContainer(sqlContainer, network);
+    private final PostgresBackgroundJobContainer backgroundJobServer = new PostgresBackgroundJobContainer(sqlContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

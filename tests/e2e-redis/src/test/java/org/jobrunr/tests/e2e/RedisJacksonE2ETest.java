@@ -12,13 +12,13 @@ public class RedisJacksonE2ETest extends AbstractE2ETest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final GenericContainer redisContainer = new GenericContainer("redis")
+    private final GenericContainer redisContainer = new GenericContainer("redis")
             .withNetwork(network)
             .withNetworkAliases("redis")
             .withExposedPorts(6379);
 
     @Container
-    private static final RedisBackgroundJobContainer backgroundJobServer = new RedisBackgroundJobContainer(redisContainer, network);
+    private final RedisBackgroundJobContainer backgroundJobServer = new RedisBackgroundJobContainer(redisContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

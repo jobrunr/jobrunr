@@ -6,6 +6,8 @@
         </encoder>
     </appender>
 
+    <logger name="org.jobrunr.tests.fromhost.MavenBuildAndTestContainer" level="INFO"/>
+
     <root level="WARN">
         <!-- appender referenced after it is defined -->
         <appender-ref ref="STDOUT"/>

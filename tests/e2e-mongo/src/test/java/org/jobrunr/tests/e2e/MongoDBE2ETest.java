@@ -12,13 +12,13 @@ public class MongoDBE2ETest extends AbstractE2ETest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8")
+    private final GenericContainer mongoContainer = new GenericContainer("mongo:4.2.8")
             .withNetwork(network)
             .withNetworkAliases("mongo")
             .withExposedPorts(27017);
 
     @Container
-    private static final MongoDBBackgroundJobContainer backgroundJobServer = new MongoDBBackgroundJobContainer(mongoContainer, network);
+    private final MongoDBBackgroundJobContainer backgroundJobServer = new MongoDBBackgroundJobContainer(mongoContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {
