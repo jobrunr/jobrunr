@@ -7,11 +7,15 @@ import ch.qos.logback.core.read.ListAppender;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
+import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Map;
 
-import static ch.qos.logback.classic.Level.*;
+import static ch.qos.logback.classic.Level.DEBUG;
+import static ch.qos.logback.classic.Level.ERROR;
+import static ch.qos.logback.classic.Level.INFO;
+import static ch.qos.logback.classic.Level.WARN;
 import static java.util.Collections.emptyMap;
 
 public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILoggingEvent>> {
@@ -29,9 +33,17 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     public static ListAppender<ILoggingEvent> initFor(Object object) {
         final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
-        final Logger logger = Whitebox.getInternalState(object, "LOGGER");
-        logger.setLevel(DEBUG);
-        logger.addAppender(listAppender);
+        Object logger = Whitebox.getInternalState(object, "LOGGER");
+        if (logger instanceof JobRunrDashboardLogger) {
+            logger = Whitebox.getInternalState(logger, "logger");
+        }
+        if (!(logger instanceof Logger)) {
+            throw new IllegalArgumentException("Cannot find logger for object " + object);
+        }
+        final Logger actualLogger = (Logger) logger;
+        actualLogger.getLoggerContext().putProperty("AssertLoggerOriginalLevel", ((Logger) logger).getEffectiveLevel().toInt() + "");
+        actualLogger.setLevel(DEBUG);
+        actualLogger.addAppender(listAppender);
         return listAppender;
     }
 
@@ -78,8 +90,18 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         return this;
     }
 
+    public LoggerAssert hasErrorMessageContaining(String message) {
+        Assertions.assertThat(actual.list).areAtLeastOne(logsWithLevelAndMessageContaining(ERROR, message));
+        return this;
+    }
+
     public LoggerAssert hasNoErrorMessageContaining(String message) {
         Assertions.assertThat(actual.list).areNot(logsWithLevelAndMessage(ERROR, message));
+        return this;
+    }
+
+    public LoggerAssert hasNoInfoMessageContaining(String message) {
+        Assertions.assertThat(actual.list).areNot(logsWithLevelAndMessageContaining(INFO, message));
         return this;
     }
 
@@ -119,6 +141,11 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         return hasWarningMessageContaining(message, 1, mdcData);
     }
 
+    public LoggerAssert hasNoWarningMessageContaining(String message) {
+        Assertions.assertThat(actual.list).areNot(logsWithLevelAndMessageContaining(WARN, message));
+        return this;
+    }
+
     public LoggerAssert hasWarningMessageContaining(String message, int times, Map<String, String> mdcData) {
         Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(WARN, message, mdcData));
         return this;
@@ -146,9 +173,9 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     }
 
     private boolean matchesLoggingEvent(ILoggingEvent event, Level level, String message, Map<String, String> mdcData) {
-        if(event.getLevel().equals(level) && event.toString().replace("[" + level + "] ", "").contains(message)) {
+        if (event.getLevel().equals(level) && event.toString().replace("[" + level + "] ", "").contains(message)) {
             for (String key : mdcData.keySet()) {
-                if(!event.getMDCPropertyMap().containsKey(key) || !event.getMDCPropertyMap().get(key).equals(mdcData.get(key))) {
+                if (!event.getMDCPropertyMap().containsKey(key) || !event.getMDCPropertyMap().get(key).equals(mdcData.get(key))) {
                     return false;
                 }
             }
