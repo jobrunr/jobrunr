@@ -20,8 +20,8 @@ public class AssertLoggerFilter extends Filter<ILoggingEvent> {
 
     private boolean logEvent(ILoggingEvent event) {
         Map<String, String> propertyMap = event.getLoggerContextVO().getPropertyMap();
-        if (!propertyMap.containsKey("AssertLoggerOriginalLevel")) return true;
-        int originalLevel = Integer.parseInt(propertyMap.get("AssertLoggerOriginalLevel"));
+        if (!propertyMap.containsKey("AssertLoggerOriginalLevel-" + event.getLoggerName())) return true;
+        int originalLevel = Integer.parseInt(propertyMap.get("AssertLoggerOriginalLevel-" + event.getLoggerName()));
         return event.getLevel().toInt() >= originalLevel;
     }
 }

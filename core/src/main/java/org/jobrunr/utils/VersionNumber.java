@@ -93,6 +93,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return new VersionNumber(version);
     }
 
+    public static boolean isOlderThan(String actualVersion, String baseLine) {
+        return of(actualVersion).isOlderThan(of(baseLine));
+    }
+
     public static boolean isOlderOrEqualTo(String actualVersion, String baseLine) {
         return of(actualVersion).isOlderOrEqualTo(of(baseLine));
     }

@@ -41,8 +41,10 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
             throw new IllegalArgumentException("Cannot find logger for object " + object);
         }
         final Logger actualLogger = (Logger) logger;
-        actualLogger.getLoggerContext().putProperty("AssertLoggerOriginalLevel", ((Logger) logger).getEffectiveLevel().toInt() + "");
-        actualLogger.setLevel(DEBUG);
+        if (actualLogger.getLoggerContext().getProperty("AssertLoggerOriginalLevel-" + actualLogger.getName()) == null) {
+            actualLogger.getLoggerContext().putProperty("AssertLoggerOriginalLevel-" + actualLogger.getName(), ((Logger) logger).getEffectiveLevel().toInt() + "");
+            actualLogger.setLevel(DEBUG);
+        }
         actualLogger.addAppender(listAppender);
         return listAppender;
     }

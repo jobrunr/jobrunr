@@ -37,6 +37,21 @@ class VersionNumberTest {
     }
 
     @Test
+    void testVersionNumberIsOlderThan() {
+        assertThat(VersionNumber.isOlderThan("6.0.0", "6.0.0")).isFalse();
+        assertThat(VersionNumber.isOlderThan("5.0.0", "6.0.0")).isTrue();
+        assertThat(VersionNumber.isOlderThan("9.0.0", "10.0.0")).isTrue();
+        assertThat(VersionNumber.isOlderThan("1.0.0", "10.0.0")).isTrue();
+        assertThat(VersionNumber.isOlderThan("5.0.0", "5.0.1")).isTrue();
+        assertThat(VersionNumber.isOlderThan("6.0.0", "7.0.0-beta.2")).isTrue();
+        assertThat(VersionNumber.isOlderThan("7.0.0-alpha.1", "7.0.0-beta.1")).isTrue();
+        assertThat(VersionNumber.isOlderThan("7.0.0-beta.2", "7.0.0-beta.3")).isTrue();
+        assertThat(VersionNumber.isOlderThan("6.0.0", "5.0.1")).isFalse();
+        assertThat(VersionNumber.isOlderThan("10.0.0", "1.0.0")).isFalse();
+        assertThat(VersionNumber.isOlderThan("10.0.0", "9.0.0")).isFalse();
+    }
+
+    @Test
     void testVersionNumberIsNewerOrEqualTo() {
         assertThat(VersionNumber.isNewerOrEqualTo("6.0.0", "6.0.0")).isTrue();
         assertThat(VersionNumber.isNewerOrEqualTo("6.0.0", "5.0.0")).isTrue();

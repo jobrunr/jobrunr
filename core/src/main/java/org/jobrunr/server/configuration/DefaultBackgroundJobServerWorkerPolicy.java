@@ -7,7 +7,7 @@ import org.jobrunr.server.threadpool.JobRunrExecutor;
 
 import java.util.function.Function;
 
-import static org.jobrunr.utils.VersionNumber.isOlderOrEqualTo;
+import static org.jobrunr.utils.VersionNumber.isOlderThan;
 
 public class DefaultBackgroundJobServerWorkerPolicy implements BackgroundJobServerWorkerPolicy {
 
@@ -28,7 +28,7 @@ public class DefaultBackgroundJobServerWorkerPolicy implements BackgroundJobServ
 
     public DefaultBackgroundJobServerWorkerPolicy(int workerCount, BackgroundJobServerThreadType threadType) {
         this(workerCount, threadType.getJobRunrExecutor());
-        if (isOlderOrEqualTo(System.getProperty("java.version"), threadType.getMinimumJavaVersion())) {
+        if (isOlderThan(System.getProperty("java.version"), threadType.getMinimumJavaVersion())) {
             throw new UnsupportedOperationException("The required minimum Java version to use " + threadType + " is " + threadType.getMinimumJavaVersion());
         }
     }
