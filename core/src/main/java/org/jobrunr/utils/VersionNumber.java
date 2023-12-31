@@ -2,6 +2,8 @@ package org.jobrunr.utils;
 
 import java.util.Objects;
 
+import static java.lang.Integer.parseInt;
+import static java.util.Optional.ofNullable;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.substringAfter;
@@ -14,6 +16,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final int majorVersion;
     private final int minorVersion;
     private final int patchVersion;
+    private final int updateVersion;
     private final String qualifier;
 
     public VersionNumber(String completeVersion) {
@@ -21,9 +24,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.version = substringBefore(completeVersion, "-");
         this.qualifier = substringAfter(completeVersion, "-");
         String[] split = this.version.split("\\.");
-        this.majorVersion = split.length > 0 ? Integer.parseInt(split[0]) : 0;
-        this.minorVersion = split.length > 1 ? Integer.parseInt(split[1]) : 0;
-        this.patchVersion = split.length > 2 ? Integer.parseInt(split[2]) : 0;
+        this.majorVersion = split.length > 0 ? parseInt(split[0]) : 0;
+        this.minorVersion = split.length > 1 ? parseInt(split[1]) : 0;
+        this.patchVersion = split.length > 2 ? parseInt(substringBefore(split[2], "_")) : 0;
+        this.updateVersion = split.length > 2 ? parseInt(ofNullable(substringAfter(split[2], "_")).orElse("0")) : 0;
     }
 
     public String getCompleteVersion() {
@@ -72,6 +76,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         if (patchVersion < o.patchVersion) return -1;
         else if (patchVersion > o.patchVersion) return 1;
+
+        if (updateVersion < o.updateVersion) return -1;
+        else if (updateVersion > o.updateVersion) return 1;
 
         if (isNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
             return 0;

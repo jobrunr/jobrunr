@@ -66,6 +66,7 @@ class VersionNumberTest {
         assertThat(VersionNumber.isNewerOrEqualTo("1.0.0", "10.0.0")).isFalse();
         assertThat(VersionNumber.isNewerOrEqualTo("9.0.0", "10.0.0")).isFalse();
         assertThat(VersionNumber.isNewerOrEqualTo("10.6", "11.0.0")).isFalse();
+        assertThat(VersionNumber.isNewerOrEqualTo("1.8.0_241", "21")).isFalse();
     }
 
 }
