@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Integer.compare;
+import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
@@ -153,10 +154,32 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    boolean isStarted() {
+        return !isStopped();
+    }
+
+    boolean isStopped() {
+        if (isStopping()) return true;
+        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            return zookeeperThreadPool == null;
+        }
+    }
+
+    boolean isPaused() {
+        return !isProcessing();
+    }
+
+    boolean isProcessing() {
+        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            return isRunning;
+        }
+    }
+
     public boolean isAnnounced() {
-//        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-        return isMaster != null;
-//        }
+        if (isStopping()) return false;
+        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            return isMaster != null;
+        }
     }
 
     public boolean isUnAnnounced() {
@@ -183,9 +206,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public boolean isRunning() {
-//        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-        return isRunning;
-//        }
+        if (isStopping()) return false;
+        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            return isRunning;
+        }
     }
 
     @Override
@@ -241,32 +265,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
-    boolean isStarted() {
-        return !isStopped();
-    }
-
-    boolean isStopped() {
-        //try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-        return zookeeperThreadPool == null;
-        //}
-    }
-
-    boolean isPaused() {
-        return !isProcessing();
-    }
-
-    boolean isProcessing() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-            return isRunning;
-        }
-    }
-
     private void startZooKeepers() {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
@@ -346,26 +350,22 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return pollInterval.compareTo(Duration.ofSeconds(5)) < 0 && !(storageProvider instanceof InMemoryStorageProvider);
     }
 
+    private boolean isStopping() {
+        return jobExecutor != null && jobExecutor.isStopping();
+    }
+
     private static class BackgroundJobServerLifecycleLock implements AutoCloseable {
         private final ReentrantLock reentrantLock = new ReentrantLock();
 
         public BackgroundJobServerLifecycleLock lock() {
             if (reentrantLock.isHeldByCurrentThread()) return this;
 
-            System.out.println("Locking: " + Thread.currentThread().getStackTrace()[2]);
-            System.out.println("\t" + Thread.currentThread().getStackTrace()[3]);
-            System.out.println("\t" + Thread.currentThread().getStackTrace()[4]);
-            System.out.println("\t" + Thread.currentThread().getStackTrace()[5]);
             reentrantLock.lock();
-            System.out.println("Locked: " + Thread.currentThread().getStackTrace()[2]);
-            System.out.println("\t" + Thread.currentThread().getStackTrace()[3]);
             return this;
         }
 
         @Override
         public void close() {
-            System.out.println("Unlocking: " + Thread.currentThread().getStackTrace()[2]);
-            System.out.println("\t" + Thread.currentThread().getStackTrace()[3]);
             reentrantLock.unlock();
         }
     }
