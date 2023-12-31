@@ -1,5 +1,6 @@
 package org.jobrunr.tests.fromhost;
 
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.ImageFromDockerfile;
@@ -21,10 +22,11 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
                 ));
         if (exists(Paths.get("/drone"))) {
             this
-                    .withFileSystemBind(Paths.get("/tmp/jobrunr/cache/gradle-wrapper").toString(), "/root/.gradle/wrapper/dists");
+                    .withFileSystemBind(Paths.get("/tmp/jobrunr/cache/gradle-wrapper").toString(), "/root/.gradle/wrapper/dists", BindMode.READ_WRITE)
+                    .withFileSystemBind(Paths.get("/root/.m2").toString(), "/root/.m2", BindMode.READ_WRITE);
         } else {
             this
-                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".m2").toString(), "/root/.m2");
+                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".m2").toString(), "/root/.m2", BindMode.READ_WRITE);
         }
 
         this
