@@ -29,6 +29,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
 }
 
+test.dependsOn(':core:publishToMavenLocal')
 test {
     reports.junitXml.destination = file("/tmp/reports/$project.name")
     reports.html.destination = file("/tmp/reports/$project.name")

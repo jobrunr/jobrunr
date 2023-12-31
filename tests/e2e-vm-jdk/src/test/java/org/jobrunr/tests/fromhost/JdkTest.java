@@ -2,7 +2,6 @@ package org.jobrunr.tests.fromhost;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.executioncondition.RunTestBetween;
 import org.testcontainers.images.PullPolicy;
 
 import java.time.Duration;
@@ -14,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 // we do not want to run this test within the docker container itself as it would otherwise run recursively
 // once inside the docker build, the ENV variable JDK_TEST is set
 // the end result is that only the tests inside org.jobrunr.tests.e2e must run (on the correct JDK)
-@RunTestBetween(from = "00:00", to = "03:00")
+//@RunTestBetween(from = "00:00", to = "03:00")
 @DisabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
 class JdkTest {
 
@@ -95,7 +94,9 @@ class JdkTest {
 
     @Test
     void jdk17OpenJDK() {
-        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:17")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:17"))
+                .contains("BUILD SUCCESS")
+                .contains("ThreadManager of type 'ScheduledThreadPool' started");
     }
 
     @Test
@@ -106,6 +107,13 @@ class JdkTest {
     @Test
     void jdk19OpenJDK() {
         assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:19-jdk-slim")).contains("BUILD SUCCESS");
+    }
+
+    @Test
+    void jdk21EclipseTemurin() {
+        assertThat(buildAndTestOnImage("eclipse-temurin:21"))
+                .contains("BUILD SUCCESS")
+                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
     private String buildAndTestOnImage(String dockerfile) {
