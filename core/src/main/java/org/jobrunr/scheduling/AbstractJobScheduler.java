@@ -11,6 +11,7 @@ import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,8 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import static java.time.Duration.ofSeconds;
 
 public abstract class AbstractJobScheduler {
 
@@ -121,6 +124,7 @@ public abstract class AbstractJobScheduler {
 
     String scheduleRecurrently(RecurringJob recurringJob) {
         jobFilterUtils.runOnCreatingFilter(recurringJob);
+        recurringJob.validateSchedule(storageProvider instanceof InMemoryStorageProvider ? ofSeconds(1) : ofSeconds(5));
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
         jobFilterUtils.runOnCreatedFilter(recurringJob);
         return savedRecurringJob.getId();

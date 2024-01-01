@@ -55,7 +55,6 @@ public class RecurringJob extends AbstractJob {
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
         super(jobDetails);
-        this.validateSchedule(schedule);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
         this.scheduleExpression = schedule.toString();
@@ -154,8 +153,8 @@ public class RecurringJob extends AbstractJob {
                 '}';
     }
 
-    private void validateSchedule(Schedule schedule) {
-        validateSchedule(schedule, Duration.ofSeconds(5));
+    public void validateSchedule(Duration minimumInterval) {
+        validateSchedule(ScheduleExpressionType.getSchedule(scheduleExpression), minimumInterval);
     }
 
     private void validateSchedule(Schedule schedule, Duration minimumInterval) {
