@@ -56,6 +56,7 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 class BackgroundJobServerTest {
 
@@ -88,6 +89,18 @@ class BackgroundJobServerTest {
     @AfterEach
     void stopBackgroundJobServer() {
         backgroundJobServer.stop();
+    }
+
+    @Test
+    void backgroundJobServerValidatesPollIntervalInSecondsAndThrowsExceptionIfTooSmall() {
+        assertThatThrownBy(() -> {
+            JobRunr.configure()
+                    .useStorageProvider(mock(StorageProvider.class))
+                    .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)), false)
+                    .initialize();
+        })
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("The pollInterval can not be smaller than 5 seconds - otherwise it will cause to much load on your SQL/noSQL datastore.");
     }
 
     @Test
