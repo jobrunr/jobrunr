@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -41,10 +42,17 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.*;
+import static org.awaitility.Durations.FIVE_SECONDS;
+import static org.awaitility.Durations.ONE_MINUTE;
+import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -70,7 +78,7 @@ class BackgroundJobServerTest {
         JobRunr.configure()
                 .useJobActivator(jobActivator)
                 .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5), false)
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)), false)
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
         logger = LoggerAssert.initFor(backgroundJobServer);
@@ -88,29 +96,29 @@ class BackgroundJobServerTest {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         // THEN the job should stay in state ENQUEUED
-        await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> testService.getProcessedJobs() == 0);
+        await().during(TWO_SECONDS).until(() -> testService.getProcessedJobs() == 0);
         assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED);
 
         // WHEN we start the server
         backgroundJobServer.start();
 
         // THEN the job should be processed
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
 
         // WHEN we pause the server and enqueue a new job
         backgroundJobServer.pauseProcessing();
         JobId anotherJobId = BackgroundJob.enqueue(() -> testService.doWork());
 
         // THEN the job should stay in state ENQUEUED
-        await().during(5, SECONDS).atMost(10, SECONDS).until(() -> testService.getProcessedJobs() == 1);
-        await().during(5, SECONDS).atMost(10, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
+        await().during(1, SECONDS).until(() -> testService.getProcessedJobs() == 1);
+        await().during(1, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED));
 
         // WHEN we resume the server again
         backgroundJobServer.resumeProcessing();
 
         // THEN the job should be processed again
-        await().atMost(TEN_SECONDS).until(() -> testService.getProcessedJobs() > 1);
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
+        await().atMost(FIVE_SECONDS).until(() -> testService.getProcessedJobs() > 1);
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(anotherJobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED));
 
         // WHEN we shutdown the server
         backgroundJobServer.stop();
@@ -227,12 +235,12 @@ class BackgroundJobServerTest {
     void testStopBackgroundJobServerWhileProcessing() {
         backgroundJobServer.start();
 
-        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(15));
-        await().atMost(6, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
+        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
+        await().atMost(500, MILLISECONDS).until(() -> storageProvider.getJobById(jobId).hasState(PROCESSING));
         backgroundJobServer.stop();
-        await().atMost(60, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(FAILED) || storageProvider.getJobById(jobId).hasState(SCHEDULED));
+        await().atMost(20, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(FAILED) || storageProvider.getJobById(jobId).hasState(SCHEDULED));
         backgroundJobServer.start();
-        await().atMost(21, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
+        await().atMost(25, SECONDS).until(() -> storageProvider.getJobById(jobId).hasState(SUCCEEDED));
     }
 
     @Test
@@ -248,10 +256,10 @@ class BackgroundJobServerTest {
     void testHeartbeatsAreSentForJobsInProcessingState() {
         backgroundJobServer.start();
 
-        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(16));
-        await().pollInterval(150, MILLISECONDS).pollDelay(3, SECONDS).atMost(7, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
-        await().pollInterval(150, MILLISECONDS).pollDelay(3, SECONDS).atMost(7, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
-        await().pollInterval(150, MILLISECONDS).pollDelay(3, SECONDS).atMost(7, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
+        final JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(4));
+        await().pollInterval(150, MILLISECONDS).pollDelay(1, SECONDS).atMost(2, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
+        await().pollInterval(150, MILLISECONDS).pollDelay(1, SECONDS).atMost(2, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
+        await().pollInterval(150, MILLISECONDS).pollDelay(1, SECONDS).atMost(2, SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasUpdatedAtCloseTo(now(), within(500, ChronoUnit.MILLIS)));
     }
 
     @Test

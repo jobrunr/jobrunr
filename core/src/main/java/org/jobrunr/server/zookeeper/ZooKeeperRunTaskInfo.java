@@ -26,7 +26,7 @@ public class ZooKeeperRunTaskInfo implements ZooKeeperTaskInfo, AutoCloseable {
 
     @Override
     public boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
-        final Duration durationPollIntervalTimeBox = Duration.ofMillis(backgroundJobServerConfiguration.getPollInterval().toMillis() * 950);
+        final Duration durationPollIntervalTimeBox = backgroundJobServerConfiguration.getPollInterval().multipliedBy(95).dividedBy(100);
         final Duration durationRunTime = Duration.between(runStartTime, now());
         return durationRunTime.compareTo(durationPollIntervalTimeBox) >= 0;
     }

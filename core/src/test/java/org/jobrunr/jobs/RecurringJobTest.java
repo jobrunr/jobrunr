@@ -15,6 +15,8 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 
+import static java.time.Duration.ofMillis;
+import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -157,14 +159,26 @@ class RecurringJobTest {
     }
 
     @Test
-    void smallestIntervalForRecurringCronJobIs5Seconds() {
-        assertThatThrownBy(() -> aDefaultRecurringJob().withCronExpression("* * * * * *").build()).isInstanceOf(IllegalArgumentException.class);
-        assertThatCode(() -> aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build()).doesNotThrowAnyException();
+    void testValidateScheduleForRecurringCronJob() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+
+        assertThatThrownBy(() -> recurringJob1.validateSchedule(ofSeconds(5))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> recurringJob2.validateSchedule(ofSeconds(10))).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatCode(() -> recurringJob1.validateSchedule(ofMillis(200))).doesNotThrowAnyException();
+        assertThatCode(() -> recurringJob2.validateSchedule(ofSeconds(5))).doesNotThrowAnyException();
     }
 
     @Test
     void smallestIntervalForRecurringIntervalJobIs5Seconds() {
-        assertThatThrownBy(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(4).toString()).build()).isInstanceOf(IllegalArgumentException.class);
-        assertThatCode(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(5).toString()).build()).doesNotThrowAnyException();
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(1).toString()).build();
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(5).toString()).build();
+
+        assertThatThrownBy(() -> recurringJob1.validateSchedule(ofSeconds(5))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> recurringJob2.validateSchedule(ofSeconds(10))).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatCode(() -> recurringJob1.validateSchedule(ofMillis(200))).doesNotThrowAnyException();
+        assertThatCode(() -> recurringJob2.validateSchedule(ofSeconds(5))).doesNotThrowAnyException();
     }
 }

@@ -274,7 +274,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testScheduleWithZonedDateTime() {
         JobId jobId = BackgroundJob.schedule(ZonedDateTime.now().plus(ofMillis(1500)), () -> testService.doWork());
-        await().during(TWO_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
+        await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
