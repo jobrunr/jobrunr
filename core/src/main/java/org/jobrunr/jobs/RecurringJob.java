@@ -9,10 +9,19 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.*;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+
+import static java.time.Duration.between;
+import static org.jobrunr.scheduling.Schedule.SMALLEST_SCHEDULE_IN_SECONDS;
 
 public class RecurringJob extends AbstractJob {
 
@@ -46,7 +55,7 @@ public class RecurringJob extends AbstractJob {
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
         super(jobDetails);
-        schedule.validateSchedule();
+        this.validateSchedule(schedule);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
         this.scheduleExpression = schedule.toString();
@@ -143,5 +152,19 @@ public class RecurringJob extends AbstractJob {
                 ", jobSignature='" + getJobSignature() + '\'' +
                 ", jobName='" + getJobName() + '\'' +
                 '}';
+    }
+
+    private void validateSchedule(Schedule schedule) {
+        validateSchedule(schedule, Duration.ofSeconds(5));
+    }
+
+    private void validateSchedule(Schedule schedule, Duration minimumInterval) {
+        Instant base = Instant.EPOCH.plusSeconds(3600);
+
+        Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
+        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
+        if (between(run1, run2).toMillis() < minimumInterval.toMillis()) {
+            throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
+        }
     }
 }

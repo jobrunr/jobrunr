@@ -26,13 +26,6 @@ public class Interval extends Schedule {
     }
 
     @Override
-    public void validateSchedule() {
-        if (duration.getSeconds() < SMALLEST_SCHEDULE_IN_SECONDS) {
-            throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
-        }
-    }
-
-    @Override
     public String toString() {
         return duration.toString();
     }
