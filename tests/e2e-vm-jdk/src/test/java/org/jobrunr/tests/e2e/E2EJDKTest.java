@@ -16,8 +16,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.Instant.now;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.awaitility.Awaitility.await;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 
@@ -34,7 +36,7 @@ class E2EJDKTest {
                 .useStorageProvider(storageProvider)
                 .useJobActivator(E2EJDKTest::jobActivator)
                 .useDashboard()
-                .useBackgroundJobServer()
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
                 .initialize();
     }
 
@@ -57,7 +59,7 @@ class E2EJDKTest {
         BackgroundJob.enqueue(() -> testService.doWork(new Work(1, "Foo", 2L, UUID.randomUUID())));
 
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(15, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     String succeededJobs = getSucceededJobs();
                     assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
@@ -70,7 +72,7 @@ class E2EJDKTest {
         BackgroundJob.<TestService>enqueue(x -> x.doWork(new Work(1, "Foo", 2L, UUID.randomUUID())));
 
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(15, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     String succeededJobs = getSucceededJobs();
                     assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
@@ -83,7 +85,7 @@ class E2EJDKTest {
         BackgroundJob.enqueue((JobLambda) testService::doWork);
 
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(15, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     String succeededJobs = getSucceededJobs();
                     assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
@@ -96,11 +98,24 @@ class E2EJDKTest {
         BackgroundJob.<TestService>enqueue(TestService::doWork);
 
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(15, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     String succeededJobs = getSucceededJobs();
                     assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
                     assertThatJson(succeededJobs).inPath("$.items[0].jobHistory[2].state").isEqualTo("SUCCEEDED");
+                });
+    }
+
+    @Test
+    void usingSchedule() {
+        BackgroundJob.<TestService>schedule(now().plusSeconds(5), TestService::doWork);
+
+        await()
+                .atMost(20, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    String succeededJobs = getSucceededJobs();
+                    assertThatJson(succeededJobs).inPath("$.items").isArray().hasSize(1);
+                    assertThatJson(succeededJobs).inPath("$.items[0].jobHistory[3].state").isEqualTo("SUCCEEDED");
                 });
     }
 
