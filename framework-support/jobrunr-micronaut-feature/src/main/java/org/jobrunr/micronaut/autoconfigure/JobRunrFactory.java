@@ -16,6 +16,8 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
+import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -54,9 +56,13 @@ public class JobRunrFactory {
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
     public BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+
+        BackgroundJobServerThreadType threadType = configuration.getBackgroundJobServer().getThreadType().orElse(BackgroundJobServerThreadType.getDefaultThreadType());
+        int workerCount = configuration.getBackgroundJobServer().getWorkerCount().orElse(threadType.getDefaultWorkerCount());
+        backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType));
+
         configuration.getBackgroundJobServer().getName().ifPresent(backgroundJobServerConfiguration::andName);
         configuration.getBackgroundJobServer().getPollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
-        configuration.getBackgroundJobServer().getWorkerCount().ifPresent(backgroundJobServerConfiguration::andWorkerCount);
         configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         configuration.getBackgroundJobServer().getScheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);

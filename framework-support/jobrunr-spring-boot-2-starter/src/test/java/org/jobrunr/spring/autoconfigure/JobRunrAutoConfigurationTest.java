@@ -11,7 +11,11 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
-import org.jobrunr.spring.autoconfigure.storage.*;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
@@ -136,6 +140,20 @@ public class JobRunrAutoConfigurationTest {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServer.class))
                             .hasName("test");
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoThreadTypeAndWorkerCount() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.worker-count=4")
+                .withPropertyValues("org.jobrunr.background-job-server.thread-type=PlatformThreads")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context.getBean(BackgroundJobServer.class));
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasWorkerCount(4);
                 });
     }
 

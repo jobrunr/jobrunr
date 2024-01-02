@@ -2,6 +2,7 @@ package org.jobrunr.server;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 
 
 public class BackgroundJobServerConfigurationAssert extends AbstractAssert<BackgroundJobServerConfigurationAssert, BackgroundJobServerConfiguration> {
@@ -12,6 +13,22 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
 
     public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
         return new BackgroundJobServerConfigurationAssert(backgroundJobServerConfiguration);
+    }
+
+    public BackgroundJobServerConfigurationAssert hasName(String name) {
+        Assertions.assertThat(actual.getName()).isEqualTo(name);
+        return this;
+    }
+
+    public BackgroundJobServerConfigurationAssert hasPollIntervalInSeconds(int pollIntervalInSeconds) {
+        Assertions.assertThat(actual.getPollIntervalInSeconds()).isEqualTo(pollIntervalInSeconds);
+        return this;
+    }
+
+    public BackgroundJobServerConfigurationAssert hasWorkerCount(Integer workerCount) {
+        BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = actual.getBackgroundJobServerWorkerPolicy();
+        Assertions.assertThat(backgroundJobServerWorkerPolicy.toWorkDistributionStrategy(null).getWorkerCount()).isEqualTo(workerCount);
+        return this;
     }
 
     public BackgroundJobServerConfigurationAssert hasScheduledJobRequestSize(int scheduledJobsRequestSize) {
@@ -28,5 +45,4 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
         Assertions.assertThat(actual.getSucceededJobsRequestSize()).isEqualTo(succeededJobRequestSize);
         return this;
     }
-
 }

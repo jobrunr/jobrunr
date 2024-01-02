@@ -2,6 +2,7 @@ package org.jobrunr.utils;
 
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.substringAfter;
@@ -11,9 +12,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     private final String completeVersion;
     private final String version;
-    private final int majorVersion;
-    private final int minorVersion;
-    private final int patchVersion;
+    private final String majorVersion;
+    private final String minorVersion;
+    private final String patchVersion;
+    private final String updateVersion;
     private final String qualifier;
 
     public VersionNumber(String completeVersion) {
@@ -21,9 +23,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.version = substringBefore(completeVersion, "-");
         this.qualifier = substringAfter(completeVersion, "-");
         String[] split = this.version.split("\\.");
-        this.majorVersion = split.length > 0 ? Integer.parseInt(split[0]) : 0;
-        this.minorVersion = split.length > 1 ? Integer.parseInt(split[1]) : 0;
-        this.patchVersion = split.length > 2 ? Integer.parseInt(split[2]) : 0;
+        this.majorVersion = split.length > 0 ? split[0] : "0";
+        this.minorVersion = split.length > 1 ? split[1] : "0";
+        this.patchVersion = split.length > 2 ? substringBefore(split[2], "_") : "0";
+        this.updateVersion = split.length > 2 ? ofNullable(substringAfter(split[2], "_")).orElse("0") : "0";
     }
 
     public String getCompleteVersion() {
@@ -64,14 +67,17 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public int compareTo(VersionNumber o) {
-        if (majorVersion < o.majorVersion) return -1;
-        else if (majorVersion > o.majorVersion) return 1;
+        int majorVersionComparison = compareVersionNumber(majorVersion, o.majorVersion);
+        if (majorVersionComparison != 0) return majorVersionComparison;
 
-        if (minorVersion < o.minorVersion) return -1;
-        else if (minorVersion > o.minorVersion) return 1;
+        int minorVersionComparison = compareVersionNumber(minorVersion, o.minorVersion);
+        if (minorVersionComparison != 0) return minorVersionComparison;
 
-        if (patchVersion < o.patchVersion) return -1;
-        else if (patchVersion > o.patchVersion) return 1;
+        int patchVersionComparison = compareVersionNumber(patchVersion, o.patchVersion);
+        if (patchVersionComparison != 0) return patchVersionComparison;
+
+        int updateVersionComparison = compareVersionNumber(updateVersion, o.updateVersion);
+        if (updateVersionComparison != 0) return updateVersionComparison;
 
         if (isNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
             return 0;
@@ -89,17 +95,23 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return completeVersion;
     }
 
-    private String toFullyQualifiedVersion(String version) {
-        String newString = "0000000000".concat(version);
-        return newString.substring(newString.length() - 10);
+    private int compareVersionNumber(String myself, String other) {
+        if (myself.length() != other.length()) return myself.length() - other.length();
+        else if (myself.compareTo(other) < 0) return -1;
+        else if (myself.compareTo(other) > 0) return 1;
+        return 0;
     }
 
     public static VersionNumber of(String version) {
         return new VersionNumber(version);
     }
 
-    public static boolean isOlderOrEqualTo(String baseLine, String actualVersion) {
-        return of(baseLine).isOlderOrEqualTo(of(actualVersion));
+    public static boolean isOlderThan(String actualVersion, String baseLine) {
+        return of(actualVersion).isOlderThan(of(baseLine));
+    }
+
+    public static boolean isOlderOrEqualTo(String actualVersion, String baseLine) {
+        return of(actualVersion).isOlderOrEqualTo(of(baseLine));
     }
 
     public static boolean isNewerOrEqualTo(String actualVersion, String baseLine) {

@@ -84,7 +84,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
         this.jobServerStats = new JobServerStats();
-        this.workDistributionStrategy = createWorkDistributionStrategy(configuration);
+        this.workDistributionStrategy = createWorkDistributionStrategy();
         this.serverZooKeeper = createServerZooKeeper();
         this.jobZooKeeper = createJobZooKeeper();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
@@ -273,7 +273,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startWorkers() {
-        jobExecutor = loadJobRunrExecutor();
+        jobExecutor = configuration.getBackgroundJobServerWorkerPolicy().toJobRunrExecutor();
         jobExecutor.start();
     }
 
@@ -327,7 +327,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return new JobZooKeeper(this);
     }
 
-    private WorkDistributionStrategy createWorkDistributionStrategy(BackgroundJobServerConfiguration configuration) {
+    private WorkDistributionStrategy createWorkDistributionStrategy() {
         return configuration.getBackgroundJobServerWorkerPolicy().toWorkDistributionStrategy(this);
     }
 
@@ -336,13 +336,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
                 .min((a, b) -> compare(b.getPriority(), a.getPriority()))
                 .orElseGet(BasicBackgroundJobPerformerFactory::new);
-    }
-
-    private JobRunrExecutor loadJobRunrExecutor() {
-        ServiceLoader<JobRunrExecutor> serviceLoader = ServiceLoader.load(JobRunrExecutor.class);
-        return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
-                .min((a, b) -> compare(b.getPriority(), a.getPriority()))
-                .orElseGet(() -> new ScheduledThreadPoolJobRunrExecutor(workDistributionStrategy.getWorkerCount(), "backgroundjob-worker-pool"));
     }
 
     private static class BackgroundJobServerLifecycleLock implements AutoCloseable {

@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.core.bind.annotation.Bindable;
 import jakarta.validation.constraints.NotNull;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -119,6 +120,12 @@ public interface JobRunrConfiguration {
          */
         Optional<Integer> getWorkerCount();
 
+        /**
+         * Sets the Thread Type for the BackgroundJobServer.
+         * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
+         */
+        Optional<BackgroundJobServerThreadType> getThreadType();
+        
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */

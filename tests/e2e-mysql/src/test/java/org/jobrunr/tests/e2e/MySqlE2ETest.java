@@ -12,12 +12,12 @@ public class MySqlE2ETest extends AbstractE2ETest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final MySQLContainer sqlContainer = new MySQLContainer<>()
+    private final MySQLContainer sqlContainer = new MySQLContainer<>()
             .withNetwork(network)
             .withNetworkAliases("mysql");
 
     @Container
-    private static final MySqlBackgroundJobContainer backgroundJobServer = new MySqlBackgroundJobContainer(sqlContainer, network);
+    private final MySqlBackgroundJobContainer backgroundJobServer = new MySqlBackgroundJobContainer(sqlContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

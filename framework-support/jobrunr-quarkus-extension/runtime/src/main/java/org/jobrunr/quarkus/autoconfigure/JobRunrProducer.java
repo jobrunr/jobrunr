@@ -16,6 +16,8 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
+import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -63,9 +65,13 @@ public class JobRunrProducer {
     BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
         if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
             final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+
+            BackgroundJobServerThreadType threadType = jobRunrRuntimeConfiguration.backgroundJobServer().threadType().orElse(BackgroundJobServerThreadType.getDefaultThreadType());
+            int workerCount = jobRunrRuntimeConfiguration.backgroundJobServer().workerCount().orElse(threadType.getDefaultWorkerCount());
+            backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType));
+
             jobRunrRuntimeConfiguration.backgroundJobServer().name().ifPresent(backgroundJobServerConfiguration::andName);
             jobRunrRuntimeConfiguration.backgroundJobServer().pollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
-            jobRunrRuntimeConfiguration.backgroundJobServer().workerCount().ifPresent(backgroundJobServerConfiguration::andWorkerCount);
             jobRunrRuntimeConfiguration.backgroundJobServer().deleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
             jobRunrRuntimeConfiguration.backgroundJobServer().permanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
             jobRunrRuntimeConfiguration.backgroundJobServer().scheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);

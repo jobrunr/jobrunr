@@ -13,12 +13,12 @@ public class SQLServerE2ETest extends AbstractE2ETest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/azure-sql-edge").asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server"))
+    private final MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/azure-sql-edge").asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server"))
             .withNetwork(network)
             .withNetworkAliases("sqlserver");
 
     @Container
-    private static final SQLServerBackgroundJobContainer backgroundJobServer = new SQLServerBackgroundJobContainer(sqlContainer, network);
+    private final SQLServerBackgroundJobContainer backgroundJobServer = new SQLServerBackgroundJobContainer(sqlContainer, network);
 
     @Override
     protected StorageProvider getStorageProviderForClient() {

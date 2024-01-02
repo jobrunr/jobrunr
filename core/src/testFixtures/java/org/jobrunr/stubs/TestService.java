@@ -3,11 +3,14 @@ package org.jobrunr.stubs;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
+import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
 import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.File;
@@ -28,6 +31,8 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 
 public class TestService implements TestServiceInterface {
 
+    private static final Logger LOGGER = new JobRunrDashboardLogger(LoggerFactory.getLogger(TestService.class));
+
     private static int processedJobs = 0;
 
     public int getProcessedJobs() {
@@ -35,7 +40,7 @@ public class TestService implements TestServiceInterface {
     }
 
     public static void doStaticWork() {
-        System.out.println("Doing some work from a static method... ");
+        LOGGER.debug("Doing some work from a static method... ");
     }
 
     public void doWork(Runnable runnable) throws Exception {
@@ -43,131 +48,131 @@ public class TestService implements TestServiceInterface {
     }
 
     public void doWorkWithCommand(Command command) throws Exception {
-        System.out.println("Doing some work... ");
+        LOGGER.debug("Doing some work... ");
         command.doWork();
     }
 
     public void doWorkWithFile(File file) throws Exception {
-        System.out.println("Doing some work... " + file.getAbsolutePath());
+        LOGGER.debug("Doing some work... " + file.getAbsolutePath());
     }
 
     public void doWorkWithPath(Path path) throws Exception {
-        System.out.println("Doing some work... " + path.toFile().getAbsolutePath());
+        LOGGER.debug("Doing some work... " + path.toFile().getAbsolutePath());
     }
 
     public void doWork(Work work) throws Exception {
         processedJobs += work.workCount;
-        System.out.println("Doing some work... " + work.workCount + "; " + work.someString);
+        LOGGER.debug("Doing some work... " + work.workCount + "; " + work.someString);
     }
 
     public void doWork(Double count) {
-        System.out.println("Doing some work... " + processedJobs + count);
+        LOGGER.debug("Doing some work... " + processedJobs + count);
     }
 
     public void doWork(double[] xValues, double[] yValues) {
-        System.out.println("Doing some work with coordinates... ");
+        LOGGER.debug("Doing some work with coordinates... ");
     }
 
     public void doWork(Integer count) {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs + "; " + Instant.now());
+        LOGGER.debug("Doing some work... " + processedJobs + "; " + Instant.now());
     }
 
     public void doWork(Long count) {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs);
+        LOGGER.debug("Doing some work... " + processedJobs);
     }
 
     public void doWork(Integer count, JobContext jobContext) throws InterruptedException {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs + "; jobId: " + jobContext.getJobId());
+        LOGGER.debug("Doing some work... " + processedJobs + "; jobId: " + jobContext.getJobId());
         jobContext.saveMetadata("test", "test");
         Thread.sleep(6000L);
     }
 
     public void doWork(int countA, int countB) {
         processedJobs += (countA + countB);
-        System.out.println("Doing some work... " + processedJobs);
+        LOGGER.debug("Doing some work... " + processedJobs);
     }
 
     @Job(name = "Doing some hard work for user %1 (customerId: %X{customer.id})")
     public void doWorkWithAnnotation(Integer userId, String userName) {
-        System.out.println("Doing some work... " + processedJobs);
+        LOGGER.debug("Doing some work... " + processedJobs);
     }
 
     @Job(name = "Doing some hard work for user %1 with id %0")
     public void doWorkWithAnnotationAndJobContext(Integer userId, String userName, JobContext jobContext) {
-        System.out.println("Doing some work... " + processedJobs);
+        LOGGER.debug("Doing some work... " + processedJobs);
     }
 
     public void doWork(int count, String aString, Instant instant) {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs + " " + aString + " " + instant);
+        LOGGER.debug("Doing some work... " + processedJobs + " " + aString + " " + instant);
     }
 
     public void doWork(UUID uuid) {
-        System.out.println("Doing some work... " + uuid);
+        LOGGER.debug("Doing some work... " + uuid);
     }
 
     public void doWorkWithUUID(UUID uuid) {
-        System.out.println("Doing some work... " + uuid);
+        LOGGER.debug("Doing some work... " + uuid);
     }
 
     public void doWorkWithLong(Long value) {
-        System.out.println("Doing some work... " + value);
+        LOGGER.debug("Doing some work... " + value);
     }
 
     public void doWork(UUID uuid, int count, Instant instant) {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs + " " + uuid + " " + instant);
+        LOGGER.debug("Doing some work... " + processedJobs + " " + uuid + " " + instant);
     }
 
     public void doWork(String aString, int count, Instant instant) {
         processedJobs += count;
-        System.out.println("Doing some work... " + processedJobs + " " + aString + " " + instant);
+        LOGGER.debug("Doing some work... " + processedJobs + " " + aString + " " + instant);
     }
 
     public void doWork(LocalDateTime localDateTime) {
-        System.out.println("Doing some work... " + processedJobs + " " + localDateTime.toString());
+        LOGGER.debug("Doing some work... " + processedJobs + " " + localDateTime.toString());
     }
 
     public void doWork(boolean bool, int i, long l, float f, double d) {
-        System.out.println("Doing some work... " + bool + "; " + i + "; " + l + "; " + f + "; " + d);
+        LOGGER.debug("Doing some work... " + bool + "; " + i + "; " + l + "; " + f + "; " + d);
     }
 
     public void doWork(byte b, short s, char c) {
-        System.out.println("Doing some work... " + b + "; " + s + "; " + c);
+        LOGGER.debug("Doing some work... " + b + "; " + s + "; " + c);
     }
 
     public void doWorkWithEnum(Task task) {
-        System.out.println("Doing some work: " + task.executeTask());
+        LOGGER.debug("Doing some work: " + task.executeTask());
     }
 
     @Job(name = "Doing some work")
     public void doWork() {
         processedJobs++;
-        System.out.println("Doing some work... " + processedJobs);
+        LOGGER.debug("Doing some work... " + processedJobs);
     }
 
     @Job(name = "Doing some work with input")
     public void doWork(String input) {
-        System.out.println("Doing some work with input " + input);
+        LOGGER.debug("Doing some work with input " + input);
     }
 
     @Job(labels = "label-%0 - %1")
     public void doWorkWithJobAnnotationAndLabels(int i, String s) {
         processedJobs++;
-        System.out.println("Doing some work... " + processedJobs);
+        LOGGER.debug("Doing some work... " + processedJobs);
     }
 
     @Job(jobFilters = {TheSunIsAlwaysShiningElectStateFilter.class, TestFilter.class})
     public void doWorkWithCustomJobFilters() {
-        System.out.println("I will always succeed thanks to my SunIsAlwaysShiningElectStateFilter... ");
+        LOGGER.debug("I will always succeed thanks to my SunIsAlwaysShiningElectStateFilter... ");
     }
 
     @Job(jobFilters = {JobFilterWithNoDefaultConstructor.class})
     public void doWorkWithCustomJobFilterThatNeedsDependencyInjection() {
-        System.out.println("I will never succeed... ");
+        LOGGER.debug("I will never succeed... ");
     }
 
     public String doWorkAndReturnResult(String someString) {
@@ -177,7 +182,7 @@ public class TestService implements TestServiceInterface {
     @Job(name = "Doing some work", retries = 1, labels = {"Just a label", "Another label"})
     public void doWorkThatFails() {
         processedJobs++;
-        System.out.println("Whoopsie, an error will occur " + processedJobs);
+        LOGGER.debug("Whoopsie, an error will occur " + processedJobs);
         throw new RuntimeException("Whoopsie, an error occurred");
     }
 
@@ -200,9 +205,9 @@ public class TestService implements TestServiceInterface {
     public void doWorkThatTakesLong(int seconds) throws InterruptedException {
         try {
             TimeUnit.SECONDS.sleep(seconds);
-            System.out.println("WORK IS DONE!!!!!!!!");
+            LOGGER.debug("WORK IS DONE!!!!!!!!");
         } catch (InterruptedException e) {
-            System.out.println("Thread has been interrupted");
+            LOGGER.debug("Thread has been interrupted");
             throw e;
         }
     }
@@ -210,9 +215,9 @@ public class TestService implements TestServiceInterface {
     public void doWorkThatTakesLongInterruptThread(int seconds) {
         try {
             TimeUnit.SECONDS.sleep(seconds);
-            System.out.println("WORK IS DONE!!!!!!!!");
+            LOGGER.debug("WORK IS DONE!!!!!!!!");
         } catch (InterruptedException e) {
-            System.out.println("Thread has been interrupted");
+            LOGGER.debug("Thread has been interrupted");
             Thread.currentThread().interrupt();
         }
     }
@@ -220,9 +225,9 @@ public class TestService implements TestServiceInterface {
     public void doWorkThatTakesLongCatchInterruptException(int seconds) {
         try {
             TimeUnit.SECONDS.sleep(seconds);
-            System.out.println("WORK IS DONE!!!!!!!!");
+            LOGGER.debug("WORK IS DONE!!!!!!!!");
         } catch (InterruptedException e) {
-            System.out.println("Thread has been interrupted - not rethrowing nor interrupting again");
+            LOGGER.debug("Thread has been interrupted - not rethrowing nor interrupting again");
         }
     }
 
@@ -232,7 +237,7 @@ public class TestService implements TestServiceInterface {
         while (start.plusSeconds(seconds).isAfter(Instant.now())) {
             if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
             if (Duration.between(start, Instant.now()).getSeconds() > initialNbr) {
-                System.out.println("WORK IS BEING DONE: " + Duration.between(start, Instant.now()).getSeconds());
+                LOGGER.debug("WORK IS BEING DONE: " + Duration.between(start, Instant.now()).getSeconds());
                 initialNbr = Duration.between(start, Instant.now()).getSeconds();
             }
         }
@@ -271,11 +276,11 @@ public class TestService implements TestServiceInterface {
 
     @Job(jobFilters = {SkipProcessingElectStateFilter.class})
     public void tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter() {
-        System.out.println("This should not be executed");
+        LOGGER.debug("This should not be executed");
     }
 
     public void doIllegalWork(IllegalWork illegalWork) {
-        System.out.println("Doing some illegal work:" + illegalWork);
+        LOGGER.debug("Doing some illegal work:" + illegalWork);
     }
 
     public void doWorkWithoutParameters() {
@@ -291,37 +296,37 @@ public class TestService implements TestServiceInterface {
     }
 
     private void aPrivateMethod(String string, int someNumber) {
-        System.out.println("Nothing to do");
+        LOGGER.debug("Nothing to do");
     }
 
     public void jobRunBatchWrappers(Long id, Long env, String param, String currentLogin) {
-        System.out.println("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
+        LOGGER.debug("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
     }
 
     public void jobRunBatchPrimitives(long id, long env, String param, String currentLogin) {
-        System.out.println("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
+        LOGGER.debug("Do work:" + id + "; " + env + "; " + param + "; " + currentLogin);
     }
 
     public static void doWorkInStaticMethod(UUID id) {
-        System.out.println("Doing work in static method:" + id);
+        LOGGER.debug("Doing work in static method:" + id);
     }
 
     public void doWorkWithCollection(Set<Long> singleton) {
-        System.out.println("Doing work with collections: " + singleton.size());
+        LOGGER.debug("Doing work with collections: " + singleton.size());
     }
 
     public void doWorkWithMDC(String key) {
         assertThat(MDC.get(key)).isNotNull();
         String result = key + ": " + MDC.get(key) + "; ";
-        System.out.println("Found following MDC keys: " + result);
+        LOGGER.debug("Found following MDC keys: " + result);
     }
 
     public void doWorkWithPrimitiveInt(int intValue) {
-        System.out.println("Doing some work with a primitive int: " + intValue);
+        LOGGER.debug("Doing some work with a primitive int: " + intValue);
     }
 
     public void doWorkForIssue645(Long id, GithubIssue645 someObject) {
-        System.out.println("Doing work for github issue 645 " + id.toString() + "; " + someObject);
+        LOGGER.debug("Doing work for github issue 645 " + id.toString() + "; " + someObject);
     }
 
     public static class Work {
@@ -467,7 +472,7 @@ public class TestService implements TestServiceInterface {
 
         @Override
         public Void doWork() {
-            System.out.println("Simple Command " + string + " " + integer);
+            LOGGER.debug("Simple Command " + string + " " + integer);
             return null;
         }
     }
@@ -475,7 +480,7 @@ public class TestService implements TestServiceInterface {
     public static class GithubIssue335 {
 
         public void run(UUID id) {
-            System.out.println("Running job for issue 335 " + id);
+            LOGGER.debug("Running job for issue 335 " + id);
         }
 
     }
