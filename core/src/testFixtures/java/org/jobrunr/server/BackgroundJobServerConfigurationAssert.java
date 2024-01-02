@@ -4,6 +4,8 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 
+import java.time.Duration;
+
 
 public class BackgroundJobServerConfigurationAssert extends AbstractAssert<BackgroundJobServerConfigurationAssert, BackgroundJobServerConfiguration> {
 
@@ -21,7 +23,12 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
     }
 
     public BackgroundJobServerConfigurationAssert hasPollIntervalInSeconds(int pollIntervalInSeconds) {
-        Assertions.assertThat(actual.getPollIntervalInSeconds()).isEqualTo(pollIntervalInSeconds);
+        Assertions.assertThat(actual.getPollInterval()).isEqualTo(Duration.ofSeconds(pollIntervalInSeconds));
+        return this;
+    }
+
+    public BackgroundJobServerConfigurationAssert hasPollInterval(Duration pollInterval) {
+        Assertions.assertThat(actual.getPollInterval()).isEqualTo(pollInterval);
         return this;
     }
 
