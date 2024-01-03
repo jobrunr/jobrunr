@@ -74,8 +74,8 @@ public class JobRunrRecurringJobRecorder {
         if (isNotNullOrEmpty(expr)) {
             final Config config = ConfigProvider.getConfig();
             final Expression expression = Expression.compile(expr);
-            final String expanded = expression.evaluate((resolveContext, stringBuilder) -> {
-                return config.getOptionalValue(resolveContext.getKey(), String.class);
+            return expression.evaluate((resolveContext, stringBuilder) -> {
+                final Optional<String> resolve = config.getOptionalValue(resolveContext.getKey(), String.class);
                 if (resolve.isPresent()) {
                     stringBuilder.append(resolve.get());
                 } else if (resolveContext.hasDefault()) {
