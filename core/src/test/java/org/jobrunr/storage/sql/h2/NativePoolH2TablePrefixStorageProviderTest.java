@@ -30,7 +30,7 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
 
     @Override
     protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
-        return new DatabaseCleaner(dataSource, "SOME_SCHEMA.SOME_PREFIX_");
+        return new DatabaseCleaner(dataSource, "SOME_PREFIX_");
     }
 
     @Override
@@ -46,11 +46,11 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
     @AfterEach
     void checkTablesAndIndicesUseCorrectPrefix() {
         assertThat(dataSource)
-                .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_MIGRATIONS")
-                .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
-                .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
-                .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_METADATA")
-                .hasView("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_JOBS_STATS")
+                .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_MIGRATIONS")
+                .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
+                .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
+                .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_METADATA")
+                .hasView("PUBLIC.SOME_PREFIX_JOBRUNR_JOBS_STATS")
                 .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_PREFIX_JOBRUNR_"), "Index matches"));
     }
 }
