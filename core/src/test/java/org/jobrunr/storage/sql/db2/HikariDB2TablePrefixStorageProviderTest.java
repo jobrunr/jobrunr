@@ -1,6 +1,7 @@
-package org.jobrunr.storage.sql.sqlserver;
+package org.jobrunr.storage.sql.db2;
 
-import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
@@ -8,6 +9,7 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -20,9 +22,27 @@ import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerStorageProviderTest {
+class HikariDB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
 
-    private static SQLServerDataSource dataSource;
+    private static HikariDataSource dataSource;
+
+    @Override
+    protected DataSource getDataSource() {
+        if (dataSource == null) {
+            HikariConfig config = new HikariConfig();
+
+            config.setJdbcUrl(sqlContainer.getJdbcUrl());
+            config.setUsername(sqlContainer.getUsername());
+            config.setPassword(sqlContainer.getPassword());
+            dataSource = new HikariDataSource(config);
+        }
+        return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
+    }
 
     @BeforeAll
     void runInitScript() {
@@ -44,17 +64,6 @@ public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerSt
         return new DatabaseCleaner(dataSource, "SOME_SCHEMA.SOME_PREFIX_");
     }
 
-    @Override
-    protected DataSource getDataSource() {
-        if (dataSource == null) {
-            dataSource = new SQLServerDataSource();
-            dataSource.setURL(sqlContainer.getJdbcUrl());
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
-        }
-        return dataSource;
-    }
-
     @AfterEach
     void checkTablesCreatedWithCorrectPrefix() {
         assertThat(dataSource)
@@ -63,6 +72,6 @@ public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerSt
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_METADATA")
                 .hasView("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_JOBS_STATS")
-                .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_PREFIX_JOBRUNR_"), "Index matches"));
+                .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_SCHEMA.SOME_PREFIX_JOBRUNR_"), "Index matches"));
     }
 }
