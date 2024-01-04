@@ -17,6 +17,7 @@ import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
@@ -52,6 +53,7 @@ public class FrontEndDevelopment {
 
         JobRunr
                 .configure()
+                .useJsonMapper(new JsonbJsonMapper())
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
                 .useBackgroundJobServer()
