@@ -1,6 +1,5 @@
-package org.jobrunr.storage.sql.postgres;
+package org.jobrunr.storage.sql.db2;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -19,21 +18,18 @@ import javax.sql.DataSource;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HikariPostgresTablePrefixStorageProviderTest extends AbstractPostgresStorageProviderTest {
+class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
 
     private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(sqlContainer.getJdbcUrl());
-            config.setUsername(sqlContainer.getUsername());
-            config.setPassword(sqlContainer.getPassword());
-            dataSource = new HikariDataSource(config);
+            dataSource = toHikariDataSource(sqlContainer);
         }
         return dataSource;
     }
@@ -41,6 +37,7 @@ public class HikariPostgresTablePrefixStorageProviderTest extends AbstractPostgr
     @AfterAll
     public static void destroyDatasource() {
         dataSource.close();
+        dataSource = null;
     }
 
     @BeforeAll
@@ -65,12 +62,12 @@ public class HikariPostgresTablePrefixStorageProviderTest extends AbstractPostgr
 
     @AfterEach
     void checkTablesCreatedWithCorrectPrefix() {
-        assertThat(dataSource)
+        assertThat(getDataSource())
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_MIGRATIONS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_METADATA")
                 .hasView("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_JOBS_STATS")
-                .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_PREFIX_JOBRUNR_"), "Index matches"));
+                .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_SCHEMA.SOME_PREFIX_JOBRUNR_"), "Index matches"));
     }
 }

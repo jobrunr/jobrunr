@@ -5,6 +5,7 @@ import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplie
 import io.agroal.api.security.NamePrincipal;
 import io.agroal.api.security.SimplePassword;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -21,7 +22,7 @@ class AgroalH2StorageProviderTest extends SqlStorageProviderTest {
                         .connectionPoolConfiguration(cp -> cp
                                 .maxSize(2)
                                 .connectionFactoryConfiguration(cf -> cf
-                                        .jdbcUrl("jdbc:h2:/tmp/test")
+                                        .jdbcUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
                                         .principal(new NamePrincipal("sa"))
                                         .credential(new SimplePassword("sa"))
                                 )
@@ -33,5 +34,11 @@ class AgroalH2StorageProviderTest extends SqlStorageProviderTest {
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @AfterAll
+    public static void destroyDatasource() throws SQLException {
+        dataSource.close();
+        dataSource = null;
     }
 }

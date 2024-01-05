@@ -1,23 +1,20 @@
 package org.jobrunr.storage.sql.sqlserver;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
-class HikariSQLServerStorageProviderTest extends AbstractSQLServerStorageProviderTest {
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
+
+class SQLServerStorageProviderTest extends AbstractSQLServerStorageProviderTest {
 
     private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(sqlContainer.getJdbcUrl());
-            config.setUsername(sqlContainer.getUsername());
-            config.setPassword(sqlContainer.getPassword());
-            dataSource = new HikariDataSource(config);
+            dataSource = toHikariDataSource(sqlContainer);
         }
         return dataSource;
     }
@@ -25,5 +22,6 @@ class HikariSQLServerStorageProviderTest extends AbstractSQLServerStorageProvide
     @AfterAll
     public static void destroyDatasource() {
         dataSource.close();
+        dataSource = null;
     }
 }

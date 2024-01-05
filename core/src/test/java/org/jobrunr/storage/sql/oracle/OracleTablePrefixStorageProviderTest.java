@@ -1,6 +1,5 @@
 package org.jobrunr.storage.sql.oracle;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -21,34 +20,26 @@ import javax.sql.DataSource;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RunTestBetween(from = "00:00", to = "03:00")
 @RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
-public class HikariOracleTablePrefixStorageProviderTest extends AbstractOracleStorageProviderTest {
+public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageProviderTest {
 
     private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-//            HikariConfig config = new HikariConfig();
-//            config.setJdbcUrl("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"));
-//            config.setUsername("system");
-//            config.setPassword("oracle");
-//            dataSource = new HikariDataSource(config);
+            // dataSource = toHikariDataSource("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"), "system", "oracle");
 
             System.out.println("==========================================================================================");
             System.out.println(sqlContainer.getLogs());
             System.out.println("==========================================================================================");
 
-            HikariConfig config = new HikariConfig();
-
-            config.setJdbcUrl(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
-            config.setUsername(sqlContainer.getUsername());
-            config.setPassword(sqlContainer.getPassword());
-            dataSource = new HikariDataSource(config);
+            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"), sqlContainer.getUsername(), sqlContainer.getPassword());
         }
 
         return dataSource;
@@ -57,6 +48,7 @@ public class HikariOracleTablePrefixStorageProviderTest extends AbstractOracleSt
     @AfterAll
     public static void destroyDatasource() {
         dataSource.close();
+        dataSource = null;
     }
 
     @BeforeAll

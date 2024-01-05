@@ -8,6 +8,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -16,7 +17,7 @@ import javax.sql.DataSource;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
-class NativePoolMySQLTablePrefixStorageProviderTest extends AbstractMySQLStorageProviderTest {
+class MySQLTablePrefixStorageProviderTest extends AbstractMySQLStorageProviderTest {
 
     private static MysqlDataSource dataSource;
 
@@ -29,6 +30,11 @@ class NativePoolMySQLTablePrefixStorageProviderTest extends AbstractMySQLStorage
             dataSource.setPassword(sqlContainer.getPassword());
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource = null;
     }
 
     @Override

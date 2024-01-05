@@ -1,6 +1,5 @@
 package org.jobrunr.storage.sql.sqlserver;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -19,21 +18,18 @@ import javax.sql.DataSource;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HikariSQLServerTablePrefixStorageProviderTest extends AbstractSQLServerStorageProviderTest {
+public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerStorageProviderTest {
 
     private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(sqlContainer.getJdbcUrl());
-            config.setUsername(sqlContainer.getUsername());
-            config.setPassword(sqlContainer.getPassword());
-            dataSource = new HikariDataSource(config);
+            dataSource = toHikariDataSource(sqlContainer);
         }
         return dataSource;
     }
@@ -41,6 +37,7 @@ public class HikariSQLServerTablePrefixStorageProviderTest extends AbstractSQLSe
     @AfterAll
     public static void destroyDatasource() {
         dataSource.close();
+        dataSource = null;
     }
 
     @BeforeAll

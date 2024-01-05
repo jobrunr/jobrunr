@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
-class NativePoolMariaDbTablePrefixStorageProviderTest extends AbstractMariaDbStorageProviderTest {
+class MariaDbTablePrefixStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
     private static MariaDbPoolDataSource dataSource;
 
@@ -63,5 +63,6 @@ class NativePoolMariaDbTablePrefixStorageProviderTest extends AbstractMariaDbSto
     @AfterAll
     public static void destroyDatasource() {
         dataSource.close();
+        dataSource = null;
     }
 }
