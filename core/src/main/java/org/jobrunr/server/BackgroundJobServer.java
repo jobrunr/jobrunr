@@ -19,14 +19,12 @@ import org.jobrunr.server.tasks.MigrateFromV5toV6Task;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -343,10 +341,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
                 .min((a, b) -> compare(b.getPriority(), a.getPriority()))
                 .orElseGet(BasicBackgroundJobPerformerFactory::new);
-    }
-
-    private boolean pollIntervalIsTooSmallForStorageProvider(Duration pollInterval, StorageProvider storageProvider) {
-        return pollInterval.compareTo(Duration.ofSeconds(5)) < 0 && !(storageProvider instanceof InMemoryStorageProvider);
     }
 
     private boolean isStopping() {
