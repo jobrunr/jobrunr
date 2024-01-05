@@ -35,7 +35,7 @@ public class ServerZooKeeper implements Runnable {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
-        this.timeoutDuration = Duration.ofSeconds(backgroundJobServer.getConfiguration().getPollIntervalInSeconds()).multipliedBy(4);
+        this.timeoutDuration = backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(4);
         this.restartAttempts = new AtomicInteger();
         this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();
@@ -154,7 +154,7 @@ public class ServerZooKeeper implements Runnable {
         final int amount3OfSec = (int) (now.getEpochSecond() - lastHeartbeat.getEpochSecond());
 
         final int max = Math.max(amount1OfSec, Math.max(amount2OfSec, amount3OfSec));
-        if (max > backgroundJobServer.getConfiguration().getPollIntervalInSeconds() * 2L) {
+        if (max > backgroundJobServer.getConfiguration().getPollInterval().getSeconds() * 2L) {
             return Optional.of(max);
         }
         return Optional.empty();

@@ -1,6 +1,6 @@
 package org.jobrunr.storage.sql.oracle;
 
-import oracle.jdbc.pool.OracleDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
@@ -8,6 +8,7 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -16,10 +17,10 @@ import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -27,7 +28,28 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 @RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageProviderTest {
 
-    private static OracleDataSource dataSource;
+    private static HikariDataSource dataSource;
+
+    @Override
+    protected DataSource getDataSource() {
+        if (dataSource == null) {
+            // dataSource = toHikariDataSource("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"), "system", "oracle");
+
+            System.out.println("==========================================================================================");
+            System.out.println(sqlContainer.getLogs());
+            System.out.println("==========================================================================================");
+
+            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"), sqlContainer.getUsername(), sqlContainer.getPassword());
+        }
+
+        return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
+        dataSource = null;
+    }
 
     @BeforeAll
     void runInitScript() {
@@ -50,33 +72,6 @@ public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageP
     @Override
     protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
         return new DatabaseCleaner(dataSource, "SOME_USER.");
-    }
-
-    @Override
-    protected DataSource getDataSource() {
-        try {
-            if (dataSource == null) {
-//                dataSource = new OracleDataSource();
-//                dataSource.setURL("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"));
-//                dataSource.setUser("system");
-//                dataSource.setPassword("oracle");
-
-                System.out.println("==========================================================================================");
-                System.out.println(sqlContainer.getLogs());
-                System.out.println("==========================================================================================");
-
-                dataSource = new OracleDataSource();
-
-                dataSource.setURL(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"));
-                dataSource.setUser(sqlContainer.getUsername());
-                dataSource.setPassword(sqlContainer.getPassword());
-                dataSource.setServiceName("ORCL");
-            }
-
-            return dataSource;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @AfterEach

@@ -39,20 +39,20 @@ public class ZooKeeperStatistics {
         return exceptionCounter > 5;
     }
 
-    void logRun(long runIndex, boolean runSucceeded, int pollIntervalInSeconds, Instant runStartTime, Instant runEndTime) {
+    void logRun(long runIndex, boolean runSucceeded, Duration pollInterval, Instant runStartTime, Instant runEndTime) {
         if (runSucceeded && exceptionCounter > 0) {
             --exceptionCounter;
         }
         Duration actualRunDuration = Duration.between(runStartTime, runEndTime);
-        if (actualRunDuration.getSeconds() < pollIntervalInSeconds) {
+        if (actualRunDuration.getSeconds() < pollInterval.getSeconds()) {
             LOGGER.debug("JobZooKeeper run took {}", actualRunDuration);
             runTookToLongCounter = 0;
         } else {
-            LOGGER.debug("JobZooKeeper run took {} (while pollIntervalInSeconds is {})", actualRunDuration, pollIntervalInSeconds);
+            LOGGER.debug("JobZooKeeper run took {} (while pollIntervalInSeconds is {})", actualRunDuration, pollInterval);
             if (runTookToLongCounter < 2) {
                 runTookToLongCounter++;
             } else {
-                dashboardNotificationManager.notify(new PollIntervalInSecondsTimeBoxIsTooSmallNotification(runIndex, pollIntervalInSeconds, runStartTime, (int) actualRunDuration.getSeconds()));
+                dashboardNotificationManager.notify(new PollIntervalInSecondsTimeBoxIsTooSmallNotification(runIndex, (int) pollInterval.getSeconds(), runStartTime, (int) actualRunDuration.getSeconds()));
                 runTookToLongCounter = 0;
             }
         }

@@ -16,6 +16,7 @@ public class VirtualThreadPoolJobRunrExecutor implements JobRunrExecutor {
     private final ExecutorService executorService;
     private final int workerCount;
     private boolean started;
+    private boolean isStopping;
 
     public VirtualThreadPoolJobRunrExecutor(int workerCount) {
         this(workerCount, createVirtualThreadExecutorService());
@@ -39,7 +40,13 @@ public class VirtualThreadPoolJobRunrExecutor implements JobRunrExecutor {
 
     @Override
     public void stop() {
+        this.isStopping = true;
         this.started = false;
+    }
+
+    @Override
+    public boolean isStopping() {
+        return isStopping;
     }
 
     @Override

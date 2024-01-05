@@ -14,6 +14,7 @@ import org.jobrunr.storage.StorageProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Duration.ofMillis
 
 class JobRequestSchedulerTest {
 
@@ -23,11 +24,9 @@ class JobRequestSchedulerTest {
     fun setUp() {
         storageProvider = InMemoryStorageProvider()
         JobRunr.configure()
-                .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(
-                        usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5)
-                )
-                .initialize()
+            .useStorageProvider(storageProvider)
+            .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
+            .initialize()
     }
 
     @AfterEach
@@ -56,8 +55,8 @@ class JobRequestSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-                .hasJobName("Some neat Job Display Name")
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasJobName("Some neat Job Display Name")
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     class AnnotationFoundKotlinJobRequest(val input: String) : JobRequest {
@@ -85,7 +84,7 @@ class JobRequestSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-                .hasJobName("Some neat Job Display Name")
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasJobName("Some neat Job Display Name")
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 }

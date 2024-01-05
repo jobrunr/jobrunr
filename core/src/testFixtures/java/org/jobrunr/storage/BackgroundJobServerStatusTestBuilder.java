@@ -15,7 +15,7 @@ public class BackgroundJobServerStatusTestBuilder {
     private UUID id = UUID.randomUUID();
     private String name = DEFAULT_SERVER_NAME;
     private int workerPoolSize = 10;
-    private int pollIntervalInSeconds = BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL_IN_SECONDS;
+    private Duration pollInterval = BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL;
     private Duration deleteSucceededJobsAfter = BackgroundJobServerConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
     private Duration permanentlyDeleteDeletedJobsAfter = BackgroundJobServerConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     private Instant firstHeartbeat;
@@ -62,9 +62,15 @@ public class BackgroundJobServerStatusTestBuilder {
     }
 
     public BackgroundJobServerStatusTestBuilder withPollIntervalInSeconds(int pollIntervalInSeconds) {
-        this.pollIntervalInSeconds = pollIntervalInSeconds;
+        this.pollInterval = Duration.ofSeconds(pollIntervalInSeconds);
         return this;
     }
+
+    public BackgroundJobServerStatusTestBuilder withPollInterval(Duration pollInterval) {
+        this.pollInterval = pollInterval;
+        return this;
+    }
+
 
     public BackgroundJobServerStatusTestBuilder withWorkerSize(int workerPoolSize) {
         this.workerPoolSize = workerPoolSize;
@@ -94,7 +100,7 @@ public class BackgroundJobServerStatusTestBuilder {
     }
 
     public BackgroundJobServerStatus build() {
-        return new BackgroundJobServerStatus(id, name, workerPoolSize, pollIntervalInSeconds,
+        return new BackgroundJobServerStatus(id, name, workerPoolSize, (int) pollInterval.getSeconds(),
                 deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, running,
                 jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(),
                 jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());

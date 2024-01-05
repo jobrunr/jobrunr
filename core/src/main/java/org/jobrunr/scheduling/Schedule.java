@@ -17,7 +17,7 @@ public abstract class Schedule implements Comparable<Schedule> {
      * Calculates the next occurrence based on the creation time and the current time.
      *
      * @param createdAt Instant object when the schedule was first created
-     * @param zoneId the zone for which to calculate the schedule
+     * @param zoneId    the zone for which to calculate the schedule
      * @return Instant of the next occurrence.
      */
     public Instant next(Instant createdAt, ZoneId zoneId) {
@@ -28,14 +28,12 @@ public abstract class Schedule implements Comparable<Schedule> {
      * Calculates the next occurrence based on the creation time and the provided base time.
      *
      * @param createdAtInstant Instant object when the schedule was first created
-     * @param currentInstant Instant object used to calculate next occurrence (normally Instant.now()).
-     * @param zoneId the zone for which to calculate the schedule
+     * @param currentInstant   Instant object used to calculate next occurrence (normally Instant.now()).
+     * @param zoneId           the zone for which to calculate the schedule
      * @return Instant of the next occurrence.
      */
     @VisibleFor("testing")
     public abstract Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
-
-    public abstract void validateSchedule();
 
     /**
      * Compare two {@code Schedule} objects based on next occurrence.

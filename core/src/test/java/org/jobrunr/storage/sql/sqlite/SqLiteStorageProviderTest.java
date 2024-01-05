@@ -1,9 +1,12 @@
 package org.jobrunr.storage.sql.sqlite;
 
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
+import org.junit.jupiter.api.AfterAll;
 import org.sqlite.SQLiteDataSource;
 
 import javax.sql.DataSource;
+
+import static org.jobrunr.storage.sql.SqlTestUtils.deleteFile;
 
 class SqLiteStorageProviderTest extends SqlStorageProviderTest {
 
@@ -18,5 +21,10 @@ class SqLiteStorageProviderTest extends SqlStorageProviderTest {
             dataSource.setUrl("jdbc:sqlite:/tmp/jobrunr-test.db");
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource = null;
     }
 }

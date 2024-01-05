@@ -1,0 +1,21 @@
+<configuration>
+    <variable scope="context" name="mdcPattern" value="%replace( [r:%X{jobrunr.zooKeeper.runCounter}]){' \[[a-z]+:( \]|\]$)', ''}"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.AssertLoggerFilter"/>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}${mdcPattern} - %msg%n%ex{5}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Change the level in the following line to have more debugging (DEBUG, TRACE) -->
+    <logger name="org.jobrunr" level="INFO"/>
+    <logger name="org.jobrunr.server.strategy.RoundRobinDynamicQueueStrategy" level="WARN"/>
+    <logger name="org.jobrunr.utils.multicast" level="WARN"/>
+    <logger name="org.jobrunr.storage.sql.common.DatabaseCreator" level="WARN"/>
+    <logger name="org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator" level="WARN"/>
+    <logger name="org.jobrunr.server.tasks" level="WARN"/>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
