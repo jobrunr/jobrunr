@@ -159,26 +159,23 @@ class RecurringJobTest {
     }
 
     @Test
-    void testValidateScheduleForRecurringCronJob() {
+    void testDurationBetweenRecurringJobInstancesForCronJob() {
         RecurringJob recurringJob1 = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
+        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
+
         RecurringJob recurringJob2 = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
-
-        assertThatThrownBy(() -> recurringJob1.validateSchedule(ofSeconds(5))).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> recurringJob2.validateSchedule(ofSeconds(10))).isInstanceOf(IllegalArgumentException.class);
-
-        assertThatCode(() -> recurringJob1.validateSchedule(ofMillis(200))).doesNotThrowAnyException();
-        assertThatCode(() -> recurringJob2.validateSchedule(ofSeconds(5))).doesNotThrowAnyException();
+        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
     }
 
     @Test
-    void smallestIntervalForRecurringIntervalJobIs5Seconds() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(1).toString()).build();
-        RecurringJob recurringJob2 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(5).toString()).build();
+    void testDurationBetweenRecurringJobInstancesForIntervalJob() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withIntervalExpression(ofMillis(200).toString()).build();
+        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofMillis(200));
 
-        assertThatThrownBy(() -> recurringJob1.validateSchedule(ofSeconds(5))).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> recurringJob2.validateSchedule(ofSeconds(10))).isInstanceOf(IllegalArgumentException.class);
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(1).toString()).build();
+        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
 
-        assertThatCode(() -> recurringJob1.validateSchedule(ofMillis(200))).doesNotThrowAnyException();
-        assertThatCode(() -> recurringJob2.validateSchedule(ofSeconds(5))).doesNotThrowAnyException();
+        RecurringJob recurringJob3 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(5).toString()).build();
+        assertThat(recurringJob3.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
     }
 }

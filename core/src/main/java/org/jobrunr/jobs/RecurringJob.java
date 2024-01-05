@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static java.time.Duration.between;
-import static org.jobrunr.scheduling.Schedule.SMALLEST_SCHEDULE_IN_SECONDS;
 
 public class RecurringJob extends AbstractJob {
 
@@ -153,17 +152,11 @@ public class RecurringJob extends AbstractJob {
                 '}';
     }
 
-    public void validateSchedule(Duration minimumInterval) {
-        validateSchedule(ScheduleExpressionType.getSchedule(scheduleExpression), minimumInterval);
-    }
-
-    private void validateSchedule(Schedule schedule, Duration minimumInterval) {
+    public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
-
+        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
         Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
         Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
-        if (between(run1, run2).toMillis() < minimumInterval.toMillis()) {
-            throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
-        }
+        return between(run1, run2);
     }
 }

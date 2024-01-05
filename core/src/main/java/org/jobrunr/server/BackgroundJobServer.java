@@ -79,8 +79,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         if (storageProvider == null)
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
-        if (pollIntervalIsTooSmallForStorageProvider(configuration.getPollInterval(), storageProvider))
-            throw new IllegalArgumentException("The pollInterval can not be smaller than 5 seconds - otherwise it will cause to much load on your SQL/noSQL datastore.");
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
@@ -94,6 +92,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobZooKeeper = createJobZooKeeper();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
+        this.storageProvider.validatePollInterval(configuration.getPollInterval());
     }
 
     @Override

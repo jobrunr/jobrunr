@@ -12,6 +12,7 @@ import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.PageRequest;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -242,6 +243,10 @@ public interface StorageProvider extends AutoCloseable {
 
     @Override
     void close();
+
+    void validatePollInterval(Duration pollInterval);
+
+    void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances);
 
     class StorageProviderInfo {
 

@@ -16,6 +16,7 @@ import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.sql.h2.H2StorageProvider;
 import org.jobrunr.stubs.StaticTestService;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
@@ -54,9 +55,9 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDATE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 
 class BackgroundJobServerTest {
 
@@ -95,12 +96,12 @@ class BackgroundJobServerTest {
     void backgroundJobServerValidatesPollIntervalInSecondsAndThrowsExceptionIfTooSmall() {
         assertThatThrownBy(() -> {
             JobRunr.configure()
-                    .useStorageProvider(mock(StorageProvider.class))
+                    .useStorageProvider(new H2StorageProvider(null, NO_VALIDATE))
                     .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)), false)
                     .initialize();
         })
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("The pollInterval can not be smaller than 5 seconds - otherwise it will cause to much load on your SQL/noSQL datastore.");
+                .hasMessage("The smallest supported pollInterval is 5 seconds - otherwise it will cause to much load on your SQL/noSQL datastore.");
     }
 
     @Test
