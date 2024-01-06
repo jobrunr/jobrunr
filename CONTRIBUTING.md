@@ -2,9 +2,9 @@
 ## Contributing to jobrunr
 JobRunr follows a very standard Github development process, using Github tracker for issues and merging pull requests into master. If you want to contribute even something trivial please do not hesitate, but follow the guidelines below.
 
-### Contact via Gitter
+### Contact via GitHub Discussions
 
-Gitter is the recommended way for discussing almost anything that relates to JobRunr. We look forward to your input!
+GitHub Discussions is the recommended way for discussing almost anything that relates to JobRunr. We look forward to your input!
 
 ### Reporting issue
 
@@ -18,6 +18,7 @@ Our code style is almost in line with the standard java conventions (Popular IDE
 * When writing a commit message please follow these conventions, if you are fixing an existing issue please add Fixes #XXX at the end of the commit message (where XXX is the issue number).
 
 ### Contribution flow
+Before contribution to JobRunr, you must agree to the [JobRunr Contributors Agreement](https://github.com/jobrunr/jobrunr/blob/master/CLA.md). Once you have reviewed and agree with it, please sign the Contributors Agreement by adding yourself to the contributors of JobRunr as [explained here](https://github.com/jobrunr/clabot-config). 
 
 This is a rough outline of what a contributor's workflow looks like:
 
