@@ -1,17 +1,22 @@
 package org.jobrunr.micronaut.autoconfigure.storage;
 
-import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListIndexesIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.InsertOneResult;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Spliterator;
@@ -21,16 +26,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@MicronautTest(rebuildContext = true)
+@MicronautTest
 class JobRunrMongoDBStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;
-
-    @BeforeEach
-    void setupMongoClient() {
-        context.registerSingleton(mongoClient());
-    }
 
     @Test
     void mongoDBStorageProviderAutoConfigurationTest() {
@@ -41,6 +41,7 @@ class JobRunrMongoDBStorageProviderFactoryTest {
         assertThat(context).doesNotHaveBean(InMemoryStorageProvider.class);
     }
 
+    @Singleton
     public MongoClient mongoClient() {
         MongoClient mongoClientMock = mock(MongoClient.class);
         MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);

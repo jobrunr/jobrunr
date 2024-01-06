@@ -6,26 +6,33 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@MicronautTest(rebuildContext = true)
+@MicronautTest
+@Property(name = "jobrunr.database.skip-create", value = "true")
+@Property(name = "jobrunr.database.datasource", value = "jobrunr")
 class JobRunrSqlStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;
 
     @Test
-    @Property(name = "jobrunr.database.skip-create", value = "true")
     void sqlStorageProviderAutoConfigurationTestWithDefaultDataSource() throws SQLException {
         // GIVEN
         context.registerSingleton(dataSource());
@@ -39,7 +46,6 @@ class JobRunrSqlStorageProviderFactoryTest {
     }
 
     @Test
-    @Property(name = "jobrunr.database.skip-create", value = "true")
     @Property(name = "jobrunr.database.datasource", value = "jobrunr")
     void sqlStorageProviderAutoConfigurationTestWithMultipleNamedDataSources() throws SQLException {
         // GIVEN
@@ -54,6 +60,8 @@ class JobRunrSqlStorageProviderFactoryTest {
         assertThat(context).doesNotHaveBean(InMemoryStorageProvider.class);
     }
 
+    @Singleton
+    @Named("jobrunr")
     public DataSource dataSource() throws SQLException {
         DataSource dataSourceMock = mock(DataSource.class);
         Connection connectionMock = mock(Connection.class);
@@ -77,5 +85,4 @@ class JobRunrSqlStorageProviderFactoryTest {
             when(resultSetMock.getInt(1)).thenReturn(1);
         }
     }
-
 }

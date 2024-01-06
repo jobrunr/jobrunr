@@ -5,6 +5,7 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.ClusterClient;
@@ -15,12 +16,15 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,17 +32,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@MicronautTest(rebuildContext = true)
+@MicronautTest
+@Property(name = "jobrunr.database.skip-create", value = "true")
+@Property(name = "jobrunr.database.type", value = "sql")
 class JobRunrMultipleStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;
-
-    @BeforeEach
-    void setupDataSource() throws SQLException, IOException {
-        context.registerSingleton(elasticSearchRestHighLevelClient());
-        context.registerSingleton(dataSource());
-    }
 
     @Test
     @Property(name = "jobrunr.database.skip-create", value = "true")
@@ -51,6 +51,7 @@ class JobRunrMultipleStorageProviderFactoryTest {
         assertThat(context).doesNotHaveBean(InMemoryStorageProvider.class);
     }
 
+    @Singleton
     public DataSource dataSource() throws SQLException {
         DataSource dataSourceMock = mock(DataSource.class);
         Connection connectionMock = mock(Connection.class);
@@ -75,6 +76,7 @@ class JobRunrMultipleStorageProviderFactoryTest {
         }
     }
 
+    @Singleton
     public RestHighLevelClient elasticSearchRestHighLevelClient() throws IOException {
         RestHighLevelClient restHighLevelClientMock = mock(RestHighLevelClient.class);
         IndicesClient indicesClientMock = mock(IndicesClient.class);
@@ -88,5 +90,4 @@ class JobRunrMultipleStorageProviderFactoryTest {
         when(restHighLevelClientMock.get(any(GetRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(getResponse);
         return restHighLevelClientMock;
     }
-
 }

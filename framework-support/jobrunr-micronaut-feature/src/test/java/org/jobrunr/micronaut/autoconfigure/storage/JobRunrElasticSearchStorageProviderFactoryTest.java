@@ -3,6 +3,7 @@ package org.jobrunr.micronaut.autoconfigure.storage;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.ClusterClient;
@@ -13,7 +14,6 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -24,16 +24,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@MicronautTest(rebuildContext = true)
+@MicronautTest
 class JobRunrElasticSearchStorageProviderFactoryTest {
 
     @Inject
     ApplicationContext context;
-
-    @BeforeEach
-    void setupElasticSearchClient() throws IOException {
-        context.registerSingleton(elasticSearchRestHighLevelClient());
-    }
 
     @Test
     void elasticSearchStorageProviderAutoConfigurationTest() {
@@ -44,6 +39,7 @@ class JobRunrElasticSearchStorageProviderFactoryTest {
         assertThat(context).doesNotHaveBean(InMemoryStorageProvider.class);
     }
 
+    @Singleton
     public RestHighLevelClient elasticSearchRestHighLevelClient() throws IOException {
         RestHighLevelClient restHighLevelClientMock = mock(RestHighLevelClient.class);
         IndicesClient indicesClientMock = mock(IndicesClient.class);
