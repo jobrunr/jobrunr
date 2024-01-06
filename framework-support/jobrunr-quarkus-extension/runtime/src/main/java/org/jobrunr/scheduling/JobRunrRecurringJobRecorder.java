@@ -27,7 +27,7 @@ public class JobRunrRecurringJobRecorder {
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
     public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
-        JobScheduler scheduler = container.instance(JobScheduler.class);
+        JobScheduler scheduler = container.beanInstance(JobScheduler.class);
         String jobId = getId(id);
         String optionalCronExpression = getCronExpression(cron);
         String optionalInterval = getInterval(interval);
@@ -74,7 +74,7 @@ public class JobRunrRecurringJobRecorder {
         if (isNotNullOrEmpty(expr)) {
             final Config config = ConfigProvider.getConfig();
             final Expression expression = Expression.compile(expr);
-            final String expanded = expression.evaluate((resolveContext, stringBuilder) -> {
+            return expression.evaluate((resolveContext, stringBuilder) -> {
                 final Optional<String> resolve = config.getOptionalValue(resolveContext.getKey(), String.class);
                 if (resolve.isPresent()) {
                     stringBuilder.append(resolve.get());
@@ -84,7 +84,7 @@ public class JobRunrRecurringJobRecorder {
                     throw new NoSuchElementException(String.format("Could not expand value %s in property %s", resolveContext.getKey(), expr));
                 }
             });
-            return expanded;
+
         }
         return expr;
     }
