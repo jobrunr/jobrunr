@@ -60,10 +60,10 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration useJsonMapper(JsonMapper jsonMapper) {
         if (this.storageProvider != null) {
-            throw new IllegalStateException("Please configure the JobActivator before the StorageProvider.");
+            throw new IllegalStateException("Please configure the JsonMapper before the StorageProvider.");
         }
         if (this.dashboardWebServer != null) {
-            throw new IllegalStateException("Please configure the JobActivator before the DashboardWebServer.");
+            throw new IllegalStateException("Please configure the JsonMapper before the DashboardWebServer.");
         }
         this.jsonMapper = validateJsonMapper(jsonMapper);
         this.jobMapper = new JobMapper(jsonMapper);

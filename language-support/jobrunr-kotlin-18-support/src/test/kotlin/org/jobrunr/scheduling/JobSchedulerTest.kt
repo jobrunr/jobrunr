@@ -8,7 +8,6 @@ import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName.*
-import org.jobrunr.scheduling.cron.Cron
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.server.JobActivator
 import org.jobrunr.storage.InMemoryStorageProvider
@@ -16,6 +15,7 @@ import org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
+import java.time.Duration.ofMillis
 import java.time.Instant.now
 import java.util.concurrent.TimeUnit
 
@@ -27,13 +27,13 @@ class JobSchedulerTest {
     }
 
     private val jobScheduler = JobRunr.configure()
-            .useStorageProvider(storageProvider)
-            .useJobActivator(object : JobActivator {
-                override fun <T : Any> activateJob(type: Class<T>): T? = get(type)
-            })
-            .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
-            .initialize()
-            .jobScheduler
+        .useStorageProvider(storageProvider)
+        .useJobActivator(object : JobActivator {
+            override fun <T : Any> activateJob(type: Class<T>): T? = get(type)
+        })
+        .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
+        .initialize()
+        .jobScheduler
 
     private fun <T> get(type: Class<T>): T? {
         if (type.name == "TestService") {
@@ -84,8 +84,8 @@ class JobSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-                .hasJobName("Some neat Job Display Name")
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasJobName("Some neat Job Display Name")
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -100,7 +100,7 @@ class JobSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -115,7 +115,7 @@ class JobSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -130,7 +130,7 @@ class JobSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
-                .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -138,28 +138,28 @@ class JobSchedulerTest {
         val amount = 2
         val text = "foo"
 
-        jobScheduler.scheduleRecurrently(Cron.every15seconds()) { println("$text: $amount") }
+        jobScheduler.scheduleRecurrently("*/2 * * * * *") { println("$text: $amount") }
 
         await().atMost(35, TimeUnit.SECONDS).until {
-            storageProvider.countJobs(SUCCEEDED) == 1L
+            storageProvider.countJobs(SUCCEEDED) >= 1L
         }
 
         val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
-                .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
     fun `test schedule with polymorphism`() {
         val recurringJob = PrintlnRecurringJob()
-        recurringJob.schedule(Cron.every15seconds())
+        recurringJob.schedule("*/2 * * * * *")
 
         await().atMost(35, TimeUnit.SECONDS).until {
-            storageProvider.countJobs(SUCCEEDED) == 1L
+            storageProvider.countJobs(SUCCEEDED) >= 1L
         }
         val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
-                .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -171,7 +171,7 @@ class JobSchedulerTest {
         }
         val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -184,7 +184,7 @@ class JobSchedulerTest {
         }
         val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
     @Test
@@ -234,7 +234,7 @@ class JobSchedulerTest {
     }
 
     class ExampleWrapper @JsonCreator constructor(
-            @get:JsonValue val value: Int
+        @get:JsonValue val value: Int
     )
 
     data class JobPayload(val someId: Long, val anotherId: Long)

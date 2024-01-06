@@ -138,7 +138,8 @@ public class DatabaseCreator {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";")) {
             try (final Statement stmt = connection.createStatement()) {
-                stmt.execute(tablePrefixStatementUpdater.updateStatement(statement).trim());
+                String updatedStatement = tablePrefixStatementUpdater.updateStatement(statement).trim();
+                stmt.execute(updatedStatement);
             }
         }
     }

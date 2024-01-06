@@ -32,13 +32,6 @@ class BackgroundJobServerConfigurationTest {
     }
 
     @Test
-    void ifDefaultPollIntervalInSecondsSmallerThan5ThenExceptionIsThrown() {
-        assertThatThrownBy(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(4))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
-    }
-
-    @Test
     void ifDefaultPollIntervalInSeconds5OrHigherThenNoExceptionIsThrown() {
         assertThatCode(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(5)).doesNotThrowAnyException();
         assertThatCode(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(15)).doesNotThrowAnyException();

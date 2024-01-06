@@ -121,6 +121,7 @@ public abstract class AbstractJobScheduler {
 
     String scheduleRecurrently(RecurringJob recurringJob) {
         jobFilterUtils.runOnCreatingFilter(recurringJob);
+        storageProvider.validateRecurringJobInterval(recurringJob.durationBetweenRecurringJobInstances());
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
         jobFilterUtils.runOnCreatedFilter(recurringJob);
         return savedRecurringJob.getId();

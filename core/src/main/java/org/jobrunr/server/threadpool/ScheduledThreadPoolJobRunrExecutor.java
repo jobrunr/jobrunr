@@ -47,6 +47,11 @@ public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.Sch
         }
     }
 
+    @Override
+    public boolean isStopping() {
+        return isTerminating() || isTerminated();
+    }
+
     private static class NamedThreadFactory implements ThreadFactory {
 
         private final String poolName;

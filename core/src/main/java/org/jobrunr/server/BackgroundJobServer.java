@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Integer.compare;
+import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
@@ -89,6 +90,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobZooKeeper = createJobZooKeeper();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
+        this.storageProvider.validatePollInterval(configuration.getPollInterval());
     }
 
     @Override
@@ -149,7 +151,29 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    boolean isStarted() {
+        return !isStopped();
+    }
+
+    boolean isStopped() {
+        if (isStopping()) return true;
+        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            return zookeeperThreadPool == null;
+        }
+    }
+
+    boolean isPaused() {
+        return !isProcessing();
+    }
+
+    boolean isProcessing() {
+        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            return isRunning;
+        }
+    }
+
     public boolean isAnnounced() {
+        if (isStopping()) return false;
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
             return isMaster != null;
         }
@@ -179,6 +203,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public boolean isRunning() {
+        if (isStopping()) return false;
         try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
             return isRunning;
         }
@@ -187,7 +212,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     @Override
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
-                configuration.getPollIntervalInSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
+                (int) configuration.getPollInterval().getSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
                 firstHeartbeat, Instant.now(), isRunning, jobServerStats);
     }
 
@@ -237,32 +262,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
-    boolean isStarted() {
-        return !isStopped();
-    }
-
-    boolean isStopped() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-            return zookeeperThreadPool == null;
-        }
-    }
-
-    boolean isPaused() {
-        return !isProcessing();
-    }
-
-    boolean isProcessing() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
-            return isRunning;
-        }
-    }
-
     private void startZooKeepers() {
         zookeeperThreadPool = new ScheduledThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, 1, configuration.getPollIntervalInSeconds(), TimeUnit.SECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
@@ -336,6 +341,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return stream(spliteratorUnknownSize(serviceLoader.iterator(), Spliterator.ORDERED), false)
                 .min((a, b) -> compare(b.getPriority(), a.getPriority()))
                 .orElseGet(BasicBackgroundJobPerformerFactory::new);
+    }
+
+    private boolean isStopping() {
+        return jobExecutor != null && jobExecutor.isStopping();
     }
 
     private static class BackgroundJobServerLifecycleLock implements AutoCloseable {

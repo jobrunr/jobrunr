@@ -12,7 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 
 public class ProcessRecurringJobsTask extends ZooKeeperTask {
@@ -44,7 +46,7 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
         LOGGER.debug("Found {} recurring jobs.", recurringJobs.size());
 
         Instant from = runStartTime();
-        Instant upUntil = runStartTime().plusSeconds(backgroundJobServerConfiguration().getPollIntervalInSeconds());
+        Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
 
         List<Job> allJobsToSchedule = new ArrayList<>();
         for (RecurringJob recurringJob : recurringJobs) {

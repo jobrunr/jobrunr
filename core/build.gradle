@@ -74,7 +74,7 @@ dependencies {
     testImplementation 'mysql:mysql-connector-java'
     testImplementation 'com.zaxxer:HikariCP'
     testImplementation 'org.apache.commons:commons-dbcp2'
-    testImplementation 'com.mchange:c3p0'
+    testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'

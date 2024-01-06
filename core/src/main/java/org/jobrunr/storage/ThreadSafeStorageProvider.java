@@ -12,6 +12,7 @@ import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.MultiLock;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -202,6 +203,16 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
+    }
+
+    @Override
+    public void validatePollInterval(Duration pollInterval) {
+        storageProvider.validatePollInterval(pollInterval);
+    }
+
+    @Override
+    public void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances) {
+        storageProvider.validateRecurringJobInterval(durationBetweenRecurringJobInstances);
     }
 
     public StorageProvider getStorageProvider() {

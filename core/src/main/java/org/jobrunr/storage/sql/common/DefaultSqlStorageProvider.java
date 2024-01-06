@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -75,7 +76,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         if (databaseOptions == CREATE) {
             getDatabaseCreator()
                     .runMigrations();
-        } else {
+        } else if (databaseOptions == SKIP_CREATE) {
             getDatabaseCreator()
                     .validateTables();
         }

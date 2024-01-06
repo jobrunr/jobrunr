@@ -1,21 +1,27 @@
 package org.jobrunr.storage.sql.mysql;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
+
 class MySQLStorageProviderTest extends AbstractMySQLStorageProviderTest {
 
-    private static MysqlDataSource dataSource;
+    private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            dataSource = new MysqlDataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useSSL=false");
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
+            dataSource = toHikariDataSource(sqlContainer, "?rewriteBatchedStatements=true&useSSL=false");
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
+        dataSource = null;
     }
 }

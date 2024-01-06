@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -75,7 +76,7 @@ public class TestService implements TestServiceInterface {
 
     public void doWork(Integer count) {
         processedJobs += count;
-        LOGGER.debug("Doing some work... " + processedJobs + "; " + Instant.now());
+        LOGGER.debug("Doing some work... " + processedJobs + "; " + now());
     }
 
     public void doWork(Long count) {
@@ -87,7 +88,7 @@ public class TestService implements TestServiceInterface {
         processedJobs += count;
         LOGGER.debug("Doing some work... " + processedJobs + "; jobId: " + jobContext.getJobId());
         jobContext.saveMetadata("test", "test");
-        Thread.sleep(6000L);
+        Thread.sleep(600L);
     }
 
     public void doWork(int countA, int countB) {
@@ -232,13 +233,13 @@ public class TestService implements TestServiceInterface {
     }
 
     public void doWorkThatCanBeInterrupted(int seconds) throws InterruptedException {
-        final Instant start = Instant.now();
+        final Instant start = now();
         long initialNbr = 0;
-        while (start.plusSeconds(seconds).isAfter(Instant.now())) {
+        while (start.plusSeconds(seconds).isAfter(now())) {
             if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
-            if (Duration.between(start, Instant.now()).getSeconds() > initialNbr) {
-                LOGGER.debug("WORK IS BEING DONE: " + Duration.between(start, Instant.now()).getSeconds());
-                initialNbr = Duration.between(start, Instant.now()).getSeconds();
+            if (Duration.between(start, now()).getSeconds() > initialNbr) {
+                LOGGER.debug("WORK IS BEING DONE: " + Duration.between(start, now()).getSeconds());
+                initialNbr = Duration.between(start, now()).getSeconds();
             }
         }
     }
@@ -262,16 +263,13 @@ public class TestService implements TestServiceInterface {
         }
     }
 
-    public void scheduleNewWorkSlowly(int amount) {
-        try {
-            for (int i = 0; i < amount; i++) {
-                int finalI = i;
-                BackgroundJob.enqueue(() -> doWork(finalI));
-                Thread.sleep(10000);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void scheduleNewWorkSlowly(int amount) throws InterruptedException {
+        for (int i = 0; i < amount; i++) {
+            int finalI = i;
+            BackgroundJob.enqueue(() -> doWork(finalI));
+            Thread.sleep(1400);
         }
+        System.out.println("scheduleNewWorkSlowly is done");
     }
 
     @Job(jobFilters = {SkipProcessingElectStateFilter.class})
@@ -433,7 +431,7 @@ public class TestService implements TestServiceInterface {
         public void onStateElection(org.jobrunr.jobs.Job job, JobState newState) {
             if (PROCESSING.equals(newState.getName())) {
                 job.delete("Should not run due to business rule.");
-                job.scheduleAt(Instant.now(), "Rescheduled by business rule.");
+                job.scheduleAt(now().plusSeconds(20), "Rescheduled by business rule.");
             }
         }
     }

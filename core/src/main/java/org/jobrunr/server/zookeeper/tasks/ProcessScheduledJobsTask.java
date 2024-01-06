@@ -22,7 +22,7 @@ public class ProcessScheduledJobsTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for scheduled jobs... ");
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plusSeconds(backgroundJobServerConfiguration().getPollIntervalInSeconds()), ascOnUpdatedAt(pageRequestSize));
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plus(backgroundJobServerConfiguration().getPollInterval()), ascOnUpdatedAt(pageRequestSize));
         processJobList(scheduledJobsSupplier, Job::enqueue, totalAmountOfEnqueuedJobs -> LOGGER.debug("Found {} scheduled jobs to enqueue.", totalAmountOfEnqueuedJobs));
     }
 }

@@ -1,26 +1,20 @@
 package org.jobrunr.storage.sql.mariadb;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterAll;
-import org.mariadb.jdbc.MariaDbPoolDataSource;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
+
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 
 class MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
-    private static MariaDbPoolDataSource dataSource;
+    private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            try {
-                dataSource = new MariaDbPoolDataSource();
-                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&useBulkStmts=false");
-                dataSource.setUser(sqlContainer.getUsername());
-                dataSource.setPassword(sqlContainer.getPassword());
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            dataSource = toHikariDataSource(sqlContainer, "?rewriteBatchedStatements=true&useBulkStmts=false");
         }
         return dataSource;
     }
@@ -28,5 +22,6 @@ class MariaDbStorageProviderTest extends AbstractMariaDbStorageProviderTest {
     @AfterAll
     public static void destroyDatasource() {
         dataSource.close();
+        dataSource = null;
     }
 }

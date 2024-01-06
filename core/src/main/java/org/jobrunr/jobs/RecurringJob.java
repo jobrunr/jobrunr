@@ -9,10 +9,18 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.*;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+
+import static java.time.Duration.between;
 
 public class RecurringJob extends AbstractJob {
 
@@ -46,7 +54,6 @@ public class RecurringJob extends AbstractJob {
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
         super(jobDetails);
-        schedule.validateSchedule();
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
         this.scheduleExpression = schedule.toString();
@@ -143,5 +150,13 @@ public class RecurringJob extends AbstractJob {
                 ", jobSignature='" + getJobSignature() + '\'' +
                 ", jobName='" + getJobName() + '\'' +
                 '}';
+    }
+
+    public Duration durationBetweenRecurringJobInstances() {
+        Instant base = Instant.EPOCH.plusSeconds(3600);
+        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
+        Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
+        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
+        return between(run1, run2);
     }
 }

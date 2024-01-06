@@ -10,6 +10,9 @@ compileTestFixturesJava {
 dependencies {
     implementation project(':core')
     implementation 'ch.qos.logback:logback-classic'
+    implementation 'com.google.code.gson:gson'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.eclipse:yasson'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":core"))

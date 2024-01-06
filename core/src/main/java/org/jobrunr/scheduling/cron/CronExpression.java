@@ -8,11 +8,8 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.BitSet;
 import java.util.Calendar;
-
-import static java.time.Duration.between;
 
 /**
  * Schedule class represents a parsed crontab expression.
@@ -382,17 +379,6 @@ public class CronExpression extends Schedule {
             }
         }
         return updatedDays;
-    }
-
-    @Override
-    public void validateSchedule() {
-        Instant base = Instant.EPOCH;
-
-        Instant i1 = next(base, base, ZoneOffset.UTC);
-        Instant i2 = next(base, i1, ZoneOffset.UTC);
-        if (between(i1, i2).getSeconds() < SMALLEST_SCHEDULE_IN_SECONDS) {
-            throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
-        }
     }
 
     @Override
