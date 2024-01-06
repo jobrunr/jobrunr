@@ -26,13 +26,30 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.dashboard.ui.model.VersionUIModel;
-import org.jobrunr.dashboard.ui.model.problems.*;
-import org.jobrunr.jobs.*;
+import org.jobrunr.dashboard.ui.model.problems.CpuAllocationIrregularityProblem;
+import org.jobrunr.dashboard.ui.model.problems.NewJobRunrVersionProblem;
+import org.jobrunr.dashboard.ui.model.problems.PollIntervalInSecondsTimeBoxIsTooSmallProblem;
+import org.jobrunr.dashboard.ui.model.problems.Problem;
+import org.jobrunr.dashboard.ui.model.problems.ScheduledJobsNotFoundProblem;
+import org.jobrunr.dashboard.ui.model.problems.SevereJobRunrExceptionProblem;
+import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
-import org.jobrunr.jobs.states.*;
+import org.jobrunr.jobs.states.AbstractJobState;
+import org.jobrunr.jobs.states.DeletedState;
+import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
@@ -45,7 +62,12 @@ import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderP
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
-import org.jobrunr.storage.*;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.JobStatsExtended;
+import org.jobrunr.storage.Page;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
@@ -60,7 +82,12 @@ import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -207,10 +234,10 @@ class JobRunrExtensionProcessor {
     }
 
     private Class<?> jsonMapper(Capabilities capabilities) {
-        if (capabilities.isPresent(Capability.JSONB)) {
-            return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
-        } else if (capabilities.isPresent(Capability.JACKSON)) {
+        if (capabilities.isPresent(Capability.JACKSON)) {
             return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
+        } else if (capabilities.isPresent(Capability.JSONB)) {
+            return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
         }
         throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
     }
