@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import LoadingIndicator from "../../LoadingIndicator";
 import JobNotFoundProblem from "./job-not-found-problem";
@@ -31,13 +31,13 @@ const useStyles = makeStyles(theme => ({
 const Problems = () => {
     const classes = useStyles();
 
-    const [isProblemsApiLoading, setProblemsApiIsLoading] = React.useState(true);
-    const [problems, setProblems] = React.useState([]);
-    const [mustRefresh, setRefresh] = React.useState(true);
+    const [isProblemsApiLoading, setProblemsApiIsLoading] = useState(true);
+    const [problems, setProblems] = useState([]);
+    const [mustRefresh, setRefresh] = useState(true);
 
     const refresh = () => setRefresh(!mustRefresh);
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`/api/problems`)
             .then(res => res.json())
             .then(response => {

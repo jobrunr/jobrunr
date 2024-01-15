@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import Box from "@material-ui/core/Box";
@@ -37,11 +37,10 @@ const useStyles = makeStyles(theme => ({
 const Overview = () => {
     const classes = useStyles();
 
-    const [isServersApiLoading, setServersApiIsLoading] = React.useState(true);
-    const [servers, setServers] = React.useState([{firstHeartbeat: undefined}]);
+    const [isServersApiLoading, setServersApiIsLoading] = useState(true);
+    const [servers, setServers] = useState([{firstHeartbeat: undefined}]);
 
-
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {

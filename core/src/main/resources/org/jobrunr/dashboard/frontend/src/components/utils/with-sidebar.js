@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Drawer from "@material-ui/core/Drawer";
 import {IconButton} from "@material-ui/core";
@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
 
 const WithSidebar = (Sidebar, Component) => {
     const classes = useStyles();
-    const [collapsed, setCollapsed] = React.useState(false);
+    const [collapsed, setCollapsed] = useState(false);
     const className = classes[collapsed ? 'drawerCollapsed' : 'drawer'];
     return (props) => (
         <div className={classes.root}>

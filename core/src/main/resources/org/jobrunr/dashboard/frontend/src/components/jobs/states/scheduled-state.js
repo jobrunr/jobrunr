@@ -4,7 +4,6 @@ import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
-import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {Schedule} from "@material-ui/icons";
 import SwitchableTimeAgo from "../../utils/time-ago";

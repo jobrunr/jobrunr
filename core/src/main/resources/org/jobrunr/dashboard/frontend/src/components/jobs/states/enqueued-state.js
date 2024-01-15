@@ -2,7 +2,6 @@ import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
-import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {TimerSand} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";

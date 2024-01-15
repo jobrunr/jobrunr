@@ -1,10 +1,10 @@
-import React from 'react';
+import { useState } from 'react';
 import Alert from '@material-ui/lab/Alert';
 import {Snackbar} from "@material-ui/core";
 
 
 const JobSnackbar = (props) => {
-    const [openSnackbar, setOpenSnackbar] = React.useState(false);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
     const handleCloseAlert = (event, reason) => {
         setOpenSnackbar(false);

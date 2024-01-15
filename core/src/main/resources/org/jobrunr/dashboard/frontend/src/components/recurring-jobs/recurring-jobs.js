@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
@@ -46,12 +46,12 @@ const RecurringJobs = (props) => {
 
     const urlSearchParams = new URLSearchParams(location.search);
     const page = urlSearchParams.get('page');
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [recurringJobPage, setRecurringJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
-    const [recurringJobs, setRecurringJobs] = React.useState([{}]);
-    const [apiStatus, setApiStatus] = React.useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [recurringJobPage, setRecurringJobPage] = useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const [recurringJobs, setRecurringJobs] = useState([{}]);
+    const [apiStatus, setApiStatus] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         getRecurringJobs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page]);

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {Typography} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 import statsState from "../../StatsStateContext";
@@ -15,16 +15,16 @@ export default function VersionFooter() {
 
     const classes = useStyles();
     const stats = statsState.getStats();
-    const [jobRunrInfo, setJobRunrInfo] = React.useState({version: '0.0.0-SNAPSHOT', allowAnonymousDataUsage: false, clusterId: undefined, storageProviderType: undefined});
+    const [jobRunrInfo, setJobRunrInfo] = useState({version: '0.0.0-SNAPSHOT', allowAnonymousDataUsage: false, clusterId: undefined, storageProviderType: undefined});
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`/api/version`)
             .then(res => res.json())
             .then(response => setJobRunrInfo(response))
             .catch(error => console.log(error));
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if(jobRunrInfo.allowAnonymousDataUsage && stats.backgroundJobServers) {
             const anonymousUsageDataSent = localStorage.getItem('anonymousUsageDataSent');
             if(!anonymousUsageDataSent || Math.abs(new Date() - Date.parse(anonymousUsageDataSent)) > (1000 * 60 * 60 * 4)) {

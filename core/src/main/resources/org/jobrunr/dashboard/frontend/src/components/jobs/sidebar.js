@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {Link} from "react-router-dom";
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -19,8 +19,8 @@ const categories = [
 ];
 
 const Sidebar = () => {
-    const [stats, setStats] = React.useState(statsState.getStats());
-    React.useEffect(() => {
+    const [stats, setStats] = useState(statsState.getStats());
+    useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])

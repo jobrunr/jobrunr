@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {Link, useHistory, useParams} from "react-router-dom";
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -59,15 +59,15 @@ const JobView = (props) => {
     const classes = useStyles();
     const history = useHistory();
 
-    const [apiStatus, setApiStatus] = React.useState(null);
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [job, setJob] = React.useState(null);
-    const [stateBreadcrumb, setStateBreadcrumb] = React.useState({});
-    const [jobStates, setJobStates] = React.useState([]);
-    const [order, setOrder] = React.useState(true);
+    const [apiStatus, setApiStatus] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [job, setJob] = useState(null);
+    const [stateBreadcrumb, setStateBreadcrumb] = useState({});
+    const [jobStates, setJobStates] = useState([]);
+    const [order, setOrder] = useState(true);
     const {jobId} = useParams();
 
-    React.useEffect(() => {
+    useEffect(() => {
         getJob(jobId);
 
         const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/jobs/" + jobId);
@@ -77,7 +77,7 @@ const JobView = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jobId]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (job) {
             if (order) {
                 setJobStates([...job.jobHistory]);

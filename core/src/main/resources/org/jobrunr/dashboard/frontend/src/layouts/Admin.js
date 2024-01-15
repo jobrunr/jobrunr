@@ -1,4 +1,3 @@
-import React from 'react';
 import {createTheme, makeStyles, MuiThemeProvider} from '@material-ui/core/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import TopAppBar from "./TopAppBar";

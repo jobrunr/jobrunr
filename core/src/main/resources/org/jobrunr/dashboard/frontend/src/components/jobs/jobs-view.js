@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {useHistory} from "react-router-dom";
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
@@ -50,8 +50,8 @@ const JobsView = (props) => {
     const urlSearchParams = new URLSearchParams(props.location.search);
     const page = urlSearchParams.get('page');
     const jobState = urlSearchParams.get('state') ?? 'ENQUEUED';
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [jobPage, setJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const [isLoading, setIsLoading] = useState(true);
+    const [jobPage, setJobPage] = useState({total: 0, limit: 20, currentPage: 0, items: []});
 
     let sort = 'updatedAt:ASC';
     switch (jobState.toUpperCase()) {
@@ -64,7 +64,7 @@ const JobsView = (props) => {
         default:
     }
 
-    React.useEffect(() => {
+    useEffect(() => {
         setIsLoading(true);
         const offset = (page) * 20;
         const limit = 20;

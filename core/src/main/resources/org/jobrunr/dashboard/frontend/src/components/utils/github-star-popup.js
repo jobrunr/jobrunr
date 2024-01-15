@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 
@@ -11,10 +11,10 @@ const useStyles = makeStyles(theme => ({
 export default function GithubStarPopup() {
 
     const classes = useStyles();
-    const [visible, setVisible] = React.useState(false);
+    const [visible, setVisible] = useState(false);
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         let popupShown = localStorage.getItem('githubStarPopupShown');
         if (popupShown === 'true') {
             return;

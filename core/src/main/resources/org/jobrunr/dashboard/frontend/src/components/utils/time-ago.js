@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import TimeAgo from "react-timeago/lib";
 import {useHistory} from "react-router-dom";
 
@@ -6,7 +6,7 @@ const SwitchableTimeAgo = (props) => {
 
     const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
 
-    const [style, setStyle] = React.useState(localStorage.getItem('switchableTimeAgoStyle'));
+    const [style, setStyle] = useState(localStorage.getItem('switchableTimeAgoStyle'));
     const history = useHistory();
 
     const setNewStyle = (e, style) => {

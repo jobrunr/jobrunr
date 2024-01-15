@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import {Alert, AlertTitle} from '@material-ui/lab';
 import {Button, Dialog, Link, Snackbar} from "@material-ui/core";
@@ -19,8 +19,8 @@ const useStyles = makeStyles(theme => ({
 const SevereJobRunrExceptionProblem = (props) => {
     const classes = useStyles();
 
-    const [copyStatus, setCopyStatus] = React.useState(null);
-    const [issueDialog, setIssueDialogContent] = React.useState(null);
+    const [copyStatus, setCopyStatus] = useState(null);
+    const [issueDialog, setIssueDialogContent] = useState(null);
 
     const handleCloseSnackbar = (event, reason) => setCopyStatus(null);
     const handleCloseDialog = (event, reason) => setIssueDialogContent(null);

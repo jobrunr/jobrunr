@@ -1,4 +1,3 @@
-import React from 'react';
 import {Link, useHistory, useLocation} from "react-router-dom";
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';

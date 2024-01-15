@@ -3,7 +3,6 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Alert from "@material-ui/lab/Alert";
 import Typography from "@material-ui/core/Typography";
-import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {Delete} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";

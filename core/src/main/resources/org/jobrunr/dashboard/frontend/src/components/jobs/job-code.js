@@ -1,6 +1,5 @@
 import Grid from "@material-ui/core/Grid";
 import Highlight from "react-highlight";
-import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 
 const useStyles = makeStyles(theme => ({

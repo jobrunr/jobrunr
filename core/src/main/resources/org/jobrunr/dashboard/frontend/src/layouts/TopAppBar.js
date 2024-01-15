@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Chip from '@material-ui/core/Chip';
@@ -55,8 +55,8 @@ const TopAppBar = () => {
     const classes = useStyles();
 
 
-    const [stats, setStats] = React.useState(statsState.getStats());
-    React.useEffect(() => {
+    const [stats, setStats] = useState(statsState.getStats());
+    useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])

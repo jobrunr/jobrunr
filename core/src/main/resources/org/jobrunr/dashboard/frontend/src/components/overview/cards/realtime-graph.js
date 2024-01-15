@@ -1,4 +1,5 @@
-import React, {useRef, useState} from 'react';
+import { useRef, useState } from 'react';
+import * as React from 'react';
 
 import Box from "@material-ui/core/Box";
 import Paper from '@material-ui/core/Paper';

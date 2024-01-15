@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import {Alert, AlertTitle} from '@material-ui/lab';
 
@@ -15,9 +15,9 @@ const useStyles = makeStyles(theme => ({
 const JobRunrApiNotification = (props) => {
     const classes = useStyles();
 
-    const [notification, setNotification] = React.useState(null);
+    const [notification, setNotification] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`https://api.jobrunr.io/api/notifications/jobrunr`)
             .then(res => res.json())
             .then(response => {

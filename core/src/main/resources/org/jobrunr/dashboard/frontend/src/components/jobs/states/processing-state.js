@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
@@ -94,7 +94,7 @@ const Processing = (props) => {
     const index = props.index;
     const job = props.job;
     const jobState = props.jobState;
-    const [expanded, setExpanded] = React.useState(job.jobHistory.length === (index + 1));
+    const [expanded, setExpanded] = useState(job.jobHistory.length === (index + 1));
     const logs = getLogs(job, index);
     const progressBar = getProgressBar(job, index);
     const processingIcon = <Cogs/>

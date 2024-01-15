@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, useState, useEffect } from 'react';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
@@ -61,13 +61,13 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const Servers = React.memo(() => {
+const Servers = memo(() => {
     const classes = useStyles();
 
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [servers, setServers] = React.useState([]);
-    const [open, setOpen] = React.useState(false);
-    const [currentServer, setCurrentServer] = React.useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [servers, setServers] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [currentServer, setCurrentServer] = useState(null);
 
     const handleOpen = (server) => {
         setCurrentServer(server);
@@ -80,7 +80,7 @@ const Servers = React.memo(() => {
     };
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {

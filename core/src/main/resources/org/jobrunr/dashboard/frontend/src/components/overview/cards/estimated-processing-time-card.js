@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import Typography from '@material-ui/core/Typography';
@@ -22,14 +22,14 @@ const EstimatedProcessingTimeCard = () => {
     const classes = useStyles();
     const timeAgoFormatter = (a, b, c) => a > 1 ? `${a} ${b}s` : `${a} ${b}`;
 
-    const [stats, setStats] = React.useState(statsState.getStats());
-    React.useEffect(() => {
+    const [stats, setStats] = useState(statsState.getStats());
+    useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])
 
     const processingTimeRef = useRef(<>Calculating...</>);
-    React.useEffect(() => {
+    useEffect(() => {
         if (stats.estimation.processingDone) {
             processingTimeRef.current = <>All done!</>;
         } else {
