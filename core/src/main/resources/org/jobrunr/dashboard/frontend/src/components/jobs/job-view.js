@@ -175,14 +175,14 @@ const JobView = (props) => {
                         <Box my={3} className={classes.box}>
                             <Card className={classes.root}>
                                 <CardContent className={classes.cardContent}>
-                                    <Grid container spacing={3} justify="space-between">
+                                    <Grid container spacing={3} justifyContent="space-between">
                                         <Grid item xs={6} className={classes.jobDetails}>
                                             <Typography id="job-id-title" className={classes.title}
                                                         color="textSecondary">
                                                 Job Id: {job.id}
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={6} container className={classes.jobDetails} justify="flex-end">
+                                        <Grid item xs={6} container className={classes.jobDetails} justifyContent="flex-end">
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                     <Button variant="outlined" color="primary" onClick={requeueJob}>
