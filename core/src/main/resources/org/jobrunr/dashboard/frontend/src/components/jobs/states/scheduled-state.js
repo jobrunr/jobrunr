@@ -1,11 +1,11 @@
-import Accordion from "@material-ui/core/Accordion";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import Alert from "@material-ui/lab/Alert";
-import Typography from "@material-ui/core/Typography";
-import {makeStyles} from "@material-ui/core/styles";
-import {Schedule} from "@material-ui/icons";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import Alert from '@mui/material/Alert';
+import Typography from "@mui/material/Typography";
+import makeStyles from '@mui/styles/makeStyles';
+import {Schedule} from "@mui/icons-material";
 import SwitchableTimeAgo from "../../utils/time-ago";
 
 const useStyles = makeStyles(theme => ({
@@ -48,7 +48,7 @@ const Scheduled = (props) => {
                 expandIcon={<ExpandMore/>}
                 aria-controls="scheduled-panel-content"
             >
-                <Alert className={classes.alert} severity="info" color="#CFD8DC" icon={scheduledIcon}>
+                <Alert className={classes.alert} severity="info" color="info" icon={scheduledIcon}>
                     <Typography className={classes.primaryHeading} variant="h6">
                         Job scheduled <ScheduledMessage/>
                     </Typography>

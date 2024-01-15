@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import Drawer from "@material-ui/core/Drawer";
-import {IconButton} from "@material-ui/core";
+import makeStyles from '@mui/styles/makeStyles';
+import Drawer from "@mui/material/Drawer";
+import {IconButton} from "@mui/material";
 import {ChevronLeft, ChevronRight} from "mdi-material-ui";
 
 const useStyles = makeStyles(theme => ({
@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
         width: 260,
     },
     drawerCollapsed: {
-        width: theme.spacing(7) + 1,
+        width: `calc(${theme.spacing(7)} + 1px)`,
         overflowX: 'hidden',
     },
     toggle: {
@@ -35,7 +35,10 @@ const WithSidebar = (Sidebar, Component) => {
                 <div className={classes.toolbar}/>
                 <Sidebar {...props} />
                 <div className={classes.toggle}>
-                    <IconButton onClick={() => setCollapsed(!collapsed)} title="Toggle sidebar">
+                    <IconButton
+                        onClick={() => setCollapsed(!collapsed)}
+                        title="Toggle sidebar"
+                        size="large">
                         {collapsed ? <ChevronRight/> : <ChevronLeft/>}
                     </IconButton>
                 </div>

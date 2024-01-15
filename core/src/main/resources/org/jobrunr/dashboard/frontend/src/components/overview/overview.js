@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import makeStyles from '@mui/styles/makeStyles';
 
-import Box from "@material-ui/core/Box";
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
+import Box from "@mui/material/Box";
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import RealtimeGraph from "./cards/realtime-graph";
 import EstimatedProcessingTimeCard from "./cards/estimated-processing-time-card";
 import UptimeCard from "./cards/uptime-card";

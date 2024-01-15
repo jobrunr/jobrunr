@@ -1,6 +1,6 @@
-import {makeStyles} from '@material-ui/core/styles';
-import {Alert, AlertTitle} from '@material-ui/lab';
-import {Button} from "@material-ui/core";
+import makeStyles from '@mui/styles/makeStyles';
+import { Alert, AlertTitle } from '@mui/material';
+import {Button} from "@mui/material";
 import TimeAgo from "react-timeago/lib";
 
 const useStyles = makeStyles(theme => ({

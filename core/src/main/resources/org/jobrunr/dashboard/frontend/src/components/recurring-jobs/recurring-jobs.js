@@ -1,26 +1,26 @@
 import { useState, useEffect } from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import Checkbox from '@material-ui/core/Checkbox';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import Grid from '@material-ui/core/Grid';
+import makeStyles from '@mui/styles/makeStyles';
+import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import Checkbox from '@mui/material/Checkbox';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Grid from '@mui/material/Grid';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
-import Box from "@material-ui/core/Box";
-import {Snackbar} from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert'
+import Box from "@mui/material/Box";
+import {Snackbar} from "@mui/material";
+import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
 import {useHistory, useLocation} from "react-router-dom";
-import TablePagination from "@material-ui/core/TablePagination";
+import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 
 const useStyles = makeStyles(theme => ({
@@ -232,7 +232,11 @@ const RecurringJobs = (props) => {
                 </>
             }
             {apiStatus &&
-            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
+            <Snackbar open={true}
+                autoHideDuration={3000}
+                onClose={handleCloseAlert}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
                 <Alert severity={apiStatus.severity}>
                     {apiStatus.message}
                 </Alert>

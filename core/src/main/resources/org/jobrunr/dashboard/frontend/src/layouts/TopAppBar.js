@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Chip from '@material-ui/core/Chip';
-import Toolbar from '@material-ui/core/Toolbar';
-import GitHubIcon from '@material-ui/icons/GitHub';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
+import makeStyles from '@mui/styles/makeStyles';
+import AppBar from '@mui/material/AppBar';
+import Chip from '@mui/material/Chip';
+import Toolbar from '@mui/material/Toolbar';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import {Link as RouterLink} from 'react-router-dom';
 import statsState from "StatsStateContext.js";
 import logo from '../assets/jobrunr-logo-white.png';
@@ -80,8 +80,14 @@ const TopAppBar = () => {
                         Servers <Chip color="secondary" label={stats.backgroundJobServers}/>
                     </Button>
                 </div>
-                <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu"
-                            target="_blank" href="https://github.com/jobrunr/jobrunr">
+                <IconButton
+                    edge="start"
+                    className={classes.menuButton}
+                    color="inherit"
+                    aria-label="menu"
+                    target="_blank"
+                    href="https://github.com/jobrunr/jobrunr"
+                    size="large">
                     <GitHubIcon/>
                 </IconButton>
             </Toolbar>

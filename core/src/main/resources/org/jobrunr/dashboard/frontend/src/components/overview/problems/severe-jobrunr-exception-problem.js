@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import {Alert, AlertTitle} from '@material-ui/lab';
-import {Button, Dialog, Link, Snackbar} from "@material-ui/core";
-import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import MuiDialogContent from "@material-ui/core/DialogContent";
+import makeStyles from '@mui/styles/makeStyles';
+import { Alert, AlertTitle } from '@mui/material';
+import {Button, Dialog, Link, Snackbar} from "@mui/material";
+import MuiDialogTitle from "@mui/material/DialogTitle";
+import MuiDialogContent from "@mui/material/DialogContent";
 import Highlight from "react-highlight";
 
 const useStyles = makeStyles(theme => ({
@@ -71,13 +71,17 @@ const SevereJobRunrExceptionProblem = (props) => {
                     create a <a
                         href={`https://github.com/jobrunr/jobrunr/issues/new?title=${encodeURIComponent(props.problem.githubIssueTitle)}&body=%3C%21--%20Please%20paste%20the%20issue%20content%20generated%20JobRunr%20below.%20--%3E&labels=bug`}
                         target="_blank" rel="noopener noreferrer">Github issue</a>?
-                    To make life easy, you can <Link onClick={copyToClipboard} color="initial">click here</Link> to copy
+                    To make life easy, you can <Link onClick={copyToClipboard} color="initial" underline="hover">click here</Link> to copy
                     all necessary information to your clipboard and paste it in the Github issue. <br/>
                     <strong>You can still cancel the creation of the issue in Github if you think it contains sensitive
                         information.</strong>.<br/></>
             }
             {copyStatus &&
-                <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+                <Snackbar open={true}
+                    autoHideDuration={3000}
+                    onClose={handleCloseSnackbar}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                >
                     <Alert severity={copyStatus.severity}>
                         {copyStatus.message}
                     </Alert>

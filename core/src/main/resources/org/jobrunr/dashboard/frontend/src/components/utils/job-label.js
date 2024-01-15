@@ -1,4 +1,4 @@
-import Chip from "@material-ui/core/Chip";
+import Chip from "@mui/material/Chip";
 
 const JobLabel = (props) => {
     let backgroundColor = getRandomColor(props?.text);

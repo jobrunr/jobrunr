@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import {Link, useHistory, useParams} from "react-router-dom";
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import Typography from '@material-ui/core/Typography';
-import {makeStyles} from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-import {Alert} from '@material-ui/lab';
-import Paper from '@material-ui/core/Paper';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Typography from '@mui/material/Typography';
+import makeStyles from '@mui/styles/makeStyles';
+import Grid from '@mui/material/Grid';
+import { Alert } from '@mui/lab';
+import Paper from '@mui/material/Paper';
 
 import Scheduled from "./states/scheduled-state";
 import Enqueued from "./states/enqueued-state";
@@ -17,12 +17,12 @@ import Succeeded from "./states/succeeded-state";
 import Failed from "./states/failed-state";
 import Deleted from "./states/deleted-state";
 import JobCode from "./job-code";
-import {Snackbar} from "@material-ui/core";
+import {Snackbar} from "@mui/material";
 import {SortAscending, SortDescending} from "mdi-material-ui";
-import IconButton from "@material-ui/core/IconButton";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import Breadcrumbs from "@material-ui/core/Breadcrumbs";
-import Box from "@material-ui/core/Box";
+import IconButton from "@mui/material/IconButton";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Box from "@mui/material/Box";
 import LoadingIndicator from "../LoadingIndicator";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import SucceededNotification from "./notifications/succeeded-notification";
@@ -217,12 +217,18 @@ const JobView = (props) => {
                                 <Typography variant="h5" component="h2">
                                     History&nbsp;
                                     {order
-                                        ? <IconButton id="jobhistory-sort-desc-btn" color="inherit"
-                                                      onClick={changeSortOrder}
-                                                      className={classes.sortButton}><SortDescending/></IconButton>
-                                        : <IconButton id="jobhistory-sort-asc-btn" color="inherit"
-                                                      onClick={changeSortOrder}
-                                                      className={classes.sortButton}><SortAscending/></IconButton>
+                                        ? <IconButton
+                                        id="jobhistory-sort-desc-btn"
+                                        color="inherit"
+                                        onClick={changeSortOrder}
+                                        className={classes.sortButton}
+                                        size="large"><SortDescending/></IconButton>
+                                        : <IconButton
+                                        id="jobhistory-sort-asc-btn"
+                                        color="inherit"
+                                        onClick={changeSortOrder}
+                                        className={classes.sortButton}
+                                        size="large"><SortAscending/></IconButton>
                                     }
                                 </Typography>
                             </Grid>
@@ -251,7 +257,11 @@ const JobView = (props) => {
                             </Grid>
                         </Grid>
                         {apiStatus &&
-                            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
+                            <Snackbar open={true}
+                                autoHideDuration={3000}
+                                onClose={handleCloseAlert}
+                                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                            >
                                 <Alert severity={apiStatus.severity}>
                                     {apiStatus.message}
                                 </Alert>

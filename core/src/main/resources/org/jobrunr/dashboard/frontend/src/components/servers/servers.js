@@ -1,21 +1,21 @@
 import { memo, useState, useEffect } from 'react';
-import Link from '@material-ui/core/Link';
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
+import Link from '@mui/material/Link';
+import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
 import TimeAgo from "react-timeago/lib";
-import Box from "@material-ui/core/Box";
-import {makeStyles} from '@material-ui/core/styles';
+import Box from "@mui/material/Box";
+import makeStyles from '@mui/styles/makeStyles';
 import {CogClockwise} from "mdi-material-ui";
-import NotInterestedIcon from '@material-ui/icons/NotInterested';
-import Dialog from '@material-ui/core/Dialog';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import MuiDialogContent from '@material-ui/core/DialogContent';
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
+import Dialog from '@mui/material/Dialog';
+import MuiDialogTitle from '@mui/material/DialogTitle';
+import MuiDialogContent from '@mui/material/DialogContent';
 import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
@@ -132,12 +132,12 @@ const Servers = memo(() => {
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server)}>
+                                                        <Link color="initial" onClick={() => handleOpen(server)} underline="hover">
                                                             {server.id}
                                                         </Link>
                                                     </TableCell>
                                                     <TableCell className={classes.nameColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server)}>
+                                                        <Link color="initial" onClick={() => handleOpen(server)} underline="hover">
                                                             {server.name}
                                                         </Link>
                                                     </TableCell>
@@ -183,7 +183,7 @@ const Servers = memo(() => {
             }
 
             {currentServer &&
-                <Dialog fullWidth="true" maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <Dialog fullWidth maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
                     <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
                         Server info <code>{currentServer.id}</code>
                     </MuiDialogTitle>

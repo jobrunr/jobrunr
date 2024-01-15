@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import {Link} from "react-router-dom";
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Chip from '@material-ui/core/Chip';
-import {Schedule} from "@material-ui/icons";
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Chip from '@mui/material/Chip';
+import {Schedule} from "@mui/icons-material";
 import {AlertCircleOutline, Check, Cogs, Delete, TimerSand} from "mdi-material-ui";
 import statsState from "../../StatsStateContext";
 

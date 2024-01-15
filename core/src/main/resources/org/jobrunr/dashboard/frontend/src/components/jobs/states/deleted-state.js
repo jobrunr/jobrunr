@@ -1,13 +1,13 @@
-import Accordion from "@material-ui/core/Accordion";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import Alert from "@material-ui/lab/Alert";
-import Typography from "@material-ui/core/Typography";
-import {makeStyles} from "@material-ui/core/styles";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import Alert from '@mui/material/Alert';
+import Typography from "@mui/material/Typography";
+import makeStyles from '@mui/styles/makeStyles';
 import {Delete} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import {Icon} from "@material-ui/core";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import {Icon} from "@mui/material";
 
 
 const useStyles = makeStyles(() => ({

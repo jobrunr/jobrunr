@@ -1,7 +1,7 @@
-import Alert from "@material-ui/lab/Alert";
-import {makeStyles} from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Grid from "@material-ui/core/Grid";
+import Alert from '@mui/material/Alert';
+import makeStyles from '@mui/styles/makeStyles';
+import Paper from "@mui/material/Paper";
+import Grid from "@mui/material/Grid";
 
 const useStyles = makeStyles(() => ({
     alert: {

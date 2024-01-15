@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Alert from '@material-ui/lab/Alert';
-import {Snackbar} from "@material-ui/core";
+import Alert from '@mui/material/Alert';
+import {Snackbar} from "@mui/material";
 
 
 const JobSnackbar = (props) => {
@@ -11,7 +11,11 @@ const JobSnackbar = (props) => {
     };
 
     return (
-        <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseAlert}>
+        <Snackbar open={openSnackbar}
+            autoHideDuration={3000}
+            onClose={handleCloseAlert}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+         >
             <Alert severity={props.severity}>
                 {props.message}
             </Alert>

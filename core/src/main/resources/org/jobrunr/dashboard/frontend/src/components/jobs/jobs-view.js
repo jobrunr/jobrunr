@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import {useHistory} from "react-router-dom";
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Box from "@material-ui/core/Box";
-import {makeStyles} from '@material-ui/core/styles';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Box from "@mui/material/Box";
+import makeStyles from '@mui/styles/makeStyles';
 import LoadingIndicator from "../LoadingIndicator";
 import JobsTable from "../utils/jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";

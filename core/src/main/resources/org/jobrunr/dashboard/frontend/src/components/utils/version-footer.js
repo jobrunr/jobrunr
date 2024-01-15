@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import {Typography} from "@material-ui/core";
-import {makeStyles} from "@material-ui/core/styles";
+import {Typography} from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import statsState from "../../StatsStateContext";
 
 const useStyles = makeStyles(theme => ({

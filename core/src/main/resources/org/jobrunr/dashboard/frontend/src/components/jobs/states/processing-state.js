@@ -1,13 +1,14 @@
 import { useState } from "react";
-import Typography from "@material-ui/core/Typography";
-import Accordion from "@material-ui/core/Accordion";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import LinearProgress from '@material-ui/core/LinearProgress';
-import Alert from "@material-ui/lab/Alert";
+import Typography from "@mui/material/Typography";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import LinearProgress from '@mui/material/LinearProgress';
+import Alert from '@mui/material/Alert';
 import TimeAgo from "react-timeago/lib";
-import {makeStyles, withStyles} from '@material-ui/core/styles';
+import makeStyles from '@mui/styles/makeStyles';
+import withStyles from '@mui/styles/withStyles';
 import {Cogs} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";
 

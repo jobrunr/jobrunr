@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import makeStyles from '@mui/styles/makeStyles';
 import LoadingIndicator from "../../LoadingIndicator";
 import JobNotFoundProblem from "./job-not-found-problem";
 import SevereJobRunrExceptionProblem from "./severe-jobrunr-exception-problem";
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import CpuAllocationIrregularityProblem from "./cpu-allocation-irregularity-problem";
 import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
 import JobRunrApiNotification from "./jobrunr-api-notification";
