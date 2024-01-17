@@ -43,7 +43,7 @@ const WithSidebar = (Sidebar, Component) => {
                     </IconButton>
                 </div>
             </Drawer>
-            <Component {...props} />
+            <Component />
         </div>
     );
 }

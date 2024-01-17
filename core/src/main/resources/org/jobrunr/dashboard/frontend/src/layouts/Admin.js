@@ -55,11 +55,11 @@ const App = () => {
             <TopAppBar/>
             <main className={classes.content}>
                 <Switch>
-                    <Route path="/dashboard/overview" component={Overview}/>
-                    <Route path="/dashboard/jobs/:jobId" component={WithSidebar(Sidebar, JobView)}/>
-                    <Route path="/dashboard/jobs" component={WithSidebar(Sidebar, JobsView)}/>
-                    <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
-                    <Route path="/dashboard/servers" component={Servers}/>
+                    <Route path="/dashboard/overview" children={<Overview />}/>
+                    <Route path="/dashboard/jobs/:jobId" children={WithSidebar(Sidebar, JobView)}/>
+                    <Route path="/dashboard/jobs" children={WithSidebar(Sidebar, JobsView)}/>
+                    <Route path="/dashboard/recurring-jobs" children={<RecurringJobs />}/>
+                    <Route path="/dashboard/servers" children={<Servers />}/>
                     <Redirect from="/dashboard" to="/dashboard/overview"/>
                 </Switch>
             </main>

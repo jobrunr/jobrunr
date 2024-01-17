@@ -39,7 +39,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const RecurringJobs = (props) => {
+const RecurringJobs = () => {
     const classes = useStyles();
     const history = useHistory();
     const location = useLocation();

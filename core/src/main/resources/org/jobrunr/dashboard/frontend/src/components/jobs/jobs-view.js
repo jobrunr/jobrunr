@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import {useHistory} from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
@@ -43,11 +43,12 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const JobsView = (props) => {
+const JobsView = () => {
     const classes = useStyles();
     const history = useHistory();
+    const location = useLocation();
 
-    const urlSearchParams = new URLSearchParams(props.location.search);
+    const urlSearchParams = new URLSearchParams(location.search);
     const page = urlSearchParams.get('page');
     const jobState = urlSearchParams.get('state') ?? 'ENQUEUED';
     const [isLoading, setIsLoading] = useState(true);

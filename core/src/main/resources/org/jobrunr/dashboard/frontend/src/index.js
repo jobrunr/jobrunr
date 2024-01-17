@@ -13,7 +13,7 @@ const hist = createBrowserHistory();
 ReactDOM.render(
     <Router history={hist}>
         <Switch>
-            <Route path="/dashboard" component={AdminUI} />
+            <Route path="/dashboard" children={<AdminUI />} />
         </Switch>
     </Router>,
     document.getElementById("root")
