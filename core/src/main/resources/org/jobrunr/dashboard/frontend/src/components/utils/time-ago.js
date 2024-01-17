@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import TimeAgo from "react-timeago/lib";
-import {useHistory} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const SwitchableTimeAgo = (props) => {
 
     const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
 
     const [style, setStyle] = useState(localStorage.getItem('switchableTimeAgoStyle'));
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const setNewStyle = (e, style) => {
         e.stopPropagation();
         localStorage.setItem('switchableTimeAgoStyle', style);
         setStyle(style);
-        history.go(0);
+        navigate(0);
     }
 
     let result;

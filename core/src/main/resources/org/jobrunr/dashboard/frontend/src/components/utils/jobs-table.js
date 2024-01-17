@@ -1,4 +1,4 @@
-import {Link, useHistory, useLocation} from "react-router-dom";
+import {Link, useNavigate, useLocation} from "react-router-dom";
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
 const JobsTable = (props) => {
     const classes = useStyles();
     const location = useLocation();
-    const history = useHistory();
+    const navigate = useNavigate();
     const isLoading = props.isLoading;
     const jobPage = props.jobPage;
     const jobState = props.jobState;
@@ -79,7 +79,7 @@ const JobsTable = (props) => {
     const handleChangePage = (event, newPage) => {
         let urlSearchParams = new URLSearchParams(location.search);
         urlSearchParams.set("page", newPage);
-        history.push(`?${urlSearchParams.toString()}`);
+        navigate(`?${urlSearchParams.toString()}`);
     };
 
     return (

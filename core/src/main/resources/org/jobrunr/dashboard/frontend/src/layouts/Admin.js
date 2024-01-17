@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 import makeStyles from '@mui/styles/makeStyles';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
 import Servers from "../components/servers/servers";
@@ -49,19 +49,22 @@ const theme = createTheme({
 
 const App = () => {
     const classes = useStyles();
+    const JobViewWithSideBar = WithSidebar(Sidebar, JobView);
+    const JobsViewWithSidebar = WithSidebar(Sidebar, JobsView);
+
     return (
         <div className={classes.root}>
             <GithubStarPopup/>
             <TopAppBar/>
             <main className={classes.content}>
-                <Switch>
-                    <Route path="/dashboard/overview" children={<Overview />}/>
-                    <Route path="/dashboard/jobs/:jobId" children={WithSidebar(Sidebar, JobView)}/>
-                    <Route path="/dashboard/jobs" children={WithSidebar(Sidebar, JobsView)}/>
-                    <Route path="/dashboard/recurring-jobs" children={<RecurringJobs />}/>
-                    <Route path="/dashboard/servers" children={<Servers />}/>
-                    <Route path="/dashboard" render={() => <Redirect to="/dashboard/overview" />} />
-                </Switch>
+                <Routes>
+                    <Route path="overview" element={<Overview />}/>
+                    <Route path="jobs/:jobId" element={<JobViewWithSideBar />}/>
+                    <Route path="jobs" element={<JobsViewWithSidebar />}/>
+                    <Route path="recurring-jobs" element={<RecurringJobs />}/>
+                    <Route path="servers" element={<Servers />}/>
+                    <Route path="*" element={<Navigate to="overview" replace/>} />
+                </Routes>
             </main>
         </div>
     );

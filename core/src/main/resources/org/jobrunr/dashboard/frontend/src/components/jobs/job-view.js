@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
@@ -57,7 +57,7 @@ const useStyles = makeStyles(() => ({
 
 const JobView = (props) => {
     const classes = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [apiStatus, setApiStatus] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -148,7 +148,7 @@ const JobView = (props) => {
         const mustGoBack = 'delete' === apiStatus.type;
         setApiStatus(null);
         if (mustGoBack) {
-            history.goBack();
+            navigate(-1);
         }
     };
 

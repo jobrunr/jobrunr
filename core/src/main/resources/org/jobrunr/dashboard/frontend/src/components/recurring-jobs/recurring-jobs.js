@@ -15,11 +15,11 @@ import Grid from '@mui/material/Grid';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
-import {Snackbar} from "@mui/material";
+import { Snackbar } from "@mui/material";
 import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
-import {useHistory, useLocation} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 
@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
 
 const RecurringJobs = () => {
     const classes = useStyles();
-    const history = useHistory();
+    const navigate = useNavigate();
     const location = useLocation();
 
     const urlSearchParams = new URLSearchParams(location.search);
@@ -73,7 +73,7 @@ const RecurringJobs = () => {
     const handleChangePage = (event, newPage) => {
         let urlSearchParams = new URLSearchParams(location.search);
         urlSearchParams.set("page", newPage);
-        history.push(`?${urlSearchParams.toString()}`);
+        navigate(`?${urlSearchParams.toString()}`);
     };
 
     const selectAll = (event) => {

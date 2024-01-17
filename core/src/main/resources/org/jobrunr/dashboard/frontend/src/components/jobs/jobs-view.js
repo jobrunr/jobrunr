@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
@@ -45,7 +45,6 @@ const useStyles = makeStyles(theme => ({
 
 const JobsView = () => {
     const classes = useStyles();
-    const history = useHistory();
     const location = useLocation();
 
     const urlSearchParams = new URLSearchParams(location.search);
@@ -77,7 +76,7 @@ const JobsView = () => {
                 setIsLoading(false);
             })
             .catch(error => console.log(error));
-    }, [page, jobState, sort, history.location.key]);
+    }, [page, jobState, sort, location.key]);
 
     return (
         <main className={classes.content}>

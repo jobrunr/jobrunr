@@ -1,20 +1,16 @@
 import ReactDOM from 'react-dom';
-
-import {createBrowserHistory} from "history";
-import {Route, Router, Switch} from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import "assets/css/material-dashboard-react.css?v=1.8.1";
 import "assets/css/androidstudio.css";
 
 import AdminUI from "layouts/Admin.js";
 
-const hist = createBrowserHistory();
-
 ReactDOM.render(
-    <Router history={hist}>
-        <Switch>
-            <Route path="/dashboard" children={<AdminUI />} />
-        </Switch>
-    </Router>,
+    <BrowserRouter>
+        <Routes>
+            <Route path="/dashboard/*" element={<AdminUI />} />
+        </Routes>
+    </BrowserRouter>,
     document.getElementById("root")
 );
