@@ -18,7 +18,8 @@ const useStyles = makeStyles(theme => ({
         marginLeft: 'auto'
     },
     alert: {
-        padding: 0
+        padding: 0,
+        backgroundColor: "#CFD8DC"
     },
     scheduled: {
         color: "rgb(13, 60, 97)",
@@ -48,7 +49,7 @@ const Scheduled = (props) => {
                 expandIcon={<ExpandMore/>}
                 aria-controls="scheduled-panel-content"
             >
-                <Alert className={classes.alert} severity="info" color="info" icon={scheduledIcon}>
+                <Alert className={classes.alert} severity="info" icon={scheduledIcon}>
                     <Typography className={classes.primaryHeading} variant="h6">
                         Job scheduled <ScheduledMessage/>
                     </Typography>

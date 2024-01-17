@@ -1,4 +1,4 @@
-import { createTheme, ThemeProvider, StyledEngineProvider, adaptV4Theme } from '@mui/material/styles';
+import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 import makeStyles from '@mui/styles/makeStyles';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import TopAppBar from "./TopAppBar";
@@ -27,13 +27,25 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const theme = createTheme(adaptV4Theme({
+const theme = createTheme({
     palette: {
         primary: {
             main: '#000'
+        },
+        secondary: {
+            main: '#f50057'
+        }
+    },
+    components: {
+        MuiLink: {
+            styleOverrides: {
+                root: {
+                    color: "#26a8ed"
+                }
+            }
         }
     }
-}));
+});
 
 const App = () => {
     const classes = useStyles();

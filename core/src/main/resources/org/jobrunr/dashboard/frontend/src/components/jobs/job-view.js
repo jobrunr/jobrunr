@@ -7,7 +7,7 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import Typography from '@mui/material/Typography';
 import makeStyles from '@mui/styles/makeStyles';
 import Grid from '@mui/material/Grid';
-import { Alert } from '@mui/lab';
+import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 
 import Scheduled from "./states/scheduled-state";

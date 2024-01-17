@@ -132,12 +132,12 @@ const Servers = memo(() => {
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
                                                     <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server)} underline="hover">
+                                                        <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.id}
                                                         </Link>
                                                     </TableCell>
                                                     <TableCell className={classes.nameColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server)} underline="hover">
+                                                        <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.name}
                                                         </Link>
                                                     </TableCell>
