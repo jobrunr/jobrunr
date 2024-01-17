@@ -60,7 +60,7 @@ const App = () => {
                     <Route path="/dashboard/jobs" children={WithSidebar(Sidebar, JobsView)}/>
                     <Route path="/dashboard/recurring-jobs" children={<RecurringJobs />}/>
                     <Route path="/dashboard/servers" children={<Servers />}/>
-                    <Redirect from="/dashboard" to="/dashboard/overview"/>
+                    <Route path="/dashboard" render={() => <Redirect to="/dashboard/overview" />} />
                 </Switch>
             </main>
         </div>
