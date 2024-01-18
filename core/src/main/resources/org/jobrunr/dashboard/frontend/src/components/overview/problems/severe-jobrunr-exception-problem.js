@@ -3,7 +3,11 @@ import { Alert, AlertTitle } from '@mui/material';
 import {Button, Dialog, Link, Snackbar} from "@mui/material";
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
-import Highlight from "react-highlight";
+import { Light as Highlight } from 'react-syntax-highlighter';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/hljs/yaml';
+import style from 'react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark';
+
+Highlight.registerLanguage('yaml', yaml);
 
 const classes = {
     alert: {
@@ -92,7 +96,7 @@ const SevereJobRunrExceptionProblem = (props) => {
                     <MuiDialogContent dividers>
                         JobRunr could not copy the issue data to the clipboard (are you running an older browser or are you not using https?).
                         Please copy the data below and paste it in the Github issue as is.
-                        <Highlight language='yaml'>
+                        <Highlight language='yaml' style={style}>
                             {issueDialog}
                         </Highlight>
                     </MuiDialogContent>
