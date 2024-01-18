@@ -8,19 +8,10 @@ import TablePagination from '@mui/material/TablePagination';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TimeAgo from "react-timeago/lib";
-import makeStyles from '@mui/styles/makeStyles';
 import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "./job-label";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        width: '100%',
-        //maxWidth: 360,
-        backgroundColor: theme.palette.background.paper,
-    },
-    content: {
-        width: '100%',
-    },
+const classes = {
     table: {
         width: '100%',
     },
@@ -36,14 +27,10 @@ const useStyles = makeStyles(theme => ({
     },
     jobNameColumn: {
         width: '60%'
-    },
-    inline: {
-        display: 'inline',
-    },
-}));
+    }
+};
 
 const JobsTable = (props) => {
-    const classes = useStyles();
     const location = useLocation();
     const navigate = useNavigate();
     const isLoading = props.isLoading;
@@ -86,22 +73,22 @@ const JobsTable = (props) => {
         <> {isLoading
             ? <LoadingIndicator/>
             : <> {jobPage.items < 1
-                ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No jobs
+                ? <Typography id="no-jobs-found-message" variant="body1" style={classes.noItemsFound}>No jobs
                     found</Typography>
                 : <>
                     <TableContainer>
-                        <Table id="jobs-table" className={classes.table} aria-label="jobs table">
+                        <Table id="jobs-table" style={classes.table} aria-label="jobs table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell className={classes.idColumn}>Id</TableCell>
-                                    <TableCell className={classes.jobNameColumn}>Job details</TableCell>
+                                    <TableCell style={classes.idColumn}>Id</TableCell>
+                                    <TableCell style={classes.jobNameColumn}>Job details</TableCell>
                                     <TableCell>{column}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {jobPage.items.map(job => (
                                     <TableRow key={job.id}>
-                                        <TableCell component="th" scope="row" className={classes.idColumn}>
+                                        <TableCell component="th" scope="row" style={classes.idColumn}>
                                             <Link to={{
                                                 pathname: `/dashboard/jobs/${job.id}`,
                                                 job: job

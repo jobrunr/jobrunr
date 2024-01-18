@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react';
 import {Typography} from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import statsState from "../../StatsStateContext";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     footer: {
         paddingTop: '1rem',
         width: '100%',
         display: 'inline-block'
     }
-}));
+};
 
 export default function VersionFooter() {
-
-    const classes = useStyles();
     const stats = statsState.getStats();
     const [jobRunrInfo, setJobRunrInfo] = useState({version: '0.0.0-SNAPSHOT', allowAnonymousDataUsage: false, clusterId: undefined, storageProviderType: undefined});
 
@@ -43,7 +40,7 @@ export default function VersionFooter() {
 
     return (
         <>
-            <Typography align="center" className={classes.footer} variant="caption">
+            <Typography align="center" style={classes.footer} variant="caption">
                 Processed {(stats.succeeded + stats.allTimeSucceeded)} jobs with <span style={{color: 'red'}}>♥</span> using
                 JobRunr {jobRunrInfo.version}.<br />
                 Support open-source development and <a href="https://www.jobrunr.io/en/about/#eco-friendly-software" target="_blank" rel="noreferrer">our planet</a> by purchasing a <a href="https://www.jobrunr.io/en/pricing/" target="_blank" rel="noreferrer">JobRunr Pro</a> license.

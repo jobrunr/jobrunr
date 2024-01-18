@@ -9,7 +9,6 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.4",
     "@mui/material": "^5.15.4",
-    "@mui/styles": "^5.15.4",
     "apexcharts": "^3.41.0",
     "cronstrue": "^2.47.0",
     "mdi-material-ui": "^7.8.0",
@@ -46,6 +45,6 @@
   "devDependencies": {
     "cypress": "^4.12.1",
     "cypress-failed-log": "^2.7.0",
-    "owasp-dependency-check": "^0.0.17"
+    "owasp-dependency-check": "^0.0.21"
   }
 }

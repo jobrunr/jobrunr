@@ -1,9 +1,8 @@
-import makeStyles from '@mui/styles/makeStyles';
 import { Alert, AlertTitle } from '@mui/material';
 import {Button} from "@mui/material";
 import TimeAgo from "react-timeago/lib";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     alert: {
         marginBottom: '2rem',
     },
@@ -11,11 +10,9 @@ const useStyles = makeStyles(theme => ({
         lineHeight: 1,
         margin: 0
     }
-}));
+};
 
 const CPUAllocationIrregularityProblem = (props) => {
-    const classes = useStyles();
-
     const dismissProblem = () => {
         fetch(`/api/problems/cpu-allocation-irregularity`, {
             method: 'DELETE'
@@ -25,12 +22,12 @@ const CPUAllocationIrregularityProblem = (props) => {
     }
 
     return (
-        <Alert className={classes.alert} severity="warning" action={
+        <Alert style={classes.alert} severity="warning" action={
             <Button color="inherit" size="small" onClick={dismissProblem}>
                 DISMISS
             </Button>
         }>
-            <AlertTitle><h4 className={classes.alertTitle}>Warning</h4></AlertTitle>
+            <AlertTitle><h4 style={classes.alertTitle}>Warning</h4></AlertTitle>
             JobRunr detected some CPU Allocation Irregularities (e.g. due to a very long garbage collect cycle
             or due to CPU starvation on shared hosting). This may result in unstable behaviour of your JobRunr cluster.
             <em><b>&nbsp;You are urged to look into this as soon as possible.</b></em>

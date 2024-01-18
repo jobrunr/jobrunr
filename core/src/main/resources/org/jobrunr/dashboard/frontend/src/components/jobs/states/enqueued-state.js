@@ -2,13 +2,12 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from '@mui/material/Alert';
 import Typography from "@mui/material/Typography";
-import makeStyles from '@mui/styles/makeStyles';
 import {TimerSand} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";
 import {Icon} from "@mui/material";
 
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     primaryHeading: {
         textTransform: "none",
         lineHeight: "inherit"
@@ -25,27 +24,26 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: "rgb(232, 244, 253)",
         minHeight: 56,
     }
-}));
+};
 
 
 const Enqueued = (props) => {
-    const classes = useStyles();
     const jobState = props.jobState;
     const enqueuedIcon = <TimerSand />
 
     return (
         <Accordion>
             <AccordionSummary
-                className={classes.info}
+                style={classes.info}
                 expandIcon={<Icon/>}
                 id="enqueued-panel-header"
             >
-                <Alert className={classes.alert} severity="info" icon={enqueuedIcon}>
-                    <Typography className={classes.primaryHeading} variant="h6">
+                <Alert style={classes.alert} severity="info" icon={enqueuedIcon}>
+                    <Typography style={classes.primaryHeading} variant="h6">
                         Job enqueued
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}>
+                <Typography style={classes.secondaryHeading}>
                     <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>

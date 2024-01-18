@@ -4,12 +4,11 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Alert from '@mui/material/Alert';
 import Typography from "@mui/material/Typography";
-import makeStyles from '@mui/styles/makeStyles';
 import {Check} from "mdi-material-ui";
 import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
 import SwitchableTimeAgo from "../../utils/time-ago";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     primaryHeading: {
         textTransform: "none",
         lineHeight: "inherit"
@@ -26,7 +25,7 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: "rgb(237, 247, 237)",
         minHeight: 56
     }
-}));
+};
 
 const getDuration = (duration) => {
     try {
@@ -59,24 +58,23 @@ const getDuration = (duration) => {
 }
 
 const Succeeded = (props) => {
-    const classes = useStyles();
     const jobState = props.jobState;
     const checkIcon = <Check/>
 
     return (
         <Accordion>
             <AccordionSummary
-                className={classes.success}
+                style={classes.success}
                 id="succeeded-panel-header"
                 expandIcon={<ExpandMore/>}
                 aria-controls="succeeded-panel-content"
             >
-                <Alert className={classes.alert} severity="success" icon={checkIcon}>
-                    <Typography className={classes.primaryHeading} variant="h6">
+                <Alert style={classes.alert} severity="success" icon={checkIcon}>
+                    <Typography style={classes.primaryHeading} variant="h6">
                         Job processing succeeded
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}>
+                <Typography style={classes.secondaryHeading}>
                     <SwitchableTimeAgo date={new Date(jobState.createdAt)}/>
                 </Typography>
             </AccordionSummary>

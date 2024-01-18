@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
-
 import Box from "@mui/material/Box";
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -15,15 +13,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import Problems from "./problems/problems-notifications";
 import VersionFooter from "../utils/version-footer";
 
-const useStyles = makeStyles(theme => ({
-    alert: {
-        width: '100%',
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    },
+const classes = {
     metadata: {
         display: 'flex',
     },
@@ -32,11 +22,9 @@ const useStyles = makeStyles(theme => ({
         padding: '1rem',
         width: '100%'
     },
-}));
+};
 
 const Overview = () => {
-    const classes = useStyles();
-
     const [isServersApiLoading, setServersApiIsLoading] = useState(true);
     const [servers, setServers] = useState([{firstHeartbeat: undefined}]);
 
@@ -70,7 +58,7 @@ const Overview = () => {
                 </Box>
             </div>
             <Problems/>
-            <div className={classes.metadata}>
+            <div style={classes.metadata}>
                 {isServersApiLoading
                     ? <LoadingIndicator/>
                     : <> {servers.length > 0
@@ -82,7 +70,7 @@ const Overview = () => {
                             <AvgProcessMemoryUsageCard servers={servers}/>
                             <AvgProcessFreeMemoryCard servers={servers}/>
                         </>
-                        : <Paper className={classes.noServersFound}>
+                        : <Paper style={classes.noServersFound}>
                             <Typography id="no-servers-found-message" variant="body1">
                                 No background job server available - jobs will not be processed.
                             </Typography>

@@ -4,11 +4,10 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Alert from '@mui/material/Alert';
 import Typography from "@mui/material/Typography";
-import makeStyles from '@mui/styles/makeStyles';
 import {Schedule} from "@mui/icons-material";
 import SwitchableTimeAgo from "../../utils/time-ago";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     primaryHeading: {
         textTransform: "none",
         lineHeight: "inherit"
@@ -26,11 +25,10 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: "#CFD8DC",
         minHeight: 56
     }
-}));
+};
 
 
 const Scheduled = (props) => {
-    const classes = useStyles();
     const jobState = props.jobState;
     const scheduledIcon = <Schedule />;
     const scheduledDate = new Date(jobState.scheduledAt);
@@ -44,17 +42,17 @@ const Scheduled = (props) => {
     return (
         <Accordion>
             <AccordionSummary
-                className={classes.scheduled}
+                style={classes.scheduled}
                 id="scheduled-panel-header"
                 expandIcon={<ExpandMore/>}
                 aria-controls="scheduled-panel-content"
             >
-                <Alert className={classes.alert} severity="info" icon={scheduledIcon}>
-                    <Typography className={classes.primaryHeading} variant="h6">
+                <Alert style={classes.alert} severity="info" icon={scheduledIcon}>
+                    <Typography style={classes.primaryHeading} variant="h6">
                         Job scheduled <ScheduledMessage/>
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}>
+                <Typography style={classes.secondaryHeading}>
                     <SwitchableTimeAgo date={new Date(jobState.scheduledAt)} />
                 </Typography>
             </AccordionSummary>

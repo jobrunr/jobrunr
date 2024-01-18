@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
 import { Alert, AlertTitle } from '@mui/material';
 import {Button, Dialog, Link, Snackbar} from "@mui/material";
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
 import Highlight from "react-highlight";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     alert: {
         marginBottom: '2rem',
     },
@@ -14,11 +13,9 @@ const useStyles = makeStyles(theme => ({
         lineHeight: 1,
         margin: 0
     }
-}));
+};
 
 const SevereJobRunrExceptionProblem = (props) => {
-    const classes = useStyles();
-
     const [copyStatus, setCopyStatus] = useState(null);
     const [issueDialog, setIssueDialogContent] = useState(null);
 
@@ -53,12 +50,12 @@ const SevereJobRunrExceptionProblem = (props) => {
     }
 
     return (
-        <Alert className={classes.alert} severity="error" action={
+        <Alert style={classes.alert} severity="error" action={
             <Button color="inherit" size="small" onClick={dismissProblem}>
                 DISMISS
             </Button>
         }>
-            <AlertTitle><h4 className={classes.alertTitle}>Fatal</h4></AlertTitle>
+            <AlertTitle><h4 style={classes.alertTitle}>Fatal</h4></AlertTitle>
             {props.problem.githubIssueBodyLength < 2000
                 ? <>JobRunr encountered an exception that should not happen. To resolve this issue, can you please
                     create a <a

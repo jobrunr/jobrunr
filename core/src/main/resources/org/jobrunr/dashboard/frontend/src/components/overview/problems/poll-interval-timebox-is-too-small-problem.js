@@ -1,9 +1,8 @@
-import makeStyles from '@mui/styles/makeStyles';
 import { Alert, AlertTitle } from '@mui/material';
 import {Button} from "@mui/material";
 import TimeAgo from "react-timeago/lib";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     alert: {
         marginBottom: '2rem',
     },
@@ -11,11 +10,9 @@ const useStyles = makeStyles(theme => ({
         lineHeight: 1,
         margin: 0
     }
-}));
+};
 
 const PollIntervalInSecondsIsTooSmallProblem = (props) => {
-    const classes = useStyles();
-
     const dismissProblem = () => {
         fetch(`/api/problems/poll-interval-in-seconds-is-too-small`, {
             method: 'DELETE'
@@ -25,12 +22,12 @@ const PollIntervalInSecondsIsTooSmallProblem = (props) => {
     }
 
     return (
-        <Alert className={classes.alert} severity="warning" action={
+        <Alert style={classes.alert} severity="warning" action={
             <Button color="inherit" size="small" onClick={dismissProblem}>
                 DISMISS
             </Button>
         }>
-            <AlertTitle><h4 className={classes.alertTitle}>Warning</h4></AlertTitle>
+            <AlertTitle><h4 style={classes.alertTitle}>Warning</h4></AlertTitle>
             JobRunr detected that your poll interval in seconds setting is too small - are you perhaps scheduling a lot of <a href={"https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/"}>recurring jobs</a>?
             It means that the BackgroundJob Master node cannot execute all relevant tasks like scheduling recurring jobs and doing maintenance tasks like deleting succeeded jobs.
             <em><b>&nbsp;You are urged to increase your poll interval in seconds setting as soon as possible.</b></em>

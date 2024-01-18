@@ -1,7 +1,6 @@
-import makeStyles from '@mui/styles/makeStyles';
 import { Alert, AlertTitle } from '@mui/material';
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     alert: {
         marginBottom: '2rem',
     },
@@ -9,14 +8,12 @@ const useStyles = makeStyles(theme => ({
         lineHeight: 1,
         margin: 0
     }
-}));
+};
 
 const JobNotFoundProblem = (props) => {
-    const classes = useStyles();
-
     return (
-        <Alert className={classes.alert} severity="warning">
-            <AlertTitle><h4 className={classes.alertTitle}>Warning</h4></AlertTitle>
+        <Alert style={classes.alert} severity="warning">
+            <AlertTitle><h4 style={classes.alertTitle}>Warning</h4></AlertTitle>
             There are SCHEDULED jobs that do not exist anymore in your code. These jobs will
             fail with a <strong>JobNotFoundException</strong> (due to a ClassNotFoundException or a
             MethodNotFoundException). <br/>

@@ -3,18 +3,12 @@ import { useLocation } from "react-router-dom";
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
-import makeStyles from '@mui/styles/makeStyles';
 import LoadingIndicator from "../LoadingIndicator";
 import JobsTable from "../utils/jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import VersionFooter from "../utils/version-footer";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        width: '100%',
-        //maxWidth: 360,
-        backgroundColor: theme.palette.background.paper,
-    },
+const classes = {
     jobRunrProNotice: {
         margin: "-2rem 0 0.5rem 0",
         textAlign: "right"
@@ -22,29 +16,12 @@ const useStyles = makeStyles(theme => ({
     content: {
         width: '100%',
     },
-    table: {
-        width: '100%',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-    idColumn: {
-        maxWidth: 0,
-        width: '20%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-    },
-    jobNameColumn: {
-        width: '60%'
-    },
     inline: {
         display: 'inline',
     },
-}));
+};
 
 const JobsView = () => {
-    const classes = useStyles();
     const location = useLocation();
 
     const urlSearchParams = new URLSearchParams(location.search);
@@ -79,7 +56,7 @@ const JobsView = () => {
     }, [page, jobState, sort, location.key]);
 
     return (
-        <main className={classes.content}>
+        <main style={classes.content}>
             <Box my={3}>
                 <Typography id="title" variant="h4">{jobStateToHumanReadableName(jobState)}</Typography>
             </Box>
@@ -88,17 +65,17 @@ const JobsView = () => {
                 :
                 <>
                     {jobState === 'ENQUEUED' &&
-                        <div className={classes.jobRunrProNotice}>Do you want instant job processing? That comes out of the box with <a
+                        <div style={classes.jobRunrProNotice}>Do you want instant job processing? That comes out of the box with <a
                             href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
                             title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
                     }
                     {jobState === 'FAILED' &&
-                        <div className={classes.jobRunrProNotice}>Need to requeue a lot of failed jobs? That's easy-peasy with <a
+                        <div style={classes.jobRunrProNotice}>Need to requeue a lot of failed jobs? That's easy-peasy with <a
                             href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank" rel="noreferrer"
                             title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
                     }
                     {jobState !== 'ENQUEUED' && jobState !== 'FAILED' &&
-                        <div className={classes.jobRunrProNotice}>Are you trying to find a certain job here? With <a href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> you would have already found it.</div>
+                        <div style={classes.jobRunrProNotice}>Are you trying to find a certain job here? With <a href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> you would have already found it.</div>
                     }
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>

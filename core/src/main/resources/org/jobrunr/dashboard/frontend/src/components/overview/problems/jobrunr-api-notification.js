@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
 import { Alert, AlertTitle } from '@mui/material';
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     alert: {
         marginBottom: '2rem',
     },
@@ -10,11 +9,9 @@ const useStyles = makeStyles(theme => ({
         lineHeight: 1,
         margin: 0
     }
-}));
+};
 
 const JobRunrApiNotification = (props) => {
-    const classes = useStyles();
-
     const [notification, setNotification] = useState(null);
 
     useEffect(() => {
@@ -28,8 +25,8 @@ const JobRunrApiNotification = (props) => {
 
 
     if (notification) {
-        return <Alert className={classes.alert} severity="info">
-            <AlertTitle><h4 className={classes.alertTitle}>{notification.title}</h4></AlertTitle>
+        return <Alert style={classes.alert} severity="info">
+            <AlertTitle><h4 style={classes.alertTitle}>{notification.title}</h4></AlertTitle>
             <span dangerouslySetInnerHTML={{__html: notification.body}}/>
         </Alert>
     }

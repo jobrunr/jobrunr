@@ -1,18 +1,47 @@
 import { useState } from "react";
+import { styled } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import LinearProgress from '@mui/material/LinearProgress';
+import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
 import Alert from '@mui/material/Alert';
 import TimeAgo from "react-timeago/lib";
-import makeStyles from '@mui/styles/makeStyles';
-import withStyles from '@mui/styles/withStyles';
 import {Cogs} from "mdi-material-ui";
 import SwitchableTimeAgo from "../../utils/time-ago";
 
-const useStyles = makeStyles(() => ({
+const Console = styled("div")(() => ({
+    boxSizing: 'border-box',
+    width: '100%',
+    color: '#fff',
+    backgroundColor: '#113462',
+    padding: '24px 0 24px 24px',
+    '& > dl': {
+        fontFamily: "'Courier New', Courier, monospace",
+        fontSize: '85%',
+        margin: '0',
+    },
+    '& > dl dt': {
+        float: 'left',
+        clear: 'left',
+        width: '200px',
+        textAlign: 'right',
+        color: '#3885b7',
+        margin: '-0.1em 0',
+    },
+    '& > dl dd': {
+        margin: '-0.2em 0 -0.2em 220px'
+    },
+    '& > dl.WARN dd': {
+        color: 'orange'
+    },
+    '& > dl.ERROR dd': {
+        color: 'red'
+    }
+}));
+
+const classes = {
     primaryHeading: {
         textTransform: "none",
         lineHeight: "inherit"
@@ -35,46 +64,15 @@ const useStyles = makeStyles(() => ({
     },
     details: {
         padding: '24px 0 24px 24px'
-    },
-    console: {
-        boxSizing: 'border-box',
-        width: '100%',
-        color: '#fff',
-        backgroundColor: '#113462',
-        padding: '24px 0 24px 24px',
-        '& > dl': {
-            fontFamily: "'Courier New', Courier, monospace",
-            fontSize: '85%',
-            margin: '0',
-        },
-        '& > dl dt': {
-            float: 'left',
-            clear: 'left',
-            width: '200px',
-            textAlign: 'right',
-            color: '#3885b7',
-            margin: '-0.1em 0',
-        },
-        '& > dl dd': {
-            margin: '-0.2em 0 -0.2em 220px'
-        },
-        '& > dl.WARN dd': {
-            color: 'orange'
-        },
-        '& > dl.ERROR dd': {
-            color: 'red'
-        }
+    }
+};
+
+const ColoredLinearProgress = styled(LinearProgress)(() => ({
+    height: '7px',
+    [`& .${linearProgressClasses.barColorPrimary}`]: {
+        backgroundColor: '#78b869'
     }
 }));
-
-const ColoredLinearProgress = withStyles({
-    root: {
-        height: '7px'
-    },
-    barColorPrimary: {
-        backgroundColor: '#78b869'
-    },
-})(LinearProgress);
 
 const getLogs = (job, index) => {
     if (job.metadata && job.metadata['jobRunrDashboardLog-' + (index + 1)]) {
@@ -91,7 +89,6 @@ const getProgressBar = (job, index) => {
 }
 
 const Processing = (props) => {
-    const classes = useStyles();
     const index = props.index;
     const job = props.job;
     const jobState = props.jobState;
@@ -107,29 +104,29 @@ const Processing = (props) => {
     return (
         <Accordion expanded={expanded} onChange={handleChange}>
             <AccordionSummary
-                className={classes.processing}
+                style={classes.processing}
                 id="processing-panel-header"
                 expandIcon={<ExpandMore/>}
                 aria-controls="processing-panel-content"
             >
-                <Alert className={classes.alert} severity="warning" icon={processingIcon}>
-                    <Typography className={classes.primaryHeading} variant="h6">
+                <Alert style={classes.alert} severity="warning" icon={processingIcon}>
+                    <Typography style={classes.primaryHeading} variant="h6">
                         Processing job
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}>
+                <Typography style={classes.secondaryHeading}>
                     <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.expansionPanel}>
+            <AccordionDetails style={classes.expansionPanel}>
                 {progressBar &&
                 <ColoredLinearProgress variant="determinate" value={progressBar.progress}/>
                 }
-                <div className={classes.details}>
+                <div style={classes.details}>
                     Job is processing on server <code style={{fontSize: 'large'}}>{jobState.serverId} {jobState.serverName && <> ({jobState.serverName})</>}</code>
                 </div>
                 {logs.length > 0 &&
-                <div className={classes.console}>
+                <Console>
                     {logs.map((log) => (
                         <dl key={log.logInstant} className={log.level}>
                             <dt><TimeAgo date={new Date(log.logInstant)} now={() => new Date(jobState.createdAt)}
@@ -138,7 +135,7 @@ const Processing = (props) => {
                             <dd>{log.logMessage}</dd>
                         </dl>
                     ))}
-                </div>
+                </Console>
                 }
             </AccordionDetails>
         </Accordion>

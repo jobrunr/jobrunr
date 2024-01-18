@@ -1,6 +1,5 @@
 import Alert from '@mui/material/Alert';
 import { useState, useEffect } from "react";
-import makeStyles from '@mui/styles/makeStyles';
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import serversState from "../../../ServersStateContext";
@@ -8,15 +7,14 @@ import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
 import TimeAgo from "react-timeago/lib";
 
 
-const useStyles = makeStyles(() => ({
+const classes = {
     alert: {
         fontSize: '1rem'
     }
-}));
+};
 
 
 const DeletedNotification = (props) => {
-    const classes = useStyles();
 
     const job = props.job;
     const [serverStats, setServerStats] = useState(serversState.getServers());

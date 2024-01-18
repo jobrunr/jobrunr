@@ -1,48 +1,44 @@
 import { useState } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from "@mui/material/styles";
 import Drawer from "@mui/material/Drawer";
 import {IconButton} from "@mui/material";
 import {ChevronLeft, ChevronRight} from "mdi-material-ui";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: 'flex',
-    },
-    toolbar: theme.mixins.toolbar,
-    drawer: {
-        width: 260,
-    },
-    drawerCollapsed: {
-        width: `calc(${theme.spacing(7)} + 1px)`,
-        overflowX: 'hidden',
-    },
-    toggle: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingRight: theme.spacing(0.5),
-        marginTop: 'auto'
-    },
+const StyledDrawer = styled(Drawer)(({theme, collapsed}) => ({
+    "&, & .MuiPaper-root": {
+        width: collapsed ? `calc(${theme.spacing(7)} + 1px)` : 260,
+        overflowX: collapsed ? 'hidden' : undefined,
+    }
+}));
+
+const Toggle = styled("div")(({theme}) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: theme.spacing(0.5),
+    marginTop: 'auto'
+}));
+
+const Toolbar = styled("div")(({theme}) => ({
+    ...theme.mixins.toolbar
 }));
 
 const WithSidebar = (Sidebar, Component) => {
-    const classes = useStyles();
     const [collapsed, setCollapsed] = useState(false);
-    const className = classes[collapsed ? 'drawerCollapsed' : 'drawer'];
     return (props) => (
-        <div className={classes.root}>
-            <Drawer variant="permanent" className={className} classes={{paper: className}}>
-                <div className={classes.toolbar}/>
+        <div style={{display: "flex"}}>
+            <StyledDrawer variant="permanent" collapsed={collapsed}>
+                <Toolbar />
                 <Sidebar {...props} />
-                <div className={classes.toggle}>
+                <Toggle>
                     <IconButton
                         onClick={() => setCollapsed(!collapsed)}
                         title="Toggle sidebar"
                         size="large">
                         {collapsed ? <ChevronRight/> : <ChevronLeft/>}
                     </IconButton>
-                </div>
-            </Drawer>
+                </Toggle>
+            </StyledDrawer>
             <Component />
         </div>
     );

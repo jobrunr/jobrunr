@@ -5,7 +5,6 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Typography from '@mui/material/Typography';
-import makeStyles from '@mui/styles/makeStyles';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
@@ -31,7 +30,7 @@ import JobDetailsNotCacheableNotification from "./notifications/job-details-not-
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 
-const useStyles = makeStyles(() => ({
+const classes = {
     root: {
         display: 'flex',
     },
@@ -53,10 +52,9 @@ const useStyles = makeStyles(() => ({
     jobDetails: {
         paddingBottom: "0 !important",
     }
-}));
+};
 
 const JobView = (props) => {
-    const classes = useStyles();
     const navigate = useNavigate();
 
     const [apiStatus, setApiStatus] = useState(null);
@@ -157,12 +155,12 @@ const JobView = (props) => {
     };
 
     return (
-        <main className={classes.content}>
+        <main style={classes.content}>
             {isLoading
                 ? <LoadingIndicator/>
                 : <>{job === null
                     ?
-                    <Paper><Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>Job
+                    <Paper><Typography id="no-jobs-found-message" variant="body1" style={classes.noItemsFound}>Job
                         not found</Typography></Paper>
                     : <>
                         <Breadcrumbs id="breadcrumb" separator={<NavigateNextIcon fontSize="small"/>}
@@ -172,17 +170,17 @@ const JobView = (props) => {
                                   to={`/dashboard/jobs?state=${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
                             <Typography color="textPrimary">{job.id}</Typography>
                         </Breadcrumbs>
-                        <Box my={3} className={classes.box}>
-                            <Card className={classes.root}>
-                                <CardContent className={classes.cardContent}>
+                        <Box my={3} style={classes.box}>
+                            <Card style={classes.root}>
+                                <CardContent style={classes.cardContent}>
                                     <Grid container spacing={3} justifyContent="space-between">
-                                        <Grid item xs={6} className={classes.jobDetails}>
-                                            <Typography id="job-id-title" className={classes.title}
+                                        <Grid item xs={6} style={classes.jobDetails}>
+                                            <Typography id="job-id-title" style={classes.title}
                                                         color="textSecondary">
                                                 Job Id: {job.id}
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={6} container className={classes.jobDetails} justifyContent="flex-end">
+                                        <Grid item xs={6} container style={classes.jobDetails} justifyContent="flex-end">
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                     <Button variant="outlined" color="primary" onClick={requeueJob}>
@@ -196,7 +194,7 @@ const JobView = (props) => {
                                                 }
                                             </ButtonGroup>
                                         </Grid>
-                                        <Grid item xs={12} className={classes.jobDetails} style={{paddingTop: 0}}>
+                                        <Grid item xs={12} style={{...classes.jobDetails, paddingTop: 0}}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
                                                 {job.jobName} {job.labels?.map((label) => <JobLabel text={label}/>)}
                                             </Typography>
@@ -221,13 +219,13 @@ const JobView = (props) => {
                                         id="jobhistory-sort-desc-btn"
                                         color="inherit"
                                         onClick={changeSortOrder}
-                                        className={classes.sortButton}
+                                        style={classes.sortButton}
                                         size="large"><SortDescending/></IconButton>
                                         : <IconButton
                                         id="jobhistory-sort-asc-btn"
                                         color="inherit"
                                         onClick={changeSortOrder}
-                                        className={classes.sortButton}
+                                        style={classes.sortButton}
                                         size="large"><SortAscending/></IconButton>
                                     }
                                 </Typography>

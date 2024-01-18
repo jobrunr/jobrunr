@@ -1,18 +1,8 @@
 import { useState, useEffect } from 'react';
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
-
-const useStyles = makeStyles(theme => ({
-    dialogActions: {
-        padding: '1rem'
-    }
-}));
 
 export default function GithubStarPopup() {
-
-    const classes = useStyles();
     const [visible, setVisible] = useState(false);
-
 
     useEffect(() => {
         let popupShown = localStorage.getItem('githubStarPopupShown');
@@ -74,7 +64,7 @@ export default function GithubStarPopup() {
                     Thanks for your support!
                 </DialogContentText>
             </DialogContent>
-            <DialogActions className={classes.dialogActions}>
+            <DialogActions style={{padding: '1rem'}}>
                 <Button onClick={remindMeLater} color="inherit">
                     remind me later
                 </Button>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
 import Checkbox from '@mui/material/Checkbox';
@@ -23,10 +22,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: 'flex',
-    },
+const classes = {
     jobRunrProNotice: {
         margin: "-2rem 0 0.5rem 0",
         textAlign: "right"
@@ -37,10 +33,9 @@ const useStyles = makeStyles(theme => ({
     noItemsFound: {
         padding: '1rem'
     },
-}));
+};
 
 const RecurringJobs = () => {
-    const classes = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -150,14 +145,14 @@ const RecurringJobs = () => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <div className={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just a click away.</div>
+                    <div style={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just a click away.</div>
                     <Paper className={classes.paper}>
                         {recurringJobs.length < 1
-                            ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
+                            ? <Typography variant="body1" style={classes.noItemsFound}>No recurring jobs
                                 found</Typography>
                             : <>
                                 <Grid item xs={3} container>
-                                    <ButtonGroup className={classes.recurringJobActions}
+                                    <ButtonGroup style={classes.recurringJobActions}
                                                  disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
                                         <Button variant="outlined" color="primary"
                                                 onClick={triggerSelectedRecurringJobs}>

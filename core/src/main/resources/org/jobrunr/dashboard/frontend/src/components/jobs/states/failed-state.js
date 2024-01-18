@@ -4,10 +4,9 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Alert from '@mui/material/Alert';
 import Typography from "@mui/material/Typography";
-import makeStyles from '@mui/styles/makeStyles';
 import SwitchableTimeAgo from "../../utils/time-ago";
 
-const useStyles = makeStyles(theme => ({
+const classes = {
     primaryHeading: {
         textTransform: "none",
         lineHeight: "inherit"
@@ -27,45 +26,41 @@ const useStyles = makeStyles(theme => ({
     expansionPanel: {
         display: "block"
     },
-    exceptionClass: {
-        textTransform: "none"
-    },
     stackTrace: {
         whiteSpace: "pre-wrap",
         wordWrap: "break-word",
         fontFamily: "monospace",
         fontSize: "1em"
     }
-}));
+};
 
 
 const Failed = (props) => {
-    const classes = useStyles();
     const jobState = props.jobState;
 
     return (
         <Accordion className={classes.root}>
             <AccordionSummary
-                className={classes.failed}
+                style={classes.failed}
                 id="failed-panel-header"
                 expandIcon={<ExpandMore/>}
                 aria-controls="failed-panel-content"
             >
-                <Alert className={classes.alert} severity="error">
-                    <Typography className={classes.primaryHeading} variant="h6">
+                <Alert style={classes.alert} severity="error">
+                    <Typography style={classes.primaryHeading} variant="h6">
                         Job processing failed - {jobState.message}
                     </Typography>
                 </Alert>
-                <Typography className={classes.secondaryHeading}>
+                <Typography style={classes.secondaryHeading}>
                     <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
                 </Typography>
             </AccordionSummary>
 
-            <AccordionDetails className={classes.expansionPanel}>
+            <AccordionDetails style={classes.expansionPanel}>
                 <Typography variant="h6" className={classes.exceptionClass} gutterBottom>
                     {jobState.exceptionType}
                 </Typography>
-                <Typography component={'pre'} className={classes.stackTrace}>
+                <Typography component={'pre'} style={classes.stackTrace}>
                     {jobState.stackTrace}
                 </Typography>
                 { jobState.message.includes("not found") &&

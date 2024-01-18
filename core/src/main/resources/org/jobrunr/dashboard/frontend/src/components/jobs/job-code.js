@@ -1,20 +1,8 @@
 import Grid from "@mui/material/Grid";
 import Highlight from "react-highlight";
-import makeStyles from '@mui/styles/makeStyles';
-
-const useStyles = makeStyles(theme => ({
-    codeContent: {
-        marginTop: 0,
-        paddingTop: "0 !important",
-        '& > pre': {
-            marginTop: 0,
-        }
-    }
-}));
 
 const JobCode = (props) => {
     const { job } = props;
-    const classes = useStyles();
 
     const fqClassName = job.jobDetails.className;
     const className = job.jobDetails.className.substring(job.jobDetails.className.lastIndexOf(".") + 1);
@@ -37,7 +25,7 @@ const JobCode = (props) => {
     `;
 
     return (
-        <Grid item xs={12} className={classes.codeContent}>
+        <Grid item xs={12} sx={{marginTop: 0, paddingTop: "0 !important", '& > pre': { marginTop: 0}}}>
             <Highlight className='language-java'>
                 {code}
             </Highlight>

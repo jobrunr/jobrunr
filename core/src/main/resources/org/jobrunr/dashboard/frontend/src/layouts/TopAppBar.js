@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from "@mui/material/styles";
 import AppBar from '@mui/material/AppBar';
 import Chip from '@mui/material/Chip';
 import Toolbar from '@mui/material/Toolbar';
@@ -10,51 +10,37 @@ import {Link as RouterLink} from 'react-router-dom';
 import statsState from "StatsStateContext.js";
 import logo from '../assets/jobrunr-logo-white.png';
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
+const StyledAppBar = styled(AppBar)(({theme}) => ({
+    zIndex: theme.zIndex.drawer + 1
+}));
+
+const Buttons = styled("div")(({theme}) => ({
+    '& > *': {
+        margin: `${theme.spacing(2)}!important`,
     },
+    '& div.MuiChip-root': {
+        height: 'initial',
+        marginLeft: '6px',
+        fontSize: '0.75rem'
+    },
+    '& div span.MuiChip-label': {
+        padding: '0 8px'
+    },
+    margin: "0 50px",
+    flexGrow: 1,
+}));
+
+const classes = {
     menuButton: {
-        marginRight: theme.spacing(2),
-    },
-    appBar: {
-        zIndex: theme.zIndex.drawer + 1
+        marginRight: 2,
     },
     logo: {
         width: 'auto',
         height: '35px'
-    },
-    buttons: {
-        '& > *': {
-            margin: theme.spacing(2),
-        },
-        '& div.MuiChip-root': {
-            height: 'initial',
-            marginLeft: '6px',
-            fontSize: '0.75rem'
-        },
-        '& div span.MuiChip-label': {
-            padding: '0 8px'
-        },
-        margin: "0 50px",
-        flexGrow: 1,
-    },
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        marginTop: 56
-    },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
-}));
+    }
+};
 
 const TopAppBar = () => {
-    const classes = useStyles();
-
-
     const [stats, setStats] = useState(statsState.getStats());
     useEffect(() => {
         statsState.addListener(setStats);
@@ -62,10 +48,10 @@ const TopAppBar = () => {
     }, [])
 
     return (
-        <AppBar position="fixed" className={classes.appBar}>
-            <Toolbar>
-                <img className={classes.logo} src={logo} alt="JobRunr"/>
-                <div className={classes.buttons}>
+        <StyledAppBar position="fixed">
+            <Toolbar style={{display: "flex", alignItems: "center"}}>
+                <img style={classes.logo} src={logo} alt="JobRunr"/>
+                <Buttons>
                     <Button id="dashboard-btn" color="inherit" component={RouterLink} to="/dashboard/overview">
                         Dashboard
                     </Button>
@@ -79,10 +65,10 @@ const TopAppBar = () => {
                     <Button id="servers-btn" color="inherit" component={RouterLink} to="/dashboard/servers">
                         Servers <Chip color="secondary" label={stats.backgroundJobServers}/>
                     </Button>
-                </div>
+                </Buttons>
                 <IconButton
                     edge="start"
-                    className={classes.menuButton}
+                    sx={classes.menuButton}
                     color="inherit"
                     aria-label="menu"
                     target="_blank"
@@ -91,7 +77,7 @@ const TopAppBar = () => {
                     <GitHubIcon/>
                 </IconButton>
             </Toolbar>
-        </AppBar>
+        </StyledAppBar>
     );
 }
 

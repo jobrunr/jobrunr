@@ -1,5 +1,4 @@
-import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
-import makeStyles from '@mui/styles/makeStyles';
+import { createTheme, styled, ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
@@ -11,20 +10,10 @@ import JobsView from "../components/jobs/jobs-view";
 import Sidebar from "../components/jobs/sidebar";
 import GithubStarPopup from "../components/utils/github-star-popup";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        marginTop: 56
-    },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
+
+const Main = styled("main")(({ theme }) => ({
+    padding: theme.spacing(3),
+    marginTop: 56
 }));
 
 const theme = createTheme({
@@ -48,15 +37,14 @@ const theme = createTheme({
 });
 
 const App = () => {
-    const classes = useStyles();
     const JobViewWithSideBar = WithSidebar(Sidebar, JobView);
     const JobsViewWithSidebar = WithSidebar(Sidebar, JobsView);
 
     return (
-        <div className={classes.root}>
+        <div>
             <GithubStarPopup/>
             <TopAppBar/>
-            <main className={classes.content}>
+            <Main>
                 <Routes>
                     <Route path="overview" element={<Overview />}/>
                     <Route path="jobs/:jobId" element={<JobViewWithSideBar />}/>
@@ -65,7 +53,7 @@ const App = () => {
                     <Route path="servers" element={<Servers />}/>
                     <Route path="*" element={<Navigate to="overview" replace/>} />
                 </Routes>
-            </main>
+            </Main>
         </div>
     );
 }

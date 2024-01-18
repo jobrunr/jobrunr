@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { styled, keyframes } from "@mui/material/styles";
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
@@ -10,7 +11,6 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import TimeAgo from "react-timeago/lib";
 import Box from "@mui/material/Box";
-import makeStyles from '@mui/styles/makeStyles';
 import {CogClockwise} from "mdi-material-ui";
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import Dialog from '@mui/material/Dialog';
@@ -20,13 +20,25 @@ import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
 
-const useStyles = makeStyles(theme => ({
+const spin = keyframes`
+    from {
+        transform: rotate(0deg)
+    }
+    to {
+        transform: rotate(360deg)
+    }
+`;
+
+const StyledCogClockwise = styled(CogClockwise)(() => ({
+    animationName: spin,
+    animationDuration: '5000ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'linear'
+}));
+
+const classes = {
     table: {
         width: '100%',
-    },
-    root: {
-        width: '100%',
-        backgroundColor: theme.palette.background.paper,
     },
     noItemsFound: {
         padding: '1rem'
@@ -41,29 +53,10 @@ const useStyles = makeStyles(theme => ({
     },
     nameColumn: {
         cursor: 'pointer'
-    },
-    inline: {
-        display: 'inline',
-    },
-    spin: {
-        animationName: '$spin',
-        animationDuration: '5000ms',
-        animationIterationCount: 'infinite',
-        animationTimingFunction: 'linear'
-    },
-    "@keyframes spin": {
-        from: {
-            transform: 'rotate(0deg)'
-        },
-        to: {
-            transform: 'rotate(360deg)'
-        }
     }
-}));
+};
 
 const Servers = memo(() => {
-    const classes = useStyles();
-
     const [isLoading, setIsLoading] = useState(true);
     const [servers, setServers] = useState([]);
     const [open, setOpen] = useState(false);
@@ -109,15 +102,15 @@ const Servers = memo(() => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <Paper className={classes.paper}>
+                    <Paper style={classes.paper}>
                         {servers.length < 1
-                            ? <Typography variant="body1" className={classes.noItemsFound}>No servers found</Typography>
+                            ? <Typography variant="body1" style={classes.noItemsFound}>No servers found</Typography>
                             : <>
                                 <TableContainer>
-                                    <Table className={classes.table} aria-label="servers overview">
+                                    <Table style={classes.table} aria-label="servers overview">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
+                                                <TableCell style={classes.idColumn}>Id</TableCell>
                                                 <TableCell>Name</TableCell>
                                                 <TableCell>Workers</TableCell>
                                                 <TableCell>Created</TableCell>
@@ -131,12 +124,12 @@ const Servers = memo(() => {
                                         <TableBody>
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                    <TableCell component="th" scope="row" style={classes.idColumn}>
                                                         <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.id}
                                                         </Link>
                                                     </TableCell>
-                                                    <TableCell className={classes.nameColumn}>
+                                                    <TableCell style={classes.nameColumn}>
                                                         <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.name}
                                                         </Link>
@@ -160,7 +153,7 @@ const Servers = memo(() => {
                                                     </TableCell>
                                                     <TableCell>
                                                         {server.running
-                                                            ? <CogClockwise className={classes.spin}/>
+                                                            ? <StyledCogClockwise />
                                                             : <NotInterestedIcon/>
                                                         }
                                                     </TableCell>
@@ -189,7 +182,7 @@ const Servers = memo(() => {
                     </MuiDialogTitle>
                     <MuiDialogContent dividers>
                         <TableContainer>
-                            <Table className={classes.table} aria-label="simple table">
+                            <Table style={classes.table} aria-label="simple table">
                                 <TableBody>
                                     <TableRow>
                                         <TableCell>

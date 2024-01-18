@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
 import LoadingIndicator from "../../LoadingIndicator";
 import JobNotFoundProblem from "./job-not-found-problem";
 import SevereJobRunrExceptionProblem from "./severe-jobrunr-exception-problem";
@@ -9,28 +8,7 @@ import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
 import JobRunrApiNotification from "./jobrunr-api-notification";
 import PollIntervalInSecondsIsTooSmallProblem from "./poll-interval-timebox-is-too-small-problem";
 
-const useStyles = makeStyles(theme => ({
-    alert: {
-        width: '100%',
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    },
-    metadata: {
-        display: 'flex',
-    },
-    noServersFound: {
-        marginTop: '1rem',
-        padding: '1rem',
-        width: '100%'
-    },
-}));
-
 const Problems = () => {
-    const classes = useStyles();
-
     const [isProblemsApiLoading, setProblemsApiIsLoading] = useState(true);
     const [problems, setProblems] = useState([]);
     const [mustRefresh, setRefresh] = useState(true);
@@ -48,7 +26,7 @@ const Problems = () => {
     }, [mustRefresh]);
 
     return (
-        <div className={classes.metadata}>
+        <div style={{display: "flex"}}>
             {isProblemsApiLoading
                 ? <LoadingIndicator/>
                 : <Grid container>
