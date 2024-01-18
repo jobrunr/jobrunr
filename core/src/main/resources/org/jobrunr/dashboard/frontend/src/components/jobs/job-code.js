@@ -1,5 +1,9 @@
 import Grid from "@mui/material/Grid";
-import Highlight from "react-highlight";
+import { Light as Highlight } from 'react-syntax-highlighter';
+import java from 'react-syntax-highlighter/dist/esm/languages/hljs/java';
+import style from 'react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark';
+
+Highlight.registerLanguage('java', java);
 
 const JobCode = (props) => {
     const { job } = props;
@@ -26,7 +30,7 @@ const JobCode = (props) => {
 
     return (
         <Grid item xs={12} sx={{marginTop: 0, paddingTop: "0 !important", '& > pre': { marginTop: 0}}}>
-            <Highlight className='language-java'>
+            <Highlight language="java" style={style}>
                 {code}
             </Highlight>
         </Grid>
