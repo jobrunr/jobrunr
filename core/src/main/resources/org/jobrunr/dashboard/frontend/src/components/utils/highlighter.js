@@ -6,4 +6,5 @@ import style from 'react-syntax-highlighter/dist/esm/styles/hljs/androidstudio';
 Highlight.registerLanguage('yaml', yaml);
 Highlight.registerLanguage('java', java);
 
-export default ({language, children}) => (<Highlight language={language} style={style}>{children}</Highlight>);
+const Highlighter = ({language, children}) => (<Highlight language={language} style={style}>{children}</Highlight>);
+export default Highlighter;
