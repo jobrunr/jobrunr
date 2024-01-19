@@ -1,13 +1,8 @@
-import { useState } from 'react';
-import { Alert, AlertTitle } from '@mui/material';
-import {Button, Dialog, Link, Snackbar} from "@mui/material";
+import {useState} from 'react';
+import {Alert, AlertTitle, Button, Dialog, Link, Snackbar} from '@mui/material';
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
-import { Light as Highlight } from 'react-syntax-highlighter';
-import yaml from 'react-syntax-highlighter/dist/esm/languages/hljs/yaml';
-import style from 'react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark';
-
-Highlight.registerLanguage('yaml', yaml);
+import Highlight from '../../utils/highlighter';
 
 const classes = {
     alert: {
@@ -72,16 +67,17 @@ const SevereJobRunrExceptionProblem = (props) => {
                     create a <a
                         href={`https://github.com/jobrunr/jobrunr/issues/new?title=${encodeURIComponent(props.problem.githubIssueTitle)}&body=%3C%21--%20Please%20paste%20the%20issue%20content%20generated%20JobRunr%20below.%20--%3E&labels=bug`}
                         target="_blank" rel="noopener noreferrer">Github issue</a>?
-                    To make life easy, you can <Link onClick={copyToClipboard} underline="hover">click here</Link> to copy
+                    To make life easy, you can <Link onClick={copyToClipboard} underline="hover">click here</Link> to
+                    copy
                     all necessary information to your clipboard and paste it in the Github issue. <br/>
                     <strong>You can still cancel the creation of the issue in Github if you think it contains sensitive
                         information.</strong>.<br/></>
             }
             {copyStatus &&
                 <Snackbar open={true}
-                    autoHideDuration={3000}
-                    onClose={handleCloseSnackbar}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                          autoHideDuration={3000}
+                          onClose={handleCloseSnackbar}
+                          anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                 >
                     <Alert severity={copyStatus.severity}>
                         {copyStatus.message}
@@ -89,14 +85,15 @@ const SevereJobRunrExceptionProblem = (props) => {
                 </Snackbar>
             }
             {issueDialog &&
-                <Dialog open={true} onClose={handleCloseDialog} aria-labelledby="customized-dialog-title" >
+                <Dialog open={true} onClose={handleCloseDialog} aria-labelledby="customized-dialog-title">
                     <MuiDialogTitle id="customized-dialog-title" onClose={handleCloseDialog}>
                         Could not copy issue data to clipboard
                     </MuiDialogTitle>
                     <MuiDialogContent dividers>
-                        JobRunr could not copy the issue data to the clipboard (are you running an older browser or are you not using https?).
+                        JobRunr could not copy the issue data to the clipboard (are you running an older browser or are
+                        you not using https?).
                         Please copy the data below and paste it in the Github issue as is.
-                        <Highlight language='yaml' style={style}>
+                        <Highlight language='yaml'>
                             {issueDialog}
                         </Highlight>
                     </MuiDialogContent>
