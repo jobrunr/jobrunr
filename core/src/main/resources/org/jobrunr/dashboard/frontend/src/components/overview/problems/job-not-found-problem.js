@@ -1,4 +1,4 @@
-import { Alert, AlertTitle } from '@mui/material';
+import {Alert, AlertTitle} from '@mui/material';
 
 const classes = {
     alert: {
@@ -10,7 +10,7 @@ const classes = {
     }
 };
 
-const JobNotFoundProblem = (props) => {
+const JobNotFoundProblem = () => {
     return (
         <Alert style={classes.alert} severity="warning">
             <AlertTitle><h4 style={classes.alertTitle}>Warning</h4></AlertTitle>

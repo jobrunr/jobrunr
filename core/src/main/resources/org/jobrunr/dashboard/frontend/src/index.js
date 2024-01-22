@@ -1,16 +1,15 @@
-import ReactDOM from 'react-dom';
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {createRoot} from 'react-dom/client';
+import AdminUI from "layouts/Admin.js";
 import "assets/css/material-dashboard-react.css?v=1.8.1";
 import "assets/css/androidstudio.css";
 
-import AdminUI from "layouts/Admin.js";
+const root = createRoot(document.getElementById("root")); // createRoot(container!) if you use TypeScript
 
-ReactDOM.render(
+root.render(
     <BrowserRouter>
         <Routes>
-            <Route path="/dashboard/*" element={<AdminUI />} />
+            <Route path="/dashboard/*" element={<AdminUI/>}/>
         </Routes>
-    </BrowserRouter>,
-    document.getElementById("root")
+    </BrowserRouter>
 );

@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { styled } from "@mui/material/styles";
+import {useState} from 'react';
+import {styled} from "@mui/material/styles";
 import Drawer from "@mui/material/Drawer";
 import {IconButton} from "@mui/material";
 import {ChevronLeft, ChevronRight} from "mdi-material-ui";
 
-const StyledDrawer = styled(Drawer)(({theme, collapsed}) => ({
+const StyledDrawer = styled(Drawer, {shouldForwardProp: prop => prop !== "collapsed"})
+(({theme, collapsed}) => ({
     "&, & .MuiPaper-root": {
         width: collapsed ? `calc(${theme.spacing(7)} + 1px)` : 260,
         overflowX: collapsed ? 'hidden' : undefined,
@@ -28,7 +29,7 @@ const WithSidebar = (Sidebar, Component) => {
     return (props) => (
         <div style={{display: "flex"}}>
             <StyledDrawer variant="permanent" collapsed={collapsed}>
-                <Toolbar />
+                <Toolbar/>
                 <Sidebar {...props} />
                 <Toggle>
                     <IconButton
@@ -39,7 +40,7 @@ const WithSidebar = (Sidebar, Component) => {
                     </IconButton>
                 </Toggle>
             </StyledDrawer>
-            <Component />
+            <Component/>
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import LoadingIndicator from "../../LoadingIndicator";
 import JobNotFoundProblem from "./job-not-found-problem";
 import SevereJobRunrExceptionProblem from "./severe-jobrunr-exception-problem";
@@ -7,6 +7,15 @@ import CpuAllocationIrregularityProblem from "./cpu-allocation-irregularity-prob
 import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
 import JobRunrApiNotification from "./jobrunr-api-notification";
 import PollIntervalInSecondsIsTooSmallProblem from "./poll-interval-timebox-is-too-small-problem";
+
+const problemTypeOrder = {
+    "severe-jobrunr-exception": 0, "jobs-not-found": 1, "cpu-allocation-irregularity": 2,
+    "poll-interval-in-seconds-is-too-small": 3, "new-jobrunr-version": 4
+};
+const getProblemOrder = (type) => problemTypeOrder[type] ?? 5;
+const problemCompareFn = (a, b) => {
+    return getProblemOrder(a.type) - getProblemOrder(b.type);
+}
 
 const Problems = () => {
     const [isProblemsApiLoading, setProblemsApiIsLoading] = useState(true);
@@ -19,6 +28,7 @@ const Problems = () => {
         fetch(`/api/problems`)
             .then(res => res.json())
             .then(response => {
+                response.sort(problemCompareFn);
                 setProblems(response);
                 setProblemsApiIsLoading(false);
             })
@@ -30,23 +40,33 @@ const Problems = () => {
             {isProblemsApiLoading
                 ? <LoadingIndicator/>
                 : <Grid container>
-                    <Grid item xs={12}><JobRunrApiNotification /></Grid>
+                    <Grid item xs={12}><JobRunrApiNotification/></Grid>
                     {problems.map((problem, index) => {
-                    switch (problem.type) {
-                        case 'jobs-not-found':
-                            return <Grid item xs={12} key={index}><JobNotFoundProblem problem={problem}/></Grid>
-                        case 'severe-jobrunr-exception':
-                            return <Grid item xs={12} key={index}><SevereJobRunrExceptionProblem problem={problem} refresh={refresh}/></Grid>
-                        case 'cpu-allocation-irregularity':
-                            return <Grid item xs={12} key={index}><CpuAllocationIrregularityProblem problem={problem} refresh={refresh}/></Grid>
-                        case 'poll-interval-in-seconds-is-too-small':
-                            return <Grid item xs={12} key={index}><PollIntervalInSecondsIsTooSmallProblem problem={problem} refresh={refresh}/></Grid>
-                        case 'new-jobrunr-version':
-                            return <Grid item xs={12} key={index}><NewJobRunrVersionAvailable problem={problem} /></Grid>
-                        default:
-                            return <Grid item xs={12} key={index}>Unknown error</Grid>
-                    }
-                })}
+                        switch (problem.type) {
+                            case 'jobs-not-found':
+                                return <Grid item xs={12} key={problem.type}>
+                                    <JobNotFoundProblem problem={problem}/>
+                                </Grid>
+                            case 'severe-jobrunr-exception':
+                                return <Grid item xs={12} key={problem.type}>
+                                    <SevereJobRunrExceptionProblem problem={problem} refresh={refresh}/>
+                                </Grid>
+                            case 'cpu-allocation-irregularity':
+                                return <Grid item xs={12} key={problem.type}>
+                                    <CpuAllocationIrregularityProblem problem={problem} refresh={refresh}/>
+                                </Grid>
+                            case 'poll-interval-in-seconds-is-too-small':
+                                return <Grid item xs={12} key={problem.type}>
+                                    <PollIntervalInSecondsIsTooSmallProblem problem={problem} refresh={refresh}/>
+                                </Grid>
+                            case 'new-jobrunr-version':
+                                return <Grid item xs={12} key={problem.type}>
+                                    <NewJobRunrVersionAvailable problem={problem}/>
+                                </Grid>
+                            default:
+                                return <Grid item xs={12} key="unknown-problem">Unknown error</Grid>
+                        }
+                    })}
                 </Grid>
             }
         </div>
