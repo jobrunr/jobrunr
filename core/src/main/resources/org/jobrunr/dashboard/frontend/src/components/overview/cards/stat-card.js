@@ -10,7 +10,7 @@ const classes = {
     },
 };
 
-const StatCard = ({title, content}) => {
+const StatCard = ({title, children}) => {
     return (
         <Card style={classes.card}>
             <CardContent>
@@ -18,7 +18,7 @@ const StatCard = ({title, content}) => {
                     {title}
                 </Typography>
                 <Typography variant="h5" component="h2">
-                    {content}
+                    {children}
                 </Typography>
             </CardContent>
         </Card>

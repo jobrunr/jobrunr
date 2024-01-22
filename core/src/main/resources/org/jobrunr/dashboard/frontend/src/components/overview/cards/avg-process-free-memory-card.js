@@ -9,7 +9,9 @@ const AvgProcessFreeMemoryCard = ({servers}) => {
     }
 
     return (
-        <StatCard title="Avg Process Free Memory" content={humanFileSize(averageProcessFreeMemory, true)} />
+        <StatCard title="Avg Process Free Memory">
+            {humanFileSize(averageProcessFreeMemory, true)}
+        </StatCard>
     );
 };
 

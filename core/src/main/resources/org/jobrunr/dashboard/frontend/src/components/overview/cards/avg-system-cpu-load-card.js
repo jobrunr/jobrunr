@@ -8,7 +8,9 @@ const AvgSystemCpuLoadCard = ({servers}) => {
     }
 
     return (
-        <StatCard title="Avg System Cpu Load" content={`${parseFloat(averageSystemCpuLoad * 100).toFixed(2)} %`} />
+        <StatCard title="Avg System Cpu Load">
+            {`${(averageSystemCpuLoad * 100).toFixed(2)} %`}
+        </StatCard>
     );
 };
 

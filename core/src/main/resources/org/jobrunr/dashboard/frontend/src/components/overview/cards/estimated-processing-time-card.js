@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import TimeAgo from "react-timeago/lib";
 import statsState from "../../../StatsStateContext";
 import StatCard from "./stat-card.js";
@@ -29,7 +29,9 @@ const EstimatedProcessingTimeCard = () => {
     }, [stats]);
 
     return (
-        <StatCard title="Estimated processing time" content={processingTimeRef.current} />
+        <StatCard title="Estimated processing time">
+            {processingTimeRef.current}
+        </StatCard>
     );
 };
 
