@@ -1,35 +1,16 @@
-import { Alert, AlertTitle } from '@mui/material';
-import {Button} from "@mui/material";
 import TimeAgo from "react-timeago/lib";
-
-const classes = {
-    alert: {
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    }
-};
+import {DismissibleProblemNotification} from "./dismissible-problem-notification";
 
 const PollIntervalInSecondsIsTooSmallProblem = (props) => {
-    const dismissProblem = () => {
-        fetch(`/api/problems/poll-interval-in-seconds-is-too-small`, {
-            method: 'DELETE'
-        })
-            .then(resp => props.refresh())
-            .catch(error => console.log(error));
-    }
-
     return (
-        <Alert style={classes.alert} severity="warning" action={
-            <Button color="inherit" size="small" onClick={dismissProblem}>
-                DISMISS
-            </Button>
-        }>
-            <AlertTitle><h4 style={classes.alertTitle}>Warning</h4></AlertTitle>
-            JobRunr detected that your poll interval in seconds setting is too small - are you perhaps scheduling a lot of <a href={"https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/"}>recurring jobs</a>?
-            It means that the BackgroundJob Master node cannot execute all relevant tasks like scheduling recurring jobs and doing maintenance tasks like deleting succeeded jobs.
+        <DismissibleProblemNotification
+            endpoint="/api/problems/poll-interval-in-seconds-is-too-small"
+            refresh={props.refresh}
+        >
+            JobRunr detected that your poll interval in seconds setting is too small - are you perhaps scheduling a lot
+            of <a href={"https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/"}>recurring jobs</a>?
+            It means that the BackgroundJob Master node cannot execute all relevant tasks like scheduling recurring jobs
+            and doing maintenance tasks like deleting succeeded jobs.
             <em><b>&nbsp;You are urged to increase your poll interval in seconds setting as soon as possible.</b></em>
             <br/>
             <ul>
@@ -38,10 +19,10 @@ const PollIntervalInSecondsIsTooSmallProblem = (props) => {
                         &nbsp;The poll interval in seconds time box was exceeded <TimeAgo
                             style={{textDecoration: 'underline', textDecorationStyle: 'dotted'}}
                             date={new Date(problem.createdAt)}
-                            title={new Date(problem.createdAt).toString()} />.</li>
+                            title={new Date(problem.createdAt).toString()}/>.</li>
                 })}
             </ul>
-        </Alert>
+        </DismissibleProblemNotification>
     );
 };
 

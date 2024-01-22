@@ -1,17 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Alert, AlertTitle } from '@mui/material';
+import {useEffect, useState} from 'react';
+import {ProblemNotification} from "./problem-notification";
 
-const classes = {
-    alert: {
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    }
-};
 
-const JobRunrApiNotification = (props) => {
+const JobRunrApiNotification = () => {
     const [notification, setNotification] = useState(null);
 
     useEffect(() => {
@@ -25,10 +16,9 @@ const JobRunrApiNotification = (props) => {
 
 
     if (notification) {
-        return <Alert style={classes.alert} severity="info">
-            <AlertTitle><h4 style={classes.alertTitle}>{notification.title}</h4></AlertTitle>
+        return <ProblemNotification severity="info" title={notification.title}>
             <span dangerouslySetInnerHTML={{__html: notification.body}}/>
-        </Alert>
+        </ProblemNotification>
     }
     return null;
 };

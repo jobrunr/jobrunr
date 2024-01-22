@@ -1,33 +1,12 @@
-import { Alert, AlertTitle } from '@mui/material';
-import {Button} from "@mui/material";
 import TimeAgo from "react-timeago/lib";
-
-const classes = {
-    alert: {
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    }
-};
+import {DismissibleProblemNotification} from "./dismissible-problem-notification";
 
 const CPUAllocationIrregularityProblem = (props) => {
-    const dismissProblem = () => {
-        fetch(`/api/problems/cpu-allocation-irregularity`, {
-            method: 'DELETE'
-        })
-            .then(resp => props.refresh())
-            .catch(error => console.log(error));
-    }
-
     return (
-        <Alert style={classes.alert} severity="warning" action={
-            <Button color="inherit" size="small" onClick={dismissProblem}>
-                DISMISS
-            </Button>
-        }>
-            <AlertTitle><h4 style={classes.alertTitle}>Warning</h4></AlertTitle>
+        <DismissibleProblemNotification
+            endpoint="/api/problems/cpu-allocation-irregularity"
+            refresh={props.refresh}
+        >
             JobRunr detected some CPU Allocation Irregularities (e.g. due to a very long garbage collect cycle
             or due to CPU starvation on shared hosting). This may result in unstable behaviour of your JobRunr cluster.
             <em><b>&nbsp;You are urged to look into this as soon as possible.</b></em>
@@ -41,7 +20,7 @@ const CPUAllocationIrregularityProblem = (props) => {
                             title={new Date(irregularity.createdAt).toString()}/></li>
                 })}
             </ul>
-        </Alert>
+        </DismissibleProblemNotification>
     );
 };
 

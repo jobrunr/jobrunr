@@ -1,18 +1,9 @@
 import {useState} from 'react';
-import {Alert, AlertTitle, Button, Dialog, Link, Snackbar} from '@mui/material';
+import {Alert, Dialog, Link, Snackbar} from '@mui/material';
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
 import Highlight from '../../utils/highlighter';
-
-const classes = {
-    alert: {
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    }
-};
+import {DismissibleProblemNotification} from "./dismissible-problem-notification";
 
 const SevereJobRunrExceptionProblem = (props) => {
     const [copyStatus, setCopyStatus] = useState(null);
@@ -20,14 +11,6 @@ const SevereJobRunrExceptionProblem = (props) => {
 
     const handleCloseSnackbar = (event, reason) => setCopyStatus(null);
     const handleCloseDialog = (event, reason) => setIssueDialogContent(null);
-
-    const dismissProblem = () => {
-        fetch(`/api/problems/severe-jobrunr-exception`, {
-            method: 'DELETE'
-        })
-            .then(resp => props.refresh())
-            .catch(error => console.log(error));
-    }
 
     const showDialogAsContentCouldNotBeCopied = () => {
         setIssueDialogContent(props.problem.githubIssueBody);
@@ -49,12 +32,12 @@ const SevereJobRunrExceptionProblem = (props) => {
     }
 
     return (
-        <Alert style={classes.alert} severity="error" action={
-            <Button color="inherit" size="small" onClick={dismissProblem}>
-                DISMISS
-            </Button>
-        }>
-            <AlertTitle><h4 style={classes.alertTitle}>Fatal</h4></AlertTitle>
+        <DismissibleProblemNotification
+            title="Fatal"
+            severity="error"
+            endpoint="/api/problems/severe-jobrunr-exception"
+            refresh={props.refresh}
+        >
             {props.problem.githubIssueBodyLength < 2000
                 ? <>JobRunr encountered an exception that should not happen. To resolve this issue, can you please
                     create a <a
@@ -99,7 +82,7 @@ const SevereJobRunrExceptionProblem = (props) => {
                     </MuiDialogContent>
                 </Dialog>
             }
-        </Alert>
+        </DismissibleProblemNotification>
     );
 }
 
