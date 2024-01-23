@@ -1,35 +1,19 @@
-import React, {useRef} from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-
-import Typography from '@material-ui/core/Typography';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
+import {useEffect, useRef, useState} from 'react';
 import TimeAgo from "react-timeago/lib";
 import statsState from "../../../StatsStateContext";
-
-const useStyles = makeStyles(theme => ({
-    metadata: {
-        display: 'flex',
-    },
-    card: {
-        minWidth: '230px',
-        minHeight: '105px',
-        marginRight: '20px'
-    },
-}));
+import StatCard from "./stat-card.js";
 
 const EstimatedProcessingTimeCard = () => {
-    const classes = useStyles();
     const timeAgoFormatter = (a, b, c) => a > 1 ? `${a} ${b}s` : `${a} ${b}`;
 
-    const [stats, setStats] = React.useState(statsState.getStats());
-    React.useEffect(() => {
+    const [stats, setStats] = useState(statsState.getStats());
+    useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])
 
     const processingTimeRef = useRef(<>Calculating...</>);
-    React.useEffect(() => {
+    useEffect(() => {
         if (stats.estimation.processingDone) {
             processingTimeRef.current = <>All done!</>;
         } else {
@@ -45,16 +29,9 @@ const EstimatedProcessingTimeCard = () => {
     }, [stats]);
 
     return (
-        <Card className={classes.card}>
-            <CardContent>
-                <Typography className={classes.title} color="textSecondary" gutterBottom>
-                    Estimated processing time
-                </Typography>
-                <Typography variant="h5" component="h2">
-                    {processingTimeRef.current}
-                </Typography>
-            </CardContent>
-        </Card>
+        <StatCard title="Estimated processing time">
+            {processingTimeRef.current}
+        </StatCard>
     );
 };
 

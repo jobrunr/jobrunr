@@ -36,9 +36,9 @@ context('Actions', () => {
 
         jobTableRows().should('have.length', 20);
         jobTableRows().eq(0).should('contain', 'an enqueued job');
-        jobTablePagination().should('contain', '1-20 of 33');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Next page').and('be.enabled');
+        jobTablePagination().should('contain', '1–20 of 33');
+        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
+        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.enabled');
     });
 
 
@@ -49,9 +49,9 @@ context('Actions', () => {
 
         jobTableRows().should('have.length', 1);
         jobTableRows().eq(0).should('contain', 'the job');
-        jobTablePagination().should('contain', '1-1 of 1');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Next page').and('be.disabled');
+        jobTablePagination().should('contain', '1–1 of 1');
+        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
+        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
     });
 
     it('It can navigate to the enqueued jobs', () => {
@@ -61,9 +61,9 @@ context('Actions', () => {
 
         jobTableRows().should('have.length', 20);
         jobTableRows().eq(0).should('contain', 'an enqueued job');
-        jobTablePagination().should('contain', '1-20 of 33');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Next page').and('be.enabled');
+        jobTablePagination().should('contain', '1–20 of 33');
+        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
+        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.enabled');
     });
 
     it('It can navigate to the processing jobs', () => {
@@ -82,9 +82,9 @@ context('Actions', () => {
 
         jobTableRows().should('have.length', 2);
         jobTableRows().eq(0).should('contain', 'a succeeded job');
-        jobTablePagination().should('contain', '1-2 of 2');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Next page').and('be.disabled');
+        jobTablePagination().should('contain', '1–2 of 2');
+        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
+        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
     });
 
     it('It can navigate to the failed jobs', () => {
@@ -94,9 +94,9 @@ context('Actions', () => {
 
         jobTableRows().should('have.length', 1);
         jobTableRows().eq(0).should('contain', 'failed job');
-        jobTablePagination().should('contain', '1-1 of 1');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Next page').and('be.disabled');
+        jobTablePagination().should('contain', '1–1 of 1');
+        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
+        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
     });
 
     it('It can navigate to the details of a job', () => {

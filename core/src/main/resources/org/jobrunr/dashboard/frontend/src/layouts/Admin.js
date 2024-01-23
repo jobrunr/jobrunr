@@ -1,6 +1,5 @@
-import React from 'react';
-import {createTheme, makeStyles, MuiThemeProvider} from '@material-ui/core/styles';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import { createTheme, styled, ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
 import Servers from "../components/servers/servers";
@@ -11,49 +10,61 @@ import JobsView from "../components/jobs/jobs-view";
 import Sidebar from "../components/jobs/sidebar";
 import GithubStarPopup from "../components/utils/github-star-popup";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-    },
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        marginTop: 56
-    },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
+
+const Main = styled("main")(({ theme }) => ({
+    padding: theme.spacing(3),
+    marginTop: 56
 }));
 
-const AdminUI = function () {
-    const theme = createTheme({
-        palette: {
-            primary: {
-                main: '#000'
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: '#000'
+        },
+        secondary: {
+            main: '#f50057'
+        }
+    },
+    components: {
+        MuiLink: {
+            styleOverrides: {
+                root: {
+                    color: "#26a8ed"
+                }
             }
         }
-    });
-    const classes = useStyles();
+    }
+});
+
+const App = () => {
+    const JobViewWithSideBar = WithSidebar(Sidebar, JobView);
+    const JobsViewWithSidebar = WithSidebar(Sidebar, JobsView);
 
     return (
-        <MuiThemeProvider theme={theme}>
-            <div className={classes.root}>
-                <GithubStarPopup/>
-                <TopAppBar/>
-                <main className={classes.content}>
-                    <Switch>
-                        <Route path="/dashboard/overview" component={Overview}/>
-                        <Route path="/dashboard/jobs/:jobId" component={WithSidebar(Sidebar, JobView)}/>
-                        <Route path="/dashboard/jobs" component={WithSidebar(Sidebar, JobsView)}/>
-                        <Route path="/dashboard/recurring-jobs" component={RecurringJobs}/>
-                        <Route path="/dashboard/servers" component={Servers}/>
-                        <Redirect from="/dashboard" to="/dashboard/overview"/>
-                    </Switch>
-                </main>
-            </div>
-        </MuiThemeProvider>
+        <div>
+            <GithubStarPopup/>
+            <TopAppBar/>
+            <Main>
+                <Routes>
+                    <Route path="overview" element={<Overview />}/>
+                    <Route path="jobs/:jobId" element={<JobViewWithSideBar />}/>
+                    <Route path="jobs" element={<JobsViewWithSidebar />}/>
+                    <Route path="recurring-jobs" element={<RecurringJobs />}/>
+                    <Route path="servers" element={<Servers />}/>
+                    <Route path="*" element={<Navigate to="overview" replace/>} />
+                </Routes>
+            </Main>
+        </div>
+    );
+}
+
+const AdminUI = function () {
+    return (
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
+        </StyledEngineProvider>
     );
 };
 

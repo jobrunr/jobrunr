@@ -1,73 +1,55 @@
-import React from 'react';
-import Link from '@material-ui/core/Link';
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
+import {memo, useEffect, useState} from 'react';
+import {keyframes, styled} from "@mui/material/styles";
+import Link from '@mui/material/Link';
+import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
 import TimeAgo from "react-timeago/lib";
-import Box from "@material-ui/core/Box";
-import {makeStyles} from '@material-ui/core/styles';
+import Box from "@mui/material/Box";
 import {CogClockwise} from "mdi-material-ui";
-import NotInterestedIcon from '@material-ui/icons/NotInterested';
-import Dialog from '@material-ui/core/Dialog';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import MuiDialogContent from '@material-ui/core/DialogContent';
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
+import Dialog from '@mui/material/Dialog';
+import MuiDialogTitle from '@mui/material/DialogTitle';
+import MuiDialogContent from '@mui/material/DialogContent';
 import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
+import {ItemsNotFound} from "../utils/items-not-found";
 
-const useStyles = makeStyles(theme => ({
-    table: {
-        width: '100%',
-    },
-    root: {
-        width: '100%',
-        backgroundColor: theme.palette.background.paper,
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-    idColumn: {
-        maxWidth: 0,
-        width: '15%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        cursor: 'pointer'
-    },
-    nameColumn: {
-        cursor: 'pointer'
-    },
-    inline: {
-        display: 'inline',
-    },
-    spin: {
-        animationName: '$spin',
-        animationDuration: '5000ms',
-        animationIterationCount: 'infinite',
-        animationTimingFunction: 'linear'
-    },
-    "@keyframes spin": {
-        from: {
-            transform: 'rotate(0deg)'
-        },
-        to: {
-            transform: 'rotate(360deg)'
-        }
+const spin = keyframes`
+    from {
+        transform: rotate(0deg)
     }
+    to {
+        transform: rotate(360deg)
+    }
+`;
+
+const StyledCogClockwise = styled(CogClockwise)(() => ({
+    animationName: spin,
+    animationDuration: '5000ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'linear'
 }));
 
-const Servers = React.memo(() => {
-    const classes = useStyles();
+const IdColumn = styled(TableCell)`
+    width: 15%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+`;
 
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [servers, setServers] = React.useState([]);
-    const [open, setOpen] = React.useState(false);
-    const [currentServer, setCurrentServer] = React.useState(null);
+const Servers = memo(() => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [servers, setServers] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [currentServer, setCurrentServer] = useState(null);
 
     const handleOpen = (server) => {
         setCurrentServer(server);
@@ -80,7 +62,7 @@ const Servers = React.memo(() => {
     };
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`/api/servers`)
             .then(res => res.json())
             .then(response => {
@@ -109,15 +91,15 @@ const Servers = React.memo(() => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <Paper className={classes.paper}>
+                    <Paper>
                         {servers.length < 1
-                            ? <Typography variant="body1" className={classes.noItemsFound}>No servers found</Typography>
+                            ? <ItemsNotFound>No servers found</ItemsNotFound>
                             : <>
                                 <TableContainer>
-                                    <Table className={classes.table} aria-label="servers overview">
+                                    <Table style={{width: "100%"}} aria-label="servers overview">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
+                                                <IdColumn style={{cursor: "initial"}}>Id</IdColumn>
                                                 <TableCell>Name</TableCell>
                                                 <TableCell>Workers</TableCell>
                                                 <TableCell>Created</TableCell>
@@ -131,13 +113,13 @@ const Servers = React.memo(() => {
                                         <TableBody>
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server)}>
+                                                    <IdColumn component="th" scope="row">
+                                                        <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.id}
                                                         </Link>
-                                                    </TableCell>
-                                                    <TableCell className={classes.nameColumn}>
-                                                        <Link color="initial" onClick={() => handleOpen(server)}>
+                                                    </IdColumn>
+                                                    <TableCell style={{cursor: 'pointer'}}>
+                                                        <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.name}
                                                         </Link>
                                                     </TableCell>
@@ -160,7 +142,7 @@ const Servers = React.memo(() => {
                                                     </TableCell>
                                                     <TableCell>
                                                         {server.running
-                                                            ? <CogClockwise className={classes.spin}/>
+                                                            ? <StyledCogClockwise/>
                                                             : <NotInterestedIcon/>
                                                         }
                                                     </TableCell>
@@ -183,13 +165,14 @@ const Servers = React.memo(() => {
             }
 
             {currentServer &&
-                <Dialog fullWidth="true" maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <Dialog fullWidth maxWidth="sm" scroll="paper" onClose={handleClose}
+                        aria-labelledby="customized-dialog-title" open={open}>
                     <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
                         Server info <code>{currentServer.id}</code>
                     </MuiDialogTitle>
                     <MuiDialogContent dividers>
                         <TableContainer>
-                            <Table className={classes.table} aria-label="simple table">
+                            <Table style={{width: "100%"}} aria-label="simple table">
                                 <TableBody>
                                     <TableRow>
                                         <TableCell>

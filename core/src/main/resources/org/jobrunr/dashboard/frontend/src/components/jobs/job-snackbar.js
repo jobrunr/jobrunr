@@ -1,17 +1,21 @@
-import React from 'react';
-import Alert from '@material-ui/lab/Alert';
-import {Snackbar} from "@material-ui/core";
+import { useState } from 'react';
+import Alert from '@mui/material/Alert';
+import {Snackbar} from "@mui/material";
 
 
 const JobSnackbar = (props) => {
-    const [openSnackbar, setOpenSnackbar] = React.useState(false);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
     const handleCloseAlert = (event, reason) => {
         setOpenSnackbar(false);
     };
 
     return (
-        <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseAlert}>
+        <Snackbar open={openSnackbar}
+            autoHideDuration={3000}
+            onClose={handleCloseAlert}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+         >
             <Alert severity={props.severity}>
                 {props.message}
             </Alert>

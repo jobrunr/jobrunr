@@ -1,23 +1,11 @@
-import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import {Alert, AlertTitle} from '@material-ui/lab';
+import {useEffect, useState} from 'react';
+import {ProblemNotification} from "./problem-notification";
 
-const useStyles = makeStyles(theme => ({
-    alert: {
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    }
-}));
 
-const JobRunrApiNotification = (props) => {
-    const classes = useStyles();
+const JobRunrApiNotification = () => {
+    const [notification, setNotification] = useState(null);
 
-    const [notification, setNotification] = React.useState(null);
-
-    React.useEffect(() => {
+    useEffect(() => {
         fetch(`https://api.jobrunr.io/api/notifications/jobrunr`)
             .then(res => res.json())
             .then(response => {
@@ -28,10 +16,9 @@ const JobRunrApiNotification = (props) => {
 
 
     if (notification) {
-        return <Alert className={classes.alert} severity="info">
-            <AlertTitle><h4 className={classes.alertTitle}>{notification.title}</h4></AlertTitle>
+        return <ProblemNotification severity="info" title={notification.title}>
             <span dangerouslySetInnerHTML={{__html: notification.body}}/>
-        </Alert>
+        </ProblemNotification>
     }
     return null;
 };
