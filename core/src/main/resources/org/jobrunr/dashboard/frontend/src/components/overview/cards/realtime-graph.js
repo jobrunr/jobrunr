@@ -1,8 +1,9 @@
-import React, {useRef, useState} from 'react';
+import { useRef, useState } from 'react';
+import * as React from 'react';
 
-import Box from "@material-ui/core/Box";
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
+import Box from "@mui/material/Box";
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import Chart from "react-apexcharts";
 import ApexCharts from "apexcharts";
 import statsState from "../../../StatsStateContext";

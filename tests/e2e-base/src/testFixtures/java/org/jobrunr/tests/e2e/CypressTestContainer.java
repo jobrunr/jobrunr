@@ -14,7 +14,7 @@ public class CypressTestContainer extends GenericContainer<CypressTestContainer>
     private final GenericContainer backgroundJobContainer;
 
     public CypressTestContainer(GenericContainer backgroundJobContainer) {
-        super("cypress/included:12.11.0");
+        super("cypress/included:13.3.0");
         this.backgroundJobContainer = backgroundJobContainer;
     }
 

@@ -1,57 +1,41 @@
-import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import Checkbox from '@material-ui/core/Checkbox';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import Grid from '@material-ui/core/Grid';
+import {useEffect, useState} from 'react';
+import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import Checkbox from '@mui/material/Checkbox';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Grid from '@mui/material/Grid';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
-import Box from "@material-ui/core/Box";
-import {Snackbar} from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert'
+import Box from "@mui/material/Box";
+import {Snackbar} from "@mui/material";
+import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
-import {useHistory, useLocation} from "react-router-dom";
-import TablePagination from "@material-ui/core/TablePagination";
+import {useLocation, useNavigate} from "react-router-dom";
+import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
+import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
+import {ItemsNotFound} from "../utils/items-not-found";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: 'flex',
-    },
-    jobRunrProNotice: {
-        margin: "-2rem 0 0.5rem 0",
-        textAlign: "right"
-    },
-    recurringJobActions: {
-        margin: '1rem',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-}));
-
-const RecurringJobs = (props) => {
-    const classes = useStyles();
-    const history = useHistory();
+const RecurringJobs = () => {
+    const navigate = useNavigate();
     const location = useLocation();
 
     const urlSearchParams = new URLSearchParams(location.search);
     const page = urlSearchParams.get('page');
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [recurringJobPage, setRecurringJobPage] = React.useState({total: 0, limit: 20, currentPage: 0, items: []});
-    const [recurringJobs, setRecurringJobs] = React.useState([{}]);
-    const [apiStatus, setApiStatus] = React.useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [recurringJobPage, setRecurringJobPage] = useState({total: 0, limit: 20, currentPage: 0, items: []});
+    const [recurringJobs, setRecurringJobs] = useState([{}]);
+    const [apiStatus, setApiStatus] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         getRecurringJobs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page]);
@@ -73,7 +57,7 @@ const RecurringJobs = (props) => {
     const handleChangePage = (event, newPage) => {
         let urlSearchParams = new URLSearchParams(location.search);
         urlSearchParams.set("page", newPage);
-        history.push(`?${urlSearchParams.toString()}`);
+        navigate(`?${urlSearchParams.toString()}`);
     };
 
     const selectAll = (event) => {
@@ -150,15 +134,20 @@ const RecurringJobs = (props) => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <div className={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just a click away.</div>
-                    <Paper className={classes.paper}>
+                    <JobRunrProNotice>Do you want to pause a recurring job? With <a
+                        href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
+                        title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just
+                        a click away.
+                    </JobRunrProNotice>
+                    <Paper>
                         {recurringJobs.length < 1
-                            ? <Typography variant="body1" className={classes.noItemsFound}>No recurring jobs
-                                found</Typography>
+                            ? <ItemsNotFound>No recurring jobs found</ItemsNotFound>
                             : <>
                                 <Grid item xs={3} container>
-                                    <ButtonGroup className={classes.recurringJobActions}
-                                                 disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
+                                    <ButtonGroup
+                                        style={{margin: '1rem'}}
+                                        disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}
+                                    >
                                         <Button variant="outlined" color="primary"
                                                 onClick={triggerSelectedRecurringJobs}>
                                             Trigger
@@ -170,7 +159,7 @@ const RecurringJobs = (props) => {
                                     </ButtonGroup>
                                 </Grid>
                                 <TableContainer>
-                                    <Table className={classes.table} aria-label="recurring jobs overview">
+                                    <Table aria-label="recurring jobs overview">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell padding="checkbox">
@@ -178,7 +167,7 @@ const RecurringJobs = (props) => {
                                                         checked={recurringJobs.every(recurringJob => recurringJob.selected)}
                                                         onClick={selectAll}/>
                                                 </TableCell>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
+                                                <TableCell>Id</TableCell>
                                                 <TableCell>Job name</TableCell>
                                                 <TableCell>Cron</TableCell>
                                                 <TableCell>Time zone</TableCell>
@@ -192,7 +181,7 @@ const RecurringJobs = (props) => {
                                                         <Checkbox checked={recurringJob.selected}
                                                                   onClick={(event) => selectRecurringJob(event, recurringJob)}/>
                                                     </TableCell>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                    <TableCell component="th" scope="row">
                                                         {recurringJob.id}
                                                     </TableCell>
                                                     <TableCell>
@@ -232,11 +221,15 @@ const RecurringJobs = (props) => {
                 </>
             }
             {apiStatus &&
-            <Snackbar open={true} autoHideDuration={3000} onClose={handleCloseAlert}>
-                <Alert severity={apiStatus.severity}>
-                    {apiStatus.message}
-                </Alert>
-            </Snackbar>
+                <Snackbar open={true}
+                          autoHideDuration={3000}
+                          onClose={handleCloseAlert}
+                          anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                >
+                    <Alert severity={apiStatus.severity}>
+                        {apiStatus.message}
+                    </Alert>
+                </Snackbar>
             }
         </div>
     )

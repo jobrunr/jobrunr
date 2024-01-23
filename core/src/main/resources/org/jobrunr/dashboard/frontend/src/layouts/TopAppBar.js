@@ -1,71 +1,47 @@
-import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Chip from '@material-ui/core/Chip';
-import Toolbar from '@material-ui/core/Toolbar';
-import GitHubIcon from '@material-ui/icons/GitHub';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
+import {useEffect, useState} from 'react';
+import {styled} from "@mui/material/styles";
+import AppBar from '@mui/material/AppBar';
+import Chip from '@mui/material/Chip';
+import Toolbar from '@mui/material/Toolbar';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import {Link as RouterLink} from 'react-router-dom';
 import statsState from "StatsStateContext.js";
 import logo from '../assets/jobrunr-logo-white.png';
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
+const StyledAppBar = styled(AppBar)(({theme}) => ({
+    zIndex: theme.zIndex.drawer + 1
+}));
+
+const Buttons = styled("div")(({theme}) => ({
+    '& > *': {
+        margin: `${theme.spacing(2)}!important`,
     },
-    menuButton: {
-        marginRight: theme.spacing(2),
+    '& div.MuiChip-root': {
+        height: 'initial',
+        marginLeft: '6px',
+        fontSize: '0.75rem'
     },
-    appBar: {
-        zIndex: theme.zIndex.drawer + 1
+    '& div span.MuiChip-label': {
+        padding: '0 8px'
     },
-    logo: {
-        width: 'auto',
-        height: '35px'
-    },
-    buttons: {
-        '& > *': {
-            margin: theme.spacing(2),
-        },
-        '& div.MuiChip-root': {
-            height: 'initial',
-            marginLeft: '6px',
-            fontSize: '0.75rem'
-        },
-        '& div span.MuiChip-label': {
-            padding: '0 8px'
-        },
-        margin: "0 50px",
-        flexGrow: 1,
-    },
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        marginTop: 56
-    },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
+    margin: "0 50px",
+    flexGrow: 1,
 }));
 
 const TopAppBar = () => {
-    const classes = useStyles();
-
-
-    const [stats, setStats] = React.useState(statsState.getStats());
-    React.useEffect(() => {
+    const [stats, setStats] = useState(statsState.getStats());
+    useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])
 
     return (
-        <AppBar position="fixed" className={classes.appBar}>
-            <Toolbar>
-                <img className={classes.logo} src={logo} alt="JobRunr"/>
-                <div className={classes.buttons}>
+        <StyledAppBar position="fixed">
+            <Toolbar style={{display: "flex", alignItems: "center"}}>
+                <img style={{width: 'auto', height: '35px'}} src={logo} alt="JobRunr"/>
+                <Buttons>
                     <Button id="dashboard-btn" color="inherit" component={RouterLink} to="/dashboard/overview">
                         Dashboard
                     </Button>
@@ -79,13 +55,19 @@ const TopAppBar = () => {
                     <Button id="servers-btn" color="inherit" component={RouterLink} to="/dashboard/servers">
                         Servers <Chip color="secondary" label={stats.backgroundJobServers}/>
                     </Button>
-                </div>
-                <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu"
-                            target="_blank" href="https://github.com/jobrunr/jobrunr">
+                </Buttons>
+                <IconButton
+                    edge="start"
+                    sx={{marginRight: 2}}
+                    color="inherit"
+                    aria-label="menu"
+                    target="_blank"
+                    href="https://github.com/jobrunr/jobrunr"
+                    size="large">
                     <GitHubIcon/>
                 </IconButton>
             </Toolbar>
-        </AppBar>
+        </StyledAppBar>
     );
 }
 

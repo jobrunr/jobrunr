@@ -1,20 +1,10 @@
-import React from 'react';
-import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@material-ui/core";
-import {makeStyles} from "@material-ui/core/styles";
-
-const useStyles = makeStyles(theme => ({
-    dialogActions: {
-        padding: '1rem'
-    }
-}));
+import { useState, useEffect } from 'react';
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 
 export default function GithubStarPopup() {
+    const [visible, setVisible] = useState(false);
 
-    const classes = useStyles();
-    const [visible, setVisible] = React.useState(false);
-
-
-    React.useEffect(() => {
+    useEffect(() => {
         let popupShown = localStorage.getItem('githubStarPopupShown');
         if (popupShown === 'true') {
             return;
@@ -74,7 +64,7 @@ export default function GithubStarPopup() {
                     Thanks for your support!
                 </DialogContentText>
             </DialogContent>
-            <DialogActions className={classes.dialogActions}>
+            <DialogActions style={{padding: '1rem'}}>
                 <Button onClick={remindMeLater} color="inherit">
                     remind me later
                 </Button>
