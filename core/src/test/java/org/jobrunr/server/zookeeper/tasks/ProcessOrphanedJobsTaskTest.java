@@ -47,5 +47,7 @@ class ProcessOrphanedJobsTaskTest extends AbstractZooKeeperTaskTest {
         verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
         assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
         assertThat(logAllStateChangesFilter.getStateChanges(orphanedJob)).containsExactly("PROCESSING->FAILED", "FAILED->SCHEDULED");
+        assertThat(logAllStateChangesFilter.onProcessingFailedIsCalled(orphanedJob)).isTrue();
     }
+
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public class JobFilterUtils {
 
-    private JobDefaultFilters jobDefaultFilters;
+    private final JobDefaultFilters jobDefaultFilters;
 
     public JobFilterUtils(JobDefaultFilters jobDefaultFilters) {
         this.jobDefaultFilters = jobDefaultFilters;
@@ -47,5 +47,9 @@ public class JobFilterUtils {
         if (executeJobServerFilters) {
             jobs.forEach(this::runOnStateAppliedFilters);
         }
+    }
+
+    public void runOnJobProcessingFailedFilters(Job job, Exception e) {
+        new JobPerformingFilters(job, jobDefaultFilters).runOnJobProcessingFailedFilters(e);
     }
 }
