@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import Box from "@mui/material/Box";
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -12,17 +12,6 @@ import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import LoadingIndicator from "../LoadingIndicator";
 import Problems from "./problems/problems-notifications";
 import VersionFooter from "../utils/version-footer";
-
-const classes = {
-    metadata: {
-        display: 'flex',
-    },
-    noServersFound: {
-        marginTop: '1rem',
-        padding: '1rem',
-        width: '100%'
-    },
-};
 
 const Overview = () => {
     const [isServersApiLoading, setServersApiIsLoading] = useState(true);
@@ -58,7 +47,7 @@ const Overview = () => {
                 </Box>
             </div>
             <Problems/>
-            <div style={classes.metadata}>
+            <div style={{display: "flex"}}>
                 {isServersApiLoading
                     ? <LoadingIndicator/>
                     : <> {servers.length > 0
@@ -70,7 +59,7 @@ const Overview = () => {
                             <AvgProcessMemoryUsageCard servers={servers}/>
                             <AvgProcessFreeMemoryCard servers={servers}/>
                         </>
-                        : <Paper style={classes.noServersFound}>
+                        : <Paper style={{marginTop: '1rem', padding: '1rem', width: '100%'}}>
                             <Typography id="no-servers-found-message" variant="body1">
                                 No background job server available - jobs will not be processed.
                             </Typography>

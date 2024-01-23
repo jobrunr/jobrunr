@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { styled } from "@mui/material/styles";
+import {useEffect, useState} from 'react';
+import {styled} from "@mui/material/styles";
 import AppBar from '@mui/material/AppBar';
 import Chip from '@mui/material/Chip';
 import Toolbar from '@mui/material/Toolbar';
@@ -30,16 +30,6 @@ const Buttons = styled("div")(({theme}) => ({
     flexGrow: 1,
 }));
 
-const classes = {
-    menuButton: {
-        marginRight: 2,
-    },
-    logo: {
-        width: 'auto',
-        height: '35px'
-    }
-};
-
 const TopAppBar = () => {
     const [stats, setStats] = useState(statsState.getStats());
     useEffect(() => {
@@ -50,7 +40,7 @@ const TopAppBar = () => {
     return (
         <StyledAppBar position="fixed">
             <Toolbar style={{display: "flex", alignItems: "center"}}>
-                <img style={classes.logo} src={logo} alt="JobRunr"/>
+                <img style={{width: 'auto', height: '35px'}} src={logo} alt="JobRunr"/>
                 <Buttons>
                     <Button id="dashboard-btn" color="inherit" component={RouterLink} to="/dashboard/overview">
                         Dashboard
@@ -68,7 +58,7 @@ const TopAppBar = () => {
                 </Buttons>
                 <IconButton
                     edge="start"
-                    sx={classes.menuButton}
+                    sx={{marginRight: 2}}
                     color="inherit"
                     aria-label="menu"
                     target="_blank"

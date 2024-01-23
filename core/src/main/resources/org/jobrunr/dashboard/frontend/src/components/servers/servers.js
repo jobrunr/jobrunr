@@ -1,5 +1,5 @@
-import { memo, useState, useEffect } from 'react';
-import { styled, keyframes } from "@mui/material/styles";
+import {memo, useEffect, useState} from 'react';
+import {keyframes, styled} from "@mui/material/styles";
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
@@ -19,6 +19,7 @@ import MuiDialogContent from '@mui/material/DialogContent';
 import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
+import {ItemsNotFound} from "../utils/items-not-found";
 
 const spin = keyframes`
     from {
@@ -36,25 +37,13 @@ const StyledCogClockwise = styled(CogClockwise)(() => ({
     animationTimingFunction: 'linear'
 }));
 
-const classes = {
-    table: {
-        width: '100%',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-    idColumn: {
-        maxWidth: 0,
-        width: '15%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        cursor: 'pointer'
-    },
-    nameColumn: {
-        cursor: 'pointer'
-    }
-};
+const IdColumn = styled(TableCell)`
+    width: 15%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+`;
 
 const Servers = memo(() => {
     const [isLoading, setIsLoading] = useState(true);
@@ -102,15 +91,15 @@ const Servers = memo(() => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <Paper style={classes.paper}>
+                    <Paper>
                         {servers.length < 1
-                            ? <Typography variant="body1" style={classes.noItemsFound}>No servers found</Typography>
+                            ? <ItemsNotFound>No servers found</ItemsNotFound>
                             : <>
                                 <TableContainer>
-                                    <Table style={classes.table} aria-label="servers overview">
+                                    <Table style={{width: "100%"}} aria-label="servers overview">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell style={classes.idColumn}>Id</TableCell>
+                                                <IdColumn style={{cursor: "initial"}}>Id</IdColumn>
                                                 <TableCell>Name</TableCell>
                                                 <TableCell>Workers</TableCell>
                                                 <TableCell>Created</TableCell>
@@ -124,12 +113,12 @@ const Servers = memo(() => {
                                         <TableBody>
                                             {servers.map(server => (
                                                 <TableRow key={server.id}>
-                                                    <TableCell component="th" scope="row" style={classes.idColumn}>
+                                                    <IdColumn component="th" scope="row">
                                                         <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.id}
                                                         </Link>
-                                                    </TableCell>
-                                                    <TableCell style={classes.nameColumn}>
+                                                    </IdColumn>
+                                                    <TableCell style={{cursor: 'pointer'}}>
                                                         <Link onClick={() => handleOpen(server)} underline="hover">
                                                             {server.name}
                                                         </Link>
@@ -153,7 +142,7 @@ const Servers = memo(() => {
                                                     </TableCell>
                                                     <TableCell>
                                                         {server.running
-                                                            ? <StyledCogClockwise />
+                                                            ? <StyledCogClockwise/>
                                                             : <NotInterestedIcon/>
                                                         }
                                                     </TableCell>
@@ -176,13 +165,14 @@ const Servers = memo(() => {
             }
 
             {currentServer &&
-                <Dialog fullWidth maxWidth="sm" scroll="paper" onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+                <Dialog fullWidth maxWidth="sm" scroll="paper" onClose={handleClose}
+                        aria-labelledby="customized-dialog-title" open={open}>
                     <MuiDialogTitle id="customized-dialog-title" onClose={handleClose}>
                         Server info <code>{currentServer.id}</code>
                     </MuiDialogTitle>
                     <MuiDialogContent dividers>
                         <TableContainer>
-                            <Table style={classes.table} aria-label="simple table">
+                            <Table style={{width: "100%"}} aria-label="simple table">
                                 <TableBody>
                                     <TableRow>
                                         <TableCell>

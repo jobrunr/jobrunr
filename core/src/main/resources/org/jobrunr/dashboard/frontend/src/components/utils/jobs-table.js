@@ -1,5 +1,4 @@
-import {Link, useNavigate, useLocation} from "react-router-dom";
-import Typography from '@mui/material/Typography';
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -10,32 +9,19 @@ import TableRow from '@mui/material/TableRow';
 import TimeAgo from "react-timeago/lib";
 import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "./job-label";
+import {ItemsNotFound} from "./items-not-found";
+import {styled} from "@mui/material/styles";
 
-const classes = {
-    table: {
-        width: '100%',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-    idColumn: {
-        maxWidth: 0,
-        width: '20%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-    },
-    jobNameColumn: {
-        width: '60%'
-    }
-};
+const IdColumn = styled(TableCell)`
+    width: 20%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
 
-const JobsTable = (props) => {
+const JobsTable = ({jobPage, jobState, isLoading}) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const isLoading = props.isLoading;
-    const jobPage = props.jobPage;
-    const jobState = props.jobState;
 
     let column;
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
@@ -73,27 +59,26 @@ const JobsTable = (props) => {
         <> {isLoading
             ? <LoadingIndicator/>
             : <> {jobPage.items < 1
-                ? <Typography id="no-jobs-found-message" variant="body1" style={classes.noItemsFound}>No jobs
-                    found</Typography>
+                ? <ItemsNotFound id="no-jobs-found-message">No jobs found</ItemsNotFound>
                 : <>
                     <TableContainer>
-                        <Table id="jobs-table" style={classes.table} aria-label="jobs table">
+                        <Table id="jobs-table" style={{width: "100%"}} aria-label="jobs table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell style={classes.idColumn}>Id</TableCell>
-                                    <TableCell style={classes.jobNameColumn}>Job details</TableCell>
+                                    <IdColumn>Id</IdColumn>
+                                    <TableCell style={{width: '60%'}}>Job details</TableCell>
                                     <TableCell>{column}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {jobPage.items.map(job => (
                                     <TableRow key={job.id}>
-                                        <TableCell component="th" scope="row" style={classes.idColumn}>
+                                        <IdColumn component="th" scope="row">
                                             <Link to={{
                                                 pathname: `/dashboard/jobs/${job.id}`,
                                                 job: job
                                             }}>{job.id}</Link>
-                                        </TableCell>
+                                        </IdColumn>
                                         <TableCell>
                                             {job.labels &&
                                                 <>

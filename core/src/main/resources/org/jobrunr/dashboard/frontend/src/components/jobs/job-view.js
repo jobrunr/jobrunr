@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import {Link, useNavigate, useParams} from "react-router-dom";
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -29,30 +29,7 @@ import DeletedNotification from "./notifications/deleted-notification";
 import JobDetailsNotCacheableNotification from "./notifications/job-details-not-cacheable-notification";
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
-
-const classes = {
-    root: {
-        display: 'flex',
-    },
-    box: {
-        marginBottom: '0'
-    },
-    content: {
-        width: '100%',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-    cardContent: {
-        width: "100%"
-    },
-    sortButton: {
-        scrollMarginTop: '70px'
-    },
-    jobDetails: {
-        paddingBottom: "0 !important",
-    }
-};
+import {ItemsNotFound} from "../utils/items-not-found";
 
 const JobView = (props) => {
     const navigate = useNavigate();
@@ -155,13 +132,14 @@ const JobView = (props) => {
     };
 
     return (
-        <main style={classes.content}>
+        <main style={{width: "100%"}}>
             {isLoading
                 ? <LoadingIndicator/>
                 : <>{job === null
                     ?
-                    <Paper><Typography id="no-jobs-found-message" variant="body1" style={classes.noItemsFound}>Job
-                        not found</Typography></Paper>
+                    <Paper><ItemsNotFound id="no-jobs-found-message">
+                        Job not found
+                    </ItemsNotFound></Paper>
                     : <>
                         <Breadcrumbs id="breadcrumb" separator={<NavigateNextIcon fontSize="small"/>}
                                      aria-label="breadcrumb">
@@ -170,17 +148,16 @@ const JobView = (props) => {
                                   to={`/dashboard/jobs?state=${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
                             <Typography color="textPrimary">{job.id}</Typography>
                         </Breadcrumbs>
-                        <Box my={3} style={classes.box}>
-                            <Card style={classes.root}>
-                                <CardContent style={classes.cardContent}>
+                        <Box my={3} style={{marginBottom: 0}}>
+                            <Card style={{display: "flex"}}>
+                                <CardContent style={{width: "100%"}}>
                                     <Grid container spacing={3} justifyContent="space-between">
-                                        <Grid item xs={6} style={classes.jobDetails}>
-                                            <Typography id="job-id-title" style={classes.title}
-                                                        color="textSecondary">
+                                        <Grid item xs={6}>
+                                            <Typography id="job-id-title" color="textSecondary">
                                                 Job Id: {job.id}
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={6} container style={classes.jobDetails} justifyContent="flex-end">
+                                        <Grid item xs={6} container justifyContent="flex-end">
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                     <Button variant="outlined" color="primary" onClick={requeueJob}>
@@ -194,7 +171,7 @@ const JobView = (props) => {
                                                 }
                                             </ButtonGroup>
                                         </Grid>
-                                        <Grid item xs={12} style={{...classes.jobDetails, paddingTop: 0}}>
+                                        <Grid item xs={12} style={{paddingTop: 0}}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
                                                 {job.jobName} {job.labels?.map((label) => <JobLabel text={label}/>)}
                                             </Typography>
@@ -214,20 +191,15 @@ const JobView = (props) => {
                             <Grid item xs={12}>
                                 <Typography variant="h5" component="h2">
                                     History&nbsp;
-                                    {order
-                                        ? <IconButton
-                                        id="jobhistory-sort-desc-btn"
+                                    <IconButton
+                                        id={`jobhistory-sort-${order ? "desc" : "asc"}-btn`}
                                         color="inherit"
                                         onClick={changeSortOrder}
-                                        style={classes.sortButton}
-                                        size="large"><SortDescending/></IconButton>
-                                        : <IconButton
-                                        id="jobhistory-sort-asc-btn"
-                                        color="inherit"
-                                        onClick={changeSortOrder}
-                                        style={classes.sortButton}
-                                        size="large"><SortAscending/></IconButton>
-                                    }
+                                        style={{scrollMarginTop: '70px'}}
+                                        size="large"
+                                    >
+                                        {order ? <SortDescending/> : <SortAscending/>}
+                                    </IconButton>
                                 </Typography>
                             </Grid>
 
@@ -256,9 +228,9 @@ const JobView = (props) => {
                         </Grid>
                         {apiStatus &&
                             <Snackbar open={true}
-                                autoHideDuration={3000}
-                                onClose={handleCloseAlert}
-                                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                                      autoHideDuration={3000}
+                                      onClose={handleCloseAlert}
+                                      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                             >
                                 <Alert severity={apiStatus.severity}>
                                     {apiStatus.message}

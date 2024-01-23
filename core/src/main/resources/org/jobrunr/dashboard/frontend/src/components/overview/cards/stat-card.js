@@ -2,17 +2,9 @@ import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 
-const classes = {
-    card: {
-        minWidth: '230px',
-        minHeight: '105px',
-        marginRight: '20px'
-    },
-};
-
 const StatCard = ({title, children}) => {
     return (
-        <Card style={classes.card}>
+        <Card style={{minWidth: '230px', minHeight: '105px', marginRight: '20px'}}>
             <CardContent>
                 <Typography color="textSecondary" gutterBottom>
                     {title}

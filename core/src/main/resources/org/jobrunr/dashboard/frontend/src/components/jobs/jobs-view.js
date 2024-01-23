@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from "react-router-dom";
+import {useEffect, useState} from 'react';
+import {useLocation} from "react-router-dom";
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
@@ -7,19 +7,8 @@ import LoadingIndicator from "../LoadingIndicator";
 import JobsTable from "../utils/jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import VersionFooter from "../utils/version-footer";
+import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
 
-const classes = {
-    jobRunrProNotice: {
-        margin: "-2rem 0 0.5rem 0",
-        textAlign: "right"
-    },
-    content: {
-        width: '100%',
-    },
-    inline: {
-        display: 'inline',
-    },
-};
 
 const JobsView = () => {
     const location = useLocation();
@@ -56,7 +45,7 @@ const JobsView = () => {
     }, [page, jobState, sort, location.key]);
 
     return (
-        <main style={classes.content}>
+        <main style={{width: '100%'}}>
             <Box my={3}>
                 <Typography id="title" variant="h4">{jobStateToHumanReadableName(jobState)}</Typography>
             </Box>
@@ -65,17 +54,25 @@ const JobsView = () => {
                 :
                 <>
                     {jobState === 'ENQUEUED' &&
-                        <div style={classes.jobRunrProNotice}>Do you want instant job processing? That comes out of the box with <a
-                            href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
-                            title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
+                        <JobRunrProNotice>Do you want instant job processing? That comes out of the
+                            box with <a
+                                href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
+                                title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.
+                        </JobRunrProNotice>
                     }
                     {jobState === 'FAILED' &&
-                        <div style={classes.jobRunrProNotice}>Need to requeue a lot of failed jobs? That's easy-peasy with <a
-                            href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank" rel="noreferrer"
-                            title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.</div>
+                        <JobRunrProNotice>Need to requeue a lot of failed jobs? That's easy-peasy
+                            with <a
+                                href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/"
+                                target="_blank" rel="noreferrer"
+                                title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a>.
+                        </JobRunrProNotice>
                     }
                     {jobState !== 'ENQUEUED' && jobState !== 'FAILED' &&
-                        <div style={classes.jobRunrProNotice}>Are you trying to find a certain job here? With <a href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> you would have already found it.</div>
+                        <JobRunrProNotice>Are you trying to find a certain job here? With <a
+                            href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank"
+                            rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr
+                            Pro</a> you would have already found it.</JobRunrProNotice>
                     }
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>

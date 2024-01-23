@@ -21,19 +21,8 @@ import VersionFooter from "../utils/version-footer";
 import {useLocation, useNavigate} from "react-router-dom";
 import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
-
-const classes = {
-    jobRunrProNotice: {
-        margin: "-2rem 0 0.5rem 0",
-        textAlign: "right"
-    },
-    recurringJobActions: {
-        margin: '1rem',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-};
+import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
+import {ItemsNotFound} from "../utils/items-not-found";
 
 const RecurringJobs = () => {
     const navigate = useNavigate();
@@ -145,19 +134,20 @@ const RecurringJobs = () => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <div style={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a
+                    <JobRunrProNotice>Do you want to pause a recurring job? With <a
                         href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
                         title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just
                         a click away.
-                    </div>
+                    </JobRunrProNotice>
                     <Paper>
                         {recurringJobs.length < 1
-                            ? <Typography variant="body1" style={classes.noItemsFound}>No recurring jobs
-                                found</Typography>
+                            ? <ItemsNotFound>No recurring jobs found</ItemsNotFound>
                             : <>
                                 <Grid item xs={3} container>
-                                    <ButtonGroup style={classes.recurringJobActions}
-                                                 disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}>
+                                    <ButtonGroup
+                                        style={{margin: '1rem'}}
+                                        disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}
+                                    >
                                         <Button variant="outlined" color="primary"
                                                 onClick={triggerSelectedRecurringJobs}>
                                             Trigger
@@ -191,7 +181,7 @@ const RecurringJobs = () => {
                                                         <Checkbox checked={recurringJob.selected}
                                                                   onClick={(event) => selectRecurringJob(event, recurringJob)}/>
                                                     </TableCell>
-                                                    <TableCell component="th" scope="row" className={classes.idColumn}>
+                                                    <TableCell component="th" scope="row">
                                                         {recurringJob.id}
                                                     </TableCell>
                                                     <TableCell>
