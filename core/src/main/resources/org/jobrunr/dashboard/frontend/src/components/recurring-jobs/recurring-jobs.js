@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
 import Checkbox from '@mui/material/Checkbox';
@@ -14,11 +14,11 @@ import Grid from '@mui/material/Grid';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
-import { Snackbar } from "@mui/material";
+import {Snackbar} from "@mui/material";
 import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
-import { useLocation, useNavigate } from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 
@@ -145,8 +145,12 @@ const RecurringJobs = () => {
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
-                    <div style={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just a click away.</div>
-                    <Paper className={classes.paper}>
+                    <div style={classes.jobRunrProNotice}>Do you want to pause a recurring job? With <a
+                        href="https://www.jobrunr.io/en/documentation/pro/" target="_blank" rel="noreferrer"
+                        title="Support the development of JobRunr by getting a Pro license!">JobRunr Pro</a> that's just
+                        a click away.
+                    </div>
+                    <Paper>
                         {recurringJobs.length < 1
                             ? <Typography variant="body1" style={classes.noItemsFound}>No recurring jobs
                                 found</Typography>
@@ -165,7 +169,7 @@ const RecurringJobs = () => {
                                     </ButtonGroup>
                                 </Grid>
                                 <TableContainer>
-                                    <Table className={classes.table} aria-label="recurring jobs overview">
+                                    <Table aria-label="recurring jobs overview">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell padding="checkbox">
@@ -173,7 +177,7 @@ const RecurringJobs = () => {
                                                         checked={recurringJobs.every(recurringJob => recurringJob.selected)}
                                                         onClick={selectAll}/>
                                                 </TableCell>
-                                                <TableCell className={classes.idColumn}>Id</TableCell>
+                                                <TableCell>Id</TableCell>
                                                 <TableCell>Job name</TableCell>
                                                 <TableCell>Cron</TableCell>
                                                 <TableCell>Time zone</TableCell>
@@ -227,15 +231,15 @@ const RecurringJobs = () => {
                 </>
             }
             {apiStatus &&
-            <Snackbar open={true}
-                autoHideDuration={3000}
-                onClose={handleCloseAlert}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-                <Alert severity={apiStatus.severity}>
-                    {apiStatus.message}
-                </Alert>
-            </Snackbar>
+                <Snackbar open={true}
+                          autoHideDuration={3000}
+                          onClose={handleCloseAlert}
+                          anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                >
+                    <Alert severity={apiStatus.severity}>
+                        {apiStatus.message}
+                    </Alert>
+                </Snackbar>
             }
         </div>
     )

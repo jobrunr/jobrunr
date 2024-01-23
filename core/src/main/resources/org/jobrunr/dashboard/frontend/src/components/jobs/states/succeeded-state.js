@@ -1,31 +1,5 @@
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import Alert from '@mui/material/Alert';
-import Typography from "@mui/material/Typography";
-import {Check} from "mdi-material-ui";
 import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
-import SwitchableTimeAgo from "../../utils/time-ago";
-
-const classes = {
-    primaryHeading: {
-        textTransform: "none",
-        lineHeight: "inherit"
-    },
-    secondaryHeading: {
-        alignSelf: 'center',
-        marginLeft: 'auto'
-    },
-    alert: {
-        padding: 0
-    },
-    success: {
-        color: "rgb(30, 70, 32)",
-        backgroundColor: "rgb(237, 247, 237)",
-        minHeight: 56
-    }
-};
+import {JobState} from "./job-state";
 
 const getDuration = (duration) => {
     try {
@@ -57,34 +31,18 @@ const getDuration = (duration) => {
     }
 }
 
-const Succeeded = (props) => {
-    const jobState = props.jobState;
-    const checkIcon = <Check/>
-
+const Succeeded = ({jobState}) => {
     return (
-        <Accordion>
-            <AccordionSummary
-                style={classes.success}
-                id="succeeded-panel-header"
-                expandIcon={<ExpandMore/>}
-                aria-controls="succeeded-panel-content"
-            >
-                <Alert style={classes.alert} severity="success" icon={checkIcon}>
-                    <Typography style={classes.primaryHeading} variant="h6">
-                        Job processing succeeded
-                    </Typography>
-                </Alert>
-                <Typography style={classes.secondaryHeading}>
-                    <SwitchableTimeAgo date={new Date(jobState.createdAt)}/>
-                </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <ul>
-                    <li>Latency duration: {getDuration(jobState.latencyDuration)}</li>
-                    <li>Process duration: {getDuration(jobState.processDuration)}</li>
-                </ul>
-            </AccordionDetails>
-        </Accordion>
+        <JobState
+            state="success"
+            title="Job processing succeeded"
+            date={jobState.createdAt}
+        >
+            <ul style={{margin: 0, padding: 0, listStylePosition: "inside"}}>
+                <li>Latency duration: {getDuration(jobState.latencyDuration)}</li>
+                <li>Process duration: {getDuration(jobState.processDuration)}</li>
+            </ul>
+        </JobState>
     )
 };
 
