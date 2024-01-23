@@ -26,6 +26,9 @@ const COLOR_VARIANTS = {
     scheduled: {
         color: "rgb(13, 60, 97)",
         backgroundColor: "#CFD8DC",
+        '& div.MuiAlert-icon': {
+            color: "rgb(13, 60, 97)"
+        }
     },
     processing: {
         color: "rgb(102, 60, 0)",
