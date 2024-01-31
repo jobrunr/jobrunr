@@ -1,12 +1,12 @@
-package org.jobrunr.utils.metadata;
+package org.jobrunr.utils;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.util.jar.Manifest;
 
-public class VersionRetriever {
+public class JarUtils {
 
-    private VersionRetriever() {
+    private JarUtils() {
 
     }
 
@@ -15,7 +15,12 @@ public class VersionRetriever {
         if(version != null) {
             return version;
         }
-        return getManifest(clazz).getMainAttributes().getValue("Bundle-Version");
+
+        return getManifestAttributeValue(clazz, "Bundle-Version");
+    }
+
+    public static String getManifestAttributeValue(Class<?> clazz, String attributeName) {
+        return getManifest(clazz).getMainAttributes().getValue(attributeName);
     }
 
     private static Manifest getManifest(Class<?> clazz) {

@@ -145,6 +145,8 @@ processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
 jar {
+    var asmJar = configurations.compileClasspath.fileCollection {it.group == 'org.ow2.asm' && it.name == 'asm'}.singleFile.name
+    var asmVersion = asmJar.substring(asmJar.lastIndexOf("-") + 1).replace(".jar", "")
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.core'
@@ -156,6 +158,7 @@ jar {
         attributes 'Created-By': "Gradle ${gradle.gradleVersion}"
         attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
         attributes 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+        attributes 'Minimum-ASM-Version': "${asmVersion}"
     }
 }
 
