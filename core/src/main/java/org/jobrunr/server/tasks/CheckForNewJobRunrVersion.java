@@ -5,7 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.NewJobRunrVersionNotification;
 import org.jobrunr.utils.annotations.VisibleFor;
-import org.jobrunr.utils.metadata.VersionRetriever;
+import org.jobrunr.utils.JarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +106,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
 
     @VisibleFor("testing")
     static String getActualVersion() {
-        return VersionRetriever.getVersion(JobRunr.class);
+        return JarUtils.getVersion(JobRunr.class);
     }
 
     static void resetCheckForNewVersion() {

@@ -9,7 +9,7 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.metadata.VersionRetriever;
+import org.jobrunr.utils.JarUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.io.File;
@@ -94,7 +94,7 @@ public class GsonJsonMapper implements JsonMapper {
             ReflectionUtils.makeAccessible(factories);
             final List o = new ArrayList<TypeAdapterFactory>((Collection<? extends TypeAdapterFactory>) factories.get(gson));
             if (!o.get(1).getClass().getName().contains("ObjectTypeAdapter"))
-                throw JobRunrException.shouldNotHappenException(String.format("It looks like you are running a Gson version (%s) which is not compatible with JobRunr", VersionRetriever.getVersion(Gson.class)));
+                throw JobRunrException.shouldNotHappenException(String.format("It looks like you are running a Gson version (%s) which is not compatible with JobRunr", JarUtils.getVersion(Gson.class)));
             o.set(1, ClassNameObjectTypeAdapter.FACTORY);
             factories.set(gson, unmodifiableList(o));
         } catch (ReflectiveOperationException e) {

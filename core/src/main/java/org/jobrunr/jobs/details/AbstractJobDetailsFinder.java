@@ -1,7 +1,9 @@
 package org.jobrunr.jobs.details;
 
+import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.details.instructions.*;
+import org.jobrunr.utils.JarUtils;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
@@ -83,8 +85,17 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
     }
 
     protected void parse(InputStream inputStream) throws IOException {
-        ClassReader parser = new ClassReader(inputStream);
-        parser.accept(this, ClassReader.SKIP_FRAMES);
+        try {
+            ClassReader parser = new ClassReader(inputStream);
+            parser.accept(this, ClassReader.SKIP_FRAMES);
+        } catch (IllegalArgumentException e) {
+            if(e.getMessage().startsWith("Unsupported class file")) {
+                String requiredAsmVersion = JarUtils.getManifestAttributeValue(JobRunr.class, "Minimum-ASM-Version");
+                String actualAsmVersion = JarUtils.getVersion(Opcodes.class);
+                throw new IllegalArgumentException("JobRunr needs (and automatically adds) ASM " + requiredAsmVersion + " as a transitive dependency but you have ASM " + actualAsmVersion + " on the classpath.", e);
+            }
+            throw e;
+        }
     }
 
 }

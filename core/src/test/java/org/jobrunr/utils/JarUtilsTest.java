@@ -1,17 +1,18 @@
-package org.jobrunr.utils.metadata;
+package org.jobrunr.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.assertj.core.api.Assertions;
 import org.jobrunr.configuration.JobRunr;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class VersionRetrieverTest {
+class JarUtilsTest {
 
     @Test
     void jobRunrVersion() {
-        assertThat(VersionRetriever.getVersion(JobRunr.class))
+        Assertions.assertThat(JarUtils.getVersion(JobRunr.class))
                 .satisfiesAnyOf(
                         val -> assertThat(val).isEqualTo("1.0.0-SNAPSHOT"),
                         val -> assertThat(val).matches("(\\d)+.(\\d)+.(\\d)+(-.*)?")
@@ -20,12 +21,17 @@ class VersionRetrieverTest {
 
     @Test
     void gsonVersion() {
-        assertThat(VersionRetriever.getVersion(Gson.class)).isEqualTo("2.10.1");
+        assertThat(JarUtils.getVersion(Gson.class)).isEqualTo("2.10.1");
     }
 
     @Test
     void jacksonVersion() {
-        assertThat(VersionRetriever.getVersion(ObjectMapper.class)).isEqualTo("2.16.0");
+        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.16.0");
+    }
+
+    @Test
+    void testGetManifestAttributeValue() {
+        assertThat(JarUtils.getManifestAttributeValue(Gson.class, "Bundle-Developers")).contains("google.com");
     }
 
 }

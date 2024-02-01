@@ -1,7 +1,7 @@
 package org.jobrunr.dashboard.ui.model;
 
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.utils.metadata.VersionRetriever;
+import org.jobrunr.utils.JarUtils;
 
 public class VersionUIModel {
 
@@ -11,13 +11,13 @@ public class VersionUIModel {
     private String storageProviderType;
 
     private VersionUIModel() {
-        this.version = VersionRetriever.getVersion(JobRunr.class);
+        this.version = JarUtils.getVersion(JobRunr.class);
         this.allowAnonymousDataUsage = false;
     }
 
     private VersionUIModel(String clusterId, String storageProviderType) {
         this.storageProviderType = storageProviderType;
-        this.version = VersionRetriever.getVersion(JobRunr.class);
+        this.version = JarUtils.getVersion(JobRunr.class);
         this.allowAnonymousDataUsage = true;
         this.clusterId = clusterId;
     }

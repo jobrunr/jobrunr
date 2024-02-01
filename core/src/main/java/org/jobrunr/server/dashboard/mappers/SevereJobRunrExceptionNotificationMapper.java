@@ -8,7 +8,7 @@ import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.RuntimeUtils;
-import org.jobrunr.utils.metadata.VersionRetriever;
+import org.jobrunr.utils.JarUtils;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -40,7 +40,7 @@ public class SevereJobRunrExceptionNotificationMapper implements DashboardNotifi
                 .withSubTitle("Runtime information")
                 .withBulletedLine("Timestamp", Instant.now().toString())
                 .withBulletedLine("Location", id)
-                .withBulletedLine("JobRunr Version", VersionRetriever.getVersion(JobRunr.class))
+                .withBulletedLine("JobRunr Version", JarUtils.getVersion(JobRunr.class))
                 .withBulletedLine("StorageProvider", storageProvider instanceof ThreadSafeStorageProvider ? ((ThreadSafeStorageProvider) storageProvider).getStorageProvider().getClass().getName() : storageProvider.getClass().getName())
                 .withBulletedLine("Java Version", System.getProperty("java.version"))
                 .withBulletedLine("Is running from nested jar", Boolean.toString(RuntimeUtils.isRunningFromNestedJar()))
