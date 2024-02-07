@@ -640,14 +640,14 @@ public class BackgroundJob {
      * Deletes the recurring job based on the given id.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.delete("my-recurring-job"));
+     *      BackgroundJob.deleteRecurringJob("my-recurring-job"));
      * }</pre>
      *
      * @param id the id of the recurring job to delete
      */
-    public static void delete(String id) {
+    public static void deleteRecurringJob(String id) {
         verifyJobScheduler();
-        jobScheduler.delete(id);
+        jobScheduler.deleteRecurringJob(id);
     }
 
     private static void verifyJobScheduler() {

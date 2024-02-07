@@ -432,7 +432,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testDeleteOfRecurringJob() {
         String jobId = BackgroundJob.scheduleRecurrently(Cron.minutely(), () -> testService.doWork(5));
-        BackgroundJob.delete(jobId);
+        BackgroundJob.deleteRecurringJob(jobId);
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
     }
 

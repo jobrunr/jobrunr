@@ -74,7 +74,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).delete("my-recurring-job");
+        verify(jobScheduler).deleteRecurringJob("my-recurring-job");
     }
 
     @Test
@@ -111,7 +111,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).delete("my-recurring-job");
+        verify(jobScheduler).deleteRecurringJob("my-recurring-job");
     }
 
     @Test

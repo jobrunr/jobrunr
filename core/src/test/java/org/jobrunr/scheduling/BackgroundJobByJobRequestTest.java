@@ -285,7 +285,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void testDeleteOfRecurringJob() {
         BackgroundJobRequest.scheduleRecurrently("theId", Cron.minutely(), systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
-        BackgroundJob.delete("theId");
+        BackgroundJob.deleteRecurringJob("theId");
         assertThat(storageProvider.getRecurringJobs()).isEmpty();
     }
 
