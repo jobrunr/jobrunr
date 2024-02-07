@@ -41,7 +41,7 @@ public class JobRunrRecurringJobRecorder {
             if (isNullOrEmpty(jobId)) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
-                scheduler.delete(jobId);
+                scheduler.deleteRecurringJob(jobId);
             }
         } else {
             JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);

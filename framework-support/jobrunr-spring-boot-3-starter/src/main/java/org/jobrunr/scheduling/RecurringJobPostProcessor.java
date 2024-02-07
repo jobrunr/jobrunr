@@ -88,7 +88,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
                 if (id == null) {
                     LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
-                    beanFactory.getBean(JobScheduler.class).delete(id);
+                    beanFactory.getBean(JobScheduler.class).deleteRecurringJob(id);
                 }
             } else {
                 JobDetails jobDetails = getJobDetails(method);

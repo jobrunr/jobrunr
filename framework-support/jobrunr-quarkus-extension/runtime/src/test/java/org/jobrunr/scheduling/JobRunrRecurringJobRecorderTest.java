@@ -119,7 +119,7 @@ class JobRunrRecurringJobRecorderTest {
 
         jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).delete(id);
+        verify(jobScheduler).deleteRecurringJob(id);
     }
 
     @Test
@@ -132,7 +132,7 @@ class JobRunrRecurringJobRecorderTest {
 
         jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).delete(id);
+        verify(jobScheduler).deleteRecurringJob(id);
     }
 
     @Test

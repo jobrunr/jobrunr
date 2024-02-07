@@ -117,7 +117,7 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringCronJobDisabled(), "not important");
 
         // THEN
-        verify(jobScheduler).delete("my-recurring-job");
+        verify(jobScheduler).deleteRecurringJob("my-recurring-job");
     }
 
     @Test
@@ -129,7 +129,7 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringIntervalDisabled(), "not important");
 
         // THEN
-        verify(jobScheduler).delete("my-recurring-job");
+        verify(jobScheduler).deleteRecurringJob("my-recurring-job");
     }
 
     @Test
@@ -180,7 +180,7 @@ class RecurringJobPostProcessorTest {
                     context.getBean(RecurringJobPostProcessor.class)
                             .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
 
-                    verify(jobScheduler).delete("my-recurring-job-to-be-deleted");
+                    verify(jobScheduler).deleteRecurringJob("my-recurring-job-to-be-deleted");
                 });
     }
 

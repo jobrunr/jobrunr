@@ -87,12 +87,12 @@ public abstract class AbstractJobScheduler {
      * Deletes the recurring job based on the given id.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      jobScheduler.delete("my-recurring-job"));
+     *      jobScheduler.deleteRecurringJob("my-recurring-job"));
      * }</pre>
      *
      * @param id the id of the recurring job to delete
      */
-    public void delete(String id) {
+    public void deleteRecurringJob(String id) {
         this.storageProvider.deleteRecurringJob(id);
     }
 
