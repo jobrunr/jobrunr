@@ -35,26 +35,29 @@ class JobFilterUtilsTest {
     }
 
     @Test
-    void ifExecuteJobServerFilterIsTrueOnStateAppliedFilterIsInvoked() {
+    void jobFiltersAreExecutedIfJobHasStateChange() {
         // GIVEN
         Job aJob = anEnqueuedJob().build();
+        aJob.getStateChangesForJobFilters(); // clear
 
         // WHEN
         aJob.startProcessingOn(backgroundJobServer);
-        jobFilterUtils.runOnStateAppliedFilters(List.of(aJob), true);
+        jobFilterUtils.runOnStateAppliedFilters(List.of(aJob));
 
         // THEN
         assertThat(logAllStateChangesFilter.getStateChanges(aJob)).containsExactly("ENQUEUED->PROCESSING");
     }
 
     @Test
-    void ifExecuteJobServerFilterIsFalseOnStateAppliedFilterIsNotInvoked() {
+    void jobFiltersAreNotAppliedIfJobHasNoStateChange() {
         // GIVEN
         Job aJob = anEnqueuedJob().build();
+        aJob.startProcessingOn(backgroundJobServer);
+        aJob.getStateChangesForJobFilters();  // clear
 
         // WHEN
-        aJob.startProcessingOn(backgroundJobServer);
-        jobFilterUtils.runOnStateAppliedFilters(List.of(aJob), false);
+        aJob.updateProcessing();
+        jobFilterUtils.runOnStateAppliedFilters(List.of(aJob));
 
         // THEN
         assertThat(logAllStateChangesFilter.getStateChanges(aJob)).isEmpty();

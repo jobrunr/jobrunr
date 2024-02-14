@@ -26,7 +26,9 @@ public class DeleteSucceededJobsTask extends ZooKeeperTask {
         LOGGER.trace("Looking for succeeded jobs that can go to the deleted state... ");
         final Instant updatedBefore = now().minus(backgroundJobServerConfiguration().getDeleteSucceededJobsAfter());
         Supplier<List<Job>> succeededJobsSupplier = () -> storageProvider.getJobList(SUCCEEDED, updatedBefore, ascOnUpdatedAt(pageRequestSize));
-        processJobList(succeededJobsSupplier, job -> job.delete("JobRunr maintenance - deleting succeeded job"), this::handleTotalAmountOfSucceededJobs);
+        processJobList(succeededJobsSupplier,
+                job -> job.delete("JobRunr maintenance - deleting succeeded job"),
+                this::handleTotalAmountOfSucceededJobs);
     }
 
     private void handleTotalAmountOfSucceededJobs(int totalAmountOfSucceededJobs) {

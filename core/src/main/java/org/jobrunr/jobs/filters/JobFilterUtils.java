@@ -37,16 +37,12 @@ public class JobFilterUtils {
         new JobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
     }
 
-    public void runOnStateElectionFilter(List<Job> jobs, boolean executeJobServerFilters) {
-        if (executeJobServerFilters) {
-            jobs.forEach(this::runOnStateElectionFilter);
-        }
+    public void runOnStateElectionFilter(List<Job> jobs) {
+        jobs.forEach(this::runOnStateElectionFilter);
     }
 
-    public void runOnStateAppliedFilters(List<Job> jobs, boolean executeJobServerFilters) {
-        if (executeJobServerFilters) {
-            jobs.forEach(this::runOnStateAppliedFilters);
-        }
+    public void runOnStateAppliedFilters(List<Job> jobs) {
+        jobs.forEach(this::runOnStateAppliedFilters);
     }
 
     public void runOnJobProcessingFailedFilters(Job job, Exception e) {

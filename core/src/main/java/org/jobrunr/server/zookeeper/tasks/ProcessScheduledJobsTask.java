@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -22,7 +23,10 @@ public class ProcessScheduledJobsTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for scheduled jobs... ");
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(now().plus(backgroundJobServerConfiguration().getPollInterval()), ascOnUpdatedAt(pageRequestSize));
-        processJobList(scheduledJobsSupplier, Job::enqueue, totalAmountOfEnqueuedJobs -> LOGGER.debug("Found {} scheduled jobs to enqueue.", totalAmountOfEnqueuedJobs));
+        Instant scheduledBefore = now().plus(backgroundJobServerConfiguration().getPollInterval());
+        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(scheduledBefore, ascOnUpdatedAt(pageRequestSize));
+        processJobList(scheduledJobsSupplier,
+                Job::enqueue,
+                totalAmountOfEnqueuedJobs -> LOGGER.debug("Found {} scheduled jobs to enqueue.", totalAmountOfEnqueuedJobs));
     }
 }

@@ -162,15 +162,15 @@ public interface StorageProvider extends AutoCloseable {
         List<Job> jobs = getJobList(ENQUEUED, amountRequest);
         try {
             jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
-            jobFilterUtils.runOnStateElectionFilter(jobs, true);
+            jobFilterUtils.runOnStateElectionFilter(jobs);
             List<Job> jobsToProcess = save(jobs);
-            jobFilterUtils.runOnStateAppliedFilters(jobsToProcess, true);
+            jobFilterUtils.runOnStateAppliedFilters(jobsToProcess);
             return jobsToProcess.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
         } catch (ConcurrentJobModificationException e) {
             List<Job> actualSavedJobs = new ArrayList<>(jobs);
             Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
             actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
-            jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs, true);
+            jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs);
             return actualSavedJobs.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
         }
     }

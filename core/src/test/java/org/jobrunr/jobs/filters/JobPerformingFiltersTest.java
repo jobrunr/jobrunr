@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.filters;
 
+import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.server.BackgroundJobServer;
@@ -12,11 +13,14 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.Map;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
@@ -48,30 +52,48 @@ class JobPerformingFiltersTest {
 
     @Test
     void ifNoElectStateFilterIsProvidedTheDefaultRetryFilterIsUsed() {
-        Job aJobWithoutJobFilters = aFailedJob().build();
+        // GIVEN
+        Job aJobWithoutJobFilters = aFailedJob()
+                .withInitialStateChanges()
+                .build();
+
+        // WHEN
         jobPerformingFilters(aJobWithoutJobFilters).runOnStateElectionFilter();
-        assertThat(aJobWithoutJobFilters.getJobStates())
-                .extracting("state")
-                .containsExactly(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
+
+        // THEN
+        assertThat(aJobWithoutJobFilters)
+                .hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
     }
 
     @Test
     void ifElectStateFilterIsProvidedItIsUsed() {
-        Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
+        // GIVEN
+        Job aJobWithACustomElectStateJobFilter = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWorkWithCustomJobFilters())
+                .withInitialStateChanges()
+                .build();
+        // WHEN
         jobPerformingFilters(aJobWithACustomElectStateJobFilter).runOnStateElectionFilter();
-        assertThat(aJobWithACustomElectStateJobFilter.getJobStates())
-                .extracting("state")
-                .containsExactly(ENQUEUED, SUCCEEDED);
+
+        // THEN
+        assertThat(aJobWithACustomElectStateJobFilter)
+                .hasStates(ENQUEUED, SUCCEEDED);
     }
 
     @Test
     void ifADefaultElectStateFilterIsProvidedItIsUsed() {
+        // GIVEN
         JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(new TestService.FailedToDeleteElectStateFilter());
-        Job aJobWithoutJobFilters = aFailedJob().build();
+        Job aJobWithoutJobFilters = aFailedJob()
+                .withInitialStateChanges()
+                .build();
+
+        // WHEN
         jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnStateElectionFilter();
-        assertThat(aJobWithoutJobFilters.getJobStates())
-                .extracting("state")
-                .containsExactly(ENQUEUED, PROCESSING, FAILED, DELETED);
+
+        // THEN
+        assertThat(aJobWithoutJobFilters)
+                .hasStates(ENQUEUED, PROCESSING, FAILED, DELETED);
     }
 
     @Test
@@ -87,6 +109,25 @@ class JobPerformingFiltersTest {
         assertThat(metadata)
                 .containsKey("onStateApplied")
                 .containsKey("onProcessing");
+    }
+
+    @Test
+    void onStateAppliedFilterIsDoneForAllStateChanges() {
+        Job job = anEnqueuedJob().build();
+
+        job.startProcessingOn(backgroundJobServer);
+        job.failed("an exception", new RuntimeException("Boem!"));
+        job.scheduleAt(now().plusSeconds(10), "Rescheduled due to failure");
+
+        LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
+        JobDefaultFilters jobDefaultFilters = new JobDefaultFilters(logAllStateChangesFilter);
+        jobPerformingFilters(job, jobDefaultFilters).runOnStateAppliedFilters();
+
+        assertThat(logAllStateChangesFilter.getAllStateChanges())
+                .containsExactly(
+                        "ENQUEUED->PROCESSING",
+                        "PROCESSING->FAILED",
+                        "FAILED->SCHEDULED");
     }
 
     @Test
@@ -106,9 +147,8 @@ class JobPerformingFiltersTest {
 
         Job aJobWithoutJobFilters = aFailedJob().build();
         jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnStateAppliedFilters();
-        assertThat(aJobWithoutJobFilters.getJobStates())
-                .extracting("state")
-                .containsExactly(ENQUEUED, PROCESSING, FAILED);
+        assertThat(aJobWithoutJobFilters)
+                .hasStates(ENQUEUED, PROCESSING, FAILED);
     }
 
     @Test
