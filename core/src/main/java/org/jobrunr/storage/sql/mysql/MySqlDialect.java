@@ -1,7 +1,8 @@
 package org.jobrunr.storage.sql.mysql;
 
 import org.jobrunr.storage.sql.common.db.AnsiDialect;
-import org.jobrunr.utils.VersionNumber;
+
+import static org.jobrunr.utils.VersionNumber.v;
 
 public class MySqlDialect extends AnsiDialect {
 
@@ -17,6 +18,6 @@ public class MySqlDialect extends AnsiDialect {
     }
 
     private boolean isMySQL(String expectedVersion, String databaseName, String databaseVersion) {
-        return databaseName.equalsIgnoreCase("MySQL") && VersionNumber.isNewerOrEqualTo(databaseVersion, expectedVersion);
+        return databaseName.equalsIgnoreCase("MySQL") && v(databaseVersion).hasMajorMinorAndPatchVersionHigherOrEqualTo(expectedVersion);
     }
 }

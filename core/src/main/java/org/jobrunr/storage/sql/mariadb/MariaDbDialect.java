@@ -1,7 +1,8 @@
 package org.jobrunr.storage.sql.mariadb;
 
 import org.jobrunr.storage.sql.common.db.AnsiDialect;
-import org.jobrunr.utils.VersionNumber;
+
+import static org.jobrunr.utils.VersionNumber.v;
 
 public class MariaDbDialect extends AnsiDialect {
 
@@ -17,6 +18,6 @@ public class MariaDbDialect extends AnsiDialect {
     }
 
     private boolean isMariaDb(String expectedVersion, String databaseName, String databaseVersion) {
-        return databaseName.equalsIgnoreCase("MariaDB") && VersionNumber.isNewerOrEqualTo(databaseVersion, expectedVersion);
+        return databaseName.equalsIgnoreCase("MariaDB") && v(databaseVersion).hasMajorAndMinorVersionHigherOrEqualTo(expectedVersion);
     }
 }

@@ -10,6 +10,7 @@ import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class VersionNumber implements Comparable<VersionNumber> {
 
+    public static final VersionNumber JAVA_VERSION = new VersionNumber(System.getProperty("java.version"));
     private final String completeVersion;
     private final String version;
     private final String majorVersion;
@@ -18,7 +19,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final String updateVersion;
     private final String qualifier;
 
-    public VersionNumber(String completeVersion) {
+    private VersionNumber(String completeVersion) {
         this.completeVersion = completeVersion;
         this.version = substringBefore(completeVersion, "-");
         this.qualifier = substringAfter(completeVersion, "-");
@@ -33,12 +34,55 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return completeVersion;
     }
 
+    public String getMajorVersion() {
+        return majorVersion;
+    }
+
+    public String getMinorVersion() {
+        return minorVersion;
+    }
+
+    public String getPatchVersion() {
+        return patchVersion;
+    }
+
     public boolean isOlderOrEqualTo(VersionNumber versionNumber) {
         return equals(versionNumber) || isOlderThan(versionNumber);
     }
 
     public boolean isNewerOrEqualTo(VersionNumber versionNumber) {
         return equals(versionNumber) || isNewerThan(versionNumber);
+    }
+
+    public boolean hasMajorVersionHigherOrEqualTo(int majorVersion) {
+        return hasMajorVersionHigherOrEqualTo(Integer.toString(majorVersion));
+    }
+
+    public boolean hasMajorVersionHigherOrEqualTo(String majorVersion) {
+        return hasMajorVersionHigherOrEqualTo(new VersionNumber(majorVersion));
+    }
+
+    public boolean hasMajorVersionHigherOrEqualTo(VersionNumber o) {
+        return compareVersionNumber(majorVersion, o.majorVersion) >= 0;
+    }
+
+    public boolean hasMajorAndMinorVersionHigherOrEqualTo(String majorAndMinorVersion) {
+        return hasMajorAndMinorVersionHigherOrEqualTo(new VersionNumber(majorAndMinorVersion));
+    }
+
+    public boolean hasMajorAndMinorVersionHigherOrEqualTo(VersionNumber o) {
+        return compareVersionNumber(majorVersion, o.majorVersion) >= 0
+                && compareVersionNumber(minorVersion, o.minorVersion) >= 0;
+    }
+
+    public boolean hasMajorMinorAndPatchVersionHigherOrEqualTo(String majorMinorAndPatchVersion) {
+        return hasMajorMinorAndPatchVersionHigherOrEqualTo(new VersionNumber(majorMinorAndPatchVersion));
+    }
+
+    public boolean hasMajorMinorAndPatchVersionHigherOrEqualTo(VersionNumber o) {
+        return compareVersionNumber(majorVersion, o.majorVersion) >= 0
+                && compareVersionNumber(minorVersion, o.minorVersion) >= 0
+                && compareVersionNumber(patchVersion, o.patchVersion) >= 0;
     }
 
     @Override
@@ -102,19 +146,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return 0;
     }
 
-    public static VersionNumber of(String version) {
+    public static VersionNumber v(String version) {
         return new VersionNumber(version);
-    }
-
-    public static boolean isOlderThan(String actualVersion, String baseLine) {
-        return of(actualVersion).isOlderThan(of(baseLine));
-    }
-
-    public static boolean isOlderOrEqualTo(String actualVersion, String baseLine) {
-        return of(actualVersion).isOlderOrEqualTo(of(baseLine));
-    }
-
-    public static boolean isNewerOrEqualTo(String actualVersion, String baseLine) {
-        return of(actualVersion).isNewerOrEqualTo(of(baseLine));
     }
 }

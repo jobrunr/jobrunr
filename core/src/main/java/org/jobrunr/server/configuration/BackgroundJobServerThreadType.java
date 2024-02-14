@@ -1,25 +1,39 @@
 package org.jobrunr.server.configuration;
 
 import org.jobrunr.server.threadpool.JobRunrExecutor;
-import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
-import org.jobrunr.server.threadpool.VirtualThreadPoolJobRunrExecutor;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
+import org.jobrunr.server.threadpool.VirtualThreadJobRunrExecutor;
+import org.jobrunr.utils.VersionNumber;
 
 import java.util.function.Function;
 
-import static org.jobrunr.utils.VersionNumber.isNewerOrEqualTo;
+import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
 
+/**
+ * Enum representing the different types of background job server threads.
+ */
 public enum BackgroundJobServerThreadType {
-    PlatformThreads("1.8") {
+    PlatformThreads {
         @Override
         public Function<Integer, JobRunrExecutor> getJobRunrExecutor() {
-            return ScheduledThreadPoolJobRunrExecutor::new;
+            return PlatformThreadPoolJobRunrExecutor::new;
+        }
+
+        @Override
+        boolean isSupported(VersionNumber javaVersion) {
+            return true;
         }
 
     },
-    VirtualThreads("21") {
+    VirtualThreads {
         @Override
         public Function<Integer, JobRunrExecutor> getJobRunrExecutor() {
-            return VirtualThreadPoolJobRunrExecutor::new;
+            return VirtualThreadJobRunrExecutor::new;
+        }
+
+        @Override
+        boolean isSupported(VersionNumber javaVersion) {
+            return javaVersion.hasMajorVersionHigherOrEqualTo(21);
         }
 
         @Override
@@ -28,24 +42,18 @@ public enum BackgroundJobServerThreadType {
         }
     };
 
-    private final String minimumJavaVersion;
-
-    BackgroundJobServerThreadType(String minimumJavaVersion) {
-        this.minimumJavaVersion = minimumJavaVersion;
-    }
-
     abstract Function<Integer, JobRunrExecutor> getJobRunrExecutor();
+
+    abstract boolean isSupported(VersionNumber javaVersion);
 
     public int getDefaultWorkerCount() {
         // see https://jobs.zalando.com/en/tech/blog/how-to-set-an-ideal-thread-pool-size
         return (Runtime.getRuntime().availableProcessors() * 8);
     }
 
-    public String getMinimumJavaVersion() {
-        return minimumJavaVersion;
-    }
-
     public static BackgroundJobServerThreadType getDefaultThreadType() {
-        return isNewerOrEqualTo(System.getProperty("java.version"), "21") ? BackgroundJobServerThreadType.VirtualThreads : BackgroundJobServerThreadType.PlatformThreads;
+        return JAVA_VERSION.hasMajorVersionHigherOrEqualTo(21)
+                ? BackgroundJobServerThreadType.VirtualThreads
+                : BackgroundJobServerThreadType.PlatformThreads;
     }
 }
