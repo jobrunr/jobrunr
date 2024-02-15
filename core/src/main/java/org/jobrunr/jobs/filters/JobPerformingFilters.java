@@ -21,6 +21,7 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     public void runOnStateElectionFilter() {
+        if(!job.hasStateChange()) return;
         electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
     }
 

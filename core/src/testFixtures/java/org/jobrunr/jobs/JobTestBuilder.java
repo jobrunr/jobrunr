@@ -23,11 +23,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
+import static java.util.Optional.ofNullable;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
@@ -56,6 +59,7 @@ public class JobTestBuilder {
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
     private Lock locker;
+    private boolean withoutStateChanges = true;
 
     private JobTestBuilder() {
     }
@@ -219,11 +223,6 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withLock(Lock lock) {
-        this.locker = lock;
-        return this;
-    }
-
     public JobTestBuilder withJobDetails(JobDetails jobDetails) {
         this.jobDetails = jobDetails;
         return this;
@@ -299,11 +298,18 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withLock(Lock lock) {
+        this.locker = lock;
+        return this;
+    }
+
+    public JobTestBuilder withInitialStateChanges() {
+        this.withoutStateChanges = false;
+        return this;
+    }
+
     public Job build() {
-        Job job = new Job(id, jobDetails, states.remove(0));
-        if (version != null) {
-            Whitebox.setInternalState(job, "version", version);
-        }
+        Job job = new Job(id, ofNullable(this.version).orElse(0), jobDetails, states, new ConcurrentHashMap<>(metadata));
         if (locker != null) {
             Whitebox.setInternalState(job, "locker", locker);
         }
@@ -315,10 +321,10 @@ public class JobTestBuilder {
         }
         job.setJobName(name);
         job.setRecurringJobId(recurringJobId);
-        job.getMetadata().putAll(metadata);
 
-        List<JobState> jobHistory = getInternalState(job, "jobHistory");
-        jobHistory.addAll(states);
+        if(withoutStateChanges) {
+            job.getStateChangesForJobFilters(); // reset state changes
+        }
         return job;
     }
 }

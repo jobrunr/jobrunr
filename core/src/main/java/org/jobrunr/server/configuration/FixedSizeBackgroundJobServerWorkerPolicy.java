@@ -4,7 +4,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
-import org.jobrunr.server.threadpool.ScheduledThreadPoolJobRunrExecutor;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 
 public class FixedSizeBackgroundJobServerWorkerPolicy implements BackgroundJobServerWorkerPolicy {
 
@@ -21,6 +21,6 @@ public class FixedSizeBackgroundJobServerWorkerPolicy implements BackgroundJobSe
 
     @Override
     public JobRunrExecutor toJobRunrExecutor() {
-        return new ScheduledThreadPoolJobRunrExecutor(workerCount, "backgroundjob-zookeeper-pool");
+        return new PlatformThreadPoolJobRunrExecutor(workerCount, "backgroundjob-zookeeper-pool");
     }
 }

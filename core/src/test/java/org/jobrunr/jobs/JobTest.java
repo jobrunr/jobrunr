@@ -113,33 +113,86 @@ class JobTest {
     }
 
     @Test
-    void testStateChangesOnlyOneStateChange() {
-        Job job = anEnqueuedJob().build();
+    void testStateChangesOnCreateOfJobIfVersionEqualTo0() {
+        // WHEN
+        Job job = anEnqueuedJob()
+                .withVersion(0)
+                .withInitialStateChanges()
+                .build();
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
         assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+    }
 
+    @Test
+    void testNoStateChangesOnCreateOfJobIfVersionGreaterThan0() {
+        // WHEN
+        Job job = anEnqueuedJob()
+                .withVersion(1)
+                .withInitialStateChanges()
+                .build();
+        // THEN
+        assertThat(job.hasStateChange()).isFalse();
+        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+    }
+
+    @Test
+    void testStateChangesOnlyOneStateChange() {
+        // WHEN
+        Job job = anEnqueuedJob().withInitialStateChanges().build();
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+
+        // WHEN
         job.startProcessingOn(backgroundJobServer);
         job.updateProcessing();
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
         assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
     }
 
     @Test
     void testStateChangesMultipleStateChanges() {
-        Job job = anEnqueuedJob().build();
-        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        // WHEN
+        Job job = anEnqueuedJob().withInitialStateChanges().build();
 
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+
+        // WHEN
         job.delete("Via jobfilter");
         job.scheduleAt(now().plusSeconds(10), "Via jobfilter");
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
         assertThat(job.getStateChangesForJobFilters()).hasSize(2);
+        assertThat(job.hasStateChange()).isFalse();
     }
 
     @Test
     void testStateChangesResetsStateChanges() {
-        Job job = anEnqueuedJob().build();
+        // WHEN
+        Job job = anEnqueuedJob().withInitialStateChanges().build();
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
         assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+
+        // WHEN
         job.startProcessingOn(backgroundJobServer);
 
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
         assertThat(job.getStateChangesForJobFilters()).hasSize(1);
         assertThat(job.getStateChangesForJobFilters()).isEmpty();
+        assertThat(job.hasStateChange()).isFalse();
     }
 
     @Test

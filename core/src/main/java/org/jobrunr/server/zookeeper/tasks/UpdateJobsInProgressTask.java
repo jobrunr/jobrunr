@@ -15,14 +15,15 @@ public class UpdateJobsInProgressTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.debug("Updating currently processed jobs... ");
-        processJobList(new ArrayList<>(jobZooKeeper.getJobsInProgress()), this::updateCurrentlyProcessingJob, false);
+        processToJobList(new ArrayList<>(jobZooKeeper.getJobsInProgress()), this::updateCurrentlyProcessingJob);
     }
 
-    private void updateCurrentlyProcessingJob(Job job) {
+    private Job updateCurrentlyProcessingJob(Job job) {
         try {
-            job.updateProcessing();
+            return job.updateProcessing();
         } catch (ClassCastException e) {
             // why: because of thread context switching there is a tiny chance that the job already succeeded or failed.
+            return null;
         }
     }
 }

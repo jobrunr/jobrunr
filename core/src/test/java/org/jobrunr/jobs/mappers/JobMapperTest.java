@@ -72,7 +72,7 @@ abstract class JobMapperTest {
         final RunnerJobContext jobContext = new RunnerJobContext(job);
         jobContext.logger().info("test 1");
         jobContext.logger().warn("test 2");
-        jobContext.progressBar(10).setValue(4);
+        jobContext.progressBar(10).setProgress(4);
 
         String jobAsString = jobMapper.serializeJob(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/jobs/mappers/job-in-progress-with-logs-and-progressbar.json"));

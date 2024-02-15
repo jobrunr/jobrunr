@@ -4,6 +4,7 @@ import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
+import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
@@ -16,28 +17,27 @@ import java.util.UUID;
 
 public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilter, JobServerFilter {
 
+    private final Map<UUID, List<String>> stateChanges;
     private final Map<String, Boolean> onCreatingIsCalled;
     private final Map<String, Boolean> onCreatedIsCalled;
     private final Map<UUID, Boolean> onProcessingIsCalled;
     private final Map<UUID, Boolean> onProcessingSucceededIsCalled;
     private final Map<UUID, Boolean> onProcessingFailedIsCalled;
     private final Map<UUID, Boolean> onFailedAfterRetriesIsCalled;
-    private final Map<UUID, List<String>> stateChanges;
 
     public LogAllStateChangesFilter() {
+        stateChanges = new HashMap<>();
         onCreatingIsCalled = new HashMap<>();
         onCreatedIsCalled = new HashMap<>();
         onProcessingIsCalled = new HashMap<>();
         onProcessingSucceededIsCalled = new HashMap<>();
         onProcessingFailedIsCalled = new HashMap<>();
         onFailedAfterRetriesIsCalled = new HashMap<>();
-        this.stateChanges = new HashMap<>();
     }
 
     @Override
     public void onStateApplied(Job job, JobState oldState, JobState newState) {
-        this.stateChanges.putIfAbsent(job.getId(), new ArrayList<>());
-        List<String> jobStateChanges = this.stateChanges.get(job.getId());
+        List<String> jobStateChanges = this.stateChanges.computeIfAbsent(job.getId(), x -> new ArrayList<>());
         if (oldState == null) {
             jobStateChanges.add("CREATED->" + newState.getName());
         } else {

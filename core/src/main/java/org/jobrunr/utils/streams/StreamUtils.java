@@ -3,6 +3,7 @@ package org.jobrunr.utils.streams;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,6 +11,13 @@ import java.util.stream.Stream;
 public final class StreamUtils {
 
     private StreamUtils() {
+    }
+
+    public static <T> Function<T, T> consumerToFunction(Consumer<T> consumer) {
+        return t -> {
+            consumer.accept(t);
+            return t;
+        };
     }
 
     /**

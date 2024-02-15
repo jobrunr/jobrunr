@@ -35,7 +35,8 @@
     "jobRunrDashboardProgressBar-2": {
       "@class": "org.jobrunr.jobs.context.JobDashboardProgressBar$JobDashboardProgress",
       "totalAmount": 10,
-      "currentValue": 4,
+      "succeededAmount": 4,
+      "failedAmount": 0,
       "progress": 40
     }
   },

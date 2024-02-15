@@ -12,14 +12,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class VirtualThreadPoolJobRunrExecutorTest {
+class VirtualThreadJobRunrExecutorTest {
 
     @Mock
     ExecutorService executorService;
 
     @Test
     void ifNotStartedJobsAreNotAccepted() {
-        VirtualThreadPoolJobRunrExecutor jobRunrExecutor = new VirtualThreadPoolJobRunrExecutor(8, executorService);
+        VirtualThreadJobRunrExecutor jobRunrExecutor = new VirtualThreadJobRunrExecutor(8, executorService);
 
         jobRunrExecutor.execute(() -> System.out.println("A Runnable"));
 
@@ -28,7 +28,7 @@ class VirtualThreadPoolJobRunrExecutorTest {
 
     @Test
     void ifStoppedJobsAreNotAccepted() {
-        VirtualThreadPoolJobRunrExecutor jobRunrExecutor = new VirtualThreadPoolJobRunrExecutor(8, executorService);
+        VirtualThreadJobRunrExecutor jobRunrExecutor = new VirtualThreadJobRunrExecutor(8, executorService);
         jobRunrExecutor.start();
         jobRunrExecutor.stop();
 
@@ -39,7 +39,7 @@ class VirtualThreadPoolJobRunrExecutorTest {
 
     @Test
     void ifStartedJobsAreAccepted() {
-        VirtualThreadPoolJobRunrExecutor jobRunrExecutor = new VirtualThreadPoolJobRunrExecutor(8, executorService);
+        VirtualThreadJobRunrExecutor jobRunrExecutor = new VirtualThreadJobRunrExecutor(8, executorService);
         jobRunrExecutor.start();
 
         jobRunrExecutor.execute(() -> System.out.println("A Runnable"));

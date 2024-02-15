@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
@@ -55,7 +56,7 @@ class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
 
         // THEN
         assertThat(logger).hasNoWarnLogMessages();
-        verify(storageProvider).save(singletonList(job));
+        verify(storageProvider).save(emptyList());
     }
 
     @Test

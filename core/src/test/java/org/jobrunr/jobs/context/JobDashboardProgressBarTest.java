@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 
@@ -19,23 +20,34 @@ class JobDashboardProgressBarTest {
     }
 
     @Test
-    void canIncreaseByOne() {
-        jobDashboardProgressBar.increaseByOne();
+    void canSetProgress() {
+        jobDashboardProgressBar.setProgress(3);
 
-        assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(10);
-    }
-
-    @Test
-    void canSetValue() {
-        jobDashboardProgressBar.setValue(3);
-
+        assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(3);
         assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(30);
     }
 
     @Test
-    void canNotConstructProgressBarWithSize0() {
+    void canConstructProgressBarWithSize0() {
         final Job job = aJobInProgress().build();
-        assertThatThrownBy(() -> new JobDashboardProgressBar(job, 0L)).isInstanceOf(IllegalArgumentException.class);
+
+        JobDashboardProgressBar jobDashboardProgressBar = new JobDashboardProgressBar(job, 0L);
+        assertThat(jobDashboardProgressBar.getTotalAmount()).isEqualTo(0L);
+        assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(0L);
+        assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(100);
     }
 
+    @Test
+    void canNotConstructProgressBarWithNegativeSize() {
+        final Job job = aJobInProgress().build();
+        assertThatThrownBy(() -> new JobDashboardProgressBar(job, -10L)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void doesNotThrowExceptionIfNoJobProgressBarIsPresent() {
+        final Job job = aJobInProgress().build();
+        assertThatCode(() -> JobDashboardProgressBar.get(job)).doesNotThrowAnyException();
+
+        assertThat(JobDashboardProgressBar.get(job)).isNull();
+    }
 }

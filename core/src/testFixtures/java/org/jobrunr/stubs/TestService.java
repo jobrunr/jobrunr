@@ -199,7 +199,7 @@ public class TestService implements TestServiceInterface {
             jobContext.logger().info("This is an info message again " + i);
             Thread.sleep(100);
             doWorkThatTakesLong(5 + ThreadLocalRandom.current().nextInt(0, 5));
-            progressBar.setValue(i);
+            progressBar.setProgress(i);
         }
     }
 

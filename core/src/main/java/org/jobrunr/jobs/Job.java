@@ -99,6 +99,7 @@ public class Job extends AbstractJob {
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : newUUID();
         this.jobHistory = new CopyOnWriteArrayList<>(jobHistory);
+        this.stateIndexBeforeStateChange = version == 0 ? 0 : null;
         this.metadata = metadata;
     }
 
@@ -148,13 +149,16 @@ public class Job extends AbstractJob {
         return getState().equals(state);
     }
 
+    public boolean hasStateChange() {
+        return stateIndexBeforeStateChange != null && jobHistory.size() > stateIndexBeforeStateChange;
+    }
+
     /**
      * This method is only to be called by JobRunr itself. It may not be called externally as it will break the {@link org.jobrunr.jobs.filters.JobFilter JobFilters}
      *
      * @return all the stateChanges since they were last retrieved.
      */
-    public List<JobState> getStateChangesForJobFilters() {
-        if (jobHistory.size() == 1) return new ArrayList<>(jobHistory);
+    public synchronized List<JobState> getStateChangesForJobFilters() {
         if (stateIndexBeforeStateChange == null) return emptyList();
         List<JobState> stateChanges = new ArrayList<>(jobHistory.subList(stateIndexBeforeStateChange, jobHistory.size()));
         stateIndexBeforeStateChange = null;
@@ -174,12 +178,13 @@ public class Job extends AbstractJob {
         addJobState(new ProcessingState(backgroundJobServer));
     }
 
-    public void updateProcessing() {
+    public Job updateProcessing() {
         ProcessingState jobState = getJobState();
         jobState.setUpdatedAt(Instant.now());
+        return this;
     }
 
-    public void succeeded() {
+    public Job succeeded() {
         Optional<EnqueuedState> lastEnqueuedState = getLastJobStateOfType(EnqueuedState.class);
         if (!lastEnqueuedState.isPresent()) {
             throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
@@ -189,15 +194,18 @@ public class Job extends AbstractJob {
         Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));
+        return this;
     }
 
-    public void failed(String message, Exception exception) {
+    public Job failed(String message, Exception exception) {
         addJobState(new FailedState(message, exception));
+        return this;
     }
 
-    public void delete(String reason) {
+    public Job delete(String reason) {
         clearMetadata();
         addJobState(new DeletedState(reason));
+        return this;
     }
 
     public Instant getCreatedAt() {

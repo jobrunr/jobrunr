@@ -10,15 +10,21 @@ import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static org.jobrunr.utils.streams.StreamUtils.consumerToFunction;
 
 public abstract class ZooKeeperTask {
 
@@ -64,16 +70,16 @@ public abstract class ZooKeeperTask {
     }
 
     protected void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
-        processJobList(jobs, jobConsumer, true);
+        processToJobList(jobs, consumerToFunction(jobConsumer));
     }
 
-    protected void processJobList(List<Job> jobs, Consumer<Job> jobConsumer, boolean executeJobServerFilters) {
-        if (!jobs.isEmpty()) {
+    protected <T> void processToJobList(List<T> items, Function<T, Job> toJobFunction) {
+        if (!items.isEmpty()) {
             try {
-                jobs.forEach(jobConsumer);
-                jobFilterUtils.runOnStateElectionFilter(jobs, executeJobServerFilters);
+                List<Job> jobs = items.stream().map(toJobFunction).filter(Objects::nonNull).collect(toList());
+                jobFilterUtils.runOnStateElectionFilter(jobs);
                 storageProvider.save(jobs);
-                jobFilterUtils.runOnStateAppliedFilters(jobs, executeJobServerFilters);
+                jobFilterUtils.runOnStateAppliedFilters(jobs);
             } catch (ConcurrentJobModificationException concurrentJobModificationException) {
                 try {
                     concurrentJobModificationResolver.resolve(concurrentJobModificationException);

@@ -91,7 +91,7 @@ public abstract class AbstractJsonMapperTest {
         jobContext.logger().error("this is an error message");
 
         final JobDashboardProgressBar progressBar = jobContext.progressBar(80);
-        progressBar.setValue(10);
+        progressBar.setProgress(10);
 
         final String jobAsString = jsonMapper.serialize(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/job-in-progress-with-progressbar-and-logging.json"));

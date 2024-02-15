@@ -7,16 +7,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
+public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledThreadPoolJobRunrExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlatformThreadPoolJobRunrExecutor.class);
     private final int workerCount;
-    
-    public ScheduledThreadPoolJobRunrExecutor(int corePoolSize) {
-        this(corePoolSize, "backgroundjob-zookeeper-pool");
+
+    public PlatformThreadPoolJobRunrExecutor(int corePoolSize) {
+        this(corePoolSize, "backgroundjob-worker-pool");
     }
 
-    public ScheduledThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
+    public PlatformThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
         super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
         this.workerCount = corePoolSize;
         setMaximumPoolSize(corePoolSize * 2);

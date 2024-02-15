@@ -268,17 +268,17 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
             List<Job> jobs = jobTable(conn).selectJobsToProcess(amountRequest);
             try {
                 jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
-                jobFilterUtils.runOnStateElectionFilter(jobs, true);
+                jobFilterUtils.runOnStateElectionFilter(jobs);
                 List<Job> jobsToProcess = jobTable(conn).save(jobs);
                 transaction.commit();
-                jobFilterUtils.runOnStateAppliedFilters(jobsToProcess, true);
+                jobFilterUtils.runOnStateAppliedFilters(jobsToProcess);
                 return jobsToProcess.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
             } catch (ConcurrentJobModificationException e) {
                 List<Job> actualSavedJobs = new ArrayList<>(jobs);
                 Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
                 actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
                 transaction.commit();
-                jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs, true);
+                jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs);
                 return actualSavedJobs.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
             }
         } catch (SQLException e) {
