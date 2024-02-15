@@ -11,14 +11,19 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 import java.util.UUID;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
 
@@ -56,7 +61,7 @@ class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
 
         // THEN
         assertThat(logger).hasNoWarnLogMessages();
-        verify(storageProvider).save(emptyList());
+        verify(storageProvider, never()).save(anyList());
     }
 
     @Test

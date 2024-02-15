@@ -10,7 +10,6 @@ import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +18,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -58,42 +55,53 @@ public abstract class ZooKeeperTask {
 
     protected abstract void runTask();
 
-    protected void processJobList(Supplier<List<Job>> jobListSupplier, Consumer<Job> jobConsumer, Consumer<Integer> amountOfProcessedJobsConsumer) {
+    protected final void processManyJobs(Function<List<Job>, List<Job>> jobListSupplier, Consumer<Job> jobConsumer, Consumer<Integer> amountOfProcessedJobsConsumer) {
+        convertAndProcessManyJobs(jobListSupplier, consumerToFunction(jobConsumer), amountOfProcessedJobsConsumer);
+    }
+
+    protected final <T> void convertAndProcessManyJobs(Function<List<T>, List<T>> itemSupplier, Function<T, Job> toJobFunction, Consumer<Integer> amountOfProcessedJobsConsumer) {
         int amountOfProcessedJobs = 0;
-        List<Job> jobs = getJobsToProcess(jobListSupplier);
-        while (!jobs.isEmpty()) {
-            processJobList(jobs, jobConsumer);
-            amountOfProcessedJobs += jobs.size();
-            jobs = getJobsToProcess(jobListSupplier);
+        List<T> items = getItemsToProcess(itemSupplier, null);
+        while (!items.isEmpty()) {
+            processJobs(items, toJobFunction);
+            amountOfProcessedJobs += items.size();
+            items = getItemsToProcess(itemSupplier, items);
         }
         amountOfProcessedJobsConsumer.accept(amountOfProcessedJobs);
     }
 
-    protected void processJobList(List<Job> jobs, Consumer<Job> jobConsumer) {
-        processToJobList(jobs, consumerToFunction(jobConsumer));
+    protected final <T> List<Job> convertAndProcessManyJobs(List<T> items, Function<T, List<Job>> toJobsFunction, Consumer<Integer> amountOfProcessedJobsConsumer) {
+        List<Job> jobs = items.stream().map(toJobsFunction).flatMap(List::stream).filter(Objects::nonNull).collect(toList());
+        saveAndRunJobFilters(jobs);
+        amountOfProcessedJobsConsumer.accept(jobs.size());
+        return jobs;
     }
 
-    protected <T> void processToJobList(List<T> items, Function<T, Job> toJobFunction) {
-        if (!items.isEmpty()) {
+    protected final <T> List<Job> processJobs(List<T> items, Function<T, Job> toJobFunction) {
+        List<Job> jobs = items.stream().map(toJobFunction).filter(Objects::nonNull).collect(toList());
+        return saveAndRunJobFilters(jobs);
+    }
+
+    protected List<Job> saveAndRunJobFilters(List<Job> jobs) {
+        if (jobs.isEmpty()) return emptyList();
+
+        try {
+            jobFilterUtils.runOnStateElectionFilter(jobs);
+            storageProvider.save(jobs);
+            jobFilterUtils.runOnStateAppliedFilters(jobs);
+        } catch (ConcurrentJobModificationException concurrentJobModificationException) {
             try {
-                List<Job> jobs = items.stream().map(toJobFunction).filter(Objects::nonNull).collect(toList());
-                jobFilterUtils.runOnStateElectionFilter(jobs);
-                storageProvider.save(jobs);
-                jobFilterUtils.runOnStateAppliedFilters(jobs);
-            } catch (ConcurrentJobModificationException concurrentJobModificationException) {
-                try {
-                    concurrentJobModificationResolver.resolve(concurrentJobModificationException);
-                } catch (
-                        UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException) {
-                    throw new SevereJobRunrException("Could not resolve ConcurrentJobModificationException", unresolvableConcurrentJobModificationException);
-                }
+                concurrentJobModificationResolver.resolve(concurrentJobModificationException);
+            } catch (UnresolvableConcurrentJobModificationException unresolvableConcurrentJobModificationException) {
+                throw new SevereJobRunrException("Could not resolve ConcurrentJobModificationException", unresolvableConcurrentJobModificationException);
             }
         }
+        return jobs;
     }
 
-    private List<Job> getJobsToProcess(Supplier<List<Job>> jobListSupplier) {
+    protected <T> List<T> getItemsToProcess(Function<List<T>, List<T>> jobListSupplier, List<T> previousItemsToProcess) {
         if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return emptyList();
-        return jobListSupplier.get();
+        return jobListSupplier.apply(previousItemsToProcess);
     }
 
     protected BackgroundJobServerConfiguration configuration() {

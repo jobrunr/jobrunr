@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.time.Instant.now;
-import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -42,11 +43,10 @@ public class ZooKeeperTaskTest extends AbstractZooKeeperTaskTest {
         Function<Object, Job> toJobFunction = x -> (Job)x;
 
         // WHEN
-        task.processToJobList(items, toJobFunction);
+        task.processJobs(items, toJobFunction);
 
         // THEN
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThatJobs(jobsToSaveArgumentCaptor.getValue()).isEmpty();
+        verify(storageProvider, never()).save(anyList());
     }
 
     private static void setRunStartTimeInPast(ZooKeeperRunTaskInfo zooKeeperRunTaskInfo, int secondsInPast) {

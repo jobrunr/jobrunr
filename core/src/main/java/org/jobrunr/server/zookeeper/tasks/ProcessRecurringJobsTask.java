@@ -7,7 +7,6 @@ import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.storage.RecurringJobsResult;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import java.util.Map;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 
 public class ProcessRecurringJobsTask extends ZooKeeperTask {
 
@@ -31,8 +29,13 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for recurring jobs... ");
+
+        Instant from = runStartTime();
+        Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
         List<RecurringJob> recurringJobs = getRecurringJobs();
-        processRecurringJobs(recurringJobs);
+        convertAndProcessManyJobs(recurringJobs,
+                recurringJob -> toScheduledJobs(recurringJob, from, upUntil),
+                totalAmountOfJobs -> LOGGER.debug("Found {} jobs to schedule from {} recurring jobs", totalAmountOfJobs, recurringJobs.size()));
     }
 
     private List<RecurringJob> getRecurringJobs() {
@@ -42,31 +45,20 @@ public class ProcessRecurringJobsTask extends ZooKeeperTask {
         return this.recurringJobs;
     }
 
-    void processRecurringJobs(List<RecurringJob> recurringJobs) {
-        LOGGER.debug("Found {} recurring jobs.", recurringJobs.size());
-
-        Instant from = runStartTime();
-        Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
-
-        List<Job> allJobsToSchedule = new ArrayList<>();
-        for (RecurringJob recurringJob : recurringJobs) {
-            List<Job> jobsToSchedule = getJobsToSchedule(recurringJob, from, upUntil);
-            if (jobsToSchedule.isEmpty()) {
-                LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
-            } else if (jobsToSchedule.size() > 1) {
-                LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size());
-                allJobsToSchedule.addAll(jobsToSchedule);
-            } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
-                LOGGER.debug("Recurring job '{}' is already scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
-            } else if (jobsToSchedule.size() == 1) {
-                LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
-                allJobsToSchedule.addAll(jobsToSchedule);
-            }
-            registerRecurringJobRun(recurringJob, upUntil);
+    List<Job> toScheduledJobs(RecurringJob recurringJob, Instant from, Instant upUntil) {
+        List<Job> jobsToSchedule = getJobsToSchedule(recurringJob, from, upUntil);
+        if (jobsToSchedule.isEmpty()) {
+            LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
+        } else if (jobsToSchedule.size() > 1) {
+            LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size());
+        } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
+            LOGGER.debug("Recurring job '{}' is already scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
+            jobsToSchedule.clear();
+        } else if (jobsToSchedule.size() == 1) {
+            LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
         }
-        if (isNotNullOrEmpty(allJobsToSchedule)) {
-            storageProvider.save(allJobsToSchedule);
-        }
+        registerRecurringJobRun(recurringJob, upUntil);
+        return jobsToSchedule;
     }
 
     private List<Job> getJobsToSchedule(RecurringJob recurringJob, Instant runStartTime, Instant upUntil) {

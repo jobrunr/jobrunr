@@ -4,8 +4,9 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.dashboard.NewJobRunrVersionNotification;
-import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.JarUtils;
+import org.jobrunr.utils.VersionNumber;
+import org.jobrunr.utils.annotations.VisibleFor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +16,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jobrunr.utils.StringUtils.*;
+import static org.jobrunr.utils.VersionNumber.v;
 
 public class CheckForNewJobRunrVersion implements Runnable {
 
@@ -31,7 +31,6 @@ public class CheckForNewJobRunrVersion implements Runnable {
 
     public CheckForNewJobRunrVersion(BackgroundJobServer backgroundJobServer) {
         dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
-
         CheckForNewJobRunrVersion.isFirstRun = true; // why: otherwise latest version API is spammed during testing
     }
 
@@ -40,19 +39,19 @@ public class CheckForNewJobRunrVersion implements Runnable {
         if (isFirstRun) {
             final NewJobRunrVersionNotification newJobRunrVersionNotification = dashboardNotificationManager.getDashboardNotification(NewJobRunrVersionNotification.class);
             if (newJobRunrVersionNotification != null) {
-                VersionNumber actualVersion = new VersionNumber(getActualVersion());
-                VersionNumber latestVersion = new VersionNumber(newJobRunrVersionNotification.getLatestVersion());
+                VersionNumber actualVersion = v(getActualVersion());
+                VersionNumber latestVersion = v(newJobRunrVersionNotification.getLatestVersion());
                 if (actualVersion.equals(latestVersion)) {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
                 }
             }
         } else {
             try {
-                VersionNumber latestVersion = new VersionNumber(getLatestVersion());
-                VersionNumber actualVersion = new VersionNumber(getActualVersion());
+                VersionNumber latestVersion = v(getLatestVersion());
+                VersionNumber actualVersion = v(getActualVersion());
                 if (latestVersion.compareTo(actualVersion) > 0) {
                     dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion.getCompleteVersion()));
-                    LOGGER.info("JobRunr version {} is available.", latestVersion.completeVersion);
+                    LOGGER.info("JobRunr Pro version {} is available.", latestVersion);
                 } else {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
                 }
@@ -101,7 +100,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
 
     @VisibleFor("testing")
     static String getJobRunrVersionUrl() {
-        return "https://api.jobrunr.io/api/version/jobrunr/latest";
+        return "https://api.jobrunr.io/api/version/jobrunr-pro/latest";
     }
 
     @VisibleFor("testing")
@@ -111,55 +110,5 @@ public class CheckForNewJobRunrVersion implements Runnable {
 
     static void resetCheckForNewVersion() {
         CheckForNewJobRunrVersion.isFirstRun = true;
-    }
-
-    protected static class VersionNumber implements Comparable<VersionNumber> {
-
-        private final String completeVersion;
-        private final String version;
-        private final String qualifier;
-
-        public VersionNumber(String completeVersion) {
-            this.completeVersion = completeVersion;
-            this.version = substringBefore(completeVersion, "-");
-            this.qualifier = substringAfter(completeVersion, "-");
-        }
-
-        public String getCompleteVersion() {
-            return completeVersion;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof VersionNumber) {
-                return completeVersion.equals(((VersionNumber) obj).completeVersion);
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(completeVersion);
-        }
-
-        @Override
-        public int compareTo(VersionNumber o) {
-            int versionsCompared = this.version.compareTo(o.version);
-            if (versionsCompared == 0) {
-                if (isNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
-                    return 0;
-                } else if (isNullOrEmpty(qualifier) && isNotNullOrEmpty(o.qualifier)) {
-                    return 1;
-                } else if (isNotNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
-                    return -1;
-                } else {
-                    return qualifier.compareTo(o.qualifier);
-                }
-            } else {
-                return versionsCompared;
-            }
-        }
-
-
     }
 }
