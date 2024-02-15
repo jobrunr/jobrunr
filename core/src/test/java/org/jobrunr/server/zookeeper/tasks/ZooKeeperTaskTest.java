@@ -42,7 +42,7 @@ public class ZooKeeperTaskTest extends AbstractZooKeeperTaskTest {
         Function<Object, Job> toJobFunction = x -> (Job)x;
 
         // WHEN
-        task.processJobs(items, toJobFunction);
+        task.convertAndProcessJobs(items, toJobFunction);
 
         // THEN
         verify(storageProvider, never()).save(anyList());

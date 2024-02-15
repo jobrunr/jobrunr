@@ -63,27 +63,26 @@ public abstract class ZooKeeperTask {
         int amountOfProcessedJobs = 0;
         List<T> items = getItemsToProcess(itemSupplier, null);
         while (!items.isEmpty()) {
-            processJobs(items, toJobFunction);
+            convertAndProcessJobs(items, toJobFunction);
             amountOfProcessedJobs += items.size();
             items = getItemsToProcess(itemSupplier, items);
         }
         amountOfProcessedJobsConsumer.accept(amountOfProcessedJobs);
     }
 
-    protected final <T> List<Job> convertAndProcessManyJobs(List<T> items, Function<T, List<Job>> toJobsFunction, Consumer<Integer> amountOfProcessedJobsConsumer) {
+    protected final <T> void convertAndProcessManyJobs(List<T> items, Function<T, List<Job>> toJobsFunction, Consumer<Integer> amountOfProcessedJobsConsumer) {
         List<Job> jobs = items.stream().map(toJobsFunction).flatMap(List::stream).filter(Objects::nonNull).collect(toList());
         saveAndRunJobFilters(jobs);
         amountOfProcessedJobsConsumer.accept(jobs.size());
-        return jobs;
     }
 
-    protected final <T> List<Job> processJobs(List<T> items, Function<T, Job> toJobFunction) {
+    protected final <T> void convertAndProcessJobs(List<T> items, Function<T, Job> toJobFunction) {
         List<Job> jobs = items.stream().map(toJobFunction).filter(Objects::nonNull).collect(toList());
-        return saveAndRunJobFilters(jobs);
+        saveAndRunJobFilters(jobs);
     }
 
-    protected List<Job> saveAndRunJobFilters(List<Job> jobs) {
-        if (jobs.isEmpty()) return emptyList();
+    protected void saveAndRunJobFilters(List<Job> jobs) {
+        if (jobs.isEmpty()) return;
 
         try {
             jobFilterUtils.runOnStateElectionFilter(jobs);
@@ -96,7 +95,6 @@ public abstract class ZooKeeperTask {
                 throw new SevereJobRunrException("Could not resolve ConcurrentJobModificationException", unresolvableConcurrentJobModificationException);
             }
         }
-        return jobs;
     }
 
     protected <T> List<T> getItemsToProcess(Function<List<T>, List<T>> jobListSupplier, List<T> previousItemsToProcess) {
