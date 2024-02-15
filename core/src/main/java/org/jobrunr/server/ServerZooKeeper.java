@@ -35,7 +35,7 @@ public class ServerZooKeeper implements Runnable {
         this.backgroundJobServer = backgroundJobServer;
         this.storageProvider = backgroundJobServer.getStorageProvider();
         this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
-        this.timeoutDuration = backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(4);
+        this.timeoutDuration = backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(backgroundJobServer.getConfiguration().getServerTimeoutPollIntervalMultiplicand());
         this.restartAttempts = new AtomicInteger();
         this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();

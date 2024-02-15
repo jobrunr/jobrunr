@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -14,16 +15,18 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 public class ProcessOrphanedJobsTask extends ZooKeeperTask {
 
     private final int pageRequestSize;
+    private final Duration serverTimeoutDuration;
 
     public ProcessOrphanedJobsTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         super(jobZooKeeper, backgroundJobServer);
         this.pageRequestSize = backgroundJobServer.getConfiguration().getOrphanedJobsRequestSize();
+        this.serverTimeoutDuration = backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(backgroundJobServer.getConfiguration().getServerTimeoutPollIntervalMultiplicand());
     }
 
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for orphan jobs... ");
-        final Instant updatedBefore = runStartTime().minus(backgroundJobServerConfiguration().getPollInterval().multipliedBy(4));
+        final Instant updatedBefore = runStartTime().minus(serverTimeoutDuration);
         processManyJobs(previousResults -> getOrphanedJobs(updatedBefore, previousResults),
                 this::changeJobStateToFailedAndRunJobFilter,
                 totalAmountOfOrphanedJobs -> LOGGER.debug("Found {} orphan jobs.", totalAmountOfOrphanedJobs));

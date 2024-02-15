@@ -38,6 +38,10 @@ public class BackgroundJobServerConfigurationReader {
         return configuration.pollInterval;
     }
 
+    public Integer getServerTimeoutPollIntervalMultiplicand() {
+        return configuration.serverTimeoutPollIntervalMultiplicand;
+    }
+
     public Duration getDeleteSucceededJobsAfter() {
         return configuration.deleteSucceededJobsAfter;
     }
