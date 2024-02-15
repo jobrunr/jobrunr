@@ -4,7 +4,7 @@ import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.JobZooKeeper;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
@@ -104,7 +104,7 @@ public abstract class ZooKeeperTask {
         return jobListSupplier.apply(previousItemsToProcess);
     }
 
-    protected BackgroundJobServerConfiguration configuration() {
+    protected BackgroundJobServerConfigurationReader configuration() {
         return backgroundJobServer.getConfiguration();
     }
 
@@ -118,7 +118,7 @@ public abstract class ZooKeeperTask {
                 .toConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
     }
 
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
+    BackgroundJobServerConfigurationReader backgroundJobServerConfiguration() {
         return runInfo.getBackgroundJobServerConfiguration();
     }
 

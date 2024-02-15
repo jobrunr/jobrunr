@@ -5,6 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -121,7 +122,8 @@ class UpdateJobsInProgressTaskTest extends AbstractZooKeeperTaskTest {
 
     Thread startProcessingJobAndReturnThread(Job job) {
         final Thread threadMock = mock(Thread.class);
-        when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration()
+
+        backgroundJobServer = Mocks.ofBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
                 .andId(UUID.randomUUID())
                 .andName("my-host-name"));
 

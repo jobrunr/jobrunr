@@ -8,10 +8,9 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.junit.jupiter.api.BeforeEach;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static java.time.Instant.now;
@@ -25,19 +24,11 @@ import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class JobTest {
 
-    @Mock
-    private BackgroundJobServer backgroundJobServer;
-
-    @BeforeEach
-    void setUpBackgroundJobServer() {
-        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
-    }
+    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     @Test
     void ifIdIsNullAnIdIsCreated() {

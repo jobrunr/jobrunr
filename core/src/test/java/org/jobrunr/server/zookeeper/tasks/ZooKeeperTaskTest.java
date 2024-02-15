@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.time.Instant.now;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,7 +27,7 @@ public class ZooKeeperTaskTest extends AbstractZooKeeperTaskTest {
 
     @Test
     void masterTasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
-        ZooKeeperRunTaskInfo zooKeeperRunTaskInfo = zooKeeperStatistics.startRun(usingStandardBackgroundJobServerConfiguration());
+        ZooKeeperRunTaskInfo zooKeeperRunTaskInfo = zooKeeperStatistics.startRun(backgroundJobServer.getConfiguration());
         setRunStartTimeInPast(zooKeeperRunTaskInfo, 15);
 
         task.run(zooKeeperRunTaskInfo);

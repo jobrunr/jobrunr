@@ -92,7 +92,7 @@ public class JobZooKeeper implements Runnable {
         onboardNewWorkTask.run(runInfo);
     }
 
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
+    BackgroundJobServerConfigurationReader backgroundJobServerConfiguration() {
         return backgroundJobServer.getConfiguration();
     }
 

@@ -10,7 +10,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
@@ -83,7 +83,7 @@ public abstract class StorageProviderTest {
     protected BackgroundJobServer backgroundJobServer;
     protected JobMapper jobMapper;
 
-    protected BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    protected BackgroundJobServerConfigurationReader backgroundJobServerConfiguration;
 
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
@@ -92,7 +92,7 @@ public abstract class StorageProviderTest {
         JobRunr.configure();
         storageProvider = getStorageProvider();
 
-        backgroundJobServerConfiguration = spy(usingStandardBackgroundJobServerConfiguration());
+        backgroundJobServerConfiguration = spy(new BackgroundJobServerConfigurationReader(usingStandardBackgroundJobServerConfiguration()));
 
         backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration);
         jobMapper = new JobMapper(jsonMapper);
