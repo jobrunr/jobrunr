@@ -52,7 +52,7 @@ public enum BackgroundJobServerThreadType {
     }
 
     public static BackgroundJobServerThreadType getDefaultThreadType() {
-        return JAVA_VERSION.hasMajorVersionHigherOrEqualTo(21)
+        return VirtualThreads.isSupported(JAVA_VERSION)
                 ? BackgroundJobServerThreadType.VirtualThreads
                 : BackgroundJobServerThreadType.PlatformThreads;
     }

@@ -58,8 +58,13 @@ public class JobDashboardProgressBar {
         return jobDashboardProgress.getTotalAmount();
     }
 
-    public void setProgress(long succeededAmount) {
-        jobDashboardProgress.setProgress(succeededAmount);
+    /**
+     * Sets the progress for the ProgressBar on the dashboard and returns if it has changes.
+     * @param succeededAmount the amount of succeeded items
+     * @return true if the progress has changed, false otherwise
+     */
+    public boolean setProgress(long succeededAmount) {
+        return jobDashboardProgress.setProgress(succeededAmount);
     }
 
     public boolean setProgress(long totalAmount, long succeededAmount, long failedAmount) {
@@ -101,9 +106,8 @@ public class JobDashboardProgressBar {
             setProgress(succeededAmount + 1);
         }
 
-        public void setProgress(Long succeededAmount) {
-            this.succeededAmount = succeededAmount;
-            this.progress = (succeededAmount >= totalAmount) ? 100 : (int) (succeededAmount * 100 / totalAmount);
+        public boolean setProgress(Long succeededAmount) {
+            return setProgress(this.totalAmount, succeededAmount, this.failedAmount);
         }
 
         public boolean setProgress(long totalAmount, long succeededAmount, long failedAmount) {
