@@ -6,9 +6,9 @@ import org.jobrunr.server.JobZooKeeper;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class ProcessScheduledJobsTask extends ZooKeeperTask {
@@ -24,9 +24,13 @@ public class ProcessScheduledJobsTask extends ZooKeeperTask {
     protected void runTask() {
         LOGGER.trace("Looking for scheduled jobs... ");
         Instant scheduledBefore = now().plus(backgroundJobServerConfiguration().getPollInterval());
-        Supplier<List<Job>> scheduledJobsSupplier = () -> storageProvider.getScheduledJobs(scheduledBefore, ascOnUpdatedAt(pageRequestSize));
-        processJobList(scheduledJobsSupplier,
+        processManyJobs(previousResults -> getJobsToSchedule(scheduledBefore, previousResults),
                 Job::enqueue,
                 totalAmountOfEnqueuedJobs -> LOGGER.debug("Found {} scheduled jobs to enqueue.", totalAmountOfEnqueuedJobs));
+    }
+
+    private List<Job> getJobsToSchedule(Instant scheduledBefore, List<Job> previousResults) {
+        if(previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
+        return storageProvider.getScheduledJobs(scheduledBefore, ascOnUpdatedAt(pageRequestSize));
     }
 }

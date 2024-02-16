@@ -1,12 +1,12 @@
 package org.jobrunr.server.zookeeper.tasks;
 
-import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 
 import java.time.Instant;
 
 public interface ZooKeeperTaskInfo {
 
-    BackgroundJobServerConfiguration getBackgroundJobServerConfiguration();
+    BackgroundJobServerConfigurationReader getBackgroundJobServerConfiguration();
 
     boolean pollIntervalInSecondsTimeBoxIsAboutToPass();
 

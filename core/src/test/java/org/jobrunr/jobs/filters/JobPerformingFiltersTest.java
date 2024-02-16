@@ -1,19 +1,17 @@
 package org.jobrunr.jobs.filters;
 
-import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.LogAllStateChangesFilter;
+import org.jobrunr.stubs.Mocks;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Map;
 
 import static java.time.Instant.now;
@@ -32,22 +30,17 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class JobPerformingFiltersTest {
 
     private TestService testService;
 
-    @Mock
-    BackgroundJobServer backgroundJobServer;
+    BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     @BeforeEach
     void setUp() {
         testService = new TestService();
-
-        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
     }
 
     @Test

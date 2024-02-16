@@ -48,7 +48,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
 
-    private final BackgroundJobServerConfiguration configuration;
+    private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final JsonMapper jsonMapper;
@@ -75,12 +75,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
+        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
+    }
+
+    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
         if (storageProvider == null)
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
-        this.dashboardNotificationManager = new DashboardNotificationManager(configuration.getId(), storageProvider);
+        this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
@@ -90,7 +94,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobZooKeeper = createJobZooKeeper();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
-        this.storageProvider.validatePollInterval(configuration.getPollInterval());
+        this.storageProvider.validatePollInterval(this.configuration.getPollInterval());
     }
 
     @Override
@@ -224,7 +228,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return storageProvider;
     }
 
-    public BackgroundJobServerConfiguration getConfiguration() {
+    public BackgroundJobServerConfigurationReader getConfiguration() {
         return configuration;
     }
 

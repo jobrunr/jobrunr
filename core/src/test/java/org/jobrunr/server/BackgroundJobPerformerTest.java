@@ -12,6 +12,7 @@ import org.jobrunr.server.runner.BackgroundJobRunner;
 import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,18 +32,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobPerformerTest {
 
-    @Mock
-    private BackgroundJobServer backgroundJobServer;
+    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
     @Mock
     private StorageProvider storageProvider;
     @Mock
@@ -54,7 +52,6 @@ class BackgroundJobPerformerTest {
     void setUpMocks() {
         logAllStateChangesFilter = new LogAllStateChangesFilter();
 
-        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));

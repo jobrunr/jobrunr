@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -181,7 +180,7 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withId() {
-        return withId(UUID.randomUUID());
+        return withId(Job.newUUID());
     }
 
     public JobTestBuilder withId(UUID uuid) {

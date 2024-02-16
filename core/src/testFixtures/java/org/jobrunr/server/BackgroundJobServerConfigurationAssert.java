@@ -7,14 +7,14 @@ import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import java.time.Duration;
 
 
-public class BackgroundJobServerConfigurationAssert extends AbstractAssert<BackgroundJobServerConfigurationAssert, BackgroundJobServerConfiguration> {
+public class BackgroundJobServerConfigurationAssert extends AbstractAssert<BackgroundJobServerConfigurationAssert, BackgroundJobServerConfigurationReader> {
 
-    protected BackgroundJobServerConfigurationAssert(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+    protected BackgroundJobServerConfigurationAssert(BackgroundJobServerConfigurationReader backgroundJobServerConfiguration) {
         super(backgroundJobServerConfiguration, BackgroundJobServerConfigurationAssert.class);
     }
 
     public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        return new BackgroundJobServerConfigurationAssert(backgroundJobServerConfiguration);
+        return new BackgroundJobServerConfigurationAssert(new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration));
     }
 
     public BackgroundJobServerConfigurationAssert hasName(String name) {

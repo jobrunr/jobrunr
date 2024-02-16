@@ -8,13 +8,13 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.runner.RunnerJobContext;
+import org.jobrunr.stubs.Mocks;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
@@ -31,14 +31,11 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 abstract class JobMapperTest {
 
-    @Mock
-    private BackgroundJobServer backgroundJobServer;
+    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     private TestService testService;
 
@@ -48,8 +45,6 @@ abstract class JobMapperTest {
     void setUp() {
         jobMapper = new JobMapper(getJsonMapper());
         testService = new TestService();
-
-        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
     }
 
     protected abstract JsonMapper getJsonMapper();

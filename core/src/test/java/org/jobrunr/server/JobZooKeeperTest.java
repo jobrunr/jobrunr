@@ -15,6 +15,7 @@ import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +39,6 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.JobTestBuilder.emptyJobList;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,10 +53,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class JobZooKeeperTest {
 
+    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
     @Mock
     private StorageProvider storageProvider;
-    @Mock
-    private BackgroundJobServer backgroundJobServer;
     @Mock
     private WorkDistributionStrategy workDistributionStrategy;
     @Captor
@@ -69,7 +68,6 @@ class JobZooKeeperTest {
 
     @BeforeEach
     void setUpBackgroundJobZooKeeper() {
-        when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         jobZooKeeper = initializeJobZooKeeper();
