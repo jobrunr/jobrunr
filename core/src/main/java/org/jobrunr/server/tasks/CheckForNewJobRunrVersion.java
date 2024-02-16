@@ -51,7 +51,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
                 VersionNumber actualVersion = v(getActualVersion());
                 if (latestVersion.compareTo(actualVersion) > 0) {
                     dashboardNotificationManager.notify(new NewJobRunrVersionNotification(latestVersion.getCompleteVersion()));
-                    LOGGER.info("JobRunr Pro version {} is available.", latestVersion);
+                    LOGGER.info("JobRunr version {} is available.", latestVersion);
                 } else {
                     dashboardNotificationManager.deleteNotification(NewJobRunrVersionNotification.class);
                 }
@@ -100,7 +100,7 @@ public class CheckForNewJobRunrVersion implements Runnable {
 
     @VisibleFor("testing")
     static String getJobRunrVersionUrl() {
-        return "https://api.jobrunr.io/api/version/jobrunr-pro/latest";
+        return "https://api.jobrunr.io/api/version/jobrunr/latest";
     }
 
     @VisibleFor("testing")
