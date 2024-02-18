@@ -106,7 +106,7 @@ public class JobRunrConfiguration {
      * @param jobFilters the jobFilters to use for each job.
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration withJobFilter(JobFilter... jobFilters) {
+    public JobRunrConfiguration useJobFilter(JobFilter... jobFilters) {
         if (this.backgroundJobServer != null) {
             throw new IllegalStateException("Please configure the JobFilters before the BackgroundJobServer.");
         }
@@ -120,7 +120,7 @@ public class JobRunrConfiguration {
      * @param jobConfiguration the Job configuration
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration withJobConfiguration(JobConfiguration jobConfiguration) {
+    public JobRunrConfiguration useJobConfiguration(JobConfiguration jobConfiguration) {
         if (this.dashboardWebServer != null) {
             throw new IllegalStateException("Please configure the jobConfiguration before the Dashboard.");
         }

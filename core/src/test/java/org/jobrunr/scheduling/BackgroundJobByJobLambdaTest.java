@@ -85,7 +85,7 @@ public class BackgroundJobByJobLambdaTest {
         storageProvider = new InMemoryStorageProvider();
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         JobRunr.configure()
-                .withJobFilter(logAllStateChangesFilter)
+                .useJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
