@@ -159,6 +159,20 @@ public class JobRunrProperties {
         private int backOffTimeSeed = RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED;
 
         /**
+         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
+         * is not specified, hours will be used.
+         */
+        @DurationUnit(ChronoUnit.HOURS)
+        private Duration deleteSucceededJobsAfter = Duration.ofHours(36);
+
+        /**
+         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
+         * is not specified, hours will be used.
+         */
+        @DurationUnit(ChronoUnit.HOURS)
+        private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
+
+        /**
          * Configures MicroMeter metrics related to jobs
          */
         private Metrics metrics = new Metrics();
@@ -177,6 +191,22 @@ public class JobRunrProperties {
 
         public void setRetryBackOffTimeSeed(int backOffTimeSeed) {
             this.backOffTimeSeed = backOffTimeSeed;
+        }
+
+        public Duration getDeleteSucceededJobsAfter() {
+            return deleteSucceededJobsAfter;
+        }
+
+        public void setDeleteSucceededJobsAfter(Duration deleteSucceededJobsAfter) {
+            this.deleteSucceededJobsAfter = deleteSucceededJobsAfter;
+        }
+
+        public Duration getPermanentlyDeleteDeletedJobsAfter() {
+            return permanentlyDeleteDeletedJobsAfter;
+        }
+
+        public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
+            this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
         }
 
         public Metrics getMetrics() {
@@ -269,20 +299,6 @@ public class JobRunrProperties {
         private Integer succeededJobsRequestSize = 1000;
 
         /**
-         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
-         * is not specified, hours will be used.
-         */
-        @DurationUnit(ChronoUnit.HOURS)
-        private Duration deleteSucceededJobsAfter = Duration.ofHours(36);
-
-        /**
-         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
-         * is not specified, hours will be used.
-         */
-        @DurationUnit(ChronoUnit.HOURS)
-        private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
-
-        /**
          * Configures MicroMeter metrics related to the BackgroundJobServer
          */
         private Metrics metrics = new Metrics();
@@ -352,22 +368,6 @@ public class JobRunrProperties {
         public BackgroundJobServer setSucceededJobsRequestSize(Integer succeededJobsRequestSize) {
             this.succeededJobsRequestSize = succeededJobsRequestSize;
             return this;
-        }
-
-        public Duration getDeleteSucceededJobsAfter() {
-            return deleteSucceededJobsAfter;
-        }
-
-        public void setDeleteSucceededJobsAfter(Duration deleteSucceededJobsAfter) {
-            this.deleteSucceededJobsAfter = deleteSucceededJobsAfter;
-        }
-
-        public Duration getPermanentlyDeleteDeletedJobsAfter() {
-            return permanentlyDeleteDeletedJobsAfter;
-        }
-
-        public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
-            this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
         }
 
         public Metrics getMetrics() {

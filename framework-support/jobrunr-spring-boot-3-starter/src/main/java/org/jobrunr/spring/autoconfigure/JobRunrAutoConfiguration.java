@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import jakarta.json.bind.Jsonb;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.JobConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -42,6 +43,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
@@ -69,14 +71,16 @@ public class JobRunrAutoConfiguration {
         return new JobRequestScheduler(storageProvider, emptyList());
     }
 
-    @Bean(destroyMethod = "stop")
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
-    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration, JobRunrProperties properties) {
-        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
-        backgroundJobServer.setJobFilters(singletonList(new RetryFilter(properties.getJobs().getDefaultNumberOfRetries(), properties.getJobs().getRetryBackOffTimeSeed())));
-        backgroundJobServer.start();
-        return backgroundJobServer;
+    public JobConfiguration jobConfiguration(JobRunrProperties properties) {
+        PropertyMapper map = PropertyMapper.get();
+        JobConfiguration jobConfiguration = usingStandardJobConfiguration();
+        JobRunrProperties.Jobs jobProperties = properties.getJobs();
+        map.from(jobProperties::getDeleteSucceededJobsAfter).to(jobConfiguration::andDeleteSucceededJobsAfter);
+        map.from(jobProperties::getPermanentlyDeleteDeletedJobsAfter).to(jobConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+        return jobConfiguration;
     }
 
     @Bean
@@ -93,13 +97,21 @@ public class JobRunrAutoConfiguration {
 
         map.from(backgroundJobServerProperties::getName).whenNonNull().to(backgroundJobServerConfiguration::andName);
         map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
-        map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
-        map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         map.from(backgroundJobServerProperties::getScheduledJobsRequestSize).to(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
         map.from(backgroundJobServerProperties::getOrphanedJobsRequestSize).to(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
         map.from(backgroundJobServerProperties::getSucceededJobsRequestSize).to(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
 
         return backgroundJobServerConfiguration;
+    }
+
+    @Bean(destroyMethod = "stop")
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
+    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, JobConfiguration jobConfiguration, BackgroundJobServerConfiguration backgroundJobServerConfiguration, JobRunrProperties properties) {
+        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, jobConfiguration, backgroundJobServerConfiguration);
+        backgroundJobServer.setJobFilters(singletonList(new RetryFilter(properties.getJobs().getDefaultNumberOfRetries(), properties.getJobs().getRetryBackOffTimeSeed())));
+        backgroundJobServer.start();
+        return backgroundJobServer;
     }
 
     @Bean(destroyMethod = "stop")

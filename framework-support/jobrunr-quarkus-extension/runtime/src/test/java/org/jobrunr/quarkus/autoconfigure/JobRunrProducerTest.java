@@ -1,6 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import org.assertj.core.api.Assertions;
+import org.jobrunr.jobs.JobConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.StorageProvider;
@@ -19,6 +20,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -125,6 +127,19 @@ class JobRunrProducerTest {
     }
 
     @Test
+    void jobConfigurationMapsCorrectConfigurationWhenConfigured() {
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+
+        when(jobsRunTimeConfiguration.deleteSucceededJobsAfter()).thenReturn(Optional.of(Duration.of(1, HOURS)));
+        when(jobsRunTimeConfiguration.permanentlyDeleteDeletedJobsAfter()).thenReturn(Optional.of(Duration.of(1, DAYS)));
+
+        final JobConfiguration jobConfiguration = jobRunrProducer.jobConfiguration();
+
+        assertThat((Duration) getInternalState(jobConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
+        assertThat((Duration) getInternalState(jobConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
+    }
+
+    @Test
     void backgroundJobServerConfigurationMapsCorrectConfigurationWhenConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
@@ -134,8 +149,6 @@ class JobRunrProducerTest {
         when(backgroundJobServerRunTimeConfiguration.scheduledJobsRequestSize()).thenReturn(Optional.of(1));
         when(backgroundJobServerRunTimeConfiguration.orphanedJobsRequestSize()).thenReturn(Optional.of(2));
         when(backgroundJobServerRunTimeConfiguration.succeededJobRequestSize()).thenReturn(Optional.of(3));
-        when(backgroundJobServerRunTimeConfiguration.deleteSucceededJobsAfter()).thenReturn(Optional.of(Duration.of(1, HOURS)));
-        when(backgroundJobServerRunTimeConfiguration.permanentlyDeleteDeletedJobsAfter()).thenReturn(Optional.of(Duration.of(1, DAYS)));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration();
         assertThat(backgroundJobServerConfiguration)
@@ -145,22 +158,20 @@ class JobRunrProducerTest {
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
                 .hasSucceededJobRequestSize(3);
-        assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
-        assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
     }
 
     @Test
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
+        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, null, null)).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
+        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardJobConfiguration(), usingStandardBackgroundJobServerConfiguration())).isNotNull();
     }
 
     @Test

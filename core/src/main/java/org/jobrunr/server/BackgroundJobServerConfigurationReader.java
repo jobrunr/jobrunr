@@ -42,14 +42,6 @@ public class BackgroundJobServerConfigurationReader {
         return configuration.serverTimeoutPollIntervalMultiplicand;
     }
 
-    public Duration getDeleteSucceededJobsAfter() {
-        return configuration.deleteSucceededJobsAfter;
-    }
-
-    public Duration getPermanentlyDeleteDeletedJobsAfter() {
-        return configuration.permanentlyDeleteDeletedJobsAfter;
-    }
-
     public BackgroundJobServerWorkerPolicy getBackgroundJobServerWorkerPolicy() {
         return configuration.backgroundJobServerWorkerPolicy;
     }

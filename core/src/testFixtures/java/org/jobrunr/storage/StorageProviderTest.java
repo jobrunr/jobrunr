@@ -3,6 +3,7 @@ package org.jobrunr.storage;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobConfigurationReader;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -50,6 +51,7 @@ import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
@@ -94,7 +96,7 @@ public abstract class StorageProviderTest {
 
         backgroundJobServerConfiguration = spy(new BackgroundJobServerConfigurationReader(usingStandardBackgroundJobServerConfiguration()));
 
-        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration);
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, new JobConfigurationReader(usingStandardJobConfiguration()), backgroundJobServerConfiguration);
         jobMapper = new JobMapper(jsonMapper);
     }
 

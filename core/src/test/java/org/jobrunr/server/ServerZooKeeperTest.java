@@ -37,6 +37,7 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
@@ -61,7 +62,7 @@ class ServerZooKeeperTest {
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
         final JsonMapper jsonMapper = new JacksonJsonMapper();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardJobConfiguration(), usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));
     }
 
     @AfterEach

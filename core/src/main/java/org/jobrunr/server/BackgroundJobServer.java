@@ -1,6 +1,8 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobConfiguration;
+import org.jobrunr.jobs.JobConfigurationReader;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
@@ -41,6 +43,7 @@ import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
 
@@ -49,6 +52,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
 
     private final BackgroundJobServerConfigurationReader configuration;
+    private final JobConfigurationReader jobConfiguration;
     private final StorageProvider storageProvider;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final JsonMapper jsonMapper;
@@ -71,18 +75,19 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
-        this(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration());
+        this(storageProvider, jsonMapper, jobActivator, usingStandardJobConfiguration(), usingStandardBackgroundJobServerConfiguration());
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
+    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, JobConfiguration jobConfiguration, BackgroundJobServerConfiguration configuration) {
+        this(storageProvider, jsonMapper, jobActivator, new JobConfigurationReader(jobConfiguration), new BackgroundJobServerConfigurationReader(configuration));
     }
 
-    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
+    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, JobConfigurationReader jobConfigurationReader, BackgroundJobServerConfigurationReader configuration) {
         if (storageProvider == null)
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
 
         this.configuration = configuration;
+        this.jobConfiguration = jobConfigurationReader;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
         this.jsonMapper = jsonMapper;
@@ -216,7 +221,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     @Override
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
-                (int) configuration.getPollInterval().getSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
+                (int) configuration.getPollInterval().getSeconds(), jobConfiguration.getDeleteSucceededJobsAfter(), jobConfiguration.getPermanentlyDeleteDeletedJobsAfter(),
                 firstHeartbeat, Instant.now(), isRunning, jobServerStats);
     }
 
@@ -230,6 +235,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public BackgroundJobServerConfigurationReader getConfiguration() {
         return configuration;
+    }
+
+    public JobConfigurationReader getJobConfiguration() {
+        return jobConfiguration;
     }
 
     public DashboardNotificationManager getDashboardNotificationManager() {

@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -15,16 +16,19 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 public class DeleteSucceededJobsTask extends ZooKeeperTask {
 
     private final int pageRequestSize;
+    private final Duration deleteAfterDuration;
 
     public DeleteSucceededJobsTask(JobZooKeeper jobZooKeeper, BackgroundJobServer backgroundJobServer) {
         super(jobZooKeeper, backgroundJobServer);
         this.pageRequestSize = backgroundJobServer.getConfiguration().getSucceededJobsRequestSize();
+        this.deleteAfterDuration = backgroundJobServer.getJobConfiguration().getDeleteSucceededJobsAfter();
+
     }
 
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for succeeded jobs that can go to the deleted state... ");
-        final Instant updatedBefore = now().minus(backgroundJobServerConfiguration().getDeleteSucceededJobsAfter());
+        final Instant updatedBefore = now().minus(deleteAfterDuration);
         processManyJobs(previousResults -> getSucceededJobs(updatedBefore, previousResults),
                 job -> job.delete("JobRunr maintenance - deleting succeeded job"),
                 this::handleTotalAmountOfSucceededJobs);

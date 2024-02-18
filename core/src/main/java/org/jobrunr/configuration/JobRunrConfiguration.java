@@ -2,6 +2,7 @@ package org.jobrunr.configuration;
 
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.JobConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.JobFilter;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.mapper.JsonMapperValidator.validateJsonMapper;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
@@ -40,6 +42,7 @@ public class JobRunrConfiguration {
     final List<JobFilter> jobFilters;
     JobDetailsGenerator jobDetailsGenerator;
     StorageProvider storageProvider;
+    JobConfiguration jobConfiguration;
     BackgroundJobServer backgroundJobServer;
     JobRunrDashboardWebServer dashboardWebServer;
     JobRunrJMXExtensions jmxExtension;
@@ -50,6 +53,7 @@ public class JobRunrConfiguration {
         this.jobMapper = new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
+        this.jobConfiguration = usingStandardJobConfiguration();
     }
 
     /**
@@ -107,6 +111,23 @@ public class JobRunrConfiguration {
             throw new IllegalStateException("Please configure the JobFilters before the BackgroundJobServer.");
         }
         this.jobFilters.addAll(Arrays.asList(jobFilters));
+        return this;
+    }
+
+    /**
+     * Allows to configure settings related to Jobs (deletion, ...)
+     *
+     * @param jobConfiguration the Job configuration
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration withJobConfiguration(JobConfiguration jobConfiguration) {
+        if (this.dashboardWebServer != null) {
+            throw new IllegalStateException("Please configure the jobConfiguration before the Dashboard.");
+        }
+        if (this.backgroundJobServer != null) {
+            throw new IllegalStateException("Please configure the jobConfiguration before the BackgroundJobServer.");
+        }
+        this.jobConfiguration = jobConfiguration;
         return this;
     }
 
@@ -192,7 +213,7 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServer) {
         if (guard) {
-            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, configuration);
+            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, jobConfiguration, configuration);
             this.backgroundJobServer.setJobFilters(jobFilters);
             this.backgroundJobServer.start(startBackgroundJobServer);
         }

@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.JobConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
@@ -26,6 +27,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
@@ -54,6 +56,15 @@ public class JobRunrFactory {
 
     @Singleton
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
+    public JobConfiguration jobConfiguration() {
+        final JobConfiguration jobConfiguration = usingStandardJobConfiguration();
+        configuration.getJobs().getDeleteSucceededJobsAfter().ifPresent(jobConfiguration::andDeleteSucceededJobsAfter);
+        configuration.getJobs().getPermanentlyDeleteDeletedJobsAfter().ifPresent(jobConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+        return jobConfiguration;
+    }
+
+    @Singleton
+    @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
     public BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
 
@@ -63,8 +74,6 @@ public class JobRunrFactory {
 
         configuration.getBackgroundJobServer().getName().ifPresent(backgroundJobServerConfiguration::andName);
         configuration.getBackgroundJobServer().getPollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
-        configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
-        configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         configuration.getBackgroundJobServer().getScheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
         configuration.getBackgroundJobServer().getOrphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
         configuration.getBackgroundJobServer().getSucceededJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
@@ -73,10 +82,10 @@ public class JobRunrFactory {
 
     @Singleton
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
-    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, JobConfiguration jobConfiguration, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
         int defaultNbrOfRetries = configuration.getJobs().getDefaultNumberOfRetries().orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
         int retryBackOffTimeSeed = configuration.getJobs().getRetryBackOffTimeSeed().orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
-        BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
+        BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, jobConfiguration, backgroundJobServerConfiguration);
         backgroundJobServer.setJobFilters(singletonList(new RetryFilter(defaultNbrOfRetries, retryBackOffTimeSeed)));
         return backgroundJobServer;
     }

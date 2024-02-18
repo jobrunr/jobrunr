@@ -21,8 +21,6 @@ public class BackgroundJobServerConfiguration {
     public static final Duration DEFAULT_POLL_INTERVAL = Duration.ofSeconds(15);
     public static final int DEFAULT_SERVER_TIMEOUT_POLL_INTERVAL_MULTIPLICAND = 4;
     public static final int DEFAULT_PAGE_REQUEST_SIZE = 1000;
-    public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
-    public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
 
     int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
@@ -31,8 +29,6 @@ public class BackgroundJobServerConfiguration {
     int serverTimeoutPollIntervalMultiplicand = DEFAULT_SERVER_TIMEOUT_POLL_INTERVAL_MULTIPLICAND;
     UUID id = UUID.randomUUID();
     String name = getHostName();
-    Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
-    Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
     ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
 
@@ -144,9 +140,9 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the query size for misfired jobs per polling interval (to retry them).
+     * Allows to set the maximym number of orphaned jobs to requeue again per polling interval (e.g. due to crash of a {@link BackgroundJobServer}).
      *
-     * @param orphanedJobsRequestSize maximum number of misfired jobs to check per polling interval
+     * @param orphanedJobsRequestSize maximum number of orphaned jobs to requeue again update per polling interval
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andOrphanedJobsRequestSize(int orphanedJobsRequestSize) {
@@ -162,28 +158,6 @@ public class BackgroundJobServerConfiguration {
      */
     public BackgroundJobServerConfiguration andSucceededJobsRequestSize(int succeededJobsRequestSize) {
         this.succeededJobsRequestSize = succeededJobsRequestSize;
-        return this;
-    }
-
-    /**
-     * Allows to set the duration to wait before deleting succeeded jobs
-     *
-     * @param duration the duration to wait before deleting successful jobs
-     * @return the same configuration instance which provides a fluent api
-     */
-    public BackgroundJobServerConfiguration andDeleteSucceededJobsAfter(Duration duration) {
-        this.deleteSucceededJobsAfter = duration;
-        return this;
-    }
-
-    /**
-     * Allows to set the duration to wait before permanently deleting succeeded jobs
-     *
-     * @param duration the duration to wait before permanently deleting successful jobs
-     * @return the same configuration instance which provides a fluent api
-     */
-    public BackgroundJobServerConfiguration andPermanentlyDeleteDeletedJobsAfter(Duration duration) {
-        this.permanentlyDeleteDeletedJobsAfter = duration;
         return this;
     }
 

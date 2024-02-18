@@ -7,6 +7,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+import static org.jobrunr.jobs.JobConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+import static org.jobrunr.jobs.JobConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
+
 public class BackgroundJobServerStatusTestBuilder {
 
     public static final String DEFAULT_SERVER_NAME = "test-server-name";
@@ -16,8 +19,6 @@ public class BackgroundJobServerStatusTestBuilder {
     private String name = DEFAULT_SERVER_NAME;
     private int workerPoolSize = 10;
     private Duration pollInterval = BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL;
-    private Duration deleteSucceededJobsAfter = BackgroundJobServerConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
-    private Duration permanentlyDeleteDeletedJobsAfter = BackgroundJobServerConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     private Instant firstHeartbeat;
     private Instant lastHeartbeat;
     private boolean running;
@@ -101,7 +102,7 @@ public class BackgroundJobServerStatusTestBuilder {
 
     public BackgroundJobServerStatus build() {
         return new BackgroundJobServerStatus(id, name, workerPoolSize, (int) pollInterval.getSeconds(),
-                deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, running,
+                DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION, DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION, firstHeartbeat, lastHeartbeat, running,
                 jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(),
                 jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());
     }

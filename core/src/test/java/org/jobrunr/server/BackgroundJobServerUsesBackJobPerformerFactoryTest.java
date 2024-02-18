@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
+import static org.jobrunr.jobs.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,9 +62,8 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
             BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
-                    storageProvider, mock(JsonMapper.class), jobActivator,
-                    usingStandardBackgroundJobServerConfiguration()
-                            .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
+                    storageProvider, mock(JsonMapper.class), jobActivator, usingStandardJobConfiguration(),
+                    usingStandardBackgroundJobServerConfiguration().andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();
 
             // WHEN
@@ -92,9 +92,8 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
             BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
-                    storageProvider, mock(JsonMapper.class), jobActivator,
-                    usingStandardBackgroundJobServerConfiguration()
-                            .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
+                    storageProvider, mock(JsonMapper.class), jobActivator, usingStandardJobConfiguration(),
+                    usingStandardBackgroundJobServerConfiguration().andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();
 
             // WHEN

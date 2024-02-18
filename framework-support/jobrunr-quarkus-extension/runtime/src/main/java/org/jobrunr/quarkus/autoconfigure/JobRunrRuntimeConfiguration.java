@@ -84,6 +84,16 @@ public interface JobRunrRuntimeConfiguration {
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
         Optional<Integer> retryBackOffTimeSeed();
+
+        /**
+         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
+         */
+        Optional<Duration> deleteSucceededJobsAfter();
+
+        /**
+         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
+         */
+        Optional<Duration> permanentlyDeleteDeletedJobsAfter();
     }
 
     interface JobSchedulerConfiguration {
@@ -133,15 +143,6 @@ public interface JobRunrRuntimeConfiguration {
          */
         Optional<Integer> pollIntervalInSeconds();
 
-        /**
-         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
-         */
-        Optional<Duration> deleteSucceededJobsAfter();
-
-        /**
-         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
-         */
-        Optional<Duration> permanentlyDeleteDeletedJobsAfter();
     }
 
     interface DashboardConfiguration {
