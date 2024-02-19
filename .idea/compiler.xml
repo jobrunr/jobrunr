@@ -97,6 +97,8 @@
       <module name="JobRunr.tests.e2e-redis-jackson.test" target="11" />
       <module name="JobRunr.tests.e2e-sqlserver-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-sqlserver-jackson.test" target="11" />
+      <module name="JobRunr.tests.e2e-ui.main" target="11" />
+      <module name="JobRunr.tests.e2e-ui.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
