@@ -28,7 +28,6 @@ dependencies {
     api 'io.quarkus:quarkus-arc-deployment'
     api 'io.quarkus:quarkus-smallrye-health-spi'
 
-    compileOnly 'io.quarkus:quarkus-resteasy-jsonb'
     testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 
