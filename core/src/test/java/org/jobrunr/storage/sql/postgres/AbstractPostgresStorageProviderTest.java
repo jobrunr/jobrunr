@@ -15,7 +15,7 @@ import static java.time.Instant.now;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractPostgresStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>();
+    protected static PostgreSQLContainer sqlContainer = new PostgreSQLContainer<>("postgres:12");
 
     @BeforeAllSubclasses
     public static void startSqlContainer() {

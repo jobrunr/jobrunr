@@ -1,50 +1,34 @@
 import java.text.SimpleDateFormat
 
 plugins {
-    id 'com.github.ben-manes.versions' version '0.51.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
 }
 
-dependencies {
-    api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:2.7.18')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:2.7.18')
-    api project(':core')
-
-    api 'org.springframework.boot:spring-boot-starter'
-    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
-    compileOnly 'org.springframework.boot:spring-boot-starter-actuator'
-    compileOnly 'io.micrometer:micrometer-core'
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
-    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compileOnly 'com.google.code.gson:gson'
-    compileOnly 'org.eclipse:yasson'
-
-    compileOnly 'redis.clients:jedis'
-    compileOnly 'io.lettuce:lettuce-core'
-    compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'co.elastic.clients:elasticsearch-java'
-
-    testImplementation testFixtures(project(":core"))
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-    testImplementation 'com.google.code.gson:gson'
-    testImplementation 'redis.clients:jedis'
-    testImplementation 'io.lettuce:lettuce-core'
-    testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'co.elastic.clients:elasticsearch-java'
-    testImplementation 'io.micrometer:micrometer-core'
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
 }
 
-tasks.named("dependencyUpdates").configure {
-    rejectVersionIf {
-        it.candidate.version.startsWith('3')
-    }
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api platform('io.quarkus:quarkus-bom:3.7.3')
+
+    api project(':core')
+    api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
+    // why: https://quarkus.io/guides/building-my-first-extension
+    api 'io.quarkus:quarkus-core-deployment'
+    api 'io.quarkus:quarkus-arc-deployment'
+    api 'io.quarkus:quarkus-smallrye-health-spi'
+
+    testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 
 java {
@@ -59,9 +43,14 @@ normalization {
     }
 }
 
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    systemProperty "platform.quarkus.native.builder-image", false
+}
+
 jar {
     manifest {
-        attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot-2.starter'
+        attributes 'Automatic-Module-Name': 'org.jobrunr.quarkus.deployment'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
@@ -77,22 +66,18 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-spring-boot-2-starter'
+            artifactId = 'quarkus-jobrunr-deployment'
             version = project.version
             from components.java
 
             pom {
-                name = 'JobRunr Spring Boot Starter'
+                name = 'JobRunr Quarkus Deployment Extension'
                 description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
                 url = 'https://github.com/jobrunr/jobrunr'
                 licenses {
                     license {
-                        name = 'GNU Lesser General Public License v3.0 or later'
-                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
-                    }
-                    license {
-                        name = 'Commercial License'
-                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+                        name = 'Multi licensed'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md'
                     }
                 }
                 developers {
@@ -134,8 +119,4 @@ signing {
         useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
         sign publishing.publications.mavenJava
     }
-}
-
-sonar {
-    skipProject = true
 }

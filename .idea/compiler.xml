@@ -16,32 +16,10 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.1.4/9cd591b0102ec6f99ee89bed86633e2ce32deaa7/spring-boot-autoconfigure-processor-3.1.4.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.1.4/7113c079f7f9fedad3fbac9997340c57a865cf73/spring-boot-configuration-processor-3.1.4.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.18/a3a8a98e8c61ad1e664a5b7b9a62ac133585ed59/spring-boot-autoconfigure-processor-2.7.18.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.18/899128018a7962b3e4be665910bae65dff08d1b0/spring-boot-configuration-processor-2.7.18.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.6.1/3a6a3717042a3923d33613f493ef48a0116d9f9e/quarkus-extension-processor-3.6.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.15.3/f6e1d8a8819f854b681c8eaa57fd59a42329e10c/jsoup-1.15.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.5/a226d06df852056427a372042defe76b6e0aede/javaparser-core-3.25.5.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.15.3/79baf4e605eb3bbb60b1c475d44a7aecceea1d60/jackson-annotations-2.15.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.15.3/60d600567c1862840397bf9ff5a92398edc5797b/jackson-core-2.15.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.15.3/a734bc2c47a9453c4efa772461a3aeb273c010d9/jackson-databind-2.15.3.jar" />
-        </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
-        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -50,36 +28,63 @@
         <option name="micronaut.processing.incremental" value="true" />
         <option name="micronaut.processing.module" value="jobrunr-micronaut-feature" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.data/micronaut-data-processor/4.3.1/270334b7f8d93467cc7a9b996c00f959c0fabbd8/micronaut-data-processor-4.3.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.validation/micronaut-validation-processor/4.2.0/ee2d30a603b64471f872a0e3b5dfdf8b9e3c24b6/micronaut-validation-processor-4.2.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.data/micronaut-data-model/4.3.1/fa4ac59d85ea2acbf572e4329d056ea3f705d81d/micronaut-data-model-4.3.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.validation/micronaut-validation/4.2.0/20dfed8b73d1c02255cf6b1b4ab6ce4de8bac7e6/micronaut-validation-4.2.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.reactor/micronaut-reactor/3.1.0/e888487cfd99f08067c90a8344e6ab66a3f12a80/micronaut-reactor-3.1.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-graal/4.2.1/ff3b34caea69a46e3b2f37f9a4482b6c4ed818a2/micronaut-graal-4.2.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject-java/4.2.1/56d0d7e287b751f7b60c10143f3b8b22ea31c088/micronaut-inject-java-4.2.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-processor/4.2.1/4cd731bfa996f2f0bee325c9b31eb1ea6c877612/micronaut-core-processor-4.2.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-aop/4.2.1/d813d7cc7d6d05ba392913b5c5a7b30604e23fca/micronaut-aop-4.2.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject/4.2.1/c8ddd7e2d28665c31691020a26557f254244acdc/micronaut-inject-4.2.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.data/micronaut-data-processor/4.6.1/8d2c21600960a73b8f08302e4f835611200337/micronaut-data-processor-4.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.validation/micronaut-validation-processor/4.4.0/7cd6c8340b7c477176047f6cfa3281b4b983eed8/micronaut-validation-processor-4.4.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.data/micronaut-data-model/4.6.1/2897130092762015b65f7f6f22c34147eb35bed2/micronaut-data-model-4.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.validation/micronaut-validation/4.4.0/b83d4e1bf5d41a7d61821cfffe5a0150a7147c94/micronaut-validation-4.4.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut.reactor/micronaut-reactor/3.2.1/136fe2acf6adc943240aea397ba659385d9753d5/micronaut-reactor-3.2.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-graal/4.3.6/7bfc6ac741cce8a5d5107bc915b4c5b7a7bff6f0/micronaut-graal-4.3.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject-java/4.3.6/17a3af6eb1a07321435289177188ee7e9d1066c9/micronaut-inject-java-4.3.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-processor/4.3.6/7ef1b29d0060a58fac481148a977f2e4739e904/micronaut-core-processor-4.3.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-aop/4.3.6/87d9db84e472275c1185589e92f654cfb3300796/micronaut-aop-4.3.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-inject/4.3.6/a7c50ceabafc6ade17e3dfe5d838afbca04e7e39/micronaut-inject-4.3.6.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.annotation/jakarta.annotation-api/2.1.1/48b9bda22b091b1f48b13af03fe36db3be6e1ae3/jakarta.annotation-api-2.1.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-symbol-solver-core/3.25.6/2844cc31ed081afc47a605d8d37c22069a8d614/javaparser-symbol-solver-core-3.25.6.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-reactive/4.2.1/37c8635fef2a449225c9ccf1d79fdc9354d4f19a/micronaut-core-reactive-4.2.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.projectreactor/reactor-core/3.5.11/db2299757f562261eb775d13658e86ff06f91e8a/reactor-core-3.5.11.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-symbol-solver-core/3.25.8/b0483fdceab6b14e57064af2e3bde5764e99acca/javaparser-symbol-solver-core-3.25.8.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core-reactive/4.3.6/f430fc8c97d62e44fca5e2269181e796df6b67b9/micronaut-core-reactive-4.3.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.projectreactor/reactor-core/3.6.1/a3be3c85954485cbb3751205fe56fa42ee9efa4c/reactor-core-3.6.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.reactivestreams/reactive-streams/1.0.4/3864a1320d97d7b045f729a326e1e077661f31b7/reactive-streams-1.0.4.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core/4.2.1/a744d64e9e45502780b6628cff2c91d79529c81f/micronaut-core-4.2.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.micronaut/micronaut-core/4.3.6/4c6c873a8baf3f36a078ab765eb2ab9d171b96e1/micronaut-core-4.3.6.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.persistence/jakarta.persistence-api/3.1.0/66901fa1c373c6aff65c13791cc11da72060a8d6/jakarta.persistence-api-3.1.0.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.9/7cf2726fdcfbc8610f9a71fb3ed639871f315340/slf4j-api-2.0.9.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.12/48f109a2a6d8f446c794f3e3fa0d86df0cdfa312/slf4j-api-2.0.12.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.validation/jakarta.validation-api/3.0.2/92b6631659ba35ca09e44874d3eb936edfeee532/jakarta.validation-api-3.0.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-commons/9.6/f1a9e5508eff490744144565c47326c8648be309/asm-commons-9.6.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm-tree/9.6/c0cdda9d211e965d2a4448aa3fd86110f2f8c2de/asm-tree-9.6.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.6/aa205cf0a06dbd8e04ece91c0b37c3f5d567546a/asm-9.6.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/jakarta.inject/jakarta.inject-api/2.0.1/4c28afe1991a941d7702fe1362c365f0a8641d1e/jakarta.inject-api-2.0.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.6/5e058bea33f92e5dd6f41f86066009cd56250452/javaparser-core-3.25.6.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.8/15a9581d0fe18fceafce4f1b7c419732a743508c/javaparser-core-3.25.8.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
       </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.7.3/149e66e4b2ca1fe1c38f4b527dacec2aa9dd6b27/quarkus-extension-processor-3.7.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.15.3/f6e1d8a8819f854b681c8eaa57fd59a42329e10c/jsoup-1.15.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.8/15a9581d0fe18fceafce4f1b7c419732a743508c/javaparser-core-3.25.8.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.16.1/fd441d574a71e7d10a4f73de6609f881d8cdfeec/jackson-annotations-2.16.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.16.1/9456bb3cdd0f79f91a5f730a1b1bb041a380c91f/jackson-core-2.16.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.16.1/2a16efeb840c45af1e2f31753dfe76795278b73/jackson-databind-2.16.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-bootstrap-app-model/3.7.3/b303bc056f070757c0ddfc56bb1a417182be6416/quarkus-bootstrap-app-model-3.7.3.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr.main" />
+        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.2.2/98ac015b303a2a7dafc0672b9e27fcac869abfa1/spring-boot-autoconfigure-processor-3.2.2.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.2.2/cdf33f985035494cb3ea6f9e5d6589ba9fb58e91/spring-boot-configuration-processor-3.2.2.jar" />
+        </processorPath>
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17">
+      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" target="11" />
+      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.test" target="11" />
+      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" target="11" />
+      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-jackson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch.main" target="1.8" />

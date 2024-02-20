@@ -1,0 +1,17 @@
+---
+name: "JobRunr Extension"
+metadata:
+  short-name: "jobrunr"
+  keywords:
+    - "jobrunr"
+    - "scheduler"
+    - "cron"
+    - "distributed background jobs"
+  guide: "https://www.jobrunr.io/en/documentation/configuration/quarkus/"
+  categories:
+    - "miscellaneous"
+  status: "preview"
+  description: "Integrates JobRunr, a distributed background job scheduler"
+  extension-dependencies:
+    - "io.quarkus:quarkus-arc"
+    - "io.quarkus:quarkus-core"
