@@ -59,8 +59,8 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.15.2/a6fe1836469a69b3ff66037c324d75fc66ef137c/jackson-core-2.15.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.15.2/9353b021f10c307c00328f52090de2bdb4b6ff9c/jackson-databind-2.15.2.jar" />
         </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
-        <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
+        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" />
+        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -80,6 +80,8 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17">
+      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" target="11" />
+      <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-jackson.test" target="11" />
       <module name="JobRunr.tests.e2e-json-gson.test" target="11" />
