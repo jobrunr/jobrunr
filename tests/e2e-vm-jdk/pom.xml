@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>or.jobrunr.jdk</groupId>
+    <groupId>org.jobrunr.jdk</groupId>
     <artifactId>jdk-testing</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -25,6 +25,18 @@
             </properties>
         </profile>
         <profile>
+            <id>jdk-11</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>11</maven.compiler.source>
+                <maven.compiler.target>11</maven.compiler.target>
+                <maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
+            </properties>
+        </profile>
+        <profile>
             <id>jdk-17</id>
             <activation>
                 <jdk>17</jdk>
@@ -33,6 +45,17 @@
                 <maven.compiler.source>17</maven.compiler.source>
                 <maven.compiler.target>17</maven.compiler.target>
                 <maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
+            </properties>
+        </profile>
+        <profile>
+            <id>jdk-21</id>
+            <activation>
+                <jdk>21</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>21</maven.compiler.source>
+                <maven.compiler.target>21</maven.compiler.target>
+                <maven.compiler.compilerVersion>21</maven.compiler.compilerVersion>
             </properties>
         </profile>
     </profiles>
