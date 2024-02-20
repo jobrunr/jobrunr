@@ -8,7 +8,7 @@ version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 
 dependencies {
     constraints {
-        api 'org.slf4j:slf4j-api:2.0.9'
+        api 'org.slf4j:slf4j-api:2.0.12'
         api 'org.ow2.asm:asm:9.6'
         api 'org.ow2.asm:asm-util:9.6'
 
@@ -47,7 +47,7 @@ dependencies {
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.38.0'
         api 'org.mockito:mockito-inline:5.2.0'
         api 'org.mockito:mockito-junit-jupiter:5.8.0'
-        api 'ch.qos.logback:logback-classic:1.4.14'
+        api 'ch.qos.logback:logback-classic:1.5.0'
         api 'org.testcontainers:testcontainers:1.19.5'
         api 'org.testcontainers:junit-jupiter:1.19.5'
         api 'org.testcontainers:jdbc:1.19.5'
