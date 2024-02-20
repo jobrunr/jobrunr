@@ -38,7 +38,7 @@ public class JavaJobDetailsBuilder extends JobDetailsBuilder {
     private static boolean isPrimitiveLongOrDouble(int implMethodKind, Class<?>[] paramTypesFromDescriptor, int captureArgCounter, Object capturedArg) {
         if (MethodHandleInfo.REF_invokeStatic == implMethodKind) {
             return isPrimitiveLongOrDouble(paramTypesFromDescriptor[captureArgCounter], capturedArg);
-        } else if (MethodHandleInfo.REF_invokeSpecial == implMethodKind) {
+        } else if (MethodHandleInfo.REF_invokeVirtual == implMethodKind || MethodHandleInfo.REF_invokeSpecial == implMethodKind || MethodHandleInfo.REF_invokeInterface == implMethodKind) {
             return captureArgCounter > 0 && isPrimitiveLongOrDouble(paramTypesFromDescriptor[captureArgCounter - 1], capturedArg);
         }
         return false;
