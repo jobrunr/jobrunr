@@ -28,7 +28,7 @@ dependencies {
         api 'com.oracle.database.jdbc:ojdbc8:23.3.0.23.09'
         api 'org.mariadb.jdbc:mariadb-java-client:3.3.1'
         api 'mysql:mysql-connector-java:8.0.33'
-        api 'com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre8'
+        api 'com.microsoft.sqlserver:mssql-jdbc:12.6.0.jre8'
         api 'com.ibm.db2:jcc:11.5.9.0'
         api 'com.zaxxer:HikariCP:5.1.0'
         api 'io.agroal:agroal-pool:2.3'
