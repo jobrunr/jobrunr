@@ -98,6 +98,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         dependsOn test
         reports {
             xml.required = true
+            xml.destination = file("/tmp/reports/$project.name/jacocoTestCoverage.xml")
             csv.required = false
             html.required = false
         }
@@ -108,6 +109,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             property "sonar.sourceEncoding", "UTF-8"
             property "sonar.projectKey", "jobrunr_jobrunr"
             property "sonar.organization", "jobrunr"
+            property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
         }
     }
 
