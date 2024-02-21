@@ -97,9 +97,9 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     jacocoTestReport {
         dependsOn test
         reports {
-            xml {
-                enabled true
-            }
+            xml.required = true
+            csv.required = false
+            html.required = false
         }
     }
 
