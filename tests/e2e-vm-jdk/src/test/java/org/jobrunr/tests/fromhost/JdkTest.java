@@ -19,44 +19,51 @@ class JdkTest {
 
     @Test
     void jdk8OpenJdk() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot", "52.0")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11OpenJdk() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-hotspot")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage("adoptopenjdk:11-jdk-hotspot", "55.0")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk17OpenJDK() {
-        assertThat(buildAndTestOnImage(("aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64") + "/openjdk:17"))
+        assertThat(buildAndTestOnImage(architecture() + "/openjdk:17", "61.0"))
                 .contains("BUILD SUCCESS")
                 .contains("ThreadManager of type 'ScheduledThreadPool' started");
     }
 
     @Test
     void jdk21EclipseTemurin() {
-        assertThat(buildAndTestOnImage("eclipse-temurin:21"))
+        assertThat(buildAndTestOnImage("eclipse-temurin:21", "65.0"))
                 .contains("BUILD SUCCESS")
                 .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
     @Test
     void jdk21GraalVM() {
-        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-community:21"))
+        assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-community:21", "65.0"))
                 .contains("BUILD SUCCESS")
                 .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
-    private String buildAndTestOnImage(String dockerfile) {
+    private String buildAndTestOnImage(String dockerfile, String javaClassVersion) {
         final MavenBuildAndTestContainer buildAndTestContainer = new MavenBuildAndTestContainer(dockerfile);
         try {
             buildAndTestContainer
                     .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
+                    .withEnv("JAVA_CLASS_VERSION", javaClassVersion)
                     .withStartupTimeout(Duration.ofMinutes(2))
                     .start();
         } finally {
-            return buildAndTestContainer.getLogs();
+            String logs = buildAndTestContainer.getLogs();
+            //System.out.println(logs);
+            return logs;
         }
+    }
+
+    private static String architecture() {
+        return "aarch64".equals(getProperty("os.arch")) ? "arm64v8" : "amd64";
     }
 }
