@@ -95,7 +95,6 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     jacocoTestReport {
-        dependsOn test
         reports {
             xml.required = true
             xml.destination = file("/tmp/reports/$project.name/jacocoTestCoverage.xml")
