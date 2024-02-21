@@ -7,9 +7,9 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.utils.JarUtils;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.JarUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.io.File;

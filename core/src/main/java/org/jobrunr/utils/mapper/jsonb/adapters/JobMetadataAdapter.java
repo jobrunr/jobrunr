@@ -1,13 +1,23 @@
 package org.jobrunr.utils.mapper.jsonb.adapters;
 
-import jakarta.json.*;
+import jakarta.json.Json;
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static jakarta.json.JsonValue.ValueType.*;
+import static jakarta.json.JsonValue.ValueType.ARRAY;
+import static jakarta.json.JsonValue.ValueType.FALSE;
+import static jakarta.json.JsonValue.ValueType.NUMBER;
+import static jakarta.json.JsonValue.ValueType.OBJECT;
+import static jakarta.json.JsonValue.ValueType.STRING;
+import static jakarta.json.JsonValue.ValueType.TRUE;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
