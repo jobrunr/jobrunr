@@ -19,7 +19,7 @@ class JdkTest {
 
     @Test
     void jdk8OpenJdk() {
-        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot", "51.0")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage("adoptopenjdk:8-jdk-hotspot", "52.0")).contains("BUILD SUCCESS");
     }
 
     @Test
