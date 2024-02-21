@@ -123,7 +123,7 @@ class E2EJDKTest {
     }
 
     @Test
-    void replicatingJobRunrIssue() {
+    void usingLambdaWithInvokeVirtualOnJava17AndHigher() {
         testService.run();
 
         await()
