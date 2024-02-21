@@ -9,8 +9,11 @@ Open and free for commercial use.  <br/>
 Recommended and <a href="https://www.thoughtworks.com/radar/languages-and-frameworks/jobrunr">loved by ThoughtWorks</a>.
 </p>  
 <br/>
+=======
+# jobsprintr
 
-
+> [!NOTE]
+> This is a fork of https://github.com/d1hq/jobsprintr
 
 <p align="center">
     <a href="https://search.maven.org/artifact/org.jobrunr/jobrunr"><img src="https://maven-badges.herokuapp.com/maven-central/org.jobrunr/jobrunr/badge.svg"></a>&nbsp;
@@ -181,13 +184,11 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 * Answer questions on [issues](https://github.com/jobrunr/jobrunr/issues).
 * Fix bugs reported on [issues](https://github.com/jobrunr/jobrunr/issues), and send us pull request.
 
-### How to build?
-* `git clone https://github.com/jobrunr/jobrunr.git`
-* `cd jobrunr`
+## How to build?
+* `cd jobsprintr`
 * `cd core/src/main/resources/org/jobrunr/dashboard/frontend`
 * `npm i`
 * `npm run build`
 * `cd -`
 * `./gradlew publishToMavenLocal`
 
-Then, in your own project you can depend on `org.jobrunr:jobrunr:1.0.0-SNAPSHOT`.
