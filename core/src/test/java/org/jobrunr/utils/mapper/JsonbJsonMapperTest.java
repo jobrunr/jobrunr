@@ -25,4 +25,9 @@ public class JsonbJsonMapperTest extends AbstractJsonMapperTest {
     @Disabled("JsonB does not know type in actual list")
     void testCanSerializeCollections() {
     }
+
+    @Test
+    @Disabled("https://github.com/eclipse-ee4j/yasson/issues/641")
+    void testCanSerializeEnums() {
+    }
 }
