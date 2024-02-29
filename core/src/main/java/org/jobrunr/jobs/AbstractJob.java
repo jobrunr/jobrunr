@@ -13,7 +13,7 @@ import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 public abstract class AbstractJob implements Lockable {
 
     private static final int MAX_AMOUNT_OF_LABELS = 8;
-    private static final int MAX_LABEL_LENGTH = 10;
+    private static final int MAX_LABEL_LENGTH = 100;
     private final transient Lock locker;
 
     private volatile int version;
