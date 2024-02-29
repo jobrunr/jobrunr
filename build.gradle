@@ -35,6 +35,7 @@ tasks.named("dependencyUpdates").configure {
 configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'java'
     apply plugin: 'idea'
+    apply plugin: 'eclipse'
     apply plugin: 'jacoco'
 
     compileJava {
