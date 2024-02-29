@@ -80,8 +80,8 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-spring-boot-3-starter'
+            groupId = 'org.jobsprintr'
+            artifactId = 'jobsprintr-spring-boot-3-starter'
             version = project.version
             from components.java
 
