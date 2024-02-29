@@ -14,7 +14,16 @@
 ## Setup local development environmnt
 Build eclipse files - import to Eclipse
 * `./gradlew eclipse`
+
 Build without testing
 * `./gradlew assemble`
+
 Publish to local repository
 * `./gradlew publishToMavenLocal`
+
+## Add changes from jobrunr
+```bash
+git remote add upstream git@github.com:jobrunr/jobrunr.git
+git fetch upstream
+git merge upstream/master
+```
