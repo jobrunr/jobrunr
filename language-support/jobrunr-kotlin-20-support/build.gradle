@@ -46,8 +46,8 @@ compileTestKotlin {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-kotlin-2.0-support'
+            groupId = 'org.jobsprintr'
+            artifactId = 'jobsprintr-kotlin-2.0-support'
             version = project.version
             from components.java
 

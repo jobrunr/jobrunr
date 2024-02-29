@@ -64,8 +64,8 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-bom'
+            groupId = 'org.jobsprintr'
+            artifactId = 'jobsprintr-bom'
             version = project.version
             from components.javaPlatform
 

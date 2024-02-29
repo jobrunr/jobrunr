@@ -76,8 +76,8 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-micronaut-feature'
+            groupId = 'org.jobsprintr'
+            artifactId = 'jobsprintr-micronaut-feature'
             version = project.version
             from components.java
 

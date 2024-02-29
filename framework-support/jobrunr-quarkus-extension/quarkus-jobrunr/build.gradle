@@ -82,8 +82,8 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'org.jobrunr'
-            artifactId = 'quarkus-jobrunr'
+            groupId = 'org.jobsprintr'
+            artifactId = 'quarkus-jobsprintr'
             version = project.version
             from components.java
 

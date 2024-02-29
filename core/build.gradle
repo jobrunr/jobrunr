@@ -173,8 +173,8 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'org.jobrunr'
-            artifactId = 'jobrunr'
+            groupId = 'org.jobsprintr'
+            artifactId = 'jobsprintr'
             version = project.version
             from components.java
 
