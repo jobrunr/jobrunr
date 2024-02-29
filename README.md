@@ -11,3 +11,10 @@
 * `cd -`
 * `./gradlew publishToMavenLocal`
 
+## Setup local development environmnt
+Build eclipse files - import to Eclipse
+* `./gradlew eclipse`
+Build without testing
+* `./gradlew assemble`
+Publish to local repository
+* `./gradlew publishToMavenLocal`
