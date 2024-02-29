@@ -171,3 +171,10 @@ dependency-check-bin
 dependency-check-reports
 package-lock.json
 /renovate.js
+
+# Eclipse
+**/.classpath
+**/.project
+**/.settings
+
+**/bin/
