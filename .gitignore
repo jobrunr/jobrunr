@@ -170,3 +170,10 @@ yarn-error.log*
 dependency-check-bin
 dependency-check-reports
 /renovate.js
+
+# Eclipse
+**/.classpath
+**/.project
+**/.settings
+
+**/bin/

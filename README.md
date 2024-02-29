@@ -192,3 +192,10 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 * `cd -`
 * `./gradlew publishToMavenLocal`
 
+## Setup local development environmnt
+Build eclipse files - import to Eclipse
+* `./gradlew eclipse`
+Build without testing
+* `./gradlew assemble`
+Publish to local repository
+* `./gradlew publishToMavenLocal`
