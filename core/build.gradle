@@ -221,6 +221,16 @@ publishing {
                     }
                 }
             }
+            repositories {
+                maven {
+                    name 'custom'
+                    url "$CUSTOM_REPO_URL"
+                    credentials {
+                        username = "$CUSTOM_REPO_USER"
+                        password = "$CUSTOM_REPO_PASSWORD"
+                    }
+                }    
+            }            
         }
     }
 }
