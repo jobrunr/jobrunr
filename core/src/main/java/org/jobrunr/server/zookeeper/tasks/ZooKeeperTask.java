@@ -43,8 +43,11 @@ public abstract class ZooKeeperTask {
     public void run(ZooKeeperTaskInfo runInfo) {
         try {
             this.runInfo = runInfo;
-            if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
-            runTask();
+            if (pollIntervalInSecondsTimeBoxIsAboutToPass()) {
+                LOGGER.info("Poll interval time box is about to pass. Skipping this run.");
+            } else {
+                runTask();
+            }
         } finally {
             this.runInfo = null;
         }
