@@ -48,10 +48,11 @@ public class ZooKeeperStatistics {
             LOGGER.debug("JobZooKeeper run took {}", actualRunDuration);
             runTookToLongCounter = 0;
         } else {
-            LOGGER.debug("JobZooKeeper run took {} (while pollIntervalInSeconds is {})", actualRunDuration, pollIntervalInSeconds);
             if (runTookToLongCounter < 2) {
+                LOGGER.info("JobZooKeeper run took {} which exceeded the pollIntervalInSeconds of {} for {} times.", actualRunDuration, pollIntervalInSeconds, runTookToLongCounter + 1);
                 runTookToLongCounter++;
             } else {
+                LOGGER.warn("JobZooKeeper run took {} which exceeded the pollIntervalInSeconds of {} for {} times. Notifying dashboard.", actualRunDuration, pollIntervalInSeconds, runTookToLongCounter + 1);
                 dashboardNotificationManager.notify(new PollIntervalInSecondsTimeBoxIsTooSmallNotification(runIndex, pollIntervalInSeconds, runStartTime, (int) actualRunDuration.getSeconds()));
                 runTookToLongCounter = 0;
             }
