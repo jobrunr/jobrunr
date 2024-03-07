@@ -10,7 +10,7 @@ import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
-public class ProcessScheduledJobsTask extends JobZooKeeperTask {
+public class ProcessScheduledJobsTask extends AbstractJobZooKeeperTask {
 
     private final int pageRequestSize;
 

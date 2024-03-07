@@ -5,7 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 
 import static java.time.Instant.now;
 
-public class DeleteDeletedJobsPermanentlyTask extends JobZooKeeperTask {
+public class DeleteDeletedJobsPermanentlyTask extends AbstractJobZooKeeperTask {
 
     public DeleteDeletedJobsPermanentlyTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);

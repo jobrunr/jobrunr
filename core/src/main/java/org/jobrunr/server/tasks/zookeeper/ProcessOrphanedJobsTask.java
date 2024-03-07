@@ -11,7 +11,7 @@ import static java.util.Collections.emptyList;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
-public class ProcessOrphanedJobsTask extends JobZooKeeperTask {
+public class ProcessOrphanedJobsTask extends AbstractJobZooKeeperTask {
 
     private final int pageRequestSize;
     private final Duration serverTimeoutDuration;

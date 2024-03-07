@@ -14,6 +14,7 @@ import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
@@ -97,9 +98,12 @@ class BackgroundJobServerTest {
     void backgroundJobServerWaitsForMigrationBeforeBeingAnnounced() {
         doAnswer(invocation -> {
             // simulate long during migration
-            sleep(5, SECONDS);
+            JobRunrMetadata metadata = invocation.getArgument(0);
+            if("database_version".equals(metadata.getName()) && "6.0.0".equals(metadata.getValue())) {
+                sleep(5, SECONDS);
+            }
             return invocation.callRealMethod();
-        }).when(storageProvider).getMetadata("succeeded-jobs-counter");
+        }).when(storageProvider).saveMetadata(any());
 
         // WHEN
         backgroundJobServer.start();

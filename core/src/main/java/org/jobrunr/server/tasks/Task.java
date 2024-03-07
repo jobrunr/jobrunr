@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public abstract class Task {
@@ -73,12 +72,6 @@ public abstract class Task {
         }
     }
 
-    protected <T> List<T> getItemsToProcess(Function<List<T>, List<T>> jobListSupplier, List<T> previousItemsToProcess) {
-        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return emptyList();
-        return jobListSupplier.apply(previousItemsToProcess);
-    }
-
-
     protected BackgroundJobServerConfigurationReader backgroundJobServerConfiguration() {
         return runInfo.getBackgroundJobServerConfiguration();
     }
@@ -87,7 +80,7 @@ public abstract class Task {
         return runInfo.getRunStartTime();
     }
 
-    private boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
+    protected boolean pollIntervalInSecondsTimeBoxIsAboutToPass() {
         return runInfo.pollIntervalInSecondsTimeBoxIsAboutToPass();
     }
 }

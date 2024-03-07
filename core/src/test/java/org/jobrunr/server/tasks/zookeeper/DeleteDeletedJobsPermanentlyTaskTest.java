@@ -1,6 +1,6 @@
 package org.jobrunr.server.tasks.zookeeper;
 
-import org.jobrunr.server.tasks.AbstractZooKeeperTaskTest;
+import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-class DeleteDeletedJobsPermanentlyTaskTest extends AbstractZooKeeperTaskTest {
+class DeleteDeletedJobsPermanentlyTaskTest extends AbstractTaskTest {
 
     DeleteDeletedJobsPermanentlyTask task;
 

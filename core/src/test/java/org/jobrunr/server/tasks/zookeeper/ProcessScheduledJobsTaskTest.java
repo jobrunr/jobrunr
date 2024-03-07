@@ -1,7 +1,7 @@
 package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.tasks.AbstractZooKeeperTaskTest;
+import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ProcessScheduledJobsTaskTest extends AbstractZooKeeperTaskTest {
+class ProcessScheduledJobsTaskTest extends AbstractTaskTest {
 
     ProcessScheduledJobsTask task;
 

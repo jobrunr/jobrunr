@@ -7,6 +7,7 @@ import org.jobrunr.server.tasks.TaskStatistics;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -15,11 +16,13 @@ import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public abstract class JobHandler implements Runnable {
 
+    private final Logger LOGGER;
     private final BackgroundJobServer backgroundJobServer;
     private final TaskStatistics taskStatistics;
     private final List<Task> tasks;
 
     public JobHandler(BackgroundJobServer backgroundJobServer, Task... tasks) {
+        this.LOGGER = LoggerFactory.getLogger(this.getClass());
         this.backgroundJobServer = backgroundJobServer;
         this.taskStatistics = new TaskStatistics(backgroundJobServer.getDashboardNotificationManager());
         this.tasks = asList(tasks);
@@ -36,13 +39,13 @@ public abstract class JobHandler implements Runnable {
             taskStatistics.handleException(e);
             if (taskStatistics.hasTooManyExceptions()) {
                 if (e instanceof StorageException) {
-                    logger().error("FATAL - JobRunr encountered too many storage exceptions. Shutting down. Did you know JobRunr Pro has built-in database fault tolerance? Check out https://www.jobrunr.io/en/documentation/pro/database-fault-tolerance/", e);
+                    LOGGER.error("FATAL - JobRunr encountered too many storage exceptions. Shutting down. Did you know JobRunr Pro has built-in database fault tolerance? Check out https://www.jobrunr.io/en/documentation/pro/database-fault-tolerance/", e);
                 } else {
-                    logger().error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
+                    LOGGER.error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
                 }
                 backgroundJobServer.stop();
             } else {
-                logger().warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);
+                LOGGER.warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);
             }
         }
     }
@@ -54,6 +57,4 @@ public abstract class JobHandler implements Runnable {
     protected <T extends Task> T getTaskOfType(Class<T> clazz) {
         return StreamUtils.ofType(tasks, clazz).findFirst().orElseThrow(() -> new IllegalStateException("Unknown task of type " + clazz.getName()));
     }
-
-    protected abstract Logger logger();
 }

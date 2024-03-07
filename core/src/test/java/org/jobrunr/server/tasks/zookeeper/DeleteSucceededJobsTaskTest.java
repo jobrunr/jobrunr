@@ -1,7 +1,7 @@
 package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.tasks.AbstractZooKeeperTaskTest;
+import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DeleteSucceededJobsTaskTest extends AbstractZooKeeperTaskTest {
+class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
 
     DeleteSucceededJobsTask task;
 

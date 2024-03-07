@@ -3,7 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.server.tasks.AbstractZooKeeperTaskTest;
+import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ProcessRecurringJobsTaskTest extends AbstractZooKeeperTaskTest {
+class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
     ProcessRecurringJobsTask task;
 

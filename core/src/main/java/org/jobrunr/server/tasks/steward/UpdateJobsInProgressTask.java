@@ -5,7 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 
 import java.util.ArrayList;
 
-public class UpdateJobsInProgressTask extends JobStewardTask {
+public class UpdateJobsInProgressTask extends AbstractJobStewardTask {
 
     public UpdateJobsInProgressTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);

@@ -14,7 +14,7 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 
-public class ProcessRecurringJobsTask extends JobZooKeeperTask {
+public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private final Map<String, Instant> recurringJobRuns;
     private RecurringJobsResult recurringJobs;

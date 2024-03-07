@@ -9,12 +9,13 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.streams.StreamUtils.consumerToFunction;
 
-public abstract class JobZooKeeperTask extends Task {
+public abstract class AbstractJobZooKeeperTask extends Task {
 
-    protected JobZooKeeperTask(BackgroundJobServer backgroundJobServer) {
+    protected AbstractJobZooKeeperTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
     }
 
@@ -37,5 +38,10 @@ public abstract class JobZooKeeperTask extends Task {
         List<Job> jobs = items.stream().map(toJobsFunction).flatMap(List::stream).filter(Objects::nonNull).collect(toList());
         saveAndRunJobFilters(jobs);
         amountOfProcessedJobsConsumer.accept(jobs.size());
+    }
+
+    protected <T> List<T> getItemsToProcess(Function<List<T>, List<T>> jobListSupplier, List<T> previousItemsToProcess) {
+        if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return emptyList();
+        return jobListSupplier.apply(previousItemsToProcess);
     }
 }

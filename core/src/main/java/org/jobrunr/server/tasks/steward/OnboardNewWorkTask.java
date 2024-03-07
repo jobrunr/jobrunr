@@ -8,7 +8,7 @@ import org.jobrunr.storage.navigation.AmountRequest;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class OnboardNewWorkTask extends JobStewardTask {
+public class OnboardNewWorkTask extends AbstractJobStewardTask {
 
     private final ReentrantLock reentrantLock;
     private final WorkDistributionStrategy workDistributionStrategy;

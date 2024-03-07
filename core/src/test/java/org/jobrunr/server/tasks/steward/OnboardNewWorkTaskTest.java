@@ -1,7 +1,7 @@
 package org.jobrunr.server.tasks.steward;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.tasks.AbstractZooKeeperTaskTest;
+import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class OnboardNewWorkTaskTest extends AbstractZooKeeperTaskTest {
+class OnboardNewWorkTaskTest extends AbstractTaskTest {
 
     OnboardNewWorkTask task;
 

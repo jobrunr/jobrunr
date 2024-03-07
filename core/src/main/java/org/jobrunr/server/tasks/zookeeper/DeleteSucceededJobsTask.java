@@ -11,7 +11,7 @@ import static java.util.Collections.emptyList;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
-public class DeleteSucceededJobsTask extends JobZooKeeperTask {
+public class DeleteSucceededJobsTask extends AbstractJobZooKeeperTask {
 
     private final int pageRequestSize;
 

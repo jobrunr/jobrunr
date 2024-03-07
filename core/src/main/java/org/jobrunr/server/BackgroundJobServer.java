@@ -359,15 +359,15 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    private ServerZooKeeper createServerZooKeeper() {
+    protected ServerZooKeeper createServerZooKeeper() {
         return new ServerZooKeeper(this);
     }
 
-    private JobSteward createJobSteward() {
+    protected JobSteward createJobSteward() {
         return new JobSteward(this);
     }
 
-    private ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
+    protected ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
         return getConfiguration()
                 .getConcurrentJobModificationPolicy()
                 .toConcurrentJobModificationResolver(this);
@@ -383,7 +383,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return false;
     }
 
-    private WorkDistributionStrategy createWorkDistributionStrategy() {
+    protected WorkDistributionStrategy createWorkDistributionStrategy() {
         return configuration.getBackgroundJobServerWorkerPolicy().toWorkDistributionStrategy(this);
     }
 

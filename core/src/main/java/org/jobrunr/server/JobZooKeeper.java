@@ -1,19 +1,16 @@
 package org.jobrunr.server;
 
-import org.jobrunr.server.tasks.zookeeper.JobZooKeeperTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jobrunr.server.tasks.zookeeper.AbstractJobZooKeeperTask;
+import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
+import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
 
+/**
+ * A JobZooKeeper manages is responsible for 1 or more JobZooKeeper Tasks like {@link ProcessScheduledJobsTask} and {@link DeleteSucceededJobsTask}.
+ */
 public class JobZooKeeper extends JobHandler {
 
-    static final Logger LOGGER = LoggerFactory.getLogger(JobZooKeeper.class);
-
-    public JobZooKeeper(BackgroundJobServer backgroundJobServer, JobZooKeeperTask... zooKeeperTasks) {
+    public JobZooKeeper(BackgroundJobServer backgroundJobServer, AbstractJobZooKeeperTask... zooKeeperTasks) {
         super(backgroundJobServer, zooKeeperTasks);
     }
 
-    @Override
-    protected Logger logger() {
-        return LOGGER;
-    }
 }

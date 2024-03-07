@@ -3,7 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.server.LogAllStateChangesFilter;
-import org.jobrunr.server.tasks.AbstractZooKeeperTaskTest;
+import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ProcessOrphanedJobsTaskTest extends AbstractZooKeeperTaskTest {
+class ProcessOrphanedJobsTaskTest extends AbstractTaskTest {
 
     LogAllStateChangesFilter logAllStateChangesFilter;
     ProcessOrphanedJobsTask task;

@@ -4,8 +4,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.tasks.OneOffTaskRunInfo;
 import org.jobrunr.server.tasks.steward.OnboardNewWorkTask;
 import org.jobrunr.server.tasks.steward.UpdateJobsInProgressTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
@@ -13,9 +11,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The JobSteward manages everything related to local jobs (e.g. updating them periodically and fetching new work)
+ */
 public class JobSteward extends JobHandler implements Runnable {
-
-    static final Logger LOGGER = LoggerFactory.getLogger(JobSteward.class);
 
     private final Map<Job, Thread> jobsCurrentlyInProgress;
     private final AtomicInteger occupiedWorkers;
@@ -28,15 +27,6 @@ public class JobSteward extends JobHandler implements Runnable {
         this.jobsCurrentlyInProgress = new ConcurrentHashMap<>();
         this.occupiedWorkers = new AtomicInteger();
         this.onboardNewWorkTask = getTaskOfType(OnboardNewWorkTask.class);
-    }
-
-    @Override
-    protected Logger logger() {
-        return LOGGER;
-    }
-
-    void onboardNewWorkIfPossible() {
-        onboardNewWorkTask.run(new OneOffTaskRunInfo(backgroundJobServerConfiguration()));
     }
 
     public void startProcessing(Job job, Thread thread) {
