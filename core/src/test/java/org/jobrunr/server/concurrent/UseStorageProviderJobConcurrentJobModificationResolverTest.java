@@ -1,7 +1,7 @@
 package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,11 +15,15 @@ import java.time.Instant;
 import java.util.stream.Stream;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class UseStorageProviderJobConcurrentJobModificationResolverTest {
@@ -27,18 +31,18 @@ class UseStorageProviderJobConcurrentJobModificationResolverTest {
     private UseStorageProviderJobConcurrentJobModificationResolver concurrentJobModificationResolver;
 
     @Mock
-    private JobZooKeeper jobZooKeeper;
+    private JobSteward jobSteward;
 
     @BeforeEach
     void setUp() {
-        concurrentJobModificationResolver = new UseStorageProviderJobConcurrentJobModificationResolver(jobZooKeeper);
+        concurrentJobModificationResolver = new UseStorageProviderJobConcurrentJobModificationResolver(jobSteward);
     }
 
     @ParameterizedTest
     @MethodSource("getJobsInDifferentStates")
     void concurrentStateChangeFromSucceededFailedOrScheduledToDeletedIsAllowed(Job localJob, Job storageProviderJob) {
         final Thread jobThread = mock(Thread.class);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(jobThread);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(jobThread);
 
         concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(localJob));
 

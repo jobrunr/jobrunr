@@ -1,9 +1,8 @@
 package org.jobrunr.server.configuration;
 
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UseStorageProviderJobConcurrentJobModificationResolver;
-import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 
 /**
@@ -17,8 +16,8 @@ import org.jobrunr.utils.annotations.Beta;
 public class UseStorageProviderJobConcurrentJobModificationResolverPolicy implements ConcurrentJobModificationPolicy {
 
     @Override
-    public ConcurrentJobModificationResolver toConcurrentJobModificationResolver(StorageProvider storageProvider, JobZooKeeper jobZooKeeper) {
-        return new UseStorageProviderJobConcurrentJobModificationResolver(jobZooKeeper);
+    public ConcurrentJobModificationResolver toConcurrentJobModificationResolver(BackgroundJobServer backgroundJobServer) {
+        return new UseStorageProviderJobConcurrentJobModificationResolver(backgroundJobServer.getJobSteward());
     }
 
 }

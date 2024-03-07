@@ -44,7 +44,7 @@ class BackgroundJobPerformerTest {
     @Mock
     private StorageProvider storageProvider;
     @Mock
-    private JobZooKeeper jobZooKeeper;
+    private JobSteward jobSteward;
 
     private LogAllStateChangesFilter logAllStateChangesFilter;
 
@@ -53,7 +53,7 @@ class BackgroundJobPerformerTest {
         logAllStateChangesFilter = new LogAllStateChangesFilter();
 
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
-        when(backgroundJobServer.getJobZooKeeper()).thenReturn(jobZooKeeper);
+        when(backgroundJobServer.getJobSteward()).thenReturn(jobSteward);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters(logAllStateChangesFilter));
     }
 
@@ -63,7 +63,8 @@ class BackgroundJobPerformerTest {
                 .withProcessingState(backgroundJobServer.getConfiguration().getId())
                 .build();
 
-        mockBackgroundJobRunner(job, jobFromStorage -> {});
+        mockBackgroundJobRunner(job, jobFromStorage -> {
+        });
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(backgroundJobPerformer);
@@ -80,7 +81,8 @@ class BackgroundJobPerformerTest {
     void onStartIfJobIsNotProcessingByStorageProviderItGoesToProcessingAndThenSucceeded() throws Exception {
         Job job = anEnqueuedJob().build();
 
-        mockBackgroundJobRunner(job, jobFromStorage -> {});
+        mockBackgroundJobRunner(job, jobFromStorage -> {
+        });
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(backgroundJobPerformer);

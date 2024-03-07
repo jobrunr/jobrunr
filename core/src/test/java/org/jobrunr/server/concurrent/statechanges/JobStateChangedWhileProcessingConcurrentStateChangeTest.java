@@ -2,7 +2,7 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.SucceededState;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,11 +23,11 @@ class JobStateChangedWhileProcessingConcurrentStateChangeTest {
     JobStateChangedWhileProcessingConcurrentStateChange allowedStateChange;
 
     @Mock
-    private JobZooKeeper jobZooKeeper;
+    private JobSteward jobSteward;
 
     @BeforeEach
     public void setUp() {
-        allowedStateChange = new JobStateChangedWhileProcessingConcurrentStateChange(jobZooKeeper);
+        allowedStateChange = new JobStateChangedWhileProcessingConcurrentStateChange(jobSteward);
     }
 
     @Test
@@ -44,7 +44,7 @@ class JobStateChangedWhileProcessingConcurrentStateChangeTest {
         final Job localJob = aJobInProgress().withVersion(2).build();
         final Job storageProviderJob = aCopyOf(localJob).withVersion(3).build();
 
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(null);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(null);
 
         boolean matchesAllowedStateChange = allowedStateChange.matches(localJob, storageProviderJob);
         assertThat(matchesAllowedStateChange).isFalse();
@@ -56,7 +56,7 @@ class JobStateChangedWhileProcessingConcurrentStateChangeTest {
         final Job storageProviderJob = aCopyOf(localJob).withVersion(3).withState(new SucceededState(ofMillis(10), ofMillis(6))).build();
 
         final Thread jobThread = mock(Thread.class);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(jobThread);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(jobThread);
 
         boolean matchesAllowedStateChange = allowedStateChange.matches(localJob, storageProviderJob);
         assertThat(matchesAllowedStateChange).isFalse();
@@ -67,7 +67,7 @@ class JobStateChangedWhileProcessingConcurrentStateChangeTest {
         final Job localJob = aJobInProgress().withVersion(2).build();
         final Job storageProviderJob = aCopyOf(localJob).withVersion(3).withState(new SucceededState(ofMillis(10), ofMillis(6))).build();
 
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(null);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(null);
 
         boolean matchesAllowedStateChange = allowedStateChange.matches(localJob, storageProviderJob);
         assertThat(matchesAllowedStateChange).isTrue();
@@ -78,7 +78,7 @@ class JobStateChangedWhileProcessingConcurrentStateChangeTest {
         final Job localJob = aJobInProgress().withVersion(2).build();
         final Job storageProviderJob = aCopyOf(localJob).withVersion(3).withState(new SucceededState(ofMillis(10), ofMillis(6))).build();
 
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(null);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(null);
 
         boolean matchesAllowedStateChange = allowedStateChange.matches(localJob, storageProviderJob);
         assertThat(matchesAllowedStateChange).isTrue();

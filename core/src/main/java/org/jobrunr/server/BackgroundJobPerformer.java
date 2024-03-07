@@ -41,7 +41,7 @@ public class BackgroundJobPerformer implements Runnable {
     @Override
     public void run() {
         try {
-            backgroundJobServer.getJobZooKeeper().notifyThreadOccupied();
+            backgroundJobServer.getJobSteward().notifyThreadOccupied();
             MDCMapper.loadMDCContextFromJob(job);
             performJob();
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public class BackgroundJobPerformer implements Runnable {
                 updateJobStateToFailedAndRunJobFilters("An exception occurred during the performance of the job", e);
             }
         } finally {
-            backgroundJobServer.getJobZooKeeper().notifyThreadIdle();
+            backgroundJobServer.getJobSteward().notifyThreadIdle();
             MDC.clear();
         }
     }
@@ -88,7 +88,7 @@ public class BackgroundJobPerformer implements Runnable {
     private void runActualJob() throws Exception {
         try {
             JobRunrDashboardLogger.setJob(job);
-            backgroundJobServer.getJobZooKeeper().startProcessing(job, Thread.currentThread());
+            backgroundJobServer.getJobSteward().startProcessing(job, Thread.currentThread());
             LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
             jobPerformingFilters.runOnJobProcessingFilters();
             BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
@@ -98,7 +98,7 @@ public class BackgroundJobPerformer implements Runnable {
             jobPerformingFilters.runOnJobProcessingFailedFilters(e);
             throw e;
         } finally {
-            backgroundJobServer.getJobZooKeeper().stopProcessing(job);
+            backgroundJobServer.getJobSteward().stopProcessing(job);
             JobRunrDashboardLogger.clearJob();
         }
     }

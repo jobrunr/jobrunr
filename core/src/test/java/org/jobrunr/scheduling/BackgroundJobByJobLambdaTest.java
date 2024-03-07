@@ -465,7 +465,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.delete(jobId);
 
         await().atMost(3, SECONDS).untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
         });
     }
@@ -476,7 +476,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.delete(jobId);
 
         await().atMost(3, SECONDS).untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, DELETED);
         });
     }
@@ -489,7 +489,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.delete(jobId);
 
         await().untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
@@ -506,7 +506,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.delete(jobId);
 
         await().untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
@@ -523,7 +523,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.delete(jobId);
 
         await().untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
@@ -540,7 +540,7 @@ public class BackgroundJobByJobLambdaTest {
         BackgroundJob.delete(jobId);
 
         await().untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 

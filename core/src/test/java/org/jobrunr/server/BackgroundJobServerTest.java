@@ -84,7 +84,7 @@ class BackgroundJobServerTest {
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
         logger = LoggerAssert.initFor(backgroundJobServer);
-        jobZooKeeperLogger = LoggerAssert.initFor(backgroundJobServer.getJobZooKeeper());
+        jobZooKeeperLogger = LoggerAssert.initFor(backgroundJobServer.getJobSteward());
     }
 
     @AfterEach

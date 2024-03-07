@@ -2,7 +2,7 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.jobrunr.utils.annotations.Because;
 
@@ -14,17 +14,17 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 @Because("https://github.com/jobrunr/jobrunr/issues/631")
 public class JobStateChangedWhileProcessingConcurrentStateChange implements AllowedConcurrentStateChange {
 
-    private final JobZooKeeper jobZooKeeper;
+    private final JobSteward jobSteward;
 
-    public JobStateChangedWhileProcessingConcurrentStateChange(JobZooKeeper jobZooKeeper) {
-        this.jobZooKeeper = jobZooKeeper;
+    public JobStateChangedWhileProcessingConcurrentStateChange(JobSteward jobSteward) {
+        this.jobSteward = jobSteward;
     }
 
     @Override
     public boolean matches(Job localJob, Job storageProviderJob) {
-        if(storageProviderJob.getVersion() == localJob.getVersion() + 1
+        if (storageProviderJob.getVersion() == localJob.getVersion() + 1
                 && localJob.hasState(PROCESSING) && !storageProviderJob.hasState(PROCESSING)) {
-            return jobZooKeeper.getThreadProcessingJob(localJob) == null;
+            return jobSteward.getThreadProcessingJob(localJob) == null;
         }
         return false;
     }
