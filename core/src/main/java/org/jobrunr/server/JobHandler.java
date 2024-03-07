@@ -27,7 +27,7 @@ public abstract class JobHandler implements Runnable {
 
     @Override
     public void run() {
-        if (backgroundJobServer.isUnAnnounced()) return;
+        if (backgroundJobServer.isNotReadyToProcessJobs()) return;
 
         try (PeriodicTaskRunInfo runInfo = taskStatistics.startRun(backgroundJobServerConfiguration())) {
             tasks.forEach(task -> task.run(runInfo));

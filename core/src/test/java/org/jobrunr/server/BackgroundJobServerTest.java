@@ -56,6 +56,7 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDATE;
+import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
@@ -90,6 +91,31 @@ class BackgroundJobServerTest {
     @AfterEach
     void stopBackgroundJobServer() {
         backgroundJobServer.stop();
+    }
+
+    @Test
+    void backgroundJobServerWaitsForMigrationBeforeBeingAnnounced() {
+        doAnswer(invocation -> {
+            // simulate long during migration
+            sleep(5, SECONDS);
+            return invocation.callRealMethod();
+        }).when(storageProvider).getMetadata("succeeded-jobs-counter");
+
+        // WHEN
+        backgroundJobServer.start();
+
+        // THEN
+        sleep(100, MILLISECONDS);
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
+        assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isTrue();
+
+        // WHEN migration is running
+        await().during(4, SECONDS)
+                .until(() -> backgroundJobServer.isNotReadyToProcessJobs());
+
+        // THEN
+        await().atMost(2, SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isFalse());
     }
 
     @Test

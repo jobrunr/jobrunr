@@ -78,7 +78,7 @@ class JobStewardTest {
     @Test
     void jobZooKeeperDoesNothingIfItIsNotInitialized() {
         reset(storageProvider);
-        when(backgroundJobServer.isUnAnnounced()).thenReturn(true);
+        when(backgroundJobServer.isNotReadyToProcessJobs()).thenReturn(true);
 
         jobSteward.run();
 

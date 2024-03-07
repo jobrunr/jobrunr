@@ -25,8 +25,10 @@ import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
+import org.jobrunr.utils.VersionNumber;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
+import static org.jobrunr.utils.VersionNumber.v;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -70,6 +73,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
+    private volatile VersionNumber dataVersion;
     private volatile ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
@@ -222,6 +226,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    public boolean isNotReadyToProcessJobs() {
+        return !(isAnnounced() && hasDataVersion(v("6.0.0")));
+    }
+
     @Override
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
@@ -363,6 +371,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return getConfiguration()
                 .getConcurrentJobModificationPolicy()
                 .toConcurrentJobModificationResolver(this);
+    }
+
+    private boolean hasDataVersion(VersionNumber expectedVersion) {
+        if (expectedVersion.equals(dataVersion)) return true;
+        JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
+        if (metadata != null) {
+            dataVersion = v(metadata.getValue());
+            return expectedVersion.equals(dataVersion);
+        }
+        return false;
     }
 
     private WorkDistributionStrategy createWorkDistributionStrategy() {
