@@ -29,6 +29,14 @@ task myJavadocs(type: Javadoc) {
     options.links 'https://docs.oracle.com/en/java/javase/11/docs/api/'
 }
 
+task runFrontEndDevelopment(type: JavaExec) {
+    group = "Execution"
+    description = "Run the FrontEnd Development JavaExecTask"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.jobrunr.dashboard.FrontEndDevelopment'
+}
+
+
 dependencies {
     api platform(project(':platform'))
 
@@ -145,7 +153,7 @@ processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
 jar {
-    var asmJar = configurations.compileClasspath.fileCollection {it.group == 'org.ow2.asm' && it.name == 'asm'}.singleFile.name
+    var asmJar = configurations.compileClasspath.fileCollection { it.group == 'org.ow2.asm' && it.name == 'asm' }.singleFile.name
     var asmVersion = asmJar.substring(asmJar.lastIndexOf("-") + 1).replace(".jar", "")
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
