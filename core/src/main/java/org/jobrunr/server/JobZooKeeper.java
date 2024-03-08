@@ -5,7 +5,7 @@ import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
 
 /**
- * A JobZooKeeper manages is responsible for 1 or more JobZooKeeper Tasks like {@link ProcessScheduledJobsTask} and {@link DeleteSucceededJobsTask}.
+ * A JobZooKeeper manages 1 or more JobZooKeeper Tasks like {@link ProcessScheduledJobsTask} and {@link DeleteSucceededJobsTask}.
  */
 public class JobZooKeeper extends JobHandler {
 
