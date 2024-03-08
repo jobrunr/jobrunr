@@ -2,16 +2,16 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 
 public class PermanentlyDeletedWhileProcessingConcurrentStateChange extends AbstractAllowedConcurrentStateChange {
 
-    private final JobZooKeeper jobZooKeeper;
+    private final JobSteward jobSteward;
 
-    public PermanentlyDeletedWhileProcessingConcurrentStateChange(JobZooKeeper jobZooKeeper) {
+    public PermanentlyDeletedWhileProcessingConcurrentStateChange(JobSteward jobSteward) {
         super(null, null);
-        this.jobZooKeeper = jobZooKeeper;
+        this.jobSteward = jobSteward;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class PermanentlyDeletedWhileProcessingConcurrentStateChange extends Abst
     @Override
     public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
         localJob.delete("Job is already deleted in StorageProvider");
-        final Thread threadProcessingJob = jobZooKeeper.getThreadProcessingJob(localJob);
+        final Thread threadProcessingJob = jobSteward.getThreadProcessingJob(localJob);
         if (threadProcessingJob != null) {
             threadProcessingJob.interrupt();
         }

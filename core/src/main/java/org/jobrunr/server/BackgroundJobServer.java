@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
+import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
@@ -12,15 +13,22 @@ import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
-import org.jobrunr.server.tasks.CheckForNewJobRunrVersion;
-import org.jobrunr.server.tasks.CheckIfAllJobsExistTask;
-import org.jobrunr.server.tasks.CreateClusterIdIfNotExists;
-import org.jobrunr.server.tasks.MigrateFromV5toV6Task;
+import org.jobrunr.server.tasks.startup.CheckForNewJobRunrVersion;
+import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
+import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
+import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
+import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
+import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
+import org.jobrunr.server.tasks.zookeeper.ProcessOrphanedJobsTask;
+import org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask;
+import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
+import org.jobrunr.utils.VersionNumber;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +51,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
+import static org.jobrunr.utils.VersionNumber.v;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
@@ -56,13 +65,15 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final JobDefaultFilters jobDefaultFilters;
     private final JobServerStats jobServerStats;
     private final WorkDistributionStrategy workDistributionStrategy;
+    private final JobSteward jobSteward;
     private final ServerZooKeeper serverZooKeeper;
-    private final JobZooKeeper jobZooKeeper;
+    private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
     private final BackgroundJobServerLifecycleLock lifecycleLock;
     private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
+    private volatile VersionNumber dataVersion;
     private volatile ScheduledThreadPoolExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
@@ -90,8 +101,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.jobDefaultFilters = new JobDefaultFilters();
         this.jobServerStats = new JobServerStats();
         this.workDistributionStrategy = createWorkDistributionStrategy();
+        this.jobSteward = createJobSteward();
         this.serverZooKeeper = createServerZooKeeper();
-        this.jobZooKeeper = createJobZooKeeper();
+        this.concurrentJobModificationResolver = createConcurrentJobModificationResolver();
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.lifecycleLock = new BackgroundJobServerLifecycleLock();
         this.storageProvider.validatePollInterval(this.configuration.getPollInterval());
@@ -113,7 +125,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
                 firstHeartbeat = Instant.now();
                 isRunning = true;
-                startZooKeepers();
+                startStewardAndServerZooKeeper();
                 startWorkers();
             }
         }
@@ -198,6 +210,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (isMaster != null) {
             LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
             if (isMaster) {
+                startJobZooKeepers();
                 runStartupTasks();
             }
         } else {
@@ -213,6 +226,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
+    public boolean isNotReadyToProcessJobs() {
+        return !(isAnnounced() && hasDataVersion(v("6.0.0")));
+    }
+
     @Override
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
@@ -220,12 +237,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 firstHeartbeat, Instant.now(), isRunning, jobServerStats);
     }
 
-    public JobZooKeeper getJobZooKeeper() {
-        return jobZooKeeper;
+    public JobSteward getJobSteward() {
+        return jobSteward;
     }
 
     public StorageProvider getStorageProvider() {
         return storageProvider;
+    }
+
+    public ConcurrentJobModificationResolver getConcurrentJobModificationResolver() {
+        return concurrentJobModificationResolver;
     }
 
     public BackgroundJobServerConfigurationReader getConfiguration() {
@@ -266,13 +287,23 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
-    private void startZooKeepers() {
-        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(2, "backgroundjob-zookeeper-pool");
+    private void startStewardAndServerZooKeeper() {
+        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(2, 5, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobZooKeeper, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
+    }
+
+    private void startJobZooKeepers() {
+        long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
+        JobZooKeeper recurringAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessScheduledJobsTask(this));
+        JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
+        JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
+        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
     }
 
     private void stopZooKeepers() {
@@ -328,15 +359,31 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    private ServerZooKeeper createServerZooKeeper() {
+    protected ServerZooKeeper createServerZooKeeper() {
         return new ServerZooKeeper(this);
     }
 
-    private JobZooKeeper createJobZooKeeper() {
-        return new JobZooKeeper(this);
+    protected JobSteward createJobSteward() {
+        return new JobSteward(this);
     }
 
-    private WorkDistributionStrategy createWorkDistributionStrategy() {
+    protected ConcurrentJobModificationResolver createConcurrentJobModificationResolver() {
+        return getConfiguration()
+                .getConcurrentJobModificationPolicy()
+                .toConcurrentJobModificationResolver(this);
+    }
+
+    private boolean hasDataVersion(VersionNumber expectedVersion) {
+        if (expectedVersion.equals(dataVersion)) return true;
+        JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
+        if (metadata != null) {
+            dataVersion = v(metadata.getValue());
+            return expectedVersion.equals(dataVersion);
+        }
+        return false;
+    }
+
+    protected WorkDistributionStrategy createWorkDistributionStrategy() {
         return configuration.getBackgroundJobServerWorkerPolicy().toWorkDistributionStrategy(this);
     }
 

@@ -14,6 +14,7 @@ import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
 import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
@@ -56,6 +57,7 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDATE;
+import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
@@ -84,12 +86,40 @@ class BackgroundJobServerTest {
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
         logger = LoggerAssert.initFor(backgroundJobServer);
-        jobZooKeeperLogger = LoggerAssert.initFor(backgroundJobServer.getJobZooKeeper());
+        jobZooKeeperLogger = LoggerAssert.initFor(backgroundJobServer.getJobSteward());
     }
 
     @AfterEach
     void stopBackgroundJobServer() {
         backgroundJobServer.stop();
+    }
+
+    @Test
+    void backgroundJobServerWaitsForMigrationBeforeBeingAnnounced() {
+        doAnswer(invocation -> {
+            // simulate long during migration
+            JobRunrMetadata metadata = invocation.getArgument(0);
+            if("database_version".equals(metadata.getName()) && "6.0.0".equals(metadata.getValue())) {
+                sleep(5, SECONDS);
+            }
+            return invocation.callRealMethod();
+        }).when(storageProvider).saveMetadata(any());
+
+        // WHEN
+        backgroundJobServer.start();
+
+        // THEN
+        sleep(100, MILLISECONDS);
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
+        assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isTrue();
+
+        // WHEN migration is running
+        await().during(4, SECONDS)
+                .until(() -> backgroundJobServer.isNotReadyToProcessJobs());
+
+        // THEN
+        await().atMost(2, SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isFalse());
     }
 
     @Test

@@ -1,7 +1,8 @@
 package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.statechanges.AllowedConcurrentStateChange;
 import org.jobrunr.server.concurrent.statechanges.DeletedWhileAnyOtherConcurrentStateChange;
 import org.jobrunr.server.concurrent.statechanges.JobPerformedOnOtherBackgroundJobServerConcurrentStateChange;
@@ -32,14 +33,15 @@ public class DefaultConcurrentJobModificationResolver implements ConcurrentJobMo
     private final StorageProvider storageProvider;
     private final List<AllowedConcurrentStateChange> allowedConcurrentStateChanges;
 
-    public DefaultConcurrentJobModificationResolver(StorageProvider storageProvider, JobZooKeeper jobZooKeeper) {
-        this.storageProvider = storageProvider;
+    public DefaultConcurrentJobModificationResolver(BackgroundJobServer backgroundJobServer) {
+        this.storageProvider = backgroundJobServer.getStorageProvider();
+        final JobSteward jobSteward = backgroundJobServer.getJobSteward();
         allowedConcurrentStateChanges = Arrays.asList(
-                new PermanentlyDeletedWhileProcessingConcurrentStateChange(jobZooKeeper),
-                new DeletedWhileAnyOtherConcurrentStateChange(jobZooKeeper),
-                new JobStateChangedWhileProcessingConcurrentStateChange(jobZooKeeper),
-                new SucceededWhileAnyOtherConcurrentStateChange(jobZooKeeper),
-                new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(jobZooKeeper),
+                new PermanentlyDeletedWhileProcessingConcurrentStateChange(jobSteward),
+                new DeletedWhileAnyOtherConcurrentStateChange(jobSteward),
+                new JobStateChangedWhileProcessingConcurrentStateChange(jobSteward),
+                new SucceededWhileAnyOtherConcurrentStateChange(jobSteward),
+                new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(jobSteward),
                 new ScheduledTooEarlyByJobZooKeeperConcurrentStateChange(storageProvider),
                 new SystemSleptConcurrentStateChange()
         );

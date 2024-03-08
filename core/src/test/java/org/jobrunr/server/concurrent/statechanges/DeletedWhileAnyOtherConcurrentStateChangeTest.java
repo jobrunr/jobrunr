@@ -3,7 +3,7 @@ package org.jobrunr.server.concurrent.statechanges;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.SucceededState;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static java.time.Duration.ofMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.jobs.JobTestBuilder.*;
-import static org.mockito.Mockito.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DeletedWhileAnyOtherConcurrentStateChangeTest {
@@ -23,11 +28,11 @@ class DeletedWhileAnyOtherConcurrentStateChangeTest {
     DeletedWhileAnyOtherConcurrentStateChange allowedStateChange;
 
     @Mock
-    private JobZooKeeper jobZooKeeper;
+    private JobSteward jobSteward;
 
     @BeforeEach
     public void setUp() {
-        allowedStateChange = new DeletedWhileAnyOtherConcurrentStateChange(jobZooKeeper);
+        allowedStateChange = new DeletedWhileAnyOtherConcurrentStateChange(jobSteward);
     }
 
     @Test
@@ -37,7 +42,7 @@ class DeletedWhileAnyOtherConcurrentStateChangeTest {
         final Job deletedJob = aCopyOf(jobInProgress).withDeletedState().build();
 
         Thread mockThread = mock(Thread.class);
-        when(jobZooKeeper.getThreadProcessingJob(jobInProgressWithUpdate)).thenReturn(mockThread);
+        when(jobSteward.getThreadProcessingJob(jobInProgressWithUpdate)).thenReturn(mockThread);
 
         final ConcurrentJobModificationResolveResult resolveResult = allowedStateChange.resolve(jobInProgressWithUpdate, deletedJob);
         assertThat(resolveResult.failed()).isFalse();
@@ -65,7 +70,7 @@ class DeletedWhileAnyOtherConcurrentStateChangeTest {
         final ConcurrentJobModificationResolveResult resolveResult = allowedStateChange.resolve(succeededJob, deletedJob);
         assertThat(resolveResult.failed()).isFalse();
 
-        verifyNoInteractions(jobZooKeeper);
+        verifyNoInteractions(jobSteward);
     }
 
     @Test
@@ -78,7 +83,7 @@ class DeletedWhileAnyOtherConcurrentStateChangeTest {
         final ConcurrentJobModificationResolveResult resolveResult = allowedStateChange.resolve(enqueuedJob, deletedJob);
         assertThat(resolveResult.failed()).isFalse();
 
-        verifyNoInteractions(jobZooKeeper);
+        verifyNoInteractions(jobSteward);
     }
 
     @Test

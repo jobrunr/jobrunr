@@ -1,7 +1,8 @@
 package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,10 +23,18 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.failedJob;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultConcurrentJobModificationResolverTest {
@@ -33,13 +42,17 @@ class DefaultConcurrentJobModificationResolverTest {
     private DefaultConcurrentJobModificationResolver concurrentJobModificationResolver;
 
     @Mock
+    BackgroundJobServer backgroundJobServer;
+    @Mock
     private StorageProvider storageProvider;
     @Mock
-    private JobZooKeeper jobZooKeeper;
+    private JobSteward jobSteward;
 
     @BeforeEach
     void setUp() {
-        concurrentJobModificationResolver = new DefaultConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
+        when(backgroundJobServer.getJobSteward()).thenReturn(jobSteward);
+        lenient().when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
+        concurrentJobModificationResolver = new DefaultConcurrentJobModificationResolver(backgroundJobServer);
     }
 
     @ParameterizedTest
@@ -47,7 +60,7 @@ class DefaultConcurrentJobModificationResolverTest {
     void concurrentStateChangeFromSucceededFailedOrScheduledToDeletedIsAllowed(Job localJob, Job storageProviderJob) {
         final Thread jobThread = mock(Thread.class);
         when(storageProvider.getJobById(localJob.getId())).thenReturn(storageProviderJob);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(jobThread);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(jobThread);
 
         concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(localJob));
 
@@ -58,7 +71,7 @@ class DefaultConcurrentJobModificationResolverTest {
     @MethodSource("getJobsThatAreInProgressInDifferentStates")
     void concurrentStateChangeWhileProcessingIsAllowedIfJobIsNotProcessingAnymore(Job localJob, Job storageProviderJob) {
         when(storageProvider.getJobById(localJob.getId())).thenReturn(storageProviderJob);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(null);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(null);
 
         assertThatCode(() -> concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(localJob)))
                 .doesNotThrowAnyException();
@@ -69,7 +82,7 @@ class DefaultConcurrentJobModificationResolverTest {
     void concurrentStateChangeWhileProcessingIsNotAllowedIfJobIsProcessing(Job localJob, Job storageProviderJob) {
         final Thread jobThread = mock(Thread.class);
         when(storageProvider.getJobById(localJob.getId())).thenReturn(storageProviderJob);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(jobThread);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(jobThread);
 
         assertThatCode(() -> concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(localJob)))
                 .isInstanceOf(UnresolvableConcurrentJobModificationException.class);
@@ -95,8 +108,8 @@ class DefaultConcurrentJobModificationResolverTest {
         when(storageProvider.getJobById(job1.getId())).thenReturn(aCopyOf(job1).withDeletedState().build());
         when(storageProvider.getJobById(job2.getId())).thenReturn(aCopyOf(job2).withDeletedState().build());
 
-        when(jobZooKeeper.getThreadProcessingJob(job1)).thenReturn(job1Thread);
-        when(jobZooKeeper.getThreadProcessingJob(job2)).thenReturn(job2Thread);
+        when(jobSteward.getThreadProcessingJob(job1)).thenReturn(job1Thread);
+        when(jobSteward.getThreadProcessingJob(job2)).thenReturn(job2Thread);
 
         concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(asList(job1, job2)));
 
@@ -114,7 +127,7 @@ class DefaultConcurrentJobModificationResolverTest {
 
         final Thread jobThread = mock(Thread.class);
         when(storageProvider.getJobById(localJob.getId())).thenReturn(storageProviderJob);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(localJob)).thenReturn(jobThread);
+        lenient().when(jobSteward.getThreadProcessingJob(localJob)).thenReturn(jobThread);
 
         concurrentJobModificationResolver.resolve(new ConcurrentJobModificationException(localJob));
 

@@ -309,7 +309,7 @@ public class BackgroundJobByJobRequestTest {
         BackgroundJobRequest.delete(jobId);
 
         await().atMost(6, SECONDS).untilAsserted(() -> {
-            assertThat(backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount()).isZero();
+            assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
         });
     }

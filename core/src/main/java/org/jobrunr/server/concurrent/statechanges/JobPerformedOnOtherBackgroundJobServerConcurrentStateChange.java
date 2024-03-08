@@ -3,7 +3,7 @@ package org.jobrunr.server.concurrent.statechanges;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.jobrunr.utils.annotations.Because;
 
@@ -14,18 +14,18 @@ import java.util.Optional;
 @Because("https://github.com/jobrunr/jobrunr/issues/429")
 public class JobPerformedOnOtherBackgroundJobServerConcurrentStateChange implements AllowedConcurrentStateChange {
 
-    private JobZooKeeper jobZooKeeper;
+    private final JobSteward jobSteward;
 
-    public JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(JobZooKeeper jobZooKeeper) {
-        this.jobZooKeeper = jobZooKeeper;
+    public JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(JobSteward jobSteward) {
+        this.jobSteward = jobSteward;
     }
 
     @Override
     public boolean matches(Job localJob, Job storageProviderJob) {
-        if(storageProviderJob.getVersion() > localJob.getVersion() + 1) {
+        if (storageProviderJob.getVersion() > localJob.getVersion() + 1) {
             Optional<ProcessingState> localProcessingState = localJob.getLastJobStateOfType(ProcessingState.class);
             Optional<ProcessingState> storageProviderProcessingState = storageProviderJob.getLastJobStateOfType(ProcessingState.class);
-            if(localProcessingState.isPresent() && storageProviderProcessingState.isPresent()) {
+            if (localProcessingState.isPresent() && storageProviderProcessingState.isPresent()) {
                 return !localProcessingState.get().getServerId().equals(storageProviderProcessingState.get().getServerId());
             }
         }
@@ -39,7 +39,7 @@ public class JobPerformedOnOtherBackgroundJobServerConcurrentStateChange impleme
 
     @Override
     public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
-        final Thread threadProcessingJob = jobZooKeeper.getThreadProcessingJob(localJob);
+        final Thread threadProcessingJob = jobSteward.getThreadProcessingJob(localJob);
         if (threadProcessingJob != null) {
             threadProcessingJob.interrupt();
         }

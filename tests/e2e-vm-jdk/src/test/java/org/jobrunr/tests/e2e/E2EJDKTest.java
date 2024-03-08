@@ -7,8 +7,8 @@ import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.tests.e2e.services.TestService;
 import org.jobrunr.tests.e2e.services.Work;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -49,7 +49,7 @@ class E2EJDKTest {
                 .initialize();
     }
 
-    @BeforeEach
+    @AfterEach
     public void clearStorageProviderExceptBackgroundJobServers() {
         // we cannot use whitebox as it is compiled with Java > 8 and some tests will fail
         ((Map) getValueFromFieldOrProperty(storageProvider, "jobQueue")).clear();

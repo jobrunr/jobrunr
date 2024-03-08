@@ -41,6 +41,6 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
     }
 
     private int getOccupiedWorkerCount() {
-        return backgroundJobServer.getJobZooKeeper().getOccupiedWorkerCount();
+        return backgroundJobServer.getJobSteward().getOccupiedWorkerCount();
     }
 }

@@ -1,10 +1,9 @@
 package org.jobrunr.server.configuration;
 
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.DefaultConcurrentJobModificationResolver;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
-import org.jobrunr.storage.StorageProvider;
 
 /**
  * Default implementation of {@link ConcurrentJobModificationPolicy}.
@@ -17,8 +16,8 @@ import org.jobrunr.storage.StorageProvider;
 public class DefaultConcurrentJobModificationPolicy implements ConcurrentJobModificationPolicy {
 
     @Override
-    public ConcurrentJobModificationResolver toConcurrentJobModificationResolver(StorageProvider storageProvider, JobZooKeeper jobZooKeeper) {
-        return new DefaultConcurrentJobModificationResolver(storageProvider, jobZooKeeper);
+    public ConcurrentJobModificationResolver toConcurrentJobModificationResolver(BackgroundJobServer backgroundJobServer) {
+        return new DefaultConcurrentJobModificationResolver(backgroundJobServer);
     }
 
 }

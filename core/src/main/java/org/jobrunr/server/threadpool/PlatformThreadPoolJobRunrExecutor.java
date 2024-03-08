@@ -17,9 +17,13 @@ public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.Sche
     }
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
+        this(corePoolSize, corePoolSize * 2, threadNamePrefix);
+    }
+
+    public PlatformThreadPoolJobRunrExecutor(int corePoolSize, int maxPoolSize, String threadNamePrefix) {
         super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
         this.workerCount = corePoolSize;
-        setMaximumPoolSize(corePoolSize * 2);
+        setMaximumPoolSize(maxPoolSize);
         setKeepAliveTime(1, TimeUnit.MINUTES);
     }
 
