@@ -235,6 +235,11 @@ public class BackgroundJobByIoCJobLambdaTest {
     }
 
     @Test
+    void testScheduleCarbonAware() {
+        throw new UnsupportedOperationException("Implement me");
+    }
+
+    @Test
     void testRecurringCronJob() {
         BackgroundJob.<TestService>scheduleRecurrently(everySecond, x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);

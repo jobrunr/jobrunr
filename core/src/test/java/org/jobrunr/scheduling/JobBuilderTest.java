@@ -17,7 +17,9 @@ import java.util.UUID;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 
@@ -122,6 +124,11 @@ class JobBuilderTest {
         assertThat(job).hasState(StateName.SCHEDULED);
         ScheduledState scheduledState = job.getJobState();
         assertThat(scheduledState.getScheduledAt()).isCloseTo(now().plusSeconds(60), within(500, MILLIS));
+    }
+
+    @Test
+    void testWithScheduleCarbonAware() {
+        throw new UnsupportedOperationException("Implement me");
     }
 
     @Test

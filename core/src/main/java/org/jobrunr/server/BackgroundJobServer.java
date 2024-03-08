@@ -374,6 +374,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private boolean hasDataVersion(VersionNumber expectedVersion) {
+        LOGGER.warn("Testing for database version: expected {} / actual {}", expectedVersion, dataVersion);
         if (expectedVersion.equals(dataVersion)) return true;
         JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
         if (metadata != null) {

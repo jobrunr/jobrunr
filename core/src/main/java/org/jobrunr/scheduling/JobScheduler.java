@@ -409,6 +409,16 @@ public class JobScheduler extends AbstractJobScheduler {
         return schedule(null, instant, job);
     }
 
+
+    /**
+     * TODO
+     */
+    public JobId scheduleCarbonAware(Instant deadline, JobLambda job) {
+        // Create job with carbon aware awaiting state
+        // use CarbonAwareScheduler if deadline is within dayAheadEnergyPrices, otherwise it will stay awaiting
+        return null;
+    }
+
     /**
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time.
      * If a job with that id already exists, JobRunr will not save it again.
@@ -426,6 +436,15 @@ public class JobScheduler extends AbstractJobScheduler {
     public JobId schedule(UUID id, Instant instant, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return schedule(id, instant, jobDetails);
+    }
+
+    /**
+     * TODO
+     */
+    public static JobId scheduleCarbonAware(UUID id, Instant deadline, JobLambda job) {
+        // Create job with carbon aware awaiting state
+        // use CarbonAwareScheduler if deadline is within dayAheadEnergyPrices, otherwise it will stay awaiting
+        return null;
     }
 
     /**

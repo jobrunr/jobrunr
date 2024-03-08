@@ -6,7 +6,12 @@ import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -385,6 +390,22 @@ public class BackgroundJob {
     public static JobId schedule(UUID id, Instant instant, JobLambda job) {
         verifyJobScheduler();
         return jobScheduler.schedule(id, instant, job);
+    }
+
+    /**
+     * TODO
+     */
+    public static JobId scheduleCarbonAware(Instant deadline, JobLambda job) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleCarbonAware(deadline, job);
+    }
+
+    /**
+     * TODO
+     */
+    public static JobId scheduleCarbonAware(UUID id, Instant deadline, JobLambda job) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleCarbonAware(id, deadline, job);
     }
 
     /**
