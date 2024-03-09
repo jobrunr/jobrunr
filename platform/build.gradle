@@ -32,7 +32,7 @@ dependencies {
         api 'com.ibm.db2:jcc:11.5.9.0'
         api 'com.zaxxer:HikariCP:5.1.0'
         api 'io.agroal:agroal-pool:2.3'
-        api 'org.apache.commons:commons-dbcp2:2.11.0'
+        api 'org.apache.commons:commons-dbcp2:2.12.0'
         api 'org.apache.tomcat:tomcat-jdbc:10.1.19'
         api 'redis.clients:jedis:5.1.0'
         api 'io.lettuce:lettuce-core:6.3.1.RELEASE'
