@@ -9,8 +9,8 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.quarkus.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 
 import java.util.ArrayList;
