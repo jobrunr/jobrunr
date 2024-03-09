@@ -67,14 +67,14 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.7.3/149e66e4b2ca1fe1c38f4b527dacec2aa9dd6b27/quarkus-extension-processor-3.7.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-extension-processor/3.8.2/1d0048aa78b2205fb9ace9e0ca40a15727d1fc37/quarkus-extension-processor-3.8.2.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jboss.jdeparser/jdeparser/2.0.3.Final/f1982f9caa0ed8a2663d4c648aaa9a82d14eb962/jdeparser-2.0.3.Final.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.15.3/f6e1d8a8819f854b681c8eaa57fd59a42329e10c/jsoup-1.15.3.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.8/15a9581d0fe18fceafce4f1b7c419732a743508c/javaparser-core-3.25.8.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.16.1/fd441d574a71e7d10a4f73de6609f881d8cdfeec/jackson-annotations-2.16.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.16.1/9456bb3cdd0f79f91a5f730a1b1bb041a380c91f/jackson-core-2.16.1.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.16.1/2a16efeb840c45af1e2f31753dfe76795278b73/jackson-databind-2.16.1.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-bootstrap-app-model/3.7.3/b303bc056f070757c0ddfc56bb1a417182be6416/quarkus-bootstrap-app-model-3.7.3.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.quarkus/quarkus-bootstrap-app-model/3.8.2/17ce93f4c1791acf3b7c38f341171f8628e1f03f/quarkus-bootstrap-app-model-3.8.2.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr.main" />
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main" />
