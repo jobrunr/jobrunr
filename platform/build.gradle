@@ -23,7 +23,7 @@ dependencies {
 
         api 'org.xerial:sqlite-jdbc:3.45.1.0'
         api 'com.h2database:h2:2.2.224'
-        api 'org.postgresql:postgresql:42.7.1'
+        api 'org.postgresql:postgresql:42.7.2'
         api 'com.google.cloud.sql:postgres-socket-factory:1.1.0'
         api 'com.oracle.database.jdbc:ojdbc8:23.3.0.23.09'
         api 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
