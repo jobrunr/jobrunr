@@ -3,6 +3,8 @@
 - [ ] In case of too much logging, truncate
 - [ ] Pro only: allow to set amount of cycles if CPUAllocationInfo problem occurs
 - [ ] Use code below to provide more info about stop the world GC in dashboard and github SevereJobRunrException
+- [ ] JobFilters in different threads
+
 
 ```java
 try{
