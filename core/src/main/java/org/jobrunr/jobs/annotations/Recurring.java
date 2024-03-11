@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 /**
  * Allows to recurrently schedule a method from a bean defined in an IoC framework (e.g. Spring, Quarkus or Micronaut) using JobRunr.
- * If you are not using one of these frameworks, adding this annotation will not hav any effect.
+ * If you are not using one of these frameworks, adding this annotation will not have any effect.
  *
  * <em>Note that methods annotated with the &commat;Recurring annotation may only have zero parameters or a single parameter of type org.jobrunr.jobs.context.JobContext.</em>
  *

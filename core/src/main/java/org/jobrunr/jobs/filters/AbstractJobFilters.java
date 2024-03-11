@@ -10,22 +10,29 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceCE;
 
 public abstract class AbstractJobFilters {
-
+    private static final Map<Class<? extends JobFilter>, Integer> slowJobFilters = new ConcurrentHashMap<>();
     protected final AbstractJob job;
-    protected final List<JobFilter> jobFilters;
+    private final List<JobFilter> jobFilters;
 
     protected AbstractJobFilters(AbstractJob job, JobDefaultFilters jobDefaultFilters) {
         this.job = job;
         this.jobFilters = initJobFilters(job, jobDefaultFilters.getFilters());
+    }
+
+    protected List<JobFilter> jobFilters() {
+        return jobFilters.stream().filter(this::isFastJobFilter).collect(toList());
     }
 
     protected List<JobFilter> initJobFilters(AbstractJob job, List<JobFilter> jobFilters) {
@@ -97,13 +104,41 @@ public abstract class AbstractJobFilters {
         }
     }
 
-    <T extends JobFilter> Consumer<T> catchThrowable(Consumer<T> consumer) {
-        return jobClientFilter -> {
+    final <T extends JobFilter> Consumer<T> catchThrowable(Consumer<T> consumer) {
+        return jobFilter -> {
             try {
-                consumer.accept(jobClientFilter);
+                long startTime = System.nanoTime();
+                consumer.accept(jobFilter);
+                long endTime = System.nanoTime();
+                logJobFilterTime(jobFilter, (endTime - startTime));
             } catch (Exception e) {
-                getLogger().error("Error evaluating jobfilter {}", jobClientFilter.getClass().getName(), e);
+                getLogger().error("Error evaluating JobFilter {}", jobFilter.getClass().getName(), e);
             }
         };
+    }
+
+    final void logJobFilterTime(JobFilter jobFilter, long durationInNanos) {
+        Class<? extends JobFilter> jobFilterClass = jobFilter.getClass();
+        if(NANOSECONDS.toMillis(durationInNanos) > 5) {
+            slowJobFilters.compute(jobFilterClass, (f, i) -> {
+                if(i == null || DefaultJobFilter.class.equals(jobFilterClass) || RetryFilter.class.equals(jobFilterClass)) {
+                    return 0;
+                } else if(i > 3) {
+                    return 5;
+                } else {
+                    return i + 1;
+                }
+            });
+        } else {
+            slowJobFilters.put(jobFilterClass, 0);
+        }
+    }
+
+    private boolean isFastJobFilter(JobFilter jobFilter) {
+        boolean isSlowJobFilter = slowJobFilters.getOrDefault(jobFilter.getClass(), -1) > 3;
+        if(isSlowJobFilter) {
+            getLogger().warn("JobFilter of type '{}' is skipped because its slow performance (> 5ms) negatively impacts the overall functioning of JobRunr. JobRunr Pro can run slow running Job Filters without a negative performance impact.", jobFilter.getClass().getName());
+        }
+        return !isSlowJobFilter;
     }
 }
