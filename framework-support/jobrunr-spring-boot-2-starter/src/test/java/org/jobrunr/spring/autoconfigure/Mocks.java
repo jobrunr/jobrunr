@@ -6,7 +6,12 @@ import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListCollectionNamesIterable;
+import com.mongodb.client.ListIndexesIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertOneResult;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -19,7 +24,11 @@ import redis.clients.jedis.JedisPool;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Spliterator;
 import java.util.function.Function;
 
@@ -68,7 +77,7 @@ public class Mocks {
         MongoClient mongoClientMock = mock(MongoClient.class);
         MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);
         when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
-        when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(MongoIterable.class));
+        when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(ListCollectionNamesIterable.class));
 
         MongoCollection migrationCollectionMock = mock(MongoCollection.class);
         when(migrationCollectionMock.find(any(Bson.class))).thenReturn(mock(FindIterable.class));

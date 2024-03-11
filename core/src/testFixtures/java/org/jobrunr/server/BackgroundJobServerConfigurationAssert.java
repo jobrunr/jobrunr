@@ -52,4 +52,9 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
         Assertions.assertThat(actual.getSucceededJobsRequestSize()).isEqualTo(succeededJobRequestSize);
         return this;
     }
+
+    public BackgroundJobServerConfigurationAssert hasWorkerPolicyOfType(Class<? extends BackgroundJobServerWorkerPolicy> workerPolicyClass) {
+        Assertions.assertThat(actual.getBackgroundJobServerWorkerPolicy()).isInstanceOf(workerPolicyClass);
+        return this;
+    }
 }

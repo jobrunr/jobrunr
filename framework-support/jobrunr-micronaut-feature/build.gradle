@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 
 plugins {
     id 'java-library'
-    id 'io.micronaut.library' version '4.3.2'
+    id 'io.micronaut.library' version '4.3.4'
     id 'maven-publish'
     id 'signing'
 }
