@@ -91,9 +91,10 @@ public class DatabaseCreator {
              final Transaction tran = new Transaction(conn);
              final Statement pSt = conn.createStatement()) {
             for (String table : JOBRUNR_TABLES) {
-                try (ResultSet rs = pSt.executeQuery("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(table))) {
-                    if (rs.next()) {
-                        int count = rs.getInt(1);
+                try (ResultSet rs = pSt.executeQuery("select * from " + tablePrefixStatementUpdater.getFQTableName(table) + " limit 1")) {
+                    if (!rs.isBeforeFirst()) {
+                        LOGGER.error("Table {} is not available!", table);
+                        throw new JobRunrException("Not all required tables are available by JobRunr!");
                     }
                 }
             }
