@@ -24,7 +24,7 @@ public class JobCreationFilters extends AbstractJobFilters {
     }
 
     private Stream<JobClientFilter> jobClientFilters() {
-        return StreamUtils.ofType(jobFilters, JobClientFilter.class);
+        return StreamUtils.ofType(jobFilters(), JobClientFilter.class);
     }
 
     @Override

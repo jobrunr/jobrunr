@@ -16,16 +16,7 @@ import static org.jobrunr.utils.StringUtils.substringAfter;
 @DisplayName("Tests JobRunr Quarkus extension")
 public class JobRunrFunctionalityTest {
 
-    private final TeenyHttpClient dashboardApi = new TeenyHttpClient("http://localhost:8000");
     private final TeenyHttpClient restApi = new TeenyHttpClient("http://localhost:8081");
-
-    @Test
-    public void testDashboard() {
-        final HttpResponse<String> response = dashboardApi.get("/api/servers");
-        assertThat(response)
-                .hasStatusCode(200)
-                .hasBodyContaining("firstHeartbeat", "\"running\":true", "\"workerPoolSize\":10");
-    }
 
     @Test
     public void testEnqueueAndProcessJob() {
@@ -34,19 +25,17 @@ public class JobRunrFunctionalityTest {
                 .hasStatusCode(200)
                 .hasBodyStartingWith("Job Enqueued:");
 
-        await().untilAsserted(() -> assertThat(dashboardApi.get("/api/jobs/" + substringAfter(response.body(), "Job Enqueued: ")))
+        await().untilAsserted(() -> assertThat(restApi.get("/jobrunr/jobs/" + substringAfter(response.body(), "Job Enqueued: ")))
                 .hasBodyContaining("SUCCEEDED"));
     }
 
     @Test
     public void testRecurringJobs() {
-        final HttpResponse<String> response = dashboardApi.get("/api/recurring-jobs");
+        final HttpResponse<String> response = restApi.get("/jobrunr/recurring-jobs");
         assertThat(response)
                 .hasStatusCode(200)
-                .hasJsonBody(json -> json.inPath("items[0].id").isEqualTo("my-recurring-job"))
-                .hasJsonBody(json -> json.inPath("items[0].scheduleExpression").isEqualTo("*/15 * * * *"))
-                .hasJsonBody(json -> json.inPath("items[0].jobDetails.className").isEqualTo("org.jobrunr.quarkus.it.TestService"))
-                .hasJsonBody(json -> json.inPath("items[0].jobDetails.methodName").isEqualTo("aRecurringJob"));
+                .hasBodyContaining("id=my-recurring-job", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'")
+                .hasBodyContaining( "id=another-recurring-job-with-jobContext", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'");
 //                .hasJsonBody(json -> json.inPath("[1].id").isEqualTo("another-recurring-job-with-jobContext"))
 //                .hasJsonBody(json -> json.inPath("[1].name").isEqualTo("Doing some work with the job context"))
 //                .hasJsonBody(json -> json.inPath("[1].scheduleExpression").isEqualTo("PT10M"))

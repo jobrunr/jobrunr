@@ -5,7 +5,7 @@ import io.micronaut.context.processor.ExecutableMethodProcessor;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.inject.ExecutableMethod;
 import jakarta.inject.Singleton;
-import org.jobrunr.micronaut.annotations.Recurring;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 

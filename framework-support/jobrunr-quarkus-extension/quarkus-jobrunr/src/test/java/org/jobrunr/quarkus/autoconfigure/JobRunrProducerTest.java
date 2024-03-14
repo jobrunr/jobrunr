@@ -3,6 +3,7 @@ package org.jobrunr.quarkus.autoconfigure;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
@@ -114,14 +116,14 @@ class JobRunrProducerTest {
     void backgroundJobServerConfigurationIsNotSetupWhenNotConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration()).isNull();
+        Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNull();
     }
 
     @Test
     void backgroundJobServerConfigurationIsSetupWhenConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration()).isNotNull();
+        Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNotNull();
     }
 
     @Test
@@ -130,14 +132,13 @@ class JobRunrProducerTest {
 
         when(backgroundJobServerRunTimeConfiguration.name()).thenReturn(Optional.of("test"));
         when(backgroundJobServerRunTimeConfiguration.pollIntervalInSeconds()).thenReturn(Optional.of(5));
-        when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(4));
         when(backgroundJobServerRunTimeConfiguration.scheduledJobsRequestSize()).thenReturn(Optional.of(1));
         when(backgroundJobServerRunTimeConfiguration.orphanedJobsRequestSize()).thenReturn(Optional.of(2));
         when(backgroundJobServerRunTimeConfiguration.succeededJobRequestSize()).thenReturn(Optional.of(3));
         when(backgroundJobServerRunTimeConfiguration.deleteSucceededJobsAfter()).thenReturn(Optional.of(Duration.of(1, HOURS)));
         when(backgroundJobServerRunTimeConfiguration.permanentlyDeleteDeletedJobsAfter()).thenReturn(Optional.of(Duration.of(1, DAYS)));
 
-        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration();
+        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class));
         assertThat(backgroundJobServerConfiguration)
                 .isNotNull()
                 .hasName("test")

@@ -52,15 +52,15 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     private Stream<ElectStateFilter> electStateFilters() {
-        return electStateFilters(jobFilters);
+        return electStateFilters(jobFilters());
     }
 
     private Stream<ApplyStateFilter> applyStateFilters() {
-        return applyStateFilters(jobFilters);
+        return applyStateFilters(jobFilters());
     }
 
     private Stream<JobServerFilter> jobServerFilters() {
-        return jobServerFilters(jobFilters);
+        return jobServerFilters(jobFilters());
     }
 
     private static Stream<ElectStateFilter> electStateFilters(List<JobFilter> jobFilters) {

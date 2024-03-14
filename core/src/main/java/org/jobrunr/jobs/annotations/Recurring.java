@@ -1,9 +1,15 @@
-package org.jobrunr.spring.annotations;
+package org.jobrunr.jobs.annotations;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Allows to recurrently schedule a method from a Spring Service bean using JobRunr.
+ * Allows to recurrently schedule a method from a bean defined in an IoC framework (e.g. Spring, Quarkus or Micronaut) using JobRunr.
+ * If you are not using one of these frameworks, adding this annotation will not have any effect.
  *
  * <em>Note that methods annotated with the &commat;Recurring annotation may only have zero parameters or a single parameter of type org.jobrunr.jobs.context.JobContext.</em>
  *

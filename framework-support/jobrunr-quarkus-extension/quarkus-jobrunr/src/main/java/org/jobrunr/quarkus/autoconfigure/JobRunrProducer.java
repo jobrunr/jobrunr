@@ -17,6 +17,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -62,13 +63,23 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
+    BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy() {
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+            BackgroundJobServerThreadType threadType = jobRunrRuntimeConfiguration.backgroundJobServer().threadType().orElse(BackgroundJobServerThreadType.getDefaultThreadType());
+            int workerCount = jobRunrRuntimeConfiguration.backgroundJobServer().workerCount().orElse(threadType.getDefaultWorkerCount());
+            return new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType);
+        }
+        return null;
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
         if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
             final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
 
-            BackgroundJobServerThreadType threadType = jobRunrRuntimeConfiguration.backgroundJobServer().threadType().orElse(BackgroundJobServerThreadType.getDefaultThreadType());
-            int workerCount = jobRunrRuntimeConfiguration.backgroundJobServer().workerCount().orElse(threadType.getDefaultWorkerCount());
-            backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType));
+            backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(backgroundJobServerWorkerPolicy);
 
             jobRunrRuntimeConfiguration.backgroundJobServer().name().ifPresent(backgroundJobServerConfiguration::andName);
             jobRunrRuntimeConfiguration.backgroundJobServer().pollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);

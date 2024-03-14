@@ -17,6 +17,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -54,12 +55,18 @@ public class JobRunrFactory {
 
     @Singleton
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
-    public BackgroundJobServerConfiguration backgroundJobServerConfiguration() {
-        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
-
+    public BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy() {
         BackgroundJobServerThreadType threadType = configuration.getBackgroundJobServer().getThreadType().orElse(BackgroundJobServerThreadType.getDefaultThreadType());
         int workerCount = configuration.getBackgroundJobServer().getWorkerCount().orElse(threadType.getDefaultWorkerCount());
-        backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType));
+        return new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType);
+    }
+
+    @Singleton
+    @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
+    public BackgroundJobServerConfiguration backgroundJobServerConfiguration(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
+        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+
+        backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(backgroundJobServerWorkerPolicy);
 
         configuration.getBackgroundJobServer().getName().ifPresent(backgroundJobServerConfiguration::andName);
         configuration.getBackgroundJobServer().getPollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);

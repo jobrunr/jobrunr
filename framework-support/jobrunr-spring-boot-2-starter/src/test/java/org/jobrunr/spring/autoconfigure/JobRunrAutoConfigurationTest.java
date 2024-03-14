@@ -10,6 +10,11 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
+import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
+import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.server.threadpool.JobRunrExecutor;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration;
@@ -185,6 +190,16 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountCustomBackgroundJobServerWorkerPolicy() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withUserConfiguration(BackgroundJobServerConfigurationWithCustomWorkerPolicy.class, InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class);
+                });
+    }
+
+    @Test
     void inMemoryStorageProviderAutoConfiguration() {
         this.contextRunner.withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(InMemoryStorageProvider.class);
@@ -320,6 +335,28 @@ public class JobRunrAutoConfigurationTest {
         @Bean
         public RedisClient redisClient() {
             return Mocks.redisClient();
+        }
+    }
+
+    @Configuration
+    static class BackgroundJobServerConfigurationWithCustomWorkerPolicy {
+
+        @Bean
+        public BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy() {
+            return new MyBackgroundJobServerWorkerPolicy();
+        }
+
+        private static class MyBackgroundJobServerWorkerPolicy implements BackgroundJobServerWorkerPolicy {
+
+            @Override
+            public WorkDistributionStrategy toWorkDistributionStrategy(BackgroundJobServer backgroundJobServer) {
+                return new BasicWorkDistributionStrategy(backgroundJobServer, 10);
+            }
+
+            @Override
+            public JobRunrExecutor toJobRunrExecutor() {
+                return new PlatformThreadPoolJobRunrExecutor(10, "my-prefix");
+            }
         }
     }
 }

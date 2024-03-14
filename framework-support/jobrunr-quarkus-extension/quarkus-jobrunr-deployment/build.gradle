@@ -19,15 +19,12 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.7.3')
+    api platform('io.quarkus:quarkus-bom:3.8.2')
 
     api project(':core')
-    api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
+    implementation project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
     // why: https://quarkus.io/guides/building-my-first-extension
-    api 'io.quarkus:quarkus-core-deployment'
-    api 'io.quarkus:quarkus-arc-deployment'
-    api 'io.quarkus:quarkus-smallrye-health-spi'
-
+    implementation 'io.quarkus:quarkus-smallrye-health-deployment'
     testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 

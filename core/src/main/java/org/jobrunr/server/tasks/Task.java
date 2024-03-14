@@ -36,7 +36,6 @@ public abstract class Task {
     }
 
     public void run(TaskRunInfo runInfo) {
-        // placeholder for license guard
         try {
             this.runInfo = runInfo;
             if (pollIntervalInSecondsTimeBoxIsAboutToPass()) return;
