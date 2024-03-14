@@ -64,6 +64,18 @@ public class CarbonAwareScheduler {
             updateDayAheadEnergyPrices(Optional.of(CarbonAwareConfiguration.getArea()));
         }
 
+        if (!carbonAwareAwaitingState.getDeadline().isAfter(Instant.now())) {
+            LOGGER.warn("Job {} has passed its deadline, schedule job now", job.getId());
+            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job has passed its deadline, scheduling job now");
+            return;
+        }
+
+        if (dayAheadEnergyPrices.getIsErrorResponse() || dayAheadEnergyPrices.getHourlyEnergyPrices() == null || dayAheadEnergyPrices.getHourlyEnergyPrices().isEmpty()) {
+            //TODO: in this case schedule now or at deadline?? -> Probably wait until deadline, because maybe we can get data in the meantime
+            LOGGER.warn("No hourly energy prices available for area '{}'. Keep waiting.", CarbonAwareConfiguration.getArea());
+            return;
+        }
+
         // if max hour we have is before the next hour
         if (dayAheadEnergyPrices.getMaxHour().isBefore(Instant.now().plus(Duration.ofHours(1)))) {
             //LOGGER.warn("Day ahead energy prices are outdated, updating day ahead energy prices");
@@ -76,18 +88,6 @@ public class CarbonAwareScheduler {
             //carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Day ahead energy pries are outdated, scheduling job now"); // 2)
             LOGGER.warn("Day ahead energy prices are outdated, keep waiting"); // 3)
             return; // 3)
-        }
-
-        if (!carbonAwareAwaitingState.getDeadline().isAfter(Instant.now())) {
-            LOGGER.warn("Job {} has passed its deadline, schedule job now", job.getId());
-            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job has passed its deadline, scheduling job now");
-            return;
-        }
-
-        if (dayAheadEnergyPrices.getIsErrorResponse() || dayAheadEnergyPrices.getHourlyEnergyPrices() == null || dayAheadEnergyPrices.getHourlyEnergyPrices().isEmpty()) {
-            //TODO: in this case schedule now or at deadline?? -> Probably wait until deadline, because maybe we can get data in the meantime
-            LOGGER.warn("No hourly energy prices available for area '{}'. Keep waiting.", CarbonAwareConfiguration.getArea());
-            return;
         }
 
         // If Sunday is within the deadline, but we don't have hours available for Sunday, we should wait until they are available to schedule the job
