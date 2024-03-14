@@ -90,9 +90,9 @@ dependencies {
     testImplementation 'co.elastic.clients:elasticsearch-java'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
-    testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'org.mockito:mockito-inline'
     testFixturesApi 'org.mockito:mockito-junit-jupiter'
+    testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'io.github.artsok:rerunner-jupiter'
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
