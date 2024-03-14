@@ -21,6 +21,7 @@ public class AllowedJobStateStateChanges {
             case PROCESSING:
                 return to == SUCCEEDED || to == FAILED || to == DELETED;
             case FAILED:
+            case AWAITING:
             case SUCCEEDED:
                 return to == SCHEDULED || to == ENQUEUED || to == DELETED;
             case DELETED:

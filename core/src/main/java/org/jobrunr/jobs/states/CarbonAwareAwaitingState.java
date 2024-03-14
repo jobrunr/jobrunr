@@ -11,7 +11,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         this(null);
     }
 
-    protected CarbonAwareAwaitingState(Instant deadline) {
+    public CarbonAwareAwaitingState(Instant deadline) {
         super(StateName.AWAITING);
         this.deadline = deadline;
     }
@@ -25,9 +25,14 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
     }
 
     public void moveToNextState(Job job, Instant idealMoment, String reason) {
-        if (job.getJobState() != this) {
-            throw new IllegalStateException("Only jobs in AWAITING state can move to a next state");
+        if (job.getJobState().getName() != StateName.AWAITING) {
+            throw new IllegalStateException("Only jobs in AWAITING can move to a next state");
         }
-        throw new UnsupportedOperationException("Implement me");
+        Instant now = Instant.now();
+        if (idealMoment.isBefore(now)) {
+            job.enqueue();
+        } else {
+            job.scheduleAt(idealMoment, reason);
+        }
     }
 }
