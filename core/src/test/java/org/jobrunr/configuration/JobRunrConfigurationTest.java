@@ -3,9 +3,11 @@ package org.jobrunr.configuration;
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +23,8 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
@@ -141,5 +145,19 @@ class JobRunrConfigurationTest {
 
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
+    }
+
+    @Test
+    void testCarbonAwareConfiguration() {
+        assertThat(CarbonAwareConfiguration.getArea()).isEqualTo(null);
+        assertFalse(CarbonAwareConfiguration.isEnabled());
+
+         JobRunr.configure()
+                .useStorageProvider(new InMemoryStorageProvider())
+                .useCarbonAwareScheduling("DE")
+                .initialize();
+
+        assertThat(CarbonAwareConfiguration.getArea()).isEqualTo("DE");
+        assertTrue(CarbonAwareConfiguration.isEnabled());
     }
 }

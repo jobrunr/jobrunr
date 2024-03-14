@@ -1,26 +1,42 @@
 package org.jobrunr.utils.carbonaware;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DayAheadEnergyPrices {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DayAheadEnergyPrices.class);
 
-    private final String area;
-    private final Integer hoursAvailable;
-    private final String unit;
-    private final List<HourlyEnergyPrice> hourlyEnergyPrices;
-    private final String errorMessage;
+    @JsonProperty("isErrorResponse")
+    private boolean isErrorResponse;
+    private String errorMessage;
+    private String area;
+    private String state;
+    private Integer hoursAvailable;
+    private String unit;
+    private String timezone;
+    // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
+    private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
 
     public DayAheadEnergyPrices() {
-        this(null, null, null, emptyList());
+        this(null, null, null,null, null, null);
     }
 
-    public DayAheadEnergyPrices(String area, Integer hoursAvailable, String unit, List<HourlyEnergyPrice> hourlyEnergyPrices) {
+    public DayAheadEnergyPrices(String area, String state, String timezone, Integer hoursAvailable, String unit, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices) {
         this.area = area;
+        this.state = state;
         this.hoursAvailable = hoursAvailable;
         this.unit = unit;
+        this.timezone = timezone;
         this.hourlyEnergyPrices = hourlyEnergyPrices;
         this.errorMessage = null;
     }
@@ -29,12 +45,14 @@ public class DayAheadEnergyPrices {
         this.area = area;
         this.hoursAvailable = null;
         this.unit = null;
-        this.hourlyEnergyPrices = emptyList();
+        this.timezone = null;
+        this.hourlyEnergyPrices = null;
         this.errorMessage = errorMessage;
     }
 
-    public static DayAheadEnergyPrices error(String message) {
-        return null;
+    public static DayAheadEnergyPrices error(String area, String errorMessage) {
+        LOGGER.error("Error fetching day ahead energy prices for area '{}': {}", area, errorMessage);
+        return new DayAheadEnergyPrices(area, errorMessage);
     }
 
     public String getArea() {
@@ -56,12 +74,42 @@ public class DayAheadEnergyPrices {
     public String getErrorMessage() {
         return errorMessage;
     }
-
-    public Instant leastExpensiveHour(Instant deadline) {
-        return null;
+    public boolean getIsErrorResponse() {
+        return isErrorResponse;
     }
 
+    public void setIsErrorResponse(boolean errorResponse) {
+        isErrorResponse = errorResponse;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public Instant leastExpensiveHour(Instant deadline) {
+        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
+            throw new IllegalStateException("No hourly energy prices available");
+        }
+        for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is before the deadline
+            if (price.getDateTime().isBefore(deadline)) {
+                return price.getDateTime();
+            }
+        }
+        throw new IllegalStateException("No price found before deadline " + deadline);
+    }
+
+    public Instant getMaxHour() {
+        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
+            throw new IllegalStateException("No hourly energy prices available");
+        }
+
+        HourlyEnergyPrice maxHourlyPrice = Collections.max(hourlyEnergyPrices, Comparator.comparing(HourlyEnergyPrice::getDateTime));
+        return maxHourlyPrice.getDateTime();
+    }
+
+
     public static class HourlyEnergyPrice {
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm'Z'", timezone = "UTC")
         private Instant dateTime;
         private double price;
         private int rank;

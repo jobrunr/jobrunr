@@ -11,16 +11,14 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.utils.carbonaware.CarbonAwareScheduler;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -40,6 +38,7 @@ import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 public class JobScheduler extends AbstractJobScheduler {
 
     private final JobDetailsGenerator jobDetailsGenerator;
+    private static CarbonAwareScheduler carbonAwareScheduler;
 
     /**
      * Creates a new JobScheduler using the provided storageProvider
@@ -413,10 +412,17 @@ public class JobScheduler extends AbstractJobScheduler {
     /**
      * TODO
      */
-    public JobId scheduleCarbonAware(Instant deadline, JobLambda job) {
+    public JobId scheduleCarbonAware(Instant deadline, JobLambda jobLambda) {
+        if (!CarbonAwareConfiguration.isEnabled()) {
+            throw new IllegalStateException("CarbonAwareScheduler is not enabled. Please enable it in the configuration." +
+                    "Use `.useCarbonAwareScheduling()` on JobRunrConfiguration.");
+        }
         // Create job with carbon aware awaiting state
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+        Job job = new Job(jobDetails, new CarbonAwareAwaitingState(deadline));
         // use CarbonAwareScheduler if deadline is within dayAheadEnergyPrices, otherwise it will stay awaiting
-        return null;
+        carbonAwareScheduler.moveToNextState(job);
+        return saveJob(job); //TODO: should job be saved here?
     }
 
     /**
@@ -441,10 +447,13 @@ public class JobScheduler extends AbstractJobScheduler {
     /**
      * TODO
      */
-    public static JobId scheduleCarbonAware(UUID id, Instant deadline, JobLambda job) {
+    public JobId scheduleCarbonAware(UUID id, Instant deadline, JobLambda jobLambda) {
         // Create job with carbon aware awaiting state
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
+        Job job = new Job(id, jobDetails, new CarbonAwareAwaitingState(deadline));
         // use CarbonAwareScheduler if deadline is within dayAheadEnergyPrices, otherwise it will stay awaiting
-        return null;
+//        CarbonAwareScheduler.moveToNextState(job);
+        return saveJob(job);
     }
 
     /**
@@ -672,5 +681,9 @@ public class JobScheduler extends AbstractJobScheduler {
     public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
+    }
+
+    public static void setCarbonAwareScheduler(CarbonAwareScheduler carbonAwareScheduler) {
+        JobScheduler.carbonAwareScheduler = carbonAwareScheduler;
     }
 }

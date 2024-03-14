@@ -88,6 +88,7 @@ dependencies {
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
+    testImplementation 'com.github.tomakehurst:wiremock-jre8:3.0.1'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'
