@@ -4,7 +4,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.utils.TimeProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
@@ -18,11 +17,9 @@ public class CarbonAwareScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareScheduler.class);
     private final CarbonAwareApiClient carbonAwareAPIClient;
     private DayAheadEnergyPrices dayAheadEnergyPrices;
-    private final TimeProvider timeProvider;
 
-    public CarbonAwareScheduler(JsonMapper jsonMapper, TimeProvider timeProvider) {
+    public CarbonAwareScheduler(JsonMapper jsonMapper) {
         this.carbonAwareAPIClient = new CarbonAwareApiClient(jsonMapper);
-        this.timeProvider = timeProvider;
         Optional<String> area = Optional.ofNullable(CarbonAwareConfiguration.getArea());
         if (CarbonAwareConfiguration.isEnabled()) {
             this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
@@ -68,7 +65,7 @@ public class CarbonAwareScheduler {
         }
 
         // if max hour we have is before the next hour
-        if (dayAheadEnergyPrices.getMaxHour().isBefore(timeProvider.now().plus(Duration.ofHours(1)))) {
+        if (dayAheadEnergyPrices.getMaxHour().isBefore(Instant.now().plus(Duration.ofHours(1)))) {
             LOGGER.warn("Day ahead energy prices are outdated, updating day ahead energy prices");
             //TODO: update values or schedule now?? I think we should schedule now, because suppose that we cannot update values (they are not available).
             // Every job will try this and fails for no reason.
@@ -76,7 +73,7 @@ public class CarbonAwareScheduler {
             job.enqueue();
         }
 
-        if (carbonAwareAwaitingState.getDeadline().isBefore(timeProvider.now())) {
+        if (carbonAwareAwaitingState.getDeadline().isBefore(Instant.now())) {
             LOGGER.warn("Job {} has passed its deadline", job.getId());
             //TODO schedule now ??
             job.enqueue();

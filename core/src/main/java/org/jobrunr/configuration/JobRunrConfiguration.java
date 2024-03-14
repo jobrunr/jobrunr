@@ -13,7 +13,6 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.TimeProvider;
 import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.utils.carbonaware.CarbonAwareScheduler;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -353,7 +352,7 @@ public class JobRunrConfiguration {
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
         if (CarbonAwareConfiguration.isEnabled()) {
-            CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(jsonMapper, new TimeProvider());
+            CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(jsonMapper);
             JobScheduler.setCarbonAwareScheduler(carbonAwareScheduler);
         }
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);

@@ -2,7 +2,6 @@ package org.jobrunr.utils.carbonaware;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
-import org.jobrunr.utils.TimeProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +26,7 @@ class CarbonAwareSchedulerTest {
     @Test
     public void testWaitForSundayWhenDataNotAvailable() {
         // Assume
-        CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper(), new TimeProvider());
+        CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper());
         CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.now().plusSeconds(60 * 60 * 24 * 7)); // 1 week from now
 
         // Act
@@ -40,7 +39,7 @@ class CarbonAwareSchedulerTest {
     @Test
     public void testDoNotWaitForSundayWhenDataAvailable() {
         // Assume
-        CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper(), new TimeProvider());
+        CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper());
         CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.now().plusSeconds(60 * 60 * 24 * 7)); // 1 week from now
         when(job.getId()).thenReturn(UUID.randomUUID());
         LocalDateTime nextSunday = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).withHour(23); // Next Sunday, after 15:00
