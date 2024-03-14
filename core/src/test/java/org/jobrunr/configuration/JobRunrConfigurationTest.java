@@ -23,8 +23,6 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
@@ -150,7 +148,7 @@ class JobRunrConfigurationTest {
     @Test
     void testCarbonAwareConfiguration() {
         assertThat(CarbonAwareConfiguration.getArea()).isEqualTo(null);
-        assertFalse(CarbonAwareConfiguration.isEnabled());
+        assertThat(CarbonAwareConfiguration.isEnabled()).isFalse();
 
          JobRunr.configure()
                 .useStorageProvider(new InMemoryStorageProvider())
@@ -158,6 +156,6 @@ class JobRunrConfigurationTest {
                 .initialize();
 
         assertThat(CarbonAwareConfiguration.getArea()).isEqualTo("DE");
-        assertTrue(CarbonAwareConfiguration.isEnabled());
+        assertThat(CarbonAwareConfiguration.isEnabled()).isTrue();
     }
 }

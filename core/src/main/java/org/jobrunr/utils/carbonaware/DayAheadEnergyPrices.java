@@ -88,14 +88,16 @@ public class DayAheadEnergyPrices {
 
     public Instant leastExpensiveHour(Instant deadline) {
         if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
-            throw new IllegalStateException("No hourly energy prices available");
+            LOGGER.warn("No hourly energy prices available");
+            return null;
         }
         for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is before the deadline
             if (price.getDateTime().isBefore(deadline)) {
                 return price.getDateTime();
             }
         }
-        throw new IllegalStateException("No price found before deadline " + deadline);
+        LOGGER.warn("No price found before deadline {}", deadline);
+        return null;
     }
 
     public Instant getMaxHour() {

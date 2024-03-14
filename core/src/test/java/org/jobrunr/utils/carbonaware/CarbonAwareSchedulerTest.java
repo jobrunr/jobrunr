@@ -5,15 +5,16 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InstantMocker;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.*;
-import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.utils.carbonaware.CarbonAwareScheduler.isDayBetweenNowAndEnd;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,7 +25,7 @@ class CarbonAwareSchedulerTest {
     private DayAheadEnergyPrices dayAheadEnergyPrices;
 
     @Test
-    public void testWaitForSundayWhenDataNotAvailable() {
+    public void testWaitForSunday_whenSundayDataNotAvailable_andSundayIsIncluded() {
         // Assume
         CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper());
         CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.now().plusSeconds(60 * 60 * 24 * 7)); // 1 week from now
@@ -33,21 +34,22 @@ class CarbonAwareSchedulerTest {
         boolean result = carbonAwareScheduler.waitJobIfDayAvailableAndDataNotAvailable(DayOfWeek.SUNDAY, job, carbonAwareAwaitingState);
 
         // Assert
-        assertTrue(result); // Expect to wait since data for Sunday is not available
+        assertThat(result).isTrue(); // Expect to wait since data for Sunday is not available
     }
 
     @Test
-    public void testDoNotWaitForSundayWhenDataAvailable() {
+    public void testDoNotWaitForSunday_whenSundayDataNotAvailable_andSundayIsNotIncluded() {
         // Assume
         CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper());
-        CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.now().plusSeconds(60 * 60 * 24 * 7)); // 1 week from now
+        MockedStatic<Instant> timeNow = InstantMocker.mockTime("2022-12-13T14:00:00Z");
+        CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.parse("2022-12-14T23:00:00Z"));
         when(job.getId()).thenReturn(UUID.randomUUID());
-        LocalDateTime nextSunday = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).withHour(23); // Next Sunday, after 15:00
+        Instant nextSunday = Instant.parse("2022-12-18T23:00:00Z");
         when(dayAheadEnergyPrices.getMaxHour()).thenReturn(nextSunday.atZone(ZoneId.systemDefault()).toInstant()); // Data is for next Sunday after 15:00
 
         // Act
         boolean result = carbonAwareScheduler.waitJobIfDayAvailableAndDataNotAvailable(DayOfWeek.SUNDAY, job, carbonAwareAwaitingState);
-
+        assertThat(result).isFalse(); // Expect to schedule job since data for Sunday is not available
     }
 
     @Test
@@ -85,14 +87,14 @@ class CarbonAwareSchedulerTest {
         Instant end = Instant.now().plus(Duration.ofDays(7));
         DayOfWeek futureDay = DayOfWeek.SATURDAY;
 
-        assertTrue(isDayBetweenNowAndEnd(end, futureDay));
+        assertThat(isDayBetweenNowAndEnd(end, futureDay)).isTrue();
     }
 
     @Test
     public void isDayBetweenNowAndEnd_testEndTimeInPast() {
         Instant end = Instant.now().minus(Duration.ofDays(1));
         DayOfWeek anyDay = ZonedDateTime.now(ZoneId.systemDefault()).getDayOfWeek();
-        assertFalse(isDayBetweenNowAndEnd(end, anyDay));
+        assertThat(isDayBetweenNowAndEnd(end, anyDay)).isFalse();
     }
 
     @Test
@@ -100,6 +102,6 @@ class CarbonAwareSchedulerTest {
         Instant end = Instant.now().plus(Duration.ofDays(2)); // 2 days in the future
         DayOfWeek dayNotOccurring = ZonedDateTime.now(ZoneId.systemDefault()).plusDays(3).getDayOfWeek(); // 3 days from now, beyond end
 
-        assertFalse(isDayBetweenNowAndEnd(end, dayNotOccurring));
+        assertThat(isDayBetweenNowAndEnd(end, dayNotOccurring)).isFalse();
     }
 }

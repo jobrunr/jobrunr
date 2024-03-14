@@ -12,7 +12,7 @@ import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class CarbonAwareApiClientTest {
     private static WireMockServer wireMockServer;
@@ -54,11 +54,11 @@ class CarbonAwareApiClientTest {
         DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
 
         // ASSERT
-        assertEquals(33, result.getHoursAvailable());
-        assertEquals("BE", result.getArea());
-        assertEquals(33, result.getHourlyEnergyPrices().size());
+        assertThat(result.getHoursAvailable()).isEqualTo(33);
+        assertThat(result.getArea()).isEqualTo("BE");
+        assertThat(result.getHourlyEnergyPrices().size()).isEqualTo(33);
         DayAheadEnergyPrices.HourlyEnergyPrice cheapestPrice = result.getHourlyEnergyPrices().get(0);
-        assertEquals("2024-03-12T03:00:00Z", cheapestPrice.getDateTime().toString());
-        assertEquals(64.23, cheapestPrice.getPrice());
+        assertThat(cheapestPrice.getDateTime().toString()).isEqualTo("2024-03-12T03:00:00Z");
+        assertThat(cheapestPrice.getPrice()).isEqualTo(64.23);
     }
 }
