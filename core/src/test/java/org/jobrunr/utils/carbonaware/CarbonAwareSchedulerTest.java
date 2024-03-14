@@ -41,15 +41,16 @@ class CarbonAwareSchedulerTest {
     public void testDoNotWaitForSunday_whenSundayDataNotAvailable_andSundayIsNotIncluded() {
         // Assume
         CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(new JacksonJsonMapper());
-        MockedStatic<Instant> timeNow = InstantMocker.mockTime("2022-12-13T14:00:00Z");
-        CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.parse("2022-12-14T23:00:00Z"));
-        when(job.getId()).thenReturn(UUID.randomUUID());
-        Instant nextSunday = Instant.parse("2022-12-18T23:00:00Z");
-        when(dayAheadEnergyPrices.getMaxHour()).thenReturn(nextSunday.atZone(ZoneId.systemDefault()).toInstant()); // Data is for next Sunday after 15:00
+        try(MockedStatic<Instant> timeNow = InstantMocker.mockTime("2022-12-13T14:00:00Z")){
+            CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState(Instant.parse("2022-12-14T23:00:00Z"));
+            when(job.getId()).thenReturn(UUID.randomUUID());
+            Instant nextSunday = Instant.parse("2022-12-18T23:00:00Z");
+            when(dayAheadEnergyPrices.getMaxHour()).thenReturn(nextSunday.atZone(ZoneId.systemDefault()).toInstant()); // Data is for next Sunday after 15:00
 
-        // Act
-        boolean result = carbonAwareScheduler.waitJobIfDayAvailableAndDataNotAvailable(DayOfWeek.SUNDAY, job, carbonAwareAwaitingState);
-        assertThat(result).isFalse(); // Expect to schedule job since data for Sunday is not available
+            // Act
+            boolean result = carbonAwareScheduler.waitJobIfDayAvailableAndDataNotAvailable(DayOfWeek.SUNDAY, job, carbonAwareAwaitingState);
+            assertThat(result).isFalse(); // Expect to schedule job since data for Sunday is not available
+        }
     }
 
     @Test

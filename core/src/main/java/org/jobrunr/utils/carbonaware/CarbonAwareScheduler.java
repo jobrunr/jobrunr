@@ -66,17 +66,21 @@ public class CarbonAwareScheduler {
 
         // if max hour we have is before the next hour
         if (dayAheadEnergyPrices.getMaxHour().isBefore(Instant.now().plus(Duration.ofHours(1)))) {
-            LOGGER.warn("Day ahead energy prices are outdated, updating day ahead energy prices");
-            //TODO: update values or schedule now?? I think we should schedule now, because suppose that we cannot update values (they are not available).
-            // Every job will try this and fails for no reason.
-            //updateDayAheadEnergyPrices(Optional.of(CarbonAwareConfiguration.getArea()));
-            job.enqueue();
+            //LOGGER.warn("Day ahead energy prices are outdated, updating day ahead energy prices");
+            //TODO: should we update values, schedule now or wait until deadline??
+            // 1) update: suppose that we cannot update values (they are not available). Every job will try this and fails for no reason. DON'T update
+            // 2) schedule now: schedule now is valid
+            // 3) wait until deadline: if we wait until deadline, there is a possibility that data will become available later. Worst case scenario, we will schedule at deadline.
+            // I think we should wait until deadline.
+            //updateDayAheadEnergyPrices(Optional.of(CarbonAwareConfiguration.getArea())); // 1)
+            //carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Day ahead energy pries are outdated, scheduling job now"); // 2)
+            LOGGER.warn("Day ahead energy prices are outdated, keep waiting"); // 3)
+            return; // 3)
         }
 
-        if (carbonAwareAwaitingState.getDeadline().isBefore(Instant.now())) {
-            LOGGER.warn("Job {} has passed its deadline", job.getId());
-            //TODO schedule now ??
-            job.enqueue();
+        if (!carbonAwareAwaitingState.getDeadline().isAfter(Instant.now())) {
+            LOGGER.warn("Job {} has passed its deadline, schedule job now", job.getId());
+            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job has passed its deadline, scheduling job now");
             return;
         }
 
@@ -96,14 +100,11 @@ public class CarbonAwareScheduler {
 
         // at 1-2pm Belgium time we get 24H, the hours of the next day. So, at maximum we will have more than 24h of data.
         // Suppose we are at a country with UTC time. So, at 12 local time we will have 24h + 12h  = 36h of data.
-        if (carbonAwareAwaitingState.getDeadline().isAfter(dayAheadEnergyPrices.getMaxHour())) {
-            // TODO: if deadline is far in the future, we should schedule now or wait until we have data for the deadline?
-            LOGGER.warn("Job {} has a deadline later than the last available hour of day ahead energy prices, keep waiting", job.getId());
-            return;
-        }
+        //TODO *Question: if deadline is far in the future, we should schedule now at ideal time or wait until we have data near the deadline?
+        // *Reply: reaching this line means that Saturday or Sunday are not in the deadline & we have some data.
+        // I think we should schedule at ideal time, because we don't know if we will have data close to the deadline.
 
         // From here on we know that we have data and that the deadline is within the available data. Just schedule
-        // TODO: schedule job
 
         if (dayAheadEnergyPrices.getErrorMessage() != null) {
             carbonAwareAwaitingState.moveToNextState(job, carbonAwareAwaitingState.getDeadline(), "No carbon intensity info available (" + dayAheadEnergyPrices.getErrorMessage() + "), scheduling job at deadline.");

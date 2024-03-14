@@ -96,7 +96,7 @@ public class DayAheadEnergyPrices {
                 return price.getDateTime();
             }
         }
-        LOGGER.warn("No price found before deadline {}", deadline);
+        LOGGER.warn("No hour found before deadline {}", deadline);
         return null;
     }
 
