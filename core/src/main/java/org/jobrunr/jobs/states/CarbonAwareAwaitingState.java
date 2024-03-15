@@ -1,26 +1,42 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.utils.carbonaware.CarbonAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
-    private final Instant deadline;
+    private final Instant from;
+    private final Instant to;
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
 
     protected CarbonAwareAwaitingState() { // for json deserialization
         this(null);
     }
 
-    public CarbonAwareAwaitingState(Instant deadline) {
-        super(StateName.AWAITING);
-        this.deadline = deadline;
+    public CarbonAwareAwaitingState(CarbonAware when) {
+        this(when.getFrom(), when.getTo());
     }
 
+    public CarbonAwareAwaitingState(Instant from, Instant to) {
+        super(StateName.AWAITING);
+        this.from =from;
+        this.to =to;
+    }
+
+    public Instant getFrom() {
+        return from;
+    }
+
+    public Instant getTo() {
+        return to;
+    }
+
+    @Deprecated
     public Instant getDeadline() {
-        return deadline;
+        return to;
     }
 
     public void moveToNextState(Job job, Instant idealMoment) {

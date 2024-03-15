@@ -16,6 +16,7 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.utils.carbonaware.CarbonAware;
 import org.jobrunr.utils.carbonaware.CarbonAwareScheduler;
 
 import java.time.*;
@@ -412,14 +413,14 @@ public class JobScheduler extends AbstractJobScheduler {
     /**
      * TODO
      */
-    public JobId scheduleCarbonAware(Instant deadline, JobLambda jobLambda) {
+    public JobId scheduleCarbonAware(CarbonAware carbonAware, JobLambda jobLambda) {
         if (!CarbonAwareConfiguration.isEnabled()) {
             throw new IllegalStateException("CarbonAwareScheduler is not enabled. Please enable it in the configuration." +
                     "Use `.useCarbonAwareScheduling()` on JobRunrConfiguration.");
         }
         // Create job with carbon aware awaiting state
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
-        Job job = new Job(jobDetails, new CarbonAwareAwaitingState(deadline));
+        Job job = new Job(jobDetails, new CarbonAwareAwaitingState(carbonAware));
         // use CarbonAwareScheduler if deadline is within dayAheadEnergyPrices, otherwise it will stay awaiting
         carbonAwareScheduler.moveToNextState(job);
         return saveJob(job); //TODO: should job be saved here?

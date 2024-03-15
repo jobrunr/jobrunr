@@ -5,6 +5,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.utils.carbonaware.CarbonAware;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -395,9 +396,9 @@ public class BackgroundJob {
     /**
      * TODO
      */
-    public static JobId scheduleCarbonAware(Instant deadline, JobLambda job) {
+    public static JobId scheduleCarbonAware(CarbonAware when, JobLambda job) {
         verifyJobScheduler();
-        return jobScheduler.scheduleCarbonAware(deadline, job);
+        return jobScheduler.scheduleCarbonAware(when, job);
     }
 
     /**
