@@ -24,7 +24,7 @@ public class CarbonAware {
         return new CarbonAware(Instant.now(), to);
     }
 
-    public static CarbonAware of(Instant from, Instant to) {
+    public static CarbonAware between(Instant from, Instant to) {
         return new CarbonAware(from, to);
     }
 }

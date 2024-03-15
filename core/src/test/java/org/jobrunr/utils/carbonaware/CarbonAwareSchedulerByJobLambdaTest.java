@@ -75,7 +75,7 @@ public class CarbonAwareSchedulerByJobLambdaTest {
     @Test
     @Order(1)
     public void testScheduleCarbonAwareJob_withDeadlineNow_shouldScheduleNow() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(CarbonAware.of(),
+        JobId jobId = BackgroundJob.scheduleCarbonAware(CarbonAware.between(),
                 () -> System.out.println("Hello from CarbonAware job!"));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
