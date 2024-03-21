@@ -81,17 +81,18 @@ public class DayAheadEnergyPrices {
         this.errorMessage = errorMessage;
     }
 
-    public Instant leastExpensiveHour(Instant deadline) {
+    public Instant leastExpensiveHour(Instant from, Instant to) {
         if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
             LOGGER.warn("No hourly energy prices available");
             return null;
         }
-        for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is before the deadline
-            if (price.getDateTime().isBefore(deadline)) {
+        for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is before `to`
+            if ((price.getDateTime().isAfter(from) || price.getDateTime().equals(from))
+                    && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))) {
                 return price.getDateTime();
             }
         }
-        LOGGER.warn("No hour found before deadline {}", deadline);
+        LOGGER.warn("No hour found before to {}", to);
         return null;
     }
 
@@ -107,7 +108,8 @@ public class DayAheadEnergyPrices {
     public boolean hasValidData(CarbonAwarePeriod when) {
         return hourlyEnergyPrices != null
                 && !hourlyEnergyPrices.isEmpty()
-                && hourlyEnergyPrices.stream().anyMatch(price -> price.getDateTime().isAfter(when.getFrom()) && price.getDateTime().isBefore(when.getTo()))
+                && hourlyEnergyPrices.stream().anyMatch(price -> (price.getDateTime().isAfter(when.getFrom()) || price.getDateTime().equals(when.getFrom()))
+                        && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo())))
                 && !isErrorResponse
                 && Instant.now().isBefore(getMaxHour());
     }

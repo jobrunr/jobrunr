@@ -32,5 +32,4 @@ public class InstantMocker {
         return instantMock;
     }
 
-
 }

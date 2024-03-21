@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 public class CarbonAwareScheduler {
@@ -27,7 +28,7 @@ public class CarbonAwareScheduler {
 
     void scheduleDayAheadEnergyPricesFetch(Optional<String> area) {
         BackgroundJob.scheduleRecurrently("fetch-day-ahead-energy-prices",
-                "5 14,16 * * *", //At minute 5, hour 14 and 16
+                "10 13,15 * * *", //At minute 10, hour 13 and 15
                 ZoneId.of("Europe/Brussels"),
                 () -> updateDayAheadEnergyPrices(area));
     }
@@ -68,14 +69,37 @@ public class CarbonAwareScheduler {
             return;
         }
 
-        if (!dayAheadEnergyPrices.hasValidData(carbonAwareAwaitingState.getPeriod())) {
-            String msg = String.format("No hourly energy prices available for area '%s' %s. Schedule job now", CarbonAwareConfiguration.getArea(), dayAheadEnergyPrices.getErrorMessage());
-            LOGGER.warn(msg);
-            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), msg);
+        if (Instant.now().isAfter(carbonAwareAwaitingState.getTo().minus(1, ChronoUnit.HOURS))) {
+            LOGGER.warn("Job {} is about to pass its deadline, schedule job now", job.getId());
+            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job is about to pass its deadline, scheduling job now");
             return;
         }
 
-        Instant leastExpensiveHour = dayAheadEnergyPrices.leastExpensiveHour(carbonAwareAwaitingState.getTo());
+        if (!dayAheadEnergyPrices.hasValidData(carbonAwareAwaitingState.getPeriod())) {
+            String msg = String.format("No hourly energy prices available for area '%s' %s.",
+                    CarbonAwareConfiguration.getArea(), dayAheadEnergyPrices.getErrorMessage());
+
+            ZonedDateTime nowCET = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+            // Check if current day is the previous day of the 'to' instant
+            boolean todayIsPreviousDayBeforeDeadline = nowCET.toLocalDate().plusDays(1)
+                    .equals(carbonAwareAwaitingState.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate());
+
+            if (todayIsPreviousDayBeforeDeadline && nowCET.getHour() >= 14) {
+                // it's the day before the deadline and it's after 14:00. Schedule job now.
+                // ENTSO-E publishes day-ahead prices for the next day at 13:00 CET. Allow some delay.
+                // If we add more data providers, this logic should be changed, as they might have different schedules.
+                msg = msg + " and it's the day before the deadline. Schedule job now.";
+                LOGGER.warn(msg);
+                carbonAwareAwaitingState.moveToNextState(job, Instant.now(), msg);
+                return;
+            } else { // wait. Prices might become available later or the next day
+                LOGGER.warn(msg + " Waiting for prices to become available.");
+                return;
+            }
+        }
+
+        // from here on, we know that we have valid data
+        Instant leastExpensiveHour = dayAheadEnergyPrices.leastExpensiveHour(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
         if (leastExpensiveHour != null) {
             carbonAwareAwaitingState.moveToNextState(job, leastExpensiveHour);
         }

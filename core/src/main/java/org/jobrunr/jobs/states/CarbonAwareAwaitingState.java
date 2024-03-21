@@ -57,7 +57,6 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         if (!idealMoment.isAfter(now)) {
             LOGGER.warn("Schedule job {} immediately, as we don't have data", job.getId());
             job.enqueue();
-            // job.scheduleAt(now, "Schedule immediately, as we don't have data");
         } else {
             job.scheduleAt(idealMoment, reason);
         }
