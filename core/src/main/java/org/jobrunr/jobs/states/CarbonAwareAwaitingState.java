@@ -1,7 +1,7 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.utils.carbonaware.CarbonAware;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,17 +13,24 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
 
     protected CarbonAwareAwaitingState() { // for json deserialization
-        this(null);
+        super(StateName.AWAITING);
+        this.from = null;
+        this.to = null;
     }
 
-    public CarbonAwareAwaitingState(CarbonAware when) {
+    public CarbonAwareAwaitingState(CarbonAwarePeriod when) {
         this(when.getFrom(), when.getTo());
+    }
+
+    public CarbonAwareAwaitingState(Instant to) {
+        this(Instant.now(), to);
     }
 
     public CarbonAwareAwaitingState(Instant from, Instant to) {
         super(StateName.AWAITING);
         this.from =from;
         this.to =to;
+        validatePeriod(from, to);
     }
 
     public Instant getFrom() {
@@ -34,9 +41,8 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         return to;
     }
 
-    @Deprecated
-    public Instant getDeadline() {
-        return to;
+    public CarbonAwarePeriod getPeriod() {
+        return CarbonAwarePeriod.between(from, to);
     }
 
     public void moveToNextState(Job job, Instant idealMoment) {
@@ -54,6 +60,20 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
             // job.scheduleAt(now, "Schedule immediately, as we don't have data");
         } else {
             job.scheduleAt(idealMoment, reason);
+        }
+    }
+
+    private void validatePeriod(Instant from, Instant to) {
+        long toleranceSeconds = 1;
+
+        if (from.isAfter(to.plusSeconds(toleranceSeconds))) {
+            throw new IllegalArgumentException("The 'from' date must be before the 'to' date");
+        }
+        if (to.isBefore(from.plusSeconds(3 * 60 * 60))) {
+            throw new IllegalArgumentException("The 'to' date must be at least 3 hours after the 'from' date");
+        }
+        if (to.isBefore(Instant.now().minusSeconds(toleranceSeconds))) {
+            throw new IllegalArgumentException("The 'to' date must be in the future");
         }
     }
 }

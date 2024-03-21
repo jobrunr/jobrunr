@@ -1,8 +1,5 @@
 package org.jobrunr.utils.carbonaware;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,11 +9,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class DayAheadEnergyPrices {
     private static final Logger LOGGER = LoggerFactory.getLogger(DayAheadEnergyPrices.class);
 
-    @JsonProperty("isErrorResponse")
     private boolean isErrorResponse;
     private String errorMessage;
     private String area;
@@ -109,9 +104,16 @@ public class DayAheadEnergyPrices {
         return maxHourlyPrice.getDateTime();
     }
 
+    public boolean hasValidData(CarbonAwarePeriod when) {
+        return hourlyEnergyPrices != null
+                && !hourlyEnergyPrices.isEmpty()
+                && hourlyEnergyPrices.stream().anyMatch(price -> price.getDateTime().isAfter(when.getFrom()) && price.getDateTime().isBefore(when.getTo()))
+                && !isErrorResponse
+                && Instant.now().isBefore(getMaxHour());
+    }
+
 
     public static class HourlyEnergyPrice {
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm'Z'", timezone = "UTC")
         private Instant dateTime;
         private double price;
         private int rank;

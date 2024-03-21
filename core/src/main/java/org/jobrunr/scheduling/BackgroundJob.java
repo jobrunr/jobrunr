@@ -5,7 +5,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
-import org.jobrunr.utils.carbonaware.CarbonAware;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -396,7 +396,7 @@ public class BackgroundJob {
     /**
      * TODO
      */
-    public static JobId scheduleCarbonAware(CarbonAware when, JobLambda job) {
+    public static JobId scheduleCarbonAware(CarbonAwarePeriod when, JobLambda job) {
         verifyJobScheduler();
         return jobScheduler.scheduleCarbonAware(when, job);
     }
@@ -404,9 +404,18 @@ public class BackgroundJob {
     /**
      * TODO
      */
-    public static JobId scheduleCarbonAware(UUID id, Instant deadline, JobLambda job) {
+    public static JobId scheduleCarbonAware(UUID id, Instant from, Instant to, JobLambda job) {
         verifyJobScheduler();
-        return jobScheduler.scheduleCarbonAware(id, deadline, job);
+        return jobScheduler.scheduleCarbonAware(id, from, to, job);
+    }
+
+    public static JobId scheduleCarbonAware(Instant to, JobLambda job) {
+        return jobScheduler.scheduleCarbonAware(CarbonAwarePeriod.before(to), job);
+    }
+
+    public static JobId scheduleCarbonAware(Instant from, Instant to, JobLambda job) {
+        verifyJobScheduler();
+        return jobScheduler.scheduleCarbonAware(CarbonAwarePeriod.between(from, to), job);
     }
 
     /**

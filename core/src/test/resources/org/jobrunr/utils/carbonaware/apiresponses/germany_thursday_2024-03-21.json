@@ -1,0 +1,95 @@
+{
+  "isErrorResponse": false,
+  "area": "DE",
+  "state": null,
+  "hoursAvailable": 17,
+  "unit": "EUR/MWH",
+  "timezone": "Europe/Berlin",
+  "hourlyEnergyPrices": [
+    {
+      "dateTime": "2024-03-21T12:00:00Z",
+      "price": 59.96,
+      "rank": 1
+    },
+    {
+      "dateTime": "2024-03-21T11:00:00Z",
+      "price": 64.64,
+      "rank": 2
+    },
+    {
+      "dateTime": "2024-03-21T14:00:00Z",
+      "price": 66.28,
+      "rank": 3
+    },
+    {
+      "dateTime": "2024-03-21T13:00:00Z",
+      "price": 66.85,
+      "rank": 4
+    },
+    {
+      "dateTime": "2024-03-21T10:00:00Z",
+      "price": 68.03,
+      "rank": 5
+    },
+    {
+      "dateTime": "2024-03-21T22:00:00Z",
+      "price": 71.23,
+      "rank": 6
+    },
+    {
+      "dateTime": "2024-03-21T09:00:00Z",
+      "price": 72.41,
+      "rank": 7
+    },
+    {
+      "dateTime": "2024-03-21T15:00:00Z",
+      "price": 75.27,
+      "rank": 8
+    },
+    {
+      "dateTime": "2024-03-21T21:00:00Z",
+      "price": 77.48,
+      "rank": 9
+    },
+    {
+      "dateTime": "2024-03-21T20:00:00Z",
+      "price": 79.6,
+      "rank": 10
+    },
+    {
+      "dateTime": "2024-03-21T08:00:00Z",
+      "price": 80,
+      "rank": 11
+    },
+    {
+      "dateTime": "2024-03-21T19:00:00Z",
+      "price": 94.04,
+      "rank": 12
+    },
+    {
+      "dateTime": "2024-03-21T06:00:00Z",
+      "price": 98.21,
+      "rank": 13
+    },
+    {
+      "dateTime": "2024-03-21T16:00:00Z",
+      "price": 100.9,
+      "rank": 14
+    },
+    {
+      "dateTime": "2024-03-21T07:00:00Z",
+      "price": 102.29,
+      "rank": 15
+    },
+    {
+      "dateTime": "2024-03-21T18:00:00Z",
+      "price": 122.85,
+      "rank": 16
+    },
+    {
+      "dateTime": "2024-03-21T17:00:00Z",
+      "price": 127.13,
+      "rank": 17
+    }
+  ]
+}

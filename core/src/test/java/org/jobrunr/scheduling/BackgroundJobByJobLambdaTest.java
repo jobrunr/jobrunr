@@ -328,7 +328,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(now().plus(1, DAYS),  () -> testService.doWork(5, JobContext.Null));
+        JobId jobId = BackgroundJob.scheduleCarbonAware(now(), now().plus(1, DAYS),  () -> testService.doWork(5, JobContext.Null));
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 
@@ -518,9 +518,8 @@ public class BackgroundJobByJobLambdaTest {
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(1, SECONDS).untilAsserted(() -> {
-            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
-        });
+        await().during(1, SECONDS).untilAsserted(()
+                -> assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED));
     }
 
     @Test
@@ -535,9 +534,8 @@ public class BackgroundJobByJobLambdaTest {
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(1, SECONDS).untilAsserted(() -> {
-            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
-        });
+        await().during(1, SECONDS).untilAsserted(()
+                -> assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED));
     }
 
     @Test
@@ -552,9 +550,8 @@ public class BackgroundJobByJobLambdaTest {
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(1, SECONDS).untilAsserted(() -> {
-            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
-        });
+        await().during(1, SECONDS).untilAsserted(()
+                -> assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED));
     }
 
     @Test
@@ -589,7 +586,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testJobInheritance() {
         SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
-        assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
+        assertThatCode(someSysoutJobClass::schedule).doesNotThrowAnyException();
     }
 
     @Test
@@ -640,7 +637,7 @@ public class BackgroundJobByJobLambdaTest {
         }
 
         public void schedule() {
-            BackgroundJob.scheduleRecurrently("test-id", cron, () -> doWork());
+            BackgroundJob.scheduleRecurrently("test-id", cron, this::doWork);
         }
     }
 

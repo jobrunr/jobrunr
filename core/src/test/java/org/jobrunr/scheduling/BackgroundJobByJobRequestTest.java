@@ -216,11 +216,6 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
-    void testScheduleCarbonAware() {
-        throw new UnsupportedOperationException("Implement me");
-    }
-
-    @Test
     void testRecurringCronJob() {
         BackgroundJobRequest.scheduleRecurrently(everySecond, new TestJobRequest("from testRecurringJob"));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
