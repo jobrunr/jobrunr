@@ -7,12 +7,14 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.*;
+import org.mockito.MockedStatic;
 
 import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.CarbonAwareConfigurationMocker.mockCarbonAwareConf;
 
 class CarbonAwareApiClientTest {
     private static WireMockServer wireMockServer;
@@ -51,7 +53,10 @@ class CarbonAwareApiClientTest {
                         .withBody(CarbonApiMockResponses.BELGIUM_2024_03_12)));
 
         // ACT
-        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        DayAheadEnergyPrices result;
+        try(MockedStatic<CarbonAwareConfiguration> conf = mockCarbonAwareConf("BE")) {
+            result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        }
 
         // ASSERT
         assertThat(result.getHoursAvailable()).isEqualTo(33);

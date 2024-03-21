@@ -72,7 +72,6 @@ public class CarbonAwareApiClient {
     }
 
     private String getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> area) {
-//        return "https://api.jobrunr.io/api/carbon-intensity/v1/day-ahead-energy-prices" + area.map(a -> "?area=" + a).orElse("");
         return CarbonAwareConfiguration.getCarbonAwareApiBaseUrl() + "/v1/day-ahead-energy-prices" + area.map(a -> "?area=" + a).orElse("");
     }
 }

@@ -29,6 +29,7 @@ import static org.awaitility.Durations.*;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.CarbonAwareConfigurationMocker.mockCarbonAwareConf;
 
 public class CarbonAwareSchedulerByJobLambdaTest {
     private TestService testService;
@@ -166,11 +167,13 @@ public class CarbonAwareSchedulerByJobLambdaTest {
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(mockResponse)));
-        JobRunr.configure()
-                .withJobFilter(logAllStateChangesFilter)
-                .useStorageProvider(storageProvider)
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(pollInterval)))
-                .useCarbonAwareScheduling(area)
-                .initialize();
+        try(MockedStatic<CarbonAwareConfiguration> conf = mockCarbonAwareConf(area)) {
+            JobRunr.configure()
+                    .withJobFilter(logAllStateChangesFilter)
+                    .useStorageProvider(storageProvider)
+                    .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(pollInterval)))
+                    .useCarbonAwareScheduling(area)
+                    .initialize();
+        }
     }
 }

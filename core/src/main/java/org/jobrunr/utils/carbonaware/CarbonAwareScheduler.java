@@ -81,10 +81,14 @@ public class CarbonAwareScheduler {
 
             ZonedDateTime nowCET = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             // Check if current day is the previous day of the 'to' instant
-            boolean todayIsPreviousDayBeforeDeadline = nowCET.toLocalDate().plusDays(1)
-                    .equals(carbonAwareAwaitingState.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate());
+            LocalDate today = nowCET.toLocalDate();
+            LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate();
+            boolean todayIsDeadline = today.equals(deadlineDay);
+            boolean todayIsPreviousDayBeforeDeadline = today.equals(deadlineDay.minusDays(1));
+            boolean timeIsAfter14 = nowCET.getHour() >= 14;
+            boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14 = todayIsPreviousDayBeforeDeadline && timeIsAfter14;
 
-            if (todayIsPreviousDayBeforeDeadline && nowCET.getHour() >= 14) {
+            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14) {
                 // it's the day before the deadline and it's after 14:00. Schedule job now.
                 // ENTSO-E publishes day-ahead prices for the next day at 13:00 CET. Allow some delay.
                 // If we add more data providers, this logic should be changed, as they might have different schedules.

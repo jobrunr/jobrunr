@@ -2,8 +2,7 @@ package org.jobrunr.utils.carbonaware;
 
 public class CarbonAwareConfiguration {
     private static boolean enabled = false;
-    //    private static String carbonAwareApiBaseUrl = "https://jobrunr.io/api/carbon-intensity";
-    private static String carbonAwareApiBaseUrl = "http://localhost:10000/carbon-intensity"; //TODO: change this
+    private static String carbonAwareApiBaseUrl = "https://jobrunr.io/api/carbon-intensity";
     private static String area;
     private static String state;
     private static String cloudProvider;
