@@ -66,7 +66,7 @@ public class CarbonAwareSchedulerByJobLambdaTest {
 
 
     @Test
-    public void testScheduleCarbonAwareJob_withDeadline10Minutes_shouldScheduleNow() {
+    public void testScheduleCarbonAwareJob_withDeadlineIn10Minutes_shouldScheduleNow() {
         configureTest(200, CarbonApiMockResponses.GERMANY_2024_03_14, "DE");
         JobId jobId = BackgroundJob.scheduleCarbonAware(Instant.now().minus(3, ChronoUnit.HOURS), Instant.now().plus(10, ChronoUnit.MINUTES),
                 () -> System.out.println("Hello from CarbonAware job!"));
@@ -86,6 +86,18 @@ public class CarbonAwareSchedulerByJobLambdaTest {
     }
 
     @Test
+    public void testScheduleCarbonAwareJob_withDeadlineTomorrow_andOutdatedData_andTimeAfter14_shouldScheduleNow() {
+        configureTest(200, CarbonApiMockResponses.GERMANY_2024_03_14, "DE");
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2026-10-10T15:00:00Z");
+            MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2026-10-10T15:00:00Z"), "Europe/Brussels")) {
+            JobId jobId = BackgroundJob.scheduleCarbonAware(Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS),
+                    () -> System.out.println("Hello from CarbonAware job!"));
+            await().atMost(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+            assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
+        }
+    }
+
+    @Test
     public void testScheduleCarbonAwareJob_withExpiredDeadline_shouldScheduleImmediately() {
         configureTest(200, CarbonApiMockResponses.GERMANY_2024_03_14, "DE");
         try(MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-14T11:00:00Z")){
@@ -99,8 +111,9 @@ public class CarbonAwareSchedulerByJobLambdaTest {
 
     @Test
     public void testScheduleCarbonAwareJob_withDeadline1Day_and12HoursData_shouldScheduleAtIdealMoment() {
-        configureTest(1000, CarbonApiMockResponses.GERMANY_2024_03_14, "DE");
-        try(MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-14T08:00:00Z")){
+        configureTest(1000, CarbonApiMockResponses.BELGIUM_2024_03_14, "BE");
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-14T08:00:00Z");
+            MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-14T08:00:00Z"), "Europe/Brussels")){
             JobId jobId = BackgroundJob.scheduleCarbonAware(Instant.parse("2024-03-15T23:00:00Z"),
                     () -> System.out.println("Hello from CarbonAware job: testScheduleCarbonAwareJob_withDeadline1Day_and12HoursData_shouldScheduleAtIdealMoment"));
             await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
@@ -114,8 +127,9 @@ public class CarbonAwareSchedulerByJobLambdaTest {
 
     @Test
     public void testScheduleCarbonAwareJob_withDeadline2Days_and12HoursData_shouldScheduleAtIdealMoment() {
-        configureTest(1000, CarbonApiMockResponses.GERMANY_2024_03_14, "DE");
-        try(MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-14T08:00:00Z")){
+        configureTest(1000, CarbonApiMockResponses.BELGIUM_2024_03_14, "BE");
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-14T08:00:00Z");
+            MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-14T08:00:00Z"), "Europe/Brussels")){
             JobId jobId = BackgroundJob.scheduleCarbonAware(Instant.parse("2024-03-16T23:00:00Z"),
                     () -> System.out.println("Hello from CarbonAware job!"));
             await().atMost(TEN_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
@@ -163,7 +177,8 @@ public class CarbonAwareSchedulerByJobLambdaTest {
     private static void configureTest(int pollInterval, String mockResponse, String area) {
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         storageProvider = new InMemoryStorageProvider();
-        wireMockServer.stubFor(WireMock.get(urlEqualTo("/carbon-intensity/v1/day-ahead-energy-prices?area=DE"))
+        String url = String.format("/carbon-intensity/v1/day-ahead-energy-prices?area=%s", area);
+        wireMockServer.stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(mockResponse)));

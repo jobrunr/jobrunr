@@ -1,0 +1,70 @@
+{
+  "isErrorResponse": false,
+  "area": "BE",
+  "state": null,
+  "hoursAvailable": 12,
+  "unit": "EUR/MWH",
+  "timezone": "Europe/Brussels",
+  "hourlyEnergyPrices": [
+    {
+      "dateTime": "2024-03-14T12:00:00Z",
+      "price": 49.16,
+      "rank": 1
+    },
+    {
+      "dateTime": "2024-03-14T22:00:00Z",
+      "price": 51.66,
+      "rank": 2
+    },
+    {
+      "dateTime": "2024-03-14T11:00:00Z",
+      "price": 52.83,
+      "rank": 3
+    },
+    {
+      "dateTime": "2024-03-14T13:00:00Z",
+      "price": 52.84,
+      "rank": 4
+    },
+    {
+      "dateTime": "2024-03-14T14:00:00Z",
+      "price": 58.91,
+      "rank": 5
+    },
+    {
+      "dateTime": "2024-03-14T21:00:00Z",
+      "price": 59.62,
+      "rank": 6
+    },
+    {
+      "dateTime": "2024-03-14T20:00:00Z",
+      "price": 62.63,
+      "rank": 7
+    },
+    {
+      "dateTime": "2024-03-14T15:00:00Z",
+      "price": 73.21,
+      "rank": 8
+    },
+    {
+      "dateTime": "2024-03-14T19:00:00Z",
+      "price": 74.09,
+      "rank": 9
+    },
+    {
+      "dateTime": "2024-03-14T18:00:00Z",
+      "price": 91.04,
+      "rank": 10
+    },
+    {
+      "dateTime": "2024-03-14T16:00:00Z",
+      "price": 91.04,
+      "rank": 11
+    },
+    {
+      "dateTime": "2024-03-14T17:00:00Z",
+      "price": 114.77,
+      "rank": 12
+    }
+  ]
+}

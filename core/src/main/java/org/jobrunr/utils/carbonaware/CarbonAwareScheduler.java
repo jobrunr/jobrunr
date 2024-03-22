@@ -64,11 +64,6 @@ public class CarbonAwareScheduler {
             return;
         }
 
-        if (Instant.now().isBefore(carbonAwareAwaitingState.getFrom())) {
-            LOGGER.trace("Job {} is not yet ready to be scheduled", job.getId());
-            return;
-        }
-
         if (Instant.now().isAfter(carbonAwareAwaitingState.getTo().minus(1, ChronoUnit.HOURS))) {
             LOGGER.warn("Job {} is about to pass its deadline, schedule job now", job.getId());
             carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job is about to pass its deadline, scheduling job now");
@@ -106,7 +101,10 @@ public class CarbonAwareScheduler {
         Instant leastExpensiveHour = dayAheadEnergyPrices.leastExpensiveHour(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
         if (leastExpensiveHour != null) {
             carbonAwareAwaitingState.moveToNextState(job, leastExpensiveHour);
+            return;
         }
+
+        LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
     }
 }
 

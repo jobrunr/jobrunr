@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -86,13 +89,16 @@ public class DayAheadEnergyPrices {
             LOGGER.warn("No hourly energy prices available");
             return null;
         }
-        for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is before `to`
+        Instant currentHour = ZonedDateTime.now(ZoneId.of(timezone)).truncatedTo(ChronoUnit.HOURS).toInstant();
+        for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is between `from` and `to`
             if ((price.getDateTime().isAfter(from) || price.getDateTime().equals(from))
-                    && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))) {
-                return price.getDateTime();
+                    && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))
+                    && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour))) {
+
+                        return price.getDateTime();
             }
         }
-        LOGGER.warn("No hour found before to {}", to);
+        LOGGER.warn("No hour found between {} and {}", from, to);
         return null;
     }
 
@@ -105,13 +111,26 @@ public class DayAheadEnergyPrices {
         return maxHourlyPrice.getDateTime();
     }
 
+    /**
+     * Checks if the data are valid and available for the given period
+     *
+     * @param when The period to check (from, to)
+     * @return Returns false:
+     *    1. if there is no data available (not available, could not be fetched, etc.)
+     *    2. if the period is not within the available data (either `from`> maxHour or `to` < minHour)
+     *    3. if the current time is after the last available hour (data are outdated)
+     *  Otherwise, returns true
+     */
     public boolean hasValidData(CarbonAwarePeriod when) {
-        return hourlyEnergyPrices != null
-                && !hourlyEnergyPrices.isEmpty()
-                && hourlyEnergyPrices.stream().anyMatch(price -> (price.getDateTime().isAfter(when.getFrom()) || price.getDateTime().equals(when.getFrom()))
-                        && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo())))
-                && !isErrorResponse
-                && Instant.now().isBefore(getMaxHour());
+        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty() || isErrorResponse) {
+            LOGGER.warn("No hourly energy prices available");
+            return false;
+        }
+        Instant currentHour = ZonedDateTime.now(ZoneId.of(timezone)).truncatedTo(ChronoUnit.HOURS).toInstant();
+        return hourlyEnergyPrices.stream().anyMatch(price -> (price.getDateTime().isAfter(when.getFrom()) || price.getDateTime().equals(when.getFrom()))
+                        && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo()))
+                        && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour)));
+
     }
 
 
