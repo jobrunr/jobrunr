@@ -3,7 +3,10 @@ package org.jobrunr.utils.carbonaware;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,27 +18,42 @@ import java.util.Optional;
 public class CarbonAwareScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareScheduler.class);
     private final CarbonAwareApiClient carbonAwareAPIClient;
+    private final StorageProvider storageProvider;
     private DayAheadEnergyPrices dayAheadEnergyPrices;
 
-    public CarbonAwareScheduler(JsonMapper jsonMapper) {
+    public CarbonAwareScheduler(JsonMapper jsonMapper, StorageProvider storageProvider) {
         this.carbonAwareAPIClient = new CarbonAwareApiClient(jsonMapper);
+        this.storageProvider = storageProvider;
         Optional<String> area = Optional.ofNullable(CarbonAwareConfiguration.getArea());
         if (CarbonAwareConfiguration.isEnabled()) {
             this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
             scheduleDayAheadEnergyPricesFetch(area);
+            scheduleUpdateAwaitingJobs();
         }
     }
 
     void scheduleDayAheadEnergyPricesFetch(Optional<String> area) {
         BackgroundJob.scheduleRecurrently("fetch-day-ahead-energy-prices",
                 "10 13,15 * * *", //At minute 10, hour 13 and 15
-                ZoneId.of("Europe/Brussels"),
                 () -> updateDayAheadEnergyPrices(area));
+    }
+
+    void scheduleUpdateAwaitingJobs() {
+        BackgroundJob.scheduleRecurrently("update-awaiting-jobs",
+                "5 * * * *", //Every hour at minute 5
+                this::updateAwaitingJobs);
+    }
+
+    void updateAwaitingJobs() {
+        storageProvider.getJobList(StateName.AWAITING, new AmountRequest(null, 1000))
+                .forEach(this::moveToNextState);
     }
 
     void updateDayAheadEnergyPrices(Optional<String> area) {
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
         if (dayAheadEnergyPrices.getIsErrorResponse()){
+            LOGGER.warn("Could not update day ahead energy prices for area '{}': {}",
+                    area.orElse("unknown"), dayAheadEnergyPrices.getErrorMessage());
             return;
         }
         if (dayAheadEnergyPrices.getHourlyEnergyPrices() == null || dayAheadEnergyPrices.getHourlyEnergyPrices().isEmpty()) {
