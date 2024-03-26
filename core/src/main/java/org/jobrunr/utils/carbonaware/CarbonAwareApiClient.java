@@ -44,8 +44,8 @@ public class CarbonAwareApiClient {
         HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
         con.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
         con.setRequestMethod("GET");
-        con.setConnectTimeout(3000);
-        con.setReadTimeout(3000);
+        con.setConnectTimeout(CarbonAwareConfiguration.getApiClientConnectTimeout());
+        con.setReadTimeout(CarbonAwareConfiguration.getApiClientReadTimeout());
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
             String inputLine;
@@ -72,6 +72,7 @@ public class CarbonAwareApiClient {
     }
 
     private String getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> area) {
-        return CarbonAwareConfiguration.getCarbonAwareApiBaseUrl() + "/v1/day-ahead-energy-prices" + area.map(a -> "?area=" + a).orElse("");
+        return CarbonAwareConfiguration.getCarbonAwareApiBaseUrl() + CarbonAwareConfiguration.getCarbonAwareDayAheadEnergyPricesUrl()
+                + area.map(a -> "?area=" + a).orElse("");
     }
 }

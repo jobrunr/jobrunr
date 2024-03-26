@@ -3,13 +3,18 @@ package org.jobrunr.utils.carbonaware;
 public class CarbonAwareConfiguration {
     private static boolean enabled = false;
     private static String carbonAwareApiBaseUrl = "https://jobrunr.io/api/carbon-intensity";
+    private static String carbonAwareDayAheadEnergyPricesUrl = "/v1/day-ahead-energy-prices";
     private static String area;
     private static String state;
     private static String cloudProvider;
     private static String cloudRegion;
+    private static int apiClientReadTimeout = 3000;
+    private static int apiClientConnectTimeout = 3000;
     public CarbonAwareConfiguration(){}
 
-    public static boolean isEnabled() {return enabled;}
+    public static boolean isEnabled() {
+        return enabled;
+    }
 
     public static String getArea() {
         return area;
@@ -27,9 +32,22 @@ public class CarbonAwareConfiguration {
         return cloudRegion;
     }
 
+    public static int getApiClientReadTimeout() {
+        return apiClientReadTimeout;
+    }
+
+    public static int getApiClientConnectTimeout() {
+        return apiClientConnectTimeout;
+    }
+
     public static String getCarbonAwareApiBaseUrl() {
         return carbonAwareApiBaseUrl;
     }
+
+    public static String getCarbonAwareDayAheadEnergyPricesUrl() {
+        return carbonAwareDayAheadEnergyPricesUrl;
+    }
+
     public static void setEnabled(boolean enabled) {
         CarbonAwareConfiguration.enabled = enabled;
     }
@@ -52,5 +70,13 @@ public class CarbonAwareConfiguration {
 
     public static void setCarbonAwareApiBaseUrl(String carbonAwareApiBaseUrl) {
         CarbonAwareConfiguration.carbonAwareApiBaseUrl = carbonAwareApiBaseUrl;
+    }
+
+    public static void setApiClientReadTimeout(int apiClientReadTimeout) {
+        CarbonAwareConfiguration.apiClientReadTimeout = apiClientReadTimeout;
+    }
+
+    public static void setApiClientConnectTimeout(int apiClientConnectTimeout) {
+        CarbonAwareConfiguration.apiClientConnectTimeout = apiClientConnectTimeout;
     }
 }
