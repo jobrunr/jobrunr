@@ -1,8 +1,21 @@
-package org.mockito;
+package org.jobrunr.utils.carbonaware;
 
-import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
-public class CarbonAwareConfigurationMocker {
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
+public class CarbonAwareSchedulingTestUtils {
+    public static void mockResponseWhenRequestingArea(String area, String response, WireMockServer wireMockServer) {
+        String url = String.format("/carbon-intensity/v1/day-ahead-energy-prices?area=%s", area);
+        wireMockServer.stubFor(WireMock.get(urlEqualTo(url))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(response)));
+    }
 
     public static MockedStatic<CarbonAwareConfiguration> mockCarbonAwareConf(String area) {
         MockedStatic<CarbonAwareConfiguration> carbonAwareConfigurationMock = Mockito.mockStatic(CarbonAwareConfiguration.class, Mockito.CALLS_REAL_METHODS);
@@ -14,5 +27,4 @@ public class CarbonAwareConfigurationMocker {
         carbonAwareConfigurationMock.when(CarbonAwareConfiguration::getCarbonAwareApiBaseUrl).thenReturn("http://localhost:10000/carbon-intensity");
         return carbonAwareConfigurationMock;
     }
-
 }

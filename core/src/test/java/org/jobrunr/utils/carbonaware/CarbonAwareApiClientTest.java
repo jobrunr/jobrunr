@@ -3,18 +3,18 @@ package org.jobrunr.utils.carbonaware;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.mockito.CarbonAwareConfigurationMocker.mockCarbonAwareConf;
+import static org.jobrunr.utils.carbonaware.CarbonAwareSchedulingTestUtils.mockResponseWhenRequestingArea;
+import static org.jobrunr.utils.carbonaware.CarbonAwareSchedulingTestUtils.mockCarbonAwareConf;
 
 class CarbonAwareApiClientTest {
     private static WireMockServer wireMockServer;
@@ -47,10 +47,7 @@ class CarbonAwareApiClientTest {
     void testFetchLatestDayAheadEnergyPrices() {
         // ARRANGE
         CarbonAwareApiClient carbonAwareApiClient = new CarbonAwareApiClient(jsonMapper);
-        wireMockServer.stubFor(WireMock.get(urlEqualTo("/carbon-intensity/v1/day-ahead-energy-prices?area=BE"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(CarbonApiMockResponses.BELGIUM_2024_03_12)));
+        mockResponseWhenRequestingArea("BE", CarbonApiMockResponses.BELGIUM_2024_03_12, wireMockServer);
 
         // ACT
         DayAheadEnergyPrices result;
@@ -65,5 +62,26 @@ class CarbonAwareApiClientTest {
         DayAheadEnergyPrices.HourlyEnergyPrice cheapestPrice = result.getHourlyEnergyPrices().get(0);
         assertThat(cheapestPrice.getDateTime().toString()).isEqualTo("2024-03-12T03:00:00Z");
         assertThat(cheapestPrice.getPrice()).isEqualTo(64.23);
+    }
+
+    @Test
+    void whenFetchLatestDayAheadEnergyPrices_ThenReturnEmptyOptionalIfNoData() {
+        // ARRANGE
+        CarbonAwareApiClient carbonAwareApiClient = new CarbonAwareApiClient(jsonMapper);
+        mockResponseWhenRequestingArea("DE", CarbonApiMockResponses.GERMANY_NO_DATA, wireMockServer);
+        CarbonAwarePeriod carbonAwarePeriod = CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
+
+        // ACT
+        DayAheadEnergyPrices result;
+        try(MockedStatic<CarbonAwareConfiguration> conf = mockCarbonAwareConf("DE")) {
+            result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("DE"));
+        }
+
+        // ASSERT
+        assertThat(result.hasValidData(carbonAwarePeriod)).isFalse();
+        assertThat(result.getIsErrorResponse()).isTrue();
+        assertThat(result.getErrorMessage()).isEqualTo("An error occurred: No data available for area: 'DE'");
+        assertThat(result.getArea()).isNull();
+        assertThat(result.getHoursAvailable()).isNull();
     }
 }
