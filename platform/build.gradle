@@ -35,7 +35,7 @@ dependencies {
         api 'org.apache.commons:commons-dbcp2:2.12.0'
         api 'org.apache.tomcat:tomcat-jdbc:10.1.19'
         api 'redis.clients:jedis:5.1.2'
-        api 'io.lettuce:lettuce-core:6.3.1.RELEASE'
+        api 'io.lettuce:lettuce-core:6.3.2.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:5.0.0'
         api 'co.elastic.clients:elasticsearch-java:8.12.2'
 
