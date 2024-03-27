@@ -157,6 +157,11 @@ public interface JobRunrConfiguration {
         Optional<Duration> getPermanentlyDeleteDeletedJobsAfter();
 
         /**
+         * Sets the duration to wait before interrupting threads/jobs when the server is stopped.
+         */
+        Optional<Duration> getInterruptJobsAwaitDurationOnStop();
+
+        /**
          * Allows to configure the MicroMeter Metrics integration for the BackgroundJobServer.
          */
         @NotNull

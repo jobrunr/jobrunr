@@ -5,6 +5,7 @@ import org.jobrunr.jobs.states.StateName;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.unmodifiableMap;
@@ -53,6 +54,10 @@ public class JobContext {
         return job.getJobName();
     }
 
+    public Set<String> getJobLabels() {
+        return job.getLabels();
+    }
+
     public StateName getJobState() {
         return job.getState();
     }
@@ -65,7 +70,7 @@ public class JobContext {
         return job.getUpdatedAt();
     }
 
-    public String getSignature() {
+    public String getJobSignature() {
         return job.getJobSignature();
     }
 

@@ -24,6 +24,7 @@ dependencies {
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
 
+    compileOnly 'org.springframework.data:spring-data-redis'
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
@@ -34,6 +35,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.springframework.data:spring-data-redis'
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'

@@ -14,6 +14,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceDirectoryBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.metrics.MetricsCapabilityBuildItem;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.deployment.recording.RecorderContext;
@@ -79,6 +80,7 @@ import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
 import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
+import org.jobrunr.utils.uuid.UUIDv7Factory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -122,6 +124,12 @@ class JobRunrExtensionProcessor {
                 .setUnremovable()
                 .addBeanClasses(additionalBeans.toArray(new Class[0]))
                 .build();
+    }
+
+    @BuildStep
+    public void registerRuntimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> producer) {
+        // Classes using java.util.Random, which need to be runtime initialized
+        producer.produce(new RuntimeInitializedClassBuildItem(Job.class.getName()));
     }
 
     @BuildStep
