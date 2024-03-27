@@ -41,7 +41,7 @@ dependencies {
 
         api 'org.junit.jupiter:junit-jupiter:5.10.2'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
-        api 'org.awaitility:awaitility:4.2.0'
+        api 'org.awaitility:awaitility:4.2.1'
         api 'org.assertj:assertj-core:3.25.3'
         api 'com.tngtech.archunit:archunit-junit5:1.2.1'
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.38.0'
