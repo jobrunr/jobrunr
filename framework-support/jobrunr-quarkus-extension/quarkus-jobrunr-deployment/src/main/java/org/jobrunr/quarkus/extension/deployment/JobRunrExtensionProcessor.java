@@ -129,7 +129,6 @@ class JobRunrExtensionProcessor {
     @BuildStep
     public void registerRuntimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> producer) {
         // Classes using java.util.Random, which need to be runtime initialized
-        producer.produce(new RuntimeInitializedClassBuildItem(UUIDv7Factory.class.getName()));
         producer.produce(new RuntimeInitializedClassBuildItem(Job.class.getName()));
     }
 
