@@ -14,11 +14,11 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnBean(RedisClient.class)
 @ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "redis-lettuce", matchIfMissing = true)
-public class JobRunrLettuceStorageAutoConfiguration {
+public class JobRunrLettuceRedisClientStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
-    public StorageProvider jedisStorageProvider(RedisClient redisClient, JobMapper jobMapper, JobRunrProperties properties) {
+    public StorageProvider lettuceRedisClientStorageProvider(RedisClient redisClient, JobMapper jobMapper, JobRunrProperties properties) {
         LettuceRedisStorageProvider lettuceRedisStorageProvider = new LettuceRedisStorageProvider(redisClient, properties.getDatabase().getTablePrefix());
         lettuceRedisStorageProvider.setJobMapper(jobMapper);
         return lettuceRedisStorageProvider;

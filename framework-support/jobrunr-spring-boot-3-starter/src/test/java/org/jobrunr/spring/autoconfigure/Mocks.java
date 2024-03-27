@@ -19,6 +19,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.jobrunr.storage.StorageProviderUtils;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -106,6 +107,13 @@ public class Mocks {
         when(connection.sync()).thenReturn(mock(RedisCommands.class));
         when(redisClient.connect()).thenReturn(connection);
         return redisClient;
+    }
+
+    public static LettuceConnectionFactory lettuceConnectionFactory() {
+        RedisClient redisClient = redisClient();
+        LettuceConnectionFactory lettuceConnectionFactory = mock(LettuceConnectionFactory.class);
+        when(lettuceConnectionFactory.getNativeClient()).thenReturn(redisClient);
+        return lettuceConnectionFactory;
     }
 
     public static JedisPool jedisPool() {
