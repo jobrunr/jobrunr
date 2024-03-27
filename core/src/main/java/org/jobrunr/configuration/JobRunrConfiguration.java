@@ -353,7 +353,7 @@ public class JobRunrConfiguration {
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
         if (CarbonAwareConfiguration.isEnabled()) {
             CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(jsonMapper, storageProvider);
-            JobScheduler.setCarbonAwareScheduler(carbonAwareScheduler);
+            jobScheduler.setCarbonAwareScheduler(carbonAwareScheduler);
         }
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }

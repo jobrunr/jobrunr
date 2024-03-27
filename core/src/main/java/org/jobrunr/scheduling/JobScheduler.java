@@ -38,7 +38,7 @@ import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 public class JobScheduler extends AbstractJobScheduler {
 
     private final JobDetailsGenerator jobDetailsGenerator;
-    private static CarbonAwareScheduler carbonAwareScheduler;
+    private CarbonAwareScheduler carbonAwareScheduler;
 
     /**
      * Creates a new JobScheduler using the provided storageProvider
@@ -416,7 +416,7 @@ public class JobScheduler extends AbstractJobScheduler {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
         Job job = CarbonAwareJobCreator.createCarbonAwareJob(jobDetails, carbonAwarePeriod);
         carbonAwareScheduler.moveToNextState(job);
-        return saveJob(job); //TODO: should job be saved here?
+        return saveJob(job);
     }
 
     /**
@@ -680,7 +680,10 @@ public class JobScheduler extends AbstractJobScheduler {
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
     }
 
-    public static void setCarbonAwareScheduler(CarbonAwareScheduler carbonAwareScheduler) {
-        JobScheduler.carbonAwareScheduler = carbonAwareScheduler;
+    public void setCarbonAwareScheduler(CarbonAwareScheduler carbonAwareScheduler) {
+        this.carbonAwareScheduler = carbonAwareScheduler;
+    }
+    public CarbonAwareScheduler getCarbonAwareScheduler() {
+        return this.carbonAwareScheduler;
     }
 }

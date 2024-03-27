@@ -6,6 +6,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.InstantMocker;
+import org.mockito.MockedStatic;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -54,7 +55,7 @@ class DayAheadEnergyPricesTest {
                 new DayAheadEnergyPrices.HourlyEnergyPrice(expected, 10.0, 1),
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 2)
         ));
-        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 24, "unit", hourlyEnergyPrices);
+        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 2, "unit", hourlyEnergyPrices);
         try(var a = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
             Instant result = prices.leastExpensiveHour(from, to);
             assertThat(result).isEqualTo(expected);
@@ -64,7 +65,7 @@ class DayAheadEnergyPricesTest {
     }
 
     @Test
-    void dayAheadEnergyPrices_LeastExpensiveHourReturns_NowIfCurrentHourIsLeastExpensiveHour() {
+    void dayAheadEnergyPrices_LeastExpensiveHourReturnsNow_IfCurrentHourIsLeastExpensiveHour() {
         // ARRANGE
         ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> hourlyEnergyPrices = new ArrayList<>();
         Instant now = Instant.now();
@@ -96,7 +97,7 @@ class DayAheadEnergyPricesTest {
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 2)
         ));
         DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State",
-                "Europe/Berlin", 24, "unit", hourlyEnergyPrices);
+                "Europe/Berlin", 2, "unit", hourlyEnergyPrices);
 
         assertThat(prices.leastExpensiveHour(from, to)).isNull();
     }
@@ -109,7 +110,7 @@ class DayAheadEnergyPricesTest {
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T06:00:00Z"), 10.0, 1),
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T07:00:00Z"), 20.0, 2)
         ));
-        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 24, "unit", hourlyEnergyPrices);
+        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 2, "unit", hourlyEnergyPrices);
 
         assertThat(prices.leastExpensiveHour(from, to)).isNull();
     }
@@ -123,7 +124,7 @@ class DayAheadEnergyPricesTest {
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 2)
         ));
         try(var a = InstantMocker.mockTime("2020-01-01T08:00:00Z")) {
-            DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 24, "unit", hourlyEnergyPrices);
+            DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 2, "unit", hourlyEnergyPrices);
             assertThat(prices.leastExpensiveHour(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
         }
     }
@@ -132,9 +133,43 @@ class DayAheadEnergyPricesTest {
     void dayAheadEnergyPrices_LeastExpensiveHourReturnsNull_IfNoInformationAvailable() {
         Instant from = Instant.parse("2020-01-01T00:00:00Z");
         Instant to = Instant.parse("2020-01-01T10:00:00Z");
-        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 24, "unit", new ArrayList<>());
+        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 2, "unit", new ArrayList<>());
 
         assertThat(prices.leastExpensiveHour(from, to)).isNull();
+    }
+
+    @Test
+    void dayAheadEnergyPrices_LeastExpensiveHourShouldReturnHourAfterFromAndBeforeTo() {
+        Instant from = Instant.parse("2020-01-01T07:00:00Z");
+        Instant to = Instant.parse("2020-01-01T09:00:00Z");
+        ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> hourlyEnergyPrices = new ArrayList<>(Arrays.asList(
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T06:00:00Z"), 2.0, 1),
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T10:00:00Z"), 4.0, 2),
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T08:00:00Z"), 8.0, 3),
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T07:00:00Z"), 15.0, 4),
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 5)
+        ));
+        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 5, "unit", hourlyEnergyPrices);
+
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
+            assertThat(prices.leastExpensiveHour(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
+        }
+    }
+
+
+    @Test
+    void dayAheadEnergyPrices_LeastExpensiveHour_shouldReturnHourAfterNow() {
+        Instant from = Instant.parse("2020-01-01T00:00:00Z");
+        Instant to = Instant.parse("2020-01-01T23:00:00Z");
+        ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> hourlyEnergyPrices = new ArrayList<>(Arrays.asList(
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T08:00:00Z"), 8.0, 1),
+                new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 2)
+        ));
+        DayAheadEnergyPrices prices = new DayAheadEnergyPrices("DE", null, "Europe/Berlin", 2, "EUR/MWH", hourlyEnergyPrices);
+
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2020-01-01T09:00:00Z")) {
+            assertThat(prices.leastExpensiveHour(from, to)).isEqualTo(Instant.parse("2020-01-01T09:00:00Z"));
+        }
     }
 
     @Test
@@ -144,7 +179,7 @@ class DayAheadEnergyPricesTest {
         ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> prices = new ArrayList<>();
         prices.add(new DayAheadEnergyPrices.HourlyEnergyPrice(now.minusSeconds(3600), 10.0, 1));
         prices.add(new DayAheadEnergyPrices.HourlyEnergyPrice(now.plusSeconds(3600), 20.0, 2)); // This price is within the period
-        DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", 24, "Unit", prices);
+        DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("Area", null, "Europe/Berlin", 24, "Unit", prices);
         pricesData.setIsErrorResponse(false);
 
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(7200)); // 2 hours ahead
@@ -186,7 +221,7 @@ class DayAheadEnergyPricesTest {
     void hasValidData_whenErrorResponse_returnsFalse() {
         // Setup
         Instant now = Instant.now();
-        DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("Area", "State", "Europe/Athens", 24, "Unit", new ArrayList<>());
+        DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices(null, null, null, null, null, null);
         pricesData.setIsErrorResponse(true);
 
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead

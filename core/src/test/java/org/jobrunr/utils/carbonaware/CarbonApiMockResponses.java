@@ -21,6 +21,7 @@ public class CarbonApiMockResponses {
 
     public static final String BELGIUM_2024_03_12 = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/belgium_2024-03-12.json");
     public static final String GERMANY_2024_03_14 = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/germany_2024-03-14.json");
+    public static final String GERMANY_2500_01_01 = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/germany_2500-01-01.json");
     public static final String BELGIUM_2024_03_14 = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/belgium_2024-03-14.json");
     public static final String GERMANY_NO_DATA = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/germany_no_data.json");
 

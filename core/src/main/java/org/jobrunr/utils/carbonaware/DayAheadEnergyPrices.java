@@ -22,8 +22,6 @@ public class DayAheadEnergyPrices {
     private String timezone;
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
-    private HourlyEnergyPrice cheapestHourlyPrice;
-
     public DayAheadEnergyPrices() {
         this(null, null, null,null, null, null);
     }
@@ -36,6 +34,7 @@ public class DayAheadEnergyPrices {
         this.timezone = timezone;
         this.hourlyEnergyPrices = hourlyEnergyPrices;
         this.errorMessage = null;
+        this.isErrorResponse = false;
     }
 
     private DayAheadEnergyPrices(String area, String errorMessage) {
@@ -45,6 +44,7 @@ public class DayAheadEnergyPrices {
         this.timezone = null;
         this.hourlyEnergyPrices = null;
         this.errorMessage = errorMessage;
+        this.isErrorResponse = true;
     }
 
     public static DayAheadEnergyPrices error(String area, String errorMessage) {
@@ -89,16 +89,11 @@ public class DayAheadEnergyPrices {
             return null;
         }
 
-        if (cheapestHourlyPrice != null) {
-            return cheapestHourlyPrice.getDateTime();
-        }
-
         Instant currentHour = Instant.now().truncatedTo(ChronoUnit.HOURS);
         for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is between `from` and `to`
             if ((price.getDateTime().isAfter(from) || price.getDateTime().equals(from))
                     && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))
                     && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour))) {
-                        cheapestHourlyPrice = price;
                         return price.getDateTime();
             }
         }

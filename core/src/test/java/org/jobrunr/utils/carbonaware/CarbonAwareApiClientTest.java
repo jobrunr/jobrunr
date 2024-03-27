@@ -65,7 +65,7 @@ class CarbonAwareApiClientTest {
     }
 
     @Test
-    void whenFetchLatestDayAheadEnergyPrices_ThenReturnEmptyOptionalIfNoData() {
+    void whenFetchLatestDayAheadEnergyPrices_andNoData_thenReturnErrorResponse() {
         // ARRANGE
         CarbonAwareApiClient carbonAwareApiClient = new CarbonAwareApiClient(jsonMapper);
         mockResponseWhenRequestingArea("DE", CarbonApiMockResponses.GERMANY_NO_DATA, wireMockServer);

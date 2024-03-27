@@ -5,6 +5,7 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -46,7 +47,14 @@ public class CarbonAwareScheduler {
 
     void updateAwaitingJobs() {
         storageProvider.getJobList(StateName.AWAITING, new AmountRequest(null, 1000))
-                .forEach(this::moveToNextState);
+                .forEach(job -> {
+                    moveToNextState(job);
+                    try {
+                        storageProvider.save(job);
+                    } catch (ConcurrentJobModificationException e) {
+                        LOGGER.error("Could not save carbon-aware job {} after moving to next state. The state of the job has not been updated", job.getId(), e);
+                    }
+            });
     }
 
     void updateDayAheadEnergyPrices(Optional<String> area) {
