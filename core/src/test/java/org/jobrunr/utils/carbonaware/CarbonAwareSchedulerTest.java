@@ -188,6 +188,11 @@ public class CarbonAwareSchedulerTest {
         JobId jobId4 = BackgroundJob.scheduleCarbonAware(Instant.parse("2500-01-01T15:00:00Z"), Instant.parse("2500-01-01T23:00:00Z"),
                 () -> System.out.println("4. This job should be scheduled at 22:00"));
 
+        assertThat(storageProvider.getJobById(jobId1)).hasStates(AWAITING);
+        assertThat(storageProvider.getJobById(jobId2)).hasStates(AWAITING);
+        assertThat(storageProvider.getJobById(jobId3)).hasStates(AWAITING);
+        assertThat(storageProvider.getJobById(jobId4)).hasStates(AWAITING);
+
         CarbonAwareScheduler carbonAwareScheduler = jobScheduler.getCarbonAwareScheduler();
         mockResponseWhenRequestingArea(area, CarbonApiMockResponses.GERMANY_2500_01_01, wireMockServer);
         try(MockedStatic<CarbonAwareConfiguration> conf = mockCarbonAwareConf(area);
