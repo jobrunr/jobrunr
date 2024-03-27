@@ -18,7 +18,7 @@ dependencies {
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.17.0'
         api 'com.google.code.gson:gson:2.10.1'
         api 'org.eclipse:yasson:3.0.3'
-        api 'io.micrometer:micrometer-core:1.12.3'
+        api 'io.micrometer:micrometer-core:1.12.4'
         api 'io.insert-koin:koin-core:3.5.3'
 
         api 'org.xerial:sqlite-jdbc:3.45.1.0'
@@ -33,7 +33,7 @@ dependencies {
         api 'com.zaxxer:HikariCP:5.1.0'
         api 'io.agroal:agroal-pool:2.3'
         api 'org.apache.commons:commons-dbcp2:2.12.0'
-        api 'org.apache.tomcat:tomcat-jdbc:10.1.19'
+        api 'org.apache.tomcat:tomcat-jdbc:10.1.20'
         api 'redis.clients:jedis:5.1.2'
         api 'io.lettuce:lettuce-core:6.3.2.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:5.0.0'
