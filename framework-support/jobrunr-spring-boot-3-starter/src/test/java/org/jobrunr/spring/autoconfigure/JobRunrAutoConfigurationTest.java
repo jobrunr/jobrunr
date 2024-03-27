@@ -42,6 +42,7 @@ import redis.clients.jedis.JedisPool;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
@@ -186,6 +187,17 @@ public class JobRunrAutoConfigurationTest {
                             .hasScheduledJobRequestSize(1)
                             .hasOrphanedJobRequestSize(2)
                             .hasSucceededJobRequestSize(3);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
                 });
     }
 

@@ -57,4 +57,9 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
         Assertions.assertThat(actual.getBackgroundJobServerWorkerPolicy()).isInstanceOf(workerPolicyClass);
         return this;
     }
+
+    public BackgroundJobServerConfigurationAssert hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration duration) {
+        Assertions.assertThat(actual.getInterruptJobsAwaitDurationOnStopBackgroundJobServer()).isEqualTo(duration);
+        return this;
+    }
 }

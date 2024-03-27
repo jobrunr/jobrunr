@@ -142,6 +142,11 @@ public interface JobRunrRuntimeConfiguration {
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
          */
         Optional<Duration> permanentlyDeleteDeletedJobsAfter();
+
+        /**
+         * Sets the duration to wait before interrupting threads/jobs when the server is stopped.
+         */
+        Optional<Duration> interruptJobsAwaitDurationOnStop();
     }
 
     interface DashboardConfiguration {
