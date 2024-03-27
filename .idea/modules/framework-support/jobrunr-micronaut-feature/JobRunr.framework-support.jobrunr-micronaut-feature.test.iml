@@ -3,6 +3,7 @@
   <component name="AdditionalModuleElements">
     <content url="file://$MODULE_DIR$/../../../../framework-support/jobrunr-micronaut-feature/build/generated/sources/annotationProcessor/java/test">
       <sourceFolder url="file://$MODULE_DIR$/../../../../framework-support/jobrunr-micronaut-feature/build/generated/sources/annotationProcessor/java/test" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../../framework-support/jobrunr-micronaut-feature/build/generated/sources/annotationProcessor/java/test" isTestSource="true" generated="true" />
     </content>
   </component>
 </module>
