@@ -5,9 +5,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -30,11 +32,12 @@ class VirtualThreadJobRunrExecutorTest {
     void ifStoppedJobsAreNotAccepted() {
         VirtualThreadJobRunrExecutor jobRunrExecutor = new VirtualThreadJobRunrExecutor(8, executorService);
         jobRunrExecutor.start();
-        jobRunrExecutor.stop();
+        jobRunrExecutor.stop(Duration.ofSeconds(10));
 
         jobRunrExecutor.execute(() -> System.out.println("A Runnable"));
 
-        verifyNoInteractions(executorService);
+        verify(executorService).shutdown();
+        verify(executorService, never()).submit(any(Runnable.class));
     }
 
     @Test
