@@ -48,11 +48,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.MethodMetadata;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import java.lang.reflect.Method;
@@ -106,7 +108,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static Set<String> findAllJobRequestHandlerClassNames(ConfigurableListableBeanFactory beanFactory) {
         return stream(beanFactory.getBeanNamesForType(JobRequestHandler.class))
-                .map(bn -> beanFactory.getBeanDefinition(bn).getBeanClassName())
+                .map(bn -> mapBeanNameToClassName(beanFactory, bn))
                 .collect(toSet());
     }
 
@@ -119,6 +121,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static void registerAllJobRequestHandlers(RuntimeHints hints, Set<String> jobRequestHandlerClassNames) {
         for (String clazz : jobRequestHandlerClassNames) {
+            System.out.println("Registering class: " + jobRequestHandlerClassNames);
             Class clazzObject = toClass(clazz);
             hints.reflection().registerType(clazzObject, allMemberCategories);
             Method runMethod = Stream.of(clazzObject.getMethods()).filter(m -> m.getName().equals("run")).toList().get(0);
@@ -206,6 +209,17 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
         } catch (ClassNotFoundException shouldNotHappen) {
             throw new IllegalStateException("Spring provided a className which is not on the classpath", shouldNotHappen);
         }
+    }
+
+    private static String mapBeanNameToClassName(ConfigurableListableBeanFactory beanFactory, String bn) {
+        BeanDefinition beanDefinition = beanFactory.getBeanDefinition(bn);
+        if(beanDefinition instanceof AnnotatedBeanDefinition) {
+            MethodMetadata factoryMethodMetadata = ((AnnotatedBeanDefinition) beanDefinition).getFactoryMethodMetadata();
+            if (factoryMethodMetadata != null) {
+                return factoryMethodMetadata.getReturnTypeName();
+            }
+        }
+        return beanDefinition.getBeanClassName();
     }
 
     private static boolean registerHintByClassName(RuntimeHints runtimeHints, String className) {

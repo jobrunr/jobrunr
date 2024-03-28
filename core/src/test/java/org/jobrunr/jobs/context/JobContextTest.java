@@ -7,6 +7,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -15,6 +16,37 @@ import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.utils.SleepUtils.sleep;
 
 public class JobContextTest {
+
+    @Test
+    void jobContextCanAccessJobInfo() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        assertThat(jobContext.getJobId()).isEqualTo(job.getId());
+        assertThat(jobContext.getJobName()).isEqualTo("job1");
+        assertThat(jobContext.getJobSignature()).isEqualTo(job.getJobSignature());
+        assertThat(jobContext.getJobLabels()).isEqualTo(Set.of("my-label"));
+        assertThat(jobContext.getCreatedAt()).isEqualTo(job.getCreatedAt());
+        assertThat(jobContext.getUpdatedAt()).isEqualTo(job.getUpdatedAt());
+        assertThat(jobContext.progressBar(10)).isNotNull();
+    }
+
+    @Test
+    void jobContextCanSaveMetadata() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.saveMetadata("my-key", "my-string");
+        jobContext.saveMetadata("my-key", "my-updated-string");
+        jobContext.saveMetadataIfAbsent("only-once-key", "my-string");
+        jobContext.saveMetadataIfAbsent("only-once-key", "my-other-string");
+
+        assertThat(job)
+                .hasMetadata("my-key", "my-updated-string")
+                .hasMetadata("only-once-key", "my-string");
+    }
 
     @Test
     void jobContextIsThreadSafeUsingJackson() throws InterruptedException {

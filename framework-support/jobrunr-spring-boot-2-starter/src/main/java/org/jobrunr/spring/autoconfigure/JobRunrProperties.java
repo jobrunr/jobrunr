@@ -283,6 +283,13 @@ public class JobRunrProperties {
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
         /**
+         * Sets the duration to wait before interrupting threads/jobs when the server is stopped. If a duration suffix
+         * is not specified, seconds will be used.
+         */
+        @DurationUnit(ChronoUnit.SECONDS)
+        private Duration interruptJobsAwaitDurationOnStop = Duration.ofSeconds(10);
+
+        /**
          * Configures MicroMeter metrics related to the BackgroundJobServer
          */
         private Metrics metrics = new Metrics();
@@ -368,6 +375,14 @@ public class JobRunrProperties {
 
         public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
             this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
+        }
+
+        public Duration getInterruptJobsAwaitDurationOnStop() {
+            return interruptJobsAwaitDurationOnStop;
+        }
+
+        public void setInterruptJobsAwaitDurationOnStop(Duration interruptJobsAwaitDurationOnStop) {
+            this.interruptJobsAwaitDurationOnStop = interruptJobsAwaitDurationOnStop;
         }
 
         public Metrics getMetrics() {

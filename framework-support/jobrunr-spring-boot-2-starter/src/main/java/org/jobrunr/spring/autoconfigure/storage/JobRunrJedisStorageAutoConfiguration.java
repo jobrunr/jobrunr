@@ -1,9 +1,11 @@
 package org.jobrunr.spring.autoconfigure.storage;
 
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,6 +15,7 @@ import redis.clients.jedis.JedisPool;
 
 @Configuration
 @ConditionalOnBean(JedisPool.class)
+@AutoConfigureBefore(JobRunrAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "redis-jedis", matchIfMissing = true)
 public class JobRunrJedisStorageAutoConfiguration {
 

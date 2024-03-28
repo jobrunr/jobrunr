@@ -107,6 +107,7 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getScheduledJobsRequestSize).to(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
         map.from(backgroundJobServerProperties::getOrphanedJobsRequestSize).to(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
         map.from(backgroundJobServerProperties::getSucceededJobsRequestSize).to(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
+        map.from(backgroundJobServerProperties::getInterruptJobsAwaitDurationOnStop).to(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
         return backgroundJobServerConfiguration;
     }

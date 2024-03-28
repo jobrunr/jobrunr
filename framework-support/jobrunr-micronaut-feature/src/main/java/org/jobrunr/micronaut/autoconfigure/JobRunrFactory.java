@@ -75,6 +75,7 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getScheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
         configuration.getBackgroundJobServer().getOrphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
         configuration.getBackgroundJobServer().getSucceededJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
+        configuration.getBackgroundJobServer().getInterruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
         return backgroundJobServerConfiguration;
     }
 

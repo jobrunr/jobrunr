@@ -18,7 +18,8 @@ import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration;
-import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceRedisClientStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceSpringDataConnectionFactoryStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -37,11 +38,13 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import redis.clients.jedis.JedisPool;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
@@ -52,7 +55,8 @@ public class JobRunrAutoConfigurationTest {
                     JobRunrAutoConfiguration.class,
                     JobRunrElasticSearchStorageAutoConfiguration.class,
                     JobRunrJedisStorageAutoConfiguration.class,
-                    JobRunrLettuceStorageAutoConfiguration.class,
+                    JobRunrLettuceRedisClientStorageAutoConfiguration.class,
+                    JobRunrLettuceSpringDataConnectionFactoryStorageAutoConfiguration.class,
                     JobRunrMongoDBStorageAutoConfiguration.class,
                     JobRunrSqlStorageAutoConfiguration.class
             ));
@@ -190,6 +194,17 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
+                });
+    }
+
+    @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountCustomBackgroundJobServerWorkerPolicy() {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
@@ -244,8 +259,17 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void lettuceStorageProviderAutoConfiguration() {
-        this.contextRunner.withUserConfiguration(LettuceStorageProviderConfiguration.class).run((context) -> {
+    void lettuceRedisClientStorageProviderAutoConfiguration() {
+        this.contextRunner.withUserConfiguration(LettuceRedisClientStorageProviderConfiguration.class).run((context) -> {
+            assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
+            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
+            assertThat(context).hasSingleBean(JobScheduler.class);
+        });
+    }
+
+    @Test
+    void lettuceConnectionFactoryStorageProviderAutoConfiguration() {
+        this.contextRunner.withUserConfiguration(LettuceSpringDataConnectionFactoryStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
             assertThat(context).hasSingleBean(JobScheduler.class);
@@ -330,11 +354,20 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Configuration
-    static class LettuceStorageProviderConfiguration {
+    static class LettuceRedisClientStorageProviderConfiguration {
 
         @Bean
         public RedisClient redisClient() {
             return Mocks.redisClient();
+        }
+    }
+
+    @Configuration
+    static class LettuceSpringDataConnectionFactoryStorageProviderConfiguration {
+
+        @Bean
+        public LettuceConnectionFactory lettuceConnectionFactory() {
+            return Mocks.lettuceConnectionFactory();
         }
     }
 

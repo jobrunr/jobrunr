@@ -50,6 +50,10 @@ public class BackgroundJobServerConfigurationReader {
         return configuration.permanentlyDeleteDeletedJobsAfter;
     }
 
+    public Duration getInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
+        return configuration.interruptJobsAwaitDurationOnStopBackgroundJobServer;
+    }
+
     public BackgroundJobServerWorkerPolicy getBackgroundJobServerWorkerPolicy() {
         return configuration.backgroundJobServerWorkerPolicy;
     }
