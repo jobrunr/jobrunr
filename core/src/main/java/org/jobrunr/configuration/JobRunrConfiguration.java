@@ -41,7 +41,7 @@ public class JobRunrConfiguration {
     JsonMapper jsonMapper;
     JobMapper jobMapper;
     final List<JobFilter> jobFilters;
-    CarbonAwareConfiguration carbonAwareConfiguration;
+    CarbonAwareJobManager carbonAwareJobManager;
     JobDetailsGenerator jobDetailsGenerator;
     StorageProvider storageProvider;
     BackgroundJobServer backgroundJobServer;
@@ -54,7 +54,7 @@ public class JobRunrConfiguration {
         this.jobMapper = new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
-        this.carbonAwareConfiguration = usingStandardCarbonAwareConfiguration();
+        this.carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), jsonMapper);
     }
 
     /**
@@ -125,7 +125,7 @@ public class JobRunrConfiguration {
         if (this.backgroundJobServer != null) {
             throw new IllegalStateException("Please configure the CarbonAwareConfiguration before the BackgroundJobServer.");
         }
-        this.carbonAwareConfiguration = carbonAwareConfiguration;
+        this.carbonAwareJobManager = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
         return this;
     }
 
@@ -211,7 +211,7 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServer) {
         if (guard) {
-            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, configuration);
+            this.backgroundJobServer = new BackgroundJobServer(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, configuration);
             this.backgroundJobServer.setJobFilters(jobFilters);
             this.backgroundJobServer.start(startBackgroundJobServer);
         }
@@ -350,7 +350,6 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfigurationResult initialize() {
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
-        CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, carbonAwareJobManager, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
