@@ -54,6 +54,7 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
+                // TODO: carbonAware - also add CarbonAwareAwaitingState.to if it is a carbonaware awaited job
                 .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
                 .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));
     }

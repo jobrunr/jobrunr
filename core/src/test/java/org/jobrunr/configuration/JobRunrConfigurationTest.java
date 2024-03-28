@@ -144,18 +144,4 @@ class JobRunrConfigurationTest {
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
     }
-
-    @Test
-    void testCarbonAwareConfiguration() {
-        assertThat(CarbonAwareConfiguration.getArea()).isEqualTo(null);
-        assertThat(CarbonAwareConfiguration.isEnabled()).isFalse();
-
-         JobRunr.configure()
-                .useStorageProvider(new InMemoryStorageProvider())
-                .useCarbonAwareScheduling("DE")
-                .initialize();
-
-        assertThat(CarbonAwareConfiguration.getArea()).isEqualTo("DE");
-        assertThat(CarbonAwareConfiguration.isEnabled()).isTrue();
-    }
 }

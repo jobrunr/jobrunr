@@ -9,9 +9,12 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.mappers.MDCMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ public abstract class AbstractJobScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
     private final StorageProvider storageProvider;
+    private CarbonAwareJobManager carbonAwareJobManager;
     private final JobFilterUtils jobFilterUtils;
 
     /**
@@ -34,10 +38,12 @@ public abstract class AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    protected AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        if (storageProvider == null)
+    protected AbstractJobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+        if (storageProvider == null) {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
+        }
         this.storageProvider = storageProvider;
+        this.carbonAwareJobManager = carbonAwareJobManager;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
 
@@ -110,6 +116,12 @@ public abstract class AbstractJobScheduler {
 
     JobId schedule(UUID id, Instant scheduleAt, JobDetails jobDetails) {
         return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
+    }
+
+    JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
+        Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo()));
+        carbonAwareJobManager.moveToNextState(carbonAwareJob);
+        return saveJob(carbonAwareJob);
     }
 
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);

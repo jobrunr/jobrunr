@@ -22,6 +22,7 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
 import org.jobrunr.utils.GCUtils;
 import org.jobrunr.utils.annotations.Because;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,7 @@ import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
+import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
 
 /**
  * Must be public as used as a background job
@@ -328,7 +330,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(now(), now().plus(1, DAYS),  () -> testService.doWork(5, JobContext.Null));
+        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)),  () -> testService.doWork(5, JobContext.Null));
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 

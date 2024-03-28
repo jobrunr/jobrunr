@@ -14,7 +14,7 @@ import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.utils.carbonaware.CarbonAwareScheduler;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.JsonMapperException;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
@@ -28,6 +28,7 @@ import java.util.List;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.utils.mapper.JsonMapperValidator.validateJsonMapper;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
@@ -40,6 +41,7 @@ public class JobRunrConfiguration {
     JsonMapper jsonMapper;
     JobMapper jobMapper;
     final List<JobFilter> jobFilters;
+    CarbonAwareConfiguration carbonAwareConfiguration;
     JobDetailsGenerator jobDetailsGenerator;
     StorageProvider storageProvider;
     BackgroundJobServer backgroundJobServer;
@@ -52,6 +54,7 @@ public class JobRunrConfiguration {
         this.jobMapper = new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
+        this.carbonAwareConfiguration = usingStandardCarbonAwareConfiguration();
     }
 
     /**
@@ -109,6 +112,20 @@ public class JobRunrConfiguration {
             throw new IllegalStateException("Please configure the JobFilters before the BackgroundJobServer.");
         }
         this.jobFilters.addAll(Arrays.asList(jobFilters));
+        return this;
+    }
+
+    /**
+     * Allows configuring the details for carbon aware job scheduling
+     *
+     * @param carbonAwareConfiguration the carbonAwareConfiguration to use for each scheduling jobs with minimal Carbon emissions.
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useCarbonAwareScheduling(CarbonAwareConfiguration carbonAwareConfiguration) {
+        if (this.backgroundJobServer != null) {
+            throw new IllegalStateException("Please configure the CarbonAwareConfiguration before the BackgroundJobServer.");
+        }
+        this.carbonAwareConfiguration = carbonAwareConfiguration;
         return this;
     }
 
@@ -314,22 +331,6 @@ public class JobRunrConfiguration {
         return this;
     }
 
-    public JobRunrConfiguration useCarbonAwareScheduling() {
-        CarbonAwareConfiguration.setEnabled(true);
-        return this;
-    }
-
-    /**
-     * Allows integrating CarbonAwareJobScheduling into JobRunr
-     * @param area a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code. TODO: Find the full list of supported areas at https://carbon-intensity.github.io/api-definitions/#areas
-     * @return the same configuration instance which provides a fluent api
-     */
-    public JobRunrConfiguration useCarbonAwareScheduling(String area) {
-        CarbonAwareConfiguration.setEnabled(true);
-        CarbonAwareConfiguration.setArea(area);
-        return this;
-    }
-
     /**
      * Specifies which {@link JobDetailsGenerator} to use.
      *
@@ -349,12 +350,9 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfigurationResult initialize() {
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
-        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
-        if (CarbonAwareConfiguration.isEnabled()) {
-            CarbonAwareScheduler carbonAwareScheduler = new CarbonAwareScheduler(jsonMapper, storageProvider);
-            jobScheduler.setCarbonAwareScheduler(carbonAwareScheduler);
-        }
+        CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, jobFilters);
+        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, carbonAwareJobManager, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }
 

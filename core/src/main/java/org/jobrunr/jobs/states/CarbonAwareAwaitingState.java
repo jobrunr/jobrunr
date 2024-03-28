@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 
+import static java.time.Duration.ofHours;
+import static java.time.Instant.now;
+
 public class CarbonAwareAwaitingState extends AbstractJobState {
     private final Instant from;
     private final Instant to;
@@ -23,14 +26,14 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
     }
 
     public CarbonAwareAwaitingState(Instant to) {
-        this(Instant.now(), to);
+        this(now(), to);
     }
 
     public CarbonAwareAwaitingState(Instant from, Instant to) {
         super(StateName.AWAITING);
-        this.from =from;
-        this.to =to;
-        validatePeriod(from, to);
+        this.from = from;
+        this.to = to;
+        validateCarbonAwarePeriod(from, to);
     }
 
     public Instant getFrom() {
@@ -53,7 +56,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         if (job.getJobState().getName() != StateName.AWAITING) {
             throw new IllegalStateException("Only jobs in AWAITING can move to a next state");
         }
-        Instant now = Instant.now();
+        Instant now = now();
         if (!idealMoment.isAfter(now)) {
             LOGGER.warn("Schedule job {} immediately, as we don't have data", job.getId());
             job.enqueue();
@@ -62,17 +65,11 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         }
     }
 
-    private void validatePeriod(Instant from, Instant to) {
-        long toleranceSeconds = 1;
-
-        if (from.isAfter(to.plusSeconds(toleranceSeconds))) {
-            throw new IllegalArgumentException("The 'from' date must be before the 'to' date");
-        }
-        if (to.isBefore(from.plusSeconds(3 * 60 * 60))) {
-            throw new IllegalArgumentException("The 'to' date must be at least 3 hours after the 'from' date");
-        }
-        if (to.isBefore(Instant.now().minusSeconds(toleranceSeconds))) {
-            throw new IllegalArgumentException("The 'to' date must be in the future");
+    public static void validateCarbonAwarePeriod(Instant from, Instant to) {
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("'from' must be before 'to'");
+        } else if (to.isBefore(now().plus(ofHours(3)))) {
+            throw new IllegalArgumentException("'to' must be at least 3 hours in the future to use Carbon Aware Scheduling");
         }
     }
 }

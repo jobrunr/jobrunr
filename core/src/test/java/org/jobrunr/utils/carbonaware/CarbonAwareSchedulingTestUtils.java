@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
+@Deprecated // todo: remove me
 public class CarbonAwareSchedulingTestUtils {
     public static void mockResponseWhenRequestingArea(String area, String response, WireMockServer wireMockServer) {
         String url = String.format("/carbon-intensity/v1/day-ahead-energy-prices?area=%s", area);
@@ -24,7 +25,7 @@ public class CarbonAwareSchedulingTestUtils {
         carbonAwareConfigurationMock.when(CarbonAwareConfiguration::getState).thenReturn(null);
         carbonAwareConfigurationMock.when(CarbonAwareConfiguration::getCloudProvider).thenReturn(null);
         carbonAwareConfigurationMock.when(CarbonAwareConfiguration::getCloudRegion).thenReturn(null);
-        carbonAwareConfigurationMock.when(CarbonAwareConfiguration::getCarbonAwareApiBaseUrl).thenReturn("http://localhost:10000/carbon-intensity");
+        carbonAwareConfigurationMock.when(CarbonAwareConfiguration::getCarbonAwareApiUrl).thenReturn("http://localhost:10000/carbon-intensity");
         return carbonAwareConfigurationMock;
     }
 }

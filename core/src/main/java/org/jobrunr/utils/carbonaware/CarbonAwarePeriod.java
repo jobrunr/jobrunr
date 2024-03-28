@@ -1,6 +1,10 @@
 package org.jobrunr.utils.carbonaware;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+import static java.time.Instant.now;
 
 public class CarbonAwarePeriod {
 
@@ -21,7 +25,20 @@ public class CarbonAwarePeriod {
     }
 
     public static CarbonAwarePeriod before(Instant to) {
-        return new CarbonAwarePeriod(Instant.now(), to);
+        Instant from = now().minusSeconds(1); // why: as otherwise the to is before the now()
+        return new CarbonAwarePeriod(from, to);
+    }
+
+    public static CarbonAwarePeriod beforeStartOf(LocalDate date) {
+        Instant from = now().minusSeconds(1); // why: as otherwise the to is before the now()
+        Instant to = date.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        return new CarbonAwarePeriod(from, to);
+    }
+
+    public static CarbonAwarePeriod beforeEnd(LocalDate date) {
+        Instant from = now().minusSeconds(1); // why: as otherwise the to is before the now()
+        Instant to = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        return new CarbonAwarePeriod(from, to);
     }
 
     public static CarbonAwarePeriod between(Instant from, Instant to) {

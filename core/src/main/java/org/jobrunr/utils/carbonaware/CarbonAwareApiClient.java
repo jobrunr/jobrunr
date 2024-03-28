@@ -11,17 +11,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Optional;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CarbonAwareApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareApiClient.class);
 
+    private final String carbonAwareApiUrl;
+    private final Duration apiClientConnectTimeout;
+    private final Duration apiClientReadTimeout;
     private final JsonMapper jsonMapper;
 
-    public CarbonAwareApiClient(JsonMapper jsonMapper) {
+    public CarbonAwareApiClient(String carbonAwareApiUrl, Duration apiClientConnectTimeout, Duration apiClientReadTimeout, JsonMapper jsonMapper) {
+        this.carbonAwareApiUrl = carbonAwareApiUrl;
+        this.apiClientConnectTimeout = apiClientConnectTimeout;
+        this.apiClientReadTimeout = apiClientReadTimeout;
         this.jsonMapper = jsonMapper;
     }
 
@@ -40,12 +48,12 @@ public class CarbonAwareApiClient {
 
     @VisibleFor("testing")
     String fetchLatestDayAheadEnergyPricesAsString(Optional<String> area) throws IOException {
-        URL apiUrl = new URL(getJobRunrApiDayAheadEnergyPricesUrl(area));
+        URL apiUrl = getJobRunrApiDayAheadEnergyPricesUrl(area);
         HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
         con.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
         con.setRequestMethod("GET");
-        con.setConnectTimeout(CarbonAwareConfiguration.getApiClientConnectTimeout());
-        con.setReadTimeout(CarbonAwareConfiguration.getApiClientReadTimeout());
+        con.setConnectTimeout((int)apiClientConnectTimeout.toMillis());
+        con.setReadTimeout((int)apiClientReadTimeout.toMillis());
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
             String inputLine;
@@ -71,8 +79,7 @@ public class CarbonAwareApiClient {
         }
     }
 
-    private String getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> area) {
-        return CarbonAwareConfiguration.getCarbonAwareApiBaseUrl() + CarbonAwareConfiguration.getCarbonAwareDayAheadEnergyPricesUrl()
-                + area.map(a -> "?area=" + a).orElse("");
+    private URL getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> area) throws MalformedURLException {
+        return new URL(carbonAwareApiUrl + area.map(a -> "?area=" + a).orElse(""));
     }
 }

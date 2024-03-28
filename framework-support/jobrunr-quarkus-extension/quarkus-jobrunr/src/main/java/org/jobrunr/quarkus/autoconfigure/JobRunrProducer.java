@@ -45,7 +45,7 @@ public class JobRunrProducer {
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
             final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
-            return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
+            return new JobScheduler(storageProvider, null, jobDetailsGenerator, emptyList());
         }
         return null;
     }
@@ -55,7 +55,7 @@ public class JobRunrProducer {
     @Singleton
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
-            return new JobRequestScheduler(storageProvider, emptyList());
+            return new JobRequestScheduler(storageProvider, null, emptyList());
         }
         return null;
     }

@@ -1,82 +1,69 @@
 package org.jobrunr.utils.carbonaware;
 
+import java.time.Duration;
+
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrl;
+
 public class CarbonAwareConfiguration {
-    private static boolean enabled = false;
-    private static String carbonAwareApiBaseUrl = "https://jobrunr.io/api/carbon-intensity";
-    private static String carbonAwareDayAheadEnergyPricesUrl = "/v1/day-ahead-energy-prices";
-    private static String area;
-    private static String state;
-    private static String cloudProvider;
-    private static String cloudRegion;
-    private static int apiClientReadTimeout = 3000;
-    private static int apiClientConnectTimeout = 3000;
-    public CarbonAwareConfiguration(){}
 
-    public static boolean isEnabled() {
-        return enabled;
+    public static String DEFAULT_CARBON_AWARE_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io");
+    public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
+
+     String carbonAwareApiUrl = DEFAULT_CARBON_AWARE_API_URL;
+     String area;
+     String state;
+     String cloudProvider;
+     String cloudRegion;
+     Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
+     Duration apiClientReadTimeout = DEFAULT_CLIENT_API_READ_TIMEOUT;
+
+    private CarbonAwareConfiguration() {
     }
 
-    public static String getArea() {
-        return area;
+    /**
+     * This returns the default carbon aware configuration to schedule jobs with the least amount of Carbon emissions
+     *
+     * @return the default CarbonAware configuration
+     */
+    public static CarbonAwareConfiguration usingStandardCarbonAwareConfiguration() {
+        return new CarbonAwareConfiguration();
     }
 
-    public static String getState() {
-        return state;
+    /**
+     * Allows to set the area of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
+     *
+     * @param area a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
+     * @return the same configuration instance which provides a fluent api
+     */
+    public CarbonAwareConfiguration andArea(String area) {
+        this.area = area;
+        return this;
     }
 
-    public static String getCloudProvider() {
-        return cloudProvider;
+    public CarbonAwareConfiguration andState(String state) {
+        this.state = state;
+        return this;
     }
 
-    public static String getCloudRegion() {
-        return cloudRegion;
+    public CarbonAwareConfiguration andCloudProvider(String cloudProvider, String cloudRegion) {
+        this.cloudProvider = cloudProvider;
+        this.cloudRegion = cloudRegion;
+        return this;
     }
 
-    public static int getApiClientReadTimeout() {
-        return apiClientReadTimeout;
+    public CarbonAwareConfiguration andCarbonAwareApiUrl(String carbonAwareApiUrl) {
+        this.carbonAwareApiUrl = carbonAwareApiUrl;
+        return this;
     }
 
-    public static int getApiClientConnectTimeout() {
-        return apiClientConnectTimeout;
+    public CarbonAwareConfiguration andApiClientConnectTimeout(Duration apiClientConnectTimeout) {
+        this.apiClientConnectTimeout = apiClientConnectTimeout;
+        return this;
     }
 
-    public static String getCarbonAwareApiBaseUrl() {
-        return carbonAwareApiBaseUrl;
-    }
-
-    public static String getCarbonAwareDayAheadEnergyPricesUrl() {
-        return carbonAwareDayAheadEnergyPricesUrl;
-    }
-
-    public static void setEnabled(boolean enabled) {
-        CarbonAwareConfiguration.enabled = enabled;
-    }
-
-    public static void setArea(String area) {
-        CarbonAwareConfiguration.area = area;
-    }
-
-    public static void setState(String state) {
-        CarbonAwareConfiguration.state = state;
-    }
-
-    public static void setCloudProvider(String cloudProvider) {
-        CarbonAwareConfiguration.cloudProvider = cloudProvider;
-    }
-
-    public static void setCloudRegion(String cloudRegion) {
-        CarbonAwareConfiguration.cloudRegion = cloudRegion;
-    }
-
-    public static void setCarbonAwareApiBaseUrl(String carbonAwareApiBaseUrl) {
-        CarbonAwareConfiguration.carbonAwareApiBaseUrl = carbonAwareApiBaseUrl;
-    }
-
-    public static void setApiClientReadTimeout(int apiClientReadTimeout) {
-        CarbonAwareConfiguration.apiClientReadTimeout = apiClientReadTimeout;
-    }
-
-    public static void setApiClientConnectTimeout(int apiClientConnectTimeout) {
-        CarbonAwareConfiguration.apiClientConnectTimeout = apiClientConnectTimeout;
+    public CarbonAwareConfiguration andApiClientReadTimeout(Duration apiClientReadTimeout) {
+        this.apiClientReadTimeout = apiClientReadTimeout;
+        return this;
     }
 }

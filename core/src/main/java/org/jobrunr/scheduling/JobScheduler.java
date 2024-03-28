@@ -14,9 +14,8 @@ import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobCreator;
 import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.utils.carbonaware.CarbonAwareScheduler;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 
 import java.time.*;
 import java.util.List;
@@ -38,7 +37,6 @@ import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 public class JobScheduler extends AbstractJobScheduler {
 
     private final JobDetailsGenerator jobDetailsGenerator;
-    private CarbonAwareScheduler carbonAwareScheduler;
 
     /**
      * Creates a new JobScheduler using the provided storageProvider
@@ -56,11 +54,11 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param jobFilters      list of jobFilters that will be used for every job
      */
     public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
+        this(storageProvider, null, new JobDetailsAsmGenerator(), jobFilters);
     }
 
-    public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
-        super(storageProvider, jobFilters);
+    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
+        super(storageProvider, carbonAwareJobManager, jobFilters);
         if (jobDetailsGenerator == null)
             throw new IllegalArgumentException("A JobDetailsGenerator is required to use the JobScheduler.");
         this.jobDetailsGenerator = jobDetailsGenerator;
@@ -413,10 +411,15 @@ public class JobScheduler extends AbstractJobScheduler {
      * TODO
      */
     public JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
+        return scheduleCarbonAware(null, carbonAwarePeriod, jobLambda);
+    }
+
+    /**
+     * TODO
+     */
+    public JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
-        Job job = CarbonAwareJobCreator.createCarbonAwareJob(jobDetails, carbonAwarePeriod);
-        carbonAwareScheduler.moveToNextState(job);
-        return saveJob(job);
+        return scheduleCarbonAware(id, carbonAwarePeriod, jobDetails);
     }
 
     /**
@@ -436,21 +439,6 @@ public class JobScheduler extends AbstractJobScheduler {
     public JobId schedule(UUID id, Instant instant, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return schedule(id, instant, jobDetails);
-    }
-
-    /**
-     * TODO
-     */
-
-    public JobId scheduleCarbonAware(Instant from, Instant to, JobLambda jobLambda) {
-        return scheduleCarbonAware(CarbonAwarePeriod.between(from, to), jobLambda);
-    }
-
-    public JobId scheduleCarbonAware(UUID id, Instant from, Instant to, JobLambda jobLambda) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
-        Job job = CarbonAwareJobCreator.createCarbonAwareJob(id, jobDetails, CarbonAwarePeriod.between(from, to));
-        carbonAwareScheduler.moveToNextState(job);
-        return saveJob(job);
     }
 
     /**
@@ -678,12 +666,5 @@ public class JobScheduler extends AbstractJobScheduler {
     public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
-    }
-
-    public void setCarbonAwareScheduler(CarbonAwareScheduler carbonAwareScheduler) {
-        this.carbonAwareScheduler = carbonAwareScheduler;
-    }
-    public CarbonAwareScheduler getCarbonAwareScheduler() {
-        return this.carbonAwareScheduler;
     }
 }

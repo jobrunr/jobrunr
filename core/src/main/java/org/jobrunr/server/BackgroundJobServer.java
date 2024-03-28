@@ -13,6 +13,7 @@ import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.server.tasks.other.ProcessCarbonAwareAwaitingJobsTask;
 import org.jobrunr.server.tasks.startup.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
@@ -29,6 +30,7 @@ import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.VersionNumber;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +72,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
     private final BackgroundJobServerLifecycleLock lifecycleLock;
     private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
+    private final CarbonAwareJobManager carbonAwareJobManager;
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
@@ -78,24 +81,26 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private JobRunrExecutor jobExecutor;
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
-        this(storageProvider, jsonMapper, null);
+        this(storageProvider, null, jsonMapper, null);
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
-        this(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration());
+    public BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator) {
+        this(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration());
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
+    public BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
+        this(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
     }
 
-    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
-        if (storageProvider == null)
+    protected BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
+        if (storageProvider == null) {
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
+        }
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
+        this.carbonAwareJobManager = carbonAwareJobManager;
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();
@@ -245,6 +250,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return storageProvider;
     }
 
+    public CarbonAwareJobManager getCarbonAwareJobManager() {
+        return carbonAwareJobManager;
+    }
+
     public ConcurrentJobModificationResolver getConcurrentJobModificationResolver() {
         return concurrentJobModificationResolver;
     }
@@ -294,6 +303,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
+        // TODO: add ProcessCarbonAwareAwaitingJobsTask here;
     }
 
     private void startJobZooKeepers() {

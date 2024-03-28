@@ -9,6 +9,7 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -40,7 +41,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      */
     public JobRequestScheduler(StorageProvider storageProvider) {
-        super(storageProvider, emptyList());
+        super(storageProvider, null, emptyList());
     }
 
     /**
@@ -49,8 +50,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    public JobRequestScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        super(storageProvider, jobFilters);
+    public JobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+        super(storageProvider, carbonAwareJobManager, jobFilters);
         BackgroundJobRequest.setJobRequestScheduler(this);
     }
 

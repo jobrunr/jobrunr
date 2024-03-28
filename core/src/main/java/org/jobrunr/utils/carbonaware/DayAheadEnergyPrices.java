@@ -17,19 +17,17 @@ public class DayAheadEnergyPrices {
     private String errorMessage;
     private String area;
     private String state;
-    private Integer hoursAvailable;
     private String unit;
     private String timezone;
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
     public DayAheadEnergyPrices() {
-        this(null, null, null,null, null, null);
+        this(null, null, null, null, null);
     }
 
-    public DayAheadEnergyPrices(String area, String state, String timezone, Integer hoursAvailable, String unit, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices) {
+    public DayAheadEnergyPrices(String area, String state, String timezone, String unit, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices) {
         this.area = area;
         this.state = state;
-        this.hoursAvailable = hoursAvailable;
         this.unit = unit;
         this.timezone = timezone;
         this.hourlyEnergyPrices = hourlyEnergyPrices;
@@ -39,7 +37,6 @@ public class DayAheadEnergyPrices {
 
     private DayAheadEnergyPrices(String area, String errorMessage) {
         this.area = area;
-        this.hoursAvailable = null;
         this.unit = null;
         this.timezone = null;
         this.hourlyEnergyPrices = null;
@@ -54,10 +51,6 @@ public class DayAheadEnergyPrices {
 
     public String getArea() {
         return area;
-    }
-
-    public Integer getHoursAvailable() {
-        return hoursAvailable;
     }
 
     public String getUnit() {

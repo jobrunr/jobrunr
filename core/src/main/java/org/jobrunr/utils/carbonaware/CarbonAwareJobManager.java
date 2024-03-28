@@ -16,48 +16,24 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-public class CarbonAwareScheduler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareScheduler.class);
+/**
+ *
+ */
+public class CarbonAwareJobManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
+    private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonAwareApiClient carbonAwareAPIClient;
-    private final StorageProvider storageProvider;
     private DayAheadEnergyPrices dayAheadEnergyPrices;
 
-    public CarbonAwareScheduler(JsonMapper jsonMapper, StorageProvider storageProvider) {
-        this.carbonAwareAPIClient = new CarbonAwareApiClient(jsonMapper);
-        this.storageProvider = storageProvider;
-        Optional<String> area = Optional.ofNullable(CarbonAwareConfiguration.getArea());
-        if (CarbonAwareConfiguration.isEnabled()) {
-            this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
-            scheduleDayAheadEnergyPricesFetch(area);
-            scheduleUpdateAwaitingJobs();
-        }
+    public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
+        this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
+        this.carbonAwareAPIClient = createCarbonAwareApiClient(jsonMapper);
+        Optional<String> area = Optional.ofNullable(this.carbonAwareConfiguration.getArea());
+        this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
     }
 
-    void scheduleDayAheadEnergyPricesFetch(Optional<String> area) {
-        BackgroundJob.scheduleRecurrently("fetch-day-ahead-energy-prices",
-                "10 13,15 * * *", //At minute 10, hour 13 and 15
-                () -> updateDayAheadEnergyPrices(area));
-    }
-
-    void scheduleUpdateAwaitingJobs() {
-        BackgroundJob.scheduleRecurrently("update-awaiting-jobs",
-                "5 * * * *", //Every hour at minute 5
-                this::updateAwaitingJobs);
-    }
-
-    void updateAwaitingJobs() {
-        storageProvider.getJobList(StateName.AWAITING, new AmountRequest(null, 1000))
-                .forEach(job -> {
-                    moveToNextState(job);
-                    try {
-                        storageProvider.save(job);
-                    } catch (ConcurrentJobModificationException e) {
-                        LOGGER.error("Could not save carbon-aware job {} after moving to next state. The state of the job has not been updated", job.getId(), e);
-                    }
-            });
-    }
-
-    void updateDayAheadEnergyPrices(Optional<String> area) {
+    public void updateDayAheadEnergyPrices() {
+        Optional<String> area = Optional.ofNullable(carbonAwareConfiguration.getArea());
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
         if (dayAheadEnergyPrices.getIsErrorResponse()){
             LOGGER.warn("Could not update day ahead energy prices for area '{}': {}",
@@ -97,8 +73,7 @@ public class CarbonAwareScheduler {
         }
 
         if (!dayAheadEnergyPrices.hasValidData(carbonAwareAwaitingState.getPeriod())) {
-            String msg = String.format("No hourly energy prices available for area '%s' %s.",
-                    CarbonAwareConfiguration.getArea(), dayAheadEnergyPrices.getErrorMessage());
+            String msg = String.format("No hourly energy prices available for area '%s' %s.", carbonAwareConfiguration.getArea(), dayAheadEnergyPrices.getErrorMessage());
 
             ZonedDateTime nowCET = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             // Check if current day is the previous day of the 'to' instant
@@ -131,6 +106,10 @@ public class CarbonAwareScheduler {
         }
 
         LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+    }
+
+    private CarbonAwareApiClient createCarbonAwareApiClient(JsonMapper jsonMapper) {
+        return new CarbonAwareApiClient(this.carbonAwareConfiguration.getCarbonAwareApiUrl(), this.carbonAwareConfiguration.getApiClientConnectTimeout(), this.carbonAwareConfiguration.getApiClientReadTimeout(), jsonMapper);
     }
 }
 

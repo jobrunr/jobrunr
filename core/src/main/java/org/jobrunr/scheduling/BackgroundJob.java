@@ -396,26 +396,17 @@ public class BackgroundJob {
     /**
      * TODO
      */
-    public static JobId scheduleCarbonAware(CarbonAwarePeriod when, JobLambda job) {
+    public static JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
         verifyJobScheduler();
-        return jobScheduler.scheduleCarbonAware(when, job);
+        return jobScheduler.scheduleCarbonAware(carbonAwarePeriod, job);
     }
 
     /**
      * TODO
      */
-    public static JobId scheduleCarbonAware(UUID id, Instant from, Instant to, JobLambda job) {
+    public static JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
         verifyJobScheduler();
-        return jobScheduler.scheduleCarbonAware(id, from, to, job);
-    }
-
-    public static JobId scheduleCarbonAware(Instant to, JobLambda job) {
-        return jobScheduler.scheduleCarbonAware(CarbonAwarePeriod.before(to), job);
-    }
-
-    public static JobId scheduleCarbonAware(Instant from, Instant to, JobLambda job) {
-        verifyJobScheduler();
-        return jobScheduler.scheduleCarbonAware(CarbonAwarePeriod.between(from, to), job);
+        return jobScheduler.scheduleCarbonAware(id,carbonAwarePeriod, job);
     }
 
     /**

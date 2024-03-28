@@ -34,7 +34,7 @@ class AbstractJobSchedulerTest {
     }
 
     AbstractJobScheduler jobScheduler(StorageProvider storageProvider) {
-        return new AbstractJobScheduler(storageProvider, emptyList()) {
+        return new AbstractJobScheduler(storageProvider, null, emptyList()) {
             @Override
             JobId create(JobBuilder jobBuilder) {
                 return null;
