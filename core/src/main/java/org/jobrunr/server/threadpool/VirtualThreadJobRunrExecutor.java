@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.getMethod;
 
@@ -44,9 +46,18 @@ public class VirtualThreadJobRunrExecutor implements JobRunrExecutor {
     }
 
     @Override
-    public void stop() {
+    public void stop(Duration awaitTimeout) {
         this.isStopping = true;
         this.started = false;
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(awaitTimeout.getSeconds(), TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt(); // Preserve interrupt status
+        }
     }
 
     @Override

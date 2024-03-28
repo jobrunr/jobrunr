@@ -3,6 +3,7 @@ package org.jobrunr.server.threadpool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -39,10 +40,10 @@ public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.Sche
     }
 
     @Override
-    public void stop() {
+    public void stop(Duration awaitTimeout) {
         shutdown();
         try {
-            if (!awaitTermination(10, TimeUnit.SECONDS)) {
+            if (!awaitTermination(awaitTimeout.getSeconds(), TimeUnit.SECONDS)) {
                 shutdownNow();
             }
         } catch (InterruptedException e) {
