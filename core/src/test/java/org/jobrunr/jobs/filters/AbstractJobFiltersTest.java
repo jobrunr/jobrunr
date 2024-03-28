@@ -17,14 +17,14 @@ class AbstractJobFiltersTest {
         JobCreationFilters jobCreationFilters = new JobCreationFilters(anEnqueuedJob().build(), new JobDefaultFilters(myJobFilter));
         final ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(jobCreationFilters);
 
-        jobCreationFilters.logJobFilterTime(myJobFilter, 6000000);
-        jobCreationFilters.logJobFilterTime(myJobFilter, 6000000);
-        jobCreationFilters.logJobFilterTime(myJobFilter, 6000000);
-        jobCreationFilters.logJobFilterTime(myJobFilter, 6000000);
-        jobCreationFilters.logJobFilterTime(myJobFilter, 6000000);
+        jobCreationFilters.logJobFilterTime(myJobFilter, 11000000);
+        jobCreationFilters.logJobFilterTime(myJobFilter, 11000000);
+        jobCreationFilters.logJobFilterTime(myJobFilter, 11000000);
+        jobCreationFilters.logJobFilterTime(myJobFilter, 11000000);
+        jobCreationFilters.logJobFilterTime(myJobFilter, 11000000);
 
         assertThat(logger).hasWarningMessageContaining(
-                "JobFilter of type 'org.jobrunr.jobs.filters.AbstractJobFiltersTest$MyJobFilter' is skipped because its slow performance (> 5ms) negatively impacts the overall functioning of JobRunr",
+                "JobFilter of type 'org.jobrunr.jobs.filters.AbstractJobFiltersTest$MyJobFilter' has slow performance (> 10ms) which negatively impacts the overall functioning of JobRunr",
                 5,
                 emptyMap()
         );
