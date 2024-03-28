@@ -175,7 +175,7 @@ public class CarbonAwareSchedulerTest {
     }
 
     @Test
-    public void testUpdateAwaitingjobs() {
+    public void testUpdateAwaitingJobs() {
         //ARRANGE
         String area = "DE";
         JobScheduler jobScheduler = setUpJobRunr(200, area);
