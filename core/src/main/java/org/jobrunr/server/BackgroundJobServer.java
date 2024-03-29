@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
+import org.jobrunr.server.BackgroundJobServer.BackgroundJobServerLifecycleLock.LifeCycleLock;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
@@ -39,10 +40,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.Integer.compare;
 import static java.lang.Math.min;
@@ -122,8 +121,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public void start(boolean guard) {
         if (guard) {
-            if (isStarted()) return;
-            try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+            try (LifeCycleLock ignored = lifecycleLock.writeLock()) {
+                if (isStarted()) return;
                 firstHeartbeat = Instant.now();
                 isRunning = true;
                 startStewardAndServerZooKeeper();
@@ -134,9 +133,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public void pauseProcessing() {
-        if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
-        if (isPaused()) return;
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.writeLock()) {
+            if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
+            if (isPaused()) return;
             isRunning = false;
             stopWorkers();
             LOGGER.info("Paused job processing");
@@ -145,9 +144,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public void resumeProcessing() {
-        if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
-        if (isProcessing()) return;
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.writeLock()) {
+            if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
+            if (isProcessing()) return;
             startWorkers();
             isRunning = true;
             LOGGER.info("Resumed job processing");
@@ -156,8 +155,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public void stop() {
-        if (isStopped()) return;
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.writeLock()) {
+            if (isStopped()) return;
             LOGGER.info("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)");
             isMaster = null;
             stopWorkers();
@@ -173,8 +172,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     boolean isStopped() {
-        if (isStopping()) return true;
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.readLock()) {
+            if (isStopping()) return true;
             return zookeeperThreadPool == null;
         }
     }
@@ -184,14 +183,14 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     boolean isProcessing() {
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.readLock()) {
             return isRunning;
         }
     }
 
     public boolean isAnnounced() {
-        if (isStopping()) return false;
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.readLock()) {
+            if (isStopping()) return false;
             return isMaster != null;
         }
     }
@@ -221,8 +220,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public boolean isRunning() {
-        if (isStopping()) return false;
-        try (BackgroundJobServerLifecycleLock ignored = lifecycleLock.lock()) {
+        try (LifeCycleLock ignored = lifecycleLock.readLock()) {
+            if (isStopping()) return false;
             return isRunning;
         }
     }
@@ -386,19 +385,25 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return jobExecutor != null && jobExecutor.isStopping();
     }
 
-    private static class BackgroundJobServerLifecycleLock implements AutoCloseable {
-        private final ReentrantLock reentrantLock = new ReentrantLock();
-
-        public BackgroundJobServerLifecycleLock lock() {
-            if (reentrantLock.isHeldByCurrentThread()) return this;
-
-            reentrantLock.lock();
-            return this;
+    static class BackgroundJobServerLifecycleLock {
+        interface LifeCycleLock extends AutoCloseable {
+            void close();
         }
 
-        @Override
-        public void close() {
-            reentrantLock.unlock();
+        private final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
+        private final LifeCycleLock readClose = () -> reentrantReadWriteLock.readLock().unlock();
+        private final LifeCycleLock writeClose = () -> reentrantReadWriteLock.writeLock().unlock();
+
+        public LifeCycleLock readLock() {
+            reentrantReadWriteLock.readLock().lock();
+            return readClose;
+        }
+
+        public LifeCycleLock writeLock() {
+            if (reentrantReadWriteLock.getReadHoldCount() > 0)
+                throw new IllegalMonitorStateException("Cannot upgrade read to write lock");
+            reentrantReadWriteLock.writeLock().lock();
+            return writeClose;
         }
     }
 
