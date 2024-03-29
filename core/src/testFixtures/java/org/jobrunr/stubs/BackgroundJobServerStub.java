@@ -17,11 +17,11 @@ public class BackgroundJobServerStub extends BackgroundJobServer {
     }
 
     public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        super(storageProvider, jsonMapper, null, backgroundJobServerConfiguration);
+        super(storageProvider, null, jsonMapper, null, backgroundJobServerConfiguration);
     }
 
     public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfigurationReader backgroundJobServerConfiguration) {
-        super(storageProvider, jsonMapper, null, backgroundJobServerConfiguration);
+        super(storageProvider, null, jsonMapper, null, backgroundJobServerConfiguration);
     }
 
     @Override

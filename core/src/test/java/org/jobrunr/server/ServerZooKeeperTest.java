@@ -61,7 +61,7 @@ class ServerZooKeeperTest {
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
         final JsonMapper jsonMapper = new JacksonJsonMapper();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, null, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));
     }
 
     @AfterEach

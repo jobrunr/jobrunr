@@ -2,7 +2,6 @@
   "isErrorResponse": false,
   "area": "BE",
   "state": null,
-  "hoursAvailable": 12,
   "unit": "EUR/MWH",
   "timezone": "Europe/Brussels",
   "hourlyEnergyPrices": [

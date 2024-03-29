@@ -29,7 +29,7 @@ public abstract class AbstractJobScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
     private final StorageProvider storageProvider;
-    private CarbonAwareJobManager carbonAwareJobManager;
+    private final CarbonAwareJobManager carbonAwareJobManager;
     private final JobFilterUtils jobFilterUtils;
 
     /**

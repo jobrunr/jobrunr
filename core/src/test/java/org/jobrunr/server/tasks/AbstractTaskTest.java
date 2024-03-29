@@ -65,7 +65,7 @@ public abstract class AbstractTaskTest {
     }
 
     private BackgroundJobServer createBackgroundJobServerSpy(StorageProvider storageProvider, BackgroundJobServerConfiguration configuration) {
-        return Mockito.spy(new BackgroundJobServer(storageProvider, new JacksonJsonMapper(), null, configuration) {
+        return Mockito.spy(new BackgroundJobServer(storageProvider, null, new JacksonJsonMapper(), null, configuration) {
             @Override
             protected JobSteward createJobSteward() {
                 return jobSteward;
