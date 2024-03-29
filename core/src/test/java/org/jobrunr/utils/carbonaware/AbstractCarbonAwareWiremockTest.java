@@ -4,23 +4,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.time.Duration;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_READ_TIMEOUT;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.*;
 import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrlPath;
 
 public class AbstractCarbonAwareWiremockTest {
 
     private static WireMockServer wireMockServer;
     private static JsonMapper jsonMapper;
+    private static final String carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonAwareApiUrl("http://localhost:10000");
 
     @BeforeAll
     static void beforeAll() {
@@ -51,5 +56,15 @@ public class AbstractCarbonAwareWiremockTest {
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(response)));
+    }
+
+    protected BackgroundJobServer initializeJobRunr(int pollIntervalMs, String area, StorageProvider storageProvider) {
+        return JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useCarbonAwareScheduling(usingStandardCarbonAwareConfiguration().andArea(area)
+                        .andCarbonAwareApiUrl(carbonApiTestUrl))
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(pollIntervalMs)))
+                .initialize()
+                .getBackgroundJobServer();
     }
 }

@@ -65,7 +65,7 @@ class DayAheadEnergyPricesTest {
 
     @Test
     void dayAheadEnergyPrices_LeastExpensiveHourReturnsNow_IfCurrentHourIsLeastExpensiveHour() {
-        // ARRANGE
+        // GIVEN
         ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> hourlyEnergyPrices = new ArrayList<>();
         Instant now = Instant.now();
         Instant to = now.plus(6, ChronoUnit.HOURS);
@@ -78,10 +78,10 @@ class DayAheadEnergyPricesTest {
         }
         DayAheadEnergyPrices dayAheadEnergyPrices = new DayAheadEnergyPrices("Area", "State", "Europe/Berlin", "unit", hourlyEnergyPrices);
 
-        //ACT
+        // WHEN
         Instant result = dayAheadEnergyPrices.leastExpensiveHour(now, to);
 
-        // ASSERT
+        // THEN
         Instant expected = now.truncatedTo(ChronoUnit.HOURS);
         Instant actual = result.truncatedTo(ChronoUnit.HOURS);
         assertThat(actual).isEqualTo(expected); // The least expensive hour should be the current hour, truncated to hours for comparison.
