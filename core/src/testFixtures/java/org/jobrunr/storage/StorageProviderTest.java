@@ -32,6 +32,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +42,7 @@ import java.util.stream.IntStream;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
@@ -356,6 +358,12 @@ public abstract class StorageProviderTest {
 
         job.updateProcessing();
         assertThatCode(() -> storageProvider.save(enqueuedJob)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void noExceptionOnSaveOfEmptyJobs() {
+        assertThatCode(() -> storageProvider.save(emptyList()))
+                .doesNotThrowAnyException();
     }
 
     @Test

@@ -79,7 +79,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
     private volatile VersionNumber dataVersion;
-    private volatile ScheduledThreadPoolExecutor zookeeperThreadPool;
+    private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
@@ -321,7 +321,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void stopZooKeepers() {
         serverZooKeeper.stop();
-        stop(zookeeperThreadPool);
+        zookeeperThreadPool.stop(Duration.ofSeconds(10));
         this.zookeeperThreadPool = null;
     }
 
@@ -332,7 +332,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void stopWorkers() {
         if (jobExecutor == null) return;
-        jobExecutor.stop();
+        LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most " + configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer() + ")");
+        jobExecutor.stop(configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         this.jobExecutor = null;
     }
 
@@ -356,20 +357,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 new BackgroundStaticJobWithoutIocRunner(),
                 new BackgroundStaticFieldJobWithoutIocRunner()
         );
-    }
-
-    private void stop(ScheduledExecutorService executorService) {
-        if (executorService == null) return;
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer().getSeconds(), TimeUnit.SECONDS)) {
-                LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most 10 seconds)");
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
     protected ServerZooKeeper createServerZooKeeper() {

@@ -332,6 +332,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> save(List<Job> jobs) {
+        if(jobs.isEmpty()) return jobs;
+
         try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             if (jobListVersioner.areNewJobs()) {
                 final List<Document> jobsToInsert = jobs.stream()
