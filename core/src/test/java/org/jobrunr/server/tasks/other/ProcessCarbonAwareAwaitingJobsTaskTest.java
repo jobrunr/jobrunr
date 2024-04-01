@@ -74,7 +74,29 @@ public class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractCarbonAwareW
             Job job4 = storageProvider.getJobById(jobId4);
             assertThat(job4).hasStates(AWAITING, SCHEDULED);
             Assertions.assertThat(((ScheduledState) job4.getJobState()).getScheduledAt()).isEqualTo(Instant.parse("2500-01-01T22:00:00Z"));
+        }
+    }
 
+    @Test
+    public void testUpdateAwaitingJobs_withDeadlinein2Days_shouldStayAwaiting() {
+        // GIVEN
+        String area = "DE";
+        BackgroundJobServer backgroundJobServer = initializeJobRunr(200, area, storageProvider);
+        JobId jobId = BackgroundJob.scheduleCarbonAware(between("2500-01-01T00:00:00Z", "2500-01-03T23:00:00Z"),
+                () -> System.out.println("This job should stay awaiting"));
+
+        assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING);
+
+        ProcessCarbonAwareAwaitingJobsTask processCarbonAwareAwaitingJobsTask = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
+        JobZooKeeper caronAwareManageAwaitingJobsTask = new JobZooKeeper(backgroundJobServer, processCarbonAwareAwaitingJobsTask);
+        mockResponseWhenRequestingArea(area, CarbonApiMockResponses.GERMANY_2500_01_01);
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2500-01-01T08:00:00Z");
+            MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2500-01-01T08:00:00Z"), "Europe/Brussels")) {
+            // WHEN
+            caronAwareManageAwaitingJobsTask.run();
+
+            // THEN
+            assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING);
         }
     }
 }

@@ -7,17 +7,22 @@ import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessCarbonAwareAwaitingJobsTask.class);
 
+    private static final int DEFAULT_HOURS_AHEAD_TO_CHECK = 30;
     private final CarbonAwareJobManager carbonAwareJobManager;
+    private final int hoursAheadToCheck;
 
     private final int pageRequestSize;
 
@@ -25,6 +30,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         super(backgroundJobServer);
         this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
         this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareJobsRequestSize();
+        hoursAheadToCheck = DEFAULT_HOURS_AHEAD_TO_CHECK;
     }
 
     @Override
@@ -36,9 +42,8 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
-        // TODO: only get the carbonAwareAwaitingJobs scheduled in the next 24 hours
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
-        return storageProvider.getJobList(AWAITING, ascOnUpdatedAt(pageRequestSize));
+        return storageProvider.getCarbonAwareJobList(Instant.now().plus(hoursAheadToCheck, ChronoUnit.HOURS), ascOnCarbonAwareDeadline(pageRequestSize));
     }
 
     private void moveCarbonAwareJobToNextState(Job job) {
