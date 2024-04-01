@@ -19,11 +19,12 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private final CarbonAwareJobManager carbonAwareJobManager;
 
-    private final int pageRequestSize = 1000;
+    private final int pageRequestSize;
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
         this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
+        this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareJobsRequestSize();
     }
 
     @Override

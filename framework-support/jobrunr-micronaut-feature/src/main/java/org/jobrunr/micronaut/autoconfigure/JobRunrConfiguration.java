@@ -132,6 +132,11 @@ public interface JobRunrConfiguration {
         Optional<Integer> getPollIntervalInSeconds();
 
         /**
+         * Sets the maximum number of jobs to update from awaiting to scheduled state per X hours
+         */
+        Optional<Integer> getCarbonAwaitingJobsRequestSize();
+
+        /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
          */
         Optional<Integer> getScheduledJobsRequestSize();

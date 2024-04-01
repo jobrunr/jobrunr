@@ -4,10 +4,14 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.utils.StringUtils;
+import redis.clients.jedis.Jedis;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -112,6 +116,18 @@ public class RedisUtilities {
         return Stream.of(keyParts)
                 .filter(StringUtils::isNotNullOrEmpty)
                 .collect(joining(":"));
+    }
+
+    public static List<String> getJedisJobsOrdered(Jedis jedis, String keyPrefix, StateName stateName, AmountRequest amountRequest, Instant before) {
+        if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+            return jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, stateName), 0, toMicroSeconds(before),
+                    amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+        } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+            return jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, stateName), toMicroSeconds(before), 0,
+                    amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+        } else {
+            throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+        }
     }
 
     public static long toMicroSeconds(Instant instant) {

@@ -252,6 +252,10 @@ public class JobRunrProperties {
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
         private Integer pollIntervalInSeconds = 15;
+        /**
+         * Sets the maximum number of jobs to update from awaiting to scheduled state per X hours
+         */
+        private Integer carbonAwaitingJobsRequestSize = 1000;
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
@@ -332,6 +336,12 @@ public class JobRunrProperties {
 
         public void setPollIntervalInSeconds(Integer pollIntervalInSeconds) {
             this.pollIntervalInSeconds = pollIntervalInSeconds;
+        }
+
+        public Integer getCarbonAwaitingJobsRequestSize(){return carbonAwaitingJobsRequestSize;}
+        public BackgroundJobServer setCarbonAwaitingJobsRequestSize(Integer carbonAwaitingJobsRequestSize) {
+            this.carbonAwaitingJobsRequestSize = carbonAwaitingJobsRequestSize;
+            return this;
         }
 
         public Integer getScheduledJobsRequestSize() {

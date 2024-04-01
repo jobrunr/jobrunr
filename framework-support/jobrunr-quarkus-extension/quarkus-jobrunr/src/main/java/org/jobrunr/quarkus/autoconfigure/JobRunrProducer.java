@@ -20,6 +20,8 @@ import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
@@ -42,10 +44,17 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public JobScheduler jobScheduler(StorageProvider storageProvider) {
+    public CarbonAwareJobManager carbonAwareJobManager(JsonMapper jobRunrJsonMapper) {
+        return new CarbonAwareJobManager(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), jobRunrJsonMapper);
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    public JobScheduler jobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
             final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
-            return new JobScheduler(storageProvider, null, jobDetailsGenerator, emptyList());
+            return new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, emptyList());
         }
         return null;
     }
@@ -53,9 +62,9 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
+    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
-            return new JobRequestScheduler(storageProvider, null, emptyList());
+            return new JobRequestScheduler(storageProvider, carbonAwareJobManager, emptyList());
         }
         return null;
     }
@@ -97,11 +106,11 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
-    BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+    BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration, CarbonAwareJobManager carbonAwareJobManager) {
         if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
             int defaultNbrOfRetries = jobRunrRuntimeConfiguration.jobs().defaultNumberOfRetries().orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
             int retryBackOffTimeSeed = jobRunrRuntimeConfiguration.jobs().retryBackOffTimeSeed().orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
-            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
+            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, carbonAwareJobManager, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
             backgroundJobServer.setJobFilters(singletonList(new RetryFilter(defaultNbrOfRetries, retryBackOffTimeSeed)));
             return backgroundJobServer;
         }

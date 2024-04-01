@@ -114,6 +114,11 @@ public interface JobRunrRuntimeConfiguration {
         Optional<BackgroundJobServerThreadType> threadType();
 
         /**
+         * Sets the maximum number of jobs to update from awaiting to scheduled state per X hours
+         */
+        Optional<Integer> carbonAwatingJobsRequestSize();
+
+        /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
          */
         Optional<Integer> scheduledJobsRequestSize();

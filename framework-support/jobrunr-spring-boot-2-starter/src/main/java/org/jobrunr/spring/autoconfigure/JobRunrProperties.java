@@ -254,6 +254,11 @@ public class JobRunrProperties {
         private Integer pollIntervalInSeconds = 15;
 
         /**
+         * Sets the maximum number of jobs to update from awaiting to scheduled state every X hours.
+         */
+        private Integer carbonAwaitingJobsRequestSize = 1000;
+
+        /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
          */
         private Integer scheduledJobsRequestSize = 1000;
