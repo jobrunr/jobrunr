@@ -321,6 +321,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
+        return findJobs(lt(Jobs.CARBON_AWARE_DEADLINE, toMicroSeconds(deadline)), amountRequest);
+    }
+
+    @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         return findJobs(eq(Jobs.FIELD_STATE, state.name()), amountRequest);
     }

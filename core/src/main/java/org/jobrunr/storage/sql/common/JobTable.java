@@ -5,6 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.ConcurrentJobModificationException;
@@ -38,6 +39,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.CARBON_AWARE_DEADLINE;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
@@ -54,9 +56,9 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
-                // TODO: carbonAware - also add CarbonAwareAwaitingState.to if it is a carbonaware awaited job
                 .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
-                .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));
+                .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null))
+                .with(CARBON_AWARE_DEADLINE, job -> job.hasState(StateName.AWAITING) ? job.<CarbonAwareAwaitingState>getJobState().getTo() : null);
     }
 
     public JobTable withId(UUID id) {
@@ -79,8 +81,13 @@ public class JobTable extends Sql<Job> {
         return this;
     }
 
+    public JobTable withCarbonAwareDeadlineBefore(Instant deadlineBefore) {
+        with(CARBON_AWARE_DEADLINE, deadlineBefore);
+        return this;
+    }
+
     public JobTable with(String columnName, String sqlName, String value) {
-        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT).contains(columnName)) {
+        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT, CARBON_AWARE_DEADLINE).contains(columnName)) {
             with(sqlName, Instant.parse(value));
         } else {
             with(sqlName, value);
@@ -155,6 +162,13 @@ public class JobTable extends Sql<Job> {
     public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, AmountRequest amountRequest) {
         return withScheduledAt(scheduledBefore)
                 .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt", pageRequestMapper.map(amountRequest))
+                .collect(toList());
+    }
+
+    public List<Job> selectCarbonAwareJobsWithDeadlineBefore(Instant deadlineBefore, AmountRequest amountRequest) {
+        return withState(StateName.AWAITING)
+                .withCarbonAwareDeadlineBefore(deadlineBefore)
+                .selectJobs("jobAsJson from jobrunr_jobs where state = 'AWAITING' and carbonAwareDeadline <= :carbonAwareDeadline", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 

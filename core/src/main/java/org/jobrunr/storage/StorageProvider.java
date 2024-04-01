@@ -143,6 +143,14 @@ public interface StorageProvider extends AutoCloseable {
     List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest);
 
     /**
+     * Returns all carbon aware jobs and deadline before the given {@link Instant}.
+     *
+     * @param deadline the Instant to test each carbon aware {@link Job} against
+     * @param amountRequest the amount and the order in which to return the {@link Job jobs}.
+     */
+    List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest);
+
+    /**
      * Returns all the jobs matching the given {@link StateName} and {@link AmountRequest}.
      *
      * @param state         the StateName to test each {@link Job} against

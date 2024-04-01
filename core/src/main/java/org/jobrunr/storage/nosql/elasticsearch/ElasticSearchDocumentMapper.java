@@ -35,7 +35,7 @@ public class ElasticSearchDocumentMapper {
     public Map<Object, Object> toMap(BackgroundJobServerStatus serverStatus) {
         final Map<Object, Object> map = new LinkedHashMap<>();
         map.put(FIELD_ID, serverStatus.getId().toString());
-        map.put(FIELD_NAME, serverStatus.getName().toString());
+        map.put(FIELD_NAME, serverStatus.getName());
         map.put(FIELD_WORKER_POOL_SIZE, serverStatus.getWorkerPoolSize());
         map.put(FIELD_POLL_INTERVAL_IN_SECONDS, serverStatus.getPollIntervalInSeconds());
         map.put(FIELD_DELETE_SUCCEEDED_JOBS_AFTER, serverStatus.getDeleteSucceededJobsAfter().toString());

@@ -52,13 +52,7 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -398,6 +392,29 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                     .collect(toList());
         }
     }
+
+    @Override
+    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            List<String> jobsByState;
+            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+                jobsByState = commands.zrangebyscore(jobQueueForStateKey(keyPrefix, AWAITING), Range.create(0, toMicroSeconds(deadline)),
+                        Limit.create(amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit()));
+            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+                jobsByState = commands.zrevrangebyscore(jobQueueForStateKey(keyPrefix, AWAITING), Range.create(0, toMicroSeconds(deadline)),
+                        Limit.create(amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit()));
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+            }
+            return new LettuceRedisPipelinedStream<>(jobsByState, connection)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(RedisFuture<String>::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
+    }
+
 
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {

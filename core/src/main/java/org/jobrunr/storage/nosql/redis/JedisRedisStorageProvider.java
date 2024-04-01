@@ -45,29 +45,11 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobCreatedAtKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -346,16 +328,20 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         try (final Jedis jedis = getJedis()) {
-            List<String> jobsByState;
-            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
-                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore),
-                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
-            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
-                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0,
-                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
-            } else {
-                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
-            }
+            List<String> jobsByState = getJedisJobsOrdered(jedis, keyPrefix, state, amountRequest, updatedBefore);
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
+    }
+
+    @Override
+    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
+        try (final Jedis jedis = getJedis()) {
+            List<String> jobsByState = getJedisJobsOrdered(jedis, keyPrefix, SCHEDULED, amountRequest, deadline);
+
             return new JedisRedisPipelinedStream<>(jobsByState, jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
                     .mapAfterSync(Response::get)

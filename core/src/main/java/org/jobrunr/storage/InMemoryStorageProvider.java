@@ -5,6 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -29,13 +30,7 @@ import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
@@ -149,6 +144,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         return getJobsStream(state, amountRequest)
                 .filter(job -> job.getUpdatedAt().isBefore(updatedBefore))
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
+    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
+        return getJobsStream(AWAITING, amountRequest)
+                .filter(job -> ((CarbonAwareAwaitingState) job.getJobState()).getTo().isBefore(deadline))
                 .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
                 .limit(amountRequest.getLimit())
                 .map(this::deepClone)

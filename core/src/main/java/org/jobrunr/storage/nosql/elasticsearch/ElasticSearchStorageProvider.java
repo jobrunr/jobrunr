@@ -475,6 +475,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
+        final QueryVariant query = bool()
+                .must(must -> must.match(match -> match.field(FIELD_STATE).query(StateName.AWAITING.toString())))
+                .must(must -> must.range(m -> m.field(Jobs.CARBON_AWARE_DEADLINE).to(Long.toString(deadline.toEpochMilli()))))
+                .build();
+        return findJobs(query, amountRequest);
+    }
+
+    @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         final QueryVariant query = bool()
                 .must(must -> must.match(match -> match.field(FIELD_STATE).query(state.toString())))
