@@ -18,6 +18,7 @@ import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.AbstractStorageProvider;
@@ -52,7 +53,14 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.getStateNames;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -61,6 +69,7 @@ import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJ
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.carbonAwaitingDeadlineKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
 import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
@@ -395,26 +404,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
-        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
-            RedisCommands<String, String> commands = connection.sync();
-            List<String> jobsByState;
-            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
-                jobsByState = commands.zrangebyscore(jobQueueForStateKey(keyPrefix, AWAITING), Range.create(0, toMicroSeconds(deadline)),
-                        Limit.create(amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit()));
-            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
-                jobsByState = commands.zrevrangebyscore(jobQueueForStateKey(keyPrefix, AWAITING), Range.create(0, toMicroSeconds(deadline)),
-                        Limit.create(amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit()));
-            } else {
-                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
-            }
-            return new LettuceRedisPipelinedStream<>(jobsByState, connection)
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(RedisFuture<String>::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
+        return getJobsByKey(carbonAwaitingDeadlineKey(keyPrefix), deadline, amountRequest);
     }
-
 
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
@@ -440,22 +431,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
-        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
-            RedisCommands<String, String> commands = connection.sync();
-            return new LettuceRedisPipelinedStream<>(
-                    commands.zrangebyscore(scheduledJobsKey(keyPrefix),
-                            Range.create(0, toMicroSeconds(scheduledBefore)),
-                            Limit.create(
-                                    amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0,
-                                    amountRequest.getLimit())
-                    ),
-                    connection
-            )
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(RedisFuture<String>::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
+        return getJobsByKey(scheduledJobsKey(keyPrefix), scheduledBefore, amountRequest);
     }
 
     @Override
@@ -594,6 +570,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             RedisAsyncCommands<String, String> commands = connection.async();
             final RedisFuture<String> totalSucceededAmountCounterResponse = commands.hget(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE);
 
+            final RedisFuture<Long> awaitingResponse = commands.zcount(jobQueueForStateKey(keyPrefix, AWAITING), unbounded());
             final RedisFuture<Long> scheduledResponse = commands.zcount(jobQueueForStateKey(keyPrefix, SCHEDULED), unbounded());
             final RedisFuture<Long> enqueuedResponse = commands.zcount(jobQueueForStateKey(keyPrefix, ENQUEUED), unbounded());
             final RedisFuture<Long> processingResponse = commands.zcount(jobQueueForStateKey(keyPrefix, PROCESSING), unbounded());
@@ -605,9 +582,11 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             final RedisFuture<Long> backgroundJobServerResponse = commands.zcount(backgroundJobServersUpdatedKey(keyPrefix), unbounded());
 
             connection.flushCommands();
-            LettuceFutures.awaitAll(Duration.ofSeconds(10), totalSucceededAmountCounterResponse, scheduledResponse,
+            LettuceFutures.awaitAll(Duration.ofSeconds(10), totalSucceededAmountCounterResponse,
+                    awaitingResponse ,scheduledResponse,
                     enqueuedResponse, processingResponse, succeededResponse, failedResponse, deletedResponse);
 
+            final long awaitingCount = getCounterValue(awaitingResponse);
             final long scheduledCount = getCounterValue(scheduledResponse);
             final long enqueuedCount = getCounterValue(enqueuedResponse);
             final long processingCount = getCounterValue(processingResponse);
@@ -621,6 +600,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             return new JobStats(
                     instant,
                     total,
+                    awaitingCount,
                     scheduledCount,
                     enqueuedCount,
                     processingCount,
@@ -680,6 +660,9 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         if (SCHEDULED.equals(jobToSave.getState())) {
             commands.zadd(scheduledJobsKey(keyPrefix), toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
+        if (AWAITING.equals(jobToSave.getState())) {
+            commands.zadd(carbonAwaitingDeadlineKey(keyPrefix), toMicroSeconds(((CarbonAwareAwaitingState) jobToSave.getJobState()).getTo()), jobToSave.getId().toString());
+        }
         jobToSave.getRecurringJobId().ifPresent(recurringJobId -> commands.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
     }
 
@@ -718,6 +701,25 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             return 0L;
+        }
+    }
+
+    private List<Job> getJobsByKey(String jobsKey, Instant before, AmountRequest amountRequest) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            return new LettuceRedisPipelinedStream<>(
+                    commands.zrangebyscore(jobsKey,
+                            Range.create(0, toMicroSeconds(before)),
+                            Limit.create(
+                                    amountRequest instanceof OffsetBasedPageRequest ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0,
+                                    amountRequest.getLimit())
+                    ),
+                    connection
+            )
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(RedisFuture<String>::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
         }
     }
 

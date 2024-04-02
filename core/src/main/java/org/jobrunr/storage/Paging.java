@@ -22,7 +22,7 @@ public class Paging {
         }
 
         public static AmountRequest ascOnCarbonAwareDeadline(int amount) {
-            return new AmountRequest(StorageProviderUtils.Jobs.CARBON_AWARE_DEADLINE + ":ASC", amount);
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE + ":ASC", amount);
         }
     }
 

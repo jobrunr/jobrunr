@@ -28,6 +28,7 @@ public class JobStatsView extends Sql<JobStats> {
         return new JobStats(
                 instant,
                 resultSet.asLong("total"),
+                resultSet.asLong("awaiting"),
                 resultSet.asLong("scheduled"),
                 resultSet.asLong("enqueued"),
                 resultSet.asLong("processing"),

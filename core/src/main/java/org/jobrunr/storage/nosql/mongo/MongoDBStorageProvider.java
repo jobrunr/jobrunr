@@ -84,12 +84,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.states.StateName.DELETED;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
-import static org.jobrunr.jobs.states.StateName.PROCESSING;
-import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.*;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -322,7 +317,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
-        return findJobs(lt(Jobs.CARBON_AWARE_DEADLINE, toMicroSeconds(deadline)), amountRequest);
+        return findJobs(lt(Jobs.FIELD_CARBON_AWARE_DEADLINE, toMicroSeconds(deadline)), amountRequest);
     }
 
     @Override
@@ -440,6 +435,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                         limit(10)))
                 .into(new ArrayList<>());
 
+
+        Long awaitingCount = getCount(AWAITING, stateAggregation);
         Long scheduledCount = getCount(SCHEDULED, stateAggregation);
         Long enqueuedCount = getCount(ENQUEUED, stateAggregation);
         Long processingCount = getCount(PROCESSING, stateAggregation);
@@ -454,6 +451,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         return new JobStats(
                 instant,
                 total,
+                awaitingCount,
                 scheduledCount,
                 enqueuedCount,
                 processingCount,

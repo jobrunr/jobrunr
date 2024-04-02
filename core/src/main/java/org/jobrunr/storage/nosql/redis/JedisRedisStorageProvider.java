@@ -5,6 +5,7 @@ import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.AbstractStorageProvider;
@@ -45,11 +46,31 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.carbonAwaitingDeadlineKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobCreatedAtKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -328,7 +349,16 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         try (final Jedis jedis = getJedis()) {
-            List<String> jobsByState = getJedisJobsOrdered(jedis, keyPrefix, state, amountRequest, updatedBefore);
+            List<String> jobsByState;
+            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore),
+                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0,
+                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+            }
             return new JedisRedisPipelinedStream<>(jobsByState, jedis)
                     .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
                     .mapAfterSync(Response::get)
@@ -339,15 +369,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
-        try (final Jedis jedis = getJedis()) {
-            List<String> jobsByState = getJedisJobsOrdered(jedis, keyPrefix, SCHEDULED, amountRequest, deadline);
-
-            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(Response::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
+        return getJobsByKey(carbonAwaitingDeadlineKey(keyPrefix), deadline, amountRequest);
     }
 
     @Override
@@ -373,14 +395,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
-        try (final Jedis jedis = getJedis()) {
-            int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
-            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(scheduledJobsKey(keyPrefix), 0, toMicroSeconds(scheduledBefore), offset, amountRequest.getLimit()), jedis)
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(Response::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
+        return getJobsByKey(scheduledJobsKey(keyPrefix), scheduledBefore, amountRequest);
     }
 
     @Override
@@ -510,6 +525,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         try (final Jedis jedis = getJedis(); final Pipeline p = jedis.pipelined()) {
             final Response<String> totalAmountSucceeded = p.hget(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE);
 
+            final Response<Long> awaitingResponse = p.zcount(jobQueueForStateKey(keyPrefix, AWAITING), 0, Long.MAX_VALUE);
             final Response<Long> scheduledResponse = p.zcount(jobQueueForStateKey(keyPrefix, SCHEDULED), 0, Long.MAX_VALUE);
             final Response<Long> enqueuedResponse = p.zcount(jobQueueForStateKey(keyPrefix, ENQUEUED), 0, Long.MAX_VALUE);
             final Response<Long> processingResponse = p.zcount(jobQueueForStateKey(keyPrefix, PROCESSING), 0, Long.MAX_VALUE);
@@ -522,6 +538,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
             p.sync();
 
+            final Long awaitingCount = awaitingResponse.get();
             final Long scheduledCount = scheduledResponse.get();
             final Long enqueuedCount = enqueuedResponse.get();
             final Long processingCount = processingResponse.get();
@@ -535,6 +552,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             return new JobStats(
                     instant,
                     total,
+                    awaitingCount,
                     scheduledCount,
                     enqueuedCount,
                     processingCount,
@@ -592,6 +610,9 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         if (SCHEDULED.equals(jobToSave.getState())) {
             transaction.zadd(scheduledJobsKey(keyPrefix), toMicroSeconds(((ScheduledState) jobToSave.getJobState()).getScheduledAt()), jobToSave.getId().toString());
         }
+        if (AWAITING.equals(jobToSave.getState())) {
+            transaction.zadd(carbonAwaitingDeadlineKey(keyPrefix), toMicroSeconds(((CarbonAwareAwaitingState) jobToSave.getJobState()).getTo()), jobToSave.getId().toString());
+        }
         jobToSave.getRecurringJobId().ifPresent(recurringJobId -> transaction.sadd(recurringJobKey(keyPrefix, jobToSave.getState()), recurringJobId));
     }
 
@@ -613,5 +634,16 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         Stream.of(StateName.values()).forEach(stateName -> transaction.zrem(jobQueueForStateKey(keyPrefix, stateName), id));
         Stream.of(StateName.values()).forEach(stateName -> transaction.srem(jobDetailsKey(keyPrefix, stateName), getJobSignature(job.getJobDetails())));
         job.getRecurringJobId().ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> transaction.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
+    }
+
+    private List<Job> getJobsByKey(String jobsKey, Instant before, AmountRequest amountRequest) {
+        try (final Jedis jedis = getJedis()) {
+            int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
+            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(jobsKey, 0, toMicroSeconds(before), offset, amountRequest.getLimit()), jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
     }
 }

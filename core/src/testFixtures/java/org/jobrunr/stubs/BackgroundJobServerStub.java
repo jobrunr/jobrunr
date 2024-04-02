@@ -5,6 +5,7 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -22,6 +23,10 @@ public class BackgroundJobServerStub extends BackgroundJobServer {
 
     public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfigurationReader backgroundJobServerConfiguration) {
         super(storageProvider, null, jsonMapper, null, backgroundJobServerConfiguration);
+    }
+
+    public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfigurationReader backgroundJobServerConfiguration, CarbonAwareJobManager carbonAwareJobManager) {
+        super(storageProvider, carbonAwareJobManager, jsonMapper, null, backgroundJobServerConfiguration);
     }
 
     @Override

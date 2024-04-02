@@ -7,6 +7,7 @@ import jakarta.json.JsonString;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -73,6 +74,10 @@ public class ElasticSearchDocumentMapper {
         if (job.hasState(StateName.SCHEDULED)) {
             final Instant instant = job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(IllegalStateException::new);
             map.put(Jobs.FIELD_SCHEDULED_AT, instant.toEpochMilli());
+        }
+        if (job.hasState(StateName.AWAITING)) {
+            final Instant instant = job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(CarbonAwareAwaitingState::getTo).orElseThrow(IllegalStateException::new);
+            map.put(Jobs.FIELD_CARBON_AWARE_DEADLINE, instant.toEpochMilli());
         }
         if (job.getRecurringJobId().isPresent()) {
             map.put(Jobs.FIELD_RECURRING_JOB_ID, job.getRecurringJobId().get());

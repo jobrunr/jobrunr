@@ -19,6 +19,8 @@ import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -28,11 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -91,12 +93,17 @@ public abstract class StorageProviderTest {
     public void cleanUpAndSetupBackgroundJobServer() {
         cleanup();
         final JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
-        JobRunr.configure();
+        JobRunr.configure()
+                .useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+                        .andApiClientConnectTimeout(Duration.ofMillis(1))
+                        .andApiClientReadTimeout(Duration.ofMillis(1))) // why: to speed up tests
+                .useStorageProvider(getStorageProvider())
+                .initialize();
         storageProvider = getStorageProvider();
-
+        assertThat(storageProvider).isNotNull();
         backgroundJobServerConfiguration = spy(new BackgroundJobServerConfigurationReader(usingStandardBackgroundJobServerConfiguration()));
 
-        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration);
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration, null);
         jobMapper = new JobMapper(jsonMapper);
     }
 
@@ -411,7 +418,7 @@ public abstract class StorageProviderTest {
         storageProvider.save(asList(scheduledJob, enqueuedJob1, enqueuedJob2, enqueuedJob3, enqueuedJob4, jobInProgress, succeededJob, failedJob, deletedJob));
 
         LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
-        backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
+        backgroundJobServer.setJobFilters(List.of(logAllStateChangesFilter));
 
         // WHEN
         List<Job> jobsToProcess1 = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
@@ -449,7 +456,7 @@ public abstract class StorageProviderTest {
         storageProvider.save(asList(scheduledJob, enqueuedJob1, enqueuedJob2, enqueuedJob3, enqueuedJob4, jobInProgress, succeededJob, failedJob, deletedJob));
 
         LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
-        backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
+        backgroundJobServer.setJobFilters(List.of(logAllStateChangesFilter));
 
         // WHEN
         List<Job> jobsToProcess = storageProvider.getJobsToProcess(backgroundJobServer, AmountBasedList.ascOnUpdatedAt(3));
@@ -483,7 +490,7 @@ public abstract class StorageProviderTest {
         storageProvider.save(asList(scheduledJob, enqueuedJob1, enqueuedJob2, enqueuedJob3, enqueuedJob4, jobInProgress, succeededJob, failedJob, deletedJob));
 
         LogAllStateChangesFilter logAllStateChangesFilter = new LogAllStateChangesFilter();
-        backgroundJobServer.setJobFilters(asList(logAllStateChangesFilter));
+        backgroundJobServer.setJobFilters(List.of(logAllStateChangesFilter));
         // simulate concurrent JobModification Exception
         when(backgroundJobServerConfiguration.getId())
                 .thenReturn(backgroundJobServerId)
@@ -716,7 +723,30 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testScheduledJobs() {
+    void testGetCarbonAwareJobsList() {
+        final List<Job> jobs = asList(
+                aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build(),
+                aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(12, HOURS))).build(),
+                aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(36, HOURS))).build(),
+                aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(48, HOURS))).build()
+        );
+        storageProvider.save(jobs);
+
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(3, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+                .hasSize(0);
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(5, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+                .hasSize(1)
+                .containsExactly(jobs.get(0));
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+                .hasSize(4)
+                .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(1)))
+                .hasSize(1)
+                .containsExactly(jobs.get(0));
+    }
+
+    @Test
+    void    testScheduledJobs() {
         Job job1 = anEnqueuedJob().withState(new ScheduledState(now())).build();
         Job job2 = anEnqueuedJob().withState(new ScheduledState(now().plus(20, HOURS))).build();
         final List<Job> jobs = asList(job1, job2);

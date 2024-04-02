@@ -12,7 +12,10 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
+
 import org.jobrunr.utils.resilience.Lock;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -257,6 +260,10 @@ public class JobTestBuilder {
     public JobTestBuilder withEnqueuedState(Instant createdAt) {
         withState(new EnqueuedState(), createdAt);
         return this;
+    }
+
+    public JobTestBuilder withCarbonAwareAwaitingState(CarbonAwarePeriod period) {
+        return withState(new CarbonAwareAwaitingState(period));
     }
 
     public JobTestBuilder withScheduledState() {
