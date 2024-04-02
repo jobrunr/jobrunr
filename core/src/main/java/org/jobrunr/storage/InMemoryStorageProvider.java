@@ -290,6 +290,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         return new JobStats(
                 Instant.now(),
                 (long) jobQueue.size(),
+                getJobsStream(AWAITING).count(),
                 getJobsStream(SCHEDULED).count(),
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),
