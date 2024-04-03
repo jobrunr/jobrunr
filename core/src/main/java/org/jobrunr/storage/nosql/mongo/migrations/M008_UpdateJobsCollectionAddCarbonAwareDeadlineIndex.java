@@ -1,24 +1,27 @@
 package org.jobrunr.storage.nosql.mongo.migrations;
 
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.IndexOptions;
+import org.bson.Document;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils;
 
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Indexes.compoundIndex;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 
 public class M008_UpdateJobsCollectionAddCarbonAwareDeadlineIndex extends MongoMigration {
     @Override
     public void runMigration(MongoDatabase jobrunrDatabase, String collectionPrefix) {
-        String collectionName = StorageProviderUtils.elementPrefixer(collectionPrefix, StorageProviderUtils.Jobs.NAME);
+        String collectionName = elementPrefixer(collectionPrefix, StorageProviderUtils.Jobs.NAME);
+        MongoCollection<Document> jobCollection = jobrunrDatabase.getCollection(collectionName, Document.class);
 
-        if (!collectionExists(jobrunrDatabase, collectionName)) {
-            throw new IllegalStateException("The jobs collection does not exist. Cannot add an index for carbonAwareDeadline.");
-        }
-
-        // Create an ascending index on the carbonAwareDeadline field.
-        jobrunrDatabase.getCollection(collectionName)
-                .createIndex(compoundIndex(Indexes.ascending(StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE)));
-
-        System.out.println("Index for carbonAwareDeadline has been added to the " + collectionName + " collection.");
+        // idx for awaiting jobs that need to be fetched by JobZooKeeper ProcessCarbonAwareAwaitingJobsTask
+        createIndex(jobCollection,
+                compoundIndex(ascending(StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE)),
+                new IndexOptions().name("carbonAwareDeadlinePartialIdx").partialFilterExpression(eq(FIELD_STATE, StateName.AWAITING.name())));
     }
 }

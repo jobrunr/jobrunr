@@ -8,6 +8,8 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.mongo.migrations.MongoMigration;
 
 import static com.mongodb.client.model.Indexes.*;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 
 public class M008_UpdateJobsCollectionAddCarbonAwareDeadline extends MongoMigration {
@@ -16,9 +18,9 @@ public class M008_UpdateJobsCollectionAddCarbonAwareDeadline extends MongoMigrat
 
         MongoCollection<Document> jobCollection = jobrunrDatabase.getCollection(collectionName, Document.class);
 
-        // idx for awaiting jobs that need to be fetched by JobZooKeeper ProcessAwaitingJobsTask
+        // idx for awaiting jobs that need to be fetched by JobZooKeeper ProcessCarbonAwareAwaitingJobsTask
         createIndex(jobCollection,
-                compoundIndex(ascending(StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE)),
-                new IndexOptions().name("carbonAwareDeadlineIdx"));
+                compoundIndex(ascending(FIELD_STATE), ascending(FIELD_CARBON_AWARE_DEADLINE)),
+                new IndexOptions().name("carbonAwareDeadlinePartialIdx"));
     }
 }
