@@ -113,8 +113,8 @@ public class JobBuilder {
 
     /**
      * Allows to specify the carbonAwarePeriod, in order to schedule the job in the hour of the period when the electricity has the lowest carbon emissions
-     * @param carbonAwarePeriod
-     * @return
+     * @param carbonAwarePeriod the allowed time period (from,to) in which the job has to run
+     * @return the same builder instance which provides a fluent api
      */
     public JobBuilder scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod) {
         this.carbonAwarePeriod = carbonAwarePeriod;
