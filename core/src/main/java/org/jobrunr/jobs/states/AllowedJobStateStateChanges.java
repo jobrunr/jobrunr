@@ -15,13 +15,13 @@ public class AllowedJobStateStateChanges {
     public static boolean isAllowedStateChange(StateName from, StateName to) {
         switch (from) {
             case SCHEDULED:
-                return to != PROCESSING;
+            case AWAITING:
+                return to != PROCESSING && to != AWAITING;
             case ENQUEUED:
-                return to != ENQUEUED;
+                return to != ENQUEUED && to != AWAITING;
             case PROCESSING:
                 return to == SUCCEEDED || to == FAILED || to == DELETED;
             case FAILED:
-            case AWAITING:
             case SUCCEEDED:
                 return to == SCHEDULED || to == ENQUEUED || to == DELETED;
             case DELETED:
