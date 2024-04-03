@@ -8,7 +8,6 @@ import java.time.Instant;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MONTHS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
@@ -18,13 +17,13 @@ class CarbonAwareAwaitingStateTest {
     @Test
     void testCarbonAwareJobsOnCreationThrowsExceptionIfDeadlineNot3HoursInTheFuture() {
         assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(2, HOURS))).build())
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Carbon Aware jobs should have a deadline at least 3 hours in the future");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'to' must be at least 3 hours in the future to use Carbon Aware Scheduling");
     }
 
     @Test
     void testCarbonAwareJobsOnCreationAcceptsDeadlineIfEqualTo3HoursInTheFuture() {
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(3, HOURS))).build())
+        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(3, HOURS).plusMillis(1000))).build())
                 .doesNotThrowAnyException();
     }
 
@@ -33,7 +32,7 @@ class CarbonAwareAwaitingStateTest {
         assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(4, HOURS))).build())
                 .doesNotThrowAnyException();
 
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(1, MONTHS))).build())
+        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(1, DAYS))).build())
                 .doesNotThrowAnyException();
     }
 
@@ -55,20 +54,14 @@ class CarbonAwareAwaitingStateTest {
     }
 
     @Test
-    void testMoveToNextStateValidatesIdealMomentIsBeforeDeadline() {
-        // GIVEN
-        Instant deadline = now().plus(1, DAYS);
-        CarbonAwareAwaitingState state = new CarbonAwareAwaitingState(deadline);
-        Job carbonAwareJob = aJob().withState(state).build();
+    void whenMoveToNextState_withInvalidJobState_shouldThrowException() {
+        Instant deadline = Instant.now().plus(5, HOURS);
+        Instant idealMoment = deadline.minus(1, HOURS);
+        CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState();
+        Job notCarbonAwareJob = aJob().withState(new ScheduledState()).build();
 
-        // WHEN
-        Instant idealMoment = now().plus(2, DAYS);
-        state.moveToNextState(carbonAwareJob, idealMoment);
-
-        // THEN
-        assertThat(carbonAwareJob).hasState(StateName.SCHEDULED);
-        ScheduledState scheduledState = carbonAwareJob.getJobState();
-        assertThat(scheduledState.getScheduledAt()).isEqualTo(deadline);
-        assertThat(scheduledState.getReason()).isEqualTo("Job scheduled at " + deadline + " as ideal moment surpassed the deadline.");
+        assertThatCode(() -> carbonAwareAwaitingState.moveToNextState(notCarbonAwareJob, idealMoment))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Only jobs in AWAITING can move to a next state");
     }
 }

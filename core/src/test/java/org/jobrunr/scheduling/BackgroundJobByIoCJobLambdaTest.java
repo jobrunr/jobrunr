@@ -33,6 +33,7 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
@@ -41,6 +42,7 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -49,6 +51,7 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
+import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
 
 public class BackgroundJobByIoCJobLambdaTest {
 
@@ -166,7 +169,7 @@ public class BackgroundJobByIoCJobLambdaTest {
         Stream<Work> workStream = getWorkStream()
                 .map(uuid -> new Work(atomicInteger.incrementAndGet(), "some string " + uuid, uuid));
 
-        BackgroundJob.<TestService, Work>enqueue(workStream, (x, work) -> x.doWork(work));
+        BackgroundJob.<TestService, Work>enqueue(workStream, TestService::doWork);
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
     }
 
@@ -182,7 +185,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testFailedJobAddsFailedStateAndScheduledThanksToDefaultRetryFilter() {
-        JobId jobId = BackgroundJob.<TestService>enqueue(x -> x.doWorkThatFails());
+        JobId jobId = BackgroundJob.<TestService>enqueue(TestService::doWorkThatFails);
         await().atMost(FIVE_SECONDS)
                 .untilAsserted(() -> assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED));
 
@@ -190,7 +193,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleWithZonedDateTime() {
-        JobId jobId = BackgroundJob.<TestService>schedule(ZonedDateTime.now().plus(ofMillis(1500)), x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>schedule(ZonedDateTime.now().plus(ofMillis(1500)), TestService::doWork);
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -198,7 +201,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleWithOffsetDateTime() {
-        JobId jobId = BackgroundJob.<TestService>schedule(OffsetDateTime.now().plus(ofMillis(1500)), x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>schedule(OffsetDateTime.now().plus(ofMillis(1500)), TestService::doWork);
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -206,7 +209,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleWithLocalDateTime() {
-        JobId jobId = BackgroundJob.<TestService>schedule(LocalDateTime.now().plus(ofMillis(1500)), x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>schedule(LocalDateTime.now().plus(ofMillis(1500)), TestService::doWork);
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -214,7 +217,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleWithInstant() {
-        JobId jobId = BackgroundJob.<TestService>schedule(now().plusMillis(1500), x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>schedule(now().plusMillis(1500), TestService::doWork);
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -222,7 +225,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleUsingDateTimeInTheFutureIsNotEnqueued() {
-        JobId jobId = BackgroundJob.<TestService>schedule(now().plus(100, ChronoUnit.DAYS), x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>schedule(now().plus(100, ChronoUnit.DAYS), TestService::doWork);
         await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED);
     }
@@ -236,7 +239,9 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        throw new UnsupportedOperationException("Implement me");
+        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(5, HOURS)), TestService::doStaticWork);
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
