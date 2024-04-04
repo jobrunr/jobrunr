@@ -59,14 +59,13 @@ const Problems = () => {
                                 return <Grid item xs={12} key={problem.type}>
                                     <PollIntervalInSecondsIsTooSmallProblem problem={problem} refresh={refresh}/>
                                 </Grid>
-                            case 'new-jobrunr-version':
-                                return <Grid item xs={12} key={problem.type}>
-                                    <NewJobRunrVersionAvailable problem={problem}/>
-                                </Grid>
                             default:
                                 return <Grid item xs={12} key="unknown-problem">Unknown error</Grid>
                         }
                     })}
+                    <Grid item xs={12}>
+                        <NewJobRunrVersionAvailable/>
+                    </Grid>
                 </Grid>
             }
         </div>
