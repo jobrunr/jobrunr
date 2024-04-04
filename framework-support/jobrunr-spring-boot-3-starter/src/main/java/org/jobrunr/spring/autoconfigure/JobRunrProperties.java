@@ -293,7 +293,6 @@ public class JobRunrProperties {
          * Configures MicroMeter metrics related to the BackgroundJobServer
          */
         private Metrics metrics = new Metrics();
-        ;
 
         public String getName() {
             return name;
