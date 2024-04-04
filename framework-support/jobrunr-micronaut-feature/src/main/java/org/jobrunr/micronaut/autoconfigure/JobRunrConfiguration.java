@@ -125,24 +125,24 @@ public interface JobRunrConfiguration {
          * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
          */
         Optional<BackgroundJobServerThreadType> getThreadType();
-        
+
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
         Optional<Integer> getPollIntervalInSeconds();
 
         /**
-         * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+         * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         Optional<Integer> getScheduledJobsRequestSize();
 
         /**
-         * Sets the query size for misfired jobs per polling interval (to retry them).
+         * Sets the query size for misfired jobs per database round-trip (to retry them).
          */
         Optional<Integer> getOrphanedJobsRequestSize();
 
         /**
-         * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
+         * Sets the maximum number of jobs to update from succeeded to deleted state per database round-trip.
          */
         Optional<Integer> getSucceededJobsRequestSize();
 
