@@ -84,6 +84,11 @@ public interface JobRunrRuntimeConfiguration {
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
         Optional<Integer> retryBackOffTimeSeed();
+
+        /**
+         * Configures carbon-aware scheduling related properties
+         */
+        CarbonAwareConfiguration carbonAwareConfiguration();
     }
 
     interface JobSchedulerConfiguration {
@@ -181,5 +186,21 @@ public interface JobRunrRuntimeConfiguration {
         @WithDefault("true")
         boolean allowAnonymousDataUsage();
     }
+
+    interface CarbonAwareConfiguration {
+        /**
+         * TODO
+         */
+        Optional<String> area();
+        /**
+         * TODO
+         */
+        Optional<Integer> apiClientConnectTimeoutMs();
+        /**
+         * TODO
+         */
+        Optional<Integer> apiClientReadTimeoutMs();
+    }
+
 }
 

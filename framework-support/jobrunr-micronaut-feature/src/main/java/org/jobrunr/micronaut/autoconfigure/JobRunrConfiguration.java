@@ -50,6 +50,9 @@ public interface JobRunrConfiguration {
          */
         @NotNull
         MetricsConfiguration getMetrics();
+
+        @NotNull
+        JobRunrConfiguration.CarbonAwareConfiguration getCarbonAwareConfiguration();
     }
 
     @ConfigurationProperties("database")
@@ -217,5 +220,17 @@ public interface JobRunrConfiguration {
          */
         @Bindable(defaultValue = "false")
         boolean isEnabled();
+    }
+
+    @ConfigurationProperties("carbonAware")
+    interface CarbonAwareConfiguration {
+        @Bindable
+        Optional<String> getArea();
+
+        @Bindable
+        Optional<Integer> getApiClientConnectTimeoutMs();
+
+        @Bindable
+        Optional<Integer> getApiClientReadTimeoutMs();
     }
 }

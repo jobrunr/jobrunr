@@ -26,6 +26,8 @@ import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 
+import java.time.Duration;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
@@ -42,9 +44,12 @@ public class JobRunrFactory {
     private JobRunrConfiguration configuration;
 
     @Singleton
-    @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
     public CarbonAwareJobManager carbonAwareJobManager(JsonMapper jobRunrJsonMapper) {
-        return new CarbonAwareJobManager(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), jobRunrJsonMapper);
+        CarbonAwareConfiguration carbonAwareConfiguration =  CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();
+        configuration.getJobs().getCarbonAwareConfiguration().getArea().ifPresent(carbonAwareConfiguration::andArea);
+        configuration.getJobs().getCarbonAwareConfiguration().getApiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
+        configuration.getJobs().getCarbonAwareConfiguration().getApiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+        return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
     }
 
     @Singleton

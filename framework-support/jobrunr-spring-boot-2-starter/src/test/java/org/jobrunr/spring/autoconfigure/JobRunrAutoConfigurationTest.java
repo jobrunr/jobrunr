@@ -29,6 +29,8 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,8 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert.assertThat;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -127,6 +131,23 @@ public class JobRunrAutoConfigurationTest {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
                     assertThat(context.getBean(JobRunrDashboardWebServer.class))
                             .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
+                });
+    }
+
+    @Test
+    void carbonAwareManagerAutoconfiguration() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.job-scheduler.enabled=true")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.area=FR")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms=500")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout-ms=300")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
+                    CarbonAwareConfigurationReader carbonAwareConfiguration = context.getBean(CarbonAwareJobManager.class).getCarbonAwareConfiguration();
+                    assertThat(carbonAwareConfiguration)
+                            .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                            .hasApiClientReadTimeout(Duration.ofMillis(300))
+                            .hasArea("FR");
                 });
     }
 

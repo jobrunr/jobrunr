@@ -163,6 +163,8 @@ public class JobRunrProperties {
          */
         private Metrics metrics = new Metrics();
 
+        private CarbonAware carbonAware = new CarbonAware();
+
         public int getDefaultNumberOfRetries() {
             return defaultNumberOfRetries;
         }
@@ -186,6 +188,14 @@ public class JobRunrProperties {
         public void setMetrics(Metrics metrics) {
             this.metrics = metrics;
         }
+        public CarbonAware getCarbonAware() {
+            return carbonAware;
+        }
+
+        public void setCarbonAware(CarbonAware carbonAware) {
+            this.carbonAware = carbonAware;
+        }
+
     }
 
     /**
@@ -499,5 +509,18 @@ public class JobRunrProperties {
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }
+    }
+
+    public static class CarbonAware {
+            String area = null;
+            Integer apiClientConnectTimeoutMs = null;
+            Integer apiClientReadTimeoutMs = null;
+
+            public String getArea() {return area;}
+            public void setArea(String area) {this.area = area;}
+            public Integer getApiClientConnectTimeoutMs() {return apiClientConnectTimeoutMs;}
+            public void setApiClientConnectTimeoutMs(Integer apiClientConnectTimeoutMs) {this.apiClientConnectTimeoutMs = apiClientConnectTimeoutMs;}
+            public Integer getApiClientReadTimeoutMs() {return apiClientReadTimeoutMs;}
+            public void setApiClientReadTimeoutMs(Integer apiClientReadTimeoutMs) {this.apiClientReadTimeoutMs = apiClientReadTimeoutMs;}
     }
 }

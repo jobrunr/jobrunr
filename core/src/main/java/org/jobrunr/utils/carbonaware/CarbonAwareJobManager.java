@@ -3,11 +3,6 @@ package org.jobrunr.utils.carbonaware;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +101,10 @@ public class CarbonAwareJobManager {
         }
 
         LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+    }
+
+    public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
+        return carbonAwareConfiguration;
     }
 
     private CarbonAwareApiClient createCarbonAwareApiClient(JsonMapper jsonMapper) {

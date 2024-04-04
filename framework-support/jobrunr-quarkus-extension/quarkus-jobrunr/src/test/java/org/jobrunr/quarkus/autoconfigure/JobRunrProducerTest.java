@@ -89,28 +89,28 @@ class JobRunrProducerTest {
     void jobSchedulerIsNotSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNull();
+        assertThat(jobRunrProducer.jobScheduler(storageProvider, null)).isNull();
     }
 
     @Test
     void jobSchedulerIsSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNotNull();
+        assertThat(jobRunrProducer.jobScheduler(storageProvider, null)).isNotNull();
     }
 
     @Test
     void jobRequestSchedulerIsNotSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNull();
+        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, null)).isNull();
     }
 
     @Test
     void jobRequestSchedulerIsSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
+        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, null)).isNotNull();
     }
 
     @Test
@@ -157,14 +157,14 @@ class JobRunrProducerTest {
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
+        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration(), null)).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
+        Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration(), null)).isNotNull();
     }
 
     @Test

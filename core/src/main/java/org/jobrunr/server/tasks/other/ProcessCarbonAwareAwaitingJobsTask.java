@@ -12,9 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
-import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 

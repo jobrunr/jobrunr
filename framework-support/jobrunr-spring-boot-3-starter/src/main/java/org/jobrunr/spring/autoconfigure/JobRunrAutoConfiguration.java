@@ -2,7 +2,6 @@ package org.jobrunr.spring.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import jakarta.json.Json;
 import jakarta.json.bind.Jsonb;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
@@ -42,6 +41,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -61,8 +62,16 @@ public class JobRunrAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public CarbonAwareJobManager carbonAwareJobManager(JsonMapper jobRunrJsonMapper) {
-        return new CarbonAwareJobManager(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), jobRunrJsonMapper);
+    public CarbonAwareJobManager carbonAwareJobManager(JobRunrProperties jobRunrProperties, JsonMapper jobRunrJsonMapper) {
+        PropertyMapper map = PropertyMapper.get();
+
+        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();
+        JobRunrProperties.CarbonAware carbonAwareProperties = jobRunrProperties.getJobs().getCarbonAware();
+
+        map.from(carbonAwareProperties::getArea).whenNonNull().to(carbonAwareConfiguration::andArea);
+        map.from(carbonAwareProperties::getApiClientConnectTimeoutMs).whenNonNull().to(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
+        map.from(carbonAwareProperties::getApiClientReadTimeoutMs).whenNonNull().to(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+        return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
     }
 
     @Bean
@@ -115,6 +124,7 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         map.from(backgroundJobServerProperties::getScheduledJobsRequestSize).to(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
+        map.from(backgroundJobServerProperties::getCarbonAwaitingJobsRequestSize).to(backgroundJobServerConfiguration::andCarbonAwaitingJobsRequestSize);
         map.from(backgroundJobServerProperties::getOrphanedJobsRequestSize).to(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
         map.from(backgroundJobServerProperties::getSucceededJobsRequestSize).to(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
         map.from(backgroundJobServerProperties::getInterruptJobsAwaitDurationOnStop).to(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
