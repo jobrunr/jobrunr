@@ -118,7 +118,13 @@ class VersionNumberTest {
         assertThat(v("9.0.0").hasMajorAndMinorVersionHigherOrEqualTo(v("10.0.0"))).isFalse();
         assertThat(v("10.6").hasMajorAndMinorVersionHigherOrEqualTo(v("11.0.0"))).isFalse();
         assertThat(v("1.8.0_241").hasMajorAndMinorVersionHigherOrEqualTo(v("21"))).isFalse();
+    }
 
+    @Test
+    void hasMajorMinorAndPatchVersionHigherOrEqualTo() {
         assertThat(v("8.3.0").hasMajorMinorAndPatchVersionHigherOrEqualTo("8.0.1")).isTrue();
+
+        assertThat(v("5.8.0").hasMajorMinorAndPatchVersionHigherOrEqualTo("8.0.1")).isFalse();
+        assertThat(v("8.0.0").hasMajorMinorAndPatchVersionHigherOrEqualTo("8.0.1")).isFalse();
     }
 }
