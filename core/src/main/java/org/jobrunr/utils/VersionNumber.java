@@ -80,9 +80,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public boolean hasMajorMinorAndPatchVersionHigherOrEqualTo(VersionNumber o) {
-        return compareVersionNumber(majorVersion, o.majorVersion) >= 0
-                && compareVersionNumber(minorVersion, o.minorVersion) >= 0
-                && compareVersionNumber(patchVersion, o.patchVersion) >= 0;
+        if (compareVersionNumber(majorVersion, o.majorVersion) >= 0) return true;
+        else if (compareVersionNumber(minorVersion, o.minorVersion) >= 0) return true;
+        else return compareVersionNumber(patchVersion, o.patchVersion) >= 0;
     }
 
     @Override
