@@ -28,7 +28,6 @@ import org.jboss.jandex.DotName;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.dashboard.ui.model.VersionUIModel;
 import org.jobrunr.dashboard.ui.model.problems.CpuAllocationIrregularityProblem;
-import org.jobrunr.dashboard.ui.model.problems.NewJobRunrVersionProblem;
 import org.jobrunr.dashboard.ui.model.problems.PollIntervalInSecondsTimeBoxIsTooSmallProblem;
 import org.jobrunr.dashboard.ui.model.problems.Problem;
 import org.jobrunr.dashboard.ui.model.problems.ScheduledJobsNotFoundProblem;
@@ -80,7 +79,6 @@ import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
 import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
-import org.jobrunr.utils.uuid.UUIDv7Factory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -187,7 +185,7 @@ class JobRunrExtensionProcessor {
                 // JobRunr Dashboard
                 BackgroundJobServerStatus.class.getName(), JobDashboardLogLine.class.getName(), JobDashboardLogLines.class.getName(), JobStats.class.getName(), JobStatsExtended.class.getName(), JobStatsExtended.Estimation.class.getName(), JobRunrMetadata.class.getName(), Page.class.getName(), AmountRequest.class.getName(), OffsetBasedPageRequest.class.getName(), RecurringJobUIModel.class.getName(), VersionUIModel.class.getName(),
                 // JobRunr Dashboard Problems
-                CpuAllocationIrregularityProblem.class.getName(), NewJobRunrVersionProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName(),
+                CpuAllocationIrregularityProblem.class.getName(), PollIntervalInSecondsTimeBoxIsTooSmallProblem.class.getName(), Problem.class.getName(), ScheduledJobsNotFoundProblem.class.getName(), SevereJobRunrExceptionProblem.class.getName(),
                 // Storage Providers
                 DefaultSqlStorageProvider.class.getName(), DB2StorageProvider.class.getName(), H2StorageProvider.class.getName(), MariaDbStorageProvider.class.getName(), MySqlStorageProvider.class.getName(), OracleStorageProvider.class.getName(), PostgresStorageProvider.class.getName(), SQLServerStorageProvider.class.getName(), SqLiteStorageProvider.class.getName()
         ).methods().fields().build());

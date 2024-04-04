@@ -265,17 +265,17 @@ public class JobRunrProperties {
         private Integer carbonAwaitingJobsRequestSize = 1000;
 
         /**
-         * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+         * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         private Integer scheduledJobsRequestSize = 1000;
 
         /**
-         * Sets the query size for misfired jobs per polling interval (to retry them).
+         * Sets the query size for misfired jobs per database round-trip (to retry them).
          */
         private Integer orphanedJobsRequestSize = 1000;
 
         /**
-         * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
+         * Sets the maximum number of jobs to update from succeeded to deleted state per database round-trip.
          */
         private Integer succeededJobsRequestSize = 1000;
 

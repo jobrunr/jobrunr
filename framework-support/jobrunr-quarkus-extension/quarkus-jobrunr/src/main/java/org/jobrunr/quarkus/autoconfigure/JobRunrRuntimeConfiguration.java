@@ -124,17 +124,17 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> carbonAwatingJobsRequestSize();
 
         /**
-         * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+         * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         Optional<Integer> scheduledJobsRequestSize();
 
         /**
-         * Sets the query size for misfired jobs per polling interval (to retry them).
+         * Sets the query size for misfired jobs per database round-trip (to retry them).
          */
         Optional<Integer> orphanedJobsRequestSize();
 
         /**
-         * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
+         * Sets the maximum number of jobs to update from succeeded to deleted state per database round-trip.
          */
         Optional<Integer> succeededJobRequestSize();
 

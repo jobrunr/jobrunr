@@ -1,22 +1,11 @@
-import {useEffect, useState} from 'react';
+import {useContext, useEffect} from 'react';
 import {Typography} from "@mui/material";
 import statsState from "../../StatsStateContext";
+import {JobRunrInfoContext} from "../../JobRunrInfoContext";
 
 export default function VersionFooter() {
     const stats = statsState.getStats();
-    const [jobRunrInfo, setJobRunrInfo] = useState({
-        version: '0.0.0-SNAPSHOT',
-        allowAnonymousDataUsage: false,
-        clusterId: undefined,
-        storageProviderType: undefined
-    });
-
-    useEffect(() => {
-        fetch(`/api/version`)
-            .then(res => res.json())
-            .then(response => setJobRunrInfo(response))
-            .catch(error => console.log(error));
-    }, []);
+    const jobRunrInfo = useContext(JobRunrInfoContext);
 
     useEffect(() => {
         if (jobRunrInfo.allowAnonymousDataUsage && stats.backgroundJobServers) {

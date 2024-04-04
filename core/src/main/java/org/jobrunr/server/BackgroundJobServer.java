@@ -15,7 +15,6 @@ import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.other.ProcessCarbonAwareAwaitingJobsTask;
-import org.jobrunr.server.tasks.startup.CheckForNewJobRunrVersion;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
@@ -298,12 +297,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startStewardAndServerZooKeeper() {
-        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(2, 5, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(2, 4, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(new CheckForNewJobRunrVersion(this), 1, 8, TimeUnit.HOURS);
     }
 
     private void startJobZooKeepers() {
@@ -331,7 +329,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void stopWorkers() {
         if (jobExecutor == null) return;
-        LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most " + configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer() + ")");
+        LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most {})", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         jobExecutor.stop(configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         this.jobExecutor = null;
     }
@@ -341,7 +339,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             List<Runnable> startupTasks = asList(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new CheckForNewJobRunrVersion(this),
                     new MigrateFromV5toV6Task(this));
             startupTasks.forEach(jobExecutor::execute);
         } catch (Exception notImportant) {
@@ -382,7 +379,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return false;
     }
 
-    private WorkDistributionStrategy createWorkDistributionStrategy() {
+    protected WorkDistributionStrategy createWorkDistributionStrategy() {
         return configuration.getBackgroundJobServerWorkerPolicy().toWorkDistributionStrategy(this);
     }
 
