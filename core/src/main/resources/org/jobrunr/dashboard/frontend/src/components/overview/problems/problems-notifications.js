@@ -41,7 +41,7 @@ const Problems = () => {
                 ? <LoadingIndicator/>
                 : <Grid container>
                     <Grid item xs={12}><JobRunrApiNotification/></Grid>
-                    {problems.map((problem, index) => {
+                    {problems.map((problem) => {
                         switch (problem.type) {
                             case 'jobs-not-found':
                                 return <Grid item xs={12} key={problem.type}>
