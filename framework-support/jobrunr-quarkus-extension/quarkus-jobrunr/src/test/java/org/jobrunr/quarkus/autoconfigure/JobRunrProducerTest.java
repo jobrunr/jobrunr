@@ -5,6 +5,7 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,8 @@ class JobRunrProducerTest {
     JobRunrRuntimeConfiguration.DashboardConfiguration dashboardRunTimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration.MiscellaneousConfiguration miscellaneousRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.CarbonAwareConfiguration carbonAwareRunTimeConfiguration;
 
     @Mock
     StorageProvider storageProvider;
@@ -79,6 +82,7 @@ class JobRunrProducerTest {
         lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
 
         jobRunrProducer = new JobRunrProducer();
         setInternalState(jobRunrProducer, "jobRunrBuildTimeConfiguration", jobRunrBuildTimeConfiguration);
@@ -111,6 +115,18 @@ class JobRunrProducerTest {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, null)).isNotNull();
+    }
+
+    @Test
+    void carbonAwareJobManagerIsSetupWhenConfigured() {
+        when(carbonAwareRunTimeConfiguration.area()).thenReturn(Optional.of("DE"));
+        when(carbonAwareRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
+        when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
+
+        CarbonAwareConfigurationReader carbonAwareConfiguration = jobRunrProducer.carbonAwareJobManager(jsonMapper).getCarbonAwareConfiguration();
+        assertThat(carbonAwareConfiguration.getArea()).isEqualTo("DE");
+        assertThat(carbonAwareConfiguration.getApiClientConnectTimeout()).isEqualTo(Duration.ofMillis(500));
+        assertThat(carbonAwareConfiguration.getApiClientReadTimeout()).isEqualTo(Duration.ofMillis(1000));
     }
 
     @Test

@@ -11,6 +11,9 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -47,6 +50,21 @@ class JobRunrFactoryTest {
         assertThat(context)
                 .hasSingleBean(StorageProvider.class)
                 .doesNotHaveBean(JobScheduler.class);
+    }
+
+    @Test
+    @Property(name = "jobrunr.jobs.carbon-aware.area", value = "PL")
+    @Property(name = "jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms", value = "500")
+    @Property(name = "jobrunr.jobs.carbon-aware.api-client-read-timeout-ms", value = "1000")
+    void testCarbonAwareManagerConfiguration() {
+        assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
+        CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
+        CarbonAwareConfigurationReader carbonAwareConfiguration = carbonAwareJobManager.getCarbonAwareConfiguration();
+
+        CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+                .hasArea("PL")
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }
 
     @Test
