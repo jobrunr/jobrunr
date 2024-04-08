@@ -1,10 +1,12 @@
 context('Actions', () => {
-    beforeEach(() => {
+    before(() => {
+        Cypress.config('viewportWidth', 1280);
+        cy.viewport(1280, 800); // this appears not to be working
         cy.visit('http://localhost:8000/dashboard/jobs');
-        cy.viewport(1280, 800);
         waitForSSE();
     });
 
+    const config = {retries: 2};
 
     const scheduledMenuBtn = () => cy.get('#scheduled-menu-btn');
     const enqueuedMenuBtn = () => cy.get('#enqueued-menu-btn');
@@ -30,7 +32,7 @@ context('Actions', () => {
     const jobHistorySortAscBtn = () => cy.get('#jobhistory-sort-asc-btn');
     const jobHistorySortDescBtn = () => cy.get('#jobhistory-sort-desc-btn');
 
-    it('It opens the jobs dashboard page', () => {
+    it('It opens the jobs dashboard page', config, () => {
         jobsTabBtn().get('span.MuiChip-label').should('contain', '33');
         title().should('contain', 'Enqueued jobs');
 
@@ -42,7 +44,7 @@ context('Actions', () => {
     });
 
 
-    it('It can navigate to the scheduled jobs', () => {
+    it('It can navigate to the scheduled jobs', config, () => {
         scheduledMenuBtn().should('contain', '1');
         scheduledMenuBtn().click();
         title().should('contain', 'Scheduled jobs');
@@ -54,7 +56,7 @@ context('Actions', () => {
         jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
     });
 
-    it('It can navigate to the enqueued jobs', () => {
+    it('It can navigate to the enqueued jobs', config, () => {
         enqueuedMenuBtn().should('contain', '33');
         enqueuedMenuBtn().click();
         title().should('contain', 'Enqueued jobs');
@@ -66,7 +68,7 @@ context('Actions', () => {
         jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.enabled');
     });
 
-    it('It can navigate to the processing jobs', () => {
+    it('It can navigate to the processing jobs', config, () => {
         processingMenuBtn().should('contain', '0');
         processingMenuBtn().click();
         title().should('contain', 'Jobs being processed');
@@ -75,7 +77,7 @@ context('Actions', () => {
         jobTable().should('not.exist');
     });
 
-    it('It can navigate to the succeeded jobs', () => {
+    it('It can navigate to the succeeded jobs', config, () => {
         succeededMenuBtn().should('contain', '2');
         succeededMenuBtn().click();
         title().should('contain', 'Succeeded jobs');
@@ -87,7 +89,7 @@ context('Actions', () => {
         jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
     });
 
-    it('It can navigate to the failed jobs', () => {
+    it('It can navigate to the failed jobs', config, () => {
         failedMenuBtn().should('contain', '1');
         failedMenuBtn().click();
         title().should('contain', 'Failed jobs');
@@ -99,7 +101,7 @@ context('Actions', () => {
         jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
     });
 
-    it('It can navigate to the details of a job', () => {
+    it('It can navigate to the details of a job', config, () => {
         failedMenuBtn().click();
         title().should('contain', 'Failed jobs');
         jobTableRows().should('have.length', 1);
@@ -118,12 +120,12 @@ context('Actions', () => {
         jobHistoryPanelItems().eq(0).should('contain', 'Job processing failed');
     });
 
-    it('It can navigate to the recurring jobs page', () => {
+    it('It can navigate to the recurring jobs page', config, () => {
         recurringJobsTabBtn().click();
         recurringJobsTabBtn().get('span.MuiChip-label').should('contain', '2');
     });
 
-    it('It can navigate to the servers page', () => {
+    it('It can navigate to the servers page', config, () => {
         serversTabBtn().click();
         serversTabBtn().get('span.MuiChip-label').should('contain', '1');
     });
