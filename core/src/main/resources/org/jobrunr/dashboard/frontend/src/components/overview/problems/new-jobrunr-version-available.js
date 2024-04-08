@@ -1,6 +1,4 @@
 import {ProblemNotification} from "./problem-notification";
-import {useContext, useEffect, useState} from "react";
-import {JobRunrInfoContext} from "../../../JobRunrInfoContext";
 
 const getVersionParts = (version) => {
     const splitVersion = version.split("-");
@@ -23,19 +21,12 @@ const versionIsNewerThanOther = (version, otherVersion) => {
     return versionParts.qualifier.localeCompare(otherVersionParts.qualifier, "en", {sensitivity: "base"}) > 0;
 }
 
-const NewJobRunrVersionAvailable = () => {
-    const {version} = useContext(JobRunrInfoContext);
-    const [latestVersion, setLatestVersion] = useState();
+export const getNewVersionProblem = (currentVersion, latestVersion) => {
+    if (!latestVersion || !versionIsNewerThanOther(latestVersion, currentVersion)) return;
+    return {type: "new-jobrunr-version", latestVersion};
+}
 
-    useEffect(() => {
-        fetch("https://api.jobrunr.io/api/version/jobrunr/latest")
-            .then(res => res.json())
-            .then(data => setLatestVersion(data["latestVersion"]))
-            .catch(e => console.error(e));
-    }, []);
-
-    if (!latestVersion || !versionIsNewerThanOther(latestVersion, version)) return;
-
+const NewJobRunrVersionAvailable = ({problem: {latestVersion}}) => {
     return (
         <ProblemNotification severity="info" title="Info">
             JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,

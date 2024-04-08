@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {styled} from "@mui/material/styles";
 import AppBar from '@mui/material/AppBar';
 import Chip from '@mui/material/Chip';
@@ -9,6 +9,8 @@ import Button from '@mui/material/Button';
 import {Link as RouterLink} from 'react-router-dom';
 import statsState from "StatsStateContext.js";
 import logo from '../assets/jobrunr-logo-white.png';
+import {ProblemsContext} from "../ProblemsContext";
+import {Badge} from "@mui/material";
 
 const StyledAppBar = styled(AppBar)(({theme}) => ({
     zIndex: theme.zIndex.drawer + 1
@@ -30,6 +32,28 @@ const Buttons = styled("div")(({theme}) => ({
     flexGrow: 1,
 }));
 
+const StyledBadge = styled(Badge)(({theme}) => ({
+    '& .MuiBadge-badge': {
+        right: -6,
+        top: 6,
+    },
+}));
+
+const OverviewButton = () => {
+    const {problems} = useContext(ProblemsContext);
+
+    const hasProblems = problems?.length > 0;
+
+    return (
+        <Button id="dashboard-btn" color="inherit" component={RouterLink}
+                to={'/dashboard/overview'}>
+            <StyledBadge color="info" variant="dot" badgeContent={hasProblems ? " " : 0}>
+                Dashboard
+            </StyledBadge>
+        </Button>
+    )
+}
+
 const TopAppBar = () => {
     const [stats, setStats] = useState(statsState.getStats());
     useEffect(() => {
@@ -42,9 +66,7 @@ const TopAppBar = () => {
             <Toolbar style={{display: "flex", alignItems: "center"}}>
                 <img style={{width: 'auto', height: '35px'}} src={logo} alt="JobRunr"/>
                 <Buttons>
-                    <Button id="dashboard-btn" color="inherit" component={RouterLink} to="/dashboard/overview">
-                        Dashboard
-                    </Button>
+                    <OverviewButton/>
                     <Button id="jobs-btn" color="inherit" component={RouterLink} to="/dashboard/jobs">
                         Jobs <Chip color="secondary" label={stats.enqueued}/>
                     </Button>
