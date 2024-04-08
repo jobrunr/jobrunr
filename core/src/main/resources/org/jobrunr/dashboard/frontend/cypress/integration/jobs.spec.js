@@ -1,7 +1,6 @@
 context('Actions', () => {
     before(() => {
-        Cypress.config('viewportWidth', 1280);
-        cy.viewport(1280, 800); // this appears not to be working
+        cy.viewport(1280, 800);
         cy.visit('http://localhost:8000/dashboard/jobs');
         waitForSSE();
     });
