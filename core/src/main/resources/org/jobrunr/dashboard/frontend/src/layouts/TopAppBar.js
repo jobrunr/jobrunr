@@ -32,7 +32,7 @@ const Buttons = styled("div")(({theme}) => ({
     flexGrow: 1,
 }));
 
-const StyledBadge = styled(Badge)(({theme}) => ({
+const StyledBadge = styled(Badge)(() => ({
     '& .MuiBadge-badge': {
         right: -6,
         top: 6,
