@@ -2,7 +2,19 @@ import {ProblemNotification} from "./problem-notification";
 import {Button} from "@mui/material";
 
 
-export const DismissibleProblemNotification = ({endpoint, refresh, children, ...rest}) => {
+export const DismissibleProblemNotification = ({onDismiss, children, ...rest}) => {
+    return (
+        <ProblemNotification {...rest} action={
+            <Button color="inherit" size="small" style={{textTransform: "uppercase"}} onClick={onDismiss}>
+                dismiss
+            </Button>
+        }>
+            {children}
+        </ProblemNotification>
+    )
+}
+
+export const DismissibleInstanceProblemNotification = ({endpoint, refresh, ...rest}) => {
     const dismiss = () => {
         fetch(endpoint, {
             method: 'DELETE'
@@ -12,12 +24,6 @@ export const DismissibleProblemNotification = ({endpoint, refresh, children, ...
     }
 
     return (
-        <ProblemNotification {...rest} action={
-            <Button color="inherit" size="small" style={{textTransform: "uppercase"}} onClick={dismiss}>
-                dismiss
-            </Button>
-        }>
-            {children}
-        </ProblemNotification>
+        <DismissibleProblemNotification onDismiss={dismiss} {...rest}/>
     )
 }

@@ -1,9 +1,9 @@
 import TimeAgo from "react-timeago/lib";
-import {DismissibleProblemNotification} from "./dismissible-problem-notification";
+import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
 
 const CPUAllocationIrregularityProblem = (props) => {
     return (
-        <DismissibleProblemNotification
+        <DismissibleInstanceProblemNotification
             endpoint="/api/problems/cpu-allocation-irregularity"
             refresh={props.refresh}
         >
@@ -20,7 +20,7 @@ const CPUAllocationIrregularityProblem = (props) => {
                             title={new Date(irregularity.createdAt).toString()}/></li>
                 })}
             </ul>
-        </DismissibleProblemNotification>
+        </DismissibleInstanceProblemNotification>
     );
 };
 

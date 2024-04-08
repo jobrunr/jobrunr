@@ -1,4 +1,6 @@
-import {ProblemNotification} from "./problem-notification";
+import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
+
+export const LATEST_DISMISSED_VERSION_STORAGE_KEY = "latestDismissedVersion";
 
 const getVersionParts = (version) => {
     const splitVersion = version.split("-");
@@ -26,12 +28,17 @@ export const getNewVersionProblem = (currentVersion, latestVersion) => {
     return {type: "new-jobrunr-version", latestVersion};
 }
 
-const NewJobRunrVersionAvailable = ({problem: {latestVersion}}) => {
+const NewJobRunrVersionAvailable = ({problem: {latestVersion, reset}}) => {
+    const handleDismiss = () => {
+        localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
+        reset();
+    }
+
     return (
-        <ProblemNotification severity="info" title="Info">
+        <DismissibleInstanceProblemNotification severity="info" title="Info" onDismiss={handleDismiss}>
             JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
             performance improvements and new features.<br/>
-        </ProblemNotification>
+        </DismissibleInstanceProblemNotification>
     );
 };
 

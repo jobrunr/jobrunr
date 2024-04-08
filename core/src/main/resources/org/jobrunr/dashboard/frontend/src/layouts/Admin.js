@@ -12,7 +12,7 @@ import GithubStarPopup from "../components/utils/github-star-popup";
 import {DEFAULT_JOBRUNR_INFO, JobRunrInfoContext} from "../JobRunrInfoContext";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {ProblemsContext} from "../ProblemsContext";
-import {getNewVersionProblem} from "../components/overview/problems/new-jobrunr-version-available";
+import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY} from "../components/overview/problems/new-jobrunr-version-available";
 import {getApiNotificationProblem} from "../components/overview/problems/jobrunr-api-notification";
 
 
@@ -70,6 +70,10 @@ const AdminUI = function () {
     const [latestVersion, setLatestVersion] = useState(false);
     const [apiNotification, setApiNotification] = useState();
 
+    const resetLatestVersion = useCallback(() => {
+        setLatestVersion(undefined);
+    }, []);
+
     const reloadProblems = useCallback(() => {
         setIsLoadingProblems(true);
         fetch(`/api/problems`).then(res => res.json())
@@ -94,7 +98,12 @@ const AdminUI = function () {
 
     const problemsContext = useMemo(() => {
             const p = [...problems];
-            if (latestVersion) p.push(getNewVersionProblem(jobRunrInfo.version, latestVersion));
+            if (latestVersion && localStorage.getItem(LATEST_DISMISSED_VERSION_STORAGE_KEY) !== latestVersion) {
+                p.push({
+                    ...getNewVersionProblem(jobRunrInfo.version, latestVersion),
+                    reset: resetLatestVersion
+                });
+            }
             if (apiNotification) p.push(getApiNotificationProblem(apiNotification));
 
             return {
@@ -103,7 +112,7 @@ const AdminUI = function () {
                 reload: reloadProblems
             }
         },
-        [problems, reloadProblems, isLoadingProblems, latestVersion, jobRunrInfo.version, apiNotification]
+        [problems, reloadProblems, isLoadingProblems, latestVersion, resetLatestVersion, jobRunrInfo.version, apiNotification]
     );
 
     return (
