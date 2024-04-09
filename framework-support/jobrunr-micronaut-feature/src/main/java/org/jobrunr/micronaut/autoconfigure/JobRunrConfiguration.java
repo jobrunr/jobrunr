@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.core.bind.annotation.Bindable;
 import jakarta.validation.constraints.NotNull;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -120,22 +121,28 @@ public interface JobRunrConfiguration {
         Optional<Integer> getWorkerCount();
 
         /**
+         * Sets the Thread Type for the BackgroundJobServer.
+         * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
+         */
+        Optional<BackgroundJobServerThreadType> getThreadType();
+
+        /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
         Optional<Integer> getPollIntervalInSeconds();
 
         /**
-         * Sets the maximum number of jobs to update from scheduled to enqueued state per polling interval.
+         * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         Optional<Integer> getScheduledJobsRequestSize();
 
         /**
-         * Sets the query size for misfired jobs per polling interval (to retry them).
+         * Sets the query size for misfired jobs per database round-trip (to retry them).
          */
         Optional<Integer> getOrphanedJobsRequestSize();
 
         /**
-         * Sets the maximum number of jobs to update from succeeded to deleted state per polling interval.
+         * Sets the maximum number of jobs to update from succeeded to deleted state per database round-trip.
          */
         Optional<Integer> getSucceededJobsRequestSize();
 
@@ -148,6 +155,11 @@ public interface JobRunrConfiguration {
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
          */
         Optional<Duration> getPermanentlyDeleteDeletedJobsAfter();
+
+        /**
+         * Sets the duration to wait before interrupting threads/jobs when the server is stopped.
+         */
+        Optional<Duration> getInterruptJobsAwaitDurationOnStop();
 
         /**
          * Allows to configure the MicroMeter Metrics integration for the BackgroundJobServer.

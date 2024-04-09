@@ -2,9 +2,10 @@ package org.jobrunr.utils;
 
 import java.math.BigInteger;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class StringUtils {
 
@@ -51,11 +52,30 @@ public class StringUtils {
         return null;
     }
 
+    /**
+     * Returns the String between the given open and close String. If the closing String is not present, it will return everything after the opening String.
+     *
+     * @param s     the String containing the substring, may be null
+     * @param open  the String before the substring, may not be null
+     * @param close the String after the substring, may not be null
+     * @return Returns the String between the given open and close String when possible or everything after the opening String.
+     */
+    public static String lenientSubstringBetween(String s, String open, String close) {
+        if (s != null && s.contains(open)) {
+            String result = substringAfter(s, open);
+            if (result.contains(close)) {
+                return substringBefore(result, close);
+            }
+            return result;
+        }
+        return null;
+    }
+
     public static String md5Checksum(String input) {
         try {
             MessageDigest m = MessageDigest.getInstance("MD5");
             m.reset();
-            m.update(input.getBytes());
+            m.update(input.getBytes(UTF_8));
             byte[] digest = m.digest();
             BigInteger bigInt = new BigInteger(1, digest);
             String hashResult = bigInt.toString(16);
@@ -70,7 +90,7 @@ public class StringUtils {
 
     public static String urlEncode(String string) {
         try {
-            return URLEncoder.encode(string, StandardCharsets.UTF_8.toString());
+            return URLEncoder.encode(string, UTF_8.toString());
         } catch (Exception e) {
             return string;
         }

@@ -29,6 +29,14 @@ task myJavadocs(type: Javadoc) {
     options.links 'https://docs.oracle.com/en/java/javase/11/docs/api/'
 }
 
+task runFrontEndDevelopment(type: JavaExec) {
+    group = "Execution"
+    description = "Run the FrontEnd Development JavaExecTask"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.jobrunr.dashboard.FrontEndDevelopment'
+}
+
+
 dependencies {
     api platform(project(':platform'))
 
@@ -45,11 +53,12 @@ dependencies {
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    compileOnly 'co.elastic.clients:elasticsearch-java'
 
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'io.micrometer:micrometer-core'
@@ -73,15 +82,17 @@ dependencies {
     testImplementation 'mysql:mysql-connector-java'
     testImplementation 'com.zaxxer:HikariCP'
     testImplementation 'org.apache.commons:commons-dbcp2'
-    testImplementation 'com.mchange:c3p0'
+    testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'redis.clients:jedis'
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+    testImplementation 'co.elastic.clients:elasticsearch-java'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'
+    testFixturesApi 'org.mockito:mockito-inline'
+    testFixturesApi 'org.mockito:mockito-junit-jupiter'
     testFixturesApi 'io.github.artsok:rerunner-jupiter'
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
@@ -105,12 +116,26 @@ normalization {
     }
 }
 
+task npmRunBuildWarning {
+    onlyIf {
+        System.getenv("CI") != "true"
+    }
+    doLast {
+        println "JobRunr Frontend not build during local development - please build it manually"
+    }
+}
+
 task npmRunBuild() {
+    onlyIf {
+        System.getenv("CI") == "true"
+    }
+
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     outputs.cacheIf { true }
 
     doLast {
+        println "JobRunr Frontend Build started"
         exec {
             workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
             commandLine 'sh', '-c', 'npm install'
@@ -119,14 +144,17 @@ task npmRunBuild() {
             workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
             commandLine 'sh', '-c', 'npm run build'
         }
-        println "JobRunr Frontend is build"
+        println "JobRunr Frontend Build succeeded"
     }
 }
 
+npmRunBuild.dependsOn npmRunBuildWarning
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
 jar {
+    var asmJar = configurations.compileClasspath.fileCollection { it.group == 'org.ow2.asm' && it.name == 'asm' }.singleFile.name
+    var asmVersion = asmJar.substring(asmJar.lastIndexOf("-") + 1).replace(".jar", "")
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.core'
@@ -138,6 +166,7 @@ jar {
         attributes 'Created-By': "Gradle ${gradle.gradleVersion}"
         attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
         attributes 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+        attributes 'Minimum-ASM-Version': "${asmVersion}"
     }
 }
 

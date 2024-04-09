@@ -1,16 +1,10 @@
 package org.jobrunr.micronaut.autoconfigure.storage;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.client.ClusterClient;
-import org.elasticsearch.client.IndicesClient;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
@@ -19,10 +13,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @MicronautTest
 class JobRunrElasticSearchStorageProviderFactoryTest {
@@ -40,17 +30,7 @@ class JobRunrElasticSearchStorageProviderFactoryTest {
     }
 
     @Singleton
-    public RestHighLevelClient elasticSearchRestHighLevelClient() throws IOException {
-        RestHighLevelClient restHighLevelClientMock = mock(RestHighLevelClient.class);
-        IndicesClient indicesClientMock = mock(IndicesClient.class);
-        ClusterClient clusterClientMock = mock(ClusterClient.class);
-        when(restHighLevelClientMock.indices()).thenReturn(indicesClientMock);
-        when(restHighLevelClientMock.cluster()).thenReturn(clusterClientMock);
-        when(indicesClientMock.exists(any(GetIndexRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(true);
-
-        GetResponse getResponse = mock(GetResponse.class);
-        when(getResponse.isExists()).thenReturn(true);
-        when(restHighLevelClientMock.get(any(GetRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(getResponse);
-        return restHighLevelClientMock;
+    public ElasticsearchClient elasticsearchClient() throws IOException {
+        return Mocks.elasticsearchClient();
     }
 }

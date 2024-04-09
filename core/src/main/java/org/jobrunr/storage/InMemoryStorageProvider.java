@@ -1,14 +1,24 @@
 package org.jobrunr.storage;
 
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobVersioner;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
+import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,10 +29,17 @@ import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -124,8 +141,42 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public long countJobs(StateName state) {
+        return getJobsStream(state).count();
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        return getJobsStream(state, amountRequest)
+                .filter(job -> job.getUpdatedAt().isBefore(updatedBefore))
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return getJobsStream(state, amountRequest)
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        return getJobsStream(SCHEDULED, amountRequest)
+                .filter(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isBefore(scheduledBefore))
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
     public void saveMetadata(JobRunrMetadata metadata) {
-        this.metadata.put(metadata.getName() + "-" + metadata.getOwner(), metadata);
+        this.metadata.put(metadata.getId(), metadata);
         notifyMetadataChangeListeners();
     }
 
@@ -136,7 +187,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public JobRunrMetadata getMetadata(String key, String owner) {
-        return this.metadata.get(key + "-" + owner);
+        return this.metadata.get(JobRunrMetadata.toId(key, owner));
     }
 
     @Override
@@ -176,42 +227,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return getJobsStream(state, pageRequest)
-                .filter(job -> job.getUpdatedAt().isBefore(updatedBefore))
-                .skip(pageRequest.getOffset())
-                .limit(pageRequest.getLimit())
-                .map(this::deepClone)
-                .collect(toList());
-    }
-
-    @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return getJobsStream(SCHEDULED, pageRequest)
-                .filter(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isBefore(scheduledBefore))
-                .skip(pageRequest.getOffset())
-                .limit(pageRequest.getLimit())
-                .map(this::deepClone)
-                .collect(toList());
-    }
-
-    @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        return getJobsStream(state, pageRequest)
-                .skip(pageRequest.getOffset())
-                .limit(pageRequest.getLimit())
-                .map(this::deepClone)
-                .collect(toList());
-    }
-
-    @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        return new Page<>(getJobsStream(state).count(), getJobs(state, pageRequest),
-                pageRequest
-        );
-    }
-
-    @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         List<UUID> jobsToRemove = jobQueue.values().stream()
                 .filter(job -> job.hasState(state))
@@ -229,15 +244,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .filter(job -> asList(states).contains(job.getState()))
                 .map(AbstractJob::getJobSignature)
                 .collect(toSet());
-    }
-
-    @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        String actualJobSignature = getJobSignature(jobDetails);
-        return jobQueue.values().stream()
-                .anyMatch(job ->
-                        asList(states).contains(job.getState())
-                                && actualJobSignature.equals(getJobSignature(job.getJobDetails())));
     }
 
     @Override
@@ -260,12 +266,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public RecurringJobsResult getRecurringJobs() {
         return new RecurringJobsResult(recurringJobs);
-    }
-
-    @Override
-    @Deprecated
-    public long countRecurringJobs() {
-        return recurringJobs.size();
     }
 
     @Override
@@ -303,9 +303,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
-    private Stream<Job> getJobsStream(StateName state, PageRequest pageRequest) {
+    private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
-                .sorted(getJobComparator(pageRequest));
+                .sorted(getJobComparator(amountRequest));
     }
 
     private Stream<Job> getJobsStream(StateName state) {
@@ -332,30 +332,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         }
     }
 
-    private Comparator<Job> getJobComparator(PageRequest pageRequest) {
-        List<Comparator<Job>> result = new ArrayList<>();
-        final String[] sortOns = pageRequest.getOrder().split(",");
-        for (String sortOn : sortOns) {
-            final String[] sortAndOrder = sortOn.split(":");
-            String sortField = sortAndOrder[0];
-            PageRequest.Order order = PageRequest.Order.ASC;
-            if (sortAndOrder.length > 1) {
-                order = PageRequest.Order.valueOf(sortAndOrder[1].toUpperCase());
-            }
-            Comparator<Job> comparator = null;
-            if (sortField.equalsIgnoreCase(FIELD_CREATED_AT)) {
-                comparator = Comparator.comparing(Job::getCreatedAt);
-            } else if (sortField.equalsIgnoreCase(FIELD_UPDATED_AT)) {
-                comparator = Comparator.comparing(Job::getUpdatedAt);
-            } else {
-                throw new IllegalStateException("An unsupported sortOrder was requested: " + sortField);
-            }
-            if (order == PageRequest.Order.DESC) {
-                comparator = comparator.reversed();
-            }
-            result.add(comparator);
-        }
-        return result.stream()
+    private Comparator<Job> getJobComparator(AmountRequest amountRequest) {
+        List<Comparator<Job>> comparators = amountRequest.getAllOrderTerms(Job.ALLOWED_SORT_COLUMNS.keySet()).stream()
+                .map(orderTerm -> {
+                    Comparator<Job> jobComparator = comparing(Job.ALLOWED_SORT_COLUMNS.get(orderTerm.getFieldName()));
+                    return (OrderTerm.Order.ASC == orderTerm.getOrder()) ? jobComparator : jobComparator.reversed();
+                })
+                .collect(toList());
+        return comparators.stream()
                 .reduce(Comparator::thenComparing)
                 .orElse((a, b) -> 0); // default order
     }

@@ -21,23 +21,21 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 
+import static org.jobrunr.utils.CollectionUtils.mapOf;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseSqlMigrationFileProvider {
-
-    private static Map<String, Class<? extends SqlStorageProvider>> databaseTypes = new HashMap<String, Class<? extends SqlStorageProvider>>() {{
-        put("db2", DB2StorageProvider.class);
-        put("h2", H2StorageProvider.class);
-        put("mariadb", MariaDbStorageProvider.class);
-        put("mysql", MySqlStorageProvider.class);
-        put("oracle", OracleStorageProvider.class);
-        put("postgres", PostgresStorageProvider.class);
-        put("sqlite", SqLiteStorageProvider.class);
-        put("sqlserver", SQLServerStorageProvider.class);
-    }};
+    private static final Map<String, Class<? extends SqlStorageProvider>> databaseTypes = mapOf(
+            "db2", DB2StorageProvider.class,
+            "h2", H2StorageProvider.class,
+            "mariadb", MariaDbStorageProvider.class,
+            "mysql", MySqlStorageProvider.class,
+            "oracle", OracleStorageProvider.class,
+            "postgres", PostgresStorageProvider.class,
+            "sqlite", SqLiteStorageProvider.class,
+            "sqlserver", SQLServerStorageProvider.class);
 
     public static void main(String[] args) {
         if (args.length < 1 || !databaseTypes.containsKey(args[0].toLowerCase())) {

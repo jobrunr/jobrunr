@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
@@ -9,7 +10,12 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -50,6 +56,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     *
      * @param jobBuilder the jobBuilder with all the details of the job
      * @return the id of the job
      */
@@ -116,7 +123,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     public void enqueue(Stream<? extends JobRequest> input) {
         input
                 .map(JobDetails::new)
-                .map(org.jobrunr.jobs.Job::new)
+                .map(Job::new)
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 
@@ -343,7 +350,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), new MyJobRequest());
      * }</pre>
      *
-     * @param duration the duration defining the time between each instance of this recurring job.
+     * @param duration   the duration defining the time between each instance of this recurring job.
      * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      */
@@ -361,8 +368,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), new MyJobRequest());
      * }</pre>
      *
-     * @param id       the id of this recurring job which can be used to alter or delete it
-     * @param duration the duration defining the time between each instance of this recurring job
+     * @param id         the id of this recurring job which can be used to alter or delete it
+     * @param duration   the duration defining the time between each instance of this recurring job
      * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      */

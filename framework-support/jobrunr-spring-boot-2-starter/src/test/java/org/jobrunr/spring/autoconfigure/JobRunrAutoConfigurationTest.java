@@ -1,31 +1,29 @@
 package org.jobrunr.spring.autoconfigure;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.mongodb.client.*;
-import com.mongodb.client.result.InsertOneResult;
+import com.mongodb.client.MongoClient;
 import io.lettuce.core.RedisClient;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.sync.RedisCommands;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.client.ClusterClient;
-import org.elasticsearch.client.IndicesClient;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
+import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
+import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.server.threadpool.JobRunrExecutor;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
-import org.jobrunr.spring.autoconfigure.storage.*;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceRedisClientStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceSpringDataConnectionFactoryStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
@@ -40,20 +38,16 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import redis.clients.jedis.Jedis;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import redis.clients.jedis.JedisPool;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.*;
-import java.util.Spliterator;
+import java.sql.SQLException;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -62,7 +56,8 @@ public class JobRunrAutoConfigurationTest {
                     JobRunrAutoConfiguration.class,
                     JobRunrElasticSearchStorageAutoConfiguration.class,
                     JobRunrJedisStorageAutoConfiguration.class,
-                    JobRunrLettuceStorageAutoConfiguration.class,
+                    JobRunrLettuceRedisClientStorageAutoConfiguration.class,
+                    JobRunrLettuceSpringDataConnectionFactoryStorageAutoConfiguration.class,
                     JobRunrMongoDBStorageAutoConfiguration.class,
                     JobRunrSqlStorageAutoConfiguration.class
             ));
@@ -140,9 +135,9 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-            assertThat(context).hasSingleBean(BackgroundJobServer.class);
-            assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
-        });
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
+                });
     }
 
     @Test
@@ -158,15 +153,29 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoThreadTypeAndWorkerCount() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.worker-count=4")
+                .withPropertyValues("org.jobrunr.background-job-server.thread-type=PlatformThreads")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context.getBean(BackgroundJobServer.class));
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasWorkerCount(4);
+                });
+    }
+
+    @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("org.jobrunr.jobs.default-number-of-retries=3")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-            assertThat(context).hasSingleBean(BackgroundJobServer.class);
-            assertThat(context.getBean(BackgroundJobServer.class))
-                    .hasRetryFilter(3);
-        });
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context.getBean(BackgroundJobServer.class))
+                            .hasRetryFilter(3);
+                });
     }
 
     @Test
@@ -181,6 +190,27 @@ public class JobRunrAutoConfigurationTest {
                             .hasScheduledJobRequestSize(1)
                             .hasOrphanedJobRequestSize(2)
                             .hasSucceededJobRequestSize(3);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountCustomBackgroundJobServerWorkerPolicy() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withUserConfiguration(BackgroundJobServerConfigurationWithCustomWorkerPolicy.class, InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class);
                 });
     }
 
@@ -229,8 +259,17 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void lettuceStorageProviderAutoConfiguration() {
-        this.contextRunner.withUserConfiguration(LettuceStorageProviderConfiguration.class).run((context) -> {
+    void lettuceRedisClientStorageProviderAutoConfiguration() {
+        this.contextRunner.withUserConfiguration(LettuceRedisClientStorageProviderConfiguration.class).run((context) -> {
+            assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
+            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
+            assertThat(context).hasSingleBean(JobScheduler.class);
+        });
+    }
+
+    @Test
+    void lettuceConnectionFactoryStorageProviderAutoConfiguration() {
+        this.contextRunner.withUserConfiguration(LettuceSpringDataConnectionFactoryStorageProviderConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
             assertThat(context).hasSingleBean(JobScheduler.class);
@@ -245,10 +284,10 @@ public class JobRunrAutoConfigurationTest {
                         "org.jobrunr.database.type=sql"
                 )
                 .withUserConfiguration(SqlDataSourceConfiguration.class, ElasticSearchStorageProviderConfiguration.class).run((context) -> {
-            assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
-            assertThat(context).hasSingleBean(JobScheduler.class);
-        });
+                    assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
+                    assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
+                    assertThat(context).hasSingleBean(JobScheduler.class);
+                });
     }
 
     @Test
@@ -283,27 +322,7 @@ public class JobRunrAutoConfigurationTest {
     static class SqlDataSourceConfiguration {
         @Bean
         public DataSource dataSource() throws SQLException {
-            DataSource dataSourceMock = mock(DataSource.class);
-            Connection connectionMock = mock(Connection.class);
-            DatabaseMetaData databaseMetaData = mock(DatabaseMetaData.class);
-            when(dataSourceMock.getConnection()).thenReturn(connectionMock);
-            when(connectionMock.getMetaData()).thenReturn(databaseMetaData);
-            when(databaseMetaData.getURL()).thenReturn("jdbc:sqlite:this is not important");
-
-            mockTablePresent(connectionMock, "jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata");
-
-            return dataSourceMock;
-        }
-
-        private void mockTablePresent(Connection connectionMock, String... tableNames) throws SQLException {
-            Statement statementMock = mock(Statement.class);
-            when(connectionMock.createStatement()).thenReturn(statementMock);
-            for (String tableName : tableNames) {
-                ResultSet resultSetMock = mock(ResultSet.class);
-                when(statementMock.executeQuery("select count(*) from " + tableName)).thenReturn(resultSetMock);
-                when(resultSetMock.next()).thenReturn(true);
-                when(resultSetMock.getInt(1)).thenReturn(1);
-            }
+            return Mocks.dataSource();
         }
     }
 
@@ -312,30 +331,7 @@ public class JobRunrAutoConfigurationTest {
 
         @Bean
         public MongoClient mongoClient() {
-            MongoClient mongoClientMock = mock(MongoClient.class);
-            MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);
-            when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
-            when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(MongoIterable.class));
-
-            MongoCollection migrationCollectionMock = mock(MongoCollection.class);
-            when(migrationCollectionMock.find(any(Bson.class))).thenReturn(mock(FindIterable.class));
-            when(migrationCollectionMock.insertOne(any())).thenReturn(mock(InsertOneResult.class));
-            when(mongoDatabaseMock.getCollection(StorageProviderUtils.Migrations.NAME)).thenReturn(migrationCollectionMock);
-
-            ListIndexesIterable listIndicesMock = mock(ListIndexesIterable.class);
-            when(listIndicesMock.spliterator()).thenReturn(mock(Spliterator.class));
-
-            MongoCollection recurringJobCollectionMock = mock(MongoCollection.class);
-            when(recurringJobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
-
-            MongoCollection jobCollectionMock = mock(MongoCollection.class);
-            when(jobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
-
-            when(mongoDatabaseMock.getCollection(StorageProviderUtils.RecurringJobs.NAME, Document.class)).thenReturn(recurringJobCollectionMock);
-            when(mongoDatabaseMock.getCollection(StorageProviderUtils.Jobs.NAME, Document.class)).thenReturn(jobCollectionMock);
-            when(mongoDatabaseMock.getCollection(StorageProviderUtils.BackgroundJobServers.NAME, Document.class)).thenReturn(mock(MongoCollection.class));
-            when(mongoDatabaseMock.getCollection(StorageProviderUtils.Metadata.NAME, Document.class)).thenReturn(mock(MongoCollection.class));
-            return mongoClientMock;
+            return Mocks.mongoClient();
         }
     }
 
@@ -343,18 +339,8 @@ public class JobRunrAutoConfigurationTest {
     static class ElasticSearchStorageProviderConfiguration {
 
         @Bean
-        public RestHighLevelClient restHighLevelClient() throws IOException {
-            RestHighLevelClient restHighLevelClientMock = mock(RestHighLevelClient.class);
-            IndicesClient indicesClientMock = mock(IndicesClient.class);
-            ClusterClient clusterClientMock = mock(ClusterClient.class);
-            when(restHighLevelClientMock.indices()).thenReturn(indicesClientMock);
-            when(restHighLevelClientMock.cluster()).thenReturn(clusterClientMock);
-            when(indicesClientMock.exists(any(GetIndexRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(true);
-
-            GetResponse getResponse = mock(GetResponse.class);
-            when(getResponse.isExists()).thenReturn(true);
-            when(restHighLevelClientMock.get(any(GetRequest.class), eq(RequestOptions.DEFAULT))).thenReturn(getResponse);
-            return restHighLevelClientMock;
+        public ElasticsearchClient elasticsearchClient() throws IOException {
+            return Mocks.elasticsearchClient();
         }
     }
 
@@ -363,22 +349,47 @@ public class JobRunrAutoConfigurationTest {
 
         @Bean
         public JedisPool jedisPool() {
-            JedisPool jedisPool = mock(JedisPool.class);
-            when(jedisPool.getResource()).thenReturn(mock(Jedis.class));
-            return jedisPool;
+            return Mocks.jedisPool();
         }
     }
 
     @Configuration
-    static class LettuceStorageProviderConfiguration {
+    static class LettuceRedisClientStorageProviderConfiguration {
 
         @Bean
         public RedisClient redisClient() {
-            RedisClient redisClient = mock(RedisClient.class);
-            StatefulRedisConnection connection = mock(StatefulRedisConnection.class);
-            when(connection.sync()).thenReturn(mock(RedisCommands.class));
-            when(redisClient.connect()).thenReturn(connection);
-            return redisClient;
+            return Mocks.redisClient();
+        }
+    }
+
+    @Configuration
+    static class LettuceSpringDataConnectionFactoryStorageProviderConfiguration {
+
+        @Bean
+        public LettuceConnectionFactory lettuceConnectionFactory() {
+            return Mocks.lettuceConnectionFactory();
+        }
+    }
+
+    @Configuration
+    static class BackgroundJobServerConfigurationWithCustomWorkerPolicy {
+
+        @Bean
+        public BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy() {
+            return new MyBackgroundJobServerWorkerPolicy();
+        }
+
+        private static class MyBackgroundJobServerWorkerPolicy implements BackgroundJobServerWorkerPolicy {
+
+            @Override
+            public WorkDistributionStrategy toWorkDistributionStrategy(BackgroundJobServer backgroundJobServer) {
+                return new BasicWorkDistributionStrategy(backgroundJobServer, 10);
+            }
+
+            @Override
+            public JobRunrExecutor toJobRunrExecutor() {
+                return new PlatformThreadPoolJobRunrExecutor(10, "my-prefix");
+            }
         }
     }
 }

@@ -5,25 +5,25 @@ import com.fasterxml.jackson.annotation.JsonValue
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
+import org.jobrunr.JobRunrAssertions.assertThatCode
 import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName.*
-import org.jobrunr.scheduling.cron.Cron
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.server.JobActivator
 import org.jobrunr.storage.InMemoryStorageProvider
-import org.jobrunr.storage.PageRequest
-import org.jobrunr.storage.StorageProviderForTest
+import org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
+import java.time.Duration
 import java.time.Instant.now
 import java.util.concurrent.TimeUnit
 
 class JobSchedulerTest {
 
     @Mock
-    private val storageProvider = StorageProviderForTest(InMemoryStorageProvider()).also {
+    private val storageProvider = InMemoryStorageProvider().also {
         it.setJobMapper(JobMapper(JacksonJsonMapper()))
     }
 
@@ -32,7 +32,7 @@ class JobSchedulerTest {
         .useJobActivator(object : JobActivator {
             override fun <T : Any> activateJob(type: Class<T>): T? = get(type)
         })
-        .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5))
+        .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(200)))
         .initialize()
         .jobScheduler
 
@@ -55,6 +55,15 @@ class JobSchedulerTest {
 
         val job = storageProvider.getJobById(jobId)
         assertThat(job).hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
+    @Test
+    fun `test enqueue lambda with default parameter throws exception`() {
+        val testService = TestService()
+        assertThatCode { jobScheduler.enqueue { testService.doWorkWithDefaultParameter() } }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Unsupported lambda")
+            .hasRootCauseMessage("You are (probably) using Kotlin default parameter values which is not supported by JobRunr.")
     }
 
     @Test
@@ -139,13 +148,13 @@ class JobSchedulerTest {
         val amount = 2
         val text = "foo"
 
-        jobScheduler.scheduleRecurrently(Cron.every15seconds()) { println("$text: $amount") }
+        jobScheduler.scheduleRecurrently("*/2 * * * * *") { println("$text: $amount") }
 
         await().atMost(35, TimeUnit.SECONDS).until {
-            storageProvider.countJobs(SUCCEEDED) == 1L
+            storageProvider.countJobs(SUCCEEDED) >= 1L
         }
 
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
             .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
@@ -153,12 +162,12 @@ class JobSchedulerTest {
     @Test
     fun `test schedule with polymorphism`() {
         val recurringJob = PrintlnRecurringJob()
-        recurringJob.schedule(Cron.every15seconds())
+        recurringJob.schedule("*/2 * * * * *")
 
         await().atMost(35, TimeUnit.SECONDS).until {
-            storageProvider.countJobs(SUCCEEDED) == 1L
+            storageProvider.countJobs(SUCCEEDED) >= 1L
         }
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
             .hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)
     }
@@ -170,7 +179,7 @@ class JobSchedulerTest {
         await().until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
             .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
@@ -183,7 +192,7 @@ class JobSchedulerTest {
         await().until {
             storageProvider.countJobs(SUCCEEDED) == 1L
         }
-        val job = storageProvider.getJobs(SUCCEEDED, PageRequest.ascOnUpdatedAt(1000))[0]
+        val job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000))[0]
         assertThat(job)
             .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }

@@ -21,7 +21,8 @@ public class StorageProviderUtils {
 
     public enum DatabaseOptions {
         CREATE,
-        SKIP_CREATE
+        SKIP_CREATE,
+        NO_VALIDATE
     }
 
     private static final String FIELD_ID = "id";

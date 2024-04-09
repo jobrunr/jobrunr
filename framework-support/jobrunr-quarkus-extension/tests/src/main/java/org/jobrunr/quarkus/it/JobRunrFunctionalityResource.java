@@ -4,16 +4,17 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.storage.StorageProvider;
 
 import java.util.List;
-
-import static java.util.stream.Collectors.joining;
+import java.util.UUID;
 
 @Path("/")
 public class JobRunrFunctionalityResource {
@@ -33,10 +34,18 @@ public class JobRunrFunctionalityResource {
     }
 
     @GET
-    @Path("jobs/recurring")
+    @Path("recurring-jobs")
     @Produces(MediaType.TEXT_PLAIN)
-    public String recurringJobs() {
+    public List<RecurringJob> recurringJobs() {
         final List<RecurringJob> recurringJobs = storageProvider.getRecurringJobs();
-        return "Recurring jobs: " + recurringJobs.stream().map(RecurringJob::toString).collect(joining(", "));
+        return recurringJobs;
+    }
+
+    @GET
+    @Path("jobs/{jobId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Job jobById(@PathParam("jobId") String jobId) {
+        Job jobById = storageProvider.getJobById(UUID.fromString(jobId));
+        return jobById;
     }
 }

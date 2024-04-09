@@ -2,6 +2,7 @@ package org.jobrunr.stubs;
 
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -16,6 +17,10 @@ public class BackgroundJobServerStub extends BackgroundJobServer {
     }
 
     public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+        super(storageProvider, jsonMapper, null, backgroundJobServerConfiguration);
+    }
+
+    public BackgroundJobServerStub(StorageProvider storageProvider, JsonMapper jsonMapper, BackgroundJobServerConfigurationReader backgroundJobServerConfiguration) {
         super(storageProvider, jsonMapper, null, backgroundJobServerConfiguration);
     }
 

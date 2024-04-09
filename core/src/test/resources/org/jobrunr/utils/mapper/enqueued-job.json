@@ -1,7 +1,6 @@
 {
   "jobSignature": "java.lang.System.out.println(java.lang.String)",
   "jobName": "an enqueued job",
-  "amountOfRetries": null,
   "labels": [],
   "jobDetails": {
     "cacheable": true,
@@ -27,6 +26,5 @@
   "metadata": {
     "@class": "java.util.concurrent.ConcurrentHashMap"
   },
-  "recurringJobId":null,
   "version": 0
 }

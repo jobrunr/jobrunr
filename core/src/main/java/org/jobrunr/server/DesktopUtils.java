@@ -7,13 +7,15 @@ import java.net.URLClassLoader;
 import java.time.Duration;
 import java.time.Instant;
 
+import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
+
 public class DesktopUtils {
 
     private static Internal internal;
 
     static {
         internal = new Java8Internal();
-        if (getJavaVersion() >= 11 && ReflectionUtils.classExists("java.awt.Desktop")) {
+        if (JAVA_VERSION.hasMajorVersionHigherOrEqualTo(11) && ReflectionUtils.classExists("java.awt.Desktop")) {
             try (URLClassLoader classLoader = new URLClassLoader(new URL[]{DesktopUtils.class.getResource("/org/jobrunr/server/Java11OrHigherInternalDesktopUtil.class")})) {
                 Class<?> loadedClass = classLoader.loadClass("org.jobrunr.server.Java11OrHigherInternalDesktopUtil");
                 Object obj = loadedClass.newInstance();
@@ -42,19 +44,6 @@ public class DesktopUtils {
         return getLastSystemAwakeTime().plus(duration).isAfter(Instant.now());
     }
 
-    private static int getJavaVersion() {
-        String version = System.getProperty("java.version");
-        if (version.startsWith("1.")) {
-            version = version.substring(2, 3);
-        } else {
-            int dot = version.indexOf(".");
-            if (dot != -1) {
-                version = version.substring(0, dot);
-            }
-        }
-        return Integer.parseInt(version);
-    }
-
     public interface Internal {
 
         boolean supportsSystemSleepDetection();
@@ -70,6 +59,7 @@ public class DesktopUtils {
             return false;
         }
 
+        @Override
         public Instant getLastSystemAwakeTime() {
             return Instant.MIN;
         }

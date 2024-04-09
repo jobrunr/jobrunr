@@ -15,6 +15,7 @@ public class ResourcesFileSystemProvider implements FileSystemProvider {
 
     private FileSystem fileSystem;
 
+    @Override
     public Path toPath(URI uri) throws IOException {
         try {
             if (!"resource".equals(uri.getScheme())) {

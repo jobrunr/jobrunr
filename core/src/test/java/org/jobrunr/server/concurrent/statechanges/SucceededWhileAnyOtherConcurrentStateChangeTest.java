@@ -2,7 +2,7 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,8 +12,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.jobs.JobTestBuilder.*;
-import static org.mockito.Mockito.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SucceededWhileAnyOtherConcurrentStateChangeTest {
@@ -21,7 +27,7 @@ class SucceededWhileAnyOtherConcurrentStateChangeTest {
     SucceededWhileAnyOtherConcurrentStateChange allowedStateChange;
 
     @Mock
-    private JobZooKeeper jobZooKeeper;
+    private JobSteward jobZooKeeper;
 
     @BeforeEach
     public void setUp() {

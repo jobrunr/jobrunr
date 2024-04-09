@@ -1,8 +1,12 @@
 package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.*;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +29,7 @@ import static org.mockito.Mockito.verify;
 class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
 
     @Mock
-    JobZooKeeper jobZooKeeper;
+    JobSteward jobSteward;
 
     @Mock
     Thread threadProcessingLocalJob;
@@ -34,8 +38,8 @@ class JobPerformedOnOtherBackgroundJobServerConcurrentStateChangeTest {
 
     @BeforeEach
     public void setUp() {
-        allowedStateChange = new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(jobZooKeeper);
-        lenient().when(jobZooKeeper.getThreadProcessingJob(any())).thenReturn(threadProcessingLocalJob);
+        allowedStateChange = new JobPerformedOnOtherBackgroundJobServerConcurrentStateChange(jobSteward);
+        lenient().when(jobSteward.getThreadProcessingJob(any())).thenReturn(threadProcessingLocalJob);
     }
 
     @Test

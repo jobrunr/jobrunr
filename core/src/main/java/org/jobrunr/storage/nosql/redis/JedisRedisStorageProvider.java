@@ -1,21 +1,41 @@
 package org.jobrunr.storage.nosql.redis;
 
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobListVersioner;
+import org.jobrunr.jobs.JobVersioner;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.*;
+import org.jobrunr.storage.AbstractStorageProvider;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.storage.ServerTimedOutException;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
-import redis.clients.jedis.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
+import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,11 +45,29 @@ import static java.time.Instant.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.storage.nosql.redis.RedisUtilities.*;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServerKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersCreatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.backgroundJobServersUpdatedKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobDetailsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobQueueForStateKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.jobVersionKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadataKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.metadatasKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobCreatedAtKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.recurringJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.scheduledJobsKey;
+import static org.jobrunr.storage.nosql.redis.RedisUtilities.toMicroSeconds;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -73,7 +111,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if (DatabaseOptions.CREATE != databaseOptions) throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
+        if (DatabaseOptions.CREATE != databaseOptions)
+            throw new IllegalArgumentException("JedisRedisStorageProvider only supports CREATE as databaseOptions.");
         new JedisRedisDBCreator(this, jedisPool, keyPrefix).runMigrations();
     }
 
@@ -298,6 +337,67 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public long countJobs(StateName state) {
+        try (final Jedis jedis = getJedis()) {
+            return jedis.zcount(jobQueueForStateKey(keyPrefix, state), 0, Long.MAX_VALUE);
+        }
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        try (final Jedis jedis = getJedis()) {
+            List<String> jobsByState;
+            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore),
+                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0,
+                        amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0, amountRequest.getLimit());
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+            }
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
+    }
+
+    @Override
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        try (final Jedis jedis = getJedis()) {
+            List<String> jobsByState;
+            int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
+            // we only support what is used by frontend
+            if ("updatedAt:ASC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrange(jobQueueForStateKey(keyPrefix, state), offset, offset + amountRequest.getLimit() - 1);
+            } else if ("updatedAt:DESC".equals(amountRequest.getOrder())) {
+                jobsByState = jedis.zrevrange(jobQueueForStateKey(keyPrefix, state), offset, offset + amountRequest.getLimit() - 1);
+            } else {
+                throw new IllegalArgumentException("Unsupported sorting: " + amountRequest.getOrder());
+            }
+            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
+    }
+
+    @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        try (final Jedis jedis = getJedis()) {
+            int offset = amountRequest instanceof OffsetBasedPageRequest ? (int) ((OffsetBasedPageRequest) amountRequest).getOffset() : 0;
+            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(scheduledJobsKey(keyPrefix), 0, toMicroSeconds(scheduledBefore), offset, amountRequest.getLimit()), jedis)
+                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
+                    .mapAfterSync(Response::get)
+                    .map(jobMapper::deserializeJob)
+                    .collect(toList());
+        }
+    }
+
+    @Override
     public List<Job> save(List<Job> jobs) {
         if (jobs.isEmpty()) return jobs;
 
@@ -319,68 +419,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             return jobs;
         } catch (JedisException e) {
             throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        try (final Jedis jedis = getJedis()) {
-            List<String> jobsByState;
-            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
-                jobsByState = jedis.zrangeByScore(jobQueueForStateKey(keyPrefix, state), 0, toMicroSeconds(updatedBefore), (int) pageRequest.getOffset(), pageRequest.getLimit());
-            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
-                jobsByState = jedis.zrevrangeByScore(jobQueueForStateKey(keyPrefix, state), toMicroSeconds(updatedBefore), 0, (int) pageRequest.getOffset(), pageRequest.getLimit());
-            } else {
-                throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
-            }
-            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(Response::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
-    }
-
-    @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        try (final Jedis jedis = getJedis()) {
-            return new JedisRedisPipelinedStream<>(jedis.zrangeByScore(scheduledJobsKey(keyPrefix), 0, toMicroSeconds(now()), (int) pageRequest.getOffset(), pageRequest.getLimit()), jedis)
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(Response::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
-    }
-
-    @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        try (final Jedis jedis = getJedis()) {
-            List<String> jobsByState;
-            // we only support what is used by frontend
-            if ("updatedAt:ASC".equals(pageRequest.getOrder())) {
-                jobsByState = jedis.zrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else if ("updatedAt:DESC".equals(pageRequest.getOrder())) {
-                jobsByState = jedis.zrevrange(jobQueueForStateKey(keyPrefix, state), pageRequest.getOffset(), pageRequest.getOffset() + pageRequest.getLimit() - 1);
-            } else {
-                throw new IllegalArgumentException("Unsupported sorting: " + pageRequest.getOrder());
-            }
-            return new JedisRedisPipelinedStream<>(jobsByState, jedis)
-                    .mapUsingPipeline((p, id) -> p.get(jobKey(keyPrefix, id)))
-                    .mapAfterSync(Response::get)
-                    .map(jobMapper::deserializeJob)
-                    .collect(toList());
-        }
-    }
-
-    @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        try (final Jedis jedis = getJedis()) {
-            long count = jedis.zcount(jobQueueForStateKey(keyPrefix, state), 0, Long.MAX_VALUE);
-            if (count > 0) {
-                List<Job> jobs = getJobs(state, pageRequest);
-                return new Page<>(count, jobs, pageRequest);
-            }
-            return new Page<>(0, new ArrayList<>(), pageRequest);
         }
     }
 
@@ -419,17 +457,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .collect(toList());
             p.sync();
             return jobSignatures.stream().flatMap(res -> res.get().stream()).collect(toSet());
-        }
-    }
-
-    @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        try (final Jedis jedis = getJedis(); Pipeline p = jedis.pipelined()) {
-            List<Response<Boolean>> existsJob = stream(states)
-                    .map(stateName -> p.sismember(jobDetailsKey(keyPrefix, stateName), getJobSignature(jobDetails)))
-                    .collect(toList());
-            p.sync();
-            return existsJob.stream().map(Response::get).filter(b -> b).findAny().orElse(false);
         }
     }
 
@@ -476,13 +503,6 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                     .map(jobMapper::deserializeRecurringJob)
                     .collect(toList());
             return new RecurringJobsResult(recurringJobs);
-        }
-    }
-
-    @Override
-    public long countRecurringJobs() {
-        try (final Jedis jedis = getJedis()) {
-            return jedis.scard(recurringJobsKey(keyPrefix));
         }
     }
 
@@ -567,7 +587,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     private void updateJob(Job jobToSave, Jedis jedis) {
         jedis.watch(jobVersionKey(keyPrefix, jobToSave));
         String versionAsString = jedis.get(jobVersionKey(keyPrefix, jobToSave));
-        if (versionAsString == null || parseInt(versionAsString) != (jobToSave.getVersion() - 1)) throw new ConcurrentJobModificationException(jobToSave);
+        if (versionAsString == null || parseInt(versionAsString) != (jobToSave.getVersion() - 1))
+            throw new ConcurrentJobModificationException(jobToSave);
         try (Transaction transaction = jedis.multi()) {
             saveJob(transaction, jobToSave);
             List<Object> result = transaction.exec();

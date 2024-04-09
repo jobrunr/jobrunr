@@ -1,19 +1,26 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.LogAllStateChangesFilter;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
+@ExtendWith(MockitoExtension.class)
 class JobFilterUtilsTest {
 
     private LogAllStateChangesFilter logAllStateChangesFilter;
     private JobFilterUtils jobFilterUtils;
+
+    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     @BeforeEach
     void setUpJobFilterUtils() {
@@ -23,20 +30,31 @@ class JobFilterUtilsTest {
     }
 
     @Test
-    void ifExecuteJobServerFilterIsTrueOnStateAppliedFilterIsInvoked() {
-        Job aJobInProgress = aJobInProgress().build();
+    void jobFiltersAreExecutedIfJobHasStateChange() {
+        // GIVEN
+        Job aJob = anEnqueuedJob().build();
+        aJob.getStateChangesForJobFilters(); // clear
 
-        jobFilterUtils.runOnStateAppliedFilters(List.of(aJobInProgress), true);
+        // WHEN
+        aJob.startProcessingOn(backgroundJobServer);
+        jobFilterUtils.runOnStateAppliedFilters(List.of(aJob));
 
-        assertThat(logAllStateChangesFilter.getStateChanges(aJobInProgress)).containsExactly("ENQUEUED->PROCESSING");
+        // THEN
+        assertThat(logAllStateChangesFilter.getStateChanges(aJob)).containsExactly("ENQUEUED->PROCESSING");
     }
 
     @Test
-    void ifExecuteJobServerFilterIsFalseOnStateAppliedFilterIsNotInvoked() {
-        Job aJobInProgress = aJobInProgress().build();
+    void jobFiltersAreNotAppliedIfJobHasNoStateChange() {
+        // GIVEN
+        Job aJob = anEnqueuedJob().build();
+        aJob.startProcessingOn(backgroundJobServer);
+        aJob.getStateChangesForJobFilters();  // clear
 
-        jobFilterUtils.runOnStateAppliedFilters(List.of(aJobInProgress), false);
+        // WHEN
+        aJob.updateProcessing();
+        jobFilterUtils.runOnStateAppliedFilters(List.of(aJob));
 
-        assertThat(logAllStateChangesFilter.getStateChanges(aJobInProgress)).isEmpty();
+        // THEN
+        assertThat(logAllStateChangesFilter.getStateChanges(aJob)).isEmpty();
     }
 }

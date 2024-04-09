@@ -1,16 +1,18 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.MultiLock;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -124,23 +126,28 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        return storageProvider.getJobs(state, updatedBefore, pageRequest);
+    public long countJobs(StateName state) {
+        return storageProvider.countJobs(state);
     }
 
     @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
-        return storageProvider.getScheduledJobs(scheduledBefore, pageRequest);
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
+        return storageProvider.getJobList(state, updatedBefore, amountRequest);
     }
 
     @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
-        return storageProvider.getJobs(state, pageRequest);
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return storageProvider.getJobList(state, amountRequest);
     }
 
     @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
-        return storageProvider.getJobPage(state, pageRequest);
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
+    }
+
+    @Override
+    public List<Job> getJobsToProcess(BackgroundJobServer backgroundJobServer, AmountRequest amountRequest) {
+        return storageProvider.getJobsToProcess(backgroundJobServer, amountRequest);
     }
 
     @Override
@@ -151,11 +158,6 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public Set<String> getDistinctJobSignatures(StateName... states) {
         return storageProvider.getDistinctJobSignatures(states);
-    }
-
-    @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        return storageProvider.exists(jobDetails, states);
     }
 
     @Override
@@ -171,12 +173,6 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public RecurringJobsResult getRecurringJobs() {
         return storageProvider.getRecurringJobs();
-    }
-
-    @Override
-    @Deprecated
-    public long countRecurringJobs() {
-        return storageProvider.countRecurringJobs();
     }
 
     @Override
@@ -207,6 +203,16 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void close() {
         storageProvider.close();
+    }
+
+    @Override
+    public void validatePollInterval(Duration pollInterval) {
+        storageProvider.validatePollInterval(pollInterval);
+    }
+
+    @Override
+    public void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances) {
+        storageProvider.validateRecurringJobInterval(durationBetweenRecurringJobInstances);
     }
 
     public StorageProvider getStorageProvider() {

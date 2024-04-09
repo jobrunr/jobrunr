@@ -2,13 +2,22 @@ package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.storage.listeners.*;
+import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
+import org.jobrunr.storage.listeners.JobChangeListener;
+import org.jobrunr.storage.listeners.JobStatsChangeListener;
+import org.jobrunr.storage.listeners.MetadataChangeListener;
+import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -57,6 +66,28 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     @Override
     public void close() {
         stopTimerToSendUpdates();
+    }
+
+    @Override
+    public final void validatePollInterval(Duration pollInterval) {
+        if (this instanceof InMemoryStorageProvider) {
+            if (pollInterval.compareTo(Duration.ofMillis(200)) < 0) {
+                throw new IllegalArgumentException("The smallest supported pollInterval for the InMemoryStorageProvider is 200ms.");
+            }
+        } else if (pollInterval.compareTo(Duration.ofSeconds(5)) < 0) {
+            throw new IllegalArgumentException("The smallest supported pollInterval is 5 seconds - otherwise it will cause to much load on your SQL/noSQL datastore.");
+        }
+    }
+
+    @Override
+    public final void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances) {
+        if (this instanceof InMemoryStorageProvider) {
+            if (durationBetweenRecurringJobInstances.compareTo(Duration.ofSeconds(1)) < 0) {
+                throw new IllegalArgumentException("The smallest supported duration between recurring job instances for the InMemoryStorageProvider is 1s.");
+            }
+        } else if (durationBetweenRecurringJobInstances.compareTo(Duration.ofSeconds(5)) < 0) {
+            throw new IllegalArgumentException("The smallest supported duration between recurring job instances is 5 seconds (because of the smallest supported pollInterval).");
+        }
     }
 
     protected void notifyJobStatsOnChangeListenersIf(boolean mustNotify) {
@@ -174,6 +205,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     class NotifyOnChangeListeners extends TimerTask {
 
+        @Override
         public void run() {
             notifyJobStatsOnChangeListeners();
             notifyJobChangeListeners();

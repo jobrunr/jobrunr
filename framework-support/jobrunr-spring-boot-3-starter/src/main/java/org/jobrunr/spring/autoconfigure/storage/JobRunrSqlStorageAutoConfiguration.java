@@ -1,6 +1,7 @@
 package org.jobrunr.spring.autoconfigure.storage;
 
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -18,7 +19,7 @@ import javax.sql.DataSource;
 
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
-@AutoConfiguration(after = DataSourceAutoConfiguration.class)
+@AutoConfiguration(after = DataSourceAutoConfiguration.class, before = JobRunrAutoConfiguration.class)
 @ConditionalOnBean(DataSource.class)
 @ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "sql", matchIfMissing = true)
 public class JobRunrSqlStorageAutoConfiguration {

@@ -10,23 +10,22 @@ import org.jobrunr.jobs.lambdas.JobRequestHandler
 import org.jobrunr.jobs.states.StateName.*
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.storage.InMemoryStorageProvider
-import org.jobrunr.storage.StorageProviderForTest
+import org.jobrunr.storage.StorageProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Duration.ofMillis
 
 class JobRequestSchedulerTest {
 
-    private lateinit var storageProvider: StorageProviderForTest
+    private lateinit var storageProvider: StorageProvider
 
     @BeforeEach
     fun setUp() {
-        storageProvider = StorageProviderForTest(InMemoryStorageProvider())
+        storageProvider = InMemoryStorageProvider()
         JobRunr.configure()
             .useStorageProvider(storageProvider)
-            .useBackgroundJobServer(
-                usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(5)
-            )
+            .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
             .initialize()
     }
 

@@ -15,6 +15,8 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 
+import static java.time.Duration.ofMillis;
+import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -157,14 +159,23 @@ class RecurringJobTest {
     }
 
     @Test
-    void smallestIntervalForRecurringCronJobIs5Seconds() {
-        assertThatThrownBy(() -> aDefaultRecurringJob().withCronExpression("* * * * * *").build()).isInstanceOf(IllegalArgumentException.class);
-        assertThatCode(() -> aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build()).doesNotThrowAnyException();
+    void testDurationBetweenRecurringJobInstancesForCronJob() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
+        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
+
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
     }
 
     @Test
-    void smallestIntervalForRecurringIntervalJobIs5Seconds() {
-        assertThatThrownBy(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(4).toString()).build()).isInstanceOf(IllegalArgumentException.class);
-        assertThatCode(() -> aDefaultRecurringJob().withIntervalExpression(Duration.ofSeconds(5).toString()).build()).doesNotThrowAnyException();
+    void testDurationBetweenRecurringJobInstancesForIntervalJob() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withIntervalExpression(ofMillis(200).toString()).build();
+        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofMillis(200));
+
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(1).toString()).build();
+        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
+
+        RecurringJob recurringJob3 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(5).toString()).build();
+        assertThat(recurringJob3.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
     }
 }

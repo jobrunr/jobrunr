@@ -2,15 +2,23 @@ package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.lambdas.*;
+import org.jobrunr.jobs.lambdas.IocJobLambda;
+import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
+import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.lang.Boolean.TRUE;
@@ -35,107 +43,98 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
     @Override
     public JobDetails toJobDetails(JobLambda lambda) {
-        cache.computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate));
-        return cache.get(lambda.getClass()).getJobDetails(lambda);
+        return cache
+                .computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate))
+                .getJobDetails(lambda);
     }
 
     @Override
     public JobDetails toJobDetails(IocJobLambda<?> lambda) {
-        cache.computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate));
-        return cache.get(lambda.getClass()).getJobDetails(lambda);
+        return cache
+                .computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate))
+                .getJobDetails(lambda);
     }
 
     @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
-        cache.computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate));
-        return cache.get(lambda.getClass()).getJobDetails(itemFromStream, lambda);
+        return cache
+                .computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate))
+                .getJobDetails(itemFromStream, lambda);
     }
 
     @Override
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-        cache.computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate));
-        return cache.get(lambda.getClass()).getJobDetails(itemFromStream, lambda);
+        return cache
+                .computeIfAbsent(lambda.getClass(), clazz -> new CacheableJobDetails(delegate))
+                .getJobDetails(itemFromStream, lambda);
     }
 
     private static class CacheableJobDetails {
 
         private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
         private final JobDetailsGenerator jobDetailsGeneratorDelegate;
-        private final ReentrantLock jobDetailsLock;
-        private JobDetails jobDetails;
+        private volatile JobDetails jobDetails;
         private List<JobParameterRetriever> jobParameterRetrievers;
 
         private CacheableJobDetails(JobDetailsGenerator jobDetailsGeneratorDelegate) {
             this.jobDetailsGeneratorDelegate = jobDetailsGeneratorDelegate;
-            this.jobDetailsLock = new ReentrantLock();
         }
 
         public JobDetails getJobDetails(JobLambda lambda) {
-            if (jobDetails == null) {
-                jobDetailsLock.lock();
-                try {
-                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
-                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
-                    return jobDetails;
-                } finally {
-                    jobDetailsLock.unlock();
-                }
-            } else if (TRUE.equals(jobDetails.getCacheable())) {
-                return getCachedJobDetails(lambda, Optional.empty());
-            } else {
-                return jobDetailsGeneratorDelegate.toJobDetails(lambda);
-            }
+            return initOrGetJobDetails(
+                    () -> jobDetailsGeneratorDelegate.toJobDetails(lambda),
+                    () -> initJobParameterRetrievers(jobDetails, lambda, Optional.empty()),
+                    () -> getCachedJobDetails(lambda, Optional.empty()));
         }
 
         public JobDetails getJobDetails(IocJobLambda<?> lambda) {
-            if (jobDetails == null) {
-                jobDetailsLock.lock();
-                try {
-                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(lambda);
-                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.empty());
-                    return jobDetails;
-                } finally {
-                    jobDetailsLock.unlock();
-                }
-            } else if (TRUE.equals(jobDetails.getCacheable())) {
-                return getCachedJobDetails(lambda, Optional.empty());
-            } else {
-                return jobDetailsGeneratorDelegate.toJobDetails(lambda);
-            }
+            return initOrGetJobDetails(
+                    () -> jobDetailsGeneratorDelegate.toJobDetails(lambda),
+                    () -> initJobParameterRetrievers(jobDetails, lambda, Optional.empty()),
+                    () -> getCachedJobDetails(lambda, Optional.empty()));
         }
 
         public <T> JobDetails getJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
-            if (jobDetails == null) {
-                jobDetailsLock.lock();
-                try {
-                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
-                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
-                    return jobDetails;
-                } finally {
-                    jobDetailsLock.unlock();
-                }
-            } else if (TRUE.equals(jobDetails.getCacheable())) {
-                return getCachedJobDetails(lambda, Optional.of(itemFromStream));
-            } else {
-                return jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
-            }
+            return initOrGetJobDetails(
+                    () -> jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda),
+                    () -> initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream)),
+                    () -> getCachedJobDetails(lambda, Optional.of(itemFromStream)));
         }
 
         public <S, T> JobDetails getJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-            if (jobDetails == null) {
-                jobDetailsLock.lock();
-                try {
-                    jobDetails = jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
-                    jobParameterRetrievers = initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream));
-                    return jobDetails;
-                } finally {
-                    jobDetailsLock.unlock();
-                }
-            } else if (TRUE.equals(jobDetails.getCacheable())) {
-                return getCachedJobDetails(lambda, Optional.of(itemFromStream));
-            } else {
-                return jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda);
+            return initOrGetJobDetails(
+                    () -> jobDetailsGeneratorDelegate.toJobDetails(itemFromStream, lambda),
+                    () -> initJobParameterRetrievers(jobDetails, lambda, Optional.of(itemFromStream)),
+                    () -> getCachedJobDetails(lambda, Optional.of(itemFromStream)));
+        }
+
+        private JobDetails initOrGetJobDetails(Supplier<JobDetails> jobDetailsSupplier, Supplier<List<JobParameterRetriever>> jobParameterRetrieverSupplier, Supplier<JobDetails> getJobDetailsUsingCache) {
+            if (this.jobDetails == null) {
+                JobDetails jobDetails = initJobDetails(jobDetailsSupplier, jobParameterRetrieverSupplier);
+                if (jobDetails != null) return jobDetails;
             }
+
+            if (TRUE.equals(this.jobDetails.getCacheable())) {
+                return getJobDetailsUsingCache.get();
+            } else {
+                return jobDetailsSupplier.get();
+            }
+        }
+
+        /**
+         * On first initialization, this creates the JobDetails, determines whether it is cacheable and returns it.
+         *
+         * @param jobDetailsSupplier            a Supplier to use when the {@link JobDetails} are null.
+         * @param jobParameterRetrieverSupplier a Supplier to use when the List of {@link JobParameterRetriever JobParameterRetrievers} are null.
+         * @return JobDetails if it was just initialized, null otherwise.
+         */
+        private synchronized JobDetails initJobDetails(Supplier<JobDetails> jobDetailsSupplier, Supplier<List<JobParameterRetriever>> jobParameterRetrieverSupplier) {
+            if (this.jobDetails == null) {
+                this.jobDetails = jobDetailsSupplier.get();
+                jobParameterRetrievers = jobParameterRetrieverSupplier.get();
+                return this.jobDetails;
+            }
+            return null;
         }
 
         private static <T> List<JobParameterRetriever> initJobParameterRetrievers(JobDetails jobDetails, JobRunrJob jobRunrJob, Optional<T> itemFromStream) {

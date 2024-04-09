@@ -1,15 +1,19 @@
 package org.jobrunr.storage.sql.common;
 
-import org.jobrunr.jobs.*;
+import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobListVersioner;
+import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.jobrunr.storage.PageRequest;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException;
+import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
-import org.jobrunr.storage.sql.common.db.dialect.Dialect;
+import org.jobrunr.storage.sql.common.mapper.SqlJobPageRequestMapper;
 import org.jobrunr.utils.JobUtils;
 
 import java.sql.Connection;
@@ -25,16 +29,25 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
-import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobTable extends Sql<Job> {
 
     private final JobMapper jobMapper;
-    private static final SqlPageRequestMapper pageRequestMapper = new SqlPageRequestMapper();
+    private final SqlJobPageRequestMapper pageRequestMapper;
 
     public JobTable(Connection connection, Dialect dialect, String tablePrefix, JobMapper jobMapper) {
+        this.pageRequestMapper = new SqlJobPageRequestMapper(this, dialect);
         this.jobMapper = jobMapper;
         this
                 .using(connection, dialect, tablePrefix, "jobrunr_jobs")
@@ -62,6 +75,15 @@ public class JobTable extends Sql<Job> {
 
     public JobTable withUpdatedBefore(Instant updatedBefore) {
         with("updatedBefore", updatedBefore);
+        return this;
+    }
+
+    public JobTable with(String columnName, String sqlName, String value) {
+        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT).contains(columnName)) {
+            with(sqlName, Instant.parse(value));
+        } else {
+            with(sqlName, value);
+        }
         return this;
     }
 
@@ -110,25 +132,28 @@ public class JobTable extends Sql<Job> {
                 .selectCount("from jobrunr_jobs where state = :state");
     }
 
-    public List<Job> selectJobsByState(StateName state, PageRequest pageRequest) {
+    public List<Job> selectJobsByState(StateName state, AmountRequest amountRequest) {
         return withState(state)
-                .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state")
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 
-    public List<Job> selectJobsByState(StateName state, Instant updatedBefore, PageRequest pageRequest) {
+    public List<Job> selectJobsToProcess(AmountRequest amountRequest) {
+        return withState(ENQUEUED)
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state", pageRequestMapper.map(amountRequest) + dialect.selectForUpdateSkipLocked())
+                .collect(toList());
+    }
+
+    public List<Job> selectJobsByState(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         return withState(state)
                 .withUpdatedBefore(updatedBefore)
-                .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore")
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 
-    public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, PageRequest pageRequest) {
+    public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, AmountRequest amountRequest) {
         return withScheduledAt(scheduledBefore)
-                .withOrderLimitAndOffset(pageRequestMapper.map(pageRequest), pageRequest.getLimit(), pageRequest.getOffset())
-                .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt")
+                .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 
@@ -136,11 +161,6 @@ public class JobTable extends Sql<Job> {
         return select("distinct jobSignature from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")")
                 .map(resultSet -> resultSet.asString(FIELD_JOB_SIGNATURE))
                 .collect(Collectors.toSet());
-    }
-
-    public boolean exists(JobDetails jobDetails, StateName... states) throws SQLException {
-        return with(FIELD_JOB_SIGNATURE, getJobSignature(jobDetails))
-                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND jobSignature = :jobSignature");
     }
 
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
@@ -162,12 +182,6 @@ public class JobTable extends Sql<Job> {
                 .delete("from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore");
     }
 
-    @Override
-    public JobTable withOrderLimitAndOffset(String order, int limit, long offset) {
-        super.withOrderLimitAndOffset(order, limit, offset);
-        return this;
-    }
-
     void insertOneJob(Job jobToSave) throws SQLException {
         insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
     }
@@ -185,7 +199,11 @@ public class JobTable extends Sql<Job> {
     }
 
     private Stream<Job> selectJobs(String statement) {
-        final Stream<SqlResultSet> select = super.select(statement);
+        return selectJobs(statement, "");
+    }
+
+    private Stream<Job> selectJobs(String statement, String filter) {
+        final Stream<SqlResultSet> select = super.select(statement, filter);
         return select.map(this::toJob);
     }
 

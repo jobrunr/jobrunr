@@ -1,5 +1,6 @@
 package org.jobrunr.storage.sql.postgres;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
@@ -7,22 +8,37 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PostgresTablePrefixStorageProviderTest extends AbstractPostgresStorageProviderTest {
 
-    private static PGSimpleDataSource dataSource;
+    private static HikariDataSource dataSource;
+
+    @Override
+    protected DataSource getDataSource() {
+        if (dataSource == null) {
+            dataSource = toHikariDataSource(sqlContainer);
+        }
+        return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
+        dataSource = null;
+    }
 
     @BeforeAll
     void runInitScript() {
@@ -42,17 +58,6 @@ public class PostgresTablePrefixStorageProviderTest extends AbstractPostgresStor
     @Override
     protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
         return new DatabaseCleaner(dataSource, "SOME_SCHEMA.SOME_PREFIX_");
-    }
-
-    @Override
-    protected DataSource getDataSource() {
-        if (dataSource == null) {
-            dataSource = new PGSimpleDataSource();
-            dataSource.setURL(sqlContainer.getJdbcUrl());
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
-        }
-        return dataSource;
     }
 
     @AfterEach

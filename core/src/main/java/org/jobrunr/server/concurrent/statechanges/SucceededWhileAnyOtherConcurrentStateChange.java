@@ -2,18 +2,18 @@ package org.jobrunr.server.concurrent.statechanges;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolveResult;
 
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class SucceededWhileAnyOtherConcurrentStateChange extends AbstractAllowedConcurrentStateChange {
 
-    private final JobZooKeeper jobZooKeeper;
+    private final JobSteward jobSteward;
 
-    public SucceededWhileAnyOtherConcurrentStateChange(JobZooKeeper jobZooKeeper) {
+    public SucceededWhileAnyOtherConcurrentStateChange(JobSteward jobSteward) {
         super(null, StateName.SUCCEEDED);
-        this.jobZooKeeper = jobZooKeeper;
+        this.jobSteward = jobSteward;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class SucceededWhileAnyOtherConcurrentStateChange extends AbstractAllowed
             throw shouldNotHappenException("Should not happen as matches filter should be filtering out this StateChangeFilter");
         } else if (localJob.getState() == StateName.PROCESSING && storageProviderJob.getState() == StateName.SUCCEEDED) {
             localJob.delete("Job has already succeeded in StorageProvider");
-            final Thread threadProcessingJob = jobZooKeeper.getThreadProcessingJob(localJob);
+            final Thread threadProcessingJob = jobSteward.getThreadProcessingJob(localJob);
             if (threadProcessingJob != null) {
                 threadProcessingJob.interrupt();
             }

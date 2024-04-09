@@ -1,0 +1,6 @@
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    group 'org.jobrunr'
+}

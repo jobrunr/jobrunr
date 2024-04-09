@@ -8,33 +8,27 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
-import org.junit.jupiter.api.BeforeEach;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.*;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.lenient;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
 @ExtendWith(MockitoExtension.class)
 class JobTest {
 
-    @Mock
-    private BackgroundJobServer backgroundJobServer;
-
-    @BeforeEach
-    void setUpBackgroundJobServer() {
-        lenient().when(backgroundJobServer.getConfiguration()).thenReturn(usingStandardBackgroundJobServerConfiguration());
-    }
+    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     @Test
     void ifIdIsNullAnIdIsCreated() {
@@ -43,6 +37,15 @@ class JobTest {
 
         Job jobWithNullIdProvided = new Job(null, jobDetails().build());
         assertThat(jobWithNullIdProvided.getId()).isNotNull();
+    }
+
+    @Test
+    void ifIdIsNullThenTimeBasedIdsAreCreated() {
+        Job job1 = new Job(jobDetails().build());
+        Job job2 = new Job(jobDetails().build());
+        String job1IdSubstring = job1.getId().toString().substring(0, 6);
+        String job2IdSubstring = job2.getId().toString().substring(0, 6);
+        assertThat(job1IdSubstring).isEqualTo(job2IdSubstring);
     }
 
     @Test
@@ -88,9 +91,9 @@ class JobTest {
     @Test
     void succeededLatencyOnlyTakesIntoAccountStateFromEnqueuedToProcessing() {
         Job job = aJob()
-                .withState(new ScheduledState(Instant.now()), Instant.now().minusSeconds(600))
-                .withState(new EnqueuedState(), Instant.now().minusSeconds(60))
-                .withState(new ProcessingState(backgroundJobServer), Instant.now().minusSeconds(10))
+                .withState(new ScheduledState(now()), now().minusSeconds(600))
+                .withState(new EnqueuedState(), now().minusSeconds(60))
+                .withState(new ProcessingState(backgroundJobServer), now().minusSeconds(10))
                 .build();
         job.updateProcessing();
         job.succeeded();
@@ -101,6 +104,89 @@ class JobTest {
     }
 
     @Test
+    void testStateChangesOnCreateOfJobIfVersionEqualTo0() {
+        // WHEN
+        Job job = anEnqueuedJob()
+                .withVersion(0)
+                .withInitialStateChanges()
+                .build();
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+    }
+
+    @Test
+    void testNoStateChangesOnCreateOfJobIfVersionGreaterThan0() {
+        // WHEN
+        Job job = anEnqueuedJob()
+                .withVersion(1)
+                .withInitialStateChanges()
+                .build();
+        // THEN
+        assertThat(job.hasStateChange()).isFalse();
+        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+    }
+
+    @Test
+    void testStateChangesOnlyOneStateChange() {
+        // WHEN
+        Job job = anEnqueuedJob().withInitialStateChanges().build();
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+
+        // WHEN
+        job.startProcessingOn(backgroundJobServer);
+        job.updateProcessing();
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+    }
+
+    @Test
+    void testStateChangesMultipleStateChanges() {
+        // WHEN
+        Job job = anEnqueuedJob().withInitialStateChanges().build();
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+
+        // WHEN
+        job.delete("Via jobfilter");
+        job.scheduleAt(now().plusSeconds(10), "Via jobfilter");
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(2);
+        assertThat(job.hasStateChange()).isFalse();
+    }
+
+    @Test
+    void testStateChangesResetsStateChanges() {
+        // WHEN
+        Job job = anEnqueuedJob().withInitialStateChanges().build();
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.hasStateChange()).isFalse();
+
+        // WHEN
+        job.startProcessingOn(backgroundJobServer);
+
+        // THEN
+        assertThat(job.hasStateChange()).isTrue();
+        assertThat(job.getStateChangesForJobFilters()).hasSize(1);
+        assertThat(job.getStateChangesForJobFilters()).isEmpty();
+        assertThat(job.hasStateChange()).isFalse();
+    }
+
+    @Test
     void metadataIsClearedWhenAJobSucceeds() {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
@@ -108,7 +194,7 @@ class JobTest {
         job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
-        job.scheduleAt(Instant.now(), "failure before");
+        job.scheduleAt(now(), "failure before");
         assertThat(job).hasMetadata("key", "value");
 
         job.succeeded();
@@ -123,7 +209,7 @@ class JobTest {
         job.failed("En exception occurred", new RuntimeException("boem"));
         assertThat(job).hasMetadata("key", "value");
 
-        job.scheduleAt(Instant.now(), "failure before");
+        job.scheduleAt(now(), "failure before");
         assertThat(job).hasMetadata("key", "value");
 
         job.delete("From UI");
@@ -140,7 +226,7 @@ class JobTest {
             jobDashboardLogger.info("Message " + i);
 
             job.failed("Job failed", new IllegalStateException("Not important"));
-            job.scheduleAt(Instant.now(), "Retry");
+            job.scheduleAt(now(), "Retry");
             job.enqueue();
         }
 

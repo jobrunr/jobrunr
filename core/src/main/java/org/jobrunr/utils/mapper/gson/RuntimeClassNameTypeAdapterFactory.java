@@ -1,6 +1,12 @@
 package org.jobrunr.utils.mapper.gson;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -164,6 +170,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
         return registerSubtype(type, type.getSimpleName());
     }
 
+    @Override
     public <R> TypeAdapter<R> create(Gson gson, TypeToken<R> type) {
 
         final Map<String, TypeAdapter<?>> labelToDelegate = new LinkedHashMap<>();

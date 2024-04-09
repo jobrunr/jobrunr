@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +21,18 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     public void runOnStateElectionFilter() {
+        if(!job.hasStateChange()) return;
         electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
     }
 
     public void runOnStateAppliedFilters() {
-        applyStateFilters().forEach(catchThrowable(applyStateFilter -> applyStateFilter.onStateApplied(job, job.getJobState(-2), job.getJobState(-1))));
+        List<JobState> stateChanges = job.getStateChangesForJobFilters();
+        if (stateChanges.isEmpty()) return;
+        applyStateFilters().forEach(catchThrowable(applyStateFilter -> {
+            for (int i = stateChanges.size(); i >= 1; i--) {
+                applyStateFilter.onStateApplied(job, job.getJobState(-(i + 1)), job.getJobState(-(i)));
+            }
+        }));
     }
 
     public void runOnJobProcessingFilters() {
@@ -32,7 +40,6 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     public void runOnJobProcessingSucceededFilters() {
-        jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onProcessed(job)));
         jobServerFilters().forEach(catchThrowable(jobServerFilter -> jobServerFilter.onProcessingSucceeded(job)));
     }
 
@@ -45,15 +52,15 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     private Stream<ElectStateFilter> electStateFilters() {
-        return electStateFilters(jobFilters);
+        return electStateFilters(jobFilters());
     }
 
     private Stream<ApplyStateFilter> applyStateFilters() {
-        return applyStateFilters(jobFilters);
+        return applyStateFilters(jobFilters());
     }
 
     private Stream<JobServerFilter> jobServerFilters() {
-        return jobServerFilters(jobFilters);
+        return jobServerFilters(jobFilters());
     }
 
     private static Stream<ElectStateFilter> electStateFilters(List<JobFilter> jobFilters) {

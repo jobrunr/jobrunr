@@ -5,8 +5,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
 import static java.time.LocalDateTime.now;
@@ -100,16 +108,8 @@ class CronExpressionTest {
         int hour = now().getHour() + 1;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant now = Instant.now();
-
         Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault());
-
-        Instant expectedNextInstant = OffsetDateTime.ofInstant(now, UTC)
-                .withHour(now().withHour(hour).atZone(systemDefault()).withZoneSameInstant(UTC).getHour())
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0)
-                .toInstant();
+        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(ChronoUnit.HOURS).toInstant();;
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
@@ -716,7 +716,7 @@ class CronExpressionTest {
                 arguments("0 0 0 29 2 5", "2019-01-01 00:00:00", "2019-02-01 00:00:00"),
 
                 // github issue 31
-                arguments("36 9 * * *","2020-09-08 09:40:00",  "2020-09-09 09:36:00"),
+                arguments("36 9 * * *", "2020-09-08 09:40:00", "2020-09-09 09:36:00"),
 
                 // last day of month
                 arguments("0 0 0 * * 4l", "2019-01-01 00:00:00", "2019-01-31 00:00:00"),

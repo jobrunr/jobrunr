@@ -2,7 +2,6 @@ package org.jobrunr.server;
 
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
@@ -32,16 +31,10 @@ class BackgroundJobServerConfigurationTest {
     }
 
     @Test
-    void ifDefaultPollIntervalInSecondsSmallerThan5ThenExceptionIsThrown() {
-        assertThatThrownBy(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(4))
+    void isServerTimeoutMultiplicandIsSmallerThan4AnExceptionIsThrown() {
+        assertThatThrownBy(() -> backgroundJobServerConfiguration.andServerTimeoutPollIntervalMultiplicand(3))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("The pollIntervalInSeconds can not be smaller than 5 - otherwise it will cause to much load on your SQL/noSQL datastore.");
-    }
-
-    @Test
-    void ifDefaultPollIntervalInSeconds5OrHigherThenNoExceptionIsThrown() {
-        assertThatCode(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(5)).doesNotThrowAnyException();
-        assertThatCode(() -> backgroundJobServerConfiguration.andPollIntervalInSeconds(15)).doesNotThrowAnyException();
+                .hasMessage("The smallest possible ServerTimeoutPollIntervalMultiplicand is 4 (4 is also the default)");
     }
 
 }

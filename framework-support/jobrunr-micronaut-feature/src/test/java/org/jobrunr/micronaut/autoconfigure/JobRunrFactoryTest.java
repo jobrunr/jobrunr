@@ -15,6 +15,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.time.Duration;
+
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 
@@ -100,17 +102,21 @@ class JobRunrFactoryTest {
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.name", value = "test")
+    @Property(name = "jobrunr.background-job-server.worker-count", value = "4")
     @Property(name = "jobrunr.background-job-server.scheduled-jobs-request-size", value = "1")
     @Property(name = "jobrunr.background-job-server.orphaned-jobs-request-size", value = "2")
     @Property(name = "jobrunr.background-job-server.succeeded-jobs-request-size", value = "3")
+    @Property(name = "jobrunr.background-job-server.interrupt-jobs-await-duration-on-stop", value = "PT20S")
     void backgroundJobServerAutoConfigurationTakesIntoAccountAllJobsRequestSizes() {
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
 
         assertThat(backgroundJobServerConfiguration)
+                .hasName("test")
+                .hasWorkerCount(4)
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
-                .hasSucceededJobRequestSize(3);
+                .hasSucceededJobRequestSize(3)
+                .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
     }
-
-
 }

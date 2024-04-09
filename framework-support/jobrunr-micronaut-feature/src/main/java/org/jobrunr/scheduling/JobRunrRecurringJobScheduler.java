@@ -3,8 +3,8 @@ package org.jobrunr.scheduling;
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.utils.StringUtils;
@@ -46,7 +46,7 @@ public class JobRunrRecurringJobScheduler {
             if (id == null) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
-                jobScheduler.delete(id);
+                jobScheduler.deleteRecurringJob(id);
             }
         } else {
             JobDetails jobDetails = getJobDetails(method);

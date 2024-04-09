@@ -67,4 +67,11 @@ class StringUtilsTest {
         assertThat(substringBetween("${some.string}", "${", "}")).isEqualTo("some.string");
         assertThat(substringBetween("some.string", "${", "}")).isNull();
     }
+
+    @Test
+    void testLenientSubstringBetween() {
+        assertThat(lenientSubstringBetween("open=some.string&close", "open=", "&close")).isEqualTo("some.string");
+        assertThat(lenientSubstringBetween("open=some.string", "open=", "&close")).isEqualTo("some.string");
+        assertThat(lenientSubstringBetween(null, "open=", "&close")).isNull();
+    }
 }

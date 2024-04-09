@@ -3,8 +3,8 @@ package org.jobrunr.quarkus.it;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.quarkus.annotations.Recurring;
 
 
 @ApplicationScoped

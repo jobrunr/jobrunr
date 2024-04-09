@@ -30,4 +30,9 @@ public class JsonbJsonMapperTest extends AbstractJsonMapperTest {
     @Disabled("https://github.com/eclipse-ee4j/yasson/issues/641")
     void testCanSerializeEnums() {
     }
+
+    @Test
+    @Disabled("https://github.com/eclipse-ee4j/yasson/issues/641")
+    void testCanSerializeAndDeserializeWithAllFieldsNotNull() {
+    }
 }

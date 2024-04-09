@@ -15,7 +15,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static org.jobrunr.utils.reflection.ReflectionUtils.*;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
+import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobUtils {
 

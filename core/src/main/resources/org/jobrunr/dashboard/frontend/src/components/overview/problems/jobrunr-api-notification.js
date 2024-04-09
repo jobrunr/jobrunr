@@ -1,39 +1,14 @@
-import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import {Alert, AlertTitle} from '@material-ui/lab';
+import {ProblemNotification} from "./problem-notification";
 
-const useStyles = makeStyles(theme => ({
-    alert: {
-        marginBottom: '2rem',
-    },
-    alertTitle: {
-        lineHeight: 1,
-        margin: 0
-    }
-}));
+export const getApiNotificationProblem = (apiNotification) => {
+    if (!apiNotification) return;
+    return {...apiNotification, type: "api-notification"};
+}
 
-const JobRunrApiNotification = (props) => {
-    const classes = useStyles();
-
-    const [notification, setNotification] = React.useState(null);
-
-    React.useEffect(() => {
-        fetch(`https://api.jobrunr.io/api/notifications/jobrunr`)
-            .then(res => res.json())
-            .then(response => {
-                setNotification(response);
-            })
-            .catch(error => console.log('No JobRunr notifications!'));
-    }, []);
-
-
-    if (notification) {
-        return <Alert className={classes.alert} severity="info">
-            <AlertTitle><h4 className={classes.alertTitle}>{notification.title}</h4></AlertTitle>
-            <span dangerouslySetInnerHTML={{__html: notification.body}}/>
-        </Alert>
-    }
-    return null;
+const JobRunrApiNotification = ({problem}) => {
+    return <ProblemNotification severity="info" title={problem.title}>
+        <span dangerouslySetInnerHTML={{__html: problem.body}}/>
+    </ProblemNotification>
 };
 
 export default JobRunrApiNotification;

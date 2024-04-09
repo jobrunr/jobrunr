@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.48.0'
+    id 'com.github.ben-manes.versions' version '0.51.0'
     id 'org.sonarqube' version '4.4.1.3373'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
     id 'signing'
@@ -47,7 +47,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     compileTestJava {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        compileTestJava.options.encoding = 'UTF-8'
+        options.encoding = "UTF-8"
     }
 
     javadoc {
@@ -108,6 +108,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             property "sonar.sourceEncoding", "UTF-8"
             property "sonar.projectKey", "jobrunr_jobrunr"
             property "sonar.organization", "jobrunr"
+            property "sonar.branch.name", System.getenv("DRONE_BRANCH") ?: "master"
             property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
         }
     }

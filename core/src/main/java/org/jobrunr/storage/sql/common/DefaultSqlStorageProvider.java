@@ -1,16 +1,25 @@
 package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.*;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.storage.AbstractStorageProvider;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Transaction;
-import org.jobrunr.storage.sql.common.db.dialect.Dialect;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
@@ -22,7 +31,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -63,7 +76,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         if (databaseOptions == CREATE) {
             getDatabaseCreator()
                     .runMigrations();
-        } else {
+        } else if (databaseOptions == SKIP_CREATE) {
             getDatabaseCreator()
                     .validateTables();
         }
@@ -213,42 +226,61 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public List<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
+    public long countJobs(StateName state) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, pageRequest);
+            return jobTable(conn).countJobs(state);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public List<Job> getJobs(StateName state, PageRequest pageRequest) {
+    public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsByState(state, pageRequest);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-
-    }
-
-    @Override
-    public List<Job> getJobs(StateName state, Instant updatedBefore, PageRequest pageRequest) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsByState(state, updatedBefore, pageRequest);
+            return jobTable(conn).selectJobsByState(state, updatedBefore, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public Page<Job> getJobPage(StateName state, PageRequest pageRequest) {
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            long count = jobTable(conn).countJobs(state);
-            if (count > 0 && pageRequest.getLimit() > 0) {
-                List<Job> jobs = jobTable(conn).selectJobsByState(state, pageRequest);
-                return new Page<>(count, jobs, pageRequest);
+            return jobTable(conn).selectJobsByState(state, amountRequest);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, amountRequest);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public List<Job> getJobsToProcess(BackgroundJobServer backgroundJobServer, AmountRequest amountRequest) {
+        JobFilterUtils jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
+        try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
+            List<Job> jobs = jobTable(conn).selectJobsToProcess(amountRequest);
+            try {
+                jobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
+                jobFilterUtils.runOnStateElectionFilter(jobs);
+                List<Job> jobsToProcess = jobTable(conn).save(jobs);
+                transaction.commit();
+                jobFilterUtils.runOnStateAppliedFilters(jobsToProcess);
+                return jobsToProcess.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
+            } catch (ConcurrentJobModificationException e) {
+                List<Job> actualSavedJobs = new ArrayList<>(jobs);
+                Set<UUID> concurrentUpdatedJobIds = e.getConcurrentUpdatedJobs().stream().map(Job::getId).collect(toSet());
+                actualSavedJobs.removeIf(j -> concurrentUpdatedJobIds.contains(j.getId()));
+                transaction.commit();
+                jobFilterUtils.runOnStateAppliedFilters(actualSavedJobs);
+                return actualSavedJobs.stream().filter(job -> job.hasState(PROCESSING)).collect(toList());
             }
-            return new Page<>(count, new ArrayList<>(), pageRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -288,15 +320,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public boolean exists(JobDetails jobDetails, StateName... states) {
-        try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).exists(jobDetails, states);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn).recurringJobExists(recurringJobId, states);
@@ -330,15 +353,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         try (final Connection conn = dataSource.getConnection()) {
             Long lastModifiedHash = recurringJobTable(conn).selectSum(RecurringJobs.FIELD_CREATED_AT);
             return !recurringJobsUpdatedHash.equals(lastModifiedHash);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
-    }
-
-    @Override
-    public long countRecurringJobs() {
-        try (final Connection conn = dataSource.getConnection()) {
-            return recurringJobTable(conn).count();
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -397,5 +411,4 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     protected JobStatsView jobStatsView(Connection connection) {
         return new JobStatsView(connection, dialect, tablePrefix);
     }
-
 }

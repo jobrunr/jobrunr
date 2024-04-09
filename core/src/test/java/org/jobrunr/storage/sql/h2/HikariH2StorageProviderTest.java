@@ -1,9 +1,12 @@
 package org.jobrunr.storage.sql.h2;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.api.AfterAll;
+
+import java.sql.SQLException;
+
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 
 public class HikariH2StorageProviderTest extends SqlStorageProviderTest {
 
@@ -16,21 +19,13 @@ public class HikariH2StorageProviderTest extends SqlStorageProviderTest {
 
     protected HikariDataSource getDataSource(boolean autoCommit) {
         if (dataSource == null) {
-            deleteFile("/tmp/test-hikari.mv.db");
-            deleteFile("/tmp/test-hikari.trace.db");
-
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl("jdbc:h2:/tmp/test-hikari");
-            config.setUsername("sa");
-            config.setPassword("sa");
-            config.setAutoCommit(autoCommit);
-            dataSource = new HikariDataSource(config);
+            dataSource = toHikariDataSource("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "sa", autoCommit);
         }
         return dataSource;
     }
 
     @AfterAll
-    public static void destroyDatasource() {
+    public static void destroyDatasource() throws SQLException {
         dataSource.close();
         dataSource = null;
     }

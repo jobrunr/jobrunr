@@ -36,7 +36,7 @@ public class MatchUrl {
         Iterator<UrlPathPart> iter1 = new MatchUrl(matchUrl).pathParts.iterator();
         Iterator<UrlPathPart> iter2 = pathParts.iterator();
         while (iter1.hasNext() && iter2.hasNext())
-            if (!(iter1.next().matches(iter2.next()))) return false;
+            if (!iter1.next().matches(iter2.next())) return false;
 
         return !iter1.hasNext() && !iter2.hasNext();
     }

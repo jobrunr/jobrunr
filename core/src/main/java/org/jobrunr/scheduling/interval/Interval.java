@@ -18,17 +18,11 @@ public class Interval extends Schedule {
         this.duration = Duration.parse(durationExpression);
     }
 
+    @Override
     public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();
         return createdAtInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));
-    }
-
-    @Override
-    public void validateSchedule() {
-        if (duration.getSeconds() < SMALLEST_SCHEDULE_IN_SECONDS) {
-            throw new IllegalArgumentException(String.format("The smallest interval for recurring jobs is %d seconds. Please also make sure that your 'pollIntervalInSeconds' configuration matches the smallest recurring job interval.", SMALLEST_SCHEDULE_IN_SECONDS));
-        }
     }
 
     @Override

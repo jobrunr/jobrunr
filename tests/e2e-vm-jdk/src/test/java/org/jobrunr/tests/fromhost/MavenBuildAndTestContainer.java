@@ -1,5 +1,8 @@
 package org.jobrunr.tests.fromhost;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.ImageFromDockerfile;
@@ -11,6 +14,8 @@ import static java.nio.file.Files.exists;
 
 public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTestContainer> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenBuildAndTestContainer.class);
+
     public MavenBuildAndTestContainer(String fromDockerImage) {
         super(new ImageFromDockerfile()
                 .withDockerfileFromBuilder(builder ->
@@ -20,11 +25,13 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
                                 .env("JDK_TEST", "true")
                 ));
         if (exists(Paths.get("/drone"))) {
+            LOGGER.info("Running inside CI / Drone Build Container");
             this
-                    .withFileSystemBind(Paths.get("/tmp/jobrunr/cache/gradle-wrapper").toString(), "/root/.gradle/wrapper/dists");
+                    .withFileSystemBind("/volume2/docker/jobrunr-services/drone-work-dir/m2/cache", "/root/.m2", BindMode.READ_WRITE);
         } else {
+            LOGGER.info("Running on developer machine");
             this
-                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".m2").toString(), "/root/.m2");
+                    .withFileSystemBind(Paths.get(System.getProperty("user.home"), ".m2").toString(), "/root/.m2", BindMode.READ_WRITE);
         }
 
         this

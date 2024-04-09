@@ -1,33 +1,5 @@
-import Accordion from "@material-ui/core/Accordion";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import Alert from "@material-ui/lab/Alert";
-import Typography from "@material-ui/core/Typography";
-import React from "react";
-import {makeStyles} from "@material-ui/core/styles";
-import {Check} from "mdi-material-ui";
 import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
-import SwitchableTimeAgo from "../../utils/time-ago";
-
-const useStyles = makeStyles(theme => ({
-    primaryHeading: {
-        textTransform: "none",
-        lineHeight: "inherit"
-    },
-    secondaryHeading: {
-        alignSelf: 'center',
-        marginLeft: 'auto'
-    },
-    alert: {
-        padding: 0
-    },
-    success: {
-        color: "rgb(30, 70, 32)",
-        backgroundColor: "rgb(237, 247, 237)",
-        minHeight: 56
-    }
-}));
+import {JobState} from "./job-state";
 
 const getDuration = (duration) => {
     try {
@@ -49,6 +21,8 @@ const getDuration = (duration) => {
         }
         if (seconds > 0) {
             result += seconds.toFixed(2) + " seconds"
+        } else if (result === '') {
+            result += "less than 10ms"
         }
         return result;
     } catch (e) {
@@ -57,35 +31,18 @@ const getDuration = (duration) => {
     }
 }
 
-const Succeeded = (props) => {
-    const classes = useStyles();
-    const jobState = props.jobState;
-    const checkIcon = <Check/>
-
+const Succeeded = ({jobState}) => {
     return (
-        <Accordion>
-            <AccordionSummary
-                className={classes.success}
-                id="succeeded-panel-header"
-                expandIcon={<ExpandMore/>}
-                aria-controls="succeeded-panel-content"
-            >
-                <Alert className={classes.alert} severity="success" icon={checkIcon}>
-                    <Typography className={classes.primaryHeading} variant="h6">
-                        Job processing succeeded
-                    </Typography>
-                </Alert>
-                <Typography className={classes.secondaryHeading}>
-                    <SwitchableTimeAgo date={new Date(jobState.createdAt)} />
-                </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <ul>
-                    <li>Latency duration: {getDuration(jobState.latencyDuration)}</li>
-                    <li>Process duration: {getDuration(jobState.processDuration)}</li>
-                </ul>
-            </AccordionDetails>
-        </Accordion>
+        <JobState
+            state="success"
+            title="Job processing succeeded"
+            date={jobState.createdAt}
+        >
+            <ul style={{margin: 0, padding: 0, listStylePosition: "inside"}}>
+                <li>Latency duration: {getDuration(jobState.latencyDuration)}</li>
+                <li>Process duration: {getDuration(jobState.processDuration)}</li>
+            </ul>
+        </JobState>
     )
 };
 

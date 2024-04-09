@@ -1,6 +1,6 @@
 package org.jobrunr.storage.sql.db2;
 
-import com.ibm.db2.jcc.DB2SimpleDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
@@ -8,6 +8,7 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -17,25 +18,26 @@ import javax.sql.DataSource;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.doInTransaction;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
 
-    private static DB2SimpleDataSource dataSource;
+    private static HikariDataSource dataSource;
 
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            dataSource = new DB2SimpleDataSource();
-            dataSource.setServerName(sqlContainer.getHost());
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
-            dataSource.setDatabaseName(sqlContainer.getDatabaseName());
-            dataSource.setPortNumber(sqlContainer.getFirstMappedPort());
-            dataSource.setDriverType(4);
+            dataSource = toHikariDataSource(sqlContainer);
         }
         return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
+        dataSource = null;
     }
 
     @BeforeAll
@@ -60,7 +62,7 @@ class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
 
     @AfterEach
     void checkTablesCreatedWithCorrectPrefix() {
-        assertThat(dataSource)
+        assertThat(getDataSource())
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_MIGRATIONS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_SCHEMA", "SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")

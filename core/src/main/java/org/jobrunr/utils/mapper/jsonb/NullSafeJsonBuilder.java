@@ -1,6 +1,10 @@
 package org.jobrunr.utils.mapper.jsonb;
 
-import jakarta.json.*;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 
 import java.math.BigDecimal;
@@ -36,35 +40,29 @@ public class NullSafeJsonBuilder implements JsonObjectBuilder {
     @Override
     public NullSafeJsonBuilder add(String name, JsonValue value) {
         if (value != null) delegate.add(name, value);
-        else delegate.addNull(name);
         return this;
     }
 
     @Override
     public NullSafeJsonBuilder add(String name, String value) {
         if (value != null) delegate.add(name, value);
-        else delegate.addNull(name);
         return this;
     }
 
     public NullSafeJsonBuilder add(String name, UUID value) {
         if (value != null) delegate.add(name, value.toString());
-        else delegate.addNull(name);
         return this;
     }
 
     @Override
     public NullSafeJsonBuilder add(String name, BigInteger value) {
         if (value != null) delegate.add(name, value);
-        else delegate.addNull(name);
         return this;
     }
 
     @Override
     public NullSafeJsonBuilder add(String name, BigDecimal value) {
         if (value != null) delegate.add(name, value);
-        else delegate.addNull(name);
-
         return this;
     }
 
@@ -76,13 +74,11 @@ public class NullSafeJsonBuilder implements JsonObjectBuilder {
 
     public NullSafeJsonBuilder add(String name, Integer value) {
         if (value != null) add(name, value.intValue());
-        else addNull(name);
         return this;
     }
 
     public NullSafeJsonBuilder add(String name, Long value) {
         if (value != null) add(name, value.longValue());
-        else addNull(name);
         return this;
     }
 
@@ -112,15 +108,13 @@ public class NullSafeJsonBuilder implements JsonObjectBuilder {
 
     @Override
     public NullSafeJsonBuilder add(String name, JsonObjectBuilder builder) {
-        if (builder != null)
-            delegate.add(name, builder);
+        if (builder != null) delegate.add(name, builder);
         return this;
     }
 
     @Override
     public NullSafeJsonBuilder add(String name, JsonArrayBuilder builder) {
-        if (builder != null)
-            delegate.add(name, builder);
+        if (builder != null) delegate.add(name, builder);
         return this;
     }
 

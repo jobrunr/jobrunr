@@ -1,55 +1,27 @@
-import React from 'react';
-import {Link, useHistory, useLocation} from "react-router-dom";
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TablePagination from '@material-ui/core/TablePagination';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import {Link, useLocation, useNavigate} from "react-router-dom";
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TablePagination from '@mui/material/TablePagination';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import TimeAgo from "react-timeago/lib";
-import {makeStyles} from '@material-ui/core/styles';
 import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "./job-label";
+import {ItemsNotFound} from "./items-not-found";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        width: '100%',
-        //maxWidth: 360,
-        backgroundColor: theme.palette.background.paper,
-    },
-    content: {
-        width: '100%',
-    },
-    table: {
-        width: '100%',
-    },
-    noItemsFound: {
-        padding: '1rem'
-    },
-    idColumn: {
-        maxWidth: 0,
-        width: '20%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-    },
-    jobNameColumn: {
-        width: '60%'
-    },
-    inline: {
-        display: 'inline',
-    },
-}));
+const IdColumn = styled(TableCell)`
+    width: 20%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
 
-const JobsTable = (props) => {
-    const classes = useStyles();
+const JobsTable = ({jobPage, jobState, isLoading}) => {
     const location = useLocation();
-    const history = useHistory();
-    const isLoading = props.isLoading;
-    const jobPage = props.jobPage;
-    const jobState = props.jobState;
+    const navigate = useNavigate();
 
     let column;
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
@@ -80,34 +52,33 @@ const JobsTable = (props) => {
     const handleChangePage = (event, newPage) => {
         let urlSearchParams = new URLSearchParams(location.search);
         urlSearchParams.set("page", newPage);
-        history.push(`?${urlSearchParams.toString()}`);
+        navigate(`?${urlSearchParams.toString()}`);
     };
 
     return (
         <> {isLoading
             ? <LoadingIndicator/>
             : <> {jobPage.items < 1
-                ? <Typography id="no-jobs-found-message" variant="body1" className={classes.noItemsFound}>No jobs
-                    found</Typography>
+                ? <ItemsNotFound id="no-jobs-found-message">No jobs found</ItemsNotFound>
                 : <>
                     <TableContainer>
-                        <Table id="jobs-table" className={classes.table} aria-label="jobs table">
+                        <Table id="jobs-table" style={{width: "100%"}} aria-label="jobs table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell className={classes.idColumn}>Id</TableCell>
-                                    <TableCell className={classes.jobNameColumn}>Job details</TableCell>
+                                    <IdColumn>Id</IdColumn>
+                                    <TableCell style={{width: '60%'}}>Job details</TableCell>
                                     <TableCell>{column}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {jobPage.items.map(job => (
                                     <TableRow key={job.id}>
-                                        <TableCell component="th" scope="row" className={classes.idColumn}>
+                                        <IdColumn component="th" scope="row">
                                             <Link to={{
                                                 pathname: `/dashboard/jobs/${job.id}`,
                                                 job: job
                                             }}>{job.id}</Link>
-                                        </TableCell>
+                                        </IdColumn>
                                         <TableCell>
                                             {job.labels &&
                                                 <>

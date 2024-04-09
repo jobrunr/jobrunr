@@ -23,6 +23,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
 
     public static final TypeAdapterFactory FACTORY = new TypeAdapterFactory() {
+        @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
             return type.getRawType() == Object.class ? (TypeAdapter<T>) new ClassNameObjectTypeAdapter(gson) : null;
         }
@@ -34,6 +35,7 @@ public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
         this.gson = gson;
     }
 
+    @Override
     public Object read(JsonReader in) throws IOException {
         JsonToken token = in.peek();
         switch (token) {
@@ -78,6 +80,7 @@ public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
         }
     }
 
+    @Override
     public void write(JsonWriter out, Object value) throws IOException {
         if (value == null) {
             out.nullValue();

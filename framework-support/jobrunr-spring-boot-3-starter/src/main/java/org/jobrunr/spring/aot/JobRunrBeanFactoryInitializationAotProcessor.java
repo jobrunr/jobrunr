@@ -9,14 +9,29 @@ import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
-import org.jobrunr.jobs.states.*;
-import org.jobrunr.spring.annotations.Recurring;
-import org.jobrunr.storage.*;
+import org.jobrunr.jobs.states.AbstractJobState;
+import org.jobrunr.jobs.states.DeletedState;
+import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.JobStatsExtended;
+import org.jobrunr.storage.Page;
+import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
@@ -33,17 +48,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.MethodMetadata;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -87,7 +108,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static Set<String> findAllJobRequestHandlerClassNames(ConfigurableListableBeanFactory beanFactory) {
         return stream(beanFactory.getBeanNamesForType(JobRequestHandler.class))
-                .map(bn -> beanFactory.getBeanDefinition(bn).getBeanClassName())
+                .map(bn -> mapBeanNameToClassName(beanFactory, bn))
                 .collect(toSet());
     }
 
@@ -100,6 +121,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static void registerAllJobRequestHandlers(RuntimeHints hints, Set<String> jobRequestHandlerClassNames) {
         for (String clazz : jobRequestHandlerClassNames) {
+            System.out.println("Registering class: " + jobRequestHandlerClassNames);
             Class clazzObject = toClass(clazz);
             hints.reflection().registerType(clazzObject, allMemberCategories);
             Method runMethod = Stream.of(clazzObject.getMethods()).filter(m -> m.getName().equals("run")).toList().get(0);
@@ -139,7 +161,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
                 // JobRunr Job Annotations
                 .registerType(org.jobrunr.jobs.annotations.Job.class, allMemberCategories).registerType(Recurring.class, allMemberCategories)
                 // JobRunr Job Dashboard
-                .registerType(JobDashboardLogger.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLine.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLines.class, allMemberCategories).registerType(Problem.class, allMemberCategories).registerType(Page.class, allMemberCategories).registerType(BackgroundJobServerStatus.class, allMemberCategories).registerType(JobStats.class, allMemberCategories).registerType(JobStatsExtended.class, allMemberCategories).registerType(PageRequest.class, allMemberCategories).registerType(RecurringJobUIModel.class, allMemberCategories).registerType(VersionUIModel.class, allMemberCategories).registerType(SseExchange.class, allMemberCategories);
+                .registerType(JobDashboardLogger.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLine.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLines.class, allMemberCategories).registerType(Problem.class, allMemberCategories).registerType(Page.class, allMemberCategories).registerType(BackgroundJobServerStatus.class, allMemberCategories).registerType(JobStats.class, allMemberCategories).registerType(JobStatsExtended.class, allMemberCategories).registerType(AmountRequest.class, allMemberCategories).registerType(OffsetBasedPageRequest.class, allMemberCategories).registerType(RecurringJobUIModel.class, allMemberCategories).registerType(VersionUIModel.class, allMemberCategories).registerType(SseExchange.class, allMemberCategories);
     }
 
     private static void registerRequiredResources(RuntimeHints hints) {
@@ -187,6 +209,17 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
         } catch (ClassNotFoundException shouldNotHappen) {
             throw new IllegalStateException("Spring provided a className which is not on the classpath", shouldNotHappen);
         }
+    }
+
+    private static String mapBeanNameToClassName(ConfigurableListableBeanFactory beanFactory, String bn) {
+        BeanDefinition beanDefinition = beanFactory.getBeanDefinition(bn);
+        if(beanDefinition instanceof AnnotatedBeanDefinition) {
+            MethodMetadata factoryMethodMetadata = ((AnnotatedBeanDefinition) beanDefinition).getFactoryMethodMetadata();
+            if (factoryMethodMetadata != null) {
+                return factoryMethodMetadata.getReturnTypeName();
+            }
+        }
+        return beanDefinition.getBeanClassName();
     }
 
     private static boolean registerHintByClassName(RuntimeHints runtimeHints, String className) {

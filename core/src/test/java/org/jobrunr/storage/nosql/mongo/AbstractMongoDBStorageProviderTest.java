@@ -26,8 +26,8 @@ import java.util.Arrays;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public abstract class AbstractMongoDBStorageProviderTest extends StorageProviderTest {
@@ -96,8 +96,8 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
         protected void makeStorageProviderThrowException(StorageProvider storageProvider) {
             MongoCollection mockedJobCollection = mock(MongoCollection.class);
             MongoException mongoException = mock(MongoException.class);
-            when(mockedJobCollection.updateOne(any(), (Bson) any())).thenThrow(mongoException);
-            when(mockedJobCollection.bulkWrite(any())).thenThrow(mongoException);
+            lenient().when(mockedJobCollection.updateOne(any(), (Bson) any())).thenThrow(mongoException);
+            lenient().when(mockedJobCollection.bulkWrite(any())).thenThrow(mongoException);
             setInternalState(storageProvider, "jobCollection", mockedJobCollection);
         }
     }

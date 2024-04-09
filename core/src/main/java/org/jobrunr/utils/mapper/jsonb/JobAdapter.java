@@ -13,7 +13,12 @@ import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobHistoryAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobLabelsAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobMetadataAdapter;
-import org.jobrunr.utils.mapper.jsonb.serializer.*;
+import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeDeserializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeSerializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
+import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
 
 import java.util.List;
 import java.util.Set;
@@ -32,7 +37,6 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
 
     public JobAdapter() {
         Jsonb jsonb = JsonbBuilder.create(new JsonbConfig()
-                .withNullValues(true)
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
                 .withSerializers(new PathTypeSerializer(), new FileTypeSerializer(), new DurationTypeSerializer())
                 .withDeserializers(new PathTypeDeserializer(), new FileTypeDeserializer(), new DurationTypeDeserializer())

@@ -1,32 +1,27 @@
 package org.jobrunr.storage.nosql.elasticsearch.migrations;
 
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.PutMappingRequest;
-import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 
 import java.io.IOException;
 
+import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider.DEFAULT_RECURRING_JOB_INDEX_NAME;
 
-public class M006_UpdateRecurringJobsIndex  extends ElasticSearchMigration {
+public class M006_UpdateRecurringJobsIndex extends ElasticSearchMigration {
 
     @Override
-    public void runMigration(RestHighLevelClient client, String indexPrefix) throws IOException {
+    public void runMigration(ElasticsearchClient client, String indexPrefix) throws IOException {
         final String recurringJobIndexName = elementPrefixer(indexPrefix, DEFAULT_RECURRING_JOB_INDEX_NAME);
 
-        updateIndex(client, recurringJobIndex(recurringJobIndexName));
+        updateIndex(client, index(recurringJobIndexName));
     }
 
-    private static PutMappingRequest recurringJobIndex(String recurringJobIndexName) {
-        return new PutMappingRequest(recurringJobIndexName)
-                .source(mapping(
-                        (sb, map) -> {
-                            sb.append(RecurringJobs.FIELD_CREATED_AT);
-                            map.put("type", "long");
-                            map.put("index", false);
-                            map.put("store", true);
-                        }
-                ));
+    private static PutMappingRequest index(String name) {
+        return new PutMappingRequest.Builder()
+                .index(name)
+                .properties(FIELD_CREATED_AT, p -> p.long_(l -> l.index(false).store(true)))
+                .build();
     }
 }

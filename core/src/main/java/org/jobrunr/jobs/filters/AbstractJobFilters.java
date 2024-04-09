@@ -15,17 +15,21 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceCE;
 
 public abstract class AbstractJobFilters {
-
     protected final AbstractJob job;
-    protected final List<JobFilter> jobFilters;
+    private final List<JobFilter> jobFilters;
 
     protected AbstractJobFilters(AbstractJob job, JobDefaultFilters jobDefaultFilters) {
         this.job = job;
         this.jobFilters = initJobFilters(job, jobDefaultFilters.getFilters());
+    }
+
+    protected List<JobFilter> jobFilters() {
+        return jobFilters;
     }
 
     protected List<JobFilter> initJobFilters(AbstractJob job, List<JobFilter> jobFilters) {
@@ -97,13 +101,22 @@ public abstract class AbstractJobFilters {
         }
     }
 
-    <T extends JobFilter> Consumer<T> catchThrowable(Consumer<T> consumer) {
-        return jobClientFilter -> {
+    final <T extends JobFilter> Consumer<T> catchThrowable(Consumer<T> consumer) {
+        return jobFilter -> {
             try {
-                consumer.accept(jobClientFilter);
+                long startTime = System.nanoTime();
+                consumer.accept(jobFilter);
+                long endTime = System.nanoTime();
+                logJobFilterTime(jobFilter, (endTime - startTime));
             } catch (Exception e) {
-                getLogger().error("Error evaluating jobfilter {}", jobClientFilter.getClass().getName(), e);
+                getLogger().error("Error evaluating JobFilter {}", jobFilter.getClass().getName(), e);
             }
         };
+    }
+
+    final void logJobFilterTime(JobFilter jobFilter, long durationInNanos) {
+        if (NANOSECONDS.toMillis(durationInNanos) > 10) {
+            getLogger().warn("JobFilter of type '{}' has slow performance (> 10ms) which negatively impacts the overall functioning of JobRunr. JobRunr Pro can run slow running Job Filters without a negative performance impact.", jobFilter.getClass().getName());
+        }
     }
 }

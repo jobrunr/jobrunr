@@ -2,8 +2,8 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.micronaut.annotations.Recurring;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,9 @@ import static io.micronaut.core.reflect.ReflectionUtils.getRequiredMethod;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrRecurringJobSchedulerTest {
@@ -74,7 +76,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).delete("my-recurring-job");
+        verify(jobScheduler).deleteRecurringJob("my-recurring-job");
     }
 
     @Test
@@ -111,7 +113,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).delete("my-recurring-job");
+        verify(jobScheduler).deleteRecurringJob("my-recurring-job");
     }
 
     @Test

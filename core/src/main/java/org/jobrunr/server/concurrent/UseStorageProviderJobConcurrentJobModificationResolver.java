@@ -2,7 +2,7 @@ package org.jobrunr.server.concurrent;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
-import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.JobSteward;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.utils.annotations.Beta;
 
@@ -17,10 +17,10 @@ import java.util.List;
 @Beta
 public class UseStorageProviderJobConcurrentJobModificationResolver implements ConcurrentJobModificationResolver {
 
-    private final JobZooKeeper jobZooKeeper;
+    private final JobSteward jobSteward;
 
-    public UseStorageProviderJobConcurrentJobModificationResolver(JobZooKeeper jobZooKeeper) {
-        this.jobZooKeeper = jobZooKeeper;
+    public UseStorageProviderJobConcurrentJobModificationResolver(JobSteward jobSteward) {
+        this.jobSteward = jobSteward;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class UseStorageProviderJobConcurrentJobModificationResolver implements C
 
     public ConcurrentJobModificationResolveResult resolve(final Job localJob, ConcurrentJobModificationException e) {
         failLocalIfPossible(localJob, e);
-        final Thread threadProcessingJob = jobZooKeeper.getThreadProcessingJob(localJob);
+        final Thread threadProcessingJob = jobSteward.getThreadProcessingJob(localJob);
         if (threadProcessingJob != null) {
             threadProcessingJob.interrupt();
         }

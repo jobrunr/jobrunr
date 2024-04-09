@@ -10,11 +10,13 @@ import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public class AllJVMInstructions {
 
     private static final Map<Integer, Function<JobDetailsBuilder, AbstractJVMInstruction>> instructions = new HashMap<>();
     private static final Map<Integer, String> unsupportedInstructions = new HashMap<>();
+    private static final Map<Integer, String> kotlinUnsupportedInstructions = new HashMap<>();
 
     static {
         instructions.put(Opcodes.AASTORE, AAStoreInstruction::new);
@@ -59,6 +61,8 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.GETSTATIC, GetStaticInstruction::new);
         instructions.put(Opcodes.RETURN, ReturnOperandInstruction::new);
         instructions.put(Opcodes.SIPUSH, SingleIntOperandInstruction::new);
+        // needed to support Jacoco
+        instructions.put(Opcodes.BASTORE, BAStoreOperandInstruction::new);
 
         String mathematicalPerformanceSuffix = " - for performance reasons it is better to do the calculation outside of the job lambda";
         asList(Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD)
@@ -71,6 +75,8 @@ public class AllJVMInstructions {
                 .forEach(instr -> unsupportedInstructions.put(instr, "You are dividing two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
         asList(Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM)
                 .forEach(instr -> unsupportedInstructions.put(instr, "You are calculating the remainder (%) for two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+
+        kotlinUnsupportedInstructions.put(Opcodes.ACONST_NULL, "You are (probably) using Kotlin default parameter values which is not supported by JobRunr.");
     }
 
     private AllJVMInstructions() {
@@ -82,6 +88,8 @@ public class AllJVMInstructions {
         if (instructionBuilder == null) {
             if (unsupportedInstructions.containsKey(opcode)) {
                 throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(unsupportedInstructions.get(opcode)));
+            } else if (classExists("kotlin.KotlinVersion") && kotlinUnsupportedInstructions.containsKey(opcode)) {
+                throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(kotlinUnsupportedInstructions.get(opcode)));
             }
             throw JobRunrException.shouldNotHappenException(new IllegalArgumentException("Instruction " + opcode + " not found"));
         }

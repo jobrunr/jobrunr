@@ -2,10 +2,10 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
-import org.jobrunr.spring.annotations.Recurring;
 import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +88,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
                 if (id == null) {
                     LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
-                    beanFactory.getBean(JobScheduler.class).delete(id);
+                    beanFactory.getBean(JobScheduler.class).deleteRecurringJob(id);
                 }
             } else {
                 JobDetails jobDetails = getJobDetails(method);

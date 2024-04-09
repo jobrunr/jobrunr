@@ -16,19 +16,20 @@ compileTestJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'ch.qos.logback:logback-classic:1.4.11'
+    implementation 'ch.qos.logback:logback-classic:1.5.3'
 
     testImplementation 'org.jobrunr:jobrunr:[5.2.0]:test-fixtures'
-    testImplementation 'com.google.code.gson:gson:2.8.7'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
 
     testImplementation 'org.assertj:assertj-core:3.20.2'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.27.0'
     testImplementation 'org.awaitility:awaitility:4.1.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
-    testImplementation 'org.testcontainers:testcontainers:1.19.0'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+    testImplementation 'org.testcontainers:testcontainers:1.19.7'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
 }
 
+test.dependsOn(':core:publishToMavenLocal')
 test {
     reports.junitXml.destination = file("/tmp/reports/$project.name")
     reports.html.destination = file("/tmp/reports/$project.name")

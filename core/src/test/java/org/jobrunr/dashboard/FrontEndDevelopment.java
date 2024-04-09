@@ -40,9 +40,9 @@ public class FrontEndDevelopment {
         StorageProvider storageProvider = inMemoryStorageProvider();
 
         //StubDataProvider.using(storageProvider)
-                //.addALotOfEnqueuedJobsThatTakeSomeTime()
-                //.addALotOfEnqueuedJobsThatTakeSomeTime()
-                //.addSomeRecurringJobs();
+        //.addALotOfEnqueuedJobsThatTakeSomeTime()
+        //.addALotOfEnqueuedJobsThatTakeSomeTime()
+        //.addSomeRecurringJobs();
 
         storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
@@ -50,6 +50,7 @@ public class FrontEndDevelopment {
 
         JobRunr
                 .configure()
+                .useJsonMapper(new JacksonJsonMapper())
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
                 .useBackgroundJobServer()
@@ -89,7 +90,7 @@ public class FrontEndDevelopment {
         return false;
     }
 
-    private static class ExceptionWithDiagnostics implements SevereJobRunrException.DiagnosticsAware {
+    private static class ExceptionWithDiagnostics extends Exception implements SevereJobRunrException.DiagnosticsAware {
 
         @Override
         public DiagnosticsBuilder getDiagnosticsInfo() {
