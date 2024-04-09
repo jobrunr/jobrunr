@@ -297,7 +297,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startStewardAndServerZooKeeper() {
-        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(2, 4, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(5, 5, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
         zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);

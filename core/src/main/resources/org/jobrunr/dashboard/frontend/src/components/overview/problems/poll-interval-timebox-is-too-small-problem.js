@@ -1,9 +1,9 @@
 import TimeAgo from "react-timeago/lib";
-import {DismissibleProblemNotification} from "./dismissible-problem-notification";
+import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
 
 const PollIntervalInSecondsIsTooSmallProblem = (props) => {
     return (
-        <DismissibleProblemNotification
+        <DismissibleInstanceProblemNotification
             endpoint="/api/problems/poll-interval-in-seconds-is-too-small"
             refresh={props.refresh}
         >
@@ -22,7 +22,7 @@ const PollIntervalInSecondsIsTooSmallProblem = (props) => {
                             title={new Date(problem.createdAt).toString()}/>.</li>
                 })}
             </ul>
-        </DismissibleProblemNotification>
+        </DismissibleInstanceProblemNotification>
     );
 };
 

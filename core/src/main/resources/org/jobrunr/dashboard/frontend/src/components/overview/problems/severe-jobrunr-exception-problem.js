@@ -3,7 +3,7 @@ import {Alert, Dialog, Link, Snackbar} from '@mui/material';
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
 import Highlight from '../../utils/highlighter';
-import {DismissibleProblemNotification} from "./dismissible-problem-notification";
+import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
 
 const SevereJobRunrExceptionProblem = (props) => {
     const [copyStatus, setCopyStatus] = useState(null);
@@ -32,7 +32,7 @@ const SevereJobRunrExceptionProblem = (props) => {
     }
 
     return (
-        <DismissibleProblemNotification
+        <DismissibleInstanceProblemNotification
             title="Fatal"
             severity="error"
             endpoint="/api/problems/severe-jobrunr-exception"
@@ -82,7 +82,7 @@ const SevereJobRunrExceptionProblem = (props) => {
                     </MuiDialogContent>
                 </Dialog>
             }
-        </DismissibleProblemNotification>
+        </DismissibleInstanceProblemNotification>
     );
 }
 

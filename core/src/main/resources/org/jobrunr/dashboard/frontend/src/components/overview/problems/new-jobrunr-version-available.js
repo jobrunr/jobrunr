@@ -1,6 +1,6 @@
-import {ProblemNotification} from "./problem-notification";
-import {useContext, useEffect, useState} from "react";
-import {JobRunrInfoContext} from "../../../JobRunrInfoContext";
+import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
+
+export const LATEST_DISMISSED_VERSION_STORAGE_KEY = "latestDismissedVersion";
 
 const getVersionParts = (version) => {
     const splitVersion = version.split("-");
@@ -23,24 +23,22 @@ const versionIsNewerThanOther = (version, otherVersion) => {
     return versionParts.qualifier.localeCompare(otherVersionParts.qualifier, "en", {sensitivity: "base"}) > 0;
 }
 
-const NewJobRunrVersionAvailable = () => {
-    const {version} = useContext(JobRunrInfoContext);
-    const [latestVersion, setLatestVersion] = useState();
+export const getNewVersionProblem = (currentVersion, latestVersion) => {
+    if (!latestVersion || !versionIsNewerThanOther(latestVersion, currentVersion)) return;
+    return {type: "new-jobrunr-version", latestVersion};
+}
 
-    useEffect(() => {
-        fetch("https://api.jobrunr.io/api/version/jobrunr/latest")
-            .then(res => res.json())
-            .then(data => setLatestVersion(data["latestVersion"]))
-            .catch(e => console.error(e));
-    }, []);
-
-    if (!latestVersion || !versionIsNewerThanOther(latestVersion, version)) return;
+const NewJobRunrVersionAvailable = ({problem: {latestVersion, reset}}) => {
+    const handleDismiss = () => {
+        localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
+        reset();
+    }
 
     return (
-        <ProblemNotification severity="info" title="Info">
+        <DismissibleInstanceProblemNotification severity="info" title="Info" onDismiss={handleDismiss}>
             JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
             performance improvements and new features.<br/>
-        </ProblemNotification>
+        </DismissibleInstanceProblemNotification>
     );
 };
 

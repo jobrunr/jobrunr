@@ -181,7 +181,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
-        this.metadata.put(metadata.getName() + "-" + metadata.getOwner(), metadata);
+        this.metadata.put(metadata.getId(), metadata);
         notifyMetadataChangeListeners();
     }
 
@@ -192,7 +192,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public JobRunrMetadata getMetadata(String key, String owner) {
-        return this.metadata.get(key + "-" + owner);
+        return this.metadata.get(JobRunrMetadata.toId(key, owner));
     }
 
     @Override
