@@ -6,7 +6,6 @@ name: default
 trigger:
   branch:
     - master
-    - v7
   event:
     - push
     - pull_request
