@@ -99,10 +99,8 @@ const AdminUI = function () {
     const problemsContext = useMemo(() => {
             const p = [...problems];
             if (latestVersion && localStorage.getItem(LATEST_DISMISSED_VERSION_STORAGE_KEY) !== latestVersion) {
-                p.push({
-                    ...getNewVersionProblem(jobRunrInfo.version, latestVersion),
-                    reset: resetLatestVersion
-                });
+                const newVersionProblem = getNewVersionProblem(jobRunrInfo.version, latestVersion);
+                if (newVersionProblem) p.push({...newVersionProblem, reset: resetLatestVersion});
             }
             if (apiNotification) p.push(getApiNotificationProblem(apiNotification));
 
