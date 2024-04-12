@@ -814,6 +814,9 @@ public abstract class StorageProviderTest {
         RecurringJobsResult recurringJobsResult4 = storageProvider.getRecurringJobs();
         assertThat(recurringJobsResult4).hasSize(1);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult4.getLastModifiedHash())).isFalse());
+
+        // DELETE NON EXISTENT RECURRING JOB
+        assertThatCode(() -> storageProvider.deleteRecurringJob("non-existing-recurring-job")).doesNotThrowAnyException();
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)
