@@ -79,9 +79,8 @@ public class CarbonAwareJobManager {
             boolean timeIsAfter14 = nowCET.getHour() >= 14;
             boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14 = todayIsPreviousDayBeforeDeadline && timeIsAfter14;
 
-            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14) {
+            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14) { //TODO: change this to match zookeeper scheduled task run
                 // it's the day before the deadline and it's after 14:00. Schedule job now.
-                // ENTSO-E publishes day-ahead prices for the next day at 13:00 CET. Allow some delay.
                 // If we add more data providers, this logic should be changed, as they might have different schedules.
                 msg = msg + " and it's the day before the deadline. Schedule job now.";
                 LOGGER.warn(msg);

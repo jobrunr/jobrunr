@@ -5,12 +5,10 @@ import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultConcurrentJobModificationPolicy;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.UUID;
 
-import static java.lang.Math.min;
+import static org.jobrunr.utils.NetworkUtils.getHostName;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 /**
@@ -222,15 +220,5 @@ public class BackgroundJobServerConfiguration {
     public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
         return this;
-    }
-
-
-    private static String getHostName() {
-        try {
-            String hostName = InetAddress.getLocalHost().getHostName();
-            return hostName.substring(0, min(hostName.length(), 127));
-        } catch (UnknownHostException e) {
-            return "Unable to determine hostname";
-        }
     }
 }

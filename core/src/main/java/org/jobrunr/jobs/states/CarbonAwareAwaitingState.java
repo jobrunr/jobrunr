@@ -70,6 +70,6 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
             throw new IllegalArgumentException("'from' must be before 'to'");
         } else if (to.isBefore(now().plus(ofHours(3)))) {
             throw new IllegalArgumentException("'to' must be at least 3 hours in the future to use Carbon Aware Scheduling");
-        }
+        } //TODO: review the "3-hour" rule
     }
 }

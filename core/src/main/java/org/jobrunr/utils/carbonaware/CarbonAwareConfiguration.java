@@ -41,6 +41,9 @@ public class CarbonAwareConfiguration {
         return this;
     }
 
+    /**
+     * TODO
+     */
     public CarbonAwareConfiguration andState(String state) {
         this.state = state;
         return this;

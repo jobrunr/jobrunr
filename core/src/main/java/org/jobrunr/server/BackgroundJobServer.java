@@ -35,9 +35,13 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
@@ -53,6 +57,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
+import static org.jobrunr.utils.NetworkUtils.getLocalIpAddress;
 import static org.jobrunr.utils.VersionNumber.v;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
@@ -309,11 +314,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         JobZooKeeper recurringAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
-        JobZooKeeper carbonAwareAwaitingJobsProcessorZooKeeper = new JobZooKeeper(this, new ProcessCarbonAwareAwaitingJobsTask(this));
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, Duration.of(12, ChronoUnit.HOURS).toMillis(), 12, TimeUnit.HOURS);
+        startCarbonAwareAwaitingJobProcessorZookeperJob(zookeeperThreadPool);
     }
 
     private void stopZooKeepers() {
@@ -426,5 +430,32 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         public BackgroundJobPerformer newBackgroundJobPerformer(BackgroundJobServer backgroundJobServer, Job job) {
             return new BackgroundJobPerformer(backgroundJobServer, job);
         }
+    }
+
+    private void startCarbonAwareAwaitingJobProcessorZookeperJob(PlatformThreadPoolJobRunrExecutor zookeeperThreadPool) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        ZonedDateTime targetTime = now.withHour(18).withMinute(0).withSecond(0).withNano(0);
+        if (now.compareTo(targetTime) > 0) {
+            targetTime = targetTime.plusDays(1); // Move to next day if time has passed
+        }
+        long hashBasedMinute;
+        try {
+            hashBasedMinute = getMinuteBasedOnHash();
+        } catch (NoSuchAlgorithmException | UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+        ZonedDateTime finalTargetTime = targetTime.plusMinutes(hashBasedMinute);
+        long delay = Duration.between(now, finalTargetTime).toMillis();
+
+        JobZooKeeper carbonAwareAwaitingJobsProcessorZooKeeper = new JobZooKeeper(this, new ProcessCarbonAwareAwaitingJobsTask(this));
+        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, delay, TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
+    }
+
+    private int getMinuteBasedOnHash() throws NoSuchAlgorithmException, UnknownHostException {
+        byte[] ipBytes = getLocalIpAddress();
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(ipBytes);
+        int minute = Math.abs(hash[0]) % 60; // Use first byte to determine the minute
+        return minute;
     }
 }
