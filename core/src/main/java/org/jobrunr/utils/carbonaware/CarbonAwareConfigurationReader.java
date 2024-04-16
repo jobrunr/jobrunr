@@ -17,7 +17,7 @@ public class CarbonAwareConfigurationReader {
     }
 
     public static String getCarbonAwareApiUrlPath() {
-        return "/api/carbon-intensity/day-ahead-energy-prices?version=1";
+        return "/carbon-intensity/day-ahead-energy-prices?version=1";
     }
 
     public String getArea() {

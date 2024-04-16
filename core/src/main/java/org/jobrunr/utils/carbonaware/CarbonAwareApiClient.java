@@ -80,6 +80,6 @@ public class CarbonAwareApiClient {
     }
 
     private URL getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> area) throws MalformedURLException {
-        return new URL(carbonAwareApiUrl + area.map(a -> "?area=" + a).orElse(""));
+        return new URL(carbonAwareApiUrl + area.map(a -> "&area=" + a).orElse(""));
     }
 }
