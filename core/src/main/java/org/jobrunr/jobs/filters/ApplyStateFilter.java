@@ -8,8 +8,8 @@ import org.jobrunr.jobs.states.JobState;
  * Can be useful for adding extra logging, ... .
  * This filter will be called after that the job has been saved to a {@link org.jobrunr.storage.StorageProvider}.
  * Altering the job will not have any influence as it is not saved.
- *
- * <b><em>Please note:</em></b> Any {@link JobFilter} should process really fast. If it is repeatedly slow, then it will be removed as it negatively impacts the performance of JobRunr.
+ * <p>
+ * <b><em>Please note:</em></b> Any {@link JobFilter} should process really fast. If it is repeatedly slow, it'll negatively impacts the performance of JobRunr.
  */
 public interface ApplyStateFilter extends JobFilter {
 

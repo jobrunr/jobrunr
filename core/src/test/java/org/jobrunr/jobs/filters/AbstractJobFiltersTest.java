@@ -24,7 +24,7 @@ class AbstractJobFiltersTest {
         jobCreationFilters.logJobFilterTime(myJobFilter, 11000000);
 
         assertThat(logger).hasWarningMessageContaining(
-                "JobFilter of type 'org.jobrunr.jobs.filters.AbstractJobFiltersTest$MyJobFilter' has slow performance (> 10ms) which negatively impacts the overall functioning of JobRunr",
+                "JobFilter of type 'org.jobrunr.jobs.filters.AbstractJobFiltersTest$MyJobFilter' has slow performance of 11ms (a Job Filter should run under 10ms) which negatively impacts the overall functioning of JobRunr",
                 5,
                 emptyMap()
         );
