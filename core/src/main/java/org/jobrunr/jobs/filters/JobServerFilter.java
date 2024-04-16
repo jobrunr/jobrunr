@@ -14,7 +14,7 @@ import org.jobrunr.jobs.Job;
  * <p>
  * Can be useful for adding extra logging, ... .
  * <p>
- * <b><em>Please note:</em></b> Any {@link JobFilter} should process really fast. If it is repeatedly slow, it'll negatively impacts the performance of JobRunr.
+ * <b><em>Please note:</em></b> Any {@link JobFilter} should process really fast. If it is repeatedly slow, it'll negatively impact the performance of JobRunr.
  */
 public interface JobServerFilter extends JobFilter {
 
