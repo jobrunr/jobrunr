@@ -24,6 +24,7 @@ import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobNotFoundException;
 import org.jobrunr.storage.JobStats;
@@ -48,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
@@ -68,14 +70,19 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
+import static org.springframework.aot.hint.MemberCategory.DECLARED_CLASSES;
+import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS;
 
 public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
 
@@ -84,9 +91,10 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     @Override
     public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
+        boolean hasJobSchedulerOrDashboardEnabled = hasJobSchedulerOrDashboardEnabled(beanFactory);
         Set<String> recurringJobClassNames = findAllRecurringJobClassNames(beanFactory);
         Set<String> jobRequestHandlerClassNames = findAllJobRequestHandlerClassNames(beanFactory);
-        if (isNotNullOrEmpty(recurringJobClassNames) || isNotNullOrEmpty(jobRequestHandlerClassNames)) {
+        if (hasJobSchedulerOrDashboardEnabled || isNotNullOrEmpty(recurringJobClassNames) || isNotNullOrEmpty(jobRequestHandlerClassNames)) {
             return (ctx, code) -> {
                 var hints = ctx.getRuntimeHints();
                 registerAllJobRunrClasses(hints);
@@ -95,6 +103,15 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
             };
         }
         return null;
+    }
+
+    private boolean hasJobSchedulerOrDashboardEnabled(ConfigurableListableBeanFactory beanFactory) {
+        try {
+            JobRunrProperties bean = beanFactory.getBean(JobRunrProperties.class);
+            return bean.getJobScheduler().isEnabled() || bean.getDashboard().isEnabled();
+        } catch (BeansException e) {
+            return false;
+        }
     }
 
     private static Set<String> findAllRecurringJobClassNames(ConfigurableListableBeanFactory beanFactory) {
@@ -121,7 +138,6 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static void registerAllJobRequestHandlers(RuntimeHints hints, Set<String> jobRequestHandlerClassNames) {
         for (String clazz : jobRequestHandlerClassNames) {
-            System.out.println("Registering class: " + jobRequestHandlerClassNames);
             Class clazzObject = toClass(clazz);
             hints.reflection().registerType(clazzObject, allMemberCategories);
             Method runMethod = Stream.of(clazzObject.getMethods()).filter(m -> m.getName().equals("run")).toList().get(0);
@@ -162,6 +178,18 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
                 .registerType(org.jobrunr.jobs.annotations.Job.class, allMemberCategories).registerType(Recurring.class, allMemberCategories)
                 // JobRunr Job Dashboard
                 .registerType(JobDashboardLogger.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLine.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLines.class, allMemberCategories).registerType(Problem.class, allMemberCategories).registerType(Page.class, allMemberCategories).registerType(BackgroundJobServerStatus.class, allMemberCategories).registerType(JobStats.class, allMemberCategories).registerType(JobStatsExtended.class, allMemberCategories).registerType(AmountRequest.class, allMemberCategories).registerType(OffsetBasedPageRequest.class, allMemberCategories).registerType(RecurringJobUIModel.class, allMemberCategories).registerType(VersionUIModel.class, allMemberCategories).registerType(SseExchange.class, allMemberCategories);
+
+        if (JAVA_VERSION.hasMajorVersionHigherOrEqualTo(21)) {
+            try {
+                hints.reflection()
+                        .registerType(Thread.class, DECLARED_CLASSES, INVOKE_PUBLIC_METHODS)
+                        .registerType(Class.forName("java.lang.Thread$Builder"), allMemberCategories)
+                        .registerType(Executors.class, allMemberCategories)
+                        .registerType(ExecutorService.class, allMemberCategories);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException("Could not register virtual threads");
+            }
+        }
     }
 
     private static void registerRequiredResources(RuntimeHints hints) {
@@ -213,7 +241,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static String mapBeanNameToClassName(ConfigurableListableBeanFactory beanFactory, String bn) {
         BeanDefinition beanDefinition = beanFactory.getBeanDefinition(bn);
-        if(beanDefinition instanceof AnnotatedBeanDefinition) {
+        if (beanDefinition instanceof AnnotatedBeanDefinition) {
             MethodMetadata factoryMethodMetadata = ((AnnotatedBeanDefinition) beanDefinition).getFactoryMethodMetadata();
             if (factoryMethodMetadata != null) {
                 return factoryMethodMetadata.getReturnTypeName();
