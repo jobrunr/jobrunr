@@ -76,6 +76,7 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.server.configuration.BackgroundJobServerThreadType.VirtualThreads;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
@@ -179,7 +180,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
                 // JobRunr Job Dashboard
                 .registerType(JobDashboardLogger.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLine.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLines.class, allMemberCategories).registerType(Problem.class, allMemberCategories).registerType(Page.class, allMemberCategories).registerType(BackgroundJobServerStatus.class, allMemberCategories).registerType(JobStats.class, allMemberCategories).registerType(JobStatsExtended.class, allMemberCategories).registerType(AmountRequest.class, allMemberCategories).registerType(OffsetBasedPageRequest.class, allMemberCategories).registerType(RecurringJobUIModel.class, allMemberCategories).registerType(VersionUIModel.class, allMemberCategories).registerType(SseExchange.class, allMemberCategories);
 
-        if (JAVA_VERSION.hasMajorVersionHigherOrEqualTo(21)) {
+        if (VirtualThreads.isSupported(JAVA_VERSION)) {
             try {
                 hints.reflection()
                         .registerType(Thread.class, DECLARED_CLASSES, INVOKE_PUBLIC_METHODS)

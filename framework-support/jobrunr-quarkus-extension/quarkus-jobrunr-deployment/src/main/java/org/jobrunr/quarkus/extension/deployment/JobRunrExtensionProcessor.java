@@ -83,6 +83,7 @@ import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -91,12 +92,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import static org.jobrunr.jobs.context.JobDashboardLogger.JobDashboardLogLine;
 import static org.jobrunr.jobs.context.JobDashboardLogger.JobDashboardLogLines;
+import static org.jobrunr.server.configuration.BackgroundJobServerThreadType.VirtualThreads;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
 
 /**
  * Class responsible for creating additional JobRunr beans in Quarkus.
@@ -190,17 +194,26 @@ class JobRunrExtensionProcessor {
                 DefaultSqlStorageProvider.class.getName(), DB2StorageProvider.class.getName(), H2StorageProvider.class.getName(), MariaDbStorageProvider.class.getName(), MySqlStorageProvider.class.getName(), OracleStorageProvider.class.getName(), PostgresStorageProvider.class.getName(), SQLServerStorageProvider.class.getName(), SqLiteStorageProvider.class.getName()
         ).methods().fields().build());
 
+        if (VirtualThreads.isSupported(JAVA_VERSION)) {
+            reflectiveClassProducer.produce(ReflectiveClassBuildItem.builder(
+                    Thread.class.getName(),
+                    "java.lang.Thread$Builder", Executors.class.getName(), ExecutorService.class.getName()
+            ).methods().fields().build());
+        }
+
         Collection<ClassInfo> storageProviderImpls = indexBuildItem.getIndex().getAllKnownImplementors(StorageProvider.class);
         Collection<ClassInfo> jobRequestHandlerImpls = indexBuildItem.getIndex().getAllKnownImplementors(JobRequestHandler.class);
         Collection<ClassInfo> jobRequestImpls = indexBuildItem.getIndex().getAllKnownImplementors(JobRequest.class);
         Collection<ClassInfo> recurringClasses = indexBuildItem.getIndex().getAnnotations(DotName.createSimple(Recurring.class)).stream()
                 .map(annotationInstance -> annotationInstance.target().asMethod().declaringClass())
-                .collect(Collectors.toList());
+                .toList();
 
         String[] applicationClassNamesToRegister = Stream.of(storageProviderImpls.stream(), jobRequestHandlerImpls.stream(), jobRequestImpls.stream(), recurringClasses.stream())
                 .flatMap(s -> s)
                 .map(classInfo -> classInfo.name().toString())
                 .toArray(String[]::new);
+
+        Arrays.stream(applicationClassNamesToRegister).forEach(x -> System.out.println(" " + x));
 
         if (applicationClassNamesToRegister.length != 0) {
             reflectiveClassProducer.produce(ReflectiveClassBuildItem.builder(applicationClassNamesToRegister).methods().fields().build());
