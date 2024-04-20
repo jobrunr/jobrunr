@@ -20,7 +20,7 @@ public enum BackgroundJobServerThreadType {
         }
 
         @Override
-        boolean isSupported(VersionNumber javaVersion) {
+        public boolean isSupported(VersionNumber javaVersion) {
             return true;
         }
 
@@ -32,7 +32,7 @@ public enum BackgroundJobServerThreadType {
         }
 
         @Override
-        boolean isSupported(VersionNumber javaVersion) {
+        public boolean isSupported(VersionNumber javaVersion) {
             return javaVersion.hasMajorVersionHigherOrEqualTo(21);
         }
 
@@ -44,7 +44,7 @@ public enum BackgroundJobServerThreadType {
 
     abstract Function<Integer, JobRunrExecutor> getJobRunrExecutor();
 
-    abstract boolean isSupported(VersionNumber javaVersion);
+    public abstract boolean isSupported(VersionNumber javaVersion);
 
     public int getDefaultWorkerCount() {
         // see https://jobs.zalando.com/en/tech/blog/how-to-set-an-ideal-thread-pool-size

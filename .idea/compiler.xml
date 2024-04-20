@@ -19,7 +19,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.18/a3a8a98e8c61ad1e664a5b7b9a62ac133585ed59/spring-boot-autoconfigure-processor-2.7.18.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.18/899128018a7962b3e4be665910bae65dff08d1b0/spring-boot-configuration-processor-2.7.18.jar" />
         </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
+        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -27,7 +27,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.2.4/11f309afb838a08e2c48d3daebe0fb495010fdc4/spring-boot-autoconfigure-processor-3.2.4.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.2.4/6f615928a73fec926e9a5e2fffc66da22666b8f7/spring-boot-configuration-processor-3.2.4.jar" />
         </processorPath>
-        <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
+        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -62,7 +62,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.9/ffd55be7e8739c267952b5d1ea3714725840fd7c/javaparser-core-3.25.9.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
-        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
+        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-micronaut-feature.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -80,7 +80,7 @@
         <module name="JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="21">
+    <bytecodeTargetLevel target="20">
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" target="11" />
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.test" target="11" />
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" target="11" />

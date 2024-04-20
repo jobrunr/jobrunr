@@ -1,38 +1,10 @@
 package org.jobrunr.spring.aot;
 
-import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.dashboard.server.sse.SseExchange;
-import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
-import org.jobrunr.dashboard.ui.model.VersionUIModel;
 import org.jobrunr.dashboard.ui.model.problems.Problem;
-import org.jobrunr.jobs.AbstractJob;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
-import org.jobrunr.jobs.context.JobDashboardLogger;
-import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
-import org.jobrunr.jobs.filters.ElectStateFilter;
-import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
-import org.jobrunr.jobs.states.AbstractJobState;
-import org.jobrunr.jobs.states.DeletedState;
-import org.jobrunr.jobs.states.EnqueuedState;
-import org.jobrunr.jobs.states.FailedState;
-import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
-import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.JobNotFoundException;
-import org.jobrunr.storage.JobStats;
-import org.jobrunr.storage.JobStatsExtended;
-import org.jobrunr.storage.Page;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.navigation.AmountRequest;
-import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
@@ -44,10 +16,12 @@ import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.migrations.JedisRedisMigration;
 import org.jobrunr.storage.nosql.redis.migrations.LettuceRedisMigration;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.utils.GraalVMUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -60,22 +34,14 @@ import org.springframework.core.type.MethodMetadata;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import java.lang.reflect.Method;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.server.configuration.BackgroundJobServerThreadType.VirtualThreads;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
@@ -117,8 +83,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
     private static Set<String> findAllRecurringJobClassNames(ConfigurableListableBeanFactory beanFactory) {
         String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
         return stream(beanDefinitionNames)
-                .map(beanFactory::getBeanDefinition)
-                .map(BeanDefinition::getBeanClassName)
+                .map(bn -> mapBeanNameToClassName(beanFactory, bn))
                 .filter(JobRunrBeanFactoryInitializationAotProcessor::isARecurringJob)
                 .collect(toSet());
     }
@@ -162,24 +127,9 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
     }
 
     private static void registerRequiredJobRunrClasses(RuntimeHints hints) {
-        hints.reflection()
-                // primitives
-                .registerType(boolean.class, allMemberCategories).registerType(byte.class, allMemberCategories).registerType(char.class, allMemberCategories).registerType(double.class, allMemberCategories).registerType(float.class, allMemberCategories).registerType(int.class, allMemberCategories).registerType(long.class, allMemberCategories).registerType(short.class, allMemberCategories)
-                // wrapper types
-                .registerType(Boolean.class, allMemberCategories).registerType(Byte.class, allMemberCategories).registerType(Character.class, allMemberCategories).registerType(Double.class, allMemberCategories).registerType(Float.class, allMemberCategories).registerType(Integer.class, allMemberCategories).registerType(Long.class, allMemberCategories).registerType(Short.class, allMemberCategories)
-                // Java core types
-                .registerType(Instant.class, allMemberCategories).registerType(UUID.class, allMemberCategories).registerType(Enum.class, allMemberCategories).registerType(Duration.class, allMemberCategories).registerType(ConcurrentHashMap.class, allMemberCategories).registerType(ConcurrentLinkedQueue.class, allMemberCategories).registerType(Set.class, allMemberCategories).registerType(HashSet.class, allMemberCategories).registerType(List.class, allMemberCategories).registerType(ArrayList.class, allMemberCategories).registerType(CopyOnWriteArrayList.class, allMemberCategories)
-                // JobRunr States
-                .registerType(StateName.class, allMemberCategories).registerType(JobState.class, allMemberCategories).registerType(AbstractJobState.class, allMemberCategories).registerType(ScheduledState.class, allMemberCategories).registerType(EnqueuedState.class, allMemberCategories).registerType(ProcessingState.class, allMemberCategories).registerType(FailedState.class, allMemberCategories).registerType(SucceededState.class, allMemberCategories).registerType(DeletedState.class, allMemberCategories).registerType(JobFilter.class, allMemberCategories).registerType(ElectStateFilter.class, allMemberCategories)
-                // JobRunr Job
-                .registerType(JobRunr.class, allMemberCategories).registerType(AbstractJob.class, allMemberCategories).registerType(RecurringJob.class, allMemberCategories).registerType(Job.class, allMemberCategories).registerType(JobDetails.class, allMemberCategories).registerType(JobNotFoundException.class, allMemberCategories)
-                .registerType(CachingJobDetailsGenerator.class, allMemberCategories)
-                // JobRunr Job Annotations
-                .registerType(org.jobrunr.jobs.annotations.Job.class, allMemberCategories).registerType(Recurring.class, allMemberCategories)
-                // JobRunr Job Dashboard
-                .registerType(JobDashboardLogger.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLine.class, allMemberCategories).registerType(JobDashboardLogger.JobDashboardLogLines.class, allMemberCategories).registerType(Problem.class, allMemberCategories).registerType(Page.class, allMemberCategories).registerType(BackgroundJobServerStatus.class, allMemberCategories).registerType(JobStats.class, allMemberCategories).registerType(JobStatsExtended.class, allMemberCategories).registerType(AmountRequest.class, allMemberCategories).registerType(OffsetBasedPageRequest.class, allMemberCategories).registerType(RecurringJobUIModel.class, allMemberCategories).registerType(VersionUIModel.class, allMemberCategories).registerType(SseExchange.class, allMemberCategories);
-
-        if (JAVA_VERSION.hasMajorVersionHigherOrEqualTo(21)) {
+        ReflectionHints reflectionHints = hints.reflection();
+        GraalVMUtils.JOBRUNR_CLASSES.forEach(clazz -> reflectionHints.registerType(clazz, allMemberCategories));
+        if (VirtualThreads.isSupported(JAVA_VERSION)) {
             try {
                 hints.reflection()
                         .registerType(Thread.class, DECLARED_CLASSES, INVOKE_PUBLIC_METHODS)
