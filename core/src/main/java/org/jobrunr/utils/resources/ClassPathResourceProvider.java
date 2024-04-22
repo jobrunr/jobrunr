@@ -1,6 +1,7 @@
 package org.jobrunr.utils.resources;
 
 import org.jobrunr.JobRunrException;
+import org.jobrunr.configuration.JobRunr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
 
 /**
  * Class to be only used on startup to load all resources (SQL migrations and noSQL migrations) from the classpath.
- *
+ * <p>
  * As Jar files need to be mounted as FileSystems which are static, this class uses explicit locking to ensure that only one
  * consumer can access the resources at a time. It must thus always be used in a try-with-resources block.
  */
@@ -42,36 +43,41 @@ public class ClassPathResourceProvider implements AutoCloseable {
         }
     }
 
-
     public Stream<Path> listAllChildrenOnClasspath(Class<?> clazz, String... subFolder) {
+        return listAllChildrenOnClasspath(toFolder(clazz, subFolder));
+    }
+
+    public Stream<Path> listAllChildrenOnClasspath(String path) {
         try {
-            return toPathsOnClasspath(clazz, subFolder)
+            return toPathsOnClasspath(path)
                     .flatMap(this::listAllChildrenOnClasspath);
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
     }
 
-    private Stream<Path> toPathsOnClasspath(Class<?> clazz, String... subFolders) {
-        return toPathsOnClasspath(clazz.getPackage(), subFolders);
-    }
-
-    private Stream<Path> toPathsOnClasspath(Package pkg, String... subFolders) {
-        final String joinedSubfolders = String.join("/", subFolders);
-        if (joinedSubfolders.startsWith("/")) {
-            return toUrls(joinedSubfolders.substring(1))
-                    .map(this::toPath);
-        }
-        return toUrls(pkg.getName().replace(".", "/") + "/" + joinedSubfolders)
+    private Stream<Path> toPathsOnClasspath(String path) {
+        return toUrls(path)
                 .map(this::toPath);
     }
 
     private Stream<URL> toUrls(String folder) {
         try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            Enumeration<URL> resources = classLoader.getResources(folder);
+            if (System.getProperty("org.graalvm.nativeimage.imagecode") != null) {
+                return Stream.of(new URL("resource:/" + folder));
+            }
 
-            return Collections.list(resources).stream();
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Enumeration<URL> contextClassLoaderResources = classLoader.getResources(folder);
+            if (contextClassLoaderResources.hasMoreElements()) {
+                return Collections.list(contextClassLoaderResources).stream();
+            }
+
+            Enumeration<URL> classLoaderResources = JobRunr.class.getClassLoader().getResources(folder);
+            if (classLoaderResources.hasMoreElements()) {
+                return Collections.list(classLoaderResources).stream();
+            }
+            return Stream.empty();
         } catch (IOException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
@@ -107,7 +113,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
             }
             File rootDir = (File) getPhysicalFileMethod.invoke(virtualFile);
             return URI.create(VfsFilesystemProvider.SCHEME + rootDir.toURI());
-        } catch ( IllegalArgumentException | ReflectiveOperationException  e) {
+        } catch (IllegalArgumentException | ReflectiveOperationException e) {
             throw JobRunrException.shouldNotHappenException(new RuntimeException("Can not extract files from vfs!", e));
         }
     }
@@ -124,7 +130,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
     }
 
     private FileSystemProvider getFileSystemProvider(URI uri) {
-        return this.fileSystemProviders.computeIfAbsent(uri.getScheme(), this::getFileSystemProviderByScheme);
+        return fileSystemProviders.computeIfAbsent(uri.getScheme(), this::getFileSystemProviderByScheme);
     }
 
     @Override
@@ -144,11 +150,16 @@ public class ClassPathResourceProvider implements AutoCloseable {
 
     private FileSystemProvider getFileSystemProviderByScheme(String scheme) {
         switch (scheme) {
-            case "jar": return new JarFileSystemProvider();
-            case "resource": return new ResourcesFileSystemProvider();
-            case "file": return new PathFileSystemProvider();
-            case "vfs": return new VfsFilesystemProvider();
-            default: throw new IllegalArgumentException("Unknown FileSystem required " + scheme);
+            case "jar":
+                return new JarFileSystemProvider();
+            case "resource":
+                return new ResourcesFileSystemProvider();
+            case "file":
+                return new PathFileSystemProvider();
+            case "vfs":
+                return new VfsFilesystemProvider();
+            default:
+                throw new IllegalArgumentException("Unknown FileSystem required " + scheme);
         }
     }
 
@@ -158,5 +169,18 @@ public class ClassPathResourceProvider implements AutoCloseable {
         } catch (ClosedFileSystemException e) {
             // ignore
         }
+    }
+
+
+    private static String toFolder(Class<?> clazz, String... subFolders) {
+        return toFolder(clazz.getPackage(), subFolders);
+    }
+
+    private static String toFolder(Package pkg, String... subFolders) {
+        final String joinedSubFolders = String.join("/", subFolders);
+        if (joinedSubFolders.startsWith("/")) {
+            return joinedSubFolders.substring(1);
+        }
+        return pkg.getName().replace(".", "/") + "/" + joinedSubFolders;
     }
 }
