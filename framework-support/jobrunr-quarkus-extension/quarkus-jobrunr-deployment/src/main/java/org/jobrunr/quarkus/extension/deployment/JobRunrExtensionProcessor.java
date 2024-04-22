@@ -167,7 +167,7 @@ class JobRunrExtensionProcessor {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/dashboard/frontend/build"));
         }
 
-        if ("sql".equalsIgnoreCase(jobRunrBuildTimeConfiguration.database().type().orElse(null))) {
+        if ("sql".equalsIgnoreCase(jobRunrBuildTimeConfiguration.database().type().orElse("sql"))) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/storage/sql"));
         }
     }
