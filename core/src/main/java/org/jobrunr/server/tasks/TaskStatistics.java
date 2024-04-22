@@ -44,7 +44,7 @@ public class TaskStatistics {
             --exceptionCounter;
         }
         Duration actualRunDuration = Duration.between(runStartTime, runEndTime);
-        if (actualRunDuration.getSeconds() < pollInterval.getSeconds()) {
+        if (actualRunDuration.compareTo(pollInterval) < 0) {
             LOGGER.debug("JobZooKeeper run took {}", actualRunDuration);
             runTookToLongCounter = 0;
         } else {
