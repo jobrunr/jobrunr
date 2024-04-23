@@ -57,6 +57,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GraalVMUtils {
 
+    public static boolean isRunningInGraalVMNativeMode() {
+        return System.getProperty("org.graalvm.nativeimage.imagecode") != null;
+    }
+
     public static List<Class> JOBRUNR_CLASSES = Arrays.asList(
             // primitives
             boolean.class, byte.class, char.class, double.class, float.class, int.class, long.class, short.class,

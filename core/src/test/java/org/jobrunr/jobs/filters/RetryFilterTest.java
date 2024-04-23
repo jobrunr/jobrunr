@@ -2,12 +2,14 @@ package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
@@ -66,6 +68,22 @@ class RetryFilterTest {
 
         assertThat(afterVersion).isEqualTo(beforeVersion + 1);
         assertThat(job.getState()).isEqualTo(SCHEDULED);
+    }
+
+    @Test
+    void retryFilterDoesNotScheduleJobAgainIfJobIsJobNotFoundException() {
+        final Job job = aJob()
+                .withJobDetails(classThatDoesNotExistJobDetails())
+                .withState(new FailedState("a message", new JobClassNotFoundException(classThatDoesNotExistJobDetails().build())))
+                .build();
+        applyDefaultJobFilter(job);
+        int beforeVersion = job.getJobStates().size();
+
+        retryFilter.onStateElection(job, job.getJobState());
+        int afterVersion = job.getJobStates().size();
+
+        assertThat(afterVersion).isEqualTo(beforeVersion);
+        assertThat(job.getState()).isEqualTo(FAILED);
     }
 
 
