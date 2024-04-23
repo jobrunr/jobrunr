@@ -205,12 +205,11 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.background-job-server.scheduled-jobs-request-size=1")
                 .withPropertyValues("org.jobrunr.background-job-server.orphaned-jobs-request-size=2")
                 .withPropertyValues("org.jobrunr.background-job-server.succeeded-jobs-request-size=3")
-                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
-                            .hasScheduledJobRequestSize(1)
-                            .hasOrphanedJobRequestSize(2)
-                            .hasSucceededJobRequestSize(3);
-                });
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context)
+                        -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                        .hasScheduledJobRequestSize(1)
+                        .hasOrphanedJobRequestSize(2)
+                        .hasSucceededJobRequestSize(3));
     }
 
     @Test
@@ -218,20 +217,18 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("org.jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
-                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
-                            .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
-                });
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context)
+                                -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                        .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20)));
     }
 
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountCustomBackgroundJobServerWorkerPolicy() {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withUserConfiguration(BackgroundJobServerConfigurationWithCustomWorkerPolicy.class, InMemoryStorageProvider.class).run((context) -> {
-                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
-                            .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class);
-                });
+                .withUserConfiguration(BackgroundJobServerConfigurationWithCustomWorkerPolicy.class, InMemoryStorageProvider.class).run((context)
+                                -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                        .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class));
     }
 
     @Test
@@ -325,9 +322,8 @@ public class JobRunrAutoConfigurationTest {
                         "org.jobrunr.background-job-server.enabled=true",
                         "management.health.jobrunr.enabled=false"
                 )
-                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-                    assertThat(context).doesNotHaveBean(JobRunrHealthIndicator.class);
-                });
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context)
+                        -> assertThat(context).doesNotHaveBean(JobRunrHealthIndicator.class));
     }
 
     @Configuration
