@@ -23,20 +23,20 @@ public class CarbonAwareJobManager {
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
         this.carbonAwareAPIClient = createCarbonAwareApiClient(jsonMapper);
-        Optional<String> area = Optional.ofNullable(this.carbonAwareConfiguration.getArea());
-        this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
+        Optional<String> areaCode = Optional.ofNullable(this.carbonAwareConfiguration.getAreaCode());
+        this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
     }
 
     public void updateDayAheadEnergyPrices() {
-        Optional<String> area = Optional.ofNullable(carbonAwareConfiguration.getArea());
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(area);
+        Optional<String> areaCode = Optional.ofNullable(carbonAwareConfiguration.getAreaCode());
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
         if (dayAheadEnergyPrices.getIsErrorResponse()){
-            LOGGER.warn("Could not update day ahead energy prices for area '{}': {}",
-                    area.orElse("unknown"), dayAheadEnergyPrices.getErrorMessage());
+            LOGGER.warn("Could not update day ahead energy prices for areaCode '{}': {}",
+                    areaCode.orElse("unknown"), dayAheadEnergyPrices.getErrorMessage());
             return;
         }
         if (dayAheadEnergyPrices.getHourlyEnergyPrices() == null || dayAheadEnergyPrices.getHourlyEnergyPrices().isEmpty()) {
-            LOGGER.warn("No hourly energy prices available for area '{}'", area.orElse("unknown"));
+            LOGGER.warn("No hourly energy prices available for areaCode '{}'", areaCode.orElse("unknown"));
             return;
         }
         this.dayAheadEnergyPrices = dayAheadEnergyPrices;
@@ -68,7 +68,7 @@ public class CarbonAwareJobManager {
         }
 
         if (!dayAheadEnergyPrices.hasValidData(carbonAwareAwaitingState.getPeriod())) {
-            String msg = String.format("No hourly energy prices available for area '%s' %s.", carbonAwareConfiguration.getArea(), dayAheadEnergyPrices.getErrorMessage());
+            String msg = String.format("No hourly energy prices available for areaCode '%s' %s.", carbonAwareConfiguration.getAreaCode(), dayAheadEnergyPrices.getErrorMessage());
 
             ZonedDateTime nowCET = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             // Check if current day is the previous day of the 'to' instant

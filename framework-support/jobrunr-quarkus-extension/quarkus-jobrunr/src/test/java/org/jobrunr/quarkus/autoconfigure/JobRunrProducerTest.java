@@ -119,12 +119,12 @@ class JobRunrProducerTest {
 
     @Test
     void carbonAwareJobManagerIsSetupWhenConfigured() {
-        when(carbonAwareRunTimeConfiguration.area()).thenReturn(Optional.of("DE"));
+        when(carbonAwareRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
         when(carbonAwareRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
         when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
 
         CarbonAwareConfigurationReader carbonAwareConfiguration = jobRunrProducer.carbonAwareJobManager(jsonMapper).getCarbonAwareConfiguration();
-        assertThat(carbonAwareConfiguration.getArea()).isEqualTo("DE");
+        assertThat(carbonAwareConfiguration.getAreaCode()).isEqualTo("DE");
         assertThat(carbonAwareConfiguration.getApiClientConnectTimeout()).isEqualTo(Duration.ofMillis(500));
         assertThat(carbonAwareConfiguration.getApiClientReadTimeout()).isEqualTo(Duration.ofMillis(1000));
     }

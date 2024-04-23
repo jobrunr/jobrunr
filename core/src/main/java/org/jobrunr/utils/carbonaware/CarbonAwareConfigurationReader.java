@@ -20,8 +20,8 @@ public class CarbonAwareConfigurationReader {
         return "/carbon-intensity/day-ahead-energy-prices?version=1";
     }
 
-    public String getArea() {
-        return carbonAwareConfiguration.area;
+    public String getAreaCode() {
+        return carbonAwareConfiguration.areaCode;
     }
 
     public String getState() {

@@ -53,7 +53,7 @@ class JobRunrFactoryTest {
     }
 
     @Test
-    @Property(name = "jobrunr.jobs.carbon-aware.area", value = "PL")
+    @Property(name = "jobrunr.jobs.carbon-aware.areaCode", value = "PL")
     @Property(name = "jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms", value = "500")
     @Property(name = "jobrunr.jobs.carbon-aware.api-client-read-timeout-ms", value = "1000")
     void testCarbonAwareManagerConfiguration() {
@@ -62,7 +62,7 @@ class JobRunrFactoryTest {
         CarbonAwareConfigurationReader carbonAwareConfiguration = carbonAwareJobManager.getCarbonAwareConfiguration();
 
         CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
-                .hasArea("PL")
+                .hasAreaCode("PL")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
                 .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }

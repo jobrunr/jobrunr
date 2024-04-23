@@ -37,8 +37,8 @@ public class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractCarbonAwareW
     @Test
     public void testUpdateAwaitingJobs() {
         // GIVEN
-        String area = "DE";
-        BackgroundJobServer backgroundJobServer = initializeJobRunr(200, area, storageProvider);
+        String areaCode = "DE";
+        BackgroundJobServer backgroundJobServer = initializeJobRunr(200, areaCode, storageProvider);
         JobId jobId1 = BackgroundJob.scheduleCarbonAware(between("2500-01-01T00:00:00Z", "2500-01-01T23:00:00Z"),
                 () -> System.out.println("1. This job should be scheduled at 12:00"));
         JobId jobId2 = BackgroundJob.scheduleCarbonAware(between("2600-01-01T00:00:00Z", "2600-01-01T23:00:00Z"),
@@ -55,7 +55,7 @@ public class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractCarbonAwareW
 
         ProcessCarbonAwareAwaitingJobsTask processCarbonAwareAwaitingJobsTask = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
         JobZooKeeper caronAwareManageAwaitingJobsTask = new JobZooKeeper(backgroundJobServer, processCarbonAwareAwaitingJobsTask);
-        mockResponseWhenRequestingArea(area, CarbonApiMockResponses.GERMANY_2500_01_01);
+        mockResponseWhenRequestingAreaCode(areaCode, CarbonApiMockResponses.GERMANY_2500_01_01);
         try(MockedStatic<Instant> a = InstantMocker.mockTime("2500-01-01T08:00:00Z");
             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2500-01-01T08:00:00Z"), "Europe/Brussels")) {
             // WHEN
@@ -80,8 +80,8 @@ public class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractCarbonAwareW
     @Test
     public void testUpdateAwaitingJobs_withDeadlinein2Days_shouldStayAwaiting() {
         // GIVEN
-        String area = "DE";
-        BackgroundJobServer backgroundJobServer = initializeJobRunr(200, area, storageProvider);
+        String areaCode = "DE";
+        BackgroundJobServer backgroundJobServer = initializeJobRunr(200, areaCode, storageProvider);
         JobId jobId = BackgroundJob.scheduleCarbonAware(between("2500-01-01T00:00:00Z", "2500-01-03T23:00:00Z"),
                 () -> System.out.println("This job should stay awaiting"));
 
@@ -89,7 +89,7 @@ public class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractCarbonAwareW
 
         ProcessCarbonAwareAwaitingJobsTask processCarbonAwareAwaitingJobsTask = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
         JobZooKeeper caronAwareManageAwaitingJobsTask = new JobZooKeeper(backgroundJobServer, processCarbonAwareAwaitingJobsTask);
-        mockResponseWhenRequestingArea(area, CarbonApiMockResponses.GERMANY_2500_01_01);
+        mockResponseWhenRequestingAreaCode(areaCode, CarbonApiMockResponses.GERMANY_2500_01_01);
         try(MockedStatic<Instant> a = InstantMocker.mockTime("2500-01-01T08:00:00Z");
             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2500-01-01T08:00:00Z"), "Europe/Brussels")) {
             // WHEN

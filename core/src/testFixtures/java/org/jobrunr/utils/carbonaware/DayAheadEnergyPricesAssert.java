@@ -16,8 +16,8 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
         return new DayAheadEnergyPricesAssert(dayAheadEnergyPrices);
     }
 
-    public DayAheadEnergyPricesAssert hasArea(String area) {
-        Assertions.assertThat(actual.getArea()).isEqualTo(area);
+    public DayAheadEnergyPricesAssert hasAreaCode(String areaCode) {
+        Assertions.assertThat(actual.getAreaCode()).isEqualTo(areaCode);
         return this;
     }
 
@@ -44,7 +44,7 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
     }
 
     public DayAheadEnergyPricesAssert hasError(String errorMessage) {
-        Assertions.assertThat(actual.getArea()).isNull();
+        Assertions.assertThat(actual.getAreaCode()).isNull();
         Assertions.assertThat(actual.getHourlyEnergyPrices()).isNull();
         Assertions.assertThat(actual.getIsErrorResponse()).isTrue();
         Assertions.assertThat(actual.getErrorMessage()).isEqualTo(errorMessage);

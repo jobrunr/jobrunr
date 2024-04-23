@@ -68,7 +68,7 @@ public class JobRunrAutoConfiguration {
         CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();
         JobRunrProperties.CarbonAware carbonAwareProperties = jobRunrProperties.getJobs().getCarbonAware();
 
-        map.from(carbonAwareProperties::getArea).whenNonNull().to(carbonAwareConfiguration::andArea);
+        map.from(carbonAwareProperties::getAreaCode).whenNonNull().to(carbonAwareConfiguration::andAreaCode);
         map.from(carbonAwareProperties::getApiClientConnectTimeoutMs).whenNonNull().to(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
         map.from(carbonAwareProperties::getApiClientReadTimeoutMs).whenNonNull().to(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
         return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);

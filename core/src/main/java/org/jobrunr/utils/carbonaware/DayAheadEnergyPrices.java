@@ -15,7 +15,7 @@ public class DayAheadEnergyPrices {
 
     private boolean isErrorResponse;
     private String errorMessage;
-    private String area;
+    private String areaCode;
     private String state;
     private String unit;
     private String timezone;
@@ -25,8 +25,8 @@ public class DayAheadEnergyPrices {
         this(null, null, null, null, null);
     }
 
-    public DayAheadEnergyPrices(String area, String state, String timezone, String unit, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices) {
-        this.area = area;
+    public DayAheadEnergyPrices(String areaCode, String state, String timezone, String unit, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices) {
+        this.areaCode = areaCode;
         this.state = state;
         this.unit = unit;
         this.timezone = timezone;
@@ -35,8 +35,8 @@ public class DayAheadEnergyPrices {
         this.isErrorResponse = false;
     }
 
-    private DayAheadEnergyPrices(String area, String errorMessage) {
-        this.area = area;
+    private DayAheadEnergyPrices(String areaCode, String errorMessage) {
+        this.areaCode = areaCode;
         this.unit = null;
         this.timezone = null;
         this.hourlyEnergyPrices = null;
@@ -44,13 +44,13 @@ public class DayAheadEnergyPrices {
         this.isErrorResponse = true;
     }
 
-    public static DayAheadEnergyPrices error(String area, String errorMessage) {
-        LOGGER.error("Error fetching day ahead energy prices for area '{}': {}", area, errorMessage);
-        return new DayAheadEnergyPrices(area, errorMessage);
+    public static DayAheadEnergyPrices error(String areaCode, String errorMessage) {
+        LOGGER.error("Error fetching day ahead energy prices for areaCode '{}': {}", areaCode, errorMessage);
+        return new DayAheadEnergyPrices(areaCode, errorMessage);
     }
 
-    public String getArea() {
-        return area;
+    public String getAreaCode() {
+        return areaCode;
     }
 
     public String getUnit() {

@@ -191,7 +191,7 @@ public interface JobRunrRuntimeConfiguration {
         /**
          * TODO
          */
-        Optional<String> area();
+        Optional<String> areaCode();
         /**
          * TODO
          */

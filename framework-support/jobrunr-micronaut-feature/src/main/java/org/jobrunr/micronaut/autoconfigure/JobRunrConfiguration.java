@@ -57,7 +57,7 @@ public interface JobRunrConfiguration {
 
         @ConfigurationProperties("carbonAware")
         interface CarbonAwareConfiguration {
-            Optional<String> getArea();
+            Optional<String> getAreaCode();
 
             Optional<Integer> getApiClientConnectTimeoutMs();
 

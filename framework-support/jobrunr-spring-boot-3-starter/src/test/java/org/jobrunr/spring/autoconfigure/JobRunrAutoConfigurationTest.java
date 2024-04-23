@@ -136,7 +136,7 @@ public class JobRunrAutoConfigurationTest {
     void carbonAwareManagerAutoconfiguration() {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.job-scheduler.enabled=true")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.area=FR")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.areaCode=FR")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms=500")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout-ms=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
@@ -145,7 +145,7 @@ public class JobRunrAutoConfigurationTest {
                     CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
                             .hasApiClientConnectTimeout(Duration.ofMillis(500))
                             .hasApiClientReadTimeout(Duration.ofMillis(300))
-                            .hasArea("FR");
+                            .hasAreaCode("FR");
                 });
     }
 

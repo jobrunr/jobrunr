@@ -151,9 +151,9 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
 
-    private void mockApiResponseAndInitializeJobRunr(int pollIntervalMs, String area, String mockResponse) {
+    private void mockApiResponseAndInitializeJobRunr(int pollIntervalMs, String areaCode, String mockResponse) {
         storageProvider = new InMemoryStorageProvider();
-        mockResponseWhenRequestingArea(area, mockResponse);
-        initializeJobRunr(pollIntervalMs, area, storageProvider);
+        mockResponseWhenRequestingAreaCode(areaCode, mockResponse);
+        initializeJobRunr(pollIntervalMs, areaCode, storageProvider);
     }
 }

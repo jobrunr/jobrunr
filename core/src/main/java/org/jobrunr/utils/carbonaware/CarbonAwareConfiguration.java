@@ -11,7 +11,7 @@ public class CarbonAwareConfiguration {
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 
      String carbonAwareApiUrl = DEFAULT_CARBON_AWARE_API_URL;
-     String area;
+     String areaCode;
      String state;
      String cloudProvider;
      String cloudRegion;
@@ -31,13 +31,13 @@ public class CarbonAwareConfiguration {
     }
 
     /**
-     * Allows to set the area of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
+     * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
      *
-     * @param area a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
+     * @param areaCode a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
      * @return the same configuration instance which provides a fluent api
      */
-    public CarbonAwareConfiguration andArea(String area) {
-        this.area = area;
+    public CarbonAwareConfiguration andAreaCode(String areaCode) {
+        this.areaCode = areaCode;
         return this;
     }
 

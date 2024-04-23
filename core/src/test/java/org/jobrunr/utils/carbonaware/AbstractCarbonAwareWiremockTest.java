@@ -50,18 +50,18 @@ public class AbstractCarbonAwareWiremockTest {
         return new CarbonAwareApiClient(CarbonAwareConfigurationReader.getCarbonAwareApiUrl("http://localhost:10000"), DEFAULT_CLIENT_API_CONNECT_TIMEOUT, DEFAULT_CLIENT_API_READ_TIMEOUT, jsonMapper);
     }
 
-    protected void mockResponseWhenRequestingArea(String area, String response) {
-        String url = String.format(getCarbonAwareApiUrlPath() + "?area=%s", area);
+    protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
+        String url = String.format(getCarbonAwareApiUrlPath() + "?areaCode=%s", areaCode);
         wireMockServer.stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(response)));
     }
 
-    protected BackgroundJobServer initializeJobRunr(int pollIntervalMs, String area, StorageProvider storageProvider) {
+    protected BackgroundJobServer initializeJobRunr(int pollIntervalMs, String areaCode, StorageProvider storageProvider) {
         return JobRunr.configure()
                 .useStorageProvider(storageProvider)
-                .useCarbonAwareScheduling(usingStandardCarbonAwareConfiguration().andArea(area)
+                .useCarbonAwareScheduling(usingStandardCarbonAwareConfiguration().andAreaCode(areaCode)
                         .andCarbonAwareApiUrl(carbonApiTestUrl))
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(pollIntervalMs)))
                 .initialize()

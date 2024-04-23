@@ -508,12 +508,12 @@ public class JobRunrProperties {
     }
 
     public static class CarbonAware {
-        String area = null;
+        String areaCode = null;
         Integer apiClientConnectTimeoutMs = null;
         Integer apiClientReadTimeoutMs = null;
 
-        public String getArea() {return area;}
-        public void setArea(String area) {this.area = area;}
+        public String getAreaCode() {return areaCode;}
+        public void setAreaCode(String areaCode) {this.areaCode = areaCode;}
         public Integer getApiClientConnectTimeoutMs() {return apiClientConnectTimeoutMs;}
         public void setApiClientConnectTimeoutMs(Integer apiClientConnectTimeoutMs) {this.apiClientConnectTimeoutMs = apiClientConnectTimeoutMs;}
         public Integer getApiClientReadTimeoutMs() {return apiClientReadTimeoutMs;}

@@ -22,8 +22,8 @@ public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareCo
         return new CarbonAwareConfigurationAssert(carbonAwareConfiguration);
     }
 
-    public CarbonAwareConfigurationAssert hasArea(String area) {
-        Assertions.assertThat(actual.getArea()).isEqualTo(area);
+    public CarbonAwareConfigurationAssert hasAreaCode(String areaCode) {
+        Assertions.assertThat(actual.getAreaCode()).isEqualTo(areaCode);
         return this;
     }
 

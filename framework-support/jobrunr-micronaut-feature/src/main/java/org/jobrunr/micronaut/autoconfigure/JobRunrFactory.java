@@ -46,7 +46,7 @@ public class JobRunrFactory {
     @Singleton
     public CarbonAwareJobManager carbonAwareJobManager(JsonMapper jobRunrJsonMapper) {
         CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();
-        configuration.getJobs().getCarbonAwareConfiguration().getArea().ifPresent(carbonAwareConfiguration::andArea);
+        configuration.getJobs().getCarbonAwareConfiguration().getAreaCode().ifPresent(carbonAwareConfiguration::andAreaCode);
         configuration.getJobs().getCarbonAwareConfiguration().getApiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
         configuration.getJobs().getCarbonAwareConfiguration().getApiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
         return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);

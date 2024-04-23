@@ -15,14 +15,14 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     void testFetchLatestDayAheadEnergyPrices() {
         // GIVEN
         CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient();
-        mockResponseWhenRequestingArea("BE", CarbonApiMockResponses.BELGIUM_2024_03_12);
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_03_12);
 
         // WHEN
         DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
 
         // THEN
         assertThat(result)
-            .hasArea("BE")
+            .hasAreaCode("BE")
             .hasHourlyEnergyPricesSize(33)
             .hasHourlyEnergyPriceAt(0, parse("2024-03-12T03:00:00Z"), 64.23);
     }
@@ -31,7 +31,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     void whenFetchLatestDayAheadEnergyPrices_andNoData_thenReturnErrorResponse() {
         // GIVEN
         CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient();
-        mockResponseWhenRequestingArea("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
+        mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
         CarbonAwarePeriod carbonAwarePeriod = CarbonAwarePeriod.before(now().plus(1, ChronoUnit.DAYS));
 
         // WHEN
@@ -39,7 +39,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
 
         // THEN
         assertThat(result)
-                .hasError("An error occurred: No data available for area: 'DE'")
+                .hasError("An error occurred: No data available for areaCode: 'DE'")
                 .hasNoValidDataFor(carbonAwarePeriod);
     }
 

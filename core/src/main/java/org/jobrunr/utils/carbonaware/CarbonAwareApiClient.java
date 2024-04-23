@@ -33,12 +33,12 @@ public class CarbonAwareApiClient {
         this.jsonMapper = jsonMapper;
     }
 
-    public DayAheadEnergyPrices fetchLatestDayAheadEnergyPrices(Optional<String> area) {
+    public DayAheadEnergyPrices fetchLatestDayAheadEnergyPrices(Optional<String> areaCode) {
         try {
-            String dayAheadEnergyPricesAsString = fetchLatestDayAheadEnergyPricesAsString(area);
+            String dayAheadEnergyPricesAsString = fetchLatestDayAheadEnergyPricesAsString(areaCode);
             return jsonMapper.deserialize(dayAheadEnergyPricesAsString, DayAheadEnergyPrices.class);
         } catch (Exception e) {
-            LOGGER.error("Error fetching day ahead energy prices for area '{}'", area.orElse("unknown"), e);
+            LOGGER.error("Error fetching day ahead energy prices for areaCode '{}'", areaCode.orElse("unknown"), e);
             DayAheadEnergyPrices errorResponse = new DayAheadEnergyPrices();
             errorResponse.setIsErrorResponse(true);
             errorResponse.setErrorMessage(e.getMessage());
@@ -47,8 +47,8 @@ public class CarbonAwareApiClient {
     }
 
     @VisibleFor("testing")
-    String fetchLatestDayAheadEnergyPricesAsString(Optional<String> area) throws IOException {
-        URL apiUrl = getJobRunrApiDayAheadEnergyPricesUrl(area);
+    String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) throws IOException {
+        URL apiUrl = getJobRunrApiDayAheadEnergyPricesUrl(areaCode);
         HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
         con.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
         con.setRequestMethod("GET");
@@ -79,7 +79,7 @@ public class CarbonAwareApiClient {
         }
     }
 
-    private URL getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> area) throws MalformedURLException {
-        return new URL(carbonAwareApiUrl + area.map(a -> "&area=" + a).orElse(""));
+    private URL getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> areaCode) throws MalformedURLException {
+        return new URL(carbonAwareApiUrl + areaCode.map(a -> "&areaCode=" + a).orElse(""));
     }
 }
