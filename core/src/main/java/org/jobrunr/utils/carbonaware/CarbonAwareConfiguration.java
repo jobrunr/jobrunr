@@ -6,7 +6,7 @@ import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCa
 
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_AWARE_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io");
+    public static String DEFAULT_CARBON_AWARE_API_URL = getCarbonAwareApiUrl("http://jobrunr-carbon-api-dev.swedencentral.cloudapp.azure.com:10000");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 
@@ -42,29 +42,41 @@ public class CarbonAwareConfiguration {
     }
 
     /**
-     * TODO
+     * For US. Allows to set the state of your datacenter (the state where your application is hosted) in order to have more accurate carbon emissions forecasts
      */
     public CarbonAwareConfiguration andState(String state) {
         this.state = state;
         return this;
     }
 
+    /**
+     * Allows to set the cloud provider and region of your datacenter (the cloud provider and region where your application is hosted) in order to have more accurate carbon emissions forecasts
+     */
     public CarbonAwareConfiguration andCloudProvider(String cloudProvider, String cloudRegion) {
         this.cloudProvider = cloudProvider;
         this.cloudRegion = cloudRegion;
         return this;
     }
 
+    /**
+     * Allows to set the CarbonAware API URL
+     */
     public CarbonAwareConfiguration andCarbonAwareApiUrl(String carbonAwareApiUrl) {
         this.carbonAwareApiUrl = carbonAwareApiUrl;
         return this;
     }
 
+    /**
+     * Allows to set the connect timeout for the API client
+     */
     public CarbonAwareConfiguration andApiClientConnectTimeout(Duration apiClientConnectTimeout) {
         this.apiClientConnectTimeout = apiClientConnectTimeout;
         return this;
     }
 
+    /**
+     * Allows to set the read timeout for the API client
+     */
     public CarbonAwareConfiguration andApiClientReadTimeout(Duration apiClientReadTimeout) {
         this.apiClientReadTimeout = apiClientReadTimeout;
         return this;

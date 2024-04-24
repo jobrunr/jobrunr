@@ -406,16 +406,35 @@ public class JobScheduler extends AbstractJobScheduler {
         return schedule(null, instant, job);
     }
 
-
     /**
-     * TODO
+     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in the least carbon intense moment.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      jobScheduler.scheduleCarbonAware(CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(6)), () -> service.doWork());
+     * }</pre>
+     *
+     * @param carbonAwarePeriod the period in which the job will be scheduled
+     * @param jobLambda         the lambda which defines the fire-and-forget job
+     * @return the id of the Job
      */
     public JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
         return scheduleCarbonAware(null, carbonAwarePeriod, jobLambda);
     }
 
     /**
-     * TODO
+     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in the least carbon intense moment.
+     * If a job with that id already exists, JobRunr will not save it again.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      jobScheduler.scheduleCarbonAware(id, CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(6)), () -> service.doWork());
+     * }</pre>
+     *
+     * @param id               the uuid with which to save the job
+     * @param carbonAwarePeriod the period in which the job will be scheduled
+     * @param jobLambda         the lambda which defines the fire-and-forget job
+     * @return the id of the Job
      */
     public JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);

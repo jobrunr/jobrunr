@@ -32,12 +32,12 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
     }
 
     public DayAheadEnergyPricesAssert hasValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
-        Assertions.assertThat(actual.hasValidData(carbonAwarePeriod)).isTrue();
+        Assertions.assertThat(actual.hasDataForPeriod(carbonAwarePeriod)).isTrue();
         return this;
     }
 
     public DayAheadEnergyPricesAssert hasNoValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
-        Assertions.assertThat(actual.hasValidData(carbonAwarePeriod)).isFalse();
+        Assertions.assertThat(actual.hasDataForPeriod(carbonAwarePeriod)).isFalse();
         return this;
     }
 

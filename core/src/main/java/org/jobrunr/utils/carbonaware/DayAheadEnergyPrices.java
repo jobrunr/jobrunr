@@ -114,7 +114,7 @@ public class DayAheadEnergyPrices {
      *    3. if the current time is after the last available hour (data are outdated)
      *  Otherwise, returns true
      */
-    public boolean hasValidData(CarbonAwarePeriod when) {
+    public boolean hasDataForPeriod(CarbonAwarePeriod when) {
         if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty() || isErrorResponse) {
             LOGGER.warn("No hourly energy prices available");
             return false;

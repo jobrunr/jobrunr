@@ -172,7 +172,7 @@ class DayAheadEnergyPricesTest {
     }
 
     @Test
-    void hasValidData_whenValid_returnsTrue() {
+    void hasValidData_when_returnsTrueForPeriod() {
         // Setup
         Instant now = Instant.now();
         ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> prices = new ArrayList<>();
@@ -184,11 +184,11 @@ class DayAheadEnergyPricesTest {
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(7200)); // 2 hours ahead
 
         // Act & Assert
-        assertThat(pricesData.hasValidData(validPeriod)).isTrue();
+        assertThat(pricesData.hasDataForPeriod(validPeriod)).isTrue();
     }
 
     @Test
-    void hasValidData_whenNoHourInsidePeriod_returnsFalse() {
+    void hasData_ForPeriod_whenNoHourInsidePeriod_returnsFalse() {
         // Setup
         Instant now = Instant.now();
         ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> prices = new ArrayList<>();
@@ -200,11 +200,11 @@ class DayAheadEnergyPricesTest {
         CarbonAwarePeriod invalidPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(1800)); // 30 minutes ahead
 
         // Act & Assert
-        assertThat(pricesData.hasValidData(invalidPeriod)).isFalse();
+        assertThat(pricesData.hasDataForPeriod(invalidPeriod)).isFalse();
     }
 
     @Test
-    void hasValidData_whenNoDataAvailable_returnsFalse() {
+    void hasData_whenNoDataForPeriodAvailable_returnsFalse() {
         // Setup
         Instant now = Instant.now();
         DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("BE", null, "Europe/Brussels", "EUR/MWH", new ArrayList<>());
@@ -213,11 +213,11 @@ class DayAheadEnergyPricesTest {
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead
 
         // Act & Assert
-        assertThat(pricesData.hasValidData(validPeriod)).isFalse();
+        assertThat(pricesData.hasDataForPeriod(validPeriod)).isFalse();
     }
 
     @Test
-    void hasValidData_whenErrorResponse_returnsFalse() {
+    void hasData_ForPeriod_whenErrorResponse_returnsFalse() {
         // Setup
         Instant now = Instant.now();
         DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices(null, null, null, null, null);
@@ -226,6 +226,6 @@ class DayAheadEnergyPricesTest {
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead
 
         // Act & Assert
-        assertThat(pricesData.hasValidData(validPeriod)).isFalse();
+        assertThat(pricesData.hasDataForPeriod(validPeriod)).isFalse();
     }
 }

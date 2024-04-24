@@ -189,15 +189,16 @@ public interface JobRunrRuntimeConfiguration {
 
     interface CarbonAwareConfiguration {
         /**
-         * TODO
+         * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
+         * areaCode is a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
          */
         Optional<String> areaCode();
         /**
-         * TODO
+         * Allows to set the connect timeout for the carbon api client
          */
         Optional<Integer> apiClientConnectTimeoutMs();
         /**
-         * TODO
+         * Allows to set the read timeout for the carbon api client
          */
         Optional<Integer> apiClientReadTimeoutMs();
     }
