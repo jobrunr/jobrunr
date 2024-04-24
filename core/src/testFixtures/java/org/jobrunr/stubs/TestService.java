@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -135,6 +136,10 @@ public class TestService implements TestServiceInterface {
 
     public void doWork(LocalDateTime localDateTime) {
         LOGGER.debug("Doing some work... " + processedJobs + " " + localDateTime.toString());
+    }
+
+    public void doWork(OffsetDateTime offsetDateTime) {
+        LOGGER.debug("Doing some work... " + processedJobs + " " + offsetDateTime.toString());
     }
 
     public void doWork(boolean bool, int i, long l, float f, double d) {

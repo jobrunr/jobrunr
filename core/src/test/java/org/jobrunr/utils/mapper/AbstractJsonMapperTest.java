@@ -16,6 +16,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
@@ -121,6 +122,19 @@ public abstract class AbstractJsonMapperTest {
 
         final String jobAsString = jsonMapper.serialize(job);
         assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-localdatetime-parameter.json"));
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
+    void testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWork(OffsetDateTime.now()))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-offsetdatetime-parameter.json"));
 
         final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isEqualTo(job);
