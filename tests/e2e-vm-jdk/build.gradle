@@ -21,10 +21,10 @@ dependencies {
     testImplementation 'org.jobrunr:jobrunr:[5.2.0]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.10.1'
 
-    testImplementation 'org.assertj:assertj-core:3.20.2'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.27.0'
-    testImplementation 'org.awaitility:awaitility:4.1.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+    testImplementation 'org.awaitility:awaitility:4.2.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testImplementation 'org.testcontainers:testcontainers:1.19.7'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
 }
