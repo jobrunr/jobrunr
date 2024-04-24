@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -57,6 +58,7 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapter(Instant.class, new InstantAdapter().nullSafe())
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter().nullSafe())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter().nullSafe())
+                .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
                 .create();
