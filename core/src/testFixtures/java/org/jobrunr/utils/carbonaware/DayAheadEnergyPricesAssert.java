@@ -5,8 +5,6 @@ import org.assertj.core.api.Assertions;
 
 import java.time.Instant;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPricesAssert, DayAheadEnergyPrices> {
     protected DayAheadEnergyPricesAssert(DayAheadEnergyPrices dayAheadEnergyPrices) {
         super(dayAheadEnergyPrices, DayAheadEnergyPricesAssert.class);
