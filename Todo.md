@@ -3,8 +3,8 @@
 ## CarbonAware
 
 - [ ] Add methods to schedule carbon aware in JobRequestScheduler and BackgroundJobRequest
-- [ ] Also add awaiting in JobStats
-- [ ] Cron: * * * * *
+- [ ] Add tests for awaiting in JobStats
+- [ ] Cron: * * * * * PT2H PT5H
 
 ## Other
 
