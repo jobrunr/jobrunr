@@ -64,10 +64,10 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    public void testScheduleCarbonAwareJob_withDeadlineTomorrow_andOutdatedData_andTimeAfter14_shouldScheduleNow() {
+    public void testScheduleCarbonAwareJob_withDeadlineTomorrow_andOutdatedData_andTimeAfter18_shouldScheduleNow() {
         mockApiResponseAndInitializeJobRunr(200, "DE", CarbonApiMockResponses.GERMANY_2024_03_14);
-        try(MockedStatic<Instant> a = InstantMocker.mockTime("2026-10-10T15:00:00Z");
-            MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2026-10-10T15:00:00Z"), "Europe/Brussels")) {
+        try(MockedStatic<Instant> a = InstantMocker.mockTime("2026-10-10T19:00:00Z");
+            MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2026-10-10T19:00:00Z"), "Europe/Brussels")) {
             JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, ChronoUnit.DAYS)),
                     () -> System.out.println("Hello from CarbonAware job!"));
             await().atMost(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
@@ -127,12 +127,12 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    public void testScheduleCarbonAwareJob_withDeadline1Day_andNoData_andTimeIsAfter14_shouldScheduleNow() {
-        try (MockedStatic<ZonedDateTime> a = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-01-01T15:00:00Z"), "Europe/Brussels");
-             MockedStatic<Instant> b = InstantMocker.mockTime("2024-01-01T15:00:00Z")) {
+    public void testScheduleCarbonAwareJob_withDeadline1Day_andNoData_andTimeIsAfter18_shouldScheduleNow() {
+        try (MockedStatic<ZonedDateTime> a = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-01-01T19:00:00Z"), "Europe/Brussels");
+             MockedStatic<Instant> b = InstantMocker.mockTime("2024-01-01T19:00:00Z")) {
             mockApiResponseAndInitializeJobRunr(200, "DE", CarbonApiMockResponses.GERMANY_NO_DATA);
-            JobId jobId = BackgroundJob.scheduleCarbonAware(before(Instant.parse("2024-01-02T19:00:00Z")),
-                    () -> System.out.println("Hello from CarbonAware job: testScheduleCarbonAwareJob_withDeadline1Day_andNoData_andTimeIsAfter14_shouldScheduleNow"));
+            JobId jobId = BackgroundJob.scheduleCarbonAware(before(Instant.parse("2024-01-02T21:00:00Z")),
+                    () -> System.out.println("Hello from CarbonAware job: testScheduleCarbonAwareJob_withDeadline1Day_andNoData_andTimeIsAfter18_shouldScheduleNow"));
             await().atMost(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
             assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
         }

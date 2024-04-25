@@ -83,10 +83,10 @@ public class CarbonAwareJobManager {
             LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate();
             boolean todayIsDeadline = today.equals(deadlineDay);
             boolean todayIsPreviousDayBeforeDeadline = today.equals(deadlineDay.minusDays(1));
-            boolean timeIsAfter14 = nowCET.getHour() >= 14;
-            boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14 = todayIsPreviousDayBeforeDeadline && timeIsAfter14;
+            boolean timeIsAfter18 = nowCET.getHour() >= 18;
+            boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18 = todayIsPreviousDayBeforeDeadline && timeIsAfter18;
 
-            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter14) { //TODO: change this to match zookeeper scheduled task run
+            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18) { //TODO: change this to match zookeeper scheduled task run
                 // it's the day before the deadline and it's after 14:00. Schedule job now.
                 // If we add more data providers, this logic should be changed, as they might have different schedules.
                 msg = msg + " and it's the day before the deadline. Schedule job now.";

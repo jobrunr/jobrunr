@@ -51,7 +51,7 @@ public class AbstractCarbonAwareWiremockTest {
     }
 
     protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
-        String url = String.format(getCarbonAwareApiUrlPath() + "?areaCode=%s", areaCode);
+        String url = String.format(getCarbonAwareApiUrlPath() + "&areaCode=%s", areaCode);
         wireMockServer.stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
