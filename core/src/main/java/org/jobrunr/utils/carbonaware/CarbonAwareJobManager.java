@@ -8,14 +8,18 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.Random;
 
 /**
  * CarbonAwareJobManager contains methods to:
- *  1. Fetch new {@link DayAheadEnergyPrices} from the CarbonAware API
- *  2. Logic to move a job from {@link CarbonAwareAwaitingState} to {@link org.jobrunr.jobs.states.ScheduledState}
+ * 1. Fetch new {@link DayAheadEnergyPrices} from the CarbonAware API
+ * 2. Logic to move a job from {@link CarbonAwareAwaitingState} to {@link org.jobrunr.jobs.states.ScheduledState}
  */
 @Beta(note = "Scheduling logic for CarbonAware jobs might change in the future. Changes will not affect the API and the end user.")
 public class CarbonAwareJobManager {
@@ -31,10 +35,19 @@ public class CarbonAwareJobManager {
         this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
     }
 
+    public Instant getDailyRunTime() {
+        Random rand = new Random();
+        int randomOffsetToDistributeLoadOnAPI = rand.nextInt(721) * 5;
+        ZonedDateTime today6PMUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
+                .withHour(18).withMinute(0).withSecond(0)
+                .plusSeconds(randomOffsetToDistributeLoadOnAPI);
+        return today6PMUTC.toInstant();
+    }
+
     public void updateDayAheadEnergyPrices() {
         Optional<String> areaCode = Optional.ofNullable(carbonAwareConfiguration.getAreaCode());
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
-        if (dayAheadEnergyPrices.getIsErrorResponse()){
+        if (dayAheadEnergyPrices.getIsErrorResponse()) {
             LOGGER.warn("Could not update day ahead energy prices for areaCode '{}': {}",
                     areaCode.orElse("unknown"), dayAheadEnergyPrices.getErrorMessage());
             return;
@@ -49,11 +62,12 @@ public class CarbonAwareJobManager {
     /**
      * Moves the job from {@link CarbonAwareAwaitingState} to {@link org.jobrunr.jobs.states.ScheduledState} based on current {@link DayAheadEnergyPrices}
      * Rules:
-     *  1. If the job has passed its deadline or is about to pass its deadline, schedule the job now
-     *  2. If there are no hourly energy prices available for the period (from, to):
-     *      - If: (it's the day of the deadline) or (it is the day before the deadline and it's after 18:00), schedule the job now
-     *      - Otherwise, wait for prices to become available
-     *  3. Schedule the job at the cheapest price available between (from, to)
+     * 1. If the job has passed its deadline or is about to pass its deadline, schedule the job now
+     * 2. If there are no hourly energy prices available for the period (from, to):
+     * - If: (it's the day of the deadline) or (it is the day before the deadline and it's after 18:00), schedule the job now
+     * - Otherwise, wait for prices to become available
+     * 3. Schedule the job at the cheapest price available between (from, to)
+     *
      * @param job the job to move to the next state
      */
     public void moveToNextState(Job job) {

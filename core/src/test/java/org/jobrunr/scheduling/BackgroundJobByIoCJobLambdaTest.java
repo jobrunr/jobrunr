@@ -33,7 +33,6 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
@@ -42,7 +41,6 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -51,7 +49,6 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
-import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
 
 public class BackgroundJobByIoCJobLambdaTest {
 
@@ -235,13 +232,6 @@ public class BackgroundJobByIoCJobLambdaTest {
         JobId jobId = BackgroundJob.<TestService>schedule(now().plusSeconds(1), x -> x.scheduleNewWork(5));
         await().atMost(ONE_MINUTE).until(() -> storageProvider.countJobs(SUCCEEDED) == (5 + 1));
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
-    }
-
-    @Test
-    void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(5, HOURS)), TestService::doStaticWork);
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
-        assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

@@ -22,7 +22,6 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForRecurringJobsIfStopTheWorldGCOccurs;
 import org.jobrunr.utils.GCUtils;
 import org.jobrunr.utils.annotations.Because;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +43,7 @@ import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -330,8 +330,15 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)),  () -> testService.doWork(5, JobContext.Null));
+        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)), TestService::doStaticWork);
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
+    }
+
+    @Test
+    void testScheduleCarbonAwareWithNoCarbonIntensityDataAndDeadlineIsTodayThenJobIsEnqueuedImmediately() {
+        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(5, HOURS)), TestService::doStaticWork);
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

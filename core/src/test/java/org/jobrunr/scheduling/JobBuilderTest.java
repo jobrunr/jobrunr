@@ -36,7 +36,7 @@ class JobBuilderTest {
 
     @Test
     void testJobBuilderCannotBeCombinedWithAnnotation() {
-        assertThatThrownBy(() ->  aJob()
+        assertThatThrownBy(() -> aJob()
                 .withDetails(() -> testService.doWork())
                 .build(jobDetailsGenerator))
                 .isInstanceOf(IllegalStateException.class)
@@ -143,13 +143,13 @@ class JobBuilderTest {
     }
 
     @Test
-    void testWithScheduleCarboAware_andScheduleAt_thenThrowException() {
+    void testWithScheduleCarbonAware_andScheduleAt_thenThrowException() {
         assertThatThrownBy(() -> aJob()
                 .scheduleCarbonAware(before(now().plus(1, DAYS)))
                 .scheduleAt(now().plus(6, HOURS))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator))
-        .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
