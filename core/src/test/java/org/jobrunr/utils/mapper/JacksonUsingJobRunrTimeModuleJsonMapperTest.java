@@ -23,8 +23,8 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
     }
 
     @Test
-    void testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter() {
-        assertThatThrownBy(super::testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter)
+    void testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter() {
+        assertThatThrownBy(super::testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter)
                 .isInstanceOf(JobParameterJsonMapperException.class)
                 .hasCauseInstanceOf(InvalidDefinitionException.class);
     }

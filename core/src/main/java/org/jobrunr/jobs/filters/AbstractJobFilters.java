@@ -116,7 +116,7 @@ public abstract class AbstractJobFilters {
 
     final void logJobFilterTime(JobFilter jobFilter, long durationInNanos) {
         if (NANOSECONDS.toMillis(durationInNanos) > 10) {
-            getLogger().warn("JobFilter of type '{}' has slow performance (> 10ms) which negatively impacts the overall functioning of JobRunr. JobRunr Pro can run slow running Job Filters without a negative performance impact.", jobFilter.getClass().getName());
+            getLogger().warn("JobFilter of type '{}' has slow performance of {}ms (a Job Filter should run under 10ms) which negatively impacts the overall functioning of JobRunr. JobRunr Pro can run slow running Job Filters without a negative performance impact.", jobFilter.getClass().getName(), NANOSECONDS.toMillis(durationInNanos));
         }
     }
 }
