@@ -3,6 +3,7 @@ package org.jobrunr.utils.carbonaware;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import java.util.Optional;
  *  1. Fetch new {@link DayAheadEnergyPrices} from the CarbonAware API
  *  2. Logic to move a job from {@link CarbonAwareAwaitingState} to {@link org.jobrunr.jobs.states.ScheduledState}
  */
+@Beta(note = "Scheduling logic for CarbonAware jobs might change in the future. Changes will not affect the API and the end user.")
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
@@ -52,7 +54,7 @@ public class CarbonAwareJobManager {
      *      - If: (it's the day of the deadline) or (it is the day before the deadline and it's after 18:00), schedule the job now
      *      - Otherwise, wait for prices to become available
      *  3. Schedule the job at the cheapest price available between (from, to)
-     * @param job
+     * @param job the job to move to the next state
      */
     public void moveToNextState(Job job) {
         JobState jobState = job.getJobState();
