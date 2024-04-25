@@ -12,6 +12,7 @@ import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +66,8 @@ public abstract class AbstractTaskTest {
     }
 
     private BackgroundJobServer createBackgroundJobServerSpy(StorageProvider storageProvider, BackgroundJobServerConfiguration configuration) {
-        return Mockito.spy(new BackgroundJobServer(storageProvider, null, new JacksonJsonMapper(), null, configuration) {
+        CarbonAwareJobManager mockCarbonAwareJobManager = Mockito.mock(CarbonAwareJobManager.class);
+        return Mockito.spy(new BackgroundJobServer(storageProvider, mockCarbonAwareJobManager, new JacksonJsonMapper(), null, configuration) {
             @Override
             protected JobSteward createJobSteward() {
                 return jobSteward;

@@ -352,7 +352,7 @@ public class JobRunrConfiguration {
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, carbonAwareJobManager, jobFilters);
-        return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler, backgroundJobServer);
+        return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }
 
     private static JsonMapper determineJsonMapper() {
@@ -371,12 +371,10 @@ public class JobRunrConfiguration {
 
         private final JobScheduler jobScheduler;
         private final JobRequestScheduler jobRequestScheduler;
-        private final BackgroundJobServer backgroundJobServer;
 
-        public JobRunrConfigurationResult(JobScheduler jobScheduler, JobRequestScheduler jobRequestScheduler, BackgroundJobServer backgroundJobServer) {
+        public JobRunrConfigurationResult(JobScheduler jobScheduler, JobRequestScheduler jobRequestScheduler) {
             this.jobScheduler = jobScheduler;
             this.jobRequestScheduler = jobRequestScheduler;
-            this.backgroundJobServer = backgroundJobServer;
         }
 
         public JobScheduler getJobScheduler() {
@@ -385,6 +383,5 @@ public class JobRunrConfiguration {
         public JobRequestScheduler getJobRequestScheduler() {
             return jobRequestScheduler;
         }
-        public BackgroundJobServer getBackgroundJobServer() {return backgroundJobServer;}
     }
 }

@@ -16,6 +16,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Random;
 
+import static java.time.Instant.now;
+
 /**
  * CarbonAwareJobManager contains methods to:
  * 1. Fetch new {@link DayAheadEnergyPrices} from the CarbonAware API
@@ -27,6 +29,7 @@ public class CarbonAwareJobManager {
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonAwareApiClient carbonAwareAPIClient;
     private DayAheadEnergyPrices dayAheadEnergyPrices;
+    private final Random rand = new Random();
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
@@ -35,13 +38,12 @@ public class CarbonAwareJobManager {
         this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
     }
 
-    public Instant getDailyRunTime() {
-        Random rand = new Random();
+    public Instant getDailyRunTime(int baseHour) {
         int randomOffsetToDistributeLoadOnAPI = rand.nextInt(721) * 5;
-        ZonedDateTime today6PMUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
-                .withHour(18).withMinute(0).withSecond(0)
+        ZonedDateTime baseHourTodayUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
+                .withHour(baseHour).withMinute(0).withSecond(0)
                 .plusSeconds(randomOffsetToDistributeLoadOnAPI);
-        return today6PMUTC.toInstant();
+        return baseHourTodayUTC.toInstant();
     }
 
     public void updateDayAheadEnergyPrices() {
@@ -75,40 +77,45 @@ public class CarbonAwareJobManager {
         if (!(jobState instanceof CarbonAwareAwaitingState)) {
             throw new IllegalStateException("CarbonAwareScheduler can only handle jobs that are awaiting for the least carbon intense moment");
         }
+        CarbonAwareAwaitingState state = (CarbonAwareAwaitingState) jobState;
 
-        CarbonAwareAwaitingState carbonAwareAwaitingState = (CarbonAwareAwaitingState) jobState;
-
-        if (Instant.now().isAfter(carbonAwareAwaitingState.getTo())) {
+        if (now().isAfter(state.getTo())) {
             LOGGER.warn("Job {} has passed its deadline, schedule job now", job.getId());
-            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job has passed its deadline, scheduling job now");
+            state.moveToNextState(job, now(), "Job has passed its deadline, scheduling job now");
             return;
         }
 
-        if (Instant.now().isAfter(carbonAwareAwaitingState.getTo().minus(1, ChronoUnit.HOURS))) {
+        if (now().isAfter(state.getTo().minus(1, ChronoUnit.HOURS))) {
             LOGGER.warn("Job {} is about to pass its deadline, schedule job now", job.getId());
-            carbonAwareAwaitingState.moveToNextState(job, Instant.now(), "Job is about to pass its deadline, scheduling job now");
+            state.moveToNextState(job, now(), "Job is about to pass its deadline, scheduling job now");
             return;
         }
 
-        if (!dayAheadEnergyPrices.hasDataForPeriod(carbonAwareAwaitingState.getPeriod())) {
-            String msg = String.format("No hourly energy prices available for areaCode '%s' and period %s %s.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState, dayAheadEnergyPrices.getErrorMessage());
+        if (!dayAheadEnergyPrices.hasDataForPeriod(state.getPeriod())) {
+            String msg = String.format("No hourly energy prices available for areaCode '%s' and period %s %s.", carbonAwareConfiguration.getAreaCode(), state, dayAheadEnergyPrices.getErrorMessage());
 
             ZonedDateTime nowCET = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             // Check if current day is the previous day of the 'to' instant
             LocalDate today = nowCET.toLocalDate();
-            LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate();
+            LocalDate deadlineDay = state.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate();
             boolean todayIsDeadline = today.equals(deadlineDay);
             boolean todayIsPreviousDayBeforeDeadline = today.equals(deadlineDay.minusDays(1));
             boolean timeIsAfter18 = nowCET.getHour() >= 18;
             boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18 = todayIsPreviousDayBeforeDeadline && timeIsAfter18;
 
-            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18) { //TODO: change this to match zookeeper scheduled task run
-                // it's the day before the deadline and it's after 14:00. Schedule job now.
+            if (todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18) {
                 // If we add more data providers, this logic should be changed, as they might have different schedules.
-                msg = msg + " and it's the day before the deadline. Schedule job now.";
-                LOGGER.warn(msg);
-                carbonAwareAwaitingState.moveToNextState(job, Instant.now(), msg);
-                return;
+                if (state.getFrom().isAfter(now())) {
+                    msg = msg + " Schedule job at `from` time.";
+                    LOGGER.warn(msg);
+                    state.moveToNextState(job, state.getFrom(), msg);
+                    return;
+                } else {
+                    msg = msg + " . Schedule job now.";
+                    LOGGER.warn(msg);
+                    state.moveToNextState(job, now(), msg);
+                    return;
+                }
             } else { // wait. Prices might become available later or the next day
                 LOGGER.warn(msg + " Waiting for prices to become available.");
                 return;
@@ -116,13 +123,13 @@ public class CarbonAwareJobManager {
         }
 
         // from here on, we know that we have valid data
-        Instant leastExpensiveHour = dayAheadEnergyPrices.leastExpensiveHour(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        Instant leastExpensiveHour = dayAheadEnergyPrices.leastExpensiveHour(state.getFrom(), state.getTo());
         if (leastExpensiveHour != null) {
-            carbonAwareAwaitingState.moveToNextState(job, leastExpensiveHour);
+            state.moveToNextState(job, leastExpensiveHour);
             return;
         }
 
-        LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", state.getFrom(), state.getTo());
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {

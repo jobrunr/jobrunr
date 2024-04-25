@@ -3,11 +3,9 @@ package org.jobrunr.configuration;
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
-import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -64,7 +62,7 @@ class JobRunrConfigurationTest {
 
         verify(storageProvider).setJobMapper(jobMapperCaptor.capture());
         JobMapper jobMapper = jobMapperCaptor.getValue();
-        assertThat((JsonMapper)getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
+        assertThat((JsonMapper) getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
     }
 
     @Test

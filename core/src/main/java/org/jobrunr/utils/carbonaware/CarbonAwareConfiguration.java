@@ -6,7 +6,7 @@ import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCa
 
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_AWARE_API_URL = getCarbonAwareApiUrl("http://jobrunr-carbon-api-dev.swedencentral.cloudapp.azure.com:10000");
+    public static String DEFAULT_CARBON_AWARE_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 

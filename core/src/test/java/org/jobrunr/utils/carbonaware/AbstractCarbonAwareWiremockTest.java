@@ -5,7 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -18,7 +17,9 @@ import java.time.Duration;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.*;
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_READ_TIMEOUT;
+import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrlPath;
 
 public class AbstractCarbonAwareWiremockTest {
@@ -58,13 +59,12 @@ public class AbstractCarbonAwareWiremockTest {
                         .withBody(response)));
     }
 
-    protected BackgroundJobServer initializeJobRunr(int pollIntervalMs, String areaCode, StorageProvider storageProvider) {
-        return JobRunr.configure()
+    protected void initializeJobRunr(int pollIntervalMs, String areaCode, StorageProvider storageProvider) {
+        JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useCarbonAwareScheduling(usingStandardCarbonAwareConfiguration().andAreaCode(areaCode)
                         .andCarbonAwareApiUrl(carbonApiTestUrl))
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(pollIntervalMs)))
-                .initialize()
-                .getBackgroundJobServer();
+                .initialize();
     }
 }

@@ -25,6 +25,8 @@ import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderAssert;
+import org.jobrunr.utils.carbonaware.DayAheadEnergyPrices;
+import org.jobrunr.utils.carbonaware.DayAheadEnergyPricesAssert;
 
 import javax.sql.DataSource;
 import java.net.http.HttpResponse;
@@ -84,6 +86,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static DatabaseAssertions assertThat(DataSource dataSource) {
         return DatabaseAssertions.assertThat(dataSource);
+    }
+
+    public static DayAheadEnergyPricesAssert assertThat(DayAheadEnergyPrices dayAheadEnergyPrices) {
+        return DayAheadEnergyPricesAssert.assertThat(dayAheadEnergyPrices);
     }
 
     public static String contentOfResource(String resourceName) {
