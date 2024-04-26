@@ -48,8 +48,8 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param storageProvider the storageProvider to use
      */
-    public JobScheduler(StorageProvider storageProvider) {
-        this(storageProvider, emptyList());
+    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+        this(storageProvider, carbonAwareJobManager, emptyList());
     }
 
     /**
@@ -58,8 +58,8 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        this(storageProvider, null, new JobDetailsAsmGenerator(), jobFilters);
+    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+        this(storageProvider, carbonAwareJobManager, new JobDetailsAsmGenerator(), jobFilters);
     }
 
     public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {

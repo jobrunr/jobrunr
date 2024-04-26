@@ -44,7 +44,7 @@ class JobSchedulerTest {
         testService = new TestService();
 
         jobClientLogFilter = new JobClientLogFilter();
-        jobScheduler = new JobScheduler(storageProvider, List.of(jobClientLogFilter));
+        jobScheduler = new JobScheduler(storageProvider, null, List.of(jobClientLogFilter));
     }
 
     @Test

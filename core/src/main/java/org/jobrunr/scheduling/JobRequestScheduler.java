@@ -41,8 +41,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *
      * @param storageProvider the storageProvider to use
      */
-    public JobRequestScheduler(StorageProvider storageProvider) {
-        super(storageProvider, null, emptyList());
+    public JobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+        super(storageProvider, carbonAwareJobManager, emptyList());
     }
 
     /**
