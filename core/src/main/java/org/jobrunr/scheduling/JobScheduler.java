@@ -102,7 +102,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *            jobScheduler.enqueue(() -> service.doWork());
      *       }</pre>
      *
-     * @param job the lambda which defines the fire-and-forget job
+     * @param job the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the job
      */
     public JobId enqueue(JobLambda job) {
@@ -120,7 +120,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *       }</pre>
      *
      * @param id  the uuid with which to save the job
-     * @param job the lambda which defines the fire-and-forget job
+     * @param job the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the job
      */
     public JobId enqueue(UUID id, JobLambda job) {
@@ -138,7 +138,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param input         the stream of items for which to create fire-and-forget jobs
-     * @param jobFromStream the lambda which defines the fire-and-forget job to create for each item in the {@code input}
+     * @param jobFromStream the {@link JobLambda} which defines the fire-and-forget job to create for each item in the {@code input}
      */
     public <T> void enqueue(Stream<T> input, JobLambdaFromStream<T> jobFromStream) {
         input
@@ -154,7 +154,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *            jobScheduler.<MyService>enqueue(x -> x.doWork());
      *       }</pre>
      *
-     * @param iocJob the lambda which defines the fire-and-forget job
+     * @param iocJob the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the job
      */
     public <S> JobId enqueue(IocJobLambda<S> iocJob) {
@@ -171,7 +171,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *       }</pre>
      *
      * @param id     the uuid with which to save the job
-     * @param iocJob the lambda which defines the fire-and-forget job
+     * @param iocJob the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the job
      */
     public <S> JobId enqueue(UUID id, IocJobLambda<S> iocJob) {
@@ -188,7 +188,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param input            the stream of items for which to create fire-and-forget jobs
-     * @param iocJobFromStream the lambda which defines the fire-and-forget job to create for each item in the {@code input}
+     * @param iocJobFromStream the {@link JobLambda} which defines the fire-and-forget job to create for each item in the {@code input}
      */
     public <S, T> void enqueue(Stream<T> input, IocJobLambdaFromStream<S, T> iocJobFromStream) {
         input
@@ -206,7 +206,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param zonedDateTime the moment in time at which the job will be enqueued.
-     * @param job           the lambda which defines the fire-and-forget job
+     * @param job           the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(ZonedDateTime zonedDateTime, JobLambda job) {
@@ -224,7 +224,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id            the uuid with which to save the job
      * @param zonedDateTime the moment in time at which the job will be enqueued.
-     * @param job           the lambda which defines the fire-and-forget job
+     * @param job           the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(UUID id, ZonedDateTime zonedDateTime, JobLambda job) {
@@ -239,7 +239,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param zonedDateTime the moment in time at which the job will be enqueued.
-     * @param iocJob        the lambda which defines the fire-and-forget job
+     * @param iocJob        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(ZonedDateTime zonedDateTime, IocJobLambda<S> iocJob) {
@@ -256,7 +256,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id            the uuid with which to save the job
      * @param zonedDateTime the moment in time at which the job will be enqueued.
-     * @param iocJob        the lambda which defines the fire-and-forget job
+     * @param iocJob        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(UUID id, ZonedDateTime zonedDateTime, IocJobLambda<S> iocJob) {
@@ -272,7 +272,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param offsetDateTime The moment in time at which the job will be enqueued.
-     * @param job            the lambda which defines the fire-and-forget job
+     * @param job            the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(OffsetDateTime offsetDateTime, JobLambda job) {
@@ -290,7 +290,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id             the uuid with which to save the job
      * @param offsetDateTime The moment in time at which the job will be enqueued.
-     * @param job            the lambda which defines the fire-and-forget job
+     * @param job            the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(UUID id, OffsetDateTime offsetDateTime, JobLambda job) {
@@ -305,7 +305,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param offsetDateTime The moment in time at which the job will be enqueued.
-     * @param iocJob         the lambda which defines the fire-and-forget job
+     * @param iocJob         the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(OffsetDateTime offsetDateTime, IocJobLambda<S> iocJob) {
@@ -322,7 +322,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id             the uuid with which to save the job
      * @param offsetDateTime The moment in time at which the job will be enqueued.
-     * @param iocJob         the lambda which defines the fire-and-forget job
+     * @param iocJob         the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(UUID id, OffsetDateTime offsetDateTime, IocJobLambda<S> iocJob) {
@@ -338,7 +338,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
-     * @param job           the lambda which defines the fire-and-forget job
+     * @param job           the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(LocalDateTime localDateTime, JobLambda job) {
@@ -356,7 +356,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id            the uuid with which to save the job
      * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
-     * @param job           the lambda which defines the fire-and-forget job
+     * @param job           the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(UUID id, LocalDateTime localDateTime, JobLambda job) {
@@ -371,7 +371,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
-     * @param iocJob        the lambda which defines the fire-and-forget job
+     * @param iocJob        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(LocalDateTime localDateTime, IocJobLambda<S> iocJob) {
@@ -388,7 +388,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id            the uuid with which to save the job
      * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
-     * @param iocJob        the lambda which defines the fire-and-forget job
+     * @param iocJob        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(UUID id, LocalDateTime localDateTime, IocJobLambda<S> iocJob) {
@@ -404,7 +404,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param instant the moment in time at which the job will be enqueued.
-     * @param job     the lambda which defines the fire-and-forget job
+     * @param job     the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(Instant instant, JobLambda job) {
@@ -422,7 +422,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id      the uuid with which to save the job
      * @param instant the moment in time at which the job will be enqueued.
-     * @param job     the lambda which defines the fire-and-forget job
+     * @param job     the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId schedule(UUID id, Instant instant, JobLambda job) {
@@ -438,7 +438,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param instant the moment in time at which the job will be enqueued.
-     * @param iocJob  the lambda which defines the fire-and-forget job
+     * @param iocJob  the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(Instant instant, IocJobLambda<S> iocJob) {
@@ -455,7 +455,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id      the uuid with which to save the job
      * @param instant the moment in time at which the job will be enqueued.
-     * @param iocJob  the lambda which defines the fire-and-forget job
+     * @param iocJob  the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public <S> JobId schedule(UUID id, Instant instant, IocJobLambda<S> iocJob) {
@@ -473,7 +473,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param jobLambda         the lambda which defines the fire-and-forget job
+     * @param jobLambda         the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
@@ -491,7 +491,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param id                the uuid with which to save the job
      * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param jobLambda         the lambda which defines the fire-and-forget job
+     * @param jobLambda         the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
@@ -500,7 +500,7 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given RecurringJobBuilder (using id, cron expression and lambda).
+     * Creates a new or alters the existing {@link RecurringJob} based on the given {@link RecurringJobBuilder} (using id, cron expression and lambda).
      * If no zoneId is set on the builder the jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      *
@@ -511,7 +511,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param recurringJobBuilder the builder describing your recurring job.
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     @Override
@@ -521,7 +521,7 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new recurring job based on the given lambda and the given cron expression. The jobs will be scheduled using the systemDefault timezone.
+     * Creates a new {@link RecurringJob} based on the given lambda and the given cron expression. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -530,7 +530,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param cron The cron expression defining when to run this recurring job
      * @param job  the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public String scheduleRecurrently(String cron, JobLambda job) {
@@ -538,7 +538,7 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new recurring job based on the given cron expression and the given lambda. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone.
+     * Creates a new {@link RecurringJob} based on the given cron expression and the given lambda. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>scheduleRecurrently(Cron.daily(), x -> x.doWork());
@@ -546,7 +546,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param cron   The cron expression defining when to run this recurring job
      * @param iocJob the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public <S> String scheduleRecurrently(String cron, IocJobLambda<S> iocJob) {
@@ -554,17 +554,17 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression and lambda. The jobs will be scheduled using the systemDefault timezone
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression and lambda. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
      *      jobScheduler.scheduleRecurrently("my-recurring-job", Cron.daily(), () -> service.doWork());
      * }</pre>
      *
-     * @param id   the id of this recurring job which can be used to alter or delete it
+     * @param id   the id of this {@link RecurringJob} which can be used to alter or delete it
      * @param cron The cron expression defining when to run this recurring job
      * @param job  the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public String scheduleRecurrently(String id, String cron, JobLambda job) {
@@ -572,16 +572,16 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression and lambda. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression and lambda. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", Cron.daily()),  x -> x.doWork();
      * }</pre>
      *
-     * @param id     the id of this recurring job which can be used to alter or delete it
+     * @param id     the id of this {@link RecurringJob} which can be used to alter or delete it
      * @param cron   The cron expression defining when to run this recurring job
      * @param iocJob the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public <S> String scheduleRecurrently(String id, String cron, IocJobLambda<S> iocJob) {
@@ -589,18 +589,18 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@code ZoneId} and lambda.
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression, {@code ZoneId} and lambda.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
      *      jobScheduler.scheduleRecurrently("my-recurring-job", Cron.daily(), ZoneId.of("Europe/Brussels"), () -> service.doWork());
      * }</pre>
      *
-     * @param id     the id of this recurring job which can be used to alter or delete it
+     * @param id     the id of this {@link RecurringJob} which can be used to alter or delete it
      * @param cron   The cron expression defining when to run this recurring job
      * @param zoneId The zoneId (timezone) of when to run this recurring job
      * @param job    the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public String scheduleRecurrently(String id, String cron, ZoneId zoneId, JobLambda job) {
@@ -609,17 +609,17 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@code ZoneId} and lambda. The IoC container will be used to resolve {@code MyService}.
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression, {@code ZoneId} and lambda. The IoC container will be used to resolve {@code MyService}.
      * <h5>An example:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", Cron.daily(), ZoneId.of("Europe/Brussels"), x -> x.doWork());
      * }</pre>
      *
-     * @param id     the id of this recurring job which can be used to alter or delete it
+     * @param id     the id of this {@link RecurringJob} which can be used to alter or delete it
      * @param cron   The cron expression defining when to run this recurring job
      * @param zoneId The zoneId (timezone) of when to run this recurring job
      * @param iocJob the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
     public <S> String scheduleRecurrently(String id, String cron, ZoneId zoneId, IocJobLambda<S> iocJob) {
@@ -628,7 +628,7 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new recurring job based on the given duration and the given lambda. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * Creates a new {@link RecurringJob} based on the given duration and the given lambda. The first run of this {@link RecurringJob} will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -637,14 +637,14 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param duration the duration defining the time between each instance of this recurring job.
      * @param job      the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
     public String scheduleRecurrently(Duration duration, JobLambda job) {
         return scheduleRecurrently(null, duration, job);
     }
 
     /**
-     * Creates a new recurring job based on the given duration and the given lambda. The IoC container will be used to resolve {@code MyService}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * Creates a new {@link RecurringJob} based on the given duration and the given lambda. The IoC container will be used to resolve {@code MyService}. The first run of this {@link RecurringJob} will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
      *      BackgroundJob.<MyService>scheduleRecurrently(Duration.parse("P5D"), x -> x.doWork());
@@ -652,24 +652,24 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param duration the duration defining the time between each instance of this recurring job
      * @param iocJob   the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
     public <S> String scheduleRecurrently(Duration duration, IocJobLambda<S> iocJob) {
         return scheduleRecurrently(null, duration, iocJob);
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, duration and lambda. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, duration and lambda. The first run of this {@link RecurringJob} will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
      *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
-     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param id       the id of this {@link RecurringJob} which can be used to alter or delete it
      * @param duration the duration defining the time between each instance of this recurring job
      * @param job      the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
     public String scheduleRecurrently(String id, Duration duration, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -677,16 +677,16 @@ public class JobScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, duration and lambda. The IoC container will be used to resolve {@code MyService}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, duration and lambda. The IoC container will be used to resolve {@code MyService}. The first run of this {@link RecurringJob} will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
      *      BackgroundJob.<MyService>scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), x -> x.doWork());
      * }</pre>
      *
-     * @param id       the id of this recurring job which can be used to alter or delete it
+     * @param id       the id of this {@link RecurringJob} which can be used to alter or delete it
      * @param duration the duration defining the time between each instance of this recurring job
      * @param iocJob   the lambda which defines the recurring job
-     * @return the id of this recurring job which can be used to alter or delete it
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
     public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);

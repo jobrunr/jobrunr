@@ -44,7 +44,7 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithIoCJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .<TestService>withDetails(x -> x.doWork())
+                .<TestService>withDetails(TestService::doWork)
                 .withCron(every5Seconds)
                 .build(jobDetailsGenerator);
 

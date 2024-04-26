@@ -31,7 +31,7 @@ public class BackgroundJobRequest {
     /**
      * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
      *
-     * @param jobBuilder the jobBuilder with all the details of the job
+     * @param jobBuilder the {@link JobBuilder} with all the details of the job
      * @return the id of the job
      */
     public static JobId create(JobBuilder jobBuilder) {

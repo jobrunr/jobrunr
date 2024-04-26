@@ -61,7 +61,7 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to set the id of the recurringJob. If a recurringJob with that id already exists, JobRunr will not save it again.
+     * Allows to set the id of the recurringJob. If a {@link RecurringJob} with that id already exists, JobRunr will not save it again.
      *
      * @param jobId the recurringJob of the recurringJob
      * @return the same builder instance which provides a fluent api
