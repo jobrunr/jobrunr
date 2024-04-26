@@ -104,7 +104,7 @@ public class CronExpression extends Schedule {
      */
     public static CronExpression create(String expression) {
         if (expression.isEmpty()) {
-            throw new InvalidCronExpressionException("empty expression");
+            throw new InvalidCronExpressionException("Empty cron expression");
         }
         String[] fields = expression.trim().toLowerCase().split("\\s+");
         int count = fields.length;
