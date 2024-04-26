@@ -37,7 +37,7 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws Exception {
-        StorageProvider storageProvider = inMemoryStorageProvider();
+        StorageProvider storageProvider = postgresStorageProvider();
 
         //StubDataProvider.using(storageProvider)
         //.addALotOfEnqueuedJobsThatTakeSomeTime()

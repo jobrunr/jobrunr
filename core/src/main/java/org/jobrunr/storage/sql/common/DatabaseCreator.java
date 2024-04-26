@@ -4,11 +4,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,14 +12,11 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
@@ -33,6 +26,7 @@ public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
     private static final String[] JOBRUNR_TABLES = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
+    private static final String NULL_UUID = "00000000-0000-0000-0000-000000000000";
 
     private final ConnectionProvider connectionProvider;
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
@@ -88,11 +82,30 @@ public class DatabaseCreator {
     }
 
     public void runMigrations() {
-        getMigrations()
+        runMigrations(getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
                 .sorted(comparing(SqlMigration::getFileName))
                 .filter(this::isNewMigration)
-                .forEach(this::runMigration);
+                .collect(Collectors.toList())
+        );
+    }
+
+    private void runMigrations(List<SqlMigration> migrations) {
+        if (migrations.isEmpty()) return;
+
+        if (isMigrationsTableMigration(migrations.get(0))) {
+            createMigrationsTable(migrations.remove(0));
+        }
+
+        if (lockMigrationsTable()) {
+            try {
+                migrations.forEach(this::runMigration);
+            } finally {
+                removeMigrationsTableLock();
+            }
+        } else {
+            waitUntilMigrationsAreDone();
+        }
     }
 
     public void validateTables() {
@@ -129,6 +142,15 @@ public class DatabaseCreator {
         }
     }
 
+    private void createMigrationsTable(SqlMigration migration) {
+        try {
+            runMigration(migration);
+        } catch (Exception e) {
+            LOGGER.info("Error when creating the migrations table", e);
+            // the table already exists, or we'll fail in the next steps
+        }
+    }
+
     private boolean isEmptyMigration(SqlMigration migration) throws IOException {
         return migration.getMigrationSql().startsWith("-- Empty migration");
     }
@@ -145,16 +167,73 @@ public class DatabaseCreator {
     }
 
     protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
+        updateMigrationsTable(connection, UUID.randomUUID().toString(), migration.getFileName());
+    }
+
+    private void updateMigrationsTable(Connection connection, String id, String filename) throws SQLException {
         try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
-            pSt.setString(1, UUID.randomUUID().toString());
-            pSt.setString(2, migration.getFileName());
+            pSt.setString(1, id);
+            pSt.setString(2, filename);
             pSt.setString(3, LocalDateTime.now().toString());
             pSt.execute();
         }
     }
 
+    private boolean lockMigrationsTable() {
+        LOGGER.info("Trying to lock migrations table...");
+        try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
+            updateMigrationsTable(conn, NULL_UUID, "1");
+            tran.commit();
+        } catch (Exception e) {
+            LOGGER.info("Migrations table is already locked.", e);
+            return false;
+        }
+        LOGGER.info("Migrations table is locked.");
+        return true;
+    }
+
+    private void waitUntilMigrationsAreDone() {
+        LOGGER.info("Waiting for the end of database migrations...");
+        try {
+            while (migrationsAreOnGoing()) {
+                Thread.sleep(5000);
+            }
+        } catch (Exception e) {
+            throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
+        }
+    }
+
+    private boolean migrationsAreOnGoing() throws SQLException {
+        try (
+                final Connection conn = getConnection();
+                final PreparedStatement pSt = conn.prepareStatement("select 1 from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")
+        ) {
+            pSt.setString(1, NULL_UUID);
+            ResultSet resultSet = pSt.executeQuery();
+            return !resultSet.next();
+        }
+    }
+
+    private void removeMigrationsTableLock() {
+        LOGGER.info("Removing lock on migrations table...");
+        try (final Connection conn = getConnection();
+             final Transaction tran = new Transaction(conn);
+             PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+            pSt.setString(1, NULL_UUID);
+            pSt.execute();
+            tran.commit();
+        } catch (Exception e) {
+            throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
+        }
+        LOGGER.info("The lock has been removed from migrations table.");
+    }
+
     private boolean isNewMigration(SqlMigration migration) {
         return !isMigrationApplied(migration);
+    }
+
+    private boolean isMigrationsTableMigration(SqlMigration migration) {
+        return migration.getFileName().endsWith("v000__create_migrations_table.sql");
     }
 
     protected boolean isMigrationApplied(SqlMigration migration) {
@@ -194,7 +273,6 @@ public class DatabaseCreator {
         Connection getConnection() throws SQLException;
 
     }
-
 
     private TablePrefixStatementUpdater getStatementUpdater(String tablePrefix, ConnectionProvider connectionProvider) {
         try {
