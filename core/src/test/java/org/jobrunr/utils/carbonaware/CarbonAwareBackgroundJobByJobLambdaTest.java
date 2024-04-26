@@ -33,7 +33,7 @@ import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.after;
 import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.between;
 
-public class CarbonAwareMoveToScheduleStateLogicTest extends AbstractCarbonAwareWiremockTest {
+public class CarbonAwareBackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTest {
 
     StorageProvider storageProvider;
 
