@@ -90,24 +90,6 @@ public class DatabaseCreator {
         );
     }
 
-    private void runMigrations(List<SqlMigration> migrations) {
-        if (migrations.isEmpty()) return;
-
-        if (isMigrationsTableMigration(migrations.get(0))) {
-            createMigrationsTable(migrations.remove(0));
-        }
-
-        if (lockMigrationsTable()) {
-            try {
-                migrations.forEach(this::runMigration);
-            } finally {
-                removeMigrationsTableLock();
-            }
-        } else {
-            waitUntilMigrationsAreDone();
-        }
-    }
-
     public void validateTables() {
         try (final Connection conn = getConnection();
              final Transaction tran = new Transaction(conn);
@@ -129,6 +111,24 @@ public class DatabaseCreator {
         return databaseMigrationsProvider.getMigrations();
     }
 
+    private void runMigrations(List<SqlMigration> migrations) {
+        if (migrations.isEmpty()) return;
+
+        if (isMigrationsTableMigration(migrations.get(0))) {
+            createMigrationsTable(migrations.remove(0));
+        }
+
+        if (lockMigrationsTable()) {
+            try {
+                migrations.forEach(this::runMigration);
+            } finally {
+                removeMigrationsTableLock();
+            }
+        } else {
+            waitUntilMigrationsAreDone();
+        }
+    }
+
     protected void runMigration(SqlMigration migration) {
         LOGGER.info("Running migration {}", migration);
         try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
@@ -139,15 +139,6 @@ public class DatabaseCreator {
             tran.commit();
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error running database migration " + migration.getFileName(), e));
-        }
-    }
-
-    private void createMigrationsTable(SqlMigration migration) {
-        try {
-            runMigration(migration);
-        } catch (Exception e) {
-            LOGGER.info("Error when creating the migrations table", e);
-            // the table already exists, or we'll fail in the next steps
         }
     }
 
@@ -163,6 +154,15 @@ public class DatabaseCreator {
                 String updatedStatement = tablePrefixStatementUpdater.updateStatement(statement).trim();
                 stmt.execute(updatedStatement);
             }
+        }
+    }
+
+    private void createMigrationsTable(SqlMigration migration) {
+        try {
+            runMigration(migration);
+        } catch (Exception e) {
+            LOGGER.info("Error when creating the migrations table", e);
+            // the table already exists, or we'll fail in the next steps
         }
     }
 
@@ -192,11 +192,25 @@ public class DatabaseCreator {
         return true;
     }
 
+    private void removeMigrationsTableLock() {
+        LOGGER.info("Removing lock on migrations table...");
+        try (final Connection conn = getConnection();
+             final Transaction tran = new Transaction(conn);
+             PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+            pSt.setString(1, NULL_UUID);
+            pSt.execute();
+            tran.commit();
+        } catch (Exception e) {
+            throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
+        }
+        LOGGER.info("The lock has been removed from migrations table.");
+    }
+
     private void waitUntilMigrationsAreDone() {
         LOGGER.info("Waiting for the end of database migrations...");
         try {
             while (migrationsAreOnGoing()) {
-                Thread.sleep(5000);
+                Thread.sleep(1000);
             }
         } catch (Exception e) {
             throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
@@ -212,20 +226,6 @@ public class DatabaseCreator {
             ResultSet resultSet = pSt.executeQuery();
             return !resultSet.next();
         }
-    }
-
-    private void removeMigrationsTableLock() {
-        LOGGER.info("Removing lock on migrations table...");
-        try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn);
-             PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
-            pSt.setString(1, NULL_UUID);
-            pSt.execute();
-            tran.commit();
-        } catch (Exception e) {
-            throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
-        }
-        LOGGER.info("The lock has been removed from migrations table.");
     }
 
     private boolean isNewMigration(SqlMigration migration) {
