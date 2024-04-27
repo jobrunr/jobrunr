@@ -1,7 +1,10 @@
 package org.jobrunr.scheduling.cron;
 
+import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.utils.annotations.Beta;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,11 +16,13 @@ public class CarbonAwareCronExpression extends Schedule {
     private final CronExpression cronExpression;
     private final Duration allowedDurationBefore; //format: PnDTnHnMnS
     private final Duration allowedDurationAfter;
+    private final CarbonAwareJobManager carbonAwareJobManager;
 
     public CarbonAwareCronExpression(CronExpression cronExpression, Duration allowedDurationBefore, Duration allowedDurationAfter) {
         this.cronExpression = cronExpression;
         this.allowedDurationBefore = allowedDurationBefore;
         this.allowedDurationAfter = allowedDurationAfter;
+        this.carbonAwareJobManager = JobRunr.getBackgroundJobServer().getCarbonAwareJobManager();
     }
 
     public static CarbonAwareCronExpression create(String expression) {
@@ -34,10 +39,22 @@ public class CarbonAwareCronExpression extends Schedule {
      * @return Instant of the next occurrence.
      */
     @Override
+    //TODO: WIP review this method
     public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
-        Instant next = cronExpression.next(createdAtInstant, currentInstant, zoneId);
-        // TODO: WIP - need CarbonAwareJobManager
-        return next;
+        Instant nextPossibleTime = cronExpression.next(createdAtInstant, currentInstant, zoneId);
+        if (Duration.between(currentInstant, nextPossibleTime).toDays() > 1) { //why: we only have day-ahead prices
+            return nextPossibleTime;
+        }
+
+        Instant earliestStart = nextPossibleTime.minus(allowedDurationBefore);
+        Instant latestStart = nextPossibleTime.plus(allowedDurationAfter);
+
+        CarbonAwarePeriod carbonAwarePeriod = CarbonAwarePeriod.between(earliestStart, latestStart);
+        Instant idealMoment = carbonAwareJobManager.getLeastExpensiveHour(carbonAwarePeriod);
+        if (idealMoment == null) {
+            return next(createdAtInstant, nextPossibleTime, zoneId);
+        }
+        return idealMoment;
     }
 
     private static void validate(String expression, String[] fields) {

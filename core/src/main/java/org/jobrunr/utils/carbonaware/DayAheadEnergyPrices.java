@@ -21,6 +21,7 @@ public class DayAheadEnergyPrices {
     private String timezone;
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
+
     public DayAheadEnergyPrices() {
         this(null, null, null, null, null);
     }
@@ -64,6 +65,7 @@ public class DayAheadEnergyPrices {
     public String getErrorMessage() {
         return errorMessage;
     }
+
     public boolean getIsErrorResponse() {
         return isErrorResponse;
     }
@@ -74,6 +76,10 @@ public class DayAheadEnergyPrices {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public Instant leastExpensiveHour(CarbonAwarePeriod period) {
+        return leastExpensiveHour(period.getFrom(), period.getTo());
     }
 
     public Instant leastExpensiveHour(Instant from, Instant to) {
@@ -87,7 +93,7 @@ public class DayAheadEnergyPrices {
             if ((price.getDateTime().isAfter(from) || price.getDateTime().equals(from))
                     && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))
                     && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour))) {
-                        return price.getDateTime();
+                return price.getDateTime();
             }
         }
         LOGGER.warn("No hour found between {} and {}", from, to);
@@ -109,10 +115,10 @@ public class DayAheadEnergyPrices {
      *
      * @param when The period to check (from, to)
      * @return Returns false:
-     *    1. if there is no data available (not available, could not be fetched, etc.)
-     *    2. if the period is not within the available data (either `from`> maxHour or `to` < minHour)
-     *    3. if the current time is after the last available hour (data are outdated)
-     *  Otherwise, returns true
+     * 1. if there is no data available (not available, could not be fetched, etc.)
+     * 2. if the period is not within the available data (either `from`> maxHour or `to` < minHour)
+     * 3. if the current time is after the last available hour (data are outdated)
+     * Otherwise, returns true
      */
     public boolean hasDataForPeriod(CarbonAwarePeriod when) {
         if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty() || isErrorResponse) {
@@ -121,8 +127,8 @@ public class DayAheadEnergyPrices {
         }
         Instant currentHour = Instant.now().truncatedTo(ChronoUnit.HOURS);
         return hourlyEnergyPrices.stream().anyMatch(price -> (price.getDateTime().isAfter(when.getFrom()) || price.getDateTime().equals(when.getFrom()))
-                        && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo()))
-                        && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour)));
+                && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo()))
+                && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour)));
 
     }
 
@@ -132,7 +138,9 @@ public class DayAheadEnergyPrices {
         private double price;
         private int rank;
 
-        public HourlyEnergyPrice() {}
+        public HourlyEnergyPrice() {
+        }
+
         public HourlyEnergyPrice(Instant dateTime, double price, int rank) {
             this.dateTime = dateTime;
             this.price = price;

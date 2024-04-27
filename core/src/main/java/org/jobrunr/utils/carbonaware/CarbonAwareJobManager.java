@@ -38,7 +38,7 @@ public class CarbonAwareJobManager {
         this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
     }
 
-    public Instant getDailyRunTime(int baseHour) {
+    public Instant getZookeeperTaskDailyRunTime(int baseHour) { // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in 1 hour period, in 5 sec buckets
         int randomOffsetToDistributeLoadOnAPI = rand.nextInt(721) * 5;
         ZonedDateTime baseHourTodayUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
                 .withHour(baseHour).withMinute(0).withSecond(0)
@@ -66,8 +66,8 @@ public class CarbonAwareJobManager {
      * Rules:
      * 1. If the job has passed its deadline or is about to pass its deadline, schedule the job now
      * 2. If there are no hourly energy prices available for the period (from, to):
-     * - If: (it's the day of the deadline) or (it is the day before the deadline and it's after 18:00), schedule the job now
-     * - Otherwise, wait for prices to become available
+     * *     - If: (it's the day of the deadline) or (it is the day before the deadline and it's after 18:00), schedule the job now
+     * *     - Otherwise, wait for prices to become available
      * 3. Schedule the job at the cheapest price available between (from, to)
      *
      * @param job the job to move to the next state
@@ -130,6 +130,10 @@ public class CarbonAwareJobManager {
         }
 
         LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", state.getFrom(), state.getTo());
+    }
+
+    public Instant getLeastExpensiveHour(CarbonAwarePeriod period) {
+        return dayAheadEnergyPrices.leastExpensiveHour(period);
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {

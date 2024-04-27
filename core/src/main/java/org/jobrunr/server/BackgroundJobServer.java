@@ -314,8 +314,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getDailyRunTime(18)).toMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getDailyRunTime(22)).toMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS); // why: add 1 retry in case the previous run failed
+        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getZookeeperTaskDailyRunTime(18)).toMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getZookeeperTaskDailyRunTime(22)).toMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS); // why: add 1 retry in case the previous run failed
     }
 
     private void stopZooKeepers() {
