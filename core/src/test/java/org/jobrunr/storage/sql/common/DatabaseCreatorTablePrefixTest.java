@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.Instant;
 import java.util.List;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -33,18 +34,23 @@ class DatabaseCreatorTablePrefixTest {
 
     @Mock
     private DatabaseMetaData databaseMetaData;
-
     @Mock
     private Statement statement;
-
     @Mock
     private PreparedStatement preparedStatement;
+    @Mock
+    private ResultSet resultSet;
 
     @BeforeEach
     void setUpDatabaseMocks() throws SQLException {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getString("script")).thenReturn("1");
+        when(resultSet.getString("installedOn")).thenReturn(Instant.now().toString());
     }
 
     @Test
