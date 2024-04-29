@@ -122,22 +122,13 @@ class DatabaseCreatorTest {
     void testMigrationAreNotRunningConcurrently() throws InterruptedException {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test;DB_CLOSE_DELAY=-1");
         final DatabaseCreator databaseCreator1 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+        final DatabaseCreator databaseCreator2 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
 
         final ListAppender<ILoggingEvent> loggerDbCreator1 = LoggerAssert.initFor(databaseCreator1);
 
-        Thread t1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                databaseCreator1.runMigrations();
-            }
-        });
+        Thread t1 = new Thread(databaseCreator1::runMigrations);
 
-        Thread t2 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                databaseCreator1.runMigrations();
-            }
-        });
+        Thread t2 = new Thread(databaseCreator2::runMigrations);
 
         t1.start();
         t2.start();
@@ -146,10 +137,10 @@ class DatabaseCreatorTest {
         t2.join();
 
         LoggerAssert.assertThat(loggerDbCreator1)
-                .hasInfoMessageContaining("Migrations table is locked.", 1)
+                .hasInfoMessageContaining("Successfully locked the migrations table.", 1)
                 .hasInfoMessageContaining("Running migration")
                 .hasInfoMessageContaining("The lock has been removed from migrations table.", 1)
-                .hasInfoMessageContaining("Migrations table is already locked.", 1)
+                .hasInfoMessageContaining("Too late... Another DatabaseCreator is performing the migrations.", 1)
                 .hasInfoMessageContaining("Waiting for the end of database migrations...", 1);
 
     }
