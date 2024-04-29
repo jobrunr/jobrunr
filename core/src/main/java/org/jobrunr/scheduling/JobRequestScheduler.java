@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
@@ -64,7 +65,11 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      */
     @Override
     public JobId create(JobBuilder jobBuilder) {
-        return saveJob(jobBuilder.build());
+        Job job = jobBuilder.build();
+        if (job.getJobState() instanceof CarbonAwareAwaitingState) {
+            carbonAwareJobManager.moveToNextState(job);
+        }
+        return saveJob(job);
     }
 
     /**
@@ -76,6 +81,11 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     public void create(Stream<JobBuilder> jobBuilderStream) {
         jobBuilderStream
                 .map(JobBuilder::build)
+                .peek(job -> {
+                    if (job.getJobState() instanceof CarbonAwareAwaitingState) {
+                        carbonAwareJobManager.moveToNextState(job);
+                    }
+                })
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 

@@ -11,6 +11,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
@@ -79,7 +80,11 @@ public class JobScheduler extends AbstractJobScheduler {
      */
     @Override
     public JobId create(JobBuilder jobBuilder) {
-        return saveJob(jobBuilder.build(jobDetailsGenerator));
+        Job job = jobBuilder.build(jobDetailsGenerator);
+        if (job.getJobState() instanceof CarbonAwareAwaitingState) {
+            carbonAwareJobManager.moveToNextState(job);
+        }
+        return saveJob(job);
     }
 
     /**

@@ -331,7 +331,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@code ZoneId} and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@link  ZoneId} and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code

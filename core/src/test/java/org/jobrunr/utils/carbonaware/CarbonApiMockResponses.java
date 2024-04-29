@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 public class CarbonApiMockResponses {
 
     private static String getJsonResponse(String fileName) {
-        try(InputStream is = DayAheadEnergyPrices.class.getClassLoader().getResourceAsStream(fileName)) {
+        try (InputStream is = DayAheadEnergyPrices.class.getClassLoader().getResourceAsStream(fileName)) {
             if (is == null) {
                 throw new FileNotFoundException("Resource not found: " + fileName);
             }

@@ -13,8 +13,8 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +29,8 @@ public abstract class AbstractJobScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
     private final StorageProvider storageProvider;
-    private final CarbonAwareJobManager carbonAwareJobManager;
     private final JobFilterUtils jobFilterUtils;
+    protected final CarbonAwareJobManager carbonAwareJobManager;
 
     /**
      * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters that will be used for every background job
