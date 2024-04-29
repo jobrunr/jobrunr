@@ -214,7 +214,7 @@ public class DatabaseCreator {
 
     private void commitMigrationGuard(Connection connection) throws SQLException {
         MigrationsTableLock migrationsTableLock = migrationsTableLocker.getMigrationsTableLock(connection);
-        if (!migrationsTableLocker.migrationsTableIsNoLongerLocked(migrationsTableLock)) {
+        if (migrationsTableLocker.migrationsTableIsNoLongerLocked(migrationsTableLock)) {
             throw new IllegalStateException("Current DatabaseCreator no longer possesses the migrations table lock.");
         }
     }
@@ -367,7 +367,7 @@ public class DatabaseCreator {
         }
 
         boolean migrationsTableIsNoLongerLocked(MigrationsTableLock lock) {
-            return lock == null || lock.getUpdatedAt().isBefore(Instant.now().plusSeconds(10));
+            return lock == null || lock.getUpdatedAt().isAfter(Instant.now().plusSeconds(10));
         }
 
         @Override
