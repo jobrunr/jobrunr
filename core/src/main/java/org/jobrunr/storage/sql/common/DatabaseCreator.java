@@ -173,13 +173,9 @@ public class DatabaseCreator {
     }
 
     protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
-        updateMigrationsTable(connection, UUID.randomUUID().toString(), migration.getFileName());
-    }
-
-    private void updateMigrationsTable(Connection connection, String id, String filename) throws SQLException {
         try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
-            pSt.setString(1, id);
-            pSt.setString(2, filename);
+            pSt.setString(1, UUID.randomUUID().toString());
+            pSt.setString(2, migration.getFileName());
             pSt.setString(3, LocalDateTime.now().toString());
             pSt.execute();
         }
