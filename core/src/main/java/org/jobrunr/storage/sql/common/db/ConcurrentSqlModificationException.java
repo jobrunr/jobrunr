@@ -2,12 +2,11 @@ package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.StorageException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.sql.Statement.SUCCESS_NO_INFO;
 import static java.util.Collections.singletonList;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class ConcurrentSqlModificationException extends StorageException {
 
@@ -29,12 +28,6 @@ public class ConcurrentSqlModificationException extends StorageException {
     }
 
     public List<Object> getFailedItems() {
-        List<Object> result = new ArrayList<>();
-        for (int i = 0; i < insertOrUpdateResult.length; i++) {
-            if (insertOrUpdateResult[i] < SUCCESS_NO_INFO || insertOrUpdateResult[i] == 0) {
-                result.add(items.get(i));
-            }
-        }
-        return result;
+        return cast(SqlUtils.getFailedItems(items, insertOrUpdateResult));
     }
 }

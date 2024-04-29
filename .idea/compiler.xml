@@ -19,7 +19,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/2.7.18/a3a8a98e8c61ad1e664a5b7b9a62ac133585ed59/spring-boot-autoconfigure-processor-2.7.18.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.18/899128018a7962b3e4be665910bae65dff08d1b0/spring-boot-configuration-processor-2.7.18.jar" />
         </processorPath>
-        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-2-starter.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -69,7 +69,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.javaparser/javaparser-core/3.25.10/ed2d4a9c601507713cf2f6208df4c844fe6447b2/javaparser-core-3.25.10.jar" />
         </processorPath>
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.test" />
-        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-micronaut-feature.main" />
+        <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -77,7 +77,7 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-autoconfigure-processor/3.2.5/492647511d115e3cc3991c0a732334733f9f891c/spring-boot-autoconfigure-processor-3.2.5.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.2.5/748cf1d49e04e20db1784e88f676657cd030d937/spring-boot-configuration-processor-3.2.5.jar" />
         </processorPath>
-        <module name="org.jobrunr.JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
+        <module name="JobRunr.framework-support.jobrunr-spring-boot-3-starter.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="20">
