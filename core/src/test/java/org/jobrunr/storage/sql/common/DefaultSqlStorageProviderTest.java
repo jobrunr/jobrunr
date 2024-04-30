@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.Instant;
 
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
@@ -49,6 +50,11 @@ class DefaultSqlStorageProviderTest {
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);
         when(datasource.getConnection()).thenReturn(connection);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getString("script")).thenReturn("1");
+        when(resultSet.getString("installedOn")).thenReturn(Instant.now().toString());
 
         jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE.CREATE);
         jobStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
