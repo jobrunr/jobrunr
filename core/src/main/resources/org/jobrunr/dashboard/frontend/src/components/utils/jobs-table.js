@@ -27,7 +27,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
     let columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].createdAt;
     switch (jobState) {
         case 'AWAITING':
-            column = "Awaiting";
+            column = "Deadline";
             columnFunction = (job) => job.jobHistory[job.jobHistory.length - 1].to
             break;
         case 'SCHEDULED':
