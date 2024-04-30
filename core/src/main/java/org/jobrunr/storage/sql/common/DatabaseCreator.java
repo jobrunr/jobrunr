@@ -4,11 +4,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +12,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -302,11 +293,15 @@ public class DatabaseCreator {
             LOGGER.info("The lock has been removed from migrations table.");
         }
 
-        void waitUntilMigrationsAreDone() {
+        private void waitUntilMigrationsAreDone() {
             LOGGER.info("Waiting for the end of database migrations...");
             try {
-                while (migrationsAreOnGoing()) {
-                    Thread.sleep(1000);
+                MigrationsTableLock migrationsTableLock;
+                do {
+                    migrationsTableLock = getMigrationsTableLock();
+                } while (!migrationsTableIsNoLongerLocked(migrationsTableLock));
+                if (migrationsTableLock != null) {
+                    throw new IllegalStateException("The DatabaseCreator running the migrations is not keeping the lock up to date.");
                 }
             } catch (Exception e) {
                 throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
