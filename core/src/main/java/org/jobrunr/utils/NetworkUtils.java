@@ -15,12 +15,4 @@ public class NetworkUtils {
             return "Unable to determine hostname";
         }
     }
-
-    public static byte[] getLocalIpAddress() {
-        try {
-            return InetAddress.getLocalHost().getAddress();
-        } catch (UnknownHostException e) {
-            return new byte[]{127, 0, 0, 1};
-        }
-    }
 }
