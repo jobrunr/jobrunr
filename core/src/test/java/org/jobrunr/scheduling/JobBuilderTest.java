@@ -9,6 +9,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -26,10 +27,12 @@ import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
+import static org.mockito.Mockito.mock;
 
 class JobBuilderTest {
 
     private final JobDetailsGenerator jobDetailsGenerator = new JobDetailsAsmGenerator();
+    private final CarbonAwareJobManager carbonAwareJobManager = mock(CarbonAwareJobManager.class);
     private final JobRequest jobRequest = new TestJobRequestWithoutJobAnnotation("Not important");
 
     private TestService testService;
@@ -38,7 +41,7 @@ class JobBuilderTest {
     void testJobBuilderCannotBeCombinedWithAnnotation() {
         assertThatThrownBy(() -> aJob()
                 .withDetails(() -> testService.doWork())
-                .build(jobDetailsGenerator))
+                .build(jobDetailsGenerator, carbonAwareJobManager))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
     }
@@ -48,7 +51,7 @@ class JobBuilderTest {
         UUID uuid = UUID.randomUUID();
         Job job = aJob()
                 .withDetails(() -> testService.doWorkWithUUID(uuid))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job)
                 .hasId()
@@ -61,7 +64,7 @@ class JobBuilderTest {
         UUID uuid = UUID.randomUUID();
         Job job = aJob()
                 .<TestService>withDetails(x -> x.doWorkWithUUID(uuid))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job)
                 .hasId()
@@ -73,7 +76,7 @@ class JobBuilderTest {
     void testDefaultJobWithJobRequest() {
         Job job = aJob()
                 .withJobRequest(jobRequest)
-                .build();
+                .build(carbonAwareJobManager);
 
         assertThat(job)
                 .hasId()
@@ -87,7 +90,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .withId(id)
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job)
                 .hasId(id)
@@ -99,7 +102,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .withName("My job name")
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job)
                 .hasJobName("My job name")
@@ -111,7 +114,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .scheduleIn(Duration.ofMinutes(1))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job).hasState(StateName.SCHEDULED);
         ScheduledState scheduledState = job.getJobState();
@@ -123,7 +126,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .scheduleAt(Instant.now().plusSeconds(60))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job).hasState(StateName.SCHEDULED);
         ScheduledState scheduledState = job.getJobState();
@@ -136,7 +139,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .scheduleCarbonAware(before(deadline))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
         assertThat(job).hasState(StateName.AWAITING);
         CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
         assertThat(carbonAwareAwaitingState.getTo()).isEqualTo(deadline);
@@ -148,16 +151,16 @@ class JobBuilderTest {
                 .scheduleCarbonAware(before(now().plus(1, DAYS)))
                 .scheduleAt(now().plus(6, HOURS))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator))
+                .build(jobDetailsGenerator, carbonAwareJobManager))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void testThatOnlyOneOfScheduleInScheduleIsAllowed() {
-        assertThatThrownBy(() -> aJob().scheduleAt(Instant.now()).scheduleIn(Duration.ZERO).build(jobDetailsGenerator))
+        assertThatThrownBy(() -> aJob().scheduleAt(Instant.now()).scheduleIn(Duration.ZERO).build(jobDetailsGenerator, carbonAwareJobManager))
                 .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()).build(jobDetailsGenerator))
+        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()).build(jobDetailsGenerator, carbonAwareJobManager))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -168,7 +171,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .withAmountOfRetries(amountOfRetries)
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job)
                 .hasAmountOfRetries(amountOfRetries)
@@ -180,7 +183,7 @@ class JobBuilderTest {
         Job job = aJob()
                 .withLabels(Set.of("TestLabel", "Email"))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator);
+                .build(jobDetailsGenerator, carbonAwareJobManager);
 
         assertThat(job)
                 .hasLabels(Set.of("TestLabel", "Email"))
@@ -193,7 +196,7 @@ class JobBuilderTest {
                 .isThrownBy(() -> aJob()
                         .withLabels("TestLabel", "Email", "Automated", "Too many")
                         .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                        .build(jobDetailsGenerator));
+                        .build(jobDetailsGenerator, carbonAwareJobManager));
     }
 
     @Test
@@ -202,7 +205,7 @@ class JobBuilderTest {
                 .isThrownBy(() -> aJob()
                         .withLabels("Label longer than 45 characters should throw an exception")
                         .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                        .build(jobDetailsGenerator));
+                        .build(jobDetailsGenerator, carbonAwareJobManager));
     }
 
     @Test
@@ -223,10 +226,10 @@ class JobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
                         .withJobRequest(jobRequest)
-                        .build(jobDetailsGenerator));
+                        .build(jobDetailsGenerator, carbonAwareJobManager));
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
                         .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                        .build());
+                        .build(carbonAwareJobManager));
     }
 }

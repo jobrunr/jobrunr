@@ -12,6 +12,7 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.utils.JobUtils;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
@@ -113,6 +114,7 @@ public class JobBuilder {
 
     /**
      * Allows to specify the carbonAwarePeriod, in order to schedule the job in the hour of the period when the electricity has the lowest carbon emissions
+     *
      * @param carbonAwarePeriod the allowed time period (from,to) in which the job has to run
      * @return the same builder instance which provides a fluent api
      */
@@ -202,12 +204,12 @@ public class JobBuilder {
      *
      * @return the actual {@link Job} to create
      */
-    protected Job build(JobDetailsGenerator jobDetailsGenerator) {
+    protected Job build(JobDetailsGenerator jobDetailsGenerator, CarbonAwareJobManager carbonAwareJobManager) {
         if (jobLambda == null) {
             throw new IllegalArgumentException("A jobLambda must be present.");
         }
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
-        return build(jobDetails);
+        return build(jobDetails, carbonAwareJobManager);
     }
 
     /**
@@ -215,15 +217,15 @@ public class JobBuilder {
      *
      * @return the actual {@link Job} to create
      */
-    protected Job build() {
+    protected Job build(CarbonAwareJobManager carbonAwareJobManager) {
         if (jobRequest == null) {
             throw new IllegalArgumentException("JobRequest must be present.");
         }
         JobDetails jobDetails = new JobDetails(jobRequest);
-        return build(jobDetails);
+        return build(jobDetails, carbonAwareJobManager);
     }
 
-    private Job build(JobDetails jobDetails) {
+    private Job build(JobDetails jobDetails, CarbonAwareJobManager carbonAwareJobManager) {
         if (JobUtils.getJobAnnotation(jobDetails).isPresent()) {
             throw new IllegalStateException("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
         }
@@ -232,6 +234,7 @@ public class JobBuilder {
         setJobName(job);
         setAmountOfRetries(job);
         setLabels(job);
+        carbonAwareJobManager.moveToNextState(job);
         return job;
     }
 

@@ -75,9 +75,12 @@ public class CarbonAwareJobManager {
     public void moveToNextState(Job job) {
         JobState jobState = job.getJobState();
         if (!(jobState instanceof CarbonAwareAwaitingState)) {
-            throw new IllegalStateException("CarbonAwareScheduler can only handle jobs that are awaiting for the least carbon intense moment");
+            LOGGER.trace("Skipping Job(id={}, jobName='{}') because it is not in state of type CarbonAwareAwaitingState", job.getId(), job.getJobName());
+            return;
         }
+
         CarbonAwareAwaitingState state = (CarbonAwareAwaitingState) jobState;
+        LOGGER.trace("Determining best moment to schedule Job(id={}, jobName='{}') so it has the least amount of carbon impact", job.getId(), job.getJobName());
 
         if (now().isAfter(state.getTo())) {
             LOGGER.warn("Job {} has passed its deadline, schedule job now", job.getId());

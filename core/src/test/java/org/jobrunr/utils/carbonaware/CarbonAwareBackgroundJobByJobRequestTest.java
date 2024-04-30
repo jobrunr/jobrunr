@@ -48,7 +48,6 @@ public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwar
 
     @BeforeEach
     void setUpStorageProvider() {
-
         storageProvider = new InMemoryStorageProvider();
         testServiceForIoC = new TestServiceForIoC("a constructor arg");
         testServiceInterface = testServiceForIoC;
