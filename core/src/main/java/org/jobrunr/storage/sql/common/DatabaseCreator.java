@@ -4,7 +4,11 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.*;
+import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,14 +16,20 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.MICROS;
 import static java.util.Comparator.comparing;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
@@ -176,7 +186,7 @@ public class DatabaseCreator {
         try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
-            pSt.setString(3, LocalDateTime.now().toString());
+            pSt.setString(3, now().truncatedTo(MICROS).toString());
             pSt.execute();
         }
     }
@@ -332,7 +342,7 @@ public class DatabaseCreator {
             try (final PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
                 pSt.setString(1, NULL_UUID);
                 pSt.setString(2, "1");
-                pSt.setString(3, Instant.now().toString());
+                pSt.setString(3, now().truncatedTo(MICROS).toString());
                 pSt.execute();
             }
         }
@@ -348,7 +358,7 @@ public class DatabaseCreator {
                     throw JobRunrException.shouldNotHappenException(new IllegalStateException("Tried to update migrations table lock but table is not locked."));
                 }
                 pSt.setString(1, String.valueOf(migrationsTableLock.getVersion() + 1));
-                pSt.setString(2, Instant.now().toString());
+                pSt.setString(2, now().truncatedTo(MICROS).toString());
                 pSt.setString(3, NULL_UUID);
                 pSt.setString(4, String.valueOf(migrationsTableLock.getVersion()));
                 tran.commit();
@@ -367,7 +377,7 @@ public class DatabaseCreator {
         }
 
         boolean migrationsTableIsNoLongerLocked(MigrationsTableLock lock) {
-            return lock == null || lock.getUpdatedAt().isAfter(Instant.now().plusSeconds(10));
+            return lock == null || lock.getUpdatedAt().isAfter(now().plusSeconds(10));
         }
 
         @Override
