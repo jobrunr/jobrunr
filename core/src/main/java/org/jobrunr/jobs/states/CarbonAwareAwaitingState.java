@@ -11,12 +11,14 @@ import static java.time.Duration.ofHours;
 import static java.time.Instant.now;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
+    private final Instant preferredInstant;
     private final Instant from;
     private final Instant to;
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
 
     protected CarbonAwareAwaitingState() { // for json deserialization
         super(StateName.AWAITING);
+        this.preferredInstant = null;
         this.from = null;
         this.to = null;
     }
@@ -30,10 +32,19 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
     }
 
     public CarbonAwareAwaitingState(Instant from, Instant to) {
+        this(null, from, to);
+    }
+
+    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to) {
         super(StateName.AWAITING);
+        this.preferredInstant = preferredInstant;
         this.from = from;
         this.to = to;
         validateCarbonAwarePeriod(from, to);
+    }
+
+    public Instant getPreferredInstant() {
+        return preferredInstant;
     }
 
     public Instant getFrom() {

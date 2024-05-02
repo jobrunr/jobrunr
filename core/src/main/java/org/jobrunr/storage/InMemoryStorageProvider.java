@@ -30,7 +30,14 @@ import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.getStateNames;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
@@ -249,6 +256,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .filter(job -> asList(states).contains(job.getState()))
                 .map(AbstractJob::getJobSignature)
                 .collect(toSet());
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        return jobQueue.values().stream()
+                .filter(job -> asList(getStateNames(states)).contains(job.getState())
+                        && recurringJobId.equals(job.getRecurringJobId().orElse(null)))
+                .count();
     }
 
     @Override

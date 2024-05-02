@@ -8,6 +8,7 @@
 
     <!-- Change the level in the following line to have more debugging (DEBUG, TRACE) -->
     <logger name="org.jobrunr" level="INFO"/>
+    <logger name="org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask" level="TRACE"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

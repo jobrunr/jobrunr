@@ -145,7 +145,7 @@ public interface StorageProvider extends AutoCloseable {
     /**
      * Returns all carbon aware jobs and deadline before the given {@link Instant}.
      *
-     * @param deadline the Instant to test each carbon aware {@link Job} against
+     * @param deadline      the Instant to test each carbon aware {@link Job} against
      * @param amountRequest the amount and the order in which to return the {@link Job jobs}.
      */
     List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest);
@@ -210,7 +210,19 @@ public interface StorageProvider extends AutoCloseable {
      * @param states         the possible states for the Job (can be empty)
      * @return true if a Job exists created by a RecurringJob with the given id.
      */
+    @Deprecated
     boolean recurringJobExists(String recurringJobId, StateName... states);
+
+    /**
+     * Returns the amount of {@link Job Jobs} created by the {@link RecurringJob} with the given id with one of the given states.
+     *
+     * @param recurringJobId the id of the RecurringJob for which the check whether a Job exists
+     * @param states         the possible states for the Job (can be empty)
+     * @return the amount of Jobs created by a RecurringJob with the given id.
+     */
+    default long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        return 0L;
+    }
 
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten

@@ -36,7 +36,10 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
@@ -147,6 +150,10 @@ public class Job extends AbstractJob {
 
     public boolean hasState(StateName state) {
         return getState().equals(state);
+    }
+
+    public boolean hasHadState(StateName stateName) {
+        return jobHistory.stream().anyMatch(jobState -> stateName.equals(jobState.getName()));
     }
 
     public boolean hasStateChange() {

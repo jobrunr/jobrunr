@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static java.time.Duration.between;
+import static java.util.Collections.emptyList;
 
 public class RecurringJob extends AbstractJob {
 
@@ -85,10 +86,43 @@ public class RecurringJob extends AbstractJob {
      * @param upTo the end time until which to create Scheduled Jobs
      * @return creates all jobs that must be scheduled
      */
+    @Deprecated
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
+        Instant now = Instant.now();
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
+            jobs.add(toJob(new ScheduledState(nextRun, this)));
+            nextRun = getNextRun(nextRun);
+        }
+        return jobs;
+    }
+
+    public List<Job> toJobsWith1FutureRun(Instant from, Instant now) {
+        if (from.isAfter(now)) return emptyList();
+
+        List<Job> jobs = new ArrayList<>();
+        Instant nextRun = getNextRun(from);
+        while (nextRun.isBefore(now)) {
+            jobs.add(toJob(new ScheduledState(nextRun, this)));
+            nextRun = getNextRun(nextRun);
+        }
+        // add 1 more job
+
+        // if it is carbonawarecronexpression then expression has before & after duration {
+        // jobs.add(toJob(new CarbonAwareAwaitingState(nextRun.minus(allowedDurationBefore), nextRun.plus(allowedDurationAfter))));
+        //} else {
+        jobs.add(toJob(new ScheduledState(nextRun, this)));
+        // }
+        return jobs;
+    }
+
+    // drop upTo?
+    public List<Job> toJobs(Instant from, Instant upTo) {
+        List<Job> jobs = new ArrayList<>();
+        Instant nextRun = getNextRun(from);
+        while (nextRun.isBefore(upTo)) {
+            // either job with ScheduledState or CarbonAwaitingState
             jobs.add(toJob(new ScheduledState(nextRun, this)));
             nextRun = getNextRun(nextRun);
         }
