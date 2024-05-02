@@ -215,7 +215,7 @@ public class DatabaseCreator {
 
     private void commitMigrationGuard(Connection connection) throws SQLException {
         MigrationsTableLock migrationsTableLock = migrationsTableLocker.getMigrationsTableLock(connection);
-        if (migrationsTableLocker.migrationsTableIsNoLongerLocked(migrationsTableLock)) {
+        if (migrationsTableLocker.migrationsTableIsNotLocked(migrationsTableLock)) {
             throw new IllegalStateException("Current DatabaseCreator no longer possesses the migrations table lock.");
         }
     }
@@ -270,7 +270,7 @@ public class DatabaseCreator {
                 LOGGER.info("Too late... Another DatabaseCreator is performing the migrations.", e);
                 return false;
             }
-            lockUpdaterThread = new Thread(new MigrationsTableLockUpdater());
+            lockUpdaterThread = new Thread(new MigrationsTableLockHeartbeatUpdater());
             lockUpdaterThread.start();
             LOGGER.info("Successfully locked the migrations table.");
             return true;
@@ -289,8 +289,6 @@ public class DatabaseCreator {
             } catch (Exception e) {
                 throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
             }
-
-            LOGGER.info("The lock has been removed from migrations table.");
         }
 
         private void waitUntilMigrationsAreDone() {
@@ -299,7 +297,7 @@ public class DatabaseCreator {
                 MigrationsTableLock migrationsTableLock;
                 do {
                     migrationsTableLock = getMigrationsTableLock();
-                } while (!migrationsTableIsNoLongerLocked(migrationsTableLock));
+                } while (!migrationsTableIsNotLocked(migrationsTableLock));
                 if (migrationsTableLock != null) {
                     throw new IllegalStateException("The DatabaseCreator running the migrations is not keeping the lock up to date.");
                 }
@@ -345,7 +343,7 @@ public class DatabaseCreator {
                     final PreparedStatement pSt = conn.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " set script = ?, installedOn = ? where id = ? and script = ?")
             ) {
                 MigrationsTableLock migrationsTableLock = getMigrationsTableLock(conn);
-                if (migrationsTableIsNoLongerLocked(migrationsTableLock)) {
+                if (migrationsTableIsNotLocked(migrationsTableLock)) {
                     throw JobRunrException.shouldNotHappenException(new IllegalStateException("Tried to update migrations table lock but table is not locked."));
                 }
                 pSt.setString(1, String.valueOf(migrationsTableLock.getVersion() + 1));
@@ -365,10 +363,15 @@ public class DatabaseCreator {
             } catch (Exception e) {
                 throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
             }
+            LOGGER.info("The lock has been removed from migrations table.");
         }
 
-        boolean migrationsTableIsNoLongerLocked(MigrationsTableLock lock) {
-            return lock == null || lock.getUpdatedAt().isAfter(now().plusSeconds(10));
+        private boolean migrationsTableIsNotLocked(MigrationsTableLock lock) {
+            return lock == null || migrationsTableIsNoLongerLocked(lock);
+        }
+
+        private boolean migrationsTableIsNoLongerLocked(MigrationsTableLock lock) {
+            return lock != null && now().isAfter(lock.getUpdatedAt().plusSeconds(10));
         }
 
         @Override
@@ -377,14 +380,14 @@ public class DatabaseCreator {
         }
     }
 
-    private class MigrationsTableLockUpdater implements Runnable {
+    private class MigrationsTableLockHeartbeatUpdater implements Runnable {
         @Override
         public void run() {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
+                    Thread.sleep(2000);
                     LOGGER.debug("Notify lock still in hold");
                     migrationsTableLocker.updateLock();
-                    Thread.sleep(2000);
                 }
                 LOGGER.debug("Migrations table lock updater thread interrupted");
             } catch (Exception e) {
