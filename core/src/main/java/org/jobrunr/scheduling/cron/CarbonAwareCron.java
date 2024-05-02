@@ -238,7 +238,7 @@ public class CarbonAwareCron {
         if (allowedToRunEarlier.toDays() > 365 || allowedToRunLater.toDays() > 365) { // Assuming non-leap year
             throw new IllegalArgumentException("Duration cannot be longer than one year for yearly schedules.");
         }
-        return CarbonAwareCronExpression.create(String.format("0 0 %d %d * %s %s", day, month, allowedToRunEarlier, allowedToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d %d *", day, month), allowedToRunEarlier, allowedToRunLater);
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int monthsEarlier) {

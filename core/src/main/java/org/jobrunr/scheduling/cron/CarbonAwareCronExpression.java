@@ -18,11 +18,19 @@ public class CarbonAwareCronExpression extends Schedule {
     private final Duration allowedDurationAfter;
     private final CarbonAwareJobManager carbonAwareJobManager;
 
-    public CarbonAwareCronExpression(CronExpression cronExpression, Duration allowedDurationBefore, Duration allowedDurationAfter) {
+    private CarbonAwareCronExpression(CronExpression cronExpression, Duration allowedDurationBefore, Duration allowedDurationAfter) {
         this.cronExpression = cronExpression;
         this.allowedDurationBefore = allowedDurationBefore;
         this.allowedDurationAfter = allowedDurationAfter;
         this.carbonAwareJobManager = JobRunr.getBackgroundJobServer().getCarbonAwareJobManager();
+    }
+
+    public static CarbonAwareCronExpression create(String cronExpression, Duration allowedDurationBefore, Duration allowedDurationAfter) {
+        return create(cronExpression + " " + allowedDurationBefore + " " + allowedDurationAfter);
+    }
+
+    public static CarbonAwareCronExpression create(CronExpression cronExpression, Duration allowedDurationBefore, Duration allowedDurationAfter) {
+        return create(cronExpression.toString() + " " + allowedDurationBefore + " " + allowedDurationAfter);
     }
 
     public static CarbonAwareCronExpression create(String expression) {
