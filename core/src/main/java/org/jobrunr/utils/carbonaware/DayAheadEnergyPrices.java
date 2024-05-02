@@ -19,6 +19,7 @@ public class DayAheadEnergyPrices {
     private String state;
     private String unit;
     private String timezone;
+    // TODO: add field when data can be refreshed
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
 
