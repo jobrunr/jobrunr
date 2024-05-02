@@ -91,4 +91,8 @@ public class CarbonAwareCronExpression extends Schedule {
                     "- P2DT3H4M represents 2 days, 3 hours and 4 minutes");
         }
     }
+
+    // TESTS:
+    // (allowedDurationBefore + allowedDurationAfter) must be at least 3 hours
+    // CarbonAwareCronExpression time between 2 runs must be equal or greater than (allowedDurationBefore + allowedDurationAfter)
 }
