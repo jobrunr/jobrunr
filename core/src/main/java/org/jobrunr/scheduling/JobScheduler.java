@@ -11,6 +11,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
+import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
@@ -633,7 +634,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), () -> service.doWork());
+     *      jobScheduler.scheduleRecurrently(Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
      * @param duration the duration defining the time between each instance of this recurring job.
@@ -648,7 +649,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * Creates a new {@link RecurringJob} based on the given duration and the given lambda. The IoC container will be used to resolve {@code MyService}. The first run of this {@link RecurringJob} will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>scheduleRecurrently(Duration.parse("P5D"), x -> x.doWork());
+     *      jobScheduler.<MyService>scheduleRecurrently(Duration.parse("P5D"), x -> x.doWork());
      * }</pre>
      *
      * @param duration the duration defining the time between each instance of this recurring job
@@ -664,7 +665,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
      * @param id       the id of this {@link RecurringJob} which can be used to alter or delete it
@@ -681,7 +682,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, duration and lambda. The IoC container will be used to resolve {@code MyService}. The first run of this {@link RecurringJob} will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.<MyService>scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), x -> x.doWork());
+     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), x -> x.doWork());
      * }</pre>
      *
      * @param id       the id of this {@link RecurringJob} which can be used to alter or delete it
@@ -692,5 +693,117 @@ public class JobScheduler extends AbstractJobScheduler {
     public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
+    }
+
+    /**
+     * Creates a new {@link RecurringJob} based on the given lambda and the given {@link CarbonAwareCronExpression}.
+     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      jobScheduler.scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), () -> service.doWork());
+     * }</pre>
+     *
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param job             the lambda which defines the recurring job
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     */
+    public String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, JobLambda job) {
+        return scheduleRecurrently(null, carbonAwareCron, job);
+    }
+
+    /**
+     * Creates a new {@link RecurringJob} based on the given {@link CarbonAwareCronExpression} and the given lambda. The IoC container will be used to resolve {@code MyService}.
+     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      jobScheduler.<MyService>scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), x -> x.doWork());
+     * }</pre>
+     *
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param iocJob          the lambda which defines the recurring job
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     */
+    public <S> String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, IocJobLambda<S> iocJob) {
+        return scheduleRecurrently(null, carbonAwareCron, iocJob);
+    }
+
+    /**
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression} and {@link JobLambda}.
+     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), () -> service.doWork());
+     * }</pre>
+     *
+     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param job             the lambda which defines the recurring job
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     */
+    public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, JobLambda job) {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        return scheduleRecurrently(id, jobDetails, carbonAwareCron, systemDefault());
+    }
+
+    /**
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression} and lambda.
+     * The IoC container will be used to resolve {@code MyService}.
+     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), x -> x.doWork());
+     * }</pre>
+     *
+     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param iocJob          the lambda which defines the recurring job
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     */
+    public <S> String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, IocJobLambda<S> iocJob) {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
+        return scheduleRecurrently(id, jobDetails, carbonAwareCron, systemDefault());
+    }
+
+    /**
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression}, {@code ZoneId} and lambda.
+     * The jobs will be scheduled at the time when carbon intensity of electricity is the lowest.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), ZoneId.of("Europe/Brussels"), () -> service.doWork());
+     * }</pre>
+     *
+     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param zoneId          The zoneId (timezone) of when to run this recurring job
+     * @param job             the lambda which defines the recurring job
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.Cron
+     */
+    public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, JobLambda job) {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
+        return scheduleRecurrently(id, jobDetails, carbonAwareCron, zoneId);
+    }
+
+    /**
+     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression}, {@code ZoneId} and lambda. The IoC container will be used to resolve {@code MyService}.
+     * The jobs will be scheduled at the time when carbon intensity of electricity is the lowest.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), ZoneId.of("Europe/Brussels"), x -> x.doWork());
+     * }</pre>
+     *
+     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param zoneId          The zoneId (timezone) of when to run this recurring job
+     * @param iocJob          the lambda which defines the recurring job
+     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.Cron
+     */
+    public <S> String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, IocJobLambda<S> iocJob) {
+        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
+        return scheduleRecurrently(id, jobDetails, carbonAwareCron, zoneId);
     }
 }

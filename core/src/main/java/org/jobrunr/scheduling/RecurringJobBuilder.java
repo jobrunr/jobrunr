@@ -8,6 +8,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
+import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 
@@ -187,6 +188,22 @@ public class RecurringJobBuilder {
     }
 
     /**
+     * Allows to specify the carbon-aware cron that will be used to create the recurringJobs.
+     * Carbon aware cron is a normal cron + allowed duration before + allowed duration after the cron expression.
+     * Job will be scheduled in the time specified by the cron + the time period, when carbon emissions are the lowest.
+     *
+     * @param carbonAwareCron the cron + allowed delay duration that will be used to create the recurringJobs.
+     * @return the same builder instance which provides a fluent api
+     */
+    public RecurringJobBuilder withCarbonAwareCron(CarbonAwareCronExpression carbonAwareCron) {
+        if (this.schedule != null) {
+            throw new IllegalArgumentException("A schedule has already been provided.");
+        }
+        this.schedule = carbonAwareCron;
+        return this;
+    }
+
+    /**
      * Allows to specify the zoneId that will be used to create the recurringJobs.
      * If no zoneId is set, the {@link ZoneId#systemDefault()} is used.
      *
@@ -226,7 +243,7 @@ public class RecurringJobBuilder {
 
     private RecurringJob build(JobDetails jobDetails) {
         if (schedule == null) {
-            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration().");
+            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration() or withCarbonAwareCron()");
         }
         if (zoneId == null) {
             zoneId = systemDefault();
