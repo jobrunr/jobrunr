@@ -384,7 +384,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), new MyJobRequest());
+     *      jobScheduler.scheduleRecurrently(Duration.parse("P5D"), new MyJobRequest());
      * }</pre>
      *
      * @param duration   the duration defining the time between each instance of this recurring job.
@@ -401,7 +401,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), new MyJobRequest());
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), new MyJobRequest());
      * }</pre>
      *
      * @param id         the id of this {@link RecurringJob} which can be used to alter or delete it
@@ -420,7 +420,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), new MyJobRequest());
+     *      jobScheduler.scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), new MyJobRequest());
      * }</pre>
      *
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
@@ -437,7 +437,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
      * <h5>An example:</h5>
      * <pre>{@code
-     *      BackgroundJob.scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), new MyJobRequest());
+     *      jobScheduler.scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), new MyJobRequest());
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
