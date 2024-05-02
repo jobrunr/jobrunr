@@ -263,7 +263,7 @@ public class DatabaseCreator {
         private boolean lockMigrationsTable() {
             LOGGER.info("Trying to lock migrations table...");
             try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
-                if (migrationsTableIsNoLongerLocked(getMigrationsTableLock())) removeLock(conn);
+                if (migrationsTableIsNoLongerLocked(getMigrationsTableLock(conn))) removeLock(conn);
                 insertLock(conn);
                 tran.commit();
             } catch (Exception e) {
@@ -306,10 +306,6 @@ public class DatabaseCreator {
             } catch (Exception e) {
                 throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
             }
-        }
-
-        private boolean migrationsAreOnGoing() throws SQLException {
-            return !migrationsTableIsNoLongerLocked(getMigrationsTableLock());
         }
 
         private MigrationsTableLock getMigrationsTableLock() throws SQLException {
