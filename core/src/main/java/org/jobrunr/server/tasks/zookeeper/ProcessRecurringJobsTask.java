@@ -87,8 +87,9 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             registerRecurringJobRun(recurringJob, ((CarbonAwareAwaitingState) jobState).getPreferredInstant());
         } else if (jobState instanceof ScheduledState) {
             registerRecurringJobRun(recurringJob, ((ScheduledState) jobState).getScheduledAt());
+        } else {
+            throw shouldNotHappenException("Recurring job '" + recurringJob.getJobName() + "' has unsupported job state '" + jobState + "'.");
         }
-        throw shouldNotHappenException("Recurring job '" + recurringJob.getJobName() + "' has unsupported job state '" + jobState + "'.");
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {
