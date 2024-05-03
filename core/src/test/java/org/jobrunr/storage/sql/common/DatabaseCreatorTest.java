@@ -28,9 +28,14 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class DatabaseCreatorTest {
 
@@ -123,25 +128,28 @@ class DatabaseCreatorTest {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test;DB_CLOSE_DELAY=-1");
         final DatabaseCreator databaseCreator1 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
         final DatabaseCreator databaseCreator2 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+        final DatabaseCreator databaseCreator3 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
 
         final ListAppender<ILoggingEvent> loggerDbCreator1 = LoggerAssert.initFor(databaseCreator1);
 
         Thread t1 = new Thread(databaseCreator1::runMigrations);
-
         Thread t2 = new Thread(databaseCreator2::runMigrations);
+        Thread t3 = new Thread(databaseCreator3::runMigrations);
 
         t1.start();
         t2.start();
+        t3.start();
 
         t1.join();
         t2.join();
+        t3.join();
 
         LoggerAssert.assertThat(loggerDbCreator1)
-                .hasInfoMessageContaining("Successfully locked the migrations table.", 1)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
+                .hasDebugMessageContaining("Too late... Another DatabaseCreator is performing the migrations.", 2)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
                 .hasInfoMessageContaining("Running migration")
-                .hasInfoMessageContaining("The lock has been removed from migrations table.", 1)
-                .hasInfoMessageContaining("Too late... Another DatabaseCreator is performing the migrations.", 1)
-                .hasInfoMessageContaining("Waiting for the end of database migrations...", 1);
+                .hasInfoMessageContaining("Waiting for database migrations to finish...", 2);
 
     }
 

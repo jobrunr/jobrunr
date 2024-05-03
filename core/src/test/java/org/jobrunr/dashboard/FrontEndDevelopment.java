@@ -27,7 +27,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 

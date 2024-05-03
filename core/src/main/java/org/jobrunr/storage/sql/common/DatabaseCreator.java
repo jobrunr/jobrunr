@@ -4,7 +4,12 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.*;
+import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
+import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,16 +17,26 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Thread.sleep;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MICROS;
+import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseCreator {
@@ -32,7 +47,7 @@ public class DatabaseCreator {
     private final ConnectionProvider connectionProvider;
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
-    private final MigrationsTableLocker migrationsTableLocker = new MigrationsTableLocker();
+    private final MigrationsTableLocker migrationsTableLocker;
 
     public static void main(String[] args) {
         if (args.length < 3) {
@@ -81,31 +96,33 @@ public class DatabaseCreator {
         this.connectionProvider = connectionProvider;
         this.tablePrefixStatementUpdater = getStatementUpdater(tablePrefix, connectionProvider);
         this.databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
+        this.migrationsTableLocker = new MigrationsTableLocker(connectionProvider, tablePrefixStatementUpdater);
     }
 
     public void runMigrations() {
-        runMigrations(getMigrations()
+        List<SqlMigration> migrationsToRun = getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
                 .sorted(comparing(SqlMigration::getFileName))
                 .filter(this::isNewMigration)
-                .collect(Collectors.toList())
-        );
+                .collect(toList());
+        runMigrations(migrationsToRun);
     }
 
     public void validateTables() {
-        try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn);
-             final Statement pSt = conn.createStatement()) {
-            for (String table : JOBRUNR_TABLES) {
-                try (ResultSet rs = pSt.executeQuery("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(table))) {
-                    if (rs.next()) {
-                        int ignored = rs.getInt(1);
-                    }
-                }
+        try (final Connection conn = getConnection()) {
+            List<String> expectedTables = stream(JOBRUNR_TABLES).map(tablePrefixStatementUpdater::getFQTableName).map(String::toUpperCase).collect(toList());
+            ResultSet tables = conn.getMetaData().getTables(null, null, "%", null);
+            while (tables.next()) {
+                String tableSchema = tables.getString("TABLE_SCHEM");
+                String tableName = tables.getString("TABLE_NAME");
+                String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
+                expectedTables.remove(completeTableName);
             }
-            tran.commit();
-        } catch (Exception becauseTableDoesNotExist) {
-            throw new JobRunrException("Not all required tables are available by JobRunr!");
+            if (!expectedTables.isEmpty()) {
+                throw new JobRunrException("Not all required tables are available by JobRunr!");
+            }
+        } catch (SQLException e) {
+            throw new JobRunrException("Unable to query database tables to see if JobRunr Tables were created.", e);
         }
     }
 
@@ -113,25 +130,21 @@ public class DatabaseCreator {
         return databaseMigrationsProvider.getMigrations();
     }
 
-    private void runMigrations(List<SqlMigration> migrations) {
-        if (migrations.isEmpty()) return;
+    private void runMigrations(List<SqlMigration> migrationsToRun) {
+        if (migrationsToRun.isEmpty()) return;
 
-        try {
-            if (isMigrationsTableMigration(migrations.get(0))) {
-                createMigrationsTable(migrations.remove(0));
-            }
+        if (isCreateMigrationsTableMigration(migrationsToRun.get(0))) {
+            createMigrationsTable(migrationsToRun.remove(0));
+        }
 
-            if (migrationsTableLocker.lockMigrationsTable()) {
-                try {
-                    migrations.forEach(this::runMigration);
-                } finally {
-                    migrationsTableLocker.removeMigrationsTableLock();
-                }
-            } else {
-                migrationsTableLocker.waitUntilMigrationsAreDone();
+        if (migrationsTableLocker.lockMigrationsTable()) {
+            try {
+                migrationsToRun.forEach(this::runMigration);
+            } finally {
+                migrationsTableLocker.removeMigrationsTableLock();
             }
-        } finally {
-            migrationsTableLocker.close();
+        } else {
+            migrationsTableLocker.waitUntilMigrationsAreDone();
         }
     }
 
@@ -142,10 +155,9 @@ public class DatabaseCreator {
                 runMigrationStatement(conn, migration);
             }
             updateMigrationsTable(conn, migration);
-            if (!isMigrationsTableMigration(migration)) commitMigrationGuard(conn);
             tran.commit();
         } catch (Exception e) {
-            throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error running database migration " + migration.getFileName(), e));
+            throw shouldNotHappenException(new IllegalStateException("Error running database migration " + migration.getFileName(), e));
         }
     }
 
@@ -168,7 +180,7 @@ public class DatabaseCreator {
         try {
             runMigration(migration);
         } catch (Exception e) {
-            LOGGER.info("Error when creating the migrations table, it probably already exists.", e);
+            LOGGER.debug("Error when creating the migrations table, it probably already exists.", e);
             // the table already exists, or we'll fail in the next steps
         }
     }
@@ -178,7 +190,8 @@ public class DatabaseCreator {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
             pSt.setString(3, now().truncatedTo(MICROS).toString());
-            pSt.execute();
+            int updateCount = pSt.executeUpdate();
+            if (updateCount == 0) throw new IllegalStateException("Could not save migration to migrations table");
         }
     }
 
@@ -186,13 +199,12 @@ public class DatabaseCreator {
         return !isMigrationApplied(migration);
     }
 
-    private boolean isMigrationsTableMigration(SqlMigration migration) {
+    private boolean isCreateMigrationsTableMigration(SqlMigration migration) {
         return migration.getFileName().endsWith("v000__create_migrations_table.sql");
     }
 
     protected boolean isMigrationApplied(SqlMigration migration) {
         try (final Connection conn = getConnection();
-             final Transaction tran = new Transaction(conn);
              final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
             boolean result = false;
             pSt.setString(1, migration.getFileName());
@@ -206,17 +218,9 @@ public class DatabaseCreator {
                     result = numberOfRows >= 1;
                 }
             }
-            tran.commit();
             return result;
         } catch (SQLException becauseTableDoesNotExist) {
             return false;
-        }
-    }
-
-    private void commitMigrationGuard(Connection connection) throws SQLException {
-        MigrationsTableLock migrationsTableLock = migrationsTableLocker.getMigrationsTableLock(connection);
-        if (migrationsTableLocker.migrationsTableIsNotLocked(migrationsTableLock)) {
-            throw new IllegalStateException("Current DatabaseCreator no longer possesses the migrations table lock.");
         }
     }
 
@@ -224,7 +228,7 @@ public class DatabaseCreator {
         try {
             return connectionProvider.getConnection();
         } catch (SQLException exception) {
-            throw JobRunrException.shouldNotHappenException(exception);
+            throw shouldNotHappenException(exception);
         }
     }
 
@@ -245,7 +249,7 @@ public class DatabaseCreator {
                 }
             }
         } catch (SQLException e) {
-            throw JobRunrException.shouldNotHappenException(e);
+            throw shouldNotHappenException(e);
         }
     }
 
@@ -256,161 +260,89 @@ public class DatabaseCreator {
 
     }
 
-    private class MigrationsTableLocker implements AutoCloseable {
-        private static final String NULL_UUID = "00000000-0000-0000-0000-000000000000";
-        private Thread lockUpdaterThread;
+    private static class MigrationsTableLocker {
+        private static final String TABLE_LOCKER_UUID = "00000000-0000-0000-0000-000000000000";
+        private static final String TABLE_LOCKER_SCRIPT = "TABLE LOCKER";
+        private static final Duration TABLE_LOCK_TIMEOUT_DURATION = Duration.ofMinutes(1);
+
+        private final ConnectionProvider connectionProvider;
+        private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
+
+        public MigrationsTableLocker(ConnectionProvider connectionProvider, TablePrefixStatementUpdater tablePrefixStatementUpdater) {
+            this.connectionProvider = connectionProvider;
+            this.tablePrefixStatementUpdater = tablePrefixStatementUpdater;
+        }
 
         private boolean lockMigrationsTable() {
-            LOGGER.info("Trying to lock migrations table...");
+            LOGGER.debug("Trying to lock migrations table...");
             try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
-                if (migrationsTableIsNoLongerLocked(getMigrationsTableLock(conn))) removeLock(conn);
                 insertLock(conn);
                 tran.commit();
+                LOGGER.debug("Successfully locked the migrations table.");
+                return true;
             } catch (Exception e) {
-                LOGGER.info("Too late... Another DatabaseCreator is performing the migrations.", e);
+                LOGGER.debug("Too late... Another DatabaseCreator is performing the migrations.", e);
                 return false;
             }
-            lockUpdaterThread = new Thread(new MigrationsTableLockHeartbeatUpdater());
-            lockUpdaterThread.start();
-            LOGGER.info("Successfully locked the migrations table.");
-            return true;
         }
 
         private void removeMigrationsTableLock() {
-            LOGGER.info("Removing lock on migrations table...");
+            LOGGER.debug("Removing lock on migrations table...");
 
-            lockUpdaterThread.interrupt();
-
-            try (final Connection conn = getConnection();
-                 final Transaction tran = new Transaction(conn)
-            ) {
+            try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
                 removeLock(conn);
                 tran.commit();
             } catch (Exception e) {
-                throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
+                throw shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
             }
         }
 
         private void waitUntilMigrationsAreDone() {
-            LOGGER.info("Waiting for the end of database migrations...");
+            LOGGER.info("Waiting for database migrations to finish...");
             try {
-                MigrationsTableLock migrationsTableLock;
-                do {
-                    migrationsTableLock = getMigrationsTableLock();
-                } while (!migrationsTableIsNotLocked(migrationsTableLock));
-                if (migrationsTableLock != null) {
-                    throw new IllegalStateException("The DatabaseCreator running the migrations is not keeping the lock up to date.");
+                Instant startDate = Instant.now();
+                while (now().isBefore(startDate.plus(TABLE_LOCK_TIMEOUT_DURATION)) && isMigrationsTableLocked()) {
+                    sleep(2000);
+                }
+                if (isMigrationsTableLocked()) {
+                    throw new IllegalStateException("Database Migrations which are being executed by another server and have timed out. Manually review your migrations.");
                 }
             } catch (Exception e) {
-                throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
+                throw shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
             }
         }
 
-        private MigrationsTableLock getMigrationsTableLock() throws SQLException {
-            try (
-                    final Connection conn = getConnection()
-            ) {
-                return getMigrationsTableLock(conn);
-            }
-        }
-
-        private MigrationsTableLock getMigrationsTableLock(Connection conn) throws SQLException {
-            try (
-                    final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")
-            ) {
-                pSt.setString(1, NULL_UUID);
+        private boolean isMigrationsTableLocked() throws SQLException {
+            try (final Connection conn = getConnection(); final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+                pSt.setString(1, TABLE_LOCKER_UUID);
                 ResultSet rs = pSt.executeQuery();
-                if (rs.next()) {
-                    return new MigrationsTableLock(Integer.parseInt(rs.getString("script")), Instant.parse(rs.getString("installedOn")));
-                }
-                return null;
+                return rs.next();
             }
         }
 
         private void insertLock(Connection connection) throws SQLException {
             try (final PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
-                pSt.setString(1, NULL_UUID);
-                pSt.setString(2, "1");
+                pSt.setString(1, TABLE_LOCKER_UUID);
+                pSt.setString(2, TABLE_LOCKER_SCRIPT);
                 pSt.setString(3, now().truncatedTo(MICROS).toString());
-                pSt.execute();
-            }
-        }
-
-        private void updateLock() throws SQLException {
-            try (
-                    final Connection conn = getConnection();
-                    final Transaction tran = new Transaction(conn);
-                    final PreparedStatement pSt = conn.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " set script = ?, installedOn = ? where id = ? and script = ?")
-            ) {
-                MigrationsTableLock migrationsTableLock = getMigrationsTableLock(conn);
-                if (migrationsTableIsNotLocked(migrationsTableLock)) {
-                    throw JobRunrException.shouldNotHappenException(new IllegalStateException("Tried to update migrations table lock but table is not locked."));
-                }
-                pSt.setString(1, String.valueOf(migrationsTableLock.getVersion() + 1));
-                pSt.setString(2, now().truncatedTo(MICROS).toString());
-                pSt.setString(3, NULL_UUID);
-                pSt.setString(4, String.valueOf(migrationsTableLock.getVersion()));
-                tran.commit();
+                int updateCount = pSt.executeUpdate();
+                if (updateCount == 0) throw new IllegalStateException("Another DatabaseCreator is performing the migrations table.");
             }
         }
 
         private void removeLock(Connection conn) {
-            try (
-                    final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")
-            ) {
-                pSt.setString(1, NULL_UUID);
-                pSt.execute();
+            try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+                pSt.setString(1, TABLE_LOCKER_UUID);
+                int updateCount = pSt.executeUpdate();
+                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator had the migrations table lock."));
             } catch (Exception e) {
-                throw JobRunrException.shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
+                throw shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
             }
-            LOGGER.info("The lock has been removed from migrations table.");
+            LOGGER.debug("The lock has been removed from migrations table.");
         }
 
-        private boolean migrationsTableIsNotLocked(MigrationsTableLock lock) {
-            return lock == null || migrationsTableIsNoLongerLocked(lock);
-        }
-
-        private boolean migrationsTableIsNoLongerLocked(MigrationsTableLock lock) {
-            return lock != null && now().isAfter(lock.getUpdatedAt().plusSeconds(10));
-        }
-
-        @Override
-        public void close() {
-            if (lockUpdaterThread != null) lockUpdaterThread.interrupt();
-        }
-    }
-
-    private class MigrationsTableLockHeartbeatUpdater implements Runnable {
-        @Override
-        public void run() {
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    Thread.sleep(2000);
-                    LOGGER.debug("Notify lock still in hold");
-                    migrationsTableLocker.updateLock();
-                }
-                LOGGER.debug("Migrations table lock updater thread interrupted");
-            } catch (Exception e) {
-                LOGGER.debug("Migrations table lock updater thread interrupted", e);
-            }
-        }
-    }
-
-    private static class MigrationsTableLock {
-        private final int version;
-        private final Instant updatedAt;
-
-        MigrationsTableLock(int version, Instant updatedAt) {
-            this.version = version;
-            this.updatedAt = updatedAt;
-        }
-
-        public int getVersion() {
-            return version;
-        }
-
-        public Instant getUpdatedAt() {
-            return updatedAt;
+        private Connection getConnection() throws SQLException {
+            return connectionProvider.getConnection();
         }
     }
 }
