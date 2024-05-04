@@ -23,14 +23,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static java.lang.Thread.sleep;
 import static java.time.Instant.now;
+import static java.time.Instant.parse;
 import static java.time.temporal.ChronoUnit.MICROS;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
@@ -263,10 +267,10 @@ public class DatabaseCreator {
     private static class MigrationsTableLocker {
         private static final String TABLE_LOCKER_UUID = "00000000-0000-0000-0000-000000000000";
         private static final String TABLE_LOCKER_SCRIPT = "TABLE LOCKER";
-        private static final Duration TABLE_LOCK_TIMEOUT_DURATION = Duration.ofMinutes(1);
 
         private final ConnectionProvider connectionProvider;
         private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
+        private ScheduledExecutorService lockUpdateScheduler;
 
         public MigrationsTableLocker(ConnectionProvider connectionProvider, TablePrefixStatementUpdater tablePrefixStatementUpdater) {
             this.connectionProvider = connectionProvider;
@@ -279,6 +283,7 @@ public class DatabaseCreator {
                 insertLock(conn);
                 tran.commit();
                 LOGGER.debug("Successfully locked the migrations table.");
+                startMigrationsTableLockUpdateTimer();
                 return true;
             } catch (Exception e) {
                 LOGGER.debug("Too late... Another DatabaseCreator is performing the migrations.", e);
@@ -286,11 +291,26 @@ public class DatabaseCreator {
             }
         }
 
+        private void startMigrationsTableLockUpdateTimer() {
+            lockUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+            lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
+        }
+
         private void removeMigrationsTableLock() {
             LOGGER.debug("Removing lock on migrations table...");
-
+            lockUpdateScheduler.shutdown();
             try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
                 removeLock(conn);
+                tran.commit();
+            } catch (Exception e) {
+                throw shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
+            }
+        }
+
+        private void updateMigrationsTableLock() {
+            LOGGER.debug("Updating lock on migrations table...");
+            try (final Connection conn = getConnection(); final Transaction tran = new Transaction(conn)) {
+                updateLock(conn);
                 tran.commit();
             } catch (Exception e) {
                 throw shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
@@ -300,15 +320,16 @@ public class DatabaseCreator {
         private void waitUntilMigrationsAreDone() {
             LOGGER.info("Waiting for database migrations to finish...");
             try {
-                Instant startDate = Instant.now();
-                while (now().isBefore(startDate.plus(TABLE_LOCK_TIMEOUT_DURATION)) && isMigrationsTableLocked()) {
+                while (isMigrationsTableLocked()) {
                     sleep(2000);
                 }
-                if (isMigrationsTableLocked()) {
-                    throw new IllegalStateException("Database Migrations which are being executed by another server and have timed out. Manually review your migrations.");
-                }
+            } catch (InterruptedException e) {
+                LOGGER.warn("Server was stopped before all migrations tables were finished.");
+                Thread.currentThread().interrupt();
+            } catch (SQLException e) {
+                throw shouldNotHappenException(e);
             } catch (Exception e) {
-                throw shouldNotHappenException(new IllegalStateException("Error waiting for the end of database migrations", e));
+                LOGGER.error("Error waiting for database migrations to finish. Manually review your database migrations in the jobrunr_migrations table and then delete the migration lock entry with id '{}' before trying again.", TABLE_LOCKER_UUID, e);
             }
         }
 
@@ -316,7 +337,15 @@ public class DatabaseCreator {
             try (final Connection conn = getConnection(); final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 ResultSet rs = pSt.executeQuery();
-                return rs.next();
+                if (rs.next()) {
+                    // why: we want to confirm that the migrations are still running, see also this::startMigrationsTableLockUpdateTimer()
+                    Instant lastTableLockUpdate = parse(rs.getString("installedOn"));
+                    if (now().isAfter(lastTableLockUpdate.plus(20, ChronoUnit.SECONDS))) {
+                        throw new IllegalStateException("Database migrations have timed out.");
+                    }
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -330,12 +359,23 @@ public class DatabaseCreator {
             }
         }
 
+        // why: dropping and creating new indexes can take a good amount of time. Here we update the installedOn column so it can be awaited and monitored by other servers.
+        private void updateLock(Connection connection) throws SQLException {
+            try (final PreparedStatement pSt = connection.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " set installedOn = ? where id = ? and script = ?")) {
+                pSt.setString(1, now().truncatedTo(MICROS).toString());
+                pSt.setString(2, TABLE_LOCKER_UUID);
+                pSt.setString(3, TABLE_LOCKER_SCRIPT);
+                int updateCount = pSt.executeUpdate();
+                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator is performing the migrations table."));
+            }
+        }
+
         private void removeLock(Connection conn) {
             try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 int updateCount = pSt.executeUpdate();
                 if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator had the migrations table lock."));
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
             }
             LOGGER.debug("The lock has been removed from migrations table.");
