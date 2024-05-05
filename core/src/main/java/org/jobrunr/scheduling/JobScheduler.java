@@ -704,7 +704,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *      jobScheduler.scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), () -> service.doWork());
      * }</pre>
      *
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param job             the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
@@ -720,7 +720,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *      jobScheduler.<MyService>scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), x -> x.doWork());
      * }</pre>
      *
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param iocJob          the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
@@ -738,7 +738,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param job             the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
@@ -757,7 +757,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param iocJob          the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
@@ -776,7 +776,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param zoneId          The zoneId (timezone) of when to run this recurring job
      * @param job             the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
@@ -796,7 +796,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param zoneId          The zoneId (timezone) of when to run this recurring job
      * @param iocJob          the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it

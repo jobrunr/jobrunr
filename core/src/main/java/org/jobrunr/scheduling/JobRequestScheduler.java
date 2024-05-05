@@ -423,7 +423,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *      jobScheduler.scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), new MyJobRequest());
      * }</pre>
      *
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param jobRequest      the {@link JobRequest} which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
@@ -441,7 +441,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param jobRequest      the {@link JobRequest} which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
@@ -460,7 +460,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Runs at cron expression, but allows
+     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param zoneId          the zoneId (timezone) of when to run this recurring job
      * @param jobRequest      the {@link JobRequest} which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
