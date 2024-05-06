@@ -14,6 +14,7 @@ Open and free for commercial use.
 <p align="center">
     <a href="https://search.maven.org/artifact/org.jobrunr/jobrunr"><img src="https://maven-badges.herokuapp.com/maven-central/org.jobrunr/jobrunr/badge.svg"></a>&nbsp;
     <img alt="Drone Build" src="https://build.jobrunr.io/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
+    <a href="https://www.bestpractices.dev/projects/7376"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/7376/badge"/></a>&nbsp;
     <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
     <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Quality Scale" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating" /></a>&nbsp;
     <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Vulnerabilities" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities" /></a>&nbsp;
