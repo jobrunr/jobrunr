@@ -330,6 +330,7 @@ public class DatabaseCreator {
                 throw shouldNotHappenException(e);
             } catch (Exception e) {
                 LOGGER.error("Error waiting for database migrations to finish. Manually review your database migrations in the jobrunr_migrations table and then delete the migration lock entry with id '{}' before trying again.", TABLE_LOCKER_UUID, e);
+                throw e;
             }
         }
 
@@ -370,13 +371,11 @@ public class DatabaseCreator {
             }
         }
 
-        private void removeLock(Connection conn) {
+        private void removeLock(Connection conn) throws SQLException {
             try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator had the migrations table lock."));
-            } catch (SQLException e) {
-                throw shouldNotHappenException(new IllegalStateException("Error removing lock from migrations table", e));
+                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("The migrations table lock has already been removed."));
             }
             LOGGER.debug("The lock has been removed from migrations table.");
         }
