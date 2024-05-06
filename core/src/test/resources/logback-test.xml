@@ -7,7 +7,7 @@
     </appender>
 
     <!-- Change the level in the following line to have more debugging (DEBUG, TRACE) -->
-    <logger name="org.jobrunr" level="INFO"/>
+    <logger name="org.jobrunr" level="DEBUG"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

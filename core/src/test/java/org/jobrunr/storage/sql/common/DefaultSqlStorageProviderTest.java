@@ -15,7 +15,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
@@ -24,7 +28,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultSqlStorageProviderTest {
@@ -48,6 +54,7 @@ class DefaultSqlStorageProviderTest {
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);
         when(datasource.getConnection()).thenReturn(connection);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
         jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE.CREATE);
