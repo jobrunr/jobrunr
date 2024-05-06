@@ -18,9 +18,9 @@ public abstract class Schedule implements Comparable<Schedule> {
      *
      * @param createdAt Instant object when the schedule was first created
      * @param zoneId    the zone for which to calculate the schedule
-     * @return Instant of the next occurrence.
+     * @return {@link TemporalWrapper} of the next occurrence.
      */
-    public Instant next(Instant createdAt, ZoneId zoneId) {
+    public TemporalWrapper next(Instant createdAt, ZoneId zoneId) {
         return next(createdAt, now(), zoneId);
     }
 
@@ -30,13 +30,14 @@ public abstract class Schedule implements Comparable<Schedule> {
      * @param createdAtInstant Instant object when the schedule was first created
      * @param currentInstant   Instant object used to calculate next occurrence (normally Instant.now()).
      * @param zoneId           the zone for which to calculate the schedule
-     * @return Instant of the next occurrence.
+     * @return {@link TemporalWrapper} of the next occurrence.
      */
     @VisibleFor("testing")
-    public abstract Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
+    public abstract TemporalWrapper next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
 
     /**
      * Compare two {@code Schedule} objects based on next occurrence.
+     * Does not work if type of schedule is {@link org.jobrunr.scheduling.cron.CarbonAwareCronExpression}.
      * <p>
      * The next occurrences are calculated based on the current time.
      *
@@ -55,8 +56,12 @@ public abstract class Schedule implements Comparable<Schedule> {
         }
 
         Instant baseInstant = now();
-        final Instant nextAnother = schedule.next(baseInstant, ZoneOffset.UTC);
-        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC);
+        final TemporalWrapper nextAnotherWrapper = schedule.next(baseInstant, ZoneOffset.UTC);
+        if (nextAnotherWrapper.isCarbonAwarePeriod()) {
+            throw new IllegalArgumentException("Cannot compare a CarbonAwarePeriod to another");
+        }
+        final Instant nextAnother = nextAnotherWrapper.getInstant();
+        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC).getInstant();
 
         return nextThis.compareTo(nextAnother);
     }

@@ -707,6 +707,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param job             the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, JobLambda job) {
         return scheduleRecurrently(null, carbonAwareCron, job);
@@ -723,6 +724,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param iocJob          the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public <S> String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, IocJobLambda<S> iocJob) {
         return scheduleRecurrently(null, carbonAwareCron, iocJob);
@@ -741,6 +743,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param job             the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -760,6 +763,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param iocJob          the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public <S> String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
@@ -780,7 +784,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param zoneId          The zoneId (timezone) of when to run this recurring job
      * @param job             the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.Cron
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
@@ -800,7 +804,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param zoneId          The zoneId (timezone) of when to run this recurring job
      * @param iocJob          the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.Cron
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public <S> String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);

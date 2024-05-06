@@ -35,7 +35,7 @@ class CronExpressionTest {
         try {
             Instant inputInstant = LocalDateTime.parse(baseDate, dateTimeFormatter).toInstant(UTC);
             CronExpression cron = CronExpression.create(cronExpression);
-            Instant actualInstant = cron.next(createdAtNotRelevantInstant, inputInstant, UTC);
+            Instant actualInstant = cron.next(createdAtNotRelevantInstant, inputInstant, UTC).getInstant();
             Instant expectedInstant = LocalDateTime.parse(expectedResult, dateTimeFormatter).toInstant(UTC);
 
             assertThat(actualInstant)
@@ -54,7 +54,7 @@ class CronExpressionTest {
         int daysToAdd = hour >= 24 ? 1 : 0;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), UTC);
+        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), UTC).getInstant();
 
         Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
 
@@ -73,7 +73,7 @@ class CronExpressionTest {
             minute = minute - 1;
         }
 
-        Instant nextRun = CronExpression.create(Cron.daily(hour, minute)).next(Instant.now(), ZoneOffset.of("+02:00"));
+        Instant nextRun = CronExpression.create(Cron.daily(hour, minute)).next(Instant.now(), ZoneOffset.of("+02:00")).getInstant();
         Instant expectedNextRun = now().plusDays(1).withHour(hour).withMinute(minute).withSecond(0).withNano(0).atZone(ZoneOffset.of("+02:00")).toInstant();
         assertThat(nextRun)
                 .isAfter(Instant.now())
@@ -86,7 +86,7 @@ class CronExpressionTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         int nextMinute = localDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneOffset.of("+02:00"));
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneOffset.of("+02:00")).getInstant();
         assertThat(nextRun).isAfter(Instant.now());
     }
 
@@ -96,7 +96,7 @@ class CronExpressionTest {
         OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("America/New_York"));
         int nextMinute = offsetDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneId.of("America/New_York"));
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneId.of("America/New_York")).getInstant();
         assertThat(nextRun)
                 .isAfter(Instant.now())
                 .isBefore(now().toLocalDate().plusDays(1).atStartOfDay().toInstant(UTC));
@@ -108,15 +108,16 @@ class CronExpressionTest {
         int hour = now().getHour() + 1;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault());
-        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(ChronoUnit.HOURS).toInstant();;
+        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault()).getInstant();
+        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(ChronoUnit.HOURS).toInstant();
+        ;
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
     @Test
     void cronExpressionsCanBeMappedToOtherZonePart2() {
-        Instant actualNextInstant = CronExpression.create(Cron.hourly()).next(Instant.now(), systemDefault());
+        Instant actualNextInstant = CronExpression.create(Cron.hourly()).next(Instant.now(), systemDefault()).getInstant();
 
         Instant expectedNextInstant = now().plusHours(1).withMinute(0).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
@@ -125,7 +126,7 @@ class CronExpressionTest {
 
     @Test
     void cronExpressionsCanBeMappedToOtherZonePart3() {
-        Instant actualNextInstant = CronExpression.create(Cron.minutely()).next(Instant.now(), UTC);
+        Instant actualNextInstant = CronExpression.create(Cron.minutely()).next(Instant.now(), UTC).getInstant();
 
         Instant expectedNextInstant = now().plusMinutes(1).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 

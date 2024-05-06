@@ -4,6 +4,7 @@ import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.Schedule;
+import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
@@ -101,6 +102,11 @@ public class RecurringJobTestBuilder {
     public RecurringJobTestBuilder withIntervalExpression(String intervalExpression, Instant createdAt) {
         this.schedule = new Interval(Duration.parse(intervalExpression));
         this.createdAt = createdAt;
+        return this;
+    }
+
+    public RecurringJobTestBuilder withCarbonAwareCronExpression(CarbonAwareCronExpression carbonAwareCronExpression) {
+        this.schedule = carbonAwareCronExpression;
         return this;
     }
 

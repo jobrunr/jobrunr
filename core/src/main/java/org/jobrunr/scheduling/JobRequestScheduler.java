@@ -426,6 +426,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param jobRequest      the {@link JobRequest} which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, JobRequest jobRequest) {
         return scheduleRecurrently(null, carbonAwareCron, jobRequest);
@@ -444,6 +445,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
      * @param jobRequest      the {@link JobRequest} which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
@@ -464,7 +466,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param zoneId          the zoneId (timezone) of when to run this recurring job
      * @param jobRequest      the {@link JobRequest} which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.Cron
+     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
      */
     public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);

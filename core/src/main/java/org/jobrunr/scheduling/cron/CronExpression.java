@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling.cron;
 
 import org.jobrunr.scheduling.Schedule;
+import org.jobrunr.scheduling.TemporalWrapper;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -110,7 +111,7 @@ public class CronExpression extends Schedule {
         int count = fields.length;
         if (count > 6 || count < 5) {
             throw new InvalidCronExpressionException(
-                    "crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution)");
+                    "crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution). Provided: " + expression);
         }
         CronExpression cronExpression = new CronExpression();
         cronExpression.hasSecondsField = count == 6;
@@ -171,7 +172,7 @@ public class CronExpression extends Schedule {
      * @return Instant of the next occurrence.
      */
     @Override
-    public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+    public TemporalWrapper next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         LocalDateTime baseDate = LocalDateTime.ofInstant(currentInstant, zoneId);
         int baseSecond = baseDate.getSecond();
         int baseMinute = baseDate.getMinute();
@@ -251,10 +252,11 @@ public class CronExpression extends Schedule {
                 hour = this.hours.nextSetBit(0);
             }
             day = candidateDay;
-            return LocalDateTime
+            Instant nextInstant = LocalDateTime
                     .of(year, month, day, hour, minute, second)
                     .atZone(zoneId)
                     .toInstant();
+            return TemporalWrapper.ofInstant(nextInstant);
         }
     }
 

@@ -1,10 +1,14 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
+import org.jobrunr.scheduling.TemporalWrapper;
+import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
@@ -33,7 +37,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     private String id;
-    private String scheduleExpression;
+    private Schedule schedule;
     private String zoneId;
     private Instant createdAt;
 
@@ -41,23 +45,23 @@ public class RecurringJob extends AbstractJob {
         // used for deserialization
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId));
+    public RecurringJob(String id, JobDetails jobDetails, String schedule, String zoneId) {
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(schedule), ZoneId.of(zoneId));
     }
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
         this(id, jobDetails, schedule, zoneId, Instant.now(Clock.system(zoneId)));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId), Instant.parse(createdAt));
+    public RecurringJob(String id, JobDetails jobDetails, String schedule, String zoneId, String createdAt) {
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(schedule), ZoneId.of(zoneId), Instant.parse(createdAt));
     }
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
         super(jobDetails);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
-        this.scheduleExpression = schedule.toString();
+        this.schedule = schedule;
         this.createdAt = createdAt;
     }
 
@@ -66,8 +70,12 @@ public class RecurringJob extends AbstractJob {
         return id;
     }
 
-    public String getScheduleExpression() {
-        return scheduleExpression;
+    public Schedule getSchedule() {
+        return schedule;
+    }
+
+    public String getScheduleAsString() {
+        return schedule.toString();
     }
 
     /**
@@ -75,8 +83,9 @@ public class RecurringJob extends AbstractJob {
      *
      * @return the next job to for this recurring job based on the current instant.
      */
+    @Deprecated
     public Job toScheduledJob() {
-        return toJob(new ScheduledState(getNextRun(), this));
+        return toJob(new ScheduledState(getNextRun().getInstant(), this));
     }
 
     /**
@@ -88,12 +97,11 @@ public class RecurringJob extends AbstractJob {
      */
     @Deprecated
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
-        Instant now = Instant.now();
         List<Job> jobs = new ArrayList<>();
-        Instant nextRun = getNextRun(from);
+        Instant nextRun = getNextRun(from).getInstant();
         while (nextRun.isBefore(upTo)) {
             jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = getNextRun(nextRun);
+            nextRun = getNextRun(nextRun).getInstant();
         }
         return jobs;
     }
@@ -102,29 +110,20 @@ public class RecurringJob extends AbstractJob {
         if (from.isAfter(now)) return emptyList();
 
         List<Job> jobs = new ArrayList<>();
-        Instant nextRun = getNextRun(from);
-        while (nextRun.isBefore(now)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = getNextRun(nextRun);
+        TemporalWrapper nextRun = getNextRun(from);
+        if (nextRun.isInstant()) {
+            Instant nextRunInstant = nextRun.getInstant();
+            while (nextRunInstant.isBefore(now)) {
+                jobs.add(toJob(new ScheduledState(nextRunInstant, this)));
+                nextRun = getNextRun(nextRunInstant);
+            }
+            // add 1 more job
+            jobs.add(toJob(new ScheduledState(nextRunInstant, this)));
         }
-        // add 1 more job
-
-        // if it is carbonawarecronexpression then expression has before & after duration {
-        // jobs.add(toJob(new CarbonAwareAwaitingState(nextRun.minus(allowedDurationBefore), nextRun.plus(allowedDurationAfter))));
-        //} else {
-        jobs.add(toJob(new ScheduledState(nextRun, this)));
-        // }
-        return jobs;
-    }
-
-    // drop upTo?
-    public List<Job> toJobs(Instant from, Instant upTo) {
-        List<Job> jobs = new ArrayList<>();
-        Instant nextRun = getNextRun(from);
-        while (nextRun.isBefore(upTo)) {
-            // either job with ScheduledState or CarbonAwaitingState
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = getNextRun(nextRun);
+        if (nextRun.isCarbonAwarePeriod()) {
+            Job awaitingJob = toJob(new CarbonAwareAwaitingState(nextRun.getCarbonAwarePeriod()));
+            JobRunr.getBackgroundJobServer().getCarbonAwareJobManager().moveToNextState(awaitingJob);
+            jobs.add(awaitingJob);
         }
         return jobs;
     }
@@ -141,14 +140,12 @@ public class RecurringJob extends AbstractJob {
         return createdAt;
     }
 
-    public Instant getNextRun() {
+    public TemporalWrapper getNextRun() {
         return getNextRun(Instant.now());
     }
 
-    public Instant getNextRun(Instant sinceInstant) {
-        return ScheduleExpressionType
-                .getSchedule(scheduleExpression)
-                .next(createdAt, sinceInstant, ZoneId.of(zoneId));
+    public TemporalWrapper getNextRun(Instant sinceInstant) {
+        return schedule.next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {
@@ -188,9 +185,11 @@ public class RecurringJob extends AbstractJob {
 
     public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
-        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
+        if (schedule instanceof CarbonAwareCronExpression) {
+            return Duration.ofHours(1); //why: we can't know the exact duration between carbon-aware awaiting jobs and we don't care. Just put a duration that does now cause problems
+        }
+        Instant run1 = schedule.next(base, base, ZoneOffset.UTC).getInstant();
+        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC).getInstant();
         return between(run1, run2);
     }
 }

@@ -6,6 +6,7 @@ import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -49,6 +50,8 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>scheduleRecurrently("recurring-job-1", Cron.minutely(),
                 x -> x.doWorkThatTakesLong(15));
         BackgroundJob.<TestService>scheduleRecurrently("recurring-job-2", Cron.weekly(DayOfWeek.SUNDAY, 10),
+                x -> x.doWorkThatTakesLong(15));
+        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-3", CarbonAwareCron.weekly(1, 3),
                 x -> x.doWorkThatTakesLong(15));
 
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
