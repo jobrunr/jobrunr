@@ -48,11 +48,16 @@ public abstract class AbstractTaskTest {
     protected void setUpTaskDependencies(StorageProvider storageProvider) {
         logAllStateChangesFilter = new LogAllStateChangesFilter();
         BackgroundJobServerConfiguration configuration = usingStandardBackgroundJobServerConfiguration();
+        setUpBackgroundJobServerConfiguration(configuration);
         backgroundJobServer = createBackgroundJobServerSpy(storageProvider, configuration);
         backgroundJobServer.setJobFilters(List.of(logAllStateChangesFilter));
         backgroundJobServer.start();
 
         zooKeeperStatistics = new TaskStatistics(null);
+    }
+
+    protected void setUpBackgroundJobServerConfiguration(BackgroundJobServerConfiguration configuration) {
+        // hook to override settings
     }
 
     protected void runTask(Task task) {

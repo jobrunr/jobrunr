@@ -2,7 +2,6 @@ package org.jobrunr.utils.resources;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -31,7 +30,6 @@ import java.util.stream.Stream;
  */
 public class ClassPathResourceProvider implements AutoCloseable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClassPathResourceProvider.class);
     private static final Map<String, FileSystemProvider> fileSystemProviders = new HashMap<>();
     private static final ReentrantLock lock = new ReentrantLock();
 
@@ -140,7 +138,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
                 closeFileSystemProvider(fileSystemProvider);
             }
         } catch (Exception e) {
-            LOGGER.error("Could not close FileSystemProvider", e);
+            LoggerFactory.getLogger(ClassPathResourceProvider.class).error("Could not close FileSystemProvider", e);
             throw new IllegalStateException("Could not close FileSystemProvider", e);
         } finally {
             this.fileSystemProviders.clear();
