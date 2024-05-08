@@ -26,7 +26,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Spliterator;
 import java.util.function.Function;
 
@@ -66,7 +65,10 @@ public class Mocks {
         when(connectionMock.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getURL()).thenReturn("jdbc:sqlite:this is not important");
 
-        mockTablePresent(connectionMock, "jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata");
+        ResultSet resultSetMock = mock(ResultSet.class);
+        when(databaseMetaData.getTables(null, null, "%", null)).thenReturn(resultSetMock);
+        when(resultSetMock.next()).thenReturn(true, true, true, true, false);
+        when(resultSetMock.getString("TABLE_NAME")).thenReturn("jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata");
 
         return dataSourceMock;
     }
@@ -105,16 +107,4 @@ public class Mocks {
         when(redisClient.connect()).thenReturn(connection);
         return redisClient;
     }
-
-    private static void mockTablePresent(Connection connectionMock, String... tableNames) throws SQLException {
-        Statement statementMock = mock(Statement.class);
-        when(connectionMock.createStatement()).thenReturn(statementMock);
-        for (String tableName : tableNames) {
-            ResultSet resultSetMock = mock(ResultSet.class);
-            when(statementMock.executeQuery("select count(*) from " + tableName)).thenReturn(resultSetMock);
-            when(resultSetMock.next()).thenReturn(true);
-            when(resultSetMock.getInt(1)).thenReturn(1);
-        }
-    }
-
 }

@@ -15,12 +15,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DatabaseCreatorTablePrefixTest {
@@ -33,18 +40,19 @@ class DatabaseCreatorTablePrefixTest {
 
     @Mock
     private DatabaseMetaData databaseMetaData;
-
     @Mock
     private Statement statement;
-
     @Mock
     private PreparedStatement preparedStatement;
+    @Mock
+    private ResultSet resultSet;
 
     @BeforeEach
     void setUpDatabaseMocks() throws SQLException {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
     }
 
     @Test

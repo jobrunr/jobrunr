@@ -123,7 +123,11 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     }
 
     public LoggerAssert hasDebugMessageContaining(String message) {
-        return hasDebugMessageContaining(message, 1, emptyMap());
+        return hasDebugMessageContaining(message, 1);
+    }
+
+    public LoggerAssert hasDebugMessageContaining(String message, int times) {
+        return hasDebugMessageContaining(message, times, emptyMap());
     }
 
     public LoggerAssert hasDebugMessageContaining(String message, Map<String, String> mdcData) {
