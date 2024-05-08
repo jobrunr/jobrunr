@@ -29,12 +29,12 @@ public enum ScheduleExpressionType {
 
     public static Schedule getSchedule(String scheduleExpression) {
         if (Objects.nonNull(scheduleExpression) && !scheduleExpression.isEmpty()) {
-            if (isCarbonAwareCronExpression(scheduleExpression)) {
+            if (scheduleExpression.startsWith("P")) {
+                return INTERVAL.createSchedule(scheduleExpression);
+            } else if (isCarbonAwareCronExpression(scheduleExpression)) {
                 return CARBON_AWARE_CRON_EXPRESSION.createSchedule(scheduleExpression);
             } else if (scheduleExpression.matches(".*\\s.*")) {
                 return CRON_EXPRESSION.createSchedule(scheduleExpression);
-            } else if (scheduleExpression.startsWith("P")) {
-                return INTERVAL.createSchedule(scheduleExpression);
             }
         }
         throw new ScheduleException(scheduleExpression);

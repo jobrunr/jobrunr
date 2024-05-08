@@ -23,6 +23,7 @@ import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
 import {ItemsNotFound} from "../utils/items-not-found";
+import {formatDuration} from "../../utils/helper-functions"
 
 const RecurringJobs = () => {
     const navigate = useNavigate();
@@ -178,6 +179,7 @@ const RecurringJobs = () => {
                                             {recurringJobs.map(recurringJob => {
                                                 console.log("Recurring Job: ", recurringJob) //TODO: remove this line (debugging)
                                                 const {nextRun} = recurringJob;
+                                                console.log("nextRun: ", nextRun)
                                                 let nextRunDisplay;
 
                                                 // Check if nextRun has the instant or carbonAwarePeriod field
@@ -215,9 +217,18 @@ const RecurringJobs = () => {
                                                             {recurringJob.jobName}
                                                         </TableCell>
                                                         <TableCell>
-                                                            {recurringJob.scheduleExpression.startsWith('P')
-                                                                ? recurringJob.scheduleExpression
-                                                                : cronstrue.toString(recurringJob.scheduleExpression)}
+                                                            {recurringJob.schedule['@class'] === 'org.jobrunr.scheduling.cron.CronExpression' ?
+                                                                cronstrue.toString(recurringJob.schedule.expression) :
+                                                                recurringJob.schedule['@class'] === 'org.jobrunr.scheduling.cron.CarbonAwareCronExpression' ?
+                                                                    <>
+                                                                        {cronstrue.toString(recurringJob.schedule.cronExpression.expression)}
+                                                                        (Allowed to run
+                                                                        earlier: {formatDuration(recurringJob.schedule.allowedDurationBefore)} ,
+                                                                        Allowed to run
+                                                                        later: {formatDuration(recurringJob.schedule.allowedDurationAfter)})
+                                                                    </> :
+                                                                    recurringJob.scheduleExpression
+                                                            }
                                                         </TableCell>
                                                         <TableCell>
                                                             {recurringJob.zoneId}

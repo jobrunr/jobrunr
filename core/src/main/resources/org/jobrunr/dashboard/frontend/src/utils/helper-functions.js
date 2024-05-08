@@ -28,3 +28,22 @@ export function convertISO8601DurationToSeconds(durationString) {
         * 60 + (stringParts[4] === undefined ? 0 : stringParts[4] * 1) /* Seconds */
     );
 }
+
+export function formatDuration(seconds) {
+    const duration = {
+        years: Math.floor(seconds / (3600 * 24 * 365)),
+        days: Math.floor((seconds % (3600 * 24 * 365)) / (3600 * 24)),
+        hours: Math.floor((seconds % (3600 * 24)) / 3600),
+        minutes: Math.floor((seconds % 3600) / 60),
+        seconds: seconds % 60,
+    };
+
+    const parts = [];
+    for (const [key, value] of Object.entries(duration)) {
+        if (value > 0) {
+            parts.push(`${value} ${key}`);
+        }
+    }
+
+    return parts.join(', ');
+}

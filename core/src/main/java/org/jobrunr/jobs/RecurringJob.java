@@ -74,10 +74,6 @@ public class RecurringJob extends AbstractJob {
         return schedule;
     }
 
-    public String getScheduleAsString() {
-        return schedule.toString();
-    }
-
     /**
      * Returns the next job to for this recurring job based on the current instant.
      *
