@@ -4,10 +4,13 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.scheduling.cron.Cron;
+import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
@@ -19,6 +22,10 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
@@ -58,8 +65,8 @@ public class FrontEndDevelopment {
                 x -> x.doWorkThatTakesLong(15));
         BackgroundJob.<TestService>scheduleRecurrently("recurring-job-2", Cron.weekly(DayOfWeek.SUNDAY, 10),
                 x -> x.doWorkThatTakesLong(15));
-        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-3", CarbonAwareCron.weekly(1, 3),
-                x -> x.doWorkThatTakesLong(15));
+//        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-3", CarbonAwareCron.weekly(1, 3),
+//                x -> x.doWorkThatTakesLong(15));
 
         BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
 
