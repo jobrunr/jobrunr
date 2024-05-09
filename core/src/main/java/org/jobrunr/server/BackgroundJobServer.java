@@ -52,7 +52,6 @@ import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
 import static org.jobrunr.utils.VersionNumber.v;
 
@@ -81,13 +80,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
-        this(storageProvider, null, jsonMapper, null);
-    }
-
-    public BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator) {
-        this(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration());
-    }
 
     public BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         this(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
