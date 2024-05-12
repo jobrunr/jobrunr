@@ -6,12 +6,14 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.InlineScript;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.VersionType;
+import co.elastic.clients.elasticsearch._types.aggregations.MaxAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.SumAggregate;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
@@ -66,6 +68,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -79,6 +82,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 import static java.util.UUID.fromString;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -96,12 +100,12 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
@@ -616,6 +620,20 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        try {
+            final QueryVariant query = bool()
+                    .must(shouldMatch(states))
+                    .must(mu -> mu.match(ma -> ma.field(FIELD_RECURRING_JOB_ID).query(recurringJobId)))
+                    .build();
+            return countJobs(query);
+        } catch (final IOException e) {
+            throw new StorageException(e);
+        }
+
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(final RecurringJob job) {
         try {
             client.index(i -> i
@@ -784,6 +802,40 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             throw new StorageException(e);
         }
     }
+
+    @Override
+    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+        List<RecurringJob> recurringJobs = getRecurringJobs();
+
+        return recurringJobs.stream()
+                .collect(toMap(
+                        RecurringJob::getId,
+                        recurringJob -> {
+                            try {
+                                final QueryVariant query = QueryBuilders.bool()
+                                        .must(m -> m.match(mt -> mt.field(FIELD_RECURRING_JOB_ID).query(recurringJob.getId())))
+                                        .build();
+
+                                // find the maximum scheduledAt
+                                final SearchResponse<Map> response = client.search(s -> s
+                                                .index(jobIndexName)
+                                                .query(query._toQuery())
+                                                .aggregations(FIELD_SCHEDULED_AT, aggs -> aggs.max(max -> max.field(FIELD_SCHEDULED_AT)))
+                                                .size(0),
+                                        MAP_CLASS
+                                );
+
+                                MaxAggregate maxAggregate = response.aggregations().get(FIELD_SCHEDULED_AT).max();
+                                return Optional.of(maxAggregate.value())
+                                        .map(value -> Instant.ofEpochMilli(value.longValue()));
+                            } catch (IOException e) {
+                                System.err.println("Failed to query Elasticsearch: " + e.getMessage());
+                                return Optional.empty();
+                            }
+                        }
+                ));
+    }
+
 
     long countJobs(final QueryVariant query) throws IOException {
         final CountResponse response = client.count(

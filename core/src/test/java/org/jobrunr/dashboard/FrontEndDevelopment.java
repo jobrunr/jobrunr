@@ -4,13 +4,10 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
-import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
@@ -23,15 +20,7 @@ import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -40,16 +29,16 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws Exception {
-        StorageProvider storageProvider = postgresStorageProvider();
+        StorageProvider storageProvider = inMemoryStorageProvider();
 
         //StubDataProvider.using(storageProvider)
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addSomeRecurringJobs();
 
-        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
+//        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+//        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+//        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
 
         JobRunr
                 .configure()
@@ -59,28 +48,30 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
-                x -> x.doWorkThatTakesLong(JobContext.Null));
-        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-1", Cron.minutely(),
+//        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
+//                x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-cron-minutely", Cron.minutely(),
                 x -> x.doWorkThatTakesLong(15));
-        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-2", Cron.weekly(DayOfWeek.SUNDAY, 10),
+        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-cron-weekly", Cron.weekly(DayOfWeek.SUNDAY, 10),
                 x -> x.doWorkThatTakesLong(15));
-//        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-3", CarbonAwareCron.weekly(1, 3),
-//                x -> x.doWorkThatTakesLong(15));
+        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-duration-daily", Duration.ofDays(1),
+                x -> x.doWorkThatTakesLong(15));
+        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-carbonAwareCron-weekly", CarbonAwareCron.weekly(1, 3),
+                x -> x.doWorkThatTakesLong(15));
 
-        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
+//        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
-        new Timer().schedule(new TimerTask() {
-                                 @Override
-                                 public void run() {
-                                     dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
-                                     dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
-                                     System.out.println("Saved ServerJobRunrException");
-                                 }
-                             },
-                30000
-        );
+//        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
+//        new Timer().schedule(new TimerTask() {
+//                                 @Override
+//                                 public void run() {
+//                                     dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
+//                                     dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
+//                                     System.out.println("Saved ServerJobRunrException");
+//                                 }
+//                             },
+//                30000
+//        );
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 

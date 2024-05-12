@@ -66,7 +66,7 @@ public class JobDocumentMapper {
     public UpdateOneModel<Document> toUpdateOneModel(Job job) {
         Document filterDocument = new Document();
         filterDocument.append(toMongoId(Jobs.FIELD_ID), job.getId());
-        filterDocument.append(Jobs.FIELD_VERSION, (job.getVersion() -1));
+        filterDocument.append(Jobs.FIELD_VERSION, (job.getVersion() - 1));
 
         //Update doc
         Document updateDocument = toUpdateDocument(job);

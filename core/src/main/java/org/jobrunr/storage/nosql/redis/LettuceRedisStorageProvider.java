@@ -1,11 +1,14 @@
 package org.jobrunr.storage.nosql.redis;
 
+import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.LettuceFutures;
 import io.lettuce.core.Limit;
 import io.lettuce.core.Range;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.TransactionResult;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
@@ -38,9 +41,12 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -510,6 +516,16 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            return stream(getStateNames(states))
+                    .map(stateName -> commands.zcount(jobQueueForStateKey(keyPrefix, stateName), unbounded()))
+                    .reduce(0L, Long::sum);
+        }
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {
             RedisCommands<String, String> commands = connection.sync();
@@ -583,7 +599,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
             connection.flushCommands();
             LettuceFutures.awaitAll(Duration.ofSeconds(10), totalSucceededAmountCounterResponse,
-                    awaitingResponse ,scheduledResponse,
+                    awaitingResponse, scheduledResponse,
                     enqueuedResponse, processingResponse, succeededResponse, failedResponse, deletedResponse);
 
             final long awaitingCount = getCounterValue(awaitingResponse);
@@ -627,6 +643,42 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
         super.close();
         pool.close();
     }
+
+    @Override
+    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
+
+        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
+            RedisCommands<String, String> commands = connection.sync();
+            Set<String> recurringJobIds = commands.smembers(recurringJobsKey(keyPrefix));
+
+            for (String recurringJobId : recurringJobIds) {
+                String scheduledJobKeyPattern = scheduledJobsKey(keyPrefix) + ":" + recurringJobId + ":*";
+                List<String> scheduledJobKeys = new ArrayList<>();
+
+                ScanCursor cursor = ScanCursor.INITIAL; //why: Use SCAN instead of KEYS to fetch job keys to avoid blocking the Redis server
+                do {
+                    KeyScanCursor scanResult = commands.scan(cursor, ScanArgs.Builder.matches(scheduledJobKeyPattern).limit(100));
+                    scheduledJobKeys.addAll(scanResult.getKeys());
+                    cursor = scanResult;
+                } while (!cursor.isFinished());
+
+                // Determine the latest 'scheduledAt' time from the keys
+                Optional<Instant> latestScheduledAt = scheduledJobKeys.stream()
+                        .map(key -> key.substring(key.lastIndexOf(':') + 1))
+                        .map(Long::parseLong)
+                        .map(Instant::ofEpochMilli)
+                        .max(Instant::compareTo);
+
+                lastRuns.put(recurringJobId, latestScheduledAt);
+            }
+        } catch (Exception e) {
+            System.err.println("Error accessing Redis: " + e.getMessage());
+        }
+
+        return lastRuns;
+    }
+
 
     private void insertJob(Job jobToSave, RedisCommands<String, String> commands) {
         if (commands.exists(jobKey(keyPrefix, jobToSave)) > 0) throw new ConcurrentJobModificationException(jobToSave);

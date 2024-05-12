@@ -31,6 +31,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
@@ -39,7 +40,6 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
@@ -224,5 +224,14 @@ public class JobTable extends Sql<Job> {
 
     private Job toJob(SqlResultSet resultSet) {
         return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
+    }
+
+    public long countRecurringJobInstances(String recurringJobId, StateName[] states) throws SQLException {
+        String statesInClause = stream(states)
+                .map(stateName -> "'" + stateName.name() + "'")
+                .collect(joining(","));
+
+        String selectStatement = "from jobrunr_jobs where state in (" + statesInClause + ") AND recurringJobId = " + recurringJobId;
+        return selectCount(selectStatement);
     }
 }

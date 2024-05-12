@@ -53,6 +53,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -84,7 +86,13 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -332,7 +340,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        if(jobs.isEmpty()) return jobs;
+        if (jobs.isEmpty()) return jobs;
 
         try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             if (jobListVersioner.areNewJobs()) {
@@ -390,6 +398,25 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         }
         return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
     }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        List<Bson> aggregationPipeline = new ArrayList<>();
+        Bson matchStage = match(and(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId), in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet()))));
+        aggregationPipeline.add(matchStage);
+        Bson countStage = group(null, Accumulators.sum("count", 1));
+        aggregationPipeline.add(countStage);
+        Bson projectStage = project(fields(excludeId(), include("count")));
+        aggregationPipeline.add(projectStage);
+        AggregateIterable<Document> result = jobCollection.aggregate(aggregationPipeline);
+        Document countDocument = result.first();
+        if (countDocument != null) {
+            return countDocument.getLong("count");
+        } else {
+            return 0L;
+        }
+    }
+
 
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
@@ -468,6 +495,28 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     public void publishTotalAmountOfSucceededJobs(int amount) {
         metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, amount), new UpdateOptions().upsert(true));
     }
+
+    @Override
+    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
+
+        List<Bson> aggregationPipeline = Arrays.asList(
+                group("$" + Jobs.FIELD_RECURRING_JOB_ID,
+                        Accumulators.max("latestScheduledAt", "$" + Jobs.FIELD_SCHEDULED_AT)),
+                project(fields(include("_id", "latestScheduledAt")))
+        );
+
+        AggregateIterable<Document> result = jobCollection.aggregate(aggregationPipeline);
+        for (Document document : result) {
+            String jobId = document.getString("_id");
+            Optional<Instant> latestScheduledAt = Optional.ofNullable(document.getDate("latestScheduledAt"))
+                    .map(Date::toInstant);
+            lastRuns.put(jobId, latestScheduledAt);
+        }
+
+        return lastRuns;
+    }
+
 
     private Long getCount(StateName stateName, List<Document> aggregates) {
         Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));

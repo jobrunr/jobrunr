@@ -40,7 +40,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     @Override
     protected void runTask() {
         Optional<JobRunrMetadata> lastRunMetadata = Optional.ofNullable(storageProvider.getMetadata(LAST_RUN_METADATA_NAME, "cluster"));
-        if (lastRunMetadata.isPresent() && hasRunToday(lastRunMetadata.get())) {
+        if (lastRunMetadata.isPresent() && hasRunToday(lastRunMetadata.get())) {  // why: this task only has to run once a day, from 1 BackgroundJobServer
             LOGGER.debug("Task ProcessCarbonAwareAwaitingJobsTask already ran today. Skipping.");
             return;
         }

@@ -45,16 +45,16 @@ public class RecurringJob extends AbstractJob {
         // used for deserialization
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String schedule, String zoneId) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(schedule), ZoneId.of(zoneId));
-    }
-
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
         this(id, jobDetails, schedule, zoneId, Instant.now(Clock.system(zoneId)));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String schedule, String zoneId, String createdAt) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(schedule), ZoneId.of(zoneId), Instant.parse(createdAt));
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, String zoneId, Instant createdAt) {
+        this(id, jobDetails, schedule, ZoneId.of(zoneId), createdAt);
+    }
+
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
+        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId), Instant.parse(createdAt));
     }
 
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
@@ -70,8 +70,16 @@ public class RecurringJob extends AbstractJob {
         return id;
     }
 
+    public String getZoneId() {
+        return zoneId;
+    }
+
     public Schedule getSchedule() {
         return schedule;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     /**
@@ -128,14 +136,6 @@ public class RecurringJob extends AbstractJob {
         return toJob(new EnqueuedState());
     }
 
-    public String getZoneId() {
-        return zoneId;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
     public TemporalWrapper getNextRun() {
         return getNextRun(Instant.now());
     }
@@ -182,7 +182,7 @@ public class RecurringJob extends AbstractJob {
     public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
         if (schedule instanceof CarbonAwareCronExpression) {
-            return Duration.ofHours(1); //why: we can't know the exact duration between carbon-aware awaiting jobs and we don't care. Just put a duration that does now cause problems
+            return Duration.ofHours(1); //why: we can't know the exact duration between carbon-aware awaiting jobs and we don't care. Just put a duration that does not cause problems
         }
         Instant run1 = schedule.next(base, base, ZoneOffset.UTC).getInstant();
         Instant run2 = schedule.next(base, run1, ZoneOffset.UTC).getInstant();

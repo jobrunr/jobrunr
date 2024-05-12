@@ -9,9 +9,9 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
@@ -23,12 +23,12 @@ import static org.jobrunr.utils.CollectionUtils.getLast;
 
 public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
-    private final Map<String, Instant> recurringJobRuns;
+    private final Map<String, Optional<Instant>> recurringJobRuns;
     private RecurringJobsResult recurringJobs;
 
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
-        this.recurringJobRuns = new HashMap<>(); // todo: load all recurring jobs and last runs on start
+        this.recurringJobRuns = storageProvider.loadRecurringJobsLastRuns();
         this.recurringJobs = new RecurringJobsResult();
     }
 
@@ -37,6 +37,9 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         LOGGER.trace("Looking for recurring jobs... ");
 
         List<RecurringJob> recurringJobs = getRecurringJobs();
+        System.out.printf("recurringJobs: %s\n", recurringJobs);
+        System.out.printf("recurringJobs runs: %s\n", recurringJobRuns);
+
         convertAndProcessManyJobs(recurringJobs,
                 this::toScheduledJobs,
                 totalAmountOfJobs -> LOGGER.debug("Found {} jobs to schedule from {} recurring jobs", totalAmountOfJobs, recurringJobs.size()));
@@ -67,7 +70,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private List<Job> getJobsToCreate(RecurringJob recurringJob) {
-        Instant existingNextRun = getNextRunFor(recurringJob);
+        Instant existingNextRun = getNextRunFor(recurringJob).orElse(runStartTime());
         Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
         if (existingNextRun.isAfter(upUntil)) {
             return emptyList();
@@ -76,7 +79,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private boolean isAlreadyAwaitingScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
-        return storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING) > 2;
+        return storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING) > 0; // TODO: review this
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Job nextJob) {
@@ -93,10 +96,10 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {
-        recurringJobRuns.put(recurringJob.getId(), upUntil);
+        recurringJobRuns.put(recurringJob.getId(), Optional.ofNullable(upUntil));
     }
 
-    private Instant getNextRunFor(RecurringJob recurringJob) {
-        return recurringJobRuns.getOrDefault(recurringJob.getId(), runStartTime());
+    private Optional<Instant> getNextRunFor(RecurringJob recurringJob) {
+        return recurringJobRuns.getOrDefault(recurringJob.getId(), Optional.of(runStartTime()));
     }
 }

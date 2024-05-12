@@ -15,6 +15,8 @@ import org.jobrunr.utils.resilience.MultiLock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -171,6 +173,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        return storageProvider.countRecurringJobInstances(recurringJobId, states);
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         return storageProvider.saveRecurringJob(recurringJob);
     }
@@ -218,6 +225,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances) {
         storageProvider.validateRecurringJobInterval(durationBetweenRecurringJobInstances);
+    }
+
+    @Override
+    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+        return storageProvider.loadRecurringJobsLastRuns();
     }
 
     public StorageProvider getStorageProvider() {

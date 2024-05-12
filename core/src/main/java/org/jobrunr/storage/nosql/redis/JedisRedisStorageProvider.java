@@ -30,11 +30,17 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -473,6 +479,27 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        try (final Jedis jedis = getJedis()) {
+            String recurringJobsKeyPattern = recurringJobKey(keyPrefix, recurringJobId);
+            Set<String> recurringJobKeys = jedis.keys(recurringJobsKeyPattern);
+
+            if (states.length > 0) {
+                List<String> filteredKeys = recurringJobKeys.stream()
+                        .filter(key -> {
+                            String stateName = key.substring(key.lastIndexOf(":") + 1);
+                            return Arrays.stream(states).anyMatch(state -> state.name().equals(stateName));
+                        })
+                        .collect(Collectors.toList());
+                return filteredKeys.size();
+            } else {
+                return recurringJobKeys.size();
+            }
+        }
+    }
+
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final Jedis jedis = getJedis(); Transaction t = jedis.multi()) {
             t.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));
@@ -572,6 +599,36 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             jedis.hincrBy(metadataKey(keyPrefix, Metadata.STATS_ID), Metadata.FIELD_VALUE, amount);
         }
     }
+
+    @Override
+    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
+
+        try (final Jedis jedis = getJedis()) {
+            Set<String> recurringJobIds = jedis.smembers(recurringJobsKey(keyPrefix));
+
+            for (String recurringJobId : recurringJobIds) {
+                String scheduledJobKeyPattern = scheduledJobsKey(keyPrefix) + ":" + recurringJobId + ":*";
+                List<String> scheduledJobKeys = new ArrayList<>();
+                String cur = ScanParams.SCAN_POINTER_START;
+                do {
+                    ScanResult<String> scanResult = jedis.scan(cur, new ScanParams().match(scheduledJobKeyPattern).count(100));
+                    scheduledJobKeys.addAll(scanResult.getResult());
+                    cur = scanResult.getCursor();
+                } while (!cur.equals(ScanParams.SCAN_POINTER_START));
+
+                Optional<Instant> latestScheduledAt = scheduledJobKeys.stream()
+                        .map(scheduledJobKey -> scheduledJobKey.substring(scheduledJobKey.lastIndexOf(":") + 1))
+                        .map(Long::parseLong)
+                        .map(Instant::ofEpochMilli)
+                        .max(Instant::compareTo);
+
+                lastRuns.put(recurringJobId, latestScheduledAt);
+            }
+        }
+        return lastRuns;
+    }
+
 
     protected Jedis getJedis() {
         return jedisPool.getResource();

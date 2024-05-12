@@ -24,10 +24,16 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -338,6 +344,15 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).countRecurringJobInstances(recurringJobId, states);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final RecurringJob savedRecurringJob = recurringJobTable(conn).save(recurringJob);
@@ -392,6 +407,29 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             metadataTable(conn).incrementCounter("succeeded-jobs-counter-cluster", amount);
             transaction.commit();
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
+        String sql = "SELECT r.recurringJobId, MAX(j.scheduledAt) as latestScheduledAt " +
+                "FROM RecurringJobs r " +
+                "JOIN Jobs j ON r.id = j.recurringJobId " +
+                "GROUP BY r.recurringJobId";
+
+        try (final Connection conn = dataSource.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                String recurringJobId = rs.getString("recurringJobId");
+                Timestamp latestScheduledAtTs = rs.getTimestamp("latestScheduledAt");
+                Optional<Instant> latestScheduledAt = Optional.ofNullable(latestScheduledAtTs).map(Timestamp::toInstant);
+                lastRuns.put(recurringJobId, latestScheduledAt);
+            }
+            return lastRuns;
         } catch (SQLException e) {
             throw new StorageException(e);
         }
