@@ -6,13 +6,15 @@ import org.bson.UuidRepresentation;
 import org.bson.types.Binary;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.bson.internal.UuidHelper.decodeBinaryToUuid;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.TimeUtils.toMicroSeconds;
 
 public class MongoUtils {
 
@@ -52,7 +54,4 @@ public class MongoUtils {
         return result;
     }
 
-    public static long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
-    }
 }

@@ -45,6 +45,8 @@ import java.util.stream.IntStream;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -755,7 +757,7 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        assertThatJobs(storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), AmountBasedList.ascOnUpdatedAt(100)))
+        assertThatJobs(storageProvider.getScheduledJobs(now().plus(5, SECONDS), AmountBasedList.ascOnUpdatedAt(100)))
                 .hasSize(1)
                 .contains(job1);
     }
@@ -769,13 +771,13 @@ public abstract class StorageProviderTest {
 
         storageProvider.save(jobs);
 
-        Page<Job> jobPage1 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPage.ascOnUpdatedAt(2));
+        Page<Job> jobPage1 = storageProvider.getScheduledJobs(now().plus(5, SECONDS), OffsetBasedPage.ascOnUpdatedAt(2));
 
         assertThatJobs(jobPage1.getItems())
                 .hasSize(2)
                 .contains(job1, job2);
 
-        Page<Job> jobPage2 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPageRequest.fromString(jobPage1.getNextPage()));
+        Page<Job> jobPage2 = storageProvider.getScheduledJobs(now().plus(5, SECONDS), OffsetBasedPageRequest.fromString(jobPage1.getNextPage()));
 
         assertThatJobs(jobPage2.getItems())
                 .hasSize(1)
@@ -913,6 +915,7 @@ public abstract class StorageProviderTest {
         Map<String, Optional<Instant>> recurringJobsLastRuns = storageProvider.loadRecurringJobsLastRuns();
         assertThat(recurringJobsLastRuns).containsOnlyKeys("id1", "id2");
         assertThat(recurringJobsLastRuns.get("id1")).isPresent();
+        assertThat(recurringJobsLastRuns.get("id1").get().truncatedTo(MILLIS)).isEqualTo(now.truncatedTo(MILLIS));
         assertThat(recurringJobsLastRuns.get("id2")).isEmpty();
     }
 

@@ -6,6 +6,7 @@ import jakarta.json.bind.JsonbConfig;
 import jakarta.json.bind.JsonbException;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jsonb.adapters.BitSetAdapter;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeSerializer;
 
@@ -28,7 +29,7 @@ public class JsonbJsonMapper implements JsonMapper {
                 .withSerializers(new DurationTypeSerializer())
                 .withDeserializers(new DurationTypeDeserializer())
                 .withPropertyVisibilityStrategy(new FieldAccessStrategy())
-                .withAdapters(new JobAdapter(), new RecurringJobAdapter());
+                .withAdapters(new JobAdapter(), new RecurringJobAdapter(), new BitSetAdapter());
     }
 
     @Override

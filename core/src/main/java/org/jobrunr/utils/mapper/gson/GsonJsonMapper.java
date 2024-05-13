@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
+                .registerTypeAdapter(BitSet.class, new BitSetTypeAdapter())
                 .create();
     }
 

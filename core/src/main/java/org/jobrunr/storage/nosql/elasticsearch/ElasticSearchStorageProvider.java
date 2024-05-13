@@ -832,10 +832,15 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
                 SearchResponse<?> response = client.search(request, Object.class);
                 MaxAggregate maxAggregate = response.aggregations().get("latestScheduledAt").max();
 
-                if (maxAggregate != null && !Double.isNaN(maxAggregate.value())) {
-                    lastRuns.put(recJob.getId(), Optional.of(Instant.ofEpochMilli((long) maxAggregate.value())));
-                } else {
+                if (maxAggregate == null || Double.isNaN(maxAggregate.value())) {
                     lastRuns.put(recJob.getId(), Optional.empty());
+                } else {
+                    long maxValue = (long) maxAggregate.value();
+                    if (maxValue == 0) { // Assuming epoch is misinterpreted as empty result
+                        lastRuns.put(recJob.getId(), Optional.empty());
+                    } else {
+                        lastRuns.put(recJob.getId(), Optional.of(Instant.ofEpochMilli(maxValue)));
+                    }
                 }
             } catch (IOException e) {
                 LOGGER.error("Failed to query Elasticsearch for job: {}", recJob.getId(), e);
@@ -845,6 +850,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
         return lastRuns;
     }
+
 
     long countJobs(final QueryVariant query) throws IOException {
         final CountResponse response = client.count(

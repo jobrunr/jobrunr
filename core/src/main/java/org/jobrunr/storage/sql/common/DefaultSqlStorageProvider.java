@@ -30,11 +30,13 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
@@ -425,7 +427,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 String recurringJobId = rs.getString("id").trim();
-                Timestamp latestScheduledAtTs = rs.getTimestamp("latestScheduledAt");
+                Timestamp latestScheduledAtTs = rs.getTimestamp("latestScheduledAt", Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                 Optional<Instant> latestScheduledAt = Optional.ofNullable(latestScheduledAtTs).map(Timestamp::toInstant);
                 lastRuns.put(recurringJobId, latestScheduledAt);
             }
