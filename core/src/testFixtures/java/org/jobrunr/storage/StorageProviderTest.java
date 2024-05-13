@@ -36,6 +36,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -890,6 +892,28 @@ public abstract class StorageProviderTest {
         assertThat(jobStats.getDeleted()).isEqualTo(1);
         assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);
+    }
+
+    @Test
+    void testLoadRecurringJobsLastRuns() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id1").build();
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withId("id2").build();
+        storageProvider.saveRecurringJob(recurringJob1);
+        storageProvider.saveRecurringJob(recurringJob2);
+        assertThat(storageProvider.loadRecurringJobsLastRuns()).isEqualTo(Map.of("id1", Optional.empty(), "id2", Optional.empty()));
+
+        Instant now = now();
+        Job job1 = aJob().withJobDetails(TestService::doStaticWork)
+                .withRecurringJobId("id1")
+                .withState(new ScheduledState(now))
+                .build();
+        storageProvider.save(job1);
+
+        //THEN
+        Map<String, Optional<Instant>> recurringJobsLastRuns = storageProvider.loadRecurringJobsLastRuns();
+        assertThat(recurringJobsLastRuns).containsOnlyKeys("id1", "id2");
+        assertThat(recurringJobsLastRuns.get("id1")).isPresent();
+        assertThat(recurringJobsLastRuns.get("id2")).isEmpty();
     }
 
     @Test

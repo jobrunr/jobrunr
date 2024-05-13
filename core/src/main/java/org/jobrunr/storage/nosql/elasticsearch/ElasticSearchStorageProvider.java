@@ -13,7 +13,6 @@ import co.elastic.clients.elasticsearch._types.aggregations.SumAggregate;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
@@ -22,6 +21,7 @@ import co.elastic.clients.elasticsearch.core.CountResponse;
 import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.GetResponse;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.UpdateResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
@@ -61,10 +61,12 @@ import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,7 +84,6 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 import static java.util.UUID.fromString;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -116,9 +117,11 @@ import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Beta(note = "The ElasticSearchStorageProvider is still in Beta. My first impression is that other StorageProviders are faster than ElasticSearch.")
 public class ElasticSearchStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
+    private static final Logger LOGGER = getLogger(ElasticSearchStorageProvider.class);
 
     @SuppressWarnings("unchecked")
     private static final Class<Map> MAP_CLASS = Map.class;
@@ -807,35 +810,41 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
         List<RecurringJob> recurringJobs = getRecurringJobs();
 
-        return recurringJobs.stream()
-                .collect(toMap(
-                        RecurringJob::getId,
-                        recurringJob -> {
-                            try {
-                                final QueryVariant query = QueryBuilders.bool()
-                                        .must(m -> m.match(mt -> mt.field(FIELD_RECURRING_JOB_ID).query(recurringJob.getId())))
-                                        .build();
+        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
+        for (RecurringJob recJob : recurringJobs) {
+            SearchRequest request = SearchRequest.of(s -> s
+                    .index(jobIndexName)
+                    .query(q -> q
+                            .match(m -> m
+                                    .field("recurringJobId")
+                                    .query(recJob.getId())
+                            )
+                    )
+                    .aggregations("latestScheduledAt", a -> a
+                            .max(m -> m
+                                    .field("scheduledAt")
+                            )
+                    )
+                    .size(0)  // No hits needed, only aggregations
+            );
 
-                                // find the maximum scheduledAt
-                                final SearchResponse<Map> response = client.search(s -> s
-                                                .index(jobIndexName)
-                                                .query(query._toQuery())
-                                                .aggregations(FIELD_SCHEDULED_AT, aggs -> aggs.max(max -> max.field(FIELD_SCHEDULED_AT)))
-                                                .size(0),
-                                        MAP_CLASS
-                                );
+            try {
+                SearchResponse<?> response = client.search(request, Object.class);
+                MaxAggregate maxAggregate = response.aggregations().get("latestScheduledAt").max();
 
-                                MaxAggregate maxAggregate = response.aggregations().get(FIELD_SCHEDULED_AT).max();
-                                return Optional.of(maxAggregate.value())
-                                        .map(value -> Instant.ofEpochMilli(value.longValue()));
-                            } catch (IOException e) {
-                                System.err.println("Failed to query Elasticsearch: " + e.getMessage());
-                                return Optional.empty();
-                            }
-                        }
-                ));
+                if (maxAggregate != null && !Double.isNaN(maxAggregate.value())) {
+                    lastRuns.put(recJob.getId(), Optional.of(Instant.ofEpochMilli((long) maxAggregate.value())));
+                } else {
+                    lastRuns.put(recJob.getId(), Optional.empty());
+                }
+            } catch (IOException e) {
+                LOGGER.error("Failed to query Elasticsearch for job: {}", recJob.getId(), e);
+                lastRuns.put(recJob.getId(), Optional.empty());
+            }
+        }
+
+        return lastRuns;
     }
-
 
     long countJobs(final QueryVariant query) throws IOException {
         final CountResponse response = client.count(

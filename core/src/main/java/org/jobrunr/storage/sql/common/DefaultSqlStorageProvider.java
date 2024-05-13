@@ -415,16 +415,16 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
         Map<String, Optional<Instant>> lastRuns = new HashMap<>();
-        String sql = "SELECT r.recurringJobId, MAX(j.scheduledAt) as latestScheduledAt " +
-                "FROM RecurringJobs r " +
-                "JOIN Jobs j ON r.id = j.recurringJobId " +
-                "GROUP BY r.recurringJobId";
+        String sql = "SELECT r.id, MAX(j.scheduledAt) as latestScheduledAt " +
+                "FROM jobrunr_recurring_jobs r " +
+                "LEFT JOIN jobrunr_jobs j ON r.id = j.recurringJobId " +
+                "GROUP BY r.id";
 
         try (final Connection conn = dataSource.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                String recurringJobId = rs.getString("recurringJobId");
+                String recurringJobId = rs.getString("id").trim();
                 Timestamp latestScheduledAtTs = rs.getTimestamp("latestScheduledAt");
                 Optional<Instant> latestScheduledAt = Optional.ofNullable(latestScheduledAtTs).map(Timestamp::toInstant);
                 lastRuns.put(recurringJobId, latestScheduledAt);
