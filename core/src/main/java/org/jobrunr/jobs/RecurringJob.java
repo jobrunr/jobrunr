@@ -5,9 +5,9 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.RecurringJobNextRun;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
-import org.jobrunr.scheduling.TemporalWrapper;
 import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
@@ -114,12 +114,12 @@ public class RecurringJob extends AbstractJob {
         if (from.isAfter(now)) return emptyList();
 
         List<Job> jobs = new ArrayList<>();
-        TemporalWrapper nextRun = getNextRun(from);
+        RecurringJobNextRun nextRun = getNextRun(from);
         if (nextRun.isInstant()) {
             Instant nextRunInstant = nextRun.getInstant();
             while (nextRunInstant.isBefore(now)) {
                 jobs.add(toJob(new ScheduledState(nextRunInstant, this)));
-                nextRun = getNextRun(nextRunInstant);
+                nextRunInstant = getNextRun(nextRunInstant).getInstant();
             }
             // add 1 more job
             jobs.add(toJob(new ScheduledState(nextRunInstant, this)));
@@ -136,11 +136,11 @@ public class RecurringJob extends AbstractJob {
         return toJob(new EnqueuedState());
     }
 
-    public TemporalWrapper getNextRun() {
+    public RecurringJobNextRun getNextRun() {
         return getNextRun(Instant.now());
     }
 
-    public TemporalWrapper getNextRun(Instant sinceInstant) {
+    public RecurringJobNextRun getNextRun(Instant sinceInstant) {
         return schedule.next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 

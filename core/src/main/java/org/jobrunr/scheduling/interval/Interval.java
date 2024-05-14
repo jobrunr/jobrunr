@@ -1,7 +1,7 @@
 package org.jobrunr.scheduling.interval;
 
+import org.jobrunr.scheduling.RecurringJobNextRun;
 import org.jobrunr.scheduling.Schedule;
-import org.jobrunr.scheduling.TemporalWrapper;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -20,11 +20,11 @@ public class Interval extends Schedule {
     }
 
     @Override
-    public TemporalWrapper next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+    public RecurringJobNextRun next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();
         Instant nextInstant = createdAtInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));
-        return TemporalWrapper.ofInstant(nextInstant);
+        return RecurringJobNextRun.ofInstant(nextInstant);
     }
 
     @Override

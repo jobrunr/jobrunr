@@ -1,7 +1,7 @@
 package org.jobrunr.scheduling.cron;
 
+import org.jobrunr.scheduling.RecurringJobNextRun;
 import org.jobrunr.scheduling.Schedule;
-import org.jobrunr.scheduling.TemporalWrapper;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
@@ -87,14 +87,14 @@ public class CarbonAwareCronExpression extends Schedule {
      * Calculates the next occurrence based on provided base time.
      *
      * @param createdAtInstant Instant object based on which calculating the next occurrence.
-     * @return {@link TemporalWrapper} object containing the next CarbonAwarePeriod.
+     * @return {@link RecurringJobNextRun} object containing the next CarbonAwarePeriod.
      */
     @Override
-    public TemporalWrapper next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+    public RecurringJobNextRun next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         Instant nextPossibleTime = cronExpression.next(createdAtInstant, currentInstant, zoneId).getInstant();
         Instant earliestStart = nextPossibleTime.minus(allowedDurationBefore);
         Instant latestStart = nextPossibleTime.plus(allowedDurationAfter);
-        return TemporalWrapper.ofCarbonAwarePeriod(CarbonAwarePeriod.between(earliestStart, latestStart));
+        return RecurringJobNextRun.ofCarbonAwarePeriod(CarbonAwarePeriod.between(earliestStart, latestStart));
     }
 
     public Duration getAllowedDurationBefore() {

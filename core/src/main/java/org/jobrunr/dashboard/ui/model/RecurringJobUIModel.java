@@ -1,11 +1,11 @@
 package org.jobrunr.dashboard.ui.model;
 
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.scheduling.TemporalWrapper;
+import org.jobrunr.scheduling.RecurringJobNextRun;
 
 public class RecurringJobUIModel extends RecurringJob {
 
-    private final TemporalWrapper nextRun;
+    private final RecurringJobNextRun nextRun;
 
     public RecurringJobUIModel(RecurringJob recurringJob) {
         super(recurringJob.getId(), recurringJob.getJobDetails(), recurringJob.getSchedule(), recurringJob.getZoneId(), recurringJob.getCreatedAt());
@@ -15,7 +15,7 @@ public class RecurringJobUIModel extends RecurringJob {
     }
 
     @Override
-    public TemporalWrapper getNextRun() {
+    public RecurringJobNextRun getNextRun() {
         return nextRun;
     }
 }

@@ -7,21 +7,21 @@ import java.time.Instant;
 /**
  * Contains either an Instant or a CarbonAwarePeriod. Used to determine the next run in recurring jobs
  */
-public class TemporalWrapper {
+public class RecurringJobNextRun {
     private final Instant instant;
     private final CarbonAwarePeriod carbonAwarePeriod;
 
-    private TemporalWrapper(Instant instant, CarbonAwarePeriod carbonAwarePeriod) {
+    private RecurringJobNextRun(Instant instant, CarbonAwarePeriod carbonAwarePeriod) {
         this.instant = instant;
         this.carbonAwarePeriod = carbonAwarePeriod;
     }
 
-    public static TemporalWrapper ofInstant(Instant instant) {
-        return new TemporalWrapper(instant, null);
+    public static RecurringJobNextRun ofInstant(Instant instant) {
+        return new RecurringJobNextRun(instant, null);
     }
 
-    public static TemporalWrapper ofCarbonAwarePeriod(CarbonAwarePeriod period) {
-        return new TemporalWrapper(null, period);
+    public static RecurringJobNextRun ofCarbonAwarePeriod(CarbonAwarePeriod period) {
+        return new RecurringJobNextRun(null, period);
     }
 
     public boolean isInstant() {

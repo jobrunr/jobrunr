@@ -18,9 +18,9 @@ public abstract class Schedule implements Comparable<Schedule> {
      *
      * @param createdAt Instant object when the schedule was first created
      * @param zoneId    the zone for which to calculate the schedule
-     * @return {@link TemporalWrapper} of the next occurrence.
+     * @return {@link RecurringJobNextRun} of the next occurrence.
      */
-    public TemporalWrapper next(Instant createdAt, ZoneId zoneId) {
+    public RecurringJobNextRun next(Instant createdAt, ZoneId zoneId) {
         return next(createdAt, now(), zoneId);
     }
 
@@ -30,10 +30,10 @@ public abstract class Schedule implements Comparable<Schedule> {
      * @param createdAtInstant Instant object when the schedule was first created
      * @param currentInstant   Instant object used to calculate next occurrence (normally Instant.now()).
      * @param zoneId           the zone for which to calculate the schedule
-     * @return {@link TemporalWrapper} of the next occurrence.
+     * @return {@link RecurringJobNextRun} of the next occurrence.
      */
     @VisibleFor("testing")
-    public abstract TemporalWrapper next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
+    public abstract RecurringJobNextRun next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
 
     /**
      * Compare two {@code Schedule} objects based on next occurrence.
@@ -56,7 +56,7 @@ public abstract class Schedule implements Comparable<Schedule> {
         }
 
         Instant baseInstant = now();
-        final TemporalWrapper nextAnotherWrapper = schedule.next(baseInstant, ZoneOffset.UTC);
+        final RecurringJobNextRun nextAnotherWrapper = schedule.next(baseInstant, ZoneOffset.UTC);
         if (nextAnotherWrapper.isCarbonAwarePeriod()) {
             throw new IllegalArgumentException("Cannot compare a CarbonAwarePeriod to another");
         }

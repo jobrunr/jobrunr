@@ -1,7 +1,7 @@
 package org.jobrunr.scheduling.cron;
 
+import org.jobrunr.scheduling.RecurringJobNextRun;
 import org.jobrunr.scheduling.Schedule;
-import org.jobrunr.scheduling.TemporalWrapper;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -172,7 +172,7 @@ public class CronExpression extends Schedule {
      * @return Instant of the next occurrence.
      */
     @Override
-    public TemporalWrapper next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+    public RecurringJobNextRun next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
         LocalDateTime baseDate = LocalDateTime.ofInstant(currentInstant, zoneId);
         int baseSecond = baseDate.getSecond();
         int baseMinute = baseDate.getMinute();
@@ -256,7 +256,7 @@ public class CronExpression extends Schedule {
                     .of(year, month, day, hour, minute, second)
                     .atZone(zoneId)
                     .toInstant();
-            return TemporalWrapper.ofInstant(nextInstant);
+            return RecurringJobNextRun.ofInstant(nextInstant);
         }
     }
 
