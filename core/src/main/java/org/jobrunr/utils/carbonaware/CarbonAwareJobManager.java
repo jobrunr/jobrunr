@@ -135,10 +135,6 @@ public class CarbonAwareJobManager {
         LOGGER.info("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", state.getFrom(), state.getTo());
     }
 
-    public Instant getLeastExpensiveHour(CarbonAwarePeriod period) {
-        return dayAheadEnergyPrices.leastExpensiveHour(period);
-    }
-
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
         return carbonAwareConfiguration;
     }

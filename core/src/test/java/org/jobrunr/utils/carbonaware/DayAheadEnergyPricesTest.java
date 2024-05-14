@@ -14,26 +14,27 @@ import java.util.Arrays;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.utils.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_12;
 
 class DayAheadEnergyPricesTest {
     @Test
     void dayAheadEnergyPricesPojo_WhenDeserializedFromJson_UsingJackson_ThenFieldsAreSetCorrectly() {
         JsonMapper jsonMapper = new JacksonJsonMapper();
-        DayAheadEnergyPrices prices = jsonMapper.deserialize(CarbonApiMockResponses.BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
+        DayAheadEnergyPrices prices = jsonMapper.deserialize(BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
         assertDeserializedDayAheadEnergyPrices(prices);
     }
 
     @Test
     void dayAheadEnergyPricesPojo_WhenDeserializedFromJson_UsingJsonB_ThenFieldsAreSetCorrectly() {
         JsonMapper jsonMapper = new JsonbJsonMapper();
-        DayAheadEnergyPrices prices = jsonMapper.deserialize(CarbonApiMockResponses.BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
+        DayAheadEnergyPrices prices = jsonMapper.deserialize(BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
         assertDeserializedDayAheadEnergyPrices(prices);
     }
 
     @Test
     void dayAheadEnergyPricesPojo_WhenDeserializedFromJson_UsingGson_ThenFieldsAreSetCorrectly() {
         JsonMapper jsonMapper = new GsonJsonMapper();
-        DayAheadEnergyPrices prices = jsonMapper.deserialize(CarbonApiMockResponses.BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
+        DayAheadEnergyPrices prices = jsonMapper.deserialize(BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
         assertDeserializedDayAheadEnergyPrices(prices);
     }
 

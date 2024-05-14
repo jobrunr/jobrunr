@@ -1,0 +1,128 @@
+{
+  "areaCode": "BE",
+  "state": null,
+  "unit": "EUR/MWH",
+  "timezone": "Europe/Brussels",
+  "hourlyEnergyPrices": [
+    {
+      "dateTime": "%sT06:00:00Z",
+      "price": 10.20,
+      "rank": 1
+    },
+    {
+      "dateTime": "%sT04:00:00Z",
+      "price": 15.25,
+      "rank": 2
+    },
+    {
+      "dateTime": "%sT05:00:00Z",
+      "price": 18.55,
+      "rank": 3
+    },
+    {
+      "dateTime": "%sT03:00:00Z",
+      "price": 20.40,
+      "rank": 4
+    },
+    {
+      "dateTime": "%sT07:00:00Z",
+      "price": 22.80,
+      "rank": 5
+    },
+    {
+      "dateTime": "%sT02:00:00Z",
+      "price": 23.10,
+      "rank": 6
+    },
+    {
+      "dateTime": "%sT08:00:00Z",
+      "price": 24.57,
+      "rank": 7
+    },
+    {
+      "dateTime": "%sT01:00:00Z",
+      "price": 25.00,
+      "rank": 8
+    },
+    {
+      "dateTime": "%sT09:00:00Z",
+      "price": 26.80,
+      "rank": 9
+    },
+    {
+      "dateTime": "%sT10:00:00Z",
+      "price": 29.90,
+      "rank": 10
+    },
+    {
+      "dateTime": "%sT23:00:00Z",
+      "price": 30.44,
+      "rank": 11
+    },
+    {
+      "dateTime": "%sT11:00:00Z",
+      "price": 52.83,
+      "rank": 12
+    },
+    {
+      "dateTime": "%sT13:00:00Z",
+      "price": 52.84,
+      "rank": 13
+    },
+    {
+      "dateTime": "%sT12:00:00Z",
+      "price": 49.16,
+      "rank": 14
+    },
+    {
+      "dateTime": "%sT14:00:00Z",
+      "price": 58.91,
+      "rank": 15
+    },
+    {
+      "dateTime": "%sT22:00:00Z",
+      "price": 51.66,
+      "rank": 16
+    },
+    {
+      "dateTime": "%sT21:00:00Z",
+      "price": 59.62,
+      "rank": 17
+    },
+    {
+      "dateTime": "%sT20:00:00Z",
+      "price": 62.63,
+      "rank": 18
+    },
+    {
+      "dateTime": "%sT15:00:00Z",
+      "price": 73.21,
+      "rank": 19
+    },
+    {
+      "dateTime": "%sT19:00:00Z",
+      "price": 74.09,
+      "rank": 20
+    },
+    {
+      "dateTime": "%sT18:00:00Z",
+      "price": 91.04,
+      "rank": 21
+    },
+    {
+      "dateTime": "%sT16:00:00Z",
+      "price": 91.04,
+      "rank": 22
+    },
+    {
+      "dateTime": "%sT17:00:00Z",
+      "price": 114.77,
+      "rank": 23
+    },
+    {
+      "dateTime": "%sT00:00:00Z",
+      "price": 118.77,
+      "rank": 24
+    }
+  ]
+}

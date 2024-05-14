@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 public class CarbonApiMockResponses {
 
@@ -25,4 +27,5 @@ public class CarbonApiMockResponses {
     public static final String BELGIUM_2024_03_14 = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/belgium_2024-03-14.json");
     public static final String GERMANY_NO_DATA = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/germany_no_data.json");
 
+    public static final String BELGIUM_TOMORROW = getJsonResponse("org/jobrunr/utils/carbonaware/apiresponses/belgium_tomorrow.json").replace("%s", LocalDate.now(ZoneId.of("UTC")).plusDays(1).toString());
 }
