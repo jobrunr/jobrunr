@@ -37,8 +37,6 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         LOGGER.trace("Looking for recurring jobs... ");
 
         List<RecurringJob> recurringJobs = getRecurringJobs();
-        System.out.printf("recurringJobs: %s\n", recurringJobs);
-        System.out.printf("recurringJobs runs: %s\n", recurringJobRuns);
 
         convertAndProcessManyJobs(recurringJobs,
                 this::toScheduledJobs,
@@ -56,11 +54,12 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         List<Job> jobsToCreate = getJobsToCreate(recurringJob);
         if (jobsToCreate.isEmpty()) {
             LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job because it is already scheduled.", recurringJob.getJobName());
-        } else if (jobsToCreate.size() > 1) {
-            LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToCreate.size());
         } else if (isAlreadyAwaitingScheduledEnqueuedOrProcessing(recurringJob)) {
             LOGGER.debug("Recurring job '{}' is already awaiting, scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
             jobsToCreate.clear();
+        }
+        if (jobsToCreate.size() > 1) {
+            LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToCreate.size());
         } else if (jobsToCreate.size() == 1) {
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
         }
