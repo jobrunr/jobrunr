@@ -12,11 +12,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Random;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
 
 /**
  * CarbonAwareJobManager contains methods to:
@@ -88,7 +88,7 @@ public class CarbonAwareJobManager {
             return;
         }
 
-        if (now().isAfter(state.getTo().minus(1, ChronoUnit.HOURS))) {
+        if (now().isAfter(state.getTo().minus(1, HOURS))) {
             LOGGER.warn("Job {} is about to pass its deadline, schedule job now", job.getId());
             state.moveToNextState(job, now(), "Job is about to pass its deadline, scheduling job now");
             return;

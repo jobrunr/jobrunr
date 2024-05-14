@@ -327,7 +327,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
         List<RecurringJob> recurringJobs = getRecurringJobs();
 
         return recurringJobs.stream()

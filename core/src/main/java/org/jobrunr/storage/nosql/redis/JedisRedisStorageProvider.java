@@ -603,8 +603,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    //TODO: fix me {@link StorageProviderTest#testLoadRecurringJobsLastRuns()}
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+//TODO: fix me {@link StorageProviderTest#testLoadRecurringJobsLastRuns()}
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
         Map<String, Optional<Instant>> lastRuns = new HashMap<>();
 
         try (final Jedis jedis = getJedis()) {
@@ -615,6 +615,7 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                 List<String> scheduledJobKeys = new ArrayList<>();
                 String cursor = ScanParams.SCAN_POINTER_START;
 
+                // Use scan to fetch all keys matching the pattern
                 do {
                     ScanResult<String> scanResult = jedis.scan(cursor, new ScanParams().match(scheduledJobKeyPattern).count(100));
                     scheduledJobKeys.addAll(scanResult.getResult());
@@ -625,7 +626,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                 Optional<Instant> latestScheduledAt = scheduledJobKeys.stream()
                         .map(scheduledJobKey -> {
                             try {
-                                return Long.parseLong(scheduledJobKey.substring(scheduledJobKey.lastIndexOf(":") + 1));
+                                String[] parts = scheduledJobKey.split(":");
+                                return Long.parseLong(parts[parts.length - 1]);
                             } catch (NumberFormatException e) {
                                 System.err.println("Error parsing scheduledAt from key: " + scheduledJobKey);
                                 return null;

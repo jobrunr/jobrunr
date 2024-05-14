@@ -228,8 +228,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
-        return storageProvider.loadRecurringJobsLastRuns();
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
+        return storageProvider.loadRecurringJobsLatestScheduledRun();
     }
 
     public StorageProvider getStorageProvider() {

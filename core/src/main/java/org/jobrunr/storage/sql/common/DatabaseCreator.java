@@ -24,7 +24,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -36,6 +35,7 @@ import static java.lang.Thread.sleep;
 import static java.time.Instant.now;
 import static java.time.Instant.parse;
 import static java.time.temporal.ChronoUnit.MICROS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
@@ -341,7 +341,7 @@ public class DatabaseCreator {
                 if (rs.next()) {
                     // why: we want to confirm that the migrations are still running, see also this::startMigrationsTableLockUpdateTimer()
                     Instant lastTableLockUpdate = parse(rs.getString("installedOn"));
-                    if (now().isAfter(lastTableLockUpdate.plus(20, ChronoUnit.SECONDS))) {
+                    if (now().isAfter(lastTableLockUpdate.plus(20, SECONDS))) {
                         throw new IllegalStateException("Database migrations have timed out.");
                     }
                     return true;
@@ -356,7 +356,8 @@ public class DatabaseCreator {
                 pSt.setString(2, TABLE_LOCKER_SCRIPT);
                 pSt.setString(3, now().truncatedTo(MICROS).toString());
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw new IllegalStateException("Another DatabaseCreator is performing the migrations table.");
+                if (updateCount == 0)
+                    throw new IllegalStateException("Another DatabaseCreator is performing the migrations table.");
             }
         }
 
@@ -367,7 +368,8 @@ public class DatabaseCreator {
                 pSt.setString(2, TABLE_LOCKER_UUID);
                 pSt.setString(3, TABLE_LOCKER_SCRIPT);
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator is performing the migrations table."));
+                if (updateCount == 0)
+                    throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator is performing the migrations table."));
             }
         }
 
@@ -375,7 +377,8 @@ public class DatabaseCreator {
             try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("The migrations table lock has already been removed."));
+                if (updateCount == 0)
+                    throw shouldNotHappenException(new IllegalStateException("The migrations table lock has already been removed."));
             }
             LOGGER.debug("The lock has been removed from migrations table.");
         }

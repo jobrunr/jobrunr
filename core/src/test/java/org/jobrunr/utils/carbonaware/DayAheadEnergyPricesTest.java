@@ -9,10 +9,10 @@ import org.mockito.InstantMocker;
 import org.mockito.MockedStatic;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class DayAheadEnergyPricesTest {
@@ -55,7 +55,7 @@ class DayAheadEnergyPricesTest {
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 2)
         ));
         DayAheadEnergyPrices prices = new DayAheadEnergyPrices("DE", "State", "Europe/Berlin", "unit", hourlyEnergyPrices);
-        try(var a = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
+        try (var a = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
             Instant result = prices.leastExpensiveHour(from, to);
             assertThat(result).isEqualTo(expected);
             result = prices.leastExpensiveHour(from, to);
@@ -68,9 +68,9 @@ class DayAheadEnergyPricesTest {
         // GIVEN
         ArrayList<DayAheadEnergyPrices.HourlyEnergyPrice> hourlyEnergyPrices = new ArrayList<>();
         Instant now = Instant.now();
-        Instant to = now.plus(6, ChronoUnit.HOURS);
+        Instant to = now.plus(6, HOURS);
         for (int i = 0; i < 6; i++) {
-            Instant hour = now.plus(i, ChronoUnit.HOURS);
+            Instant hour = now.plus(i, HOURS);
             // Make the current hour the cheapest, increase price with each subsequent hour
             double price = 10.0 + i * 5;
             int rank = i + 1;
@@ -82,8 +82,8 @@ class DayAheadEnergyPricesTest {
         Instant result = dayAheadEnergyPrices.leastExpensiveHour(now, to);
 
         // THEN
-        Instant expected = now.truncatedTo(ChronoUnit.HOURS);
-        Instant actual = result.truncatedTo(ChronoUnit.HOURS);
+        Instant expected = now.truncatedTo(HOURS);
+        Instant actual = result.truncatedTo(HOURS);
         assertThat(actual).isEqualTo(expected); // The least expensive hour should be the current hour, truncated to hours for comparison.
     }
 
@@ -122,7 +122,7 @@ class DayAheadEnergyPricesTest {
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T08:00:00Z"), 10.0, 1),
                 new DayAheadEnergyPrices.HourlyEnergyPrice(Instant.parse("2020-01-01T09:00:00Z"), 20.0, 2)
         ));
-        try(var a = InstantMocker.mockTime("2020-01-01T08:00:00Z")) {
+        try (var a = InstantMocker.mockTime("2020-01-01T08:00:00Z")) {
             DayAheadEnergyPrices prices = new DayAheadEnergyPrices("AreaCode", "State", "Europe/Berlin", "unit", hourlyEnergyPrices);
             assertThat(prices.leastExpensiveHour(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
         }
@@ -150,7 +150,7 @@ class DayAheadEnergyPricesTest {
         ));
         DayAheadEnergyPrices prices = new DayAheadEnergyPrices("AreaCode", "State", "Europe/Berlin", "unit", hourlyEnergyPrices);
 
-        try(MockedStatic<Instant> a = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
+        try (MockedStatic<Instant> a = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
             assertThat(prices.leastExpensiveHour(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
         }
     }
@@ -166,7 +166,7 @@ class DayAheadEnergyPricesTest {
         ));
         DayAheadEnergyPrices prices = new DayAheadEnergyPrices("DE", null, "Europe/Berlin", "EUR/MWH", hourlyEnergyPrices);
 
-        try(MockedStatic<Instant> a = InstantMocker.mockTime("2020-01-01T09:00:00Z")) {
+        try (MockedStatic<Instant> a = InstantMocker.mockTime("2020-01-01T09:00:00Z")) {
             assertThat(prices.leastExpensiveHour(from, to)).isEqualTo(Instant.parse("2020-01-01T09:00:00Z"));
         }
     }

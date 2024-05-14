@@ -1,13 +1,14 @@
 package org.jobrunr.utils;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+
+import static java.time.temporal.ChronoUnit.MICROS;
 
 public class TimeUtils {
 
 
     public static long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
+        return MICROS.between(Instant.EPOCH, instant);
     }
 
     public static Instant fromMicroseconds(Long micros) {

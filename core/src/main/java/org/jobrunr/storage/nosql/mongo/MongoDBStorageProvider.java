@@ -499,7 +499,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
         Map<String, Optional<Instant>> lastRuns = new HashMap<>();
 
         List<RecurringJob> recurringJobs = getRecurringJobs();

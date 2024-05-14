@@ -807,7 +807,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
         List<RecurringJob> recurringJobs = getRecurringJobs();
 
         Map<String, Optional<Instant>> lastRuns = new HashMap<>();

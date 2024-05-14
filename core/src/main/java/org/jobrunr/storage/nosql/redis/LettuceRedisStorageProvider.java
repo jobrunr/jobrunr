@@ -648,7 +648,7 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
 
     @Override
     //TODO: fix me {@link StorageProviderTest#testLoadRecurringJobsLastRuns()}
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
         Map<String, Optional<Instant>> lastRuns = new HashMap<>();
 
         try (final StatefulRedisConnection<String, String> connection = getConnection()) {

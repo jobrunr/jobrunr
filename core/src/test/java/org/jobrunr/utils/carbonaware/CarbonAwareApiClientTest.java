@@ -2,11 +2,11 @@ package org.jobrunr.utils.carbonaware;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import static java.time.Instant.now;
 import static java.time.Instant.parse;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.jobrunr.utils.carbonaware.DayAheadEnergyPricesAssert.assertThat;
 
 class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
@@ -22,9 +22,9 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
 
         // THEN
         assertThat(result)
-            .hasAreaCode("BE")
-            .hasHourlyEnergyPricesSize(33)
-            .hasHourlyEnergyPriceAt(0, parse("2024-03-12T03:00:00Z"), 64.23);
+                .hasAreaCode("BE")
+                .hasHourlyEnergyPricesSize(33)
+                .hasHourlyEnergyPriceAt(0, parse("2024-03-12T03:00:00Z"), 64.23);
     }
 
     @Test
@@ -32,7 +32,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
         // GIVEN
         CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient();
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
-        CarbonAwarePeriod carbonAwarePeriod = CarbonAwarePeriod.before(now().plus(1, ChronoUnit.DAYS));
+        CarbonAwarePeriod carbonAwarePeriod = CarbonAwarePeriod.before(now().plus(1, DAYS));
 
         // WHEN
         DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("DE"));

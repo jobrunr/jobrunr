@@ -268,7 +268,7 @@ public interface StorageProvider extends AutoCloseable {
 
     void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances);
 
-    Map<String, Optional<Instant>> loadRecurringJobsLastRuns();
+    Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun();
 
     class StorageProviderInfo {
 

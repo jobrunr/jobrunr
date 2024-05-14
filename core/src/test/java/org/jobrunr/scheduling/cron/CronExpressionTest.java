@@ -14,12 +14,12 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
 import static java.time.LocalDateTime.now;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZoneOffset.UTC;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -109,7 +109,7 @@ class CronExpressionTest {
         hour = hour >= 24 ? 0 : hour;
 
         Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault()).getInstant();
-        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(ChronoUnit.HOURS).toInstant();
+        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(HOURS).toInstant();
         ;
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);

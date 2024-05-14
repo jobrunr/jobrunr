@@ -415,7 +415,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
+    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
         Map<String, Optional<Instant>> lastRuns = new HashMap<>();
         String sql = "SELECT r.id, MAX(j.scheduledAt) as latestScheduledAt " +
                 "FROM jobrunr_recurring_jobs r " +

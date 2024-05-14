@@ -6,10 +6,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * Represents a period of time, in which a job will be scheduled in the moment of least carbon emissions.
@@ -64,7 +64,7 @@ public class CarbonAwarePeriod {
     }
 
     public static CarbonAwarePeriod after(Instant from) {
-        Instant to = from.plus(2, ChronoUnit.DAYS);
+        Instant to = from.plus(2, DAYS);
         return new CarbonAwarePeriod(from, to);
     }
 
@@ -107,11 +107,11 @@ public class CarbonAwarePeriod {
     }
 
     public static CarbonAwarePeriod untilTomorrow() {
-        return new CarbonAwarePeriod(now().minusSeconds(1), now().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+        return new CarbonAwarePeriod(now().minusSeconds(1), now().truncatedTo(DAYS).plus(1, DAYS));
     }
 
     public static CarbonAwarePeriod today() {
-        Instant to = now().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS).minusNanos(1);
+        Instant to = now().truncatedTo(DAYS).plus(1, DAYS).minusNanos(1);
         return new CarbonAwarePeriod(now().minusSeconds(1), to);
     }
 

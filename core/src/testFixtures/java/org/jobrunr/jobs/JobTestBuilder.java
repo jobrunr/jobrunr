@@ -5,6 +5,7 @@ import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.FailedState;
@@ -12,16 +13,13 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
-import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
-
 import org.jobrunr.utils.resilience.Lock;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
@@ -128,7 +127,7 @@ public class JobTestBuilder {
                 .withName("a succeeded job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
-                .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.ofSeconds(10L, 7345L)));
+                .withState(new SucceededState(Duration.of(230, SECONDS), Duration.ofSeconds(10L, 7345L)));
     }
 
     public static JobTestBuilder aDeletedJob() {
@@ -153,7 +152,7 @@ public class JobTestBuilder {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
-        jobTestBuilder.withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.of(10, ChronoUnit.SECONDS)));
+        jobTestBuilder.withState(new SucceededState(Duration.of(230, SECONDS), Duration.of(10, SECONDS)));
 
         return jobTestBuilder;
     }
@@ -328,7 +327,7 @@ public class JobTestBuilder {
         job.setJobName(name);
         job.setRecurringJobId(recurringJobId);
 
-        if(withoutStateChanges) {
+        if (withoutStateChanges) {
             job.getStateChangesForJobFilters(); // reset state changes
         }
         return job;

@@ -33,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +44,7 @@ import java.util.stream.IntStream;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -150,9 +150,9 @@ public abstract class StorageProviderTest {
         //why: sqlite has no microseconds precision for timestamps
         assertThat(backgroundJobServers.get(0)).isEqualToComparingOnlyGivenFields(serverStatus1, "id", "workerPoolSize", "pollIntervalInSeconds", "running");
         assertThat(backgroundJobServers.get(1)).isEqualToComparingOnlyGivenFields(serverStatus2, "id", "workerPoolSize", "pollIntervalInSeconds", "running");
-        assertThat(backgroundJobServers.get(0).getFirstHeartbeat()).isCloseTo(serverStatus1.getFirstHeartbeat(), within(1000, ChronoUnit.MICROS));
+        assertThat(backgroundJobServers.get(0).getFirstHeartbeat()).isCloseTo(serverStatus1.getFirstHeartbeat(), within(1000, MICROS));
         assertThat(backgroundJobServers.get(0).getLastHeartbeat()).isAfter(backgroundJobServers.get(0).getFirstHeartbeat());
-        assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, ChronoUnit.MICROS));
+        assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, MICROS));
         assertThat(backgroundJobServers.get(1).getLastHeartbeat()).isAfter(backgroundJobServers.get(1).getFirstHeartbeat());
         assertThat(backgroundJobServers).extracting("id").containsExactly(serverStatus1.getId(), serverStatus2.getId());
         assertThat(backgroundJobServers).extracting("name").containsExactly(serverStatus1.getName(), serverStatus2.getName());
@@ -898,12 +898,12 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testLoadRecurringJobsLastRuns() {
+    void testLoadRecurringJobsLatestScheduledRun() {
         RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id1").build();
         RecurringJob recurringJob2 = aDefaultRecurringJob().withId("id2").build();
         storageProvider.saveRecurringJob(recurringJob1);
         storageProvider.saveRecurringJob(recurringJob2);
-        assertThat(storageProvider.loadRecurringJobsLastRuns()).isEqualTo(Map.of("id1", Optional.empty(), "id2", Optional.empty()));
+        assertThat(storageProvider.loadRecurringJobsLatestScheduledRun()).isEqualTo(Map.of("id1", Optional.empty(), "id2", Optional.empty()));
 
         Instant now = now();
         Instant nowPlus10Minutes = now.plus(10, MINUTES);
@@ -920,7 +920,7 @@ public abstract class StorageProviderTest {
         job2.succeeded();
         storageProvider.save(job2);
 
-        Map<String, Optional<Instant>> recurringJobsLastRuns = storageProvider.loadRecurringJobsLastRuns();
+        Map<String, Optional<Instant>> recurringJobsLastRuns = storageProvider.loadRecurringJobsLatestScheduledRun();
         assertThat(recurringJobsLastRuns).containsOnlyKeys("id1", "id2");
         assertThat(recurringJobsLastRuns.get("id1")).isPresent();
         assertThat(recurringJobsLastRuns.get("id1").get().truncatedTo(MILLIS)).isEqualTo(nowPlus10Minutes.truncatedTo(MILLIS));

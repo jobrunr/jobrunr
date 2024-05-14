@@ -4,11 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static java.time.temporal.ChronoUnit.HOURS;
 
 public class DayAheadEnergyPrices {
     private static final Logger LOGGER = LoggerFactory.getLogger(DayAheadEnergyPrices.class);
@@ -89,7 +90,7 @@ public class DayAheadEnergyPrices {
             return null;
         }
 
-        Instant currentHour = Instant.now().truncatedTo(ChronoUnit.HOURS);
+        Instant currentHour = Instant.now().truncatedTo(HOURS);
         for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is between `from` and `to`
             if ((price.getDateTime().isAfter(from) || price.getDateTime().equals(from))
                     && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))
@@ -126,7 +127,7 @@ public class DayAheadEnergyPrices {
             LOGGER.warn("No hourly energy prices available");
             return false;
         }
-        Instant currentHour = Instant.now().truncatedTo(ChronoUnit.HOURS);
+        Instant currentHour = Instant.now().truncatedTo(HOURS);
         return hourlyEnergyPrices.stream().anyMatch(price -> (price.getDateTime().isAfter(when.getFrom()) || price.getDateTime().equals(when.getFrom()))
                 && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo()))
                 && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour)));

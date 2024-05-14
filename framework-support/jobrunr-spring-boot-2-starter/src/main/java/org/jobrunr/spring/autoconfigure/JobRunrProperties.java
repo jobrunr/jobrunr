@@ -7,7 +7,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 @ConfigurationProperties(prefix = "org.jobrunr")
 public class JobRunrProperties {
@@ -189,9 +191,13 @@ public class JobRunrProperties {
             this.metrics = metrics;
         }
 
-        public CarbonAware getCarbonAware() {return carbonAware;}
+        public CarbonAware getCarbonAware() {
+            return carbonAware;
+        }
 
-        public void setCarbonAware(CarbonAware carbonAware) {this.carbonAware = carbonAware;}
+        public void setCarbonAware(CarbonAware carbonAware) {
+            this.carbonAware = carbonAware;
+        }
     }
 
     /**
@@ -283,21 +289,21 @@ public class JobRunrProperties {
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
-        @DurationUnit(ChronoUnit.HOURS)
+        @DurationUnit(HOURS)
         private Duration deleteSucceededJobsAfter = Duration.ofHours(36);
 
         /**
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
-        @DurationUnit(ChronoUnit.HOURS)
+        @DurationUnit(HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
         /**
          * Sets the duration to wait before interrupting threads/jobs when the server is stopped. If a duration suffix
          * is not specified, seconds will be used.
          */
-        @DurationUnit(ChronoUnit.SECONDS)
+        @DurationUnit(SECONDS)
         private Duration interruptJobsAwaitDurationOnStop = Duration.ofSeconds(10);
 
         /**
@@ -512,11 +518,28 @@ public class JobRunrProperties {
         Integer apiClientConnectTimeoutMs = null;
         Integer apiClientReadTimeoutMs = null;
 
-        public String getAreaCode() {return areaCode;}
-        public void setAreaCode(String areaCode) {this.areaCode = areaCode;}
-        public Integer getApiClientConnectTimeoutMs() {return apiClientConnectTimeoutMs;}
-        public void setApiClientConnectTimeoutMs(Integer apiClientConnectTimeoutMs) {this.apiClientConnectTimeoutMs = apiClientConnectTimeoutMs;}
-        public Integer getApiClientReadTimeoutMs() {return apiClientReadTimeoutMs;}
-        public void setApiClientReadTimeoutMs(Integer apiClientReadTimeoutMs) {this.apiClientReadTimeoutMs = apiClientReadTimeoutMs;}
+        public String getAreaCode() {
+            return areaCode;
+        }
+
+        public void setAreaCode(String areaCode) {
+            this.areaCode = areaCode;
+        }
+
+        public Integer getApiClientConnectTimeoutMs() {
+            return apiClientConnectTimeoutMs;
+        }
+
+        public void setApiClientConnectTimeoutMs(Integer apiClientConnectTimeoutMs) {
+            this.apiClientConnectTimeoutMs = apiClientConnectTimeoutMs;
+        }
+
+        public Integer getApiClientReadTimeoutMs() {
+            return apiClientReadTimeoutMs;
+        }
+
+        public void setApiClientReadTimeoutMs(Integer apiClientReadTimeoutMs) {
+            this.apiClientReadTimeoutMs = apiClientReadTimeoutMs;
+        }
     }
 }

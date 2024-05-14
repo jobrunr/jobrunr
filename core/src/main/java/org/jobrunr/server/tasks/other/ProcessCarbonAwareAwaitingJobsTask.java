@@ -12,10 +12,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 
@@ -65,7 +65,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
-        return storageProvider.getCarbonAwareJobList(Instant.now().plus(hoursAheadToCheck, ChronoUnit.HOURS), ascOnCarbonAwareDeadline(pageRequestSize));
+        return storageProvider.getCarbonAwareJobList(Instant.now().plus(hoursAheadToCheck, HOURS), ascOnCarbonAwareDeadline(pageRequestSize));
     }
 
     private void moveCarbonAwareJobToNextState(Job job) {
