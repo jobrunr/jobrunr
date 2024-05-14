@@ -6,10 +6,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.BitSet;
-import java.util.Calendar;
 
 /**
  * Schedule class represents a parsed crontab expression.
@@ -294,16 +294,6 @@ public class CronExpression extends Schedule {
         return result;
     }
 
-    public static boolean isLeapYear(int year) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        return cal.getActualMaximum(Calendar.DAY_OF_YEAR) > 365;
-    }
-
-    public int getNumberOfFields() {
-        return hasSecondsField ? 6 : 5;
-    }
-
     public String getExpression() {
         return expression;
     }
@@ -354,7 +344,7 @@ public class CronExpression extends Schedule {
         int dayCountInMonth;
         if (month == Month.FEBRUARY.getValue() /* Feb */) {
             dayCountInMonth = 28;
-            if (isLeapYear(year)) {
+            if (Year.isLeap(year)) {
                 dayCountInMonth++;
             }
         } else {
