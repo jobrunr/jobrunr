@@ -46,6 +46,7 @@ import java.util.stream.IntStream;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -905,17 +906,24 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.loadRecurringJobsLastRuns()).isEqualTo(Map.of("id1", Optional.empty(), "id2", Optional.empty()));
 
         Instant now = now();
+        Instant nowPlus10Minutes = now.plus(10, MINUTES);
         Job job1 = aJob().withJobDetails(TestService::doStaticWork)
+                .withRecurringJobId("id1")
+                .withState(new ScheduledState(nowPlus10Minutes))
+                .build();
+        storageProvider.save(job1);
+        Job job2 = aJob().withJobDetails(TestService::doStaticWork)
                 .withRecurringJobId("id1")
                 .withState(new ScheduledState(now))
                 .build();
-        storageProvider.save(job1);
+        job2.enqueue();
+        job2.succeeded();
+        storageProvider.save(job2);
 
-        //THEN
         Map<String, Optional<Instant>> recurringJobsLastRuns = storageProvider.loadRecurringJobsLastRuns();
         assertThat(recurringJobsLastRuns).containsOnlyKeys("id1", "id2");
         assertThat(recurringJobsLastRuns.get("id1")).isPresent();
-        assertThat(recurringJobsLastRuns.get("id1").get().truncatedTo(MILLIS)).isEqualTo(now.truncatedTo(MILLIS));
+        assertThat(recurringJobsLastRuns.get("id1").get().truncatedTo(MILLIS)).isEqualTo(nowPlus10Minutes.truncatedTo(MILLIS));
         assertThat(recurringJobsLastRuns.get("id2")).isEmpty();
     }
 

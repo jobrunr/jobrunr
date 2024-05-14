@@ -329,12 +329,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public Map<String, Optional<Instant>> loadRecurringJobsLastRuns() {
         List<RecurringJob> recurringJobs = getRecurringJobs();
+
         return recurringJobs.stream()
                 .collect(toMap(
                         RecurringJob::getId,
-                        recurringJob -> getJobsStream(SCHEDULED)
+                        recurringJob -> getJobsStreamThatHadState(SCHEDULED)
                                 .filter(job -> recurringJob.getId().equals(job.getRecurringJobId().orElse(null)))
-                                .map(job -> ((ScheduledState) job.getJobState()).getScheduledAt())
+                                .map(job -> ((ScheduledState) job.getState(SCHEDULED)).getScheduledAt())
                                 .max(Instant::compareTo)
                 ));
     }
@@ -348,6 +349,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Stream<Job> getJobsStream(StateName state) {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state));
+    }
+
+    private Stream<Job> getJobsStreamThatHadState(StateName state) {
+        return jobQueue.values().stream()
+                .filter(job -> job.hasHadState(state));
     }
 
     private Job deepClone(Job job) {
