@@ -117,10 +117,15 @@ public class DatabaseCreator {
             List<String> expectedTables = stream(JOBRUNR_TABLES).map(tablePrefixStatementUpdater::getFQTableName).map(String::toUpperCase).collect(toList());
             ResultSet tables = conn.getMetaData().getTables(null, null, "%", null);
             while (tables.next()) {
-                String tableSchema = tables.getString("TABLE_SCHEM");
-                String tableName = tables.getString("TABLE_NAME");
-                String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
-                expectedTables.remove(completeTableName);
+                if (tablePrefixStatementUpdater.getSchema() != null) {
+                    String tableSchema = tables.getString("TABLE_SCHEM");
+                    String tableName = tables.getString("TABLE_NAME");
+                    String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
+                    expectedTables.remove(completeTableName);
+                } else {
+                    String tableName = tables.getString("TABLE_NAME").toUpperCase();
+                    expectedTables.removeIf(x -> x.contains(tableName));
+                }
             }
             if (!expectedTables.isEmpty()) {
                 throw new JobRunrException("Not all required tables are available by JobRunr!");
