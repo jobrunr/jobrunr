@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.common.tables;
 
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
+import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixStatementUpdater {
 
@@ -22,6 +23,14 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
     }
 
     @Override
+    public String getSchema() {
+        if (tablePrefix.contains(".")) {
+            return substringBefore(tablePrefix, ".");
+        }
+        return null;
+    }
+
+    @Override
     public String getFQTableName(String tableName) {
         return elementPrefixer(tablePrefix, tableName);
     }
@@ -32,7 +41,7 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
 
     protected String updateStatementWithTablePrefixForIndexStatement(String statement) {
         String updatedStatement;
-        if(statement.toUpperCase().contains(" ON ")) {
+        if (statement.toUpperCase().contains(" ON ")) {
             updatedStatement = statement
                     .replace("CREATE UNIQUE INDEX jobrunr_", "CREATE UNIQUE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
                     .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))

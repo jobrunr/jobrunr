@@ -7,6 +7,7 @@ import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
@@ -15,6 +16,8 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -44,6 +47,11 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
+    }
+
+    @Test
+    void validateTablesDoesNotThrowAnExceptionIfNoTablePrefixIsGiven() {
+        assertThatCode(() -> storageProvider.setUpStorageProvider(SKIP_CREATE)).doesNotThrowAnyException();
     }
 
     @Override

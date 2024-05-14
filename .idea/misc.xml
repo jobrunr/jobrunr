@@ -14,6 +14,20 @@
   <component name="JavaScriptSettings">
     <option name="languageLevel" value="ES6" />
   </component>
+  <component name="PDMPlugin">
+    <option name="customRuleSets">
+      <list>
+        <option value="https://raw.githubusercontent.com/jborgers/PMD-jPinpoint-rules/master/rulesets/java/jpinpoint-rules.xml" />
+      </list>
+    </option>
+    <option name="optionKeyToValue">
+      <map>
+        <entry key="Statistics URL" value="" />
+        <entry key="Target JDK" value="20-preview" />
+        <entry key="Threads" value="16" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_20" project-jdk-name="17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>

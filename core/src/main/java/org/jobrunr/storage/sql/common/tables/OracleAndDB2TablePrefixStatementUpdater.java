@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.common.tables;
 
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class OracleAndDB2TablePrefixStatementUpdater implements TablePrefixStatementUpdater {
 
@@ -13,6 +14,14 @@ public class OracleAndDB2TablePrefixStatementUpdater implements TablePrefixState
     @Override
     public String updateStatement(String statement) {
         return statement.replace(DEFAULT_PREFIX, elementPrefixer(tablePrefix, DEFAULT_PREFIX));
+    }
+
+    @Override
+    public String getSchema() {
+        if (tablePrefix.contains(".")) {
+            return substringBefore(tablePrefix, ".");
+        }
+        return null;
     }
 
     @Override
