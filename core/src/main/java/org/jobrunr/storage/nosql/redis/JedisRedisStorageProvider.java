@@ -483,20 +483,12 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     @Override
     public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         try (final Jedis jedis = getJedis()) {
-            String recurringJobsKeyPattern = recurringJobKey(keyPrefix, recurringJobId);
-            Set<String> recurringJobKeys = jedis.keys(recurringJobsKeyPattern);
-
-            if (states.length > 0) {
-                List<String> filteredKeys = recurringJobKeys.stream()
-                        .filter(key -> {
-                            String stateName = key.substring(key.lastIndexOf(":") + 1);
-                            return Arrays.stream(states).anyMatch(state -> state.name().equals(stateName));
-                        })
-                        .collect(Collectors.toList());
-                return filteredKeys.size();
-            } else {
-                return recurringJobKeys.size();
-            }
+            return Arrays.stream(states)
+                    .mapToLong(state -> {
+                        String key = jobQueueForStateKey(keyPrefix, state);
+                        return jedis.zcount(key, "-inf", "+inf");
+                    })
+                    .sum();
         }
     }
 
