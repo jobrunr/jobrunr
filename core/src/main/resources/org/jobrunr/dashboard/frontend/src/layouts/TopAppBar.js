@@ -16,6 +16,19 @@ const StyledAppBar = styled(AppBar)(({theme}) => ({
     zIndex: theme.zIndex.drawer + 1
 }));
 
+const LogoImage = styled('img')(({theme}) => ({
+    width: 'auto',
+    height: '35px',
+    transition: 'transform 0.3s ease-in-out',
+    '&:hover': {
+        transform: 'scale(1.1)'
+    }
+}));
+
+const LogoLink = styled('a')(({theme}) => ({
+    textDecoration: 'none'
+}));
+
 const Buttons = styled("div")(({theme}) => ({
     '& > *': {
         margin: `${theme.spacing(2)}!important`,
@@ -64,7 +77,9 @@ const TopAppBar = () => {
     return (
         <StyledAppBar position="fixed">
             <Toolbar style={{display: "flex", alignItems: "center"}}>
-                <img style={{width: 'auto', height: '35px'}} src={logo} alt="JobRunr"/>
+                <LogoLink href="https://www.jobrunr.io">
+                    <LogoImage src={logo} alt="JobRunnr"/>
+                </LogoLink>
                 <Buttons>
                     <OverviewButton/>
                     <Button id="jobs-btn" color="inherit" component={RouterLink} to="/dashboard/jobs">
