@@ -4,6 +4,7 @@ import AppBar from '@mui/material/AppBar';
 import Chip from '@mui/material/Chip';
 import Toolbar from '@mui/material/Toolbar';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import {Newspaper as NewsIcon} from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import {Link as RouterLink} from 'react-router-dom';
@@ -102,6 +103,14 @@ const TopAppBar = () => {
                     href="https://github.com/jobrunr/jobrunr"
                     size="large">
                     <GitHubIcon/>
+                </IconButton>
+                <IconButton
+                    color="inherit"
+                    aria-label="What's new"
+                    target="_blank"
+                    href="https://github.com/jobrunr/jobrunr/releases"
+                    size="large">
+                    <NewsIcon/>
                 </IconButton>
             </Toolbar>
         </StyledAppBar>
