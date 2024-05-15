@@ -8,6 +8,11 @@ public class NoOpTablePrefixStatementUpdater implements TablePrefixStatementUpda
     }
 
     @Override
+    public String getSchema() {
+        return null;
+    }
+
+    @Override
     public String getFQTableName(String tableName) {
         return tableName;
     }

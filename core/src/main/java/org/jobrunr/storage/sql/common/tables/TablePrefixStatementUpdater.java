@@ -6,6 +6,7 @@ public interface TablePrefixStatementUpdater {
 
     String updateStatement(String statement);
 
-    String getFQTableName(String tableName);
+    String getSchema();
 
+    String getFQTableName(String tableName);
 }
