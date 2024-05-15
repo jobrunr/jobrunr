@@ -231,7 +231,7 @@ public class JobTable extends Sql<Job> {
                 .map(stateName -> "'" + stateName.name() + "'")
                 .collect(joining(","));
 
-        String selectStatement = "from jobrunr_jobs where state in (" + statesInClause + ") AND recurringJobId = " + recurringJobId;
+        String selectStatement = String.format("from jobrunr_jobs where state in (%s) AND recurringJobId = '%s'", statesInClause, recurringJobId);
         return selectCount(selectStatement);
     }
 }

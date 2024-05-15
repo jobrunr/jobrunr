@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
@@ -106,6 +107,15 @@ public class JobTestBuilder {
 
     public static JobTestBuilder aJobInProgress() {
         return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
+    }
+
+    public static JobTestBuilder aCarbonAwaitingJob() {
+        return aJob()
+                .withName("a carbon aware awaiting job")
+                .withJobDetails(systemOutPrintLnJobDetails("a carbon aware awaiting job"))
+                .withState(new ScheduledState(now().minusSeconds(15)))
+                .withState(new EnqueuedState())
+                .withState(new CarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minusSeconds(200), now().plus(10, HOURS))));
     }
 
     public static JobTestBuilder aScheduledJob() {

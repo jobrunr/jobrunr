@@ -12,6 +12,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOneModel;
@@ -404,16 +405,19 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         List<Bson> aggregationPipeline = new ArrayList<>();
-        Bson matchStage = match(and(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId), in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet()))));
+        Bson matchStage = Aggregates.match(
+                Filters.and(
+                        Filters.eq("recurringJobId", recurringJobId),  // assuming 'recurringJobId' is the field name in MongoDB
+                        Filters.in("state", Arrays.stream(states).map(Enum::name).collect(toList())) // converting StateName... to List<String>
+                )
+        );
         aggregationPipeline.add(matchStage);
-        Bson countStage = group(null, Accumulators.sum("count", 1));
+        Bson countStage = Aggregates.count();
         aggregationPipeline.add(countStage);
-        Bson projectStage = project(fields(excludeId(), include("count")));
-        aggregationPipeline.add(projectStage);
         AggregateIterable<Document> result = jobCollection.aggregate(aggregationPipeline);
         Document countDocument = result.first();
         if (countDocument != null) {
-            return countDocument.getLong("count");
+            return countDocument.getInteger("count", 0);
         } else {
             return 0L;
         }
