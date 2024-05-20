@@ -9,6 +9,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestJobRequest;
+import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
 import org.jobrunr.stubs.TestServiceInterface;
@@ -85,7 +86,7 @@ public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwar
                     .withId(jobId)
                     .withName("My Job Name")
                     .withAmountOfRetries(3)
-                    .<TestService>withDetails(x -> x.doWorkAndReturnResult("some string"))
+                    .withJobRequest(new TestJobRequestWithoutJobAnnotation("carbonAware job from createViaBuilder"))
                     .scheduleCarbonAware(before(now().plus(10, HOURS)))
 
             );

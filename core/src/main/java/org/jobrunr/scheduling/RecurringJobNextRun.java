@@ -5,7 +5,7 @@ import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import java.time.Instant;
 
 /**
- * Contains either an Instant or a CarbonAwarePeriod. Used to determine the next run in recurring jobs
+ * Wrapper class. Contains either an Instant or a CarbonAwarePeriod (not both). Used to determine the next run in recurring jobs
  */
 public class RecurringJobNextRun {
     private final Instant instant;
