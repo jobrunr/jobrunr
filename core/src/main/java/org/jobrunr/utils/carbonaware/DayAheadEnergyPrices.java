@@ -72,6 +72,10 @@ public class DayAheadEnergyPrices {
         return isErrorResponse;
     }
 
+    public boolean hasData() {
+        return hourlyEnergyPrices != null && !hourlyEnergyPrices.isEmpty() && !isErrorResponse;
+    }
+
     public void setIsErrorResponse(boolean errorResponse) {
         isErrorResponse = errorResponse;
     }
