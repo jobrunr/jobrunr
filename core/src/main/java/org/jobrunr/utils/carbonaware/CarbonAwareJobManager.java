@@ -59,14 +59,7 @@ public class CarbonAwareJobManager {
 
         CarbonAwareAwaitingState state = (CarbonAwareAwaitingState) jobState;
         LOGGER.trace("Determining best moment to schedule Job(id={}, jobName='{}') so it has the least amount of carbon impact", job.getId(), job.getJobName());
-
-        if (isDeadlinePassed(state)) {
-            scheduleJobImmediately(job, state, "Job has passed its deadline, scheduling job now");
-            return;
-        }
-
-        if (isDeadlineNextHour(state)) {
-            scheduleJobImmediately(job, state, "Job is about to pass its deadline, scheduling job now");
+        if (handleImmediateSchedulingCases(job, state)) {
             return;
         }
 
@@ -75,6 +68,20 @@ public class CarbonAwareJobManager {
             return;
         }
         scheduleJobAtOptimalTime(job, state);
+    }
+
+    private boolean handleImmediateSchedulingCases(Job job, CarbonAwareAwaitingState state) {
+        if (isDeadlinePassed(state)) {
+            scheduleJobImmediately(job, state, "Job has passed its deadline, scheduling job now");
+            return true;
+        }
+
+        if (isDeadlineNextHour(state)) {
+            scheduleJobImmediately(job, state, "Job is about to pass its deadline, scheduling job now");
+            return true;
+        }
+
+        return false;
     }
 
     private void handleUnavailableDataForPeriod(Job job, CarbonAwareAwaitingState state) {
