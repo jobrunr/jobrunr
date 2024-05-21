@@ -59,9 +59,8 @@ public class CarbonAwareJobManager {
 
         CarbonAwareAwaitingState state = (CarbonAwareAwaitingState) jobState;
         LOGGER.trace("Determining best moment to schedule Job(id={}, jobName='{}') so it has the least amount of carbon impact", job.getId(), job.getJobName());
-        if (handleImmediateSchedulingCases(job, state)) {
+        if (handleImmediateSchedulingCases(job, state))
             return;
-        }
 
         if (!dayAheadEnergyPrices.hasDataForPeriod(state.getPeriod())) {
             handleUnavailableDataForPeriod(job, state);
@@ -155,4 +154,3 @@ public class CarbonAwareJobManager {
         return state.getFrom().isAfter(now());
     }
 }
-
