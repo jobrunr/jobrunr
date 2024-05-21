@@ -3,8 +3,8 @@ import {DismissibleInstanceProblemNotification} from "./dismissible-problem-noti
 export const LATEST_DISMISSED_VERSION_STORAGE_KEY = "latestDismissedVersion";
 
 const getVersionParts = (version) => {
-    const splitVersion = version.split("-");
-    return {version: splitVersion[0], qualifier: splitVersion[1]}
+    const splitVersion = version?.split("-");
+    return {version: splitVersion?.[0], qualifier: splitVersion?.[1]}
 }
 
 const versionIsNewerThanOther = (version, otherVersion) => {
@@ -24,11 +24,11 @@ const versionIsNewerThanOther = (version, otherVersion) => {
 }
 
 export const getNewVersionProblem = (currentVersion, latestVersion) => {
-    if (!latestVersion || !versionIsNewerThanOther(latestVersion, currentVersion)) return;
-    return {type: "new-jobrunr-version", latestVersion};
+    if (!latestVersion) return;
+    if(!currentVersion || versionIsNewerThanOther(latestVersion, currentVersion)) return {type: "new-jobrunr-version", latestVersion, currentVersion};
 }
 
-const NewJobRunrVersionAvailable = ({problem: {latestVersion, reset}}) => {
+const NewJobRunrVersionAvailable = ({problem: {currentVersion, latestVersion, reset}}) => {
     const handleDismiss = () => {
         localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
         reset();
@@ -38,6 +38,7 @@ const NewJobRunrVersionAvailable = ({problem: {latestVersion, reset}}) => {
         <DismissibleInstanceProblemNotification severity="info" title="Info" onDismiss={handleDismiss}>
             JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
             performance improvements and new features.<br/>
+            Current version: {currentVersion ?? "UNKNOWN"}
         </DismissibleInstanceProblemNotification>
     );
 };

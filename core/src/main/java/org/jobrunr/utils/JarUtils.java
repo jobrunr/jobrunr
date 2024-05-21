@@ -12,9 +12,7 @@ public class JarUtils {
 
     public static String getVersion(Class<?> clazz) {
         String version = clazz.getPackage().getImplementationVersion();
-        if(version != null) {
-            return version;
-        }
+        if (version != null) return version;
 
         return getManifestAttributeValue(clazz, "Bundle-Version");
     }
