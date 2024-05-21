@@ -67,6 +67,7 @@ public class CarbonAwareJobManager {
 
         if (isDeadlineNextHour(state)) {
             scheduleJobImmediately(job, state, "Job is about to pass its deadline, scheduling job now");
+            return;
         }
 
         if (!dayAheadEnergyPrices.hasDataForPeriod(state.getPeriod())) {
