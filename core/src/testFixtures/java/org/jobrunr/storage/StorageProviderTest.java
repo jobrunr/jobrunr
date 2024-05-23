@@ -809,7 +809,7 @@ public abstract class StorageProviderTest {
         assertThat(recurringJobsResult2).hasSize(1);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult2.getLastModifiedHash())).isFalse());
 
-        assertThat(storageProvider.getRecurringJobs().get(0).getSchedule().toString()).isEqualTo(Cron.hourly());
+        assertThat(storageProvider.getRecurringJobs().get(0).getScheduleExpression().toString()).isEqualTo(Cron.hourly());
 
         RecurringJob otherRecurringJob = new RecurringJob("my-other-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(otherRecurringJob);

@@ -1,3 +1,5 @@
+import cronstrue from "cronstrue";
+
 export function humanFileSize(bytes, si) {
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
@@ -14,20 +16,6 @@ export function humanFileSize(bytes, si) {
     return bytes.toFixed(1) + ' ' + units[u];
 }
 
-export function convertISO8601DurationToSeconds(durationString) {
-    const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
-    const stringParts = iso8601TimePattern.exec(durationString);
-    return (
-        (
-            (
-                (stringParts[1] === undefined ? 0 : stringParts[1] * 1)  /* Days */
-                * 24 + (stringParts[2] === undefined ? 0 : stringParts[2] * 1) /* Hours */
-            )
-            * 60 + (stringParts[3] === undefined ? 0 : stringParts[3] * 1) /* Minutes */
-        )
-        * 60 + (stringParts[4] === undefined ? 0 : stringParts[4] * 1) /* Seconds */
-    );
-}
 
 export function formatDuration(seconds) {
     const duration = {
@@ -41,9 +29,82 @@ export function formatDuration(seconds) {
     const parts = [];
     for (const [key, value] of Object.entries(duration)) {
         if (value > 0) {
-            parts.push(`${value} ${key}`);
+            const unit = value === 1 ? key.slice(0, -1) : key;
+            parts.push(`${value} ${unit}`);
         }
     }
-
     return parts.join(', ');
+}
+
+
+export function identifyScheduleType(scheduleExpression) {
+    const parts = scheduleExpression.split(' ');
+
+    if (parts.length === 7 || parts.length === 8) {
+        return "CarbonAwareCron";
+    } else if (parts.length === 5 || parts.length === 6) {
+        return "Cron";
+    } else if (parts.length === 1 && /^PT\d+H$/.test(scheduleExpression)) {
+        return "Duration";
+    } else {
+        return "Unknown";
+    }
+}
+
+
+export function formatCarbonAwareCron(carbonAwareCronStr) {
+    let carbonAwareCron = parseCarbonAwareCron(carbonAwareCronStr);
+    return cronstrue.toString(carbonAwareCron.cron) + ` (allowed ${formatDuration(carbonAwareCron.allowedDurationBefore)} before and ${formatDuration(carbonAwareCron.allowedDurationAfter)} after)`;
+}
+
+
+export function formatDurationEveryX(durationString) {
+    if (!durationString) return "Invalid duration";
+    const totalSeconds = convertISO8601DurationToSeconds(durationString);
+    if (totalSeconds === null) return "Invalid duration";
+    const formattedDuration = formatDuration(totalSeconds);
+    const parts = formattedDuration.split(', ');
+    return `Every ${parts.join(', ')}`;
+}
+
+
+export function parseCarbonAwareCron(scheduleExpression) {
+    const parts = scheduleExpression.split(' ');
+    const lastIndex = parts.length - 1;
+    const duration1 = parts[lastIndex - 1];
+    const duration2 = parts[lastIndex];
+
+    parts.splice(lastIndex - 1, 2);
+    const cronExpression = parts.join(' ');
+
+    return {
+        cron: cronExpression,
+        allowedDurationBefore: convertISO8601DurationToSeconds(duration1),
+        allowedDurationAfter: convertISO8601DurationToSeconds(duration2)
+    };
+}
+
+
+export function convertISO8601DurationToSeconds(durationString) {
+    if (!durationString) return null;
+    const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
+    const stringParts = iso8601TimePattern.exec(durationString);
+    if (!stringParts) return null;
+
+    return calculateTotalSeconds(stringParts);
+}
+
+
+function calculateTotalSeconds(stringParts) {
+    const days = getSeconds(stringParts[1], 86400);
+    const hours = getSeconds(stringParts[2], 3600);
+    const minutes = getSeconds(stringParts[3], 60);
+    const seconds = getSeconds(stringParts[4], 1);
+    return days + hours + minutes + seconds;
+}
+
+
+function getSeconds(value, multiplier) {
+    if (value === undefined) return 0;
+    return parseInt(value, 10) * multiplier;
 }
