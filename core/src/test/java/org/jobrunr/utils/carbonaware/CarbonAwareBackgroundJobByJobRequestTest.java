@@ -2,7 +2,6 @@ package org.jobrunr.utils.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJobRequest;
 import org.jobrunr.server.BackgroundJobServer;
@@ -23,7 +22,6 @@ import org.slf4j.MDC;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import static java.time.Duration.ofMillis;
@@ -58,7 +56,7 @@ public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwar
         testServiceInterface = testServiceForIoC;
         SimpleJobActivator jobActivator = new SimpleJobActivator(testServiceForIoC, new TestService());
         try (MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-12T11:00:00Z");
-             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-12T11:00:00Z", DateTimeFormatter.ISO_DATE_TIME), "Europe/Brussels")) {
+             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-12T11:00:00Z"), "Europe/Brussels")) {
             JobRunr.configure()
                     .useJobActivator(jobActivator)
                     .useStorageProvider(storageProvider)
@@ -80,8 +78,8 @@ public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwar
     @Test
     void testCreateViaBuilder_withNoData_andTodayIsDeadline_shouldEnqueue() {
         UUID jobId = UUID.randomUUID();
-        try (MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-12T11:00:00Z");
-             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-12T11:00:00Z", DateTimeFormatter.ISO_DATE_TIME), "Europe/Brussels")) {
+        try (MockedStatic<Instant> a = InstantMocker.mockTime(ZonedDateTime.parse("2024-03-12T11:00:00Z"), "Europe/Brussels");
+             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-12T11:00:00Z"), "Europe/Brussels")) {
             BackgroundJobRequest.create(aJob()
                     .withId(jobId)
                     .withName("My Job Name")
@@ -105,8 +103,8 @@ public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwar
     void testScheduleCarbonAware_withFromAt03_andNoData_andTimeAfter18_shouldScheduleAtStart() {
         UUID uuid = UUID.randomUUID();
         Instant from = Instant.parse("2024-03-13T03:00:00Z");
-        try (MockedStatic<Instant> a = InstantMocker.mockTime("2024-03-12T18:10:00Z");
-             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-12T18:10:00Z"), "Europe/Brussels")) {
+        try (MockedStatic<Instant> a = InstantMocker.mockTime(ZonedDateTime.parse("2024-03-12T21:10:00Z"), "Europe/Brussels");
+             MockedStatic<ZonedDateTime> b = DatetimeMocker.mockZonedDateTime(ZonedDateTime.parse("2024-03-12T21:10:00Z"), "Europe/Brussels")) {
 
             JobId jobId = BackgroundJobRequest.scheduleCarbonAware(uuid, CarbonAwarePeriod.between(from, from.plus(10, HOURS)),
                     new TestJobRequest("from scheduleCarbonAware"));
@@ -114,11 +112,8 @@ public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwar
             await().atMost(FIVE_SECONDS).until(() ->
                     storageProvider.getJobById(jobId).getState() == SCHEDULED);
 
-
-            ScheduledState state = storageProvider.getJobById(uuid)
-                    .getJobState();
-            assertThat(state.getScheduledAt())
-                    .isEqualTo(from);
+            assertThat(storageProvider.getJobById(uuid))
+                    .isScheduledAt(from);
         }
     }
 }

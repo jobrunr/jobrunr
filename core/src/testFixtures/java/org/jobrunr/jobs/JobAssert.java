@@ -7,8 +7,11 @@ import org.assertj.core.data.TemporalOffset;
 import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Instant;
 import java.time.temporal.Temporal;
@@ -82,6 +85,15 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert isAwaitingWithPeriod(CarbonAwarePeriod period) {
+        Assertions.assertThat((CarbonAwareAwaitingState) actual.getJobState()).isInstanceOf(CarbonAwareAwaitingState.class);
+        CarbonAwareAwaitingState carbonAwareAwaitingState = actual.getJobState();
+        Assertions.assertThat(carbonAwareAwaitingState.getFrom()).isEqualTo(period.getFrom());
+        Assertions.assertThat(carbonAwareAwaitingState.getTo()).isEqualTo(period.getTo());
+        return this;
+    }
+
+
     public JobAssert hasMetadata(String key) {
         Assertions.assertThat(actual.getMetadata()).containsKey(key);
         return this;
@@ -130,6 +142,16 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         Assertions.assertThat(actual.getRecurringJobId())
                 .isPresent()
                 .contains(recurringJobId);
+        return this;
+    }
+
+    public JobAssert isScheduledAt(String instantAsString) {
+        return isScheduledAt(Instant.parse(instantAsString));
+    }
+
+    public JobAssert isScheduledAt(Instant instant) {
+        ScheduledState scheduledState = actual.getJobState();
+        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);
         return this;
     }
 

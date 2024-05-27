@@ -2,7 +2,6 @@ package org.jobrunr.utils.carbonaware;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -113,10 +112,10 @@ public class CarbonAwareBackgroundJobByJobLambdaTest extends AbstractCarbonAware
             JobId jobId = BackgroundJob.scheduleCarbonAware(before(Instant.parse("2024-03-15T23:00:00Z")),
                     () -> System.out.println("Hello from CarbonAware job: testScheduleCarbonAwareJob_withDeadline1Day_and12HoursData_shouldScheduleAtIdealMoment"));
             Job job = storageProvider.getJobById(jobId);
-            assertThat(job).hasStates(AWAITING, SCHEDULED);
-            assertThat(job).hasUpdatedAtCloseTo(Instant.parse("2024-03-14T08:00:00Z"), within(1, SECONDS));
-            ScheduledState scheduledState = job.getJobState();
-            assertThat(scheduledState.getScheduledAt()).isEqualTo(Instant.parse("2024-03-14T12:00:00Z"));
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .hasUpdatedAtCloseTo(Instant.parse("2024-03-14T08:00:00Z"), within(1, SECONDS))
+                    .isScheduledAt("2024-03-14T12:00:00Z");
         }
     }
 

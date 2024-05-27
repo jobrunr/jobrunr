@@ -18,12 +18,20 @@ public class InstantMocker {
         return mockTime(Instant.parse(instantAsString));
     }
 
+    public static MockedStatic<Instant> mockTime(String instantAsString, String zoneId) {
+        return mockTime(Instant.parse(instantAsString).atZone(ZoneId.of(zoneId)));
+    }
+
     public static MockedStatic<Instant> mockTime(LocalDateTime localDateTime, ZoneId zoneId) {
         return mockTime(ZonedDateTime.of(localDateTime, zoneId));
     }
 
     public static MockedStatic<Instant> mockTime(ZonedDateTime zonedDateTime) {
         return mockTime(zonedDateTime.toInstant());
+    }
+
+    public static MockedStatic<Instant> mockTime(ZonedDateTime zonedDateTime, String zoneId) {
+        return mockTime(zonedDateTime.withZoneSameInstant(ZoneId.of(zoneId)));
     }
 
     public static MockedStatic<Instant> mockTime(Instant instant) {
