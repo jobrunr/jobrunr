@@ -160,7 +160,7 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify the cron that will be used to create the recurringJobs.
+     * Allows to specify the {@link CronExpression} that will be used to create the recurringJobs.
      *
      * @param cron the cron that will be used to create the recurringJobs.
      * @return the same builder instance which provides a fluent api
@@ -188,11 +188,10 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify the carbon-aware cron that will be used to create the recurringJobs.
-     * Carbon aware cron is a normal cron + allowed duration before + allowed duration after the cron expression.
-     * Job will be scheduled in the time specified by the cron + the time period, when carbon emissions are the lowest.
+     * Allows to specify the {@link CarbonAwareCronExpression} that will be used to create the recurringJobs when carbon emissions are the lowest.
+     * {@link CarbonAwareCronExpression} is a normal cron + allowed duration before + allowed duration after the cron expression.
      *
-     * @param carbonAwareCron the cron + allowed delay duration that will be used to create the recurringJobs.
+     * @param carbonAwareCron the carbon-aware cron that will be used to create the recurringJobs.
      * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withCarbonAwareCron(CarbonAwareCronExpression carbonAwareCron) {
