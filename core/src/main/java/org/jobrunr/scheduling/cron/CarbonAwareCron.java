@@ -248,7 +248,7 @@ public class CarbonAwareCron {
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunLater(int monthsLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 1 *", getDuration(0, "before"), getDuration(monthsLater, "after")));
+        return CarbonAwareCronExpression.create("0 0 1 1 *", getDuration(0, "before"), getDuration(monthsLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int month, int monthsEarlier) {
