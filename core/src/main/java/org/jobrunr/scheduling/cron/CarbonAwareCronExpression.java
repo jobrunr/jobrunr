@@ -157,8 +157,4 @@ public class CarbonAwareCronExpression extends Schedule {
             this.after = after;
         }
     }
-
-    // TESTS:
-    // (allowedDurationBefore + allowedDurationAfter) must be at least 3 hours
-    // CarbonAwareCronExpression time between 2 runs must be equal or greater than (allowedDurationBefore + allowedDurationAfter)
 }
