@@ -3,6 +3,8 @@ package org.jobrunr.scheduling.cron;
 import java.time.DayOfWeek;
 import java.time.Duration;
 
+import static org.jobrunr.scheduling.cron.CarbonAwareCronUtils.getDuration;
+
 // TODO: WIP remove some methods, there are too many
 public class CarbonAwareCron {
     private CarbonAwareCron() {
@@ -99,54 +101,54 @@ public class CarbonAwareCron {
     //                              MONTHLY                                           //
     //--------------------------------------------------------------------------------//
     public static CarbonAwareCronExpression monthly(int allowedDaysToRunEarlier, int allowedDaysToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 * * P%dDT P%dDT", allowedDaysToRunEarlier, allowedDaysToRunLater));
+        return CarbonAwareCronExpression.create("0 0 1 * *", Duration.ofDays(allowedDaysToRunEarlier), Duration.ofDays(allowedDaysToRunLater));
     }
 
     public static CarbonAwareCronExpression monthly(int dayOfMonth, int allowedDaysToRunEarlier, int allowedDaysToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 %d * * P%dDT P%dDT", dayOfMonth, allowedDaysToRunEarlier, allowedDaysToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d * *", dayOfMonth), Duration.ofDays(allowedDaysToRunEarlier), Duration.ofDays(allowedDaysToRunLater));
     }
 
     public static CarbonAwareCronExpression monthly(int dayOfMonth, int hour, int allowedDaysToRunEarlier, int allowedDaysToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 %d %d * * P%dDT P%dDT", hour, dayOfMonth, allowedDaysToRunEarlier, allowedDaysToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 %d %d * *", hour, dayOfMonth), Duration.ofDays(allowedDaysToRunEarlier), Duration.ofDays(allowedDaysToRunLater));
     }
 
     public static CarbonAwareCronExpression monthly(int dayOfMonth, Duration allowedToRunEarlier, Duration allowedToRunLater) {
         if (allowedToRunEarlier.toDays() > 30 || allowedToRunLater.toDays() > 30) { // Assuming max 30 days
             throw new IllegalArgumentException("Duration cannot be longer than one month for monthly schedules.");
         }
-        return CarbonAwareCronExpression.create(String.format("0 0 %d * * %s %s", dayOfMonth, allowedToRunEarlier, allowedToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d * *", dayOfMonth), allowedToRunEarlier, allowedToRunLater);
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunEarlier(int daysEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 * * P%dDT PT0S", daysEarlier));
+        return CarbonAwareCronExpression.create("0 0 1 * *", Duration.ofDays(daysEarlier), Duration.ofDays(0));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunLater(int daysLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 * * PT0S P%dDT", daysLater));
+        return CarbonAwareCronExpression.create("0 0 1 * *", Duration.ofDays(0), Duration.ofDays(daysLater));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunEarlier(int dayOfMonth, int daysEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 0 %d * * P%dDT PT0S", dayOfMonth, daysEarlier));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d * *", dayOfMonth), Duration.ofDays(daysEarlier), Duration.ofDays(0));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunLater(int dayOfMonth, int daysLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 %d * * PT0S P%dDT", dayOfMonth, daysLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d * *", dayOfMonth), Duration.ofDays(0), Duration.ofDays(daysLater));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunEarlier(int dayOfMonth, int hour, int daysEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 %d %d * * P%dDT PT0S", hour, dayOfMonth, daysEarlier));
+        return CarbonAwareCronExpression.create(String.format("0 %d %d * *", hour, dayOfMonth), Duration.ofDays(daysEarlier), Duration.ofDays(0));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunLater(int dayOfMonth, int hour, int daysLater) {
-        return CarbonAwareCronExpression.create(String.format("0 %d %d * * PT0S P%dDT", hour, dayOfMonth, daysLater));
+        return CarbonAwareCronExpression.create(String.format("0 %d %d * *", hour, dayOfMonth), Duration.ofDays(0), Duration.ofDays(daysLater));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunEarlier(int dayOfMonth, int hour, int minute, int daysEarlier) {
-        return CarbonAwareCronExpression.create(String.format("%d %d %d * * P%dDT PT0S", minute, hour, dayOfMonth, daysEarlier));
+        return CarbonAwareCronExpression.create(String.format("%d %d %d * *", minute, hour, dayOfMonth), Duration.ofDays(daysEarlier), Duration.ofDays(0));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunLater(int dayOfMonth, int hour, int minute, int daysLater) {
-        return CarbonAwareCronExpression.create(String.format("%d %d %d * * PT0S P%dDT", minute, hour, dayOfMonth, daysLater));
+        return CarbonAwareCronExpression.create(String.format("%d %d %d * *", minute, hour, dayOfMonth), Duration.ofDays(0), Duration.ofDays(daysLater));
     }
 
     public static CarbonAwareCronExpression monthlyAllowedToRunHoursEarlier(int dayOfMonth, int hour, int minute, int hoursEarlier) {
@@ -219,19 +221,19 @@ public class CarbonAwareCron {
     //                              YEARLY                                            //
     //--------------------------------------------------------------------------------//
     public static CarbonAwareCronExpression yearly(int allowedMonthsToRunEarlier, int allowedMonthsToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 1 * PT%dM PT%dM", allowedMonthsToRunEarlier, allowedMonthsToRunLater));
+        return CarbonAwareCronExpression.create("0 0 1 1 *", getDuration(allowedMonthsToRunEarlier, "before"), getDuration(allowedMonthsToRunLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearly(int month, int allowedMonthsToRunEarlier, int allowedMonthsToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 %d * PT%dM PT%dM", month, allowedMonthsToRunEarlier, allowedMonthsToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 1 %d *", month), getDuration(month, allowedMonthsToRunEarlier, "before"), getDuration(month, allowedMonthsToRunLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearly(int month, int day, int allowedMonthsToRunEarlier, int allowedMonthsToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 %d %d * PT%dM PT%dM", day, month, allowedMonthsToRunEarlier, allowedMonthsToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d %d *", day, month), getDuration(month, allowedMonthsToRunEarlier, "before"), getDuration(month, allowedMonthsToRunLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearly(int month, int day, int hour, int allowedMonthsToRunEarlier, int allowedMonthsToRunLater) {
-        return CarbonAwareCronExpression.create(String.format("0 %d %d %d * PT%dM PT%dM", hour, day, month, allowedMonthsToRunEarlier, allowedMonthsToRunLater));
+        return CarbonAwareCronExpression.create(String.format("0 %d %d %d *", hour, day, month), getDuration(month, day, allowedMonthsToRunEarlier, "before"), getDuration(month, day, allowedMonthsToRunLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearly(int month, int day, Duration allowedToRunEarlier, Duration allowedToRunLater) {
@@ -242,50 +244,50 @@ public class CarbonAwareCron {
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int monthsEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 1 * PT%dM PT0S", monthsEarlier));
+        return CarbonAwareCronExpression.create("0 0 1 1 *", getDuration(monthsEarlier, "before"), getDuration(0, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunLater(int monthsLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 1 * PT0S PT%dM", monthsLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 1 1 *", getDuration(0, "before"), getDuration(monthsLater, "after")));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int month, int monthsEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 %d * PT%dM PT0S", month, monthsEarlier));
+        return CarbonAwareCronExpression.create(String.format("0 0 1 %d *", month), getDuration(month, monthsEarlier, "before"), getDuration(month, 0, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunLater(int month, int monthsLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 1 %d * PT0S PT%dM", month, monthsLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 1 %d *", month), getDuration(month, 0, "before"), getDuration(month, monthsLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int month, int day, int monthsEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 0 %d %d * PT%dM PT0S", day, month, monthsEarlier));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d %d *", day, month), getDuration(month, day, monthsEarlier, "before"), getDuration(month, day, 0, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunLater(int month, int day, int monthsLater) {
-        return CarbonAwareCronExpression.create(String.format("0 0 %d %d * PT0S PT%dM", day, month, monthsLater));
+        return CarbonAwareCronExpression.create(String.format("0 0 %d %d *", day, month), getDuration(month, day, 0, "before"), getDuration(month, day, monthsLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int month, int day, int hour, int monthsEarlier) {
-        return CarbonAwareCronExpression.create(String.format("0 %d %d %d * PT%dM PT0S", hour, day, month, monthsEarlier));
+        return CarbonAwareCronExpression.create(String.format("0 %d %d %d *", hour, day, month), getDuration(month, day, monthsEarlier, "before"), getDuration(month, day, 0, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunLater(int month, int day, int hour, int monthsLater) {
-        return CarbonAwareCronExpression.create(String.format("0 %d %d %d * PT0S PT%dM", hour, day, month, monthsLater));
+        return CarbonAwareCronExpression.create(String.format("0 %d %d %d *", hour, day, month), getDuration(month, day, 0, "before"), getDuration(month, day, monthsLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunEarlier(int month, int day, int hour, int minute, int monthsEarlier) {
-        return CarbonAwareCronExpression.create(String.format("%d %d %d %d * PT%dM PT0S", minute, hour, day, month, monthsEarlier));
+        return CarbonAwareCronExpression.create(String.format("%d %d %d %d *", minute, hour, day, month), getDuration(month, day, monthsEarlier, "before"), getDuration(month, day, 0, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunLater(int month, int day, int hour, int minute, int monthsLater) {
-        return CarbonAwareCronExpression.create(String.format("%d %d %d %d * PT0S PT%dM", minute, hour, day, month, monthsLater));
+        return CarbonAwareCronExpression.create(String.format("%d %d %d %d *", minute, hour, day, month), getDuration(month, day, 0, "before"), getDuration(month, day, monthsLater, "after"));
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunHoursEarlier(int month, int day, int hour, int minute, int hoursEarlier) {
-        return CarbonAwareCronExpression.create(String.format("%d %d %d %d * PT%dH PT0H", minute, hour, day, month, hoursEarlier));
+        return CarbonAwareCronExpression.create(String.format("%d %d %d %d *", minute, hour, day, month), getDuration(month, day, hoursEarlier, "before"), Duration.ZERO);
     }
 
     public static CarbonAwareCronExpression yearlyAllowedToRunHoursLater(int month, int day, int hour, int minute, int hoursLater) {
-        return CarbonAwareCronExpression.create(String.format("%d %d %d %d * PT0H PT%dH", minute, hour, day, month, hoursLater));
+        return CarbonAwareCronExpression.create(String.format("%d %d %d %d *", minute, hour, day, month), Duration.ZERO, getDuration(month, day, hoursLater, "after"));
     }
 }
