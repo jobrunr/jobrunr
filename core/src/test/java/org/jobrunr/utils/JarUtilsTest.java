@@ -20,7 +20,7 @@ class JarUtilsTest {
 
     @Test
     void gsonVersion() {
-        assertThat(JarUtils.getVersion(Gson.class)).isEqualTo("2.10.1");
+        assertThat(JarUtils.getVersion(Gson.class)).isEqualTo("2.11.0");
     }
 
     @Test
