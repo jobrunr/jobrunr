@@ -19,8 +19,8 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:3.2.5')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.2.5')
+    api platform('org.springframework.boot:spring-boot-dependencies:3.3.0')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.3.0')
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter'
