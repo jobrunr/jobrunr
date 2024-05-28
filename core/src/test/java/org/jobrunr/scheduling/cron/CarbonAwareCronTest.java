@@ -4,10 +4,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.time.DayOfWeek;
 import java.time.Duration;
 import java.util.stream.Stream;
 
+import static java.time.DayOfWeek.FRIDAY;
+import static java.time.DayOfWeek.MONDAY;
+import static java.time.DayOfWeek.SUNDAY;
+import static java.time.DayOfWeek.THURSDAY;
+import static java.time.DayOfWeek.WEDNESDAY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -40,11 +44,21 @@ public class CarbonAwareCronTest {
                 arguments(CarbonAwareCron.dailyAfter(10), "0 10 * * * PT0S PT14H"),
                 arguments(CarbonAwareCron.dailyBetween(10, 20), "0 10 * * * PT0S PT10H"),
                 // Weekly
-                arguments(CarbonAwareCron.weekly(1, Duration.ofHours(1), Duration.ofHours(2)), "0 0 * * 1 PT1H PT2H"),
-                arguments(CarbonAwareCron.weeklyAllowedToRunEarlier(DayOfWeek.of(1), 3, 5, 7), "5 3 * * 1 PT168H PT0S"),
-                arguments(CarbonAwareCron.weeklyAllowedToRunLater(DayOfWeek.of(1), 3, 5, 7), "5 3 * * 1 PT0S PT168H"),
                 arguments(CarbonAwareCron.weekly(1, 2), "0 0 * * 1 PT24H PT48H"),
-                arguments(CarbonAwareCron.weekly(DayOfWeek.WEDNESDAY, 1, 2), "0 0 * * 3 PT24H PT48H"),
+                arguments(CarbonAwareCron.weekly(FRIDAY, 1, 2), "0 0 * * 5 PT24H PT48H"),
+                arguments(CarbonAwareCron.weekly(MONDAY, 18, 1, 2), "0 18 * * 1 PT24H PT48H"),
+                arguments(CarbonAwareCron.weekly(THURSDAY, 18, 55, 1, 2), "55 18 * * 4 PT24H PT48H"),
+                arguments(CarbonAwareCron.weekly(1, Duration.ofHours(1), Duration.ofHours(2)), "0 0 * * 1 PT1H PT2H"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunEarlier(1), "0 0 * * 1 PT24H PT0S"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunEarlier(THURSDAY, 1), "0 0 * * 4 PT24H PT0S"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunEarlier(SUNDAY, 3, 7), "0 3 * * 0 PT168H PT0S"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunEarlier(MONDAY, 3, 5, 7), "5 3 * * 1 PT168H PT0S"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunLater(1), "0 0 * * 1 PT0S PT24H"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunLater(THURSDAY, 1), "0 0 * * 4 PT0S PT24H"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunLater(FRIDAY, 1), "0 0 * * 5 PT0S PT24H"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunLater(MONDAY, 3, 7), "0 3 * * 1 PT0S PT168H"),
+                arguments(CarbonAwareCron.weeklyAllowedToRunLater(MONDAY, 3, 5, 7), "5 3 * * 1 PT0S PT168H"),
+                arguments(CarbonAwareCron.weekly(WEDNESDAY, 1, 2), "0 0 * * 3 PT24H PT48H"),
 
                 // Monthly
                 arguments(CarbonAwareCron.monthly(1, 2), "0 0 1 * * PT24H PT48H"),
