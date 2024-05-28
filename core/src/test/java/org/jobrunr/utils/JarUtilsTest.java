@@ -2,7 +2,6 @@ package org.jobrunr.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import org.assertj.core.api.Assertions;
 import org.jobrunr.configuration.JobRunr;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +11,7 @@ class JarUtilsTest {
 
     @Test
     void jobRunrVersion() {
-        Assertions.assertThat(JarUtils.getVersion(JobRunr.class))
+        assertThat(JarUtils.getVersion(JobRunr.class))
                 .satisfiesAnyOf(
                         val -> assertThat(val).isEqualTo("1.0.0-SNAPSHOT"),
                         val -> assertThat(val).matches("(\\d)+.(\\d)+.(\\d)+(-.*)?")
@@ -26,7 +25,7 @@ class JarUtilsTest {
 
     @Test
     void jacksonVersion() {
-        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.17.0");
+        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.17.1");
     }
 
     @Test
