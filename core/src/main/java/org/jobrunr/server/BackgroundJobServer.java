@@ -219,6 +219,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     @Override
     public boolean isRunning() {
+        // why: otherwise all the workers querying this method when they onboard work can cause deadlock
+        if (lifecycleLock.isWriteLockInUse()) return false;
         try (LifeCycleLock ignored = lifecycleLock.readLock()) {
             if (isStopping()) return false;
             return isRunning;
@@ -401,6 +403,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 throw new IllegalMonitorStateException("Cannot upgrade read to write lock");
             reentrantReadWriteLock.writeLock().lock();
             return writeClose;
+        }
+
+        public boolean isWriteLockInUse() {
+            return reentrantReadWriteLock.isWriteLocked();
         }
     }
 
