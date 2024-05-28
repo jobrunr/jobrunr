@@ -85,6 +85,8 @@
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.test" target="11" />
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" target="11" />
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.test" target="11" />
+      <module name="JobRunr.language-support.jobrunr-kotlin-17-support.main" target="1.8" />
+      <module name="JobRunr.language-support.jobrunr-kotlin-17-support.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-gson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch-jackson.test" target="11" />
       <module name="JobRunr.tests.e2e-elasticsearch.main" target="1.8" />
