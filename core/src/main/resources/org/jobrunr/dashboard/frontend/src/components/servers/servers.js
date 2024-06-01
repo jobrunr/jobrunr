@@ -135,7 +135,7 @@ const Servers = memo(() => {
                                                                  title={new Date(server.lastHeartbeat).toString()}/>
                                                     </TableCell>
                                                     <TableCell>
-                                                        {humanFileSize(server.processFreeMemory, true)}
+                                                        {humanFileSize(server.processFreeMemory)}
                                                     </TableCell>
                                                     <TableCell>
                                                         {(server.systemCpuLoad * 100).toFixed(2)} %
@@ -221,7 +221,7 @@ const Servers = memo(() => {
                                             SystemTotalMemory
                                         </TableCell>
                                         <TableCell>
-                                            {humanFileSize(currentServer.systemTotalMemory, true)}
+                                            {humanFileSize(currentServer.systemTotalMemory)}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -229,7 +229,7 @@ const Servers = memo(() => {
                                             SystemFreeMemory
                                         </TableCell>
                                         <TableCell>
-                                            {humanFileSize(currentServer.systemFreeMemory, true)}
+                                            {humanFileSize(currentServer.systemFreeMemory)}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -245,7 +245,7 @@ const Servers = memo(() => {
                                             ProcessFreeMemory
                                         </TableCell>
                                         <TableCell>
-                                            {humanFileSize(currentServer.processFreeMemory, true)}
+                                            {humanFileSize(currentServer.processFreeMemory)}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -253,7 +253,7 @@ const Servers = memo(() => {
                                             ProcessAllocatedMemory
                                         </TableCell>
                                         <TableCell>
-                                            {humanFileSize(currentServer.processAllocatedMemory, true)}
+                                            {humanFileSize(currentServer.processAllocatedMemory)}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>

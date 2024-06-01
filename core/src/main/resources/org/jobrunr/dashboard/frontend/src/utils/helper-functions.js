@@ -1,21 +1,12 @@
 import cronstrue from "cronstrue";
 
-export function humanFileSize(bytes, si) {
-    const thresh = si ? 1000 : 1024;
-    if (Math.abs(bytes) < thresh) {
-        return bytes + ' B';
-    }
-    const units = si
-        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
-    let u = -1;
-    do {
-        bytes /= thresh;
-        ++u;
-    } while (Math.abs(bytes) >= thresh && u < units.length - 1);
-    return bytes.toFixed(1) + ' ' + units[u];
+export function humanFileSize(bytes) {
+    return _humanFileSize(bytes, true);
 }
 
+export function humanFileSizeNotSiUnits(bytes) {
+    return _humanFileSize(bytes, false);
+}
 
 export function formatDuration(seconds) {
     const duration = {
@@ -54,7 +45,22 @@ export function identifyScheduleType(scheduleExpression) {
 
 export function formatCarbonAwareCron(carbonAwareCronStr) {
     let carbonAwareCron = parseCarbonAwareCron(carbonAwareCronStr);
-    return cronstrue.toString(carbonAwareCron.cron) + ` (allowed ${formatDuration(carbonAwareCron.allowedDurationBefore)} before and ${formatDuration(carbonAwareCron.allowedDurationAfter)} after)`;
+    let timeWindow = "";
+    if (carbonAwareCron.allowedDurationBefore > 0) {
+        timeWindow += `allowed ${formatDuration(carbonAwareCron.allowedDurationBefore)} before`;
+    }
+    if (carbonAwareCron.allowedDurationAfter > 0) {
+        if (timeWindow.length > 0) {
+            timeWindow += ` and ${formatDuration(carbonAwareCron.allowedDurationAfter)} after`;
+        } else {
+            timeWindow += `allowed ${formatDuration(carbonAwareCron.allowedDurationAfter)} after`;
+        }
+    }
+    let humanReadableCron = cronstrue.toString(carbonAwareCron.cron);
+    if (timeWindow.length === 0) {
+        return humanReadableCron;
+    }
+    return `${humanReadableCron} (${timeWindow})`;
 }
 
 
@@ -63,6 +69,7 @@ export function formatDurationEveryX(durationString) {
     const totalSeconds = convertISO8601DurationToSeconds(durationString);
     if (totalSeconds === null) return "Invalid duration";
     const formattedDuration = formatDuration(totalSeconds);
+    if (!formattedDuration) return "Invalid duration";
     const parts = formattedDuration.split(', ');
     return `Every ${parts.join(', ')}`;
 }
@@ -94,6 +101,25 @@ export function convertISO8601DurationToSeconds(durationString) {
     return calculateTotalSeconds(stringParts);
 }
 
+/* ------------------------------  */
+/* HELPER FUNCTIONS (not exported) */
+
+/* ------------------------------  */
+export function _humanFileSize(bytes, si) {
+    const thresh = si ? 1000 : 1024;
+    if (Math.abs(bytes) < thresh) {
+        return `${bytes} B`
+    }
+    const units = si
+        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+    let unitIndex = -1;
+    while (shouldContinueReducing(bytes, thresh, unitIndex, units.length)) {
+        bytes /= thresh;
+        unitIndex++;
+    }
+    return `${bytes.toFixed(1)} ${units[unitIndex]}`;
+}
 
 function calculateTotalSeconds(stringParts) {
     const days = getSeconds(stringParts[1], 86400);
@@ -107,4 +133,8 @@ function calculateTotalSeconds(stringParts) {
 function getSeconds(value, multiplier) {
     if (value === undefined) return 0;
     return parseInt(value, 10) * multiplier;
+}
+
+function shouldContinueReducing(bytes, threshold, unitIndex, unitsLength) {
+    return Math.abs(bytes) >= threshold && unitIndex < unitsLength - 1;
 }
