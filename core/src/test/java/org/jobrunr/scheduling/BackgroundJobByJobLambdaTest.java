@@ -476,14 +476,14 @@ public class BackgroundJobByJobLambdaTest {
         assertThat(logAllStateChangesFilter.getStateChanges(jobId)).containsExactly("ENQUEUED->PROCESSING", "PROCESSING->SUCCEEDED");
     }
 
-    @RepeatedIfExceptionsTest(repeats = 3)
+    @Test
     void jobCanBeDeletedWhenEnqueued() {
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkThatTakesLong(12));
         BackgroundJob.delete(jobId);
 
         await().atMost(3, SECONDS).untilAsserted(() -> {
             assertThat(backgroundJobServer.getJobSteward().getOccupiedWorkerCount()).isZero();
-            assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, DELETED);
+            assertThat(storageProvider.getJobById(jobId)).hasState(DELETED);
         });
     }
 
