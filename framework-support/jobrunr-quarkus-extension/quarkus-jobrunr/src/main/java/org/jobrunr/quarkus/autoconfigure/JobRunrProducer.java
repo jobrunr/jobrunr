@@ -51,16 +51,16 @@ public class JobRunrProducer {
         jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().areaCode().ifPresent(carbonAwareConfiguration::andAreaCode);
         jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().apiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
         jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().apiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
-        return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
+        return CarbonAwareJobManager.getInstance(carbonAwareConfiguration, jobRunrJsonMapper);
     }
 
     @Produces
     @DefaultBean
     @Singleton
-    public JobScheduler jobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+    public JobScheduler jobScheduler(StorageProvider storageProvider) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
             final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
-            return new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, emptyList());
+            return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         }
         return null;
     }
@@ -70,7 +70,7 @@ public class JobRunrProducer {
     @Singleton
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
-            return new JobRequestScheduler(storageProvider, carbonAwareJobManager, emptyList());
+            return new JobRequestScheduler(storageProvider, emptyList());
         }
         return null;
     }

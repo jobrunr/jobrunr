@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CarbonAwareManagerTest {
-    static final CarbonAwareJobManager defaultCarbonAwareJobManager = new CarbonAwareJobManager(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());
+    static final CarbonAwareJobManager defaultCarbonAwareJobManager = CarbonAwareJobManager.getInstance(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());
 
     @Test
     void testGetDailyRunTimeShouldGiveResultBetween18And19() {

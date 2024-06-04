@@ -30,7 +30,6 @@ public abstract class AbstractJobScheduler {
 
     private final StorageProvider storageProvider;
     private final JobFilterUtils jobFilterUtils;
-    protected final CarbonAwareJobManager carbonAwareJobManager;
 
     /**
      * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters that will be used for every background job
@@ -38,12 +37,11 @@ public abstract class AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    protected AbstractJobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+    protected AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
         if (storageProvider == null) {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
         }
         this.storageProvider = storageProvider;
-        this.carbonAwareJobManager = carbonAwareJobManager;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
 
@@ -129,7 +127,7 @@ public abstract class AbstractJobScheduler {
 
     JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
         Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo()));
-        carbonAwareJobManager.moveToNextState(carbonAwareJob);
+        CarbonAwareJobManager.getInstance().moveToNextState(carbonAwareJob);
         return saveJob(carbonAwareJob);
     }
 

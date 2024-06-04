@@ -10,7 +10,6 @@ import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
@@ -42,8 +41,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *
      * @param storageProvider the storageProvider to use
      */
-    public JobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
-        super(storageProvider, carbonAwareJobManager, emptyList());
+    public JobRequestScheduler(StorageProvider storageProvider) {
+        super(storageProvider, emptyList());
     }
 
     /**
@@ -52,8 +51,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    public JobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
-        super(storageProvider, carbonAwareJobManager, jobFilters);
+    public JobRequestScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
+        super(storageProvider, jobFilters);
         BackgroundJobRequest.setJobRequestScheduler(this);
     }
 
@@ -65,7 +64,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      */
     @Override
     public JobId create(JobBuilder jobBuilder) {
-        Job job = jobBuilder.build(carbonAwareJobManager);
+        Job job = jobBuilder.build();
         return saveJob(job);
     }
 
@@ -77,7 +76,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     @Override
     public void create(Stream<JobBuilder> jobBuilderStream) {
         jobBuilderStream
-                .map(jobBuilder -> jobBuilder.build(carbonAwareJobManager))
+                .map(JobBuilder::build)
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 

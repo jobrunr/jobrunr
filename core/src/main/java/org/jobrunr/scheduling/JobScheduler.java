@@ -15,7 +15,6 @@ import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
@@ -49,8 +48,8 @@ public class JobScheduler extends AbstractJobScheduler {
      *
      * @param storageProvider the storageProvider to use
      */
-    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
-        this(storageProvider, carbonAwareJobManager, emptyList());
+    public JobScheduler(StorageProvider storageProvider) {
+        this(storageProvider, emptyList());
     }
 
     /**
@@ -59,12 +58,12 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
-    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
-        this(storageProvider, carbonAwareJobManager, new JobDetailsAsmGenerator(), jobFilters);
+    public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
+        this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
     }
 
-    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
-        super(storageProvider, carbonAwareJobManager, jobFilters);
+    public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
+        super(storageProvider, jobFilters);
         if (jobDetailsGenerator == null)
             throw new IllegalArgumentException("A JobDetailsGenerator is required to use the JobScheduler.");
         this.jobDetailsGenerator = jobDetailsGenerator;
@@ -80,7 +79,7 @@ public class JobScheduler extends AbstractJobScheduler {
      */
     @Override
     public JobId create(JobBuilder jobBuilder) {
-        Job job = jobBuilder.build(jobDetailsGenerator, carbonAwareJobManager);
+        Job job = jobBuilder.build(jobDetailsGenerator);
         return saveJob(job);
     }
 
@@ -92,7 +91,7 @@ public class JobScheduler extends AbstractJobScheduler {
     @Override
     public void create(Stream<JobBuilder> jobBuilderStream) {
         jobBuilderStream
-                .map(jobBuilder -> jobBuilder.build(jobDetailsGenerator, carbonAwareJobManager))
+                .map(jobBuilder -> jobBuilder.build(jobDetailsGenerator))
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 

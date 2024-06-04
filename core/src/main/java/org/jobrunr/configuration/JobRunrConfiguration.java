@@ -54,7 +54,6 @@ public class JobRunrConfiguration {
         this.jobMapper = new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
-        this.carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), jsonMapper);
     }
 
     /**
@@ -125,7 +124,7 @@ public class JobRunrConfiguration {
         if (this.backgroundJobServer != null) {
             throw new IllegalStateException("Please configure the CarbonAwareConfiguration before the BackgroundJobServer.");
         }
-        this.carbonAwareJobManager = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
+        this.carbonAwareJobManager = CarbonAwareJobManager.getInstance(carbonAwareConfiguration, jsonMapper);
         return this;
     }
 
@@ -350,8 +349,9 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfigurationResult initialize() {
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, jobFilters);
-        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, carbonAwareJobManager, jobFilters);
+        carbonAwareJobManager = ofNullable(carbonAwareJobManager).orElseGet(() -> CarbonAwareJobManager.getInstance(usingStandardCarbonAwareConfiguration(), jsonMapper));
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
+        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }
 
@@ -380,6 +380,7 @@ public class JobRunrConfiguration {
         public JobScheduler getJobScheduler() {
             return jobScheduler;
         }
+
         public JobRequestScheduler getJobRequestScheduler() {
             return jobRequestScheduler;
         }

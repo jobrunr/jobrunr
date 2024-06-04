@@ -6,6 +6,8 @@ import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
+import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -16,6 +18,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Duration;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -141,5 +145,19 @@ class JobRunrConfigurationTest {
 
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
+    }
+    
+    @Test
+    void initializeWithCarbonAwareScheduling() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+                        .andAreaCode("DE")
+                        .andApiClientConnectTimeout(Duration.ofMillis(1000))
+                        .andApiClientReadTimeout(Duration.ofMillis(1000)))
+                .initialize();
+
+        assertThat(configurationResult.getJobScheduler()).isNotNull();
+        assertThat(CarbonAwareJobManager.getInstance()).isNotNull();
     }
 }

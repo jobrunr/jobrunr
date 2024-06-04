@@ -1,6 +1,5 @@
 package org.jobrunr.jobs;
 
-import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.JobState;
@@ -11,6 +10,7 @@ import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
+import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -126,7 +126,7 @@ public class RecurringJob extends AbstractJob {
         }
         if (nextRun.isCarbonAwarePeriod()) {
             Job awaitingJob = toJob(new CarbonAwareAwaitingState(nextRun.getCarbonAwarePeriod()));
-            JobRunr.getBackgroundJobServer().getCarbonAwareJobManager().moveToNextState(awaitingJob);
+            CarbonAwareJobManager.getInstance().moveToNextState(awaitingJob);
             jobs.add(awaitingJob);
         }
         return jobs;

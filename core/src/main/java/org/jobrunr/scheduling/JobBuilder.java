@@ -204,12 +204,12 @@ public class JobBuilder {
      *
      * @return the actual {@link Job} to create
      */
-    protected Job build(JobDetailsGenerator jobDetailsGenerator, CarbonAwareJobManager carbonAwareJobManager) {
+    protected Job build(JobDetailsGenerator jobDetailsGenerator) {
         if (jobLambda == null) {
             throw new IllegalArgumentException("A jobLambda must be present.");
         }
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
-        return build(jobDetails, carbonAwareJobManager);
+        return build(jobDetails);
     }
 
     /**
@@ -217,15 +217,15 @@ public class JobBuilder {
      *
      * @return the actual {@link Job} to create
      */
-    protected Job build(CarbonAwareJobManager carbonAwareJobManager) {
+    protected Job build() {
         if (jobRequest == null) {
             throw new IllegalArgumentException("JobRequest must be present.");
         }
         JobDetails jobDetails = new JobDetails(jobRequest);
-        return build(jobDetails, carbonAwareJobManager);
+        return build(jobDetails);
     }
 
-    private Job build(JobDetails jobDetails, CarbonAwareJobManager carbonAwareJobManager) {
+    private Job build(JobDetails jobDetails) {
         if (JobUtils.getJobAnnotation(jobDetails).isPresent()) {
             throw new IllegalStateException("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
         }
@@ -234,7 +234,7 @@ public class JobBuilder {
         setJobName(job);
         setAmountOfRetries(job);
         setLabels(job);
-        carbonAwareJobManager.moveToNextState(job);
+        CarbonAwareJobManager.getInstance().moveToNextState(job);
         return job;
     }
 
