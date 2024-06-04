@@ -22,7 +22,7 @@ class ProcessCarbonAwareAwaitingJobsAbstractTaskTest extends AbstractTaskTest {
 
     @Test
     public void testUpdateAwaitingJobs_whenHasRunToday_shouldSkip() {
-        CarbonAwareJobManager carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
+        CarbonAwareJobManager carbonAwareJobManager = CarbonAwareJobManager.getInstance();
         runTask(task);
         when(storageProvider.getMetadata("process_carbon_aware_jobs_last_run", "cluster")).thenReturn(new JobRunrMetadata("process_carbon_aware_jobs_last_run", "cluster", Instant.now().toString()));
         runTask(task);

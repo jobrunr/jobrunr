@@ -246,10 +246,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         return storageProvider;
     }
 
-    public CarbonAwareJobManager getCarbonAwareJobManager() {
-        return carbonAwareJobManager;
-    }
-
     public ConcurrentJobModificationResolver getConcurrentJobModificationResolver() {
         return concurrentJobModificationResolver;
     }

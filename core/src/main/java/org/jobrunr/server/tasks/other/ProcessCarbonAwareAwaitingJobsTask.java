@@ -32,7 +32,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
-        this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
+        this.carbonAwareJobManager = CarbonAwareJobManager.getInstance();
         this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareJobsRequestSize();
         hoursAheadToCheck = DEFAULT_HOURS_AHEAD_TO_CHECK;
     }
