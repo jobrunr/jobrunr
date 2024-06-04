@@ -566,7 +566,7 @@ public abstract class StorageProviderTest {
     void testRecurringJobExists() {
         JobDetails jobDetails = defaultJobDetails().build();
         RecurringJob recurringJob = aDefaultRecurringJob().withJobDetails(jobDetails).build();
-        Job scheduledJob = recurringJob.toScheduledJob();
+        Job scheduledJob = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(15)).get(0);
 
         storageProvider.save(scheduledJob);
         assertThat(storageProvider.recurringJobExists(recurringJob.getId())).isTrue();

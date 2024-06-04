@@ -68,53 +68,54 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
+    void testToJobsWith1FutureWithMissedRunsShouldCreateMultipleJobs() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withCronExpression("*/5 * * * * *")
                 .build();
 
-        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
-
-        assertThat(jobs).hasSize(1);
-        ScheduledState scheduledState = jobs.get(0).getJobState();
-        assertThat(scheduledState.getScheduledAt()).isAfter(now());
-    }
-
-    @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndNoResults() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression(Cron.weekly())
-                .build();
-
-        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
-
-        assertThat(jobs).isEmpty();
-    }
-
-    @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResults() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression("*/5 * * * * *")
-                .build();
-
-        final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
+        Instant from = now().minusSeconds(15);
+        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(from, now());
 
         assertThat(jobs).hasSize(4);
+        ScheduledState scheduledState = jobs.get(0).getJobState();
+        assertThat(scheduledState.getScheduledAt()).isAfter(from);
     }
 
     @Test
-    void testToScheduledJob() {
+    void testToScheduledJobWith1FutureRun() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withId("the-recurring-job")
                 .withName("the recurring job")
                 .build();
 
-        final Job job = recurringJob.toScheduledJob();
+        final Job job = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(15)).get(0);
 
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
                 .hasJobName("the recurring job")
                 .hasState(SCHEDULED);
+    }
+
+    @Test
+    void testToJobsWith1FutureRun_whenJobScheduleDoesNotFitInTimeWindow_shouldReturnOnly1FutureJob() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression(Cron.weekly())
+                .build();
+
+        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now(), now());
+
+        assertThat(jobs).hasSize(1);
+    }
+
+    @Test
+    void testToJobsWith1FutureRunGetsAllJobsBetweenStartAndNowMultipleResults() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("*/5 * * * * *")
+                .build();
+
+        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now().minusSeconds(15), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(5);
     }
 
     @Test

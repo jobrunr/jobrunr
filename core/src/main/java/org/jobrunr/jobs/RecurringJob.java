@@ -83,33 +83,12 @@ public class RecurringJob extends AbstractJob {
     }
 
     /**
-     * Returns the next job to for this recurring job based on the current instant.
-     *
-     * @return the next job to for this recurring job based on the current instant.
-     */
-    @Deprecated
-    public Job toScheduledJob() {
-        return toJob(new ScheduledState(getNextRun().getInstant(), this));
-    }
-
-    /**
      * Creates all jobs that must be scheduled between the given start and end time.
      *
      * @param from the start time from which to create Scheduled Jobs
-     * @param upTo the end time until which to create Scheduled Jobs
+     * @param now  current time
      * @return creates all jobs that must be scheduled
      */
-    @Deprecated
-    public List<Job> toScheduledJobs(Instant from, Instant upTo) {
-        List<Job> jobs = new ArrayList<>();
-        Instant nextRun = getNextRun(from).getInstant();
-        while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = getNextRun(nextRun).getInstant();
-        }
-        return jobs;
-    }
-
     public List<Job> toJobsWith1FutureRun(Instant from, Instant now) {
         if (from.isAfter(now)) return emptyList();
 
