@@ -13,9 +13,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class CarbonAwareApiClient {
@@ -37,47 +37,72 @@ public class CarbonAwareApiClient {
         try {
             String dayAheadEnergyPricesAsString = fetchLatestDayAheadEnergyPricesAsString(areaCode);
             return jsonMapper.deserialize(dayAheadEnergyPricesAsString, DayAheadEnergyPrices.class);
+        } catch (IOException e) {
+            String errorMessage = String.format("Network error fetching energy prices for area code '%s': %s", areaCode.orElse("unknown"), e.getMessage());
+            LOGGER.error(errorMessage, e);
+            return createErrorResponse(errorMessage);
         } catch (Exception e) {
-            LOGGER.error("Error fetching day ahead energy prices for areaCode '{}'", areaCode.orElse("unknown"), e);
-            DayAheadEnergyPrices errorResponse = new DayAheadEnergyPrices();
-            errorResponse.setErrorMessage(e.getMessage());
-            return errorResponse;
+            String errorMessage = String.format("Error processing energy prices for area code '%s': %s", areaCode.orElse("unknown"), e.getMessage());
+            LOGGER.error(errorMessage, e);
+            return createErrorResponse(errorMessage);
         }
     }
 
     @VisibleFor("testing")
     String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) throws IOException {
-        URL apiUrl = getJobRunrApiDayAheadEnergyPricesUrl(areaCode);
-        HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
-        con.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
-        con.setRequestMethod("GET");
-        con.setConnectTimeout((int) apiClientConnectTimeout.toMillis());
-        con.setReadTimeout((int) apiClientReadTimeout.toMillis());
-
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            return content.toString();
-        } catch (UnknownHostException e) {
-            throw e;
-        } catch (IOException e) {
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getErrorStream()))) {
-                String inputLine;
-                StringBuilder content = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    content.append(inputLine);
-                }
-                throw new IOException(content.toString());
-            } finally {
-                con.disconnect();
+        HttpURLConnection connection = null;
+        try {
+            connection = createHttpConnection(getCarbonAwareApiDayAheadEnergyPricesUrl(areaCode));
+            return readResponse(connection);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
             }
         }
     }
 
-    private URL getJobRunrApiDayAheadEnergyPricesUrl(Optional<String> areaCode) throws MalformedURLException {
+    private HttpURLConnection createHttpConnection(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        configureConnection(connection);
+        return connection;
+    }
+
+    private void configureConnection(HttpURLConnection connection) throws IOException {
+        connection.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout((int) apiClientConnectTimeout.toMillis());
+        connection.setReadTimeout((int) apiClientReadTimeout.toMillis());
+    }
+
+    private String readResponse(HttpURLConnection con) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+            StringBuilder content = new StringBuilder();
+            reader.lines().forEach(content::append);
+            return content.toString();
+        } catch (IOException e) {
+            if (con.getResponseCode() != 200) {
+                throw new IOException("Error from server: " + readErrorStream(con), e);
+            }
+            throw e;
+        }
+    }
+
+    private URL getCarbonAwareApiDayAheadEnergyPricesUrl(Optional<String> areaCode) throws MalformedURLException {
         return new URL(carbonAwareApiUrl + areaCode.map(a -> "&areaCode=" + a).orElse(""));
+    }
+
+    private String readErrorStream(HttpURLConnection connection) throws IOException {
+        if (connection.getErrorStream() != null) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+                return reader.lines().collect(Collectors.joining("\n"));
+            }
+        }
+        return "No error details available";
+    }
+
+    private DayAheadEnergyPrices createErrorResponse(String errorMessage) {
+        DayAheadEnergyPrices errorResponse = new DayAheadEnergyPrices();
+        errorResponse.setErrorMessage(errorMessage);
+        return errorResponse;
     }
 }

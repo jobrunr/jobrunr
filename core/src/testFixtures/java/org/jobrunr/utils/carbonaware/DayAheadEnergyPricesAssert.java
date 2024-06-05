@@ -47,4 +47,9 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
         Assertions.assertThat(actual.getErrorMessage()).isEqualTo(errorMessage);
         return this;
     }
+
+    public DayAheadEnergyPricesAssert hasNullUnit() {
+        Assertions.assertThat(actual.getUnit()).isNull();
+        return this;
+    }
 }
