@@ -80,8 +80,7 @@ public class DayAheadEnergyPrices {
         if (hasNoData()) return null;
 
         for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is between `from` and `to`
-            if (isInstantInRequestedPeriod(price.getDateTime(), period)
-                    && isInstantAfterCurrentHour(price.getDateTime())) {
+            if (isInstantInPeriodOrAfterCurrentHour(price.getDateTime(), period)) {
                 return price.getDateTime();
             }
         }
@@ -92,8 +91,11 @@ public class DayAheadEnergyPrices {
     public boolean hasDataForPeriod(CarbonAwarePeriod when) {
         if (hasNoData()) return false;
         return hourlyEnergyPrices.stream().anyMatch(price ->
-                isInstantInRequestedPeriod(price.getDateTime(), when)
-                        && isInstantAfterCurrentHour(price.getDateTime()));
+                isInstantInPeriodOrAfterCurrentHour(price.getDateTime(), when));
+    }
+
+    private boolean isInstantInPeriodOrAfterCurrentHour(Instant instant, CarbonAwarePeriod when) {
+        return isInstantInRequestedPeriod(instant, when) || isInstantAfterCurrentHour(instant);
     }
 
     private boolean isInstantInRequestedPeriod(Instant instant, CarbonAwarePeriod when) {
