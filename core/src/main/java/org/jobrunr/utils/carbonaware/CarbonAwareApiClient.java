@@ -2,7 +2,6 @@ package org.jobrunr.utils.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;
-import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +47,7 @@ public class CarbonAwareApiClient {
         }
     }
 
-    @VisibleFor("testing")
-    String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) throws IOException {
+    private String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) throws IOException {
         HttpURLConnection connection = null;
         try {
             connection = createHttpConnection(getCarbonAwareApiDayAheadEnergyPricesUrl(areaCode));
