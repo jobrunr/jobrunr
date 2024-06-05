@@ -40,7 +40,6 @@ public class CarbonAwareApiClient {
         } catch (Exception e) {
             LOGGER.error("Error fetching day ahead energy prices for areaCode '{}'", areaCode.orElse("unknown"), e);
             DayAheadEnergyPrices errorResponse = new DayAheadEnergyPrices();
-            errorResponse.setIsErrorResponse(true);
             errorResponse.setErrorMessage(e.getMessage());
             return errorResponse;
         }
@@ -52,8 +51,8 @@ public class CarbonAwareApiClient {
         HttpURLConnection con = (HttpURLConnection) apiUrl.openConnection();
         con.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
         con.setRequestMethod("GET");
-        con.setConnectTimeout((int)apiClientConnectTimeout.toMillis());
-        con.setReadTimeout((int)apiClientReadTimeout.toMillis());
+        con.setConnectTimeout((int) apiClientConnectTimeout.toMillis());
+        con.setReadTimeout((int) apiClientReadTimeout.toMillis());
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
             String inputLine;
@@ -72,8 +71,7 @@ public class CarbonAwareApiClient {
                     content.append(inputLine);
                 }
                 throw new IOException(content.toString());
-            }
-            finally {
+            } finally {
                 con.disconnect();
             }
         }

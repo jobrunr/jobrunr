@@ -180,7 +180,6 @@ class DayAheadEnergyPricesTest {
         prices.add(new DayAheadEnergyPrices.HourlyEnergyPrice(now.minusSeconds(3600), 10.0, 1));
         prices.add(new DayAheadEnergyPrices.HourlyEnergyPrice(now.plusSeconds(3600), 20.0, 2)); // This price is within the period
         DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("AreaCode", null, "Europe/Berlin", "Unit", prices);
-        pricesData.setIsErrorResponse(false);
 
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(7200)); // 2 hours ahead
 
@@ -196,7 +195,6 @@ class DayAheadEnergyPricesTest {
         prices.add(new DayAheadEnergyPrices.HourlyEnergyPrice(now.minusSeconds(3600), 10.0, 1));
         prices.add(new DayAheadEnergyPrices.HourlyEnergyPrice(now.plusSeconds(3600), 20.0, 2));
         DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("BE", "EE", "Europe/Brussels", "Unit", prices);
-        pricesData.setIsErrorResponse(false);
 
         CarbonAwarePeriod invalidPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(1800)); // 30 minutes ahead
 
@@ -209,7 +207,6 @@ class DayAheadEnergyPricesTest {
         // Setup
         Instant now = Instant.now();
         DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices("BE", null, "Europe/Brussels", "EUR/MWH", new ArrayList<>());
-        pricesData.setIsErrorResponse(false);
 
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead
 
@@ -222,7 +219,6 @@ class DayAheadEnergyPricesTest {
         // Setup
         Instant now = Instant.now();
         DayAheadEnergyPrices pricesData = new DayAheadEnergyPrices(null, null, null, null, null);
-        pricesData.setIsErrorResponse(true);
 
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead
 

@@ -44,7 +44,6 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
     public DayAheadEnergyPricesAssert hasError(String errorMessage) {
         Assertions.assertThat(actual.getAreaCode()).isNull();
         Assertions.assertThat(actual.getHourlyEnergyPrices()).isNull();
-        Assertions.assertThat(actual.getIsErrorResponse()).isTrue();
         Assertions.assertThat(actual.getErrorMessage()).isEqualTo(errorMessage);
         return this;
     }

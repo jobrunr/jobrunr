@@ -35,7 +35,6 @@ public class DayAheadEnergyPrices {
         this.timezone = timezone;
         this.hourlyEnergyPrices = hourlyEnergyPrices;
         this.errorMessage = null;
-        this.isErrorResponse = false;
     }
 
     private DayAheadEnergyPrices(String areaCode, String errorMessage) {
@@ -44,7 +43,6 @@ public class DayAheadEnergyPrices {
         this.timezone = null;
         this.hourlyEnergyPrices = null;
         this.errorMessage = errorMessage;
-        this.isErrorResponse = true;
     }
 
     public static DayAheadEnergyPrices error(String areaCode, String errorMessage) {
@@ -68,16 +66,8 @@ public class DayAheadEnergyPrices {
         return errorMessage;
     }
 
-    public boolean getIsErrorResponse() {
-        return isErrorResponse;
-    }
-
     public boolean hasData() {
-        return hourlyEnergyPrices != null && !hourlyEnergyPrices.isEmpty() && !isErrorResponse;
-    }
-
-    public void setIsErrorResponse(boolean errorResponse) {
-        isErrorResponse = errorResponse;
+        return hourlyEnergyPrices != null && !hourlyEnergyPrices.isEmpty();
     }
 
     public void setErrorMessage(String errorMessage) {
@@ -127,15 +117,24 @@ public class DayAheadEnergyPrices {
      * Otherwise, returns true
      */
     public boolean hasDataForPeriod(CarbonAwarePeriod when) {
-        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty() || isErrorResponse) {
+        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
             LOGGER.warn("No hourly energy prices available");
             return false;
         }
-        Instant currentHour = Instant.now().truncatedTo(HOURS);
-        return hourlyEnergyPrices.stream().anyMatch(price -> (price.getDateTime().isAfter(when.getFrom()) || price.getDateTime().equals(when.getFrom()))
-                && (price.getDateTime().isBefore(when.getTo()) || price.getDateTime().equals(when.getTo()))
-                && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour)));
+        return hourlyEnergyPrices.stream().anyMatch(price ->
+                isInstantInRequestedPeriod(price.getDateTime(), when)
+                        && isInstantAfterCurrentHour(price.getDateTime()));
+    }
 
+    private boolean isInstantInRequestedPeriod(Instant instant, CarbonAwarePeriod when) {
+        boolean isAfterStart = instant.isAfter(when.getFrom()) || instant.equals(when.getFrom());
+        boolean isBeforeEnd = instant.isBefore(when.getTo()) || instant.equals(when.getTo());
+        return isAfterStart && isBeforeEnd;
+    }
+
+    private boolean isInstantAfterCurrentHour(Instant instant) {
+        Instant currentHour = Instant.now().truncatedTo(HOURS);
+        return instant.isAfter(currentHour) || instant.equals(currentHour);
     }
 
 
