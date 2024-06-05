@@ -89,16 +89,6 @@ public class DayAheadEnergyPrices {
         return null;
     }
 
-    /**
-     * Checks if the data are valid and available for the given period
-     *
-     * @param when The period to check (from, to)
-     * @return Returns false:
-     * 1. if there is no data available (not available, could not be fetched, etc.)
-     * 2. if the period is not within the available data (either `from`> maxHour or `to` < minHour)
-     * 3. if the current time is after the last available hour (data are outdated)
-     * Otherwise, returns true
-     */
     public boolean hasDataForPeriod(CarbonAwarePeriod when) {
         if (hasNoData()) return false;
         return hourlyEnergyPrices.stream().anyMatch(price ->
