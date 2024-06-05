@@ -14,7 +14,6 @@ import static java.time.temporal.ChronoUnit.HOURS;
 public class DayAheadEnergyPrices {
     private static final Logger LOGGER = LoggerFactory.getLogger(DayAheadEnergyPrices.class);
 
-    private boolean isErrorResponse;
     private String errorMessage;
     private String areaCode;
     private String state;
