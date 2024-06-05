@@ -65,7 +65,7 @@ public class CarbonAwareJobManager {
     public void updateDayAheadEnergyPrices() {
         Optional<String> areaCode = Optional.ofNullable(carbonAwareConfiguration.getAreaCode());
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
-        if (!dayAheadEnergyPrices.hasData()) {
+        if (dayAheadEnergyPrices.hasNoData()) {
             LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
             return;
         }

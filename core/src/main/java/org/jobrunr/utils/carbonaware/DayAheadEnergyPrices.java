@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -65,44 +63,30 @@ public class DayAheadEnergyPrices {
         return errorMessage;
     }
 
-    public boolean hasData() {
-        return hourlyEnergyPrices != null && !hourlyEnergyPrices.isEmpty();
+    public boolean hasNoData() {
+        LOGGER.warn("No hourly energy prices available");
+        return hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty();
     }
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
-    public Instant leastExpensiveHour(CarbonAwarePeriod period) {
-        return leastExpensiveHour(period.getFrom(), period.getTo());
+    public Instant leastExpensiveHour(Instant from, Instant to) {
+        return leastExpensiveHour(CarbonAwarePeriod.between(from, to));
     }
 
-    public Instant leastExpensiveHour(Instant from, Instant to) {
-        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
-            LOGGER.warn("No hourly energy prices available");
-            return null;
-        }
+    public Instant leastExpensiveHour(CarbonAwarePeriod period) {
+        if (hasNoData()) return null;
 
-        Instant currentHour = Instant.now().truncatedTo(HOURS);
         for (HourlyEnergyPrice price : hourlyEnergyPrices) { // list is already sorted by price, so we can stop at the first price that is between `from` and `to`
-            if ((price.getDateTime().isAfter(from) || price.getDateTime().equals(from))
-                    && (price.getDateTime().isBefore(to) || price.getDateTime().equals(to))
-                    && (price.getDateTime().isAfter(currentHour) || price.getDateTime().equals(currentHour))) {
+            if (isInstantInRequestedPeriod(price.getDateTime(), period)
+                    && isInstantAfterCurrentHour(price.getDateTime())) {
                 return price.getDateTime();
             }
         }
-        LOGGER.warn("No hour found between {} and {}", from, to);
+        LOGGER.warn("No hour found between {} and {}", period.getFrom(), period.getTo());
         return null;
-    }
-
-    @Deprecated
-    public Instant getMaxHour() {
-        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
-            throw new IllegalStateException("No hourly energy prices available");
-        }
-
-        HourlyEnergyPrice maxHourlyPrice = Collections.max(hourlyEnergyPrices, Comparator.comparing(HourlyEnergyPrice::getDateTime));
-        return maxHourlyPrice.getDateTime();
     }
 
     /**
@@ -116,10 +100,7 @@ public class DayAheadEnergyPrices {
      * Otherwise, returns true
      */
     public boolean hasDataForPeriod(CarbonAwarePeriod when) {
-        if (hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty()) {
-            LOGGER.warn("No hourly energy prices available");
-            return false;
-        }
+        if (hasNoData()) return false;
         return hourlyEnergyPrices.stream().anyMatch(price ->
                 isInstantInRequestedPeriod(price.getDateTime(), when)
                         && isInstantAfterCurrentHour(price.getDateTime()));
