@@ -125,8 +125,8 @@ public class CarbonAwareJobManager {
         boolean todayIsPreviousDayBeforeDeadline = today.equals(deadlineDay.minusDays(1));
         boolean timeIsAfter18 = nowCET.getHour() >= 18;
         boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18 = todayIsPreviousDayBeforeDeadline && timeIsAfter18;
-        boolean shouldSchedule = todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18;
-        return !shouldSchedule;
+        boolean shouldScheduleNow = todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18;
+        return !shouldScheduleNow;
     }
 
     private void scheduleJobAtOptimalTime(Job job, CarbonAwareAwaitingState state) {
