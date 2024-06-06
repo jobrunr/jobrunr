@@ -105,7 +105,7 @@ export function convertISO8601DurationToSeconds(durationString) {
 /* HELPER FUNCTIONS (not exported) */
 
 /* ------------------------------  */
-export function _humanFileSize(bytes, si) {
+function _humanFileSize(bytes, si) {
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
         return `${bytes} B`
@@ -114,7 +114,7 @@ export function _humanFileSize(bytes, si) {
         ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
         : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
     let unitIndex = -1;
-    while (shouldContinueReducing(bytes, thresh, unitIndex, units.length)) {
+    while (Math.abs(bytes) >= thresh && unitIndex < units.length - 1) {
         bytes /= thresh;
         unitIndex++;
     }
@@ -133,8 +133,4 @@ function calculateTotalSeconds(stringParts) {
 function getSeconds(value, multiplier) {
     if (value === undefined) return 0;
     return parseInt(value, 10) * multiplier;
-}
-
-function shouldContinueReducing(bytes, threshold, unitIndex, unitsLength) {
-    return Math.abs(bytes) >= threshold && unitIndex < unitsLength - 1;
 }
