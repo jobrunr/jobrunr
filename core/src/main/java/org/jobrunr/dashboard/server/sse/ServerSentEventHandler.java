@@ -4,8 +4,9 @@ import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.AbstractHttpExchangeHandler;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
+
+import static java.util.concurrent.ConcurrentHashMap.newKeySet;
 
 public abstract class ServerSentEventHandler extends AbstractHttpExchangeHandler {
 
@@ -18,7 +19,7 @@ public abstract class ServerSentEventHandler extends AbstractHttpExchangeHandler
 
     protected ServerSentEventHandler(String contextPath) {
         this.contextPath = contextPath;
-        this.sseExchanges = new HashSet<>();
+        this.sseExchanges = newKeySet();
     }
 
     @Override
