@@ -11,7 +11,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jobrunr.utils.reflection.ReflectionUtils.*;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getField;
+import static org.jobrunr.utils.reflection.ReflectionUtils.getMethod;
+import static org.jobrunr.utils.reflection.ReflectionUtils.loadClass;
+import static org.jobrunr.utils.reflection.ReflectionUtils.makeAccessible;
+import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsGeneratorUtils {
 
