@@ -4,6 +4,8 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
+import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.time.ZoneId.systemDefault;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
@@ -65,6 +68,15 @@ class RecurringJobBuilderTest {
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
                 .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest);
+    }
+
+    @Test
+    void testJobRequestWithInvalidJobRequest() {
+        assertThatCode(() -> aRecurringJob()
+                .withJobRequest(new TestInvalidJobRequest())
+                .withCron(every5Seconds)
+                .build())
+                .isInstanceOf(JobMethodNotFoundException.class);
     }
 
     @Test
