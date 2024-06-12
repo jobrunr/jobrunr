@@ -2,6 +2,7 @@ package org.jobrunr.utils.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;
+import org.jobrunr.utils.annotations.Retry;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ public class CarbonAwareApiClient {
         }
     }
 
+    @Retry(maxAttempts = 3, delayMs = 100)
     private String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) throws IOException {
         HttpURLConnection connection = null;
         try {
@@ -85,7 +87,7 @@ public class CarbonAwareApiClient {
         }
     }
 
-    private URL getCarbonAwareApiDayAheadEnergyPricesUrl(Optional<String> areaCode) throws MalformedURLException {
+    protected URL getCarbonAwareApiDayAheadEnergyPricesUrl(Optional<String> areaCode) throws MalformedURLException {
         return new URL(carbonAwareApiUrl + areaCode.map(a -> "&areaCode=" + a).orElse(""));
     }
 
