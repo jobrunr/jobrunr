@@ -171,7 +171,7 @@ public class Job extends AbstractJob {
      */
     public synchronized List<JobState> getStateChangesForJobFilters() {
         if (stateIndexBeforeStateChange == null) return emptyList();
-        List<JobState> stateChanges = new ArrayList<>(jobHistory.subList(stateIndexBeforeStateChange, jobHistory.size()));
+        List<JobState> stateChanges = new ArrayList<>(jobHistory).subList(stateIndexBeforeStateChange, jobHistory.size());
         stateIndexBeforeStateChange = null;
         return stateChanges;
     }
