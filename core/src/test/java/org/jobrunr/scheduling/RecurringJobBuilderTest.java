@@ -71,7 +71,7 @@ class RecurringJobBuilderTest {
     }
 
     @Test
-    void testDefaultJobWithInvalidJobRequest() {
+    void testJobRequestWithInvalidJobRequest() {
         assertThatCode(() -> aRecurringJob()
                 .withJobRequest(new TestInvalidJobRequest())
                 .withCron(every5Seconds)
