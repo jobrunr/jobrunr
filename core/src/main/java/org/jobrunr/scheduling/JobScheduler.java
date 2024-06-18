@@ -11,11 +11,10 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
-import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -338,7 +337,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *      jobScheduler.schedule(LocalDateTime.now().plusHours(5), () -> service.doWork());
      * }</pre>
      *
-     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to a UTC Instant
      * @param job           the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
@@ -356,7 +355,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id            the uuid with which to save the job
-     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to a UTC Instant
      * @param job           the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
@@ -371,7 +370,7 @@ public class JobScheduler extends AbstractJobScheduler {
      *      jobScheduler.<MyService>schedule(LocalDateTime.now().plusHours(5), x -> x.doWork());
      * }</pre>
      *
-     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to a UTC Instant
      * @param iocJob        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
@@ -388,7 +387,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * }</pre>
      *
      * @param id            the uuid with which to save the job
-     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
+     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to a UTC Instant
      * @param iocJob        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
@@ -692,121 +691,5 @@ public class JobScheduler extends AbstractJobScheduler {
     public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
-    }
-
-    /**
-     * Creates a new {@link RecurringJob} based on the given lambda and the given {@link CarbonAwareCronExpression}.
-     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), () -> service.doWork());
-     * }</pre>
-     *
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
-     * @param job             the lambda which defines the recurring job
-     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
-     */
-    public String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, JobLambda job) {
-        return scheduleRecurrently(null, carbonAwareCron, job);
-    }
-
-    /**
-     * Creates a new {@link RecurringJob} based on the given {@link CarbonAwareCronExpression} and the given lambda. The IoC container will be used to resolve {@code MyService}.
-     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      jobScheduler.<MyService>scheduleRecurrently(CarbonAwareCron.dailyBetween(13, 17), x -> x.doWork());
-     * }</pre>
-     *
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
-     * @param iocJob          the lambda which defines the recurring job
-     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
-     */
-    public <S> String scheduleRecurrently(CarbonAwareCronExpression carbonAwareCron, IocJobLambda<S> iocJob) {
-        return scheduleRecurrently(null, carbonAwareCron, iocJob);
-    }
-
-    /**
-     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression} and {@link JobLambda}.
-     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), () -> service.doWork());
-     * }</pre>
-     *
-     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
-     * @param job             the lambda which defines the recurring job
-     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
-     */
-    public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, JobLambda job) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
-        return scheduleRecurrently(id, jobDetails, carbonAwareCron, systemDefault());
-    }
-
-    /**
-     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression} and lambda.
-     * The IoC container will be used to resolve {@code MyService}.
-     * The jobs will be scheduled using the systemDefault timezone at the time when carbon intensity of electricity is the lowest.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), x -> x.doWork());
-     * }</pre>
-     *
-     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
-     * @param iocJob          the lambda which defines the recurring job
-     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
-     */
-    public <S> String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, IocJobLambda<S> iocJob) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
-        return scheduleRecurrently(id, jobDetails, carbonAwareCron, systemDefault());
-    }
-
-    /**
-     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression}, {@code ZoneId} and lambda.
-     * The jobs will be scheduled at the time when carbon intensity of electricity is the lowest.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), ZoneId.of("Europe/Brussels"), () -> service.doWork());
-     * }</pre>
-     *
-     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
-     * @param zoneId          The zoneId (timezone) of when to run this recurring job
-     * @param job             the lambda which defines the recurring job
-     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
-     */
-    public String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, JobLambda job) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
-        return scheduleRecurrently(id, jobDetails, carbonAwareCron, zoneId);
-    }
-
-    /**
-     * Creates a new or alters the existing {@link RecurringJob} based on the given id, {@link CarbonAwareCronExpression}, {@code ZoneId} and lambda. The IoC container will be used to resolve {@code MyService}.
-     * The jobs will be scheduled at the time when carbon intensity of electricity is the lowest.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", CarbonAwareCron.dailyBetween(13, 17), ZoneId.of("Europe/Brussels"), x -> x.doWork());
-     * }</pre>
-     *
-     * @param id              the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @param carbonAwareCron cron expression + allowed duration before + allowed duration after. Allows job to be scheduled at a time when carbon emissions are the lowest, within the given range.
-     * @param zoneId          The zoneId (timezone) of when to run this recurring job
-     * @param iocJob          the lambda which defines the recurring job
-     * @return the id of this {@link RecurringJob} which can be used to alter or delete it
-     * @see org.jobrunr.scheduling.cron.CarbonAwareCron
-     */
-    public <S> String scheduleRecurrently(String id, CarbonAwareCronExpression carbonAwareCron, ZoneId zoneId, IocJobLambda<S> iocJob) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
-        return scheduleRecurrently(id, jobDetails, carbonAwareCron, zoneId);
     }
 }

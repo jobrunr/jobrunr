@@ -1,4 +1,4 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import java.time.Duration;
 
@@ -37,7 +37,7 @@ public class CarbonAwareConfigurationReader {
     }
 
     public String getCarbonAwareApiUrl() {
-        return carbonAwareConfiguration.carbonAwareApiUrl;
+        return carbonAwareConfiguration.carbonIntensityApiUrl;
     }
 
     public Duration getApiClientConnectTimeout() {

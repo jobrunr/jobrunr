@@ -2,9 +2,9 @@ package org.jobrunr.server.tasks.other;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.tasks.zookeeper.AbstractJobZooKeeperTask;
 import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +27,12 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private final CarbonAwareJobManager carbonAwareJobManager;
     private final int hoursAheadToCheck;
     private final int pageRequestSize;
-    private final String LAST_RUN_METADATA_NAME = "process_carbon_aware_jobs_last_run";
-
+    private static final String LAST_RUN_METADATA_NAME = "process_carbon_aware_jobs_last_run";
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
         this.carbonAwareJobManager = CarbonAwareJobManager.getInstance();
-        this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareJobsRequestSize();
+        this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareAwaitingJobsRequestSize();
         hoursAheadToCheck = DEFAULT_HOURS_AHEAD_TO_CHECK;
     }
 

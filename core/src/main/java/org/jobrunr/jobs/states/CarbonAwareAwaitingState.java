@@ -1,14 +1,16 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 
+import static java.lang.String.format;
 import static java.time.Duration.ofHours;
 import static java.time.Instant.now;
+import static java.util.Objects.isNull;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
     private final Instant preferredInstant;
@@ -23,8 +25,8 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         this.to = null;
     }
 
-    public CarbonAwareAwaitingState(CarbonAwarePeriod when) {
-        this(when.getFrom(), when.getTo());
+    public CarbonAwareAwaitingState(CarbonAwarePeriod carbonAwarePeriod) {
+        this(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo());
     }
 
     public CarbonAwareAwaitingState(Instant to) {
@@ -67,8 +69,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         if (job.getJobState().getName() != StateName.AWAITING) {
             throw new IllegalStateException("Only jobs in AWAITING can move to a next state");
         }
-        Instant now = now();
-        if (!idealMoment.isAfter(now)) {
+        if (!idealMoment.isAfter(now())) {
             LOGGER.warn("Schedule job {} immediately, as we don't have data", job.getId());
             job.enqueue();
         } else {
@@ -77,11 +78,15 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
     }
 
     public static void validateCarbonAwarePeriod(Instant from, Instant to) {
+        if (isNull(from) || isNull(to)) {
+            throw new IllegalArgumentException(format("'from' (=%s) and 'to' (=%s) must be non-null", from, to));
+        }
         if (from.isAfter(to)) {
-            throw new IllegalArgumentException("'from' must be before 'to'");
-        } else if (to.isBefore(now().plus(ofHours(3)))) {
-            throw new IllegalArgumentException("'to' must be at least 3 hours in the future to use Carbon Aware Scheduling");
-        } //TODO: review the "3-hour" rule
+            throw new IllegalArgumentException(format("'from' (=%s) must be before 'to' (=%s)", from, to));
+        }
+        if (to.isBefore(now().plus(ofHours(3)))) {
+            throw new IllegalArgumentException(format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", to));
+        }
     }
 
     @Override

@@ -10,6 +10,8 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -30,8 +32,6 @@ import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
@@ -218,7 +218,7 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("org.jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context)
-                                -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                        -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                         .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20)));
     }
 
@@ -227,7 +227,7 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
                 .withUserConfiguration(BackgroundJobServerConfigurationWithCustomWorkerPolicy.class, InMemoryStorageProvider.class).run((context)
-                                -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                        -> assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                         .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class));
     }
 

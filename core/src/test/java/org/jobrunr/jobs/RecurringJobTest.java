@@ -3,18 +3,14 @@ package org.jobrunr.jobs;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriodAssert;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
@@ -22,8 +18,6 @@ import java.util.Set;
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -150,7 +144,7 @@ class RecurringJobTest {
                 .withCronExpression(Cron.daily(hour, (minute)))
                 .withZoneId(ZoneOffset.of("+02:00"))
                 .build();
-        Instant nextRun = recurringJob.getNextRun().getInstant();
+        Instant nextRun = recurringJob.getNextRun();
         assertThat(nextRun).isAfter(now());
     }
 
@@ -161,22 +155,8 @@ class RecurringJobTest {
                 .withIntervalExpression(Duration.ofHours(1).toString())
                 .withZoneId(ZoneOffset.of("+02:00"))
                 .build();
-        Instant nextRun = recurringJob.getNextRun().getInstant();
+        Instant nextRun = recurringJob.getNextRun();
         assertThat(nextRun).isAfter(now());
-    }
-
-    @Test
-    void nextRunWithCarbonAwareCronIsCorrect() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withName("carbon-aware recurring job")
-                .withCarbonAwareCronExpression(CarbonAwareCron.dailyBefore(18))
-                .withZoneId(ZoneId.of("UTC"))
-                .build();
-        CarbonAwarePeriod nextRun = recurringJob.getNextRun().getCarbonAwarePeriod();
-        Instant tomorrowAtStartOfDay = Instant.now().truncatedTo(DAYS).plus(1, DAYS);
-        CarbonAwarePeriodAssert.assertThat(nextRun)
-                .hasFrom(tomorrowAtStartOfDay)
-                .hasTo(tomorrowAtStartOfDay.plus(18, HOURS));
     }
 
     @Test

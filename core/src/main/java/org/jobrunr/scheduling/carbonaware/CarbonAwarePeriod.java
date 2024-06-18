@@ -1,4 +1,4 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.scheduling.carbonaware;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -12,7 +12,7 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
- * Represents a period of time, in which a job will be scheduled in the moment of least carbon emissions.
+ * Represents a period of time, in which a job will be scheduled in a moment of low carbon emissions.
  * <p>
  * The CarbonAwarePeriod can be created in different ways:
  *     <ul>

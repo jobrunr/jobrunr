@@ -41,7 +41,7 @@ public class JobDocumentMapper {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
         }
         if (job.hasState(StateName.AWAITING)) {
-            document.put(Jobs.FIELD_CARBON_AWARE_DEADLINE, toMicroSeconds(job.<CarbonAwareAwaitingState>getJobState().getTo()));
+            document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(job.<CarbonAwareAwaitingState>getJobState().getTo()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return document;
@@ -57,7 +57,7 @@ public class JobDocumentMapper {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
         }
         if (job.hasState(StateName.AWAITING)) {
-            document.put(Jobs.FIELD_CARBON_AWARE_DEADLINE, toMicroSeconds(((CarbonAwareAwaitingState) job.getJobState()).getTo()));
+            document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(((CarbonAwareAwaitingState) job.getJobState()).getTo()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return new Document("$set", document);

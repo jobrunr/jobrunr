@@ -1,11 +1,12 @@
 package org.jobrunr.dashboard.ui.model;
 
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.scheduling.RecurringJobNextRun;
+
+import java.time.Instant;
 
 public class RecurringJobUIModel extends RecurringJob {
 
-    private final RecurringJobNextRun nextRun;
+    private final Instant nextRun;
 
     public RecurringJobUIModel(RecurringJob recurringJob) {
         super(recurringJob.getId(), recurringJob.getJobDetails(), recurringJob.getScheduleExpression(), recurringJob.getZoneId(), recurringJob.getCreatedAt().toString());
@@ -15,7 +16,7 @@ public class RecurringJobUIModel extends RecurringJob {
     }
 
     @Override
-    public RecurringJobNextRun getNextRun() {
+    public Instant getNextRun() {
         return nextRun;
     }
 }

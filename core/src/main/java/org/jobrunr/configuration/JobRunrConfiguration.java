@@ -11,10 +11,10 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.JsonMapperException;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
@@ -28,7 +28,7 @@ import java.util.List;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.utils.mapper.JsonMapperValidator.validateJsonMapper;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
@@ -115,14 +115,14 @@ public class JobRunrConfiguration {
     }
 
     /**
-     * Allows configuring the details for carbon aware job scheduling
+     * Provides a {@link CarbonAwareJobManager} for carbon aware job scheduling using the given {@link CarbonAwareConfiguration}.
      *
-     * @param carbonAwareConfiguration the carbonAwareConfiguration to use for each scheduling jobs with minimal Carbon emissions.
+     * @param carbonAwareConfiguration the carbonAwareConfiguration to use for scheduling jobs in a moment of low carbon emissions.
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useCarbonAwareScheduling(CarbonAwareConfiguration carbonAwareConfiguration) {
         if (this.backgroundJobServer != null) {
-            throw new IllegalStateException("Please configure the CarbonAwareConfiguration before the BackgroundJobServer.");
+            throw new IllegalStateException("Please configure the CarbonAwareJobManager before the BackgroundJobServer.");
         }
         this.carbonAwareJobManager = CarbonAwareJobManager.getInstance(carbonAwareConfiguration, jsonMapper);
         return this;

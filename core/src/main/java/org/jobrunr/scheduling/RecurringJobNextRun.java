@@ -1,6 +1,6 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
 import java.time.Instant;
 

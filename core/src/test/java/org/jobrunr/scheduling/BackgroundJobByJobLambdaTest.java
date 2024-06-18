@@ -67,9 +67,9 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
-import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
 
 /**
  * Must be public as used as a background job

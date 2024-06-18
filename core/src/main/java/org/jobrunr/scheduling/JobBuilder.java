@@ -11,9 +11,8 @@ import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.JobUtils;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -234,7 +233,6 @@ public class JobBuilder {
         setJobName(job);
         setAmountOfRetries(job);
         setLabels(job);
-        CarbonAwareJobManager.getInstance().moveToNextState(job);
         return job;
     }
 

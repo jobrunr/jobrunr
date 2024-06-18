@@ -101,7 +101,7 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
@@ -485,7 +485,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
-        final QueryVariant query = withStateAndFieldBefore(AWAITING, FIELD_CARBON_AWARE_DEADLINE, deadline);
+        final QueryVariant query = withStateAndFieldBefore(AWAITING, FIELD_DEADLINE, deadline);
         return findJobs(query, amountRequest);
     }
 

@@ -1,4 +1,5 @@
 DROP VIEW jobrunr_jobs_stats;
+
 CREATE VIEW jobrunr_jobs_stats
 as
 with job_stat_results as (SELECT state, count(*) as count
@@ -17,4 +18,5 @@ select coalesce((select sum(job_stat_results.count) from job_stat_results), 0)  
                  where jm.id = 'succeeded-jobs-counter-cluster'), 0)                                      as allTimeSucceeded,
        coalesce((select sum(job_stat_results.count) from job_stat_results where state = 'DELETED'), 0)    as deleted,
        (select count(*) from jobrunr_backgroundjobservers)                                                as nbrOfBackgroundJobServers,
-       (select count(*) from jobrunr_recurring_jobs)                                                      as nbrOfRecurringJobs;
+       (select count(*) from jobrunr_recurring_jobs)                                                      as nbrOfRecurringJobs
+from sysibm.sysdummy1;

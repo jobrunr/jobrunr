@@ -10,6 +10,8 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -29,8 +31,6 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,6 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert.assertThat;
 
 public class JobRunrAutoConfigurationTest {

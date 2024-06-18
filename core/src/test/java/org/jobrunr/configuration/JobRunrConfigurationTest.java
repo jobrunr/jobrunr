@@ -3,11 +3,11 @@ package org.jobrunr.configuration;
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -146,7 +146,7 @@ class JobRunrConfigurationTest {
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
     }
-    
+
     @Test
     void initializeWithCarbonAwareScheduling() {
         JobRunrConfigurationResult configurationResult = JobRunr.configure()

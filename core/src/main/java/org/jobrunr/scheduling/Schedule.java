@@ -10,9 +10,6 @@ import static java.time.Instant.now;
 
 public abstract class Schedule implements Comparable<Schedule> {
 
-    public static final int SMALLEST_SCHEDULE_IN_SECONDS = 5;
-
-
     /**
      * Calculates the next occurrence based on the creation time and the current time.
      *
@@ -20,7 +17,7 @@ public abstract class Schedule implements Comparable<Schedule> {
      * @param zoneId    the zone for which to calculate the schedule
      * @return {@link RecurringJobNextRun} of the next occurrence.
      */
-    public RecurringJobNextRun next(Instant createdAt, ZoneId zoneId) {
+    public Instant next(Instant createdAt, ZoneId zoneId) {
         return next(createdAt, now(), zoneId);
     }
 
@@ -33,11 +30,10 @@ public abstract class Schedule implements Comparable<Schedule> {
      * @return {@link RecurringJobNextRun} of the next occurrence.
      */
     @VisibleFor("testing")
-    public abstract RecurringJobNextRun next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
+    public abstract Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId);
 
     /**
      * Compare two {@code Schedule} objects based on next occurrence.
-     * Does not work if type of schedule is {@link org.jobrunr.scheduling.cron.CarbonAwareCronExpression}.
      * <p>
      * The next occurrences are calculated based on the current time.
      *
@@ -56,12 +52,8 @@ public abstract class Schedule implements Comparable<Schedule> {
         }
 
         Instant baseInstant = now();
-        final RecurringJobNextRun nextAnotherWrapper = schedule.next(baseInstant, ZoneOffset.UTC);
-        if (nextAnotherWrapper.isCarbonAwarePeriod()) {
-            throw new IllegalArgumentException("Cannot compare a CarbonAwarePeriod to another");
-        }
-        final Instant nextAnother = nextAnotherWrapper.getInstant();
-        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC).getInstant();
+        final Instant nextAnother = schedule.next(baseInstant, ZoneOffset.UTC);
+        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC);
 
         return nextThis.compareTo(nextAnother);
     }

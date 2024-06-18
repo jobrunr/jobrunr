@@ -11,7 +11,7 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
 import java.time.Instant;
 import java.time.temporal.Temporal;

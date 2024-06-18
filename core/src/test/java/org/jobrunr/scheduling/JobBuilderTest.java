@@ -7,9 +7,9 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestService;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
-import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.before;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.mockito.Mockito.mock;
 
 class JobBuilderTest {

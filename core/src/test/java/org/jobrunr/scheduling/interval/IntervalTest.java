@@ -35,7 +35,7 @@ class IntervalTest {
 
             Interval interval = new Interval(durationExpression);
             Duration duration = Duration.parse(durationExpression);
-            Instant nextInstant = interval.next(baseInstant, currentInstant, UTC).getInstant();
+            Instant nextInstant = interval.next(baseInstant, currentInstant, UTC);
 
             assertThat(nextInstant)
                     .describedAs("Expecting %s to be after or equal to %s for duration %s and start date %s", nextInstant, currentInstant, duration, baseInstant)
@@ -55,8 +55,8 @@ class IntervalTest {
         int hour = 8;
         Instant now = Instant.now();
 
-        Instant actualNextInstant1 = new Interval(Duration.ofHours(hour)).next(now, ZoneId.of("+02:00")).getInstant();
-        Instant actualNextInstant2 = new Interval(Duration.ofHours(hour)).next(now, UTC).getInstant();
+        Instant actualNextInstant1 = new Interval(Duration.ofHours(hour)).next(now, ZoneId.of("+02:00"));
+        Instant actualNextInstant2 = new Interval(Duration.ofHours(hour)).next(now, UTC);
 
         assertThat(actualNextInstant1).isEqualTo(actualNextInstant2);
     }

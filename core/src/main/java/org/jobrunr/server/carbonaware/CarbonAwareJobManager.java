@@ -1,4 +1,4 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;

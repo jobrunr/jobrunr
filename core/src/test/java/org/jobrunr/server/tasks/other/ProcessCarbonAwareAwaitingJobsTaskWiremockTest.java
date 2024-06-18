@@ -8,10 +8,10 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
+import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
+import org.jobrunr.server.carbonaware.CarbonApiMockResponses;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.AbstractCarbonAwareWiremockTest;
-import org.jobrunr.utils.carbonaware.CarbonApiMockResponses;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.DatetimeMocker;
@@ -31,7 +31,7 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
-import static org.jobrunr.utils.carbonaware.CarbonAwarePeriod.between;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.between;
 
 class ProcessCarbonAwareAwaitingJobsTaskWiremockTest extends AbstractCarbonAwareWiremockTest {
     private final String areaCode = "DE";

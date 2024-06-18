@@ -1,4 +1,4 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -17,10 +17,10 @@ import java.time.Duration;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_READ_TIMEOUT;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrlPath;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_READ_TIMEOUT;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrlPath;
 
 public class AbstractCarbonAwareWiremockTest {
 
@@ -63,7 +63,7 @@ public class AbstractCarbonAwareWiremockTest {
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useCarbonAwareScheduling(usingStandardCarbonAwareConfiguration().andAreaCode(areaCode)
-                        .andCarbonAwareApiUrl(carbonApiTestUrl))
+                        .andCarbonIntensityApiUrl(carbonApiTestUrl))
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(pollIntervalMs)))
                 .initialize();
     }

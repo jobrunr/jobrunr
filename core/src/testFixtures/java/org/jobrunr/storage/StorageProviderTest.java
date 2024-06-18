@@ -8,11 +8,13 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.LogAllStateChangesFilter;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
@@ -20,8 +22,6 @@ import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -870,6 +870,7 @@ public abstract class StorageProviderTest {
 
     @Test
     void testJobStats() {
+        // TODO test awaiting (copy from Pro?)
         storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
 
         assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();

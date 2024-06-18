@@ -35,7 +35,7 @@ class CronExpressionTest {
         try {
             Instant inputInstant = LocalDateTime.parse(baseDate, dateTimeFormatter).toInstant(UTC);
             CronExpression cron = CronExpression.create(cronExpression);
-            Instant actualInstant = cron.next(createdAtNotRelevantInstant, inputInstant, UTC).getInstant();
+            Instant actualInstant = cron.next(createdAtNotRelevantInstant, inputInstant, UTC);
             Instant expectedInstant = LocalDateTime.parse(expectedResult, dateTimeFormatter).toInstant(UTC);
 
             assertThat(actualInstant)
@@ -54,14 +54,14 @@ class CronExpressionTest {
         int daysToAdd = hour >= 24 ? 1 : 0;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), UTC).getInstant();
+        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), UTC);
 
         Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
-    // github issue 31
+    // GitHub issue 31
     @Test
     void dailyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -73,30 +73,30 @@ class CronExpressionTest {
             minute = minute - 1;
         }
 
-        Instant nextRun = CronExpression.create(Cron.daily(hour, minute)).next(Instant.now(), ZoneOffset.of("+02:00")).getInstant();
+        Instant nextRun = CronExpression.create(Cron.daily(hour, minute)).next(Instant.now(), ZoneOffset.of("+02:00"));
         Instant expectedNextRun = now().plusDays(1).withHour(hour).withMinute(minute).withSecond(0).withNano(0).atZone(ZoneOffset.of("+02:00")).toInstant();
         assertThat(nextRun)
                 .isAfter(Instant.now())
                 .isEqualTo(expectedNextRun);
     }
 
-    // github issue 31
+    // GitHub issue 31
     @Test
     void minutelyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
         int nextMinute = localDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneOffset.of("+02:00")).getInstant();
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneOffset.of("+02:00"));
         assertThat(nextRun).isAfter(Instant.now());
     }
 
-    // github issue 75
+    // GitHub issue 75
     @Test
     void cronExpressionCanBeUsedWithNegativeOffsetTimeZones() {
         OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("America/New_York"));
         int nextMinute = offsetDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneId.of("America/New_York")).getInstant();
+        Instant nextRun = CronExpression.create(Cron.hourly(nextMinute)).next(Instant.now(), ZoneId.of("America/New_York"));
         assertThat(nextRun)
                 .isAfter(Instant.now())
                 .isBefore(now().toLocalDate().plusDays(1).atStartOfDay().toInstant(UTC));
@@ -108,16 +108,15 @@ class CronExpressionTest {
         int hour = now().getHour() + 1;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault()).getInstant();
+        Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault());
         Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(HOURS).toInstant();
-        ;
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
     @Test
     void cronExpressionsCanBeMappedToOtherZonePart2() {
-        Instant actualNextInstant = CronExpression.create(Cron.hourly()).next(Instant.now(), systemDefault()).getInstant();
+        Instant actualNextInstant = CronExpression.create(Cron.hourly()).next(Instant.now(), systemDefault());
 
         Instant expectedNextInstant = now().plusHours(1).withMinute(0).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
@@ -126,7 +125,7 @@ class CronExpressionTest {
 
     @Test
     void cronExpressionsCanBeMappedToOtherZonePart3() {
-        Instant actualNextInstant = CronExpression.create(Cron.minutely()).next(Instant.now(), UTC).getInstant();
+        Instant actualNextInstant = CronExpression.create(Cron.minutely()).next(Instant.now(), UTC);
 
         Instant expectedNextInstant = now().plusMinutes(1).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
@@ -716,7 +715,7 @@ class CronExpressionTest {
                 arguments("0 0 0 29 2 4", "2019-01-01 00:00:00", "2019-02-07 00:00:00"),
                 arguments("0 0 0 29 2 5", "2019-01-01 00:00:00", "2019-02-01 00:00:00"),
 
-                // github issue 31
+                // GitHub issue 31
                 arguments("36 9 * * *", "2020-09-08 09:40:00", "2020-09-09 09:36:00"),
 
                 // last day of month

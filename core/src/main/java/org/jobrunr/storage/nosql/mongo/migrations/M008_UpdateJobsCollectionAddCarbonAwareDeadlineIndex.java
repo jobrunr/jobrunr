@@ -4,12 +4,15 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import org.bson.Document;
-import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Indexes.compoundIndex;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 
@@ -21,7 +24,10 @@ public class M008_UpdateJobsCollectionAddCarbonAwareDeadlineIndex extends MongoM
 
         // idx for awaiting jobs that need to be fetched by JobZooKeeper ProcessCarbonAwareAwaitingJobsTask
         createIndex(jobCollection,
-                compoundIndex(ascending(StorageProviderUtils.Jobs.FIELD_CARBON_AWARE_DEADLINE)),
-                new IndexOptions().name("carbonAwareDeadlinePartialIdx").partialFilterExpression(eq(FIELD_STATE, StateName.AWAITING.name())));
+                compoundIndex(ascending(FIELD_STATE), ascending(FIELD_DEADLINE)),
+                new IndexOptions()
+                        .name("carbonAwareDeadlinePartialIdx")
+                        .partialFilterExpression(and(eq(FIELD_STATE, AWAITING.name()), exists(FIELD_DEADLINE)))
+        );
     }
 }

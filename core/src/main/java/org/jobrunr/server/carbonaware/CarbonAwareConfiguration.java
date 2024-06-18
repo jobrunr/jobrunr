@@ -1,28 +1,31 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import java.time.Duration;
 
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrl;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrl;
 
+// TODO should we rename carbonAwareApi to carbonIntensityApi?
+// TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_AWARE_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io");
+    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io/carbon-intensity");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 
-     String carbonAwareApiUrl = DEFAULT_CARBON_AWARE_API_URL;
-     String areaCode;
-     String state;
-     String cloudProvider;
-     String cloudRegion;
-     Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
-     Duration apiClientReadTimeout = DEFAULT_CLIENT_API_READ_TIMEOUT;
+    String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL; // TODO should this be configurable
+    String areaCode;
+    String state;
+    String cloudProvider;
+    String cloudRegion;
+    int carbonIntensityApiVersion;
+    Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
+    Duration apiClientReadTimeout = DEFAULT_CLIENT_API_READ_TIMEOUT;
 
     private CarbonAwareConfiguration() {
     }
 
     /**
-     * This returns the default carbon aware configuration to schedule jobs with the least amount of Carbon emissions
+     * This returns the default carbon aware configuration to schedule jobs at low carbon emission moments
      *
      * @return the default CarbonAware configuration
      */
@@ -59,10 +62,18 @@ public class CarbonAwareConfiguration {
     }
 
     /**
-     * Allows to set the CarbonAware API URL
+     * Allows to set the carbon intensity API URL
      */
-    public CarbonAwareConfiguration andCarbonAwareApiUrl(String carbonAwareApiUrl) {
-        this.carbonAwareApiUrl = carbonAwareApiUrl;
+    public CarbonAwareConfiguration andCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
+        this.carbonIntensityApiUrl = carbonIntensityApiUrl;
+        return this;
+    }
+
+    /**
+     * Allows to set the carbon intensity API version
+     */
+    public CarbonAwareConfiguration andCarbonIntensityApiVersion(int carbonIntensityApiVersion) {
+        this.carbonIntensityApiVersion = carbonIntensityApiVersion;
         return this;
     }
 

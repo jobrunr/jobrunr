@@ -11,10 +11,10 @@ import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,5 +1,6 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.server.carbonaware;
 
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

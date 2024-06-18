@@ -21,7 +21,22 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.*;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_DELETED_JOBS_AFTER;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_DELETE_SUCCEEDED_JOBS_AFTER;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_ID;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_CPU_LOAD;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_FREE_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_MAX_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_CPU_LOAD;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_FREE_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_SYSTEM_TOTAL_MEMORY;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_WORKER_POOL_SIZE;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.utils.reflection.ReflectionUtils.autobox;
 
@@ -77,7 +92,7 @@ public class ElasticSearchDocumentMapper {
         }
         if (job.hasState(StateName.AWAITING)) {
             final Instant instant = job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(CarbonAwareAwaitingState::getTo).orElseThrow(IllegalStateException::new);
-            map.put(Jobs.FIELD_CARBON_AWARE_DEADLINE, instant.toEpochMilli());
+            map.put(Jobs.FIELD_DEADLINE, instant.toEpochMilli());
         }
         if (job.getRecurringJobId().isPresent()) {
             map.put(Jobs.FIELD_RECURRING_JOB_ID, job.getRecurringJobId().get());

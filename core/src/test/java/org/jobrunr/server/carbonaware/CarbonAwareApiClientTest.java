@@ -1,5 +1,6 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.server.carbonaware;
 
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

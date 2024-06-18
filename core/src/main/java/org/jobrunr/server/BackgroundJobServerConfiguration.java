@@ -22,7 +22,7 @@ public class BackgroundJobServerConfiguration {
     public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
     public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
     public static final Duration DEFAULT_INTERRUPT_JOBS_AWAIT_DURATION_ON_STOP_BACKGROUND_JOB_SERVER = Duration.ofSeconds(10);
-    int carbonAwaitingJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
+    int carbonAwareAwaitingJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
@@ -145,11 +145,12 @@ public class BackgroundJobServerConfiguration {
 
     /**
      * Allows to set the maximum number of jobs to update from awaiting to scheduled state every X hours.
+     *
      * @param awaitingJobRequestSize maximum number of jobs to update
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andCarbonAwaitingJobsRequestSize(int awaitingJobRequestSize) {
-        this.carbonAwaitingJobsRequestSize = awaitingJobRequestSize;
+        this.carbonAwareAwaitingJobsRequestSize = awaitingJobRequestSize;
         return this;
     }
 

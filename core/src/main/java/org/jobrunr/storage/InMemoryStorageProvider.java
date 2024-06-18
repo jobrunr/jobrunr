@@ -162,7 +162,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
         return getJobsStream(AWAITING, amountRequest)
-                .filter(job -> ((CarbonAwareAwaitingState) job.getJobState()).getTo().isBefore(deadline))
+                .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState && ((CarbonAwareAwaitingState) job.getJobState()).getTo().isBefore(deadline))
                 .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
                 .limit(amountRequest.getLimit())
                 .map(this::deepClone)

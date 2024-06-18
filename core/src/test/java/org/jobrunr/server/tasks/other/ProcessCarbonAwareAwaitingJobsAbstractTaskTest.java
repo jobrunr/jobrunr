@@ -1,8 +1,8 @@
 package org.jobrunr.server.tasks.other;
 
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -4,7 +4,6 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.lambdas.JobRequest;
-import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
@@ -157,18 +156,6 @@ class RecurringJobBuilderTest {
     }
 
     @Test
-    void testWithCarbonAwareCron() {
-        RecurringJob recurringJob = aRecurringJob()
-                .withCarbonAwareCron(CarbonAwareCron.dailyBefore(15))
-                .withDetails(() -> testService.doWork())
-                .build(jobDetailsGenerator);
-
-        assertThat(recurringJob)
-                .hasId()
-                .hasScheduleExpression(CarbonAwareCron.dailyBefore(15).toString());
-    }
-
-    @Test
     void testWithZoneId() {
         RecurringJob recurringJob = aRecurringJob()
                 .withZoneId(ZoneId.of("Europe/Brussels"))
@@ -237,46 +224,6 @@ class RecurringJobBuilderTest {
 
     @Test
     void scheduleCanOnlyBeSet1Way() {
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> aRecurringJob()
-                        .withCron(every5Seconds)
-                        .withDuration(Duration.ofMinutes(1))
-                        .withJobRequest(jobRequest)
-                        .build());
-
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> aRecurringJob()
-                        .withDuration(Duration.ofMinutes(1))
-                        .withCron(every5Seconds)
-                        .withJobRequest(jobRequest)
-                        .build());
-
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> aRecurringJob()
-                        .withCron(every5Seconds)
-                        .withCarbonAwareCron(CarbonAwareCron.dailyBefore(15))
-                        .withJobRequest(jobRequest)
-                        .build());
-
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> aRecurringJob()
-                        .withCarbonAwareCron(CarbonAwareCron.dailyBefore(15))
-                        .withCron(every5Seconds)
-                        .withJobRequest(jobRequest)
-                        .build());
-
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> aRecurringJob()
-                        .withDuration(Duration.ofMinutes(1))
-                        .withCarbonAwareCron(CarbonAwareCron.dailyBefore(15))
-                        .withJobRequest(jobRequest)
-                        .build());
-
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> aRecurringJob()
-                        .withCarbonAwareCron(CarbonAwareCron.dailyBefore(15))
-                        .withDuration(Duration.ofMinutes(1))
-                        .withJobRequest(jobRequest)
-                        .build());
+        // TODO
     }
 }

@@ -13,8 +13,8 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.stubs.TestService;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.resilience.Lock;
 import org.mockito.internal.util.reflection.Whitebox;
 

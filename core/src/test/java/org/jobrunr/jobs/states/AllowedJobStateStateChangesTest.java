@@ -17,37 +17,37 @@ class AllowedJobStateStateChangesTest {
 
     @Test
     void testAllowedStatesFromAwaiting() {
+        assertThat(isAllowedStateChange(AWAITING, AWAITING)).isTrue();
         assertThat(isAllowedStateChange(AWAITING, SCHEDULED)).isTrue();
         assertThat(isAllowedStateChange(AWAITING, ENQUEUED)).isTrue();
-        assertThat(isAllowedStateChange(AWAITING, FAILED)).isTrue();
-        assertThat(isAllowedStateChange(AWAITING, SUCCEEDED)).isTrue();
         assertThat(isAllowedStateChange(AWAITING, DELETED)).isTrue();
 
-        assertThat(isIllegalStateChange(AWAITING, AWAITING)).isTrue();
         assertThat(isIllegalStateChange(AWAITING, PROCESSING)).isTrue();
+        assertThat(isIllegalStateChange(AWAITING, SUCCEEDED)).isTrue();
+        assertThat(isIllegalStateChange(AWAITING, FAILED)).isTrue();
     }
 
     @Test
     void testAllowedStatesFromScheduled() {
+        assertThat(isAllowedStateChange(SCHEDULED, AWAITING)).isTrue();
         assertThat(isAllowedStateChange(SCHEDULED, SCHEDULED)).isTrue();
         assertThat(isAllowedStateChange(SCHEDULED, ENQUEUED)).isTrue();
         assertThat(isAllowedStateChange(SCHEDULED, FAILED)).isTrue();
         assertThat(isAllowedStateChange(SCHEDULED, SUCCEEDED)).isTrue();
         assertThat(isAllowedStateChange(SCHEDULED, DELETED)).isTrue();
 
-        assertThat(isIllegalStateChange(SCHEDULED, AWAITING)).isTrue();
         assertThat(isIllegalStateChange(SCHEDULED, PROCESSING)).isTrue();
     }
 
     @Test
     void testAllowedStatesFromEnqueued() {
+        assertThat(isAllowedStateChange(ENQUEUED, AWAITING)).isTrue();
         assertThat(isAllowedStateChange(ENQUEUED, SCHEDULED)).isTrue();
         assertThat(isAllowedStateChange(ENQUEUED, PROCESSING)).isTrue();
         assertThat(isAllowedStateChange(ENQUEUED, SUCCEEDED)).isTrue();
         assertThat(isAllowedStateChange(ENQUEUED, FAILED)).isTrue();
         assertThat(isAllowedStateChange(ENQUEUED, DELETED)).isTrue();
 
-        assertThat(isIllegalStateChange(ENQUEUED, AWAITING)).isTrue();
         assertThat(isIllegalStateChange(ENQUEUED, ENQUEUED)).isTrue();
     }
 

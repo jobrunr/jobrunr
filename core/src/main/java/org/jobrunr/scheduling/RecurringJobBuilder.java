@@ -8,7 +8,6 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
-import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 
@@ -18,6 +17,8 @@ import java.util.Set;
 
 import static java.time.ZoneId.systemDefault;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+
+// TODO cleanup
 
 /**
  * This class is used to build a {@link RecurringJob} using a job lambda or a {@link JobRequest}.
@@ -184,21 +185,6 @@ public class RecurringJobBuilder {
             throw new IllegalArgumentException("A schedule has already been provided.");
         }
         this.schedule = new Interval(duration);
-        return this;
-    }
-
-    /**
-     * Allows to specify the {@link CarbonAwareCronExpression} that will be used to create the recurringJobs when carbon emissions are the lowest.
-     * {@link CarbonAwareCronExpression} is a normal cron + allowed duration before + allowed duration after the cron expression.
-     *
-     * @param carbonAwareCron the carbon-aware cron that will be used to create the recurringJobs.
-     * @return the same builder instance which provides a fluent api
-     */
-    public RecurringJobBuilder withCarbonAwareCron(CarbonAwareCronExpression carbonAwareCron) {
-        if (this.schedule != null) {
-            throw new IllegalArgumentException("A schedule has already been provided.");
-        }
-        this.schedule = carbonAwareCron;
         return this;
     }
 

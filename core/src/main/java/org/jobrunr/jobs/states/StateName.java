@@ -4,7 +4,7 @@ import java.util.function.Predicate;
 
 public enum StateName {
 
-    AWAITING, /** Used for Carbon Aware Jobs **/
+    AWAITING,
     SCHEDULED,
     ENQUEUED,
     PROCESSING,

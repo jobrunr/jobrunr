@@ -6,7 +6,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
-import org.jobrunr.scheduling.cron.CarbonAwareCron;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -19,14 +18,12 @@ import org.jobrunr.stubs.TestJobRequestThatTakesLong;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestMDCJobRequest;
 import org.jobrunr.utils.annotations.Because;
-import org.jobrunr.utils.carbonaware.CarbonAwarePeriod;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -50,7 +47,6 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -283,17 +279,6 @@ public class BackgroundJobByJobRequestTest {
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
-    }
-
-    @Test
-    void testCarbonAwareRecurringJobWithId_whenFromInTheFuture_shouldStayAwaiting() {
-        BackgroundJobRequest.scheduleRecurrently("theId", CarbonAwareCron.monthly((LocalDate.now().getDayOfMonth() + 10) % 31, 0, 1, 1), systemDefault(), new TestJobRequest("from testCarbonAwareRecurringJobWithId_whenNoDataAvailableAndStartIsAfterNow_scheduleAtStart"));
-        await().atMost(ofSeconds(2)).until(() -> storageProvider.countJobs(AWAITING) == 1);
-
-        final Job job = storageProvider.getJobList(AWAITING, ascOnUpdatedAt(1)).get(0);
-        assertThat(job)
-                .hasStates(AWAITING)
-                .isAwaitingWithPeriod(CarbonAwarePeriod.between(LocalDate.now().plusDays(9), LocalDate.now().plusDays(11)));
     }
 
     @Test

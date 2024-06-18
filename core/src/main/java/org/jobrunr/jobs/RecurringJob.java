@@ -1,16 +1,12 @@
 package org.jobrunr.jobs;
 
-import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.scheduling.RecurringJobNextRun;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
-import org.jobrunr.scheduling.cron.CarbonAwareCronExpression;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
-import org.jobrunr.utils.carbonaware.CarbonAwareJobManager;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -92,22 +88,19 @@ public class RecurringJob extends AbstractJob {
     public List<Job> toJobsWith1FutureRun(Instant from, Instant now) {
         if (from.isAfter(now)) return emptyList();
 
+        // TODO if schedule is carbon aware add CarbonAwareAwaitingState
+
         List<Job> jobs = new ArrayList<>();
-        RecurringJobNextRun nextRun = getNextRun(from);
-        if (nextRun.isInstant()) {
-            Instant nextRunInstant = nextRun.getInstant();
-            while (nextRunInstant.isBefore(now)) {
-                jobs.add(toJob(new ScheduledState(nextRunInstant, this)));
-                nextRunInstant = getNextRun(nextRunInstant).getInstant();
-            }
-            // add 1 more job
-            jobs.add(toJob(new ScheduledState(nextRunInstant, this)));
+
+        Instant nextRun = getNextRun(from);
+        while (nextRun.isBefore(now)) {
+            jobs.add(toJob(new ScheduledState(nextRun, this)));
+            nextRun = getNextRun(nextRun);
         }
-        if (nextRun.isCarbonAwarePeriod()) {
-            Job awaitingJob = toJob(new CarbonAwareAwaitingState(nextRun.getCarbonAwarePeriod()));
-            CarbonAwareJobManager.getInstance().moveToNextState(awaitingJob);
-            jobs.add(awaitingJob);
-        }
+
+        // add 1 more job
+        jobs.add(toJob(new ScheduledState(nextRun, this)));
+
         return jobs;
     }
 
@@ -115,11 +108,11 @@ public class RecurringJob extends AbstractJob {
         return toJob(new EnqueuedState());
     }
 
-    public RecurringJobNextRun getNextRun() {
+    public Instant getNextRun() {
         return getNextRun(Instant.now());
     }
 
-    public RecurringJobNextRun getNextRun(Instant sinceInstant) {
+    public Instant getNextRun(Instant sinceInstant) {
         return ScheduleExpressionType
                 .getSchedule(scheduleExpression)
                 .next(createdAt, sinceInstant, ZoneId.of(zoneId));
@@ -163,11 +156,8 @@ public class RecurringJob extends AbstractJob {
     public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
         Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        if (schedule instanceof CarbonAwareCronExpression) {
-            return Duration.ofHours(1); //why: we can't know the exact duration between carbon-aware awaiting jobs and we don't care. Just put a duration that does not cause problems
-        }
-        Instant run1 = schedule.next(base, base, ZoneOffset.UTC).getInstant();
-        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC).getInstant();
+        Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
+        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
         return between(run1, run2);
     }
 }
