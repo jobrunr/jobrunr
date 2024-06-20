@@ -7,7 +7,6 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
 
@@ -373,7 +372,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      */
     public String scheduleRecurrently(String id, String cron, ZoneId zoneId, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
-        return scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+        return scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(cron), zoneId);
     }
 
     /**

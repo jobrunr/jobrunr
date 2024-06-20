@@ -68,7 +68,7 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
         if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
             return new JobRequestScheduler(storageProvider, emptyList());
         }

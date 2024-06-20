@@ -8,9 +8,9 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.LogAllStateChangesFilter;
@@ -793,7 +793,7 @@ public abstract class StorageProviderTest {
     void testCRUDRecurringJobLifeCycle() {
         assertThat(storageProvider.recurringJobsUpdated(0L)).isFalse();
 
-        RecurringJob recurringJobv1 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.daily()), ZoneId.systemDefault());
+        RecurringJob recurringJobv1 = new RecurringJob("my-job", defaultJobDetails().build(), ScheduleExpressionType.getSchedule(Cron.daily()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv1);
         assertThat(storageProvider.recurringJobsUpdated(0L)).isTrue();
         RecurringJobsResult recurringJobsResult1 = storageProvider.getRecurringJobs();
@@ -801,7 +801,7 @@ public abstract class StorageProviderTest {
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult1.getLastModifiedHash())).isFalse());
 
 
-        RecurringJob recurringJobv2 = new RecurringJob("my-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
+        RecurringJob recurringJobv2 = new RecurringJob("my-job", defaultJobDetails().build(), ScheduleExpressionType.getSchedule(Cron.hourly()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(recurringJobv2);
 
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult1.getLastModifiedHash())).isTrue());
@@ -809,9 +809,9 @@ public abstract class StorageProviderTest {
         assertThat(recurringJobsResult2).hasSize(1);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult2.getLastModifiedHash())).isFalse());
 
-        assertThat(storageProvider.getRecurringJobs().get(0).getScheduleExpression().toString()).isEqualTo(Cron.hourly());
+        assertThat(storageProvider.getRecurringJobs().get(0).getScheduleExpression()).isEqualTo(Cron.hourly());
 
-        RecurringJob otherRecurringJob = new RecurringJob("my-other-job", defaultJobDetails().build(), CronExpression.create(Cron.hourly()), ZoneId.systemDefault());
+        RecurringJob otherRecurringJob = new RecurringJob("my-other-job", defaultJobDetails().build(), ScheduleExpressionType.getSchedule(Cron.hourly()), ZoneId.systemDefault());
         storageProvider.saveRecurringJob(otherRecurringJob);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult2.getLastModifiedHash())).isTrue());
         RecurringJobsResult recurringJobsResult3 = storageProvider.getRecurringJobs();

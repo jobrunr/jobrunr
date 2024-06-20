@@ -9,7 +9,7 @@ public enum ScheduleExpressionType {
     CRON_EXPRESSION {
         @Override
         public Schedule createSchedule(String scheduleExpression) {
-            return CronExpression.create(scheduleExpression);
+            return new CronExpression(scheduleExpression);
         }
     },
     INTERVAL {

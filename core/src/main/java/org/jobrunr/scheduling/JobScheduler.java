@@ -12,7 +12,6 @@ import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
 
@@ -605,7 +604,7 @@ public class JobScheduler extends AbstractJobScheduler {
      */
     public String scheduleRecurrently(String id, String cron, ZoneId zoneId, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
-        return scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+        return scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(cron), zoneId);
     }
 
     /**
@@ -624,7 +623,7 @@ public class JobScheduler extends AbstractJobScheduler {
      */
     public <S> String scheduleRecurrently(String id, String cron, ZoneId zoneId, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
-        return scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
+        return scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(cron), zoneId);
     }
 
     /**

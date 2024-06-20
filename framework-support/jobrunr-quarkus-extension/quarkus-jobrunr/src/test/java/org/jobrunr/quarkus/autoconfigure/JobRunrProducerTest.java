@@ -93,28 +93,28 @@ class JobRunrProducerTest {
     void jobSchedulerIsNotSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider, null)).isNull();
+        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNull();
     }
 
     @Test
     void jobSchedulerIsSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider, null)).isNotNull();
+        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNotNull();
     }
 
     @Test
     void jobRequestSchedulerIsNotSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, null)).isNull();
+        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNull();
     }
 
     @Test
     void jobRequestSchedulerIsSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, null)).isNotNull();
+        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
     }
 
     @Test

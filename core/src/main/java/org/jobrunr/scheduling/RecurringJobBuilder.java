@@ -170,7 +170,7 @@ public class RecurringJobBuilder {
         if (this.schedule != null) {
             throw new IllegalArgumentException("A schedule has already been provided.");
         }
-        this.schedule = CronExpression.create(cron);
+        this.schedule = ScheduleExpressionType.getSchedule(cron);
         return this;
     }
 

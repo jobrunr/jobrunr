@@ -9,14 +9,13 @@ import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Recurring;
-import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.ZoneId;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -32,12 +31,9 @@ public class JobRunrRecurringJobRecorder {
         String optionalCronExpression = getCronExpression(cron);
         String optionalInterval = getInterval(interval);
 
-        if (StringUtils.isNullOrEmpty(cron) && StringUtils.isNullOrEmpty(optionalInterval))
-            throw new IllegalArgumentException("Either cron or interval attribute is required.");
-        if (StringUtils.isNotNullOrEmpty(cron) && StringUtils.isNotNullOrEmpty(optionalInterval))
-            throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
+        String scheduleExpression = getScheduleExpression(optionalCronExpression, optionalInterval);
 
-        if (Recurring.RECURRING_JOB_DISABLED.equals(optionalCronExpression) || Recurring.RECURRING_JOB_DISABLED.equals(optionalInterval)) {
+        if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
             if (isNullOrEmpty(jobId)) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
@@ -46,12 +42,16 @@ public class JobRunrRecurringJobRecorder {
         } else {
             JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);
             jobDetails.setCacheable(true);
-            if (isNotNullOrEmpty(optionalCronExpression)) {
-                scheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(optionalCronExpression), getZoneId(zoneId));
-            } else {
-                scheduler.scheduleRecurrently(id, jobDetails, new Interval(optionalInterval), getZoneId(zoneId));
-            }
+            scheduler.scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), getZoneId(zoneId));
         }
+    }
+
+    private static String getScheduleExpression(String cron, String interval) {
+        List<String> validScheduleExpressions = Stream.of(cron, interval).filter(StringUtils::isNotNullOrEmpty).toList();
+        int count = validScheduleExpressions.size();
+        if (count == 0) throw new IllegalArgumentException("Either cron or interval attribute is required.");
+        if (count > 1) throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
+        return validScheduleExpressions.get(0);
     }
 
     private static String getId(String id) {
