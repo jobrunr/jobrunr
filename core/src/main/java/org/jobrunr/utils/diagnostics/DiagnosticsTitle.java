@@ -2,8 +2,8 @@ package org.jobrunr.utils.diagnostics;
 
 public class DiagnosticsTitle implements DiagnosticsItem {
 
-    private int level;
-    private String title;
+    private final int level;
+    private final String title;
 
     public DiagnosticsTitle(String title) {
         this(0, title);

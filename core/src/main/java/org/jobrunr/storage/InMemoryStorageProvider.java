@@ -130,7 +130,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .filter(entry -> entry.getValue().getLastHeartbeat().isBefore(heartbeatOlderThan))
                 .map(Map.Entry::getKey)
                 .collect(toList());
-        backgroundJobServers.keySet().removeAll(serversToRemove);
+        serversToRemove.forEach(backgroundJobServers.keySet()::remove);
         return serversToRemove.size();
     }
 
@@ -197,7 +197,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .map(JobRunrMetadata::getId)
                 .collect(toList());
         if (!metadataToRemove.isEmpty()) {
-            this.metadata.keySet().removeAll(metadataToRemove);
+            metadataToRemove.forEach(this.metadata.keySet()::remove);
             notifyMetadataChangeListeners();
         }
     }
@@ -233,7 +233,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .filter(job -> job.getUpdatedAt().isBefore(updatedBefore))
                 .map(Job::getId)
                 .collect(toList());
-        jobQueue.keySet().removeAll(jobsToRemove);
+        jobsToRemove.forEach(jobQueue.keySet()::remove);
         notifyJobStatsOnChangeListenersIf(!jobsToRemove.isEmpty());
         return jobsToRemove.size();
     }
