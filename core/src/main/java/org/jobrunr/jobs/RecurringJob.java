@@ -79,14 +79,14 @@ public class RecurringJob extends AbstractJob {
     }
 
     /**
-     * Creates all jobs that must be scheduled between the given start and end time.
+     * Creates all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
      *
-     * @param from the start time from which to create Scheduled Jobs
-     * @param now  current time
-     * @return creates all jobs that must be scheduled
+     * @param from the start of the time interval from which to create Scheduled Jobs
+     * @param upTo the end of the time interval (not included)
+     * @return All jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
      */
-    public List<Job> toJobsWith1FutureRun(Instant from, Instant now) {
-        if (from.isAfter(now)) return emptyList();
+    public List<Job> toJobsWith1FutureRun(Instant from, Instant upTo) {
+        if (from.isAfter(upTo)) return emptyList();
 
         List<Job> jobs = new ArrayList<>();
 
@@ -94,7 +94,7 @@ public class RecurringJob extends AbstractJob {
         ZoneId zoneId = ZoneId.of(this.zoneId);
 
         Instant nextRun = schedule.next(createdAt, from, zoneId);
-        while (nextRun.isBefore(now)) {
+        while (nextRun.isBefore(upTo)) {
             jobs.add(toJob(toJobState(schedule, nextRun)));
             nextRun = schedule.next(createdAt, nextRun, zoneId);
         }
