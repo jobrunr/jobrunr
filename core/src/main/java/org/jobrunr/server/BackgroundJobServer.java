@@ -63,6 +63,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
     private final DashboardNotificationManager dashboardNotificationManager;
+    private final CarbonAwareJobManager carbonAwareJobManager;
     private final JsonMapper jsonMapper;
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final JobDefaultFilters jobDefaultFilters;
@@ -73,7 +74,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
     private final BackgroundJobServerLifecycleLock lifecycleLock;
     private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
-    private final CarbonAwareJobManager carbonAwareJobManager;
     private volatile Instant firstHeartbeat;
     private volatile boolean isRunning;
     private volatile Boolean isMaster;
@@ -256,6 +256,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public DashboardNotificationManager getDashboardNotificationManager() {
         return dashboardNotificationManager;
+    }
+
+    public CarbonAwareJobManager getCarbonAwareJobManager() {
+        return carbonAwareJobManager;
     }
 
     public JsonMapper getJsonMapper() {

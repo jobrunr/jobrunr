@@ -1,9 +1,12 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.scheduling.Schedule.CarbonAwareScheduleMargin;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -78,6 +81,23 @@ class CarbonAwareScheduleMarginTest {
         assertThat(carbonAwareScheduleMargin3.getMarginBefore()).isEqualTo(Duration.ZERO);
         assertThat(carbonAwareScheduleMargin3.getMarginAfter()).isEqualTo(Duration.ofHours(4));
 
+    }
+
+    @Test
+    void toCarbonAwareAwaitingState() {
+        CarbonAwareScheduleMargin carbonAwareScheduleMargin = margin(Duration.ofHours(2), Duration.ofHours(10));
+
+        Instant now = Instant.now();
+        assertThat(carbonAwareScheduleMargin.toCarbonAwareAwaitingState(now))
+                .usingRecursiveComparison()
+                .ignoringFields("createdAt")
+                .isEqualTo(new CarbonAwareAwaitingState(now, now.minus(Duration.ofHours(2)), now.plus(Duration.ofHours(10))));
+
+        Instant twoDaysLater = Instant.now().plus(2, ChronoUnit.DAYS);
+        assertThat(carbonAwareScheduleMargin.toCarbonAwareAwaitingState(twoDaysLater))
+                .usingRecursiveComparison()
+                .ignoringFields("createdAt")
+                .isEqualTo(new CarbonAwareAwaitingState(twoDaysLater, twoDaysLater.minus(Duration.ofHours(2)), twoDaysLater.plus(Duration.ofHours(10))));
     }
 
     @Test

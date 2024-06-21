@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.time.Duration;
@@ -158,6 +159,10 @@ public abstract class Schedule implements Comparable<Schedule> {
 
         public Duration getMarginAfter() {
             return marginAfter;
+        }
+
+        public CarbonAwareAwaitingState toCarbonAwareAwaitingState(Instant scheduleAt) {
+            return new CarbonAwareAwaitingState(scheduleAt, scheduleAt.minus(marginBefore), scheduleAt.plus(marginAfter));
         }
 
         public String toScheduleExpression() {

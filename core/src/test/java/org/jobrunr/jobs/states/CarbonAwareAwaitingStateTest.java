@@ -54,7 +54,7 @@ class CarbonAwareAwaitingStateTest {
     }
 
     @Test
-    void whenMoveToNextState_withInvalidJobState_shouldThrowException() {
+    void moveToNextStateWithInvalidJobStateShouldThrowException() {
         Instant deadline = Instant.now().plus(5, HOURS);
         Instant idealMoment = deadline.minus(1, HOURS);
         CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState();

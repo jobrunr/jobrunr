@@ -88,18 +88,19 @@ public class RecurringJob extends AbstractJob {
     public List<Job> toJobsWith1FutureRun(Instant from, Instant now) {
         if (from.isAfter(now)) return emptyList();
 
-        // TODO if schedule is carbon aware add CarbonAwareAwaitingState
-
         List<Job> jobs = new ArrayList<>();
 
-        Instant nextRun = getNextRun(from);
+        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
+        ZoneId zoneId = ZoneId.of(this.zoneId);
+
+        Instant nextRun = schedule.next(createdAt, from, zoneId);
         while (nextRun.isBefore(now)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = getNextRun(nextRun);
+            jobs.add(toJob(toJobState(schedule, nextRun)));
+            nextRun = schedule.next(createdAt, nextRun, zoneId);
         }
 
         // add 1 more job
-        jobs.add(toJob(new ScheduledState(nextRun, this)));
+        jobs.add(toJob(toJobState(schedule, nextRun)));
 
         return jobs;
     }
@@ -140,6 +141,13 @@ public class RecurringJob extends AbstractJob {
         job.setAmountOfRetries(getAmountOfRetries());
         job.setLabels(getLabels());
         return job;
+    }
+
+    private JobState toJobState(Schedule schedule, Instant scheduleAt) {
+        if (schedule.isCarbonAware()) {
+            return schedule.getCarbonAwareScheduleMargin().toCarbonAwareAwaitingState(scheduleAt);
+        }
+        return new ScheduledState(scheduleAt, this);
     }
 
     @Override

@@ -2,11 +2,14 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -21,9 +24,12 @@ import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR;
+import static org.mockito.InstantMocker.mockTime;
 
 class RecurringJobTest {
 
@@ -62,7 +68,23 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToJobsWith1FutureWithMissedRunsShouldCreateMultipleJobs() {
+    void testToScheduledJobWith1FutureRun() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("*/5 * * * * *")
+                .withId("the-recurring-job")
+                .withName("the recurring job")
+                .build();
+
+        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(5));
+
+        assertThatJobs(jobs)
+                .hasSize(2)
+                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
+                .allMatch(job -> job.getState().equals(SCHEDULED));
+    }
+
+    @Test
+    void testToJobsWith1FutureRunWithMissedRunsShouldCreateMultipleJobs() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withCronExpression("*/5 * * * * *")
                 .build();
@@ -70,35 +92,23 @@ class RecurringJobTest {
         Instant from = now().minusSeconds(15);
         final List<Job> jobs = recurringJob.toJobsWith1FutureRun(from, now());
 
-        assertThat(jobs).hasSize(4);
-        ScheduledState scheduledState = jobs.get(0).getJobState();
-        assertThat(scheduledState.getScheduledAt()).isAfter(from);
+        assertThatJobs(jobs).hasSize(4)
+                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals(recurringJob.getId()))
+                .allMatch(job -> job.getState().equals(SCHEDULED))
+                .allMatch(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isAfter(from));
     }
 
     @Test
-    void testToScheduledJobWith1FutureRun() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withId("the-recurring-job")
-                .withName("the recurring job")
-                .build();
+    void testToJobsWith1FutureRunShouldReturnOnly1FutureJobWhenJobScheduleDoesNotFitInTimeWindow() {
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
+            final RecurringJob recurringJob = aDefaultRecurringJob()
+                    .withCronExpression(Cron.weekly())
+                    .build();
 
-        final Job job = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(15)).get(0);
+            final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now(), now());
 
-        assertThat(job)
-                .hasRecurringJobId("the-recurring-job")
-                .hasJobName("the recurring job")
-                .hasState(SCHEDULED);
-    }
-
-    @Test
-    void testToJobsWith1FutureRun_whenJobScheduleDoesNotFitInTimeWindow_shouldReturnOnly1FutureJob() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression(Cron.weekly())
-                .build();
-
-        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now(), now());
-
-        assertThat(jobs).hasSize(1);
+            assertThat(jobs).hasSize(1);
+        }
     }
 
     @Test
@@ -110,6 +120,32 @@ class RecurringJobTest {
         final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now().minusSeconds(15), now().plusSeconds(5));
 
         assertThat(jobs).hasSize(5);
+    }
+
+    @Test
+    void testToJobsWith1FutureRunCorrectlySetsTheInitialState() {
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
+            final RecurringJob classicRecurringJob = aDefaultRecurringJob()
+                    .withCronExpression("*/5 * * * * *")
+                    .build();
+
+            final List<Job> classicJobs = classicRecurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(5));
+
+            assertThatJobs(classicJobs)
+                    .hasSize(2)
+                    .allMatch(job -> job.getJobState() instanceof ScheduledState);
+
+            final RecurringJob carbonAwareRecurringJob = aDefaultRecurringJob()
+                    .withCronExpression(CarbonAware.using(Cron.daily(7), Duration.ofHours(4), Duration.ZERO))
+                    .build();
+
+            final List<Job> carbonAwareRecurringJobs = carbonAwareRecurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(5));
+
+            assertThatJobs(carbonAwareRecurringJobs)
+                    .hasSize(1)
+                    .allMatch(job -> job.getJobState() instanceof CarbonAwareAwaitingState);
+
+        }
     }
 
     @Test
