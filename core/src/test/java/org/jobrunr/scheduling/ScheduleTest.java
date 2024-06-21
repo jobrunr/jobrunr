@@ -43,19 +43,6 @@ class ScheduleTest {
                 .hasMessage("Expected scheduleWithOptionalCarbonAwareScheduleMargin to be non-null and non-empty.");
     }
 
-    @Test
-    void canSetCarbonAwareScheduleMargin() {
-        Schedule schedule = new MyTestSchedule("0 0 * * *");
-
-        assertThat(schedule.isCarbonAware()).isFalse();
-
-        schedule.setCarbonAwareScheduleMargin(CarbonAwareScheduleMargin.after(Duration.ofHours(5)));
-
-        assertThat(schedule.isCarbonAware()).isTrue();
-        assertThat(schedule.getCarbonAwareScheduleMargin().getMarginBefore()).isZero();
-        assertThat(schedule.getCarbonAwareScheduleMargin().getMarginAfter()).isEqualTo(Duration.ofHours(5));
-    }
-
     static class MyTestSchedule extends Schedule {
         public MyTestSchedule(String scheduleWithOptionalCarbonAwareScheduleMargin) {
             super(scheduleWithOptionalCarbonAwareScheduleMargin);

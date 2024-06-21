@@ -62,10 +62,6 @@ public abstract class Schedule implements Comparable<Schedule> {
         return carbonAwareScheduleMargin;
     }
 
-    protected void setCarbonAwareScheduleMargin(CarbonAwareScheduleMargin carbonAwareScheduleMargin) {
-        this.carbonAwareScheduleMargin = carbonAwareScheduleMargin;
-    }
-
     public boolean isCarbonAware() {
         return carbonAwareScheduleMargin != null;
     }
