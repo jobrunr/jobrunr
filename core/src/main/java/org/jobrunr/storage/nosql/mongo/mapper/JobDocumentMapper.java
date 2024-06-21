@@ -10,7 +10,6 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 
@@ -37,10 +36,10 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_CREATED_AT, toMicroSeconds(job.getCreatedAt()));
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
-        if (job.hasState(StateName.SCHEDULED)) {
+        if (job.getJobState() instanceof ScheduledState) {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
         }
-        if (job.hasState(StateName.AWAITING)) {
+        if (job.getJobState() instanceof CarbonAwareAwaitingState) {
             document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(job.<CarbonAwareAwaitingState>getJobState().getTo()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
@@ -53,11 +52,11 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
-        if (job.hasState(StateName.SCHEDULED)) {
-            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
+        if (job.getJobState() instanceof ScheduledState) {
+            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
         }
-        if (job.hasState(StateName.AWAITING)) {
-            document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(((CarbonAwareAwaitingState) job.getJobState()).getTo()));
+        if (job.getJobState() instanceof CarbonAwareAwaitingState) {
+            document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(job.<CarbonAwareAwaitingState>getJobState().getTo()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return new Document("$set", document);

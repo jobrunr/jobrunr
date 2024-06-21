@@ -56,9 +56,9 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
-                .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
+                .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElse(null))
                 .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null))
-                .with(FIELD_DEADLINE, job -> job.hasState(StateName.AWAITING) ? job.<CarbonAwareAwaitingState>getJobState().getTo() : null);
+                .with(FIELD_DEADLINE, job -> job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(CarbonAwareAwaitingState::getTo).orElse(null));
     }
 
     public JobTable withId(UUID id) {
@@ -81,7 +81,7 @@ public class JobTable extends Sql<Job> {
         return this;
     }
 
-    public JobTable withdeadlineBefore(Instant deadlineBefore) {
+    public JobTable withDeadlineBefore(Instant deadlineBefore) {
         with(FIELD_DEADLINE, deadlineBefore);
         return this;
     }
@@ -167,7 +167,7 @@ public class JobTable extends Sql<Job> {
 
     public List<Job> selectCarbonAwareJobsWithDeadlineBefore(Instant deadlineBefore, AmountRequest amountRequest) {
         return withState(StateName.AWAITING)
-                .withdeadlineBefore(deadlineBefore)
+                .withDeadlineBefore(deadlineBefore)
                 .selectJobs("jobAsJson from jobrunr_jobs where state = 'AWAITING' and deadline <= :deadline", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
