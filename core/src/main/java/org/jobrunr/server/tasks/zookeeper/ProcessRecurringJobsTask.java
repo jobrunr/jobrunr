@@ -84,6 +84,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private boolean isAlreadyAwaitingScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
+        // TODO result should be compared to > 1?
         return storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING) > 0;
     }
 

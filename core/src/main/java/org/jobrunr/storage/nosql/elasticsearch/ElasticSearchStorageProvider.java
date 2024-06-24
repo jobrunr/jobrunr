@@ -480,8 +480,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
-        final QueryVariant query = withStateAndFieldBefore(AWAITING, FIELD_DEADLINE, deadline);
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        final QueryVariant query = withStateAndFieldBefore(AWAITING, FIELD_DEADLINE, deadlineBefore);
         return findJobs(query, amountRequest);
     }
 

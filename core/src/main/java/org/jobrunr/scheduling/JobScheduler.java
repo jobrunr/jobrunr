@@ -13,6 +13,7 @@ import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.interval.Interval;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 
 import java.time.Duration;
@@ -42,26 +43,28 @@ public class JobScheduler extends AbstractJobScheduler {
     private final JobDetailsGenerator jobDetailsGenerator;
 
     /**
-     * Creates a new JobScheduler using the provided storageProvider
+     * Creates a new JobScheduler using the provided storageProvider and carbonAwareJobManager
      *
-     * @param storageProvider the storageProvider to use
+     * @param storageProvider       the storageProvider to use
+     * @param carbonAwareJobManager the carbonAwareJobManager to use
      */
-    public JobScheduler(StorageProvider storageProvider) {
-        this(storageProvider, emptyList());
+    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+        this(storageProvider, carbonAwareJobManager, emptyList());
     }
 
     /**
-     * Creates a new JobScheduler using the provided storageProvider and the list of JobFilters that will be used for every background job
+     * Creates a new JobScheduler using the provided storageProvider, carbonAwareJobManager and the list of JobFilters that will be used for every background job
      *
-     * @param storageProvider the storageProvider to use
-     * @param jobFilters      list of jobFilters that will be used for every job
+     * @param storageProvider       the storageProvider to use
+     * @param carbonAwareJobManager the carbonAwareJobManager to use
+     * @param jobFilters            list of jobFilters that will be used for every job
      */
-    public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
+    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+        this(storageProvider, carbonAwareJobManager, new JobDetailsAsmGenerator(), jobFilters);
     }
 
-    public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
-        super(storageProvider, jobFilters);
+    public JobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
+        super(storageProvider, carbonAwareJobManager, jobFilters);
         if (jobDetailsGenerator == null)
             throw new IllegalArgumentException("A JobDetailsGenerator is required to use the JobScheduler.");
         this.jobDetailsGenerator = jobDetailsGenerator;

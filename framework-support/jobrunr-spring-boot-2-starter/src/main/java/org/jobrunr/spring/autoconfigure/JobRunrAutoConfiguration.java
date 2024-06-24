@@ -69,7 +69,7 @@ public class JobRunrAutoConfiguration {
         map.from(carbonAwareProperties::getAreaCode).whenNonNull().to(carbonAwareConfiguration::andAreaCode);
         map.from(carbonAwareProperties::getApiClientConnectTimeoutMs).whenNonNull().to(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
         map.from(carbonAwareProperties::getApiClientReadTimeoutMs).whenNonNull().to(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
-        return CarbonAwareJobManager.getInstance(carbonAwareConfiguration, jobRunrJsonMapper);
+        return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
     }
 
     @Bean
@@ -77,14 +77,14 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties, CarbonAwareJobManager carbonAwareJobManager) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(properties.getJobScheduler().getJobDetailsGenerator());
-        return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
+        return new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, emptyList());
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
-        return new JobRequestScheduler(storageProvider, emptyList());
+        return new JobRequestScheduler(storageProvider, carbonAwareJobManager, emptyList());
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")

@@ -8,7 +8,7 @@ import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getC
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io/carbon-intensity");
+    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 
@@ -48,7 +48,7 @@ public class CarbonAwareConfiguration {
         this.state = state;
         return this;
     }
-    
+
     /**
      * Allows to set the carbon intensity API URL
      */

@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CarbonAwareManagerTest {
-    static final CarbonAwareJobManager defaultCarbonAwareJobManager = CarbonAwareJobManager.getInstance(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());
+    private final CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());
 
     @Test
     void testGetDailyRunTimeShouldGiveResultBetween18And19() {
-        Instant result = defaultCarbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
+        Instant result = carbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
         ZonedDateTime expectedTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
                 .withHour(18).withMinute(0).withSecond(0);
 
@@ -26,15 +26,15 @@ public class CarbonAwareManagerTest {
 
     @Test
     void testGetDailyRunTimeShouldNotGive2ConsecutiveEqualResults() {
-        Instant firstCall = defaultCarbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
-        Instant secondCall = defaultCarbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
+        Instant firstCall = carbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
+        Instant secondCall = carbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
         assertNotEquals(firstCall, secondCall);
     }
 
     @Test
-    void testGetDailyRunTimeShouldGiveResultsin5SecondsBuckets() {
-        Instant firstCall = defaultCarbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
-        Instant secondCall = defaultCarbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
+    void testGetDailyRunTimeShouldGiveResultsIn5SecondsBuckets() {
+        Instant firstCall = carbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
+        Instant secondCall = carbonAwareJobManager.getZookeeperTaskDailyRunTime(18);
         assertEquals(0, firstCall.getEpochSecond() % 5);
         assertEquals(0, secondCall.getEpochSecond() % 5);
     }

@@ -29,19 +29,23 @@ public abstract class AbstractJobScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
     private final StorageProvider storageProvider;
+    private final CarbonAwareJobManager carbonAwareJobManager;
     private final JobFilterUtils jobFilterUtils;
 
     /**
-     * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters that will be used for every background job
+     * Creates a new AbstractJobScheduler using the provided storageProvider, carbonAwareJobManager and the list of JobFilters
+     * that will be used for every background job
      *
-     * @param storageProvider the storageProvider to use
-     * @param jobFilters      list of jobFilters that will be used for every job
+     * @param storageProvider       the storageProvider to use
+     * @param carbonAwareJobManager the carbonAwareJobManager to use
+     * @param jobFilters            list of jobFilters that will be used for every job
      */
-    protected AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
+    protected AbstractJobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
         if (storageProvider == null) {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
         }
         this.storageProvider = storageProvider;
+        this.carbonAwareJobManager = carbonAwareJobManager;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
 
@@ -127,7 +131,7 @@ public abstract class AbstractJobScheduler {
 
     JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
         Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo()));
-        CarbonAwareJobManager.getInstance().moveToNextState(carbonAwareJob);
+        carbonAwareJobManager.moveToNextState(carbonAwareJob);
         return saveJob(carbonAwareJob);
     }
 

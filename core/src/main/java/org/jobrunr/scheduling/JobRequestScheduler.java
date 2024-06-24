@@ -8,6 +8,7 @@ import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.interval.Interval;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 
 import java.time.Duration;
@@ -35,22 +36,24 @@ import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
-     * Creates a new {@link JobRequestScheduler} using the provided {@link StorageProvider}
+     * Creates a new {@link JobRequestScheduler} using the provided {@link StorageProvider} and {@link CarbonAwareJobManager}
      *
-     * @param storageProvider the storageProvider to use
+     * @param storageProvider       the storageProvider to use
+     * @param carbonAwareJobManager the carbonAwareJobManager to use
      */
-    public JobRequestScheduler(StorageProvider storageProvider) {
-        super(storageProvider, emptyList());
+    public JobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+        super(storageProvider, carbonAwareJobManager, emptyList());
     }
 
     /**
-     * Creates a new JobRequestScheduler using the provided {@link StorageProvider} and the list of JobFilters that will be used for every background job
+     * Creates a new JobRequestScheduler using the provided {@link StorageProvider}, {@link CarbonAwareJobManager} and the list of JobFilters that will be used for every background job
      *
-     * @param storageProvider the storageProvider to use
-     * @param jobFilters      list of jobFilters that will be used for every job
+     * @param storageProvider       the storageProvider to use
+     * @param carbonAwareJobManager the carbonAwareJobManager to use
+     * @param jobFilters            list of jobFilters that will be used for every job
      */
-    public JobRequestScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        super(storageProvider, jobFilters);
+    public JobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+        super(storageProvider, carbonAwareJobManager, jobFilters);
         BackgroundJobRequest.setJobRequestScheduler(this);
     }
 

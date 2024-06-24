@@ -8,6 +8,7 @@ import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.cron.Cron;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,8 @@ class JobSchedulerTest {
 
     @Mock
     private StorageProvider storageProvider;
+    @Mock
+    CarbonAwareJobManager carbonAwareJobManager;
 
     private TestService testService;
     private JobScheduler jobScheduler;
@@ -44,7 +47,7 @@ class JobSchedulerTest {
         testService = new TestService();
 
         jobClientLogFilter = new JobClientLogFilter();
-        jobScheduler = new JobScheduler(storageProvider, null, List.of(jobClientLogFilter));
+        jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, List.of(jobClientLogFilter));
     }
 
     @Test

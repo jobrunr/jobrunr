@@ -20,38 +20,18 @@ import static java.time.temporal.ChronoUnit.HOURS;
 
 @Beta(note = "Scheduling logic for CarbonAware jobs might change in the future. Changes will not affect the API and the end user.")
 public class CarbonAwareJobManager {
-    private static volatile CarbonAwareJobManager instance;
-    private static final Object lock = new Object();
-
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
+    
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonAwareApiClient carbonAwareAPIClient;
     private DayAheadEnergyPrices dayAheadEnergyPrices;
     private final Random rand = new Random();
 
-    private CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
+    public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
         this.carbonAwareAPIClient = createCarbonAwareApiClient(jsonMapper);
         Optional<String> areaCode = Optional.ofNullable(this.carbonAwareConfiguration.getAreaCode());
         this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
-    }
-
-    public static CarbonAwareJobManager getInstance(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
-        if (instance == null) {
-            synchronized (lock) {
-                if (instance == null) {
-                    instance = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
-                }
-            }
-        }
-        return instance;
-    }
-
-    public static CarbonAwareJobManager getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("CarbonAwareJobManager has not been initialized yet. Please call getInstance(CarbonAwareConfiguration, JsonMapper) first.");
-        }
-        return instance;
     }
 
     public Instant getZookeeperTaskDailyRunTime(int baseHour) { // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in 1 hour period, in 5 sec buckets

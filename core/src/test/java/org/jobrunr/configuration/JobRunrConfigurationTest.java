@@ -4,7 +4,6 @@ import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
@@ -155,9 +154,21 @@ class JobRunrConfigurationTest {
                         .andAreaCode("DE")
                         .andApiClientConnectTimeout(Duration.ofMillis(1000))
                         .andApiClientReadTimeout(Duration.ofMillis(1000)))
+                .useBackgroundJobServer(4)
                 .initialize();
 
         assertThat(configurationResult.getJobScheduler()).isNotNull();
-        assertThat(CarbonAwareJobManager.getInstance()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getCarbonAwareJobManager()).isNotNull();
+    }
+
+    @Test
+    void initializeWithCarbonAwareSchedulingFailsIfBackgroundJobServerIsAlreadyConfigured() {
+        JobRunrConfiguration jobRunrConfiguration = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(4);
+
+        assertThatCode(() -> jobRunrConfiguration.useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Please configure the CarbonAwareJobManager before the BackgroundJobServer.");
     }
 }

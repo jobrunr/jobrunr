@@ -124,7 +124,7 @@ public class JobRunrConfiguration {
         if (this.backgroundJobServer != null) {
             throw new IllegalStateException("Please configure the CarbonAwareJobManager before the BackgroundJobServer.");
         }
-        this.carbonAwareJobManager = CarbonAwareJobManager.getInstance(carbonAwareConfiguration, jsonMapper);
+        this.carbonAwareJobManager = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
         return this;
     }
 
@@ -349,9 +349,9 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfigurationResult initialize() {
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
-        carbonAwareJobManager = ofNullable(carbonAwareJobManager).orElseGet(() -> CarbonAwareJobManager.getInstance(usingStandardCarbonAwareConfiguration(), jsonMapper));
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
-        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
+        carbonAwareJobManager = ofNullable(carbonAwareJobManager).orElseGet(() -> new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), jsonMapper));
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, jobFilters);
+        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, carbonAwareJobManager, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }
 

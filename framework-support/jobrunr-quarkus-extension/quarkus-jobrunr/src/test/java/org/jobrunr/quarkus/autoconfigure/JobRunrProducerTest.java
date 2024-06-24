@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -65,6 +66,9 @@ class JobRunrProducerTest {
     StorageProvider storageProvider;
 
     @Mock
+    CarbonAwareJobManager carbonAwareJobManager;
+
+    @Mock
     JsonMapper jsonMapper;
 
     @Mock
@@ -93,28 +97,28 @@ class JobRunrProducerTest {
     void jobSchedulerIsNotSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNull();
+        assertThat(jobRunrProducer.jobScheduler(storageProvider, carbonAwareJobManager)).isNull();
     }
 
     @Test
     void jobSchedulerIsSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNotNull();
+        assertThat(jobRunrProducer.jobScheduler(storageProvider, carbonAwareJobManager)).isNotNull();
     }
 
     @Test
     void jobRequestSchedulerIsNotSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNull();
+        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, carbonAwareJobManager)).isNull();
     }
 
     @Test
     void jobRequestSchedulerIsSetupWhenConfigured() {
         when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
+        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider, carbonAwareJobManager)).isNotNull();
     }
 
     @Test

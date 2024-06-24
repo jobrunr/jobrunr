@@ -403,8 +403,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
-    public List<Job> getCarbonAwareJobList(Instant deadline, AmountRequest amountRequest) {
-        return getJobsByKey(carbonAwaitingDeadlineKey(keyPrefix), deadline, amountRequest);
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return getJobsByKey(carbonAwaitingDeadlineKey(keyPrefix), deadlineBefore, amountRequest);
     }
 
     @Override
