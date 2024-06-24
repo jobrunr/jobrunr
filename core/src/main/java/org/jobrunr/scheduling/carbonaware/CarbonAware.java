@@ -1,11 +1,12 @@
 package org.jobrunr.scheduling.carbonaware;
 
 import org.jobrunr.scheduling.Schedule.CarbonAwareScheduleMargin;
+import org.jobrunr.scheduling.cron.Cron;
 
 import java.time.Duration;
 
 public class CarbonAware {
-    
+
     public static String using(String scheduleExpression, Duration marginBefore, Duration marginAfter) {
         return CarbonAwareScheduleMargin.margin(marginBefore, marginAfter).toScheduleExpression(scheduleExpression);
     }
@@ -23,10 +24,11 @@ public class CarbonAware {
     }
 
     public static String dailyBetween(int from, int until) {
-        return null;
+        int marginAfter = until - from;
+        return CarbonAwareScheduleMargin.after(Duration.ofHours(marginAfter)).toScheduleExpression(Cron.daily(from));
     }
 
     public static String dailyBefore(int until) {
-        return null;
+        return dailyBetween(0, until);
     }
 }

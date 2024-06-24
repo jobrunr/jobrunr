@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -224,6 +223,8 @@ public interface StorageProvider extends AutoCloseable {
      */
     long countRecurringJobInstances(String recurringJobId, StateName... states);
 
+    Map<String, Instant> getRecurringJobsLatestScheduledRun();
+
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten
      *
@@ -267,8 +268,6 @@ public interface StorageProvider extends AutoCloseable {
     void validatePollInterval(Duration pollInterval);
 
     void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances);
-
-    Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun();
 
     class StorageProviderInfo {
 

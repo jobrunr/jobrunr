@@ -28,14 +28,6 @@ public class CarbonAwareConfigurationReader {
         return carbonAwareConfiguration.state;
     }
 
-    public String getCloudProvider() {
-        return carbonAwareConfiguration.cloudProvider;
-    }
-
-    public String getCloudRegion() {
-        return carbonAwareConfiguration.cloudRegion;
-    }
-
     public String getCarbonAwareApiUrl() {
         return carbonAwareConfiguration.carbonIntensityApiUrl;
     }

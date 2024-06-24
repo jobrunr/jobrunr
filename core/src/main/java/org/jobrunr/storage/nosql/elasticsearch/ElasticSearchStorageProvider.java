@@ -6,7 +6,6 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.InlineScript;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.VersionType;
-import co.elastic.clients.elasticsearch._types.aggregations.MaxAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.SumAggregate;
@@ -21,7 +20,6 @@ import co.elastic.clients.elasticsearch.core.CountResponse;
 import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.UpdateResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
@@ -66,11 +64,9 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -807,48 +803,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
-        List<RecurringJob> recurringJobs = getRecurringJobs();
-
-        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
-        for (RecurringJob recJob : recurringJobs) {
-            SearchRequest request = SearchRequest.of(s -> s
-                    .index(jobIndexName)
-                    .query(q -> q
-                            .match(m -> m
-                                    .field("recurringJobId")
-                                    .query(recJob.getId())
-                            )
-                    )
-                    .aggregations("latestScheduledAt", a -> a
-                            .max(m -> m
-                                    .field("scheduledAt")
-                            )
-                    )
-                    .size(0)  // No hits needed, only aggregations
-            );
-
-            try {
-                SearchResponse<?> response = client.search(request, Object.class);
-                MaxAggregate maxAggregate = response.aggregations().get("latestScheduledAt").max();
-
-                if (maxAggregate == null || Double.isNaN(maxAggregate.value())) {
-                    lastRuns.put(recJob.getId(), Optional.empty());
-                } else {
-                    long maxValue = (long) maxAggregate.value();
-                    if (maxValue == 0) { // Assuming epoch is misinterpreted as empty result
-                        lastRuns.put(recJob.getId(), Optional.empty());
-                    } else {
-                        lastRuns.put(recJob.getId(), Optional.of(Instant.ofEpochMilli(maxValue)));
-                    }
-                }
-            } catch (IOException e) {
-                LOGGER.error("Failed to query Elasticsearch for job: {}", recJob.getId(), e);
-                lastRuns.put(recJob.getId(), Optional.empty());
-            }
-        }
-
-        return lastRuns;
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        throw new UnsupportedOperationException();
     }
 
 

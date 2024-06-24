@@ -11,6 +11,7 @@ import java.time.format.DateTimeParseException;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
+import static org.jobrunr.jobs.states.CarbonAwareAwaitingState.MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.lastMatchedSubstringBetween;
 import static org.jobrunr.utils.StringUtils.substringBeforeLast;
@@ -122,6 +123,9 @@ public abstract class Schedule implements Comparable<Schedule> {
             }
             if (marginBefore.isNegative() || marginAfter.isNegative()) {
                 throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be positive Durations.", marginBefore, marginAfter));
+            }
+            if (marginBefore.plus(marginAfter).minus(Duration.ofHours(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION)).isNegative()) {
+                throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to span at least %s hours so a moment of low carbon emissions can be optimally selected.", marginBefore, marginAfter, MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION));
             }
             this.marginBefore = marginBefore;
             this.marginAfter = marginAfter;

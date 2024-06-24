@@ -16,7 +16,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -228,8 +227,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
-        return storageProvider.loadRecurringJobsLatestScheduledRun();
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        return storageProvider.getRecurringJobsLatestScheduledRun();
     }
 
     public StorageProvider getStorageProvider() {

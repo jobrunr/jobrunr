@@ -22,7 +22,6 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
-import org.jobrunr.utils.TimeUtils;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 import redis.clients.jedis.Jedis;
@@ -31,18 +30,12 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.resps.ScanResult;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -595,47 +588,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-//TODO: fix me {@link StorageProviderTest#testLoadRecurringJobsLastRuns()}
-    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
-        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
-
-        try (final Jedis jedis = getJedis()) {
-            Set<String> recurringJobIds = jedis.smembers(recurringJobsKey(keyPrefix));
-
-            for (String recurringJobId : recurringJobIds) {
-                String scheduledJobKeyPattern = scheduledJobsKey(keyPrefix) + ":" + recurringJobId + ":*";
-                List<String> scheduledJobKeys = new ArrayList<>();
-                String cursor = ScanParams.SCAN_POINTER_START;
-
-                // Use scan to fetch all keys matching the pattern
-                do {
-                    ScanResult<String> scanResult = jedis.scan(cursor, new ScanParams().match(scheduledJobKeyPattern).count(100));
-                    scheduledJobKeys.addAll(scanResult.getResult());
-                    cursor = scanResult.getCursor();
-                } while (!cursor.equals(ScanParams.SCAN_POINTER_START));
-
-                // Determine the latest 'scheduledAt' time from the keys
-                Optional<Instant> latestScheduledAt = scheduledJobKeys.stream()
-                        .map(scheduledJobKey -> {
-                            try {
-                                String[] parts = scheduledJobKey.split(":");
-                                return Long.parseLong(parts[parts.length - 1]);
-                            } catch (NumberFormatException e) {
-                                System.err.println("Error parsing scheduledAt from key: " + scheduledJobKey);
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .map(TimeUtils::fromMicroseconds)
-                        .max(Instant::compareTo);
-
-                lastRuns.put(recurringJobId, latestScheduledAt);
-            }
-        } catch (Exception e) {
-            throw new StorageException(e);
-        }
-
-        return lastRuns;
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        throw new UnsupportedOperationException();
     }
 
 

@@ -155,11 +155,7 @@ public class Job extends AbstractJob {
     public boolean hasState(StateName state) {
         return getState().equals(state);
     }
-
-    public boolean hasHadState(StateName stateName) {
-        return jobHistory.stream().anyMatch(jobState -> stateName.equals(jobState.getName()));
-    }
-
+    
     public boolean hasStateChange() {
         return stateIndexBeforeStateChange != null && jobHistory.size() > stateIndexBeforeStateChange;
     }

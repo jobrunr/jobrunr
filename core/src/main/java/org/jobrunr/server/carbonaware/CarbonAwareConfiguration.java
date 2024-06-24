@@ -15,9 +15,6 @@ public class CarbonAwareConfiguration {
     String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL; // TODO should this be configurable
     String areaCode;
     String state;
-    String cloudProvider;
-    String cloudRegion;
-    int carbonIntensityApiVersion;
     Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
     Duration apiClientReadTimeout = DEFAULT_CLIENT_API_READ_TIMEOUT;
 
@@ -51,29 +48,12 @@ public class CarbonAwareConfiguration {
         this.state = state;
         return this;
     }
-
-    /**
-     * Allows to set the cloud provider and region of your datacenter (the cloud provider and region where your application is hosted) in order to have more accurate carbon emissions forecasts
-     */
-    public CarbonAwareConfiguration andCloudProvider(String cloudProvider, String cloudRegion) {
-        this.cloudProvider = cloudProvider;
-        this.cloudRegion = cloudRegion;
-        return this;
-    }
-
+    
     /**
      * Allows to set the carbon intensity API URL
      */
     public CarbonAwareConfiguration andCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
         this.carbonIntensityApiUrl = carbonIntensityApiUrl;
-        return this;
-    }
-
-    /**
-     * Allows to set the carbon intensity API version
-     */
-    public CarbonAwareConfiguration andCarbonIntensityApiVersion(int carbonIntensityApiVersion) {
-        this.carbonIntensityApiVersion = carbonIntensityApiVersion;
         return this;
     }
 

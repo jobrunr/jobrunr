@@ -6,7 +6,6 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
@@ -37,7 +36,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,6 +49,7 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
@@ -62,7 +61,6 @@ import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
@@ -75,7 +73,6 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
-import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
@@ -590,6 +587,93 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testCountRecurringJobInstances() {
+        JobDetails jobDetails = defaultJobDetails().build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withJobDetails(jobDetails).build();
+        Job scheduledRecurringJob1 = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(15)).get(0);
+        Job scheduledRecurringJob2 = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(15)).get(0);
+        Job anEnqueuedJob = anEnqueuedJob().build();
+
+        storageProvider.save(asList(scheduledRecurringJob1, anEnqueuedJob));
+
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId())).isEqualTo(1);
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).isEqualTo(1);
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED)).isEqualTo(1);
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, ENQUEUED, PROCESSING)).isEqualTo(0);
+
+        scheduledRecurringJob1.enqueue();
+        storageProvider.save(scheduledRecurringJob1);
+        storageProvider.save(scheduledRecurringJob2);
+
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).isEqualTo(2);
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), ENQUEUED)).isEqualTo(1);
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, PROCESSING, SUCCEEDED)).isEqualTo(1);
+
+        scheduledRecurringJob1.delete("For test");
+        storageProvider.save(scheduledRecurringJob1);
+
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).isEqualTo(1);
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), DELETED)).isEqualTo(1);
+
+        storageProvider.deletePermanently(scheduledRecurringJob1.getId());
+
+        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId())).isEqualTo(1);
+    }
+
+    @Test
+    void testGetRecurringJobsLatestScheduledRun() {
+        Instant now = now();
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("r1").build();
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withId("r2").build();
+
+        storageProvider.saveRecurringJob(recurringJob1);
+        storageProvider.saveRecurringJob(recurringJob2);
+
+        assertThat(storageProvider.getRecurringJobsLatestScheduledRun()).isEqualTo(emptyMap());
+
+        Job job = aJob().withJobDetails(TestService::doStaticWork)
+                .withState(new ScheduledState(now))
+                .build();
+        Job job1RJ1 = aJob().withJobDetails(TestService::doStaticWork)
+                .withRecurringJobId(recurringJob1.getId())
+                .withState(new ScheduledState(now))
+                .build();
+        Job job1RJ2 = aJob().withJobDetails(TestService::doStaticWork)
+                .withRecurringJobId(recurringJob2.getId())
+                .withState(new ScheduledState(now))
+                .build();
+
+        storageProvider.save(asList(job, job1RJ1, job1RJ2));
+
+        Map<String, Instant> latestScheduledRun1 = storageProvider.getRecurringJobsLatestScheduledRun();
+        assertThat(latestScheduledRun1).hasSize(2);
+        assertThat(latestScheduledRun1.get(recurringJob1.getId())).isCloseTo(now, within(500, MILLIS));
+        assertThat(latestScheduledRun1.get(recurringJob2.getId())).isCloseTo(now, within(500, MILLIS));
+
+        Job job2RJ1 = aJob().withJobDetails(TestService::doStaticWork)
+                .withRecurringJobId(recurringJob1.getId())
+                .withState(new ScheduledState(now.plus(10, MINUTES)))
+                .build();
+
+        storageProvider.save(job2RJ1);
+
+        Map<String, Instant> latestScheduledRun2 = storageProvider.getRecurringJobsLatestScheduledRun();
+        assertThat(latestScheduledRun2).hasSize(2);
+        assertThat(latestScheduledRun2.get(recurringJob1.getId())).isCloseTo(now.plus(10, MINUTES), within(500, MILLIS));
+        assertThat(latestScheduledRun2.get(recurringJob2.getId())).isCloseTo(now, within(500, MILLIS));
+
+        job1RJ1.enqueue();
+        job1RJ2.enqueue();
+
+        storageProvider.save(asList(job1RJ1, job1RJ2));
+
+        Map<String, Instant> latestScheduledRun3 = storageProvider.getRecurringJobsLatestScheduledRun();
+        assertThat(latestScheduledRun3).hasSize(2);
+        assertThat(latestScheduledRun3.get(recurringJob1.getId())).isCloseTo(now.plus(10, MINUTES), within(500, MILLIS));
+        assertThat(latestScheduledRun3.get(recurringJob2.getId())).isCloseTo(now, within(500, MILLIS));
+    }
+
+    @Test
     void testSaveListUpdateListAndGetListOfJobs() {
         final List<Job> jobs = asList(
                 aJob().withName("1").withEnqueuedState(now().minusSeconds(30)).build(),
@@ -900,69 +984,6 @@ public abstract class StorageProviderTest {
         assertThat(jobStats.getDeleted()).isEqualTo(1);
         assertThat(jobStats.getRecurringJobs()).isEqualTo(2);
         assertThat(jobStats.getBackgroundJobServers()).isEqualTo(1);
-    }
-
-    @Test
-    void testLoadRecurringJobsLatestScheduledRun() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id1").build();
-        RecurringJob recurringJob2 = aDefaultRecurringJob().withId("id2").build();
-        storageProvider.saveRecurringJob(recurringJob1);
-        storageProvider.saveRecurringJob(recurringJob2);
-        assertThat(storageProvider.loadRecurringJobsLatestScheduledRun()).isEqualTo(Map.of("id1", Optional.empty(), "id2", Optional.empty()));
-
-        Instant now = now();
-        Instant nowPlus10Minutes = now.plus(10, MINUTES);
-        Job job1 = aJob().withJobDetails(TestService::doStaticWork)
-                .withRecurringJobId("id1")
-                .withState(new ScheduledState(nowPlus10Minutes))
-                .build();
-        storageProvider.save(job1);
-        Job job2 = aJob().withJobDetails(TestService::doStaticWork)
-                .withRecurringJobId("id1")
-                .withState(new ScheduledState(now))
-                .build();
-        job2.enqueue();
-        job2.succeeded();
-        storageProvider.save(job2);
-
-        Map<String, Optional<Instant>> recurringJobsLastRuns = storageProvider.loadRecurringJobsLatestScheduledRun();
-        assertThat(recurringJobsLastRuns).containsOnlyKeys("id1", "id2");
-        assertThat(recurringJobsLastRuns.get("id1")).isPresent();
-        assertThat(recurringJobsLastRuns.get("id1").get().truncatedTo(MILLIS)).isEqualTo(nowPlus10Minutes.truncatedTo(MILLIS));
-        assertThat(recurringJobsLastRuns.get("id2")).isEmpty();
-    }
-
-    @Test
-    void testCountRecurringJobInstances_withNoJobInstances() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id1").build();
-        storageProvider.saveRecurringJob(recurringJob1);
-        assertThat(storageProvider.countRecurringJobInstances("id1", SCHEDULED)).isEqualTo(0);
-    }
-
-    @Test
-    void testCountRecurringJobInstances_with1ScheduledJobInstance() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id1").build();
-        storageProvider.saveRecurringJob(recurringJob1);
-        Job job1 = aJob().withRecurringJobId("id1").withState(new ScheduledState(now().plus(10, MINUTES))).build();
-        storageProvider.save(job1);
-        assertThat(storageProvider.countRecurringJobInstances("id1", SCHEDULED)).isEqualTo(1);
-    }
-
-    @Test
-    void testCountRecurringJobInstances_withMultipleJobInstance() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("id1").build();
-        storageProvider.saveRecurringJob(recurringJob1);
-
-        Job enqueuedJob = aJob().withRecurringJobId("id1").withState(new EnqueuedState()).build();
-        Job scheduledJob = aJob().withRecurringJobId("id1").withState(new ScheduledState(now().plus(10, MINUTES))).build();
-        Job succeededJob = aSucceededJob().withRecurringJobId("id1").build();
-        Job awaitingJob = aCarbonAwaitingJob().withRecurringJobId("id1").build();
-        storageProvider.save(enqueuedJob);
-        storageProvider.save(scheduledJob);
-        storageProvider.save(succeededJob);
-        storageProvider.save(awaitingJob);
-
-        assertThat(storageProvider.countRecurringJobInstances("id1", ENQUEUED, SCHEDULED, FAILED, AWAITING)).isEqualTo(3);
     }
 
 

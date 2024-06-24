@@ -12,7 +12,6 @@ import org.jobrunr.storage.RecurringJobsResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
@@ -24,13 +23,13 @@ import static org.jobrunr.utils.CollectionUtils.getLast;
 
 public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
-    private final Map<String, Optional<Instant>> recurringJobRuns;
+    private final Map<String, Instant> recurringJobRuns;
     private final CarbonAwareJobManager carbonAwareJobManager;
     private RecurringJobsResult recurringJobs;
 
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
-        this.recurringJobRuns = storageProvider.loadRecurringJobsLatestScheduledRun();
+        this.recurringJobRuns = storageProvider.getRecurringJobsLatestScheduledRun();
         this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
         this.recurringJobs = new RecurringJobsResult();
     }
@@ -76,7 +75,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private List<Job> getJobsToCreate(RecurringJob recurringJob) {
-        Instant lastScheduledRun = getLastScheduledRunFor(recurringJob).orElse(runStartTime());
+        Instant lastScheduledRun = recurringJobRuns.getOrDefault(recurringJob.getId(), runStartTime());
         Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
         if (lastScheduledRun.isAfter(upUntil)) {
             return emptyList();
@@ -102,10 +101,6 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {
-        recurringJobRuns.put(recurringJob.getId(), Optional.ofNullable(upUntil));
-    }
-
-    private Optional<Instant> getLastScheduledRunFor(RecurringJob recurringJob) {
-        return recurringJobRuns.getOrDefault(recurringJob.getId(), Optional.of(runStartTime()));
+        recurringJobRuns.put(recurringJob.getId(), upUntil);
     }
 }

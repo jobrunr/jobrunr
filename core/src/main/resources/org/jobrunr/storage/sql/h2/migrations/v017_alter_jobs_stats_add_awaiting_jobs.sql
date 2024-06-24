@@ -9,7 +9,7 @@ SELECT COALESCE(SUM(count), 0)                                                AS
        COALESCE(SUM(CASE WHEN state = 'PROCESSED' THEN count ELSE 0 END), 0)  AS processed,
        COALESCE(SUM(CASE WHEN state = 'FAILED' THEN count ELSE 0 END), 0)     AS failed,
        COALESCE(SUM(CASE WHEN state = 'SUCCEEDED' THEN count ELSE 0 END), 0)  AS succeeded,
-       COALESCE((SELECT CAST(CAST(` value ` AS CHAR(10)) AS DECIMAL(10, 0))
+       COALESCE((SELECT CAST(CAST(`value` AS CHAR(10)) AS DECIMAL(10, 0))
                  FROM jobrunr_metadata jm
                  WHERE jm.id = 'succeeded-jobs-counter-cluster'), 0)          AS allTimeSucceeded,
        COALESCE(SUM(CASE WHEN state = 'DELETED' THEN count ELSE 0 END), 0)    AS deleted,

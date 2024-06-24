@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
@@ -179,12 +181,21 @@ public class JobTable extends Sql<Job> {
     }
 
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
+        return countRecurringJobInstances(recurringJobId, states) > 0;
+    }
+
+    public long countRecurringJobInstances(String recurringJobId, StateName[] states) throws SQLException {
         if (states.length < 1) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                    .selectExists("from jobrunr_jobs where recurringJobId = :recurringJobId");
+                    .selectCount("from jobrunr_jobs where recurringJobId = :recurringJobId");
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+                .selectCount("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+    }
+
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        String statement = "recurringJobId, MAX(scheduledAt) as latestScheduledAt FROM jobrunr_jobs WHERE recurringJobId IS NOT NULL GROUP BY recurringJobId";
+        return select(statement).collect(toMap(rs -> rs.asString("recurringJobId"), rs -> rs.asInstant("latestScheduledAt")));
     }
 
     public int deletePermanently(UUID... ids) throws SQLException {
@@ -224,14 +235,5 @@ public class JobTable extends Sql<Job> {
 
     private Job toJob(SqlResultSet resultSet) {
         return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
-    }
-
-    public long countRecurringJobInstances(String recurringJobId, StateName[] states) throws SQLException {
-        String statesInClause = stream(states)
-                .map(stateName -> "'" + stateName.name() + "'")
-                .collect(joining(","));
-
-        String selectStatement = String.format("from jobrunr_jobs where state in (%s) AND recurringJobId = '%s'", statesInClause, recurringJobId);
-        return selectCount(selectStatement);
     }
 }

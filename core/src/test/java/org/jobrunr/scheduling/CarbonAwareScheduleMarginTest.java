@@ -47,21 +47,22 @@ class CarbonAwareScheduleMarginTest {
         assertThatCode(() -> parse("[-PT2H/PT2H]"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Expected marginBefore (='PT-2H') and marginAfter (='PT2H') to be positive Durations.");
+        assertThatCode(() -> parse("[PT2H/PT0S]"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Expected marginBefore (='PT2H') and marginAfter (='PT0S') to span at least 3 hours so a moment of low carbon emissions can be optimally selected.");
 
         assertThat(parse("[PT10H/PT0S]"))
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(margin(Duration.ofHours(10), Duration.ZERO));
-        assertThat(parse("0 0 1 * * [PT2H/PT0S]"))
+        assertThat(parse("0 0 1 * * [PT2H/PT1H]"))
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(margin(Duration.ofHours(2), Duration.ZERO));
-        assertThat(parse("0 0 1 * * [ PT2H / PT0S ] "))
+                .isEqualTo(margin(Duration.ofHours(2), Duration.ofHours(1)));
+        assertThat(parse("0 0 1 * * [ PT3H / PT0S ] "))
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(before(Duration.ofHours(2)));
-
-
+                .isEqualTo(before(Duration.ofHours(3)));
     }
 
     @Test

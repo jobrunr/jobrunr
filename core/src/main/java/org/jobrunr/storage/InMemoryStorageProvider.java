@@ -18,12 +18,12 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
@@ -261,14 +261,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
-        return jobQueue.values().stream()
-                .filter(job -> asList(getStateNames(states)).contains(job.getState())
-                        && recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                .count();
-    }
-
-    @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         return jobQueue.values().stream()
                 .anyMatch(job ->
@@ -276,6 +268,30 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                                 && job.getRecurringJobId()
                                 .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
                                 .orElse(false));
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        if (states.length == 0) {
+            return jobQueue.values().stream()
+                    .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
+                    .count();
+        }
+        return jobQueue.values().stream()
+                .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
+                .filter(job -> asList(getStateNames(states)).contains(job.getState()))
+                .count();
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        return jobQueue.values().stream()
+                .filter(job -> job.getRecurringJobId().isPresent())
+                .collect(toMap(
+                        job -> job.getRecurringJobId().get(),
+                        job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")),
+                        BinaryOperator.maxBy(Instant::compareTo)
+                ));
     }
 
     @Override
@@ -326,21 +342,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
-    @Override
-    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
-        List<RecurringJob> recurringJobs = getRecurringJobs();
-
-        return recurringJobs.stream()
-                .collect(toMap(
-                        RecurringJob::getId,
-                        recurringJob -> getJobsStreamThatHadState(SCHEDULED)
-                                .filter(job -> recurringJob.getId().equals(job.getRecurringJobId().orElse(null)))
-                                .map(job -> ((ScheduledState) job.getState(SCHEDULED)).getScheduledAt())
-                                .max(Instant::compareTo)
-                ));
-    }
-
-
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
                 .sorted(getJobComparator(amountRequest));
@@ -349,11 +350,6 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Stream<Job> getJobsStream(StateName state) {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state));
-    }
-
-    private Stream<Job> getJobsStreamThatHadState(StateName state) {
-        return jobQueue.values().stream()
-                .filter(job -> job.hasHadState(state));
     }
 
     private Job deepClone(Job job) {

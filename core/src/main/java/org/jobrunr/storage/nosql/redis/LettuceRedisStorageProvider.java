@@ -1,14 +1,11 @@
 package org.jobrunr.storage.nosql.redis;
 
-import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.LettuceFutures;
 import io.lettuce.core.Limit;
 import io.lettuce.core.Range;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisFuture;
-import io.lettuce.core.ScanArgs;
-import io.lettuce.core.ScanCursor;
 import io.lettuce.core.TransactionResult;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
@@ -36,19 +33,14 @@ import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
-import org.jobrunr.utils.TimeUtils;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -647,46 +639,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
     }
 
     @Override
-    //TODO: fix me {@link StorageProviderTest#testLoadRecurringJobsLastRuns()}
-    public Map<String, Optional<Instant>> loadRecurringJobsLatestScheduledRun() {
-        Map<String, Optional<Instant>> lastRuns = new HashMap<>();
-
-        try (final StatefulRedisConnection<String, String> connection = getConnection()) {
-            RedisCommands<String, String> commands = connection.sync();
-            Set<String> recurringJobIds = commands.smembers(recurringJobsKey(keyPrefix));
-
-            for (String recurringJobId : recurringJobIds) {
-                String scheduledJobKeyPattern = recurringJobKey(keyPrefix, SCHEDULED) + ":" + recurringJobId + ":*";
-                List<String> scheduledJobKeys = new ArrayList<>();
-
-                ScanCursor cursor = ScanCursor.INITIAL; // Use SCAN instead of KEYS to fetch job keys to avoid blocking the Redis server
-                do {
-                    KeyScanCursor<String> scanResult = commands.scan(cursor, ScanArgs.Builder.matches(scheduledJobKeyPattern).limit(100));
-                    scheduledJobKeys.addAll(scanResult.getKeys());
-                    cursor = scanResult;
-                } while (!cursor.isFinished());
-
-                Optional<Instant> latestScheduledAt = scheduledJobKeys.stream()
-                        .map(key -> {
-                            try {
-                                return key.substring(key.lastIndexOf(':') + 1);
-                            } catch (Exception e) {
-                                System.err.println("Error parsing key: " + key);
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .map(Long::parseLong)
-                        .map(TimeUtils::fromMicroseconds)
-                        .max(Instant::compareTo);
-
-                lastRuns.put(recurringJobId, latestScheduledAt);
-            }
-        } catch (Exception e) {
-            throw new StorageException(e);
-        }
-
-        return lastRuns;
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        throw new UnsupportedOperationException();
     }
 
 

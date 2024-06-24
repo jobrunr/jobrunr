@@ -13,10 +13,13 @@ import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
+
+    public static final int MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION = 3;
+
     private final Instant preferredInstant;
     private final Instant from;
     private final Instant to;
-    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
 
     protected CarbonAwareAwaitingState() { // for json deserialization
         super(StateName.AWAITING);
@@ -84,7 +87,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         if (from.isAfter(to)) {
             throw new IllegalArgumentException(format("'from' (=%s) must be before 'to' (=%s)", from, to));
         }
-        if (to.isBefore(now().plus(ofHours(3)))) {
+        if (to.isBefore(now().plus(ofHours(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION)))) {
             throw new IllegalArgumentException(format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", to));
         }
     }
