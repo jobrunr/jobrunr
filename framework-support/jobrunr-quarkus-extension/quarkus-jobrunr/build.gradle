@@ -9,6 +9,7 @@ plugins {
 
 quarkusExtension {
     deploymentModule = 'quarkus-jobrunr-deployment'
+    deploymentArtifact = 'org.jobsprintr:quarkus-jobsprintr-deployment'
 }
 
 compileJava {
