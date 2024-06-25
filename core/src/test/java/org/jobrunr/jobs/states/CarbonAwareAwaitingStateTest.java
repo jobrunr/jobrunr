@@ -16,9 +16,10 @@ class CarbonAwareAwaitingStateTest {
 
     @Test
     void testCarbonAwareJobsOnCreationThrowsExceptionIfDeadlineNot3HoursInTheFuture() {
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(2, HOURS))).build())
+        Instant now = now();
+        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now.plus(2, HOURS))).build())
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("'to' must be at least 3 hours in the future to use Carbon Aware Scheduling");
+                .hasMessage(String.format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", now.plus(2, HOURS)));
     }
 
     @Test

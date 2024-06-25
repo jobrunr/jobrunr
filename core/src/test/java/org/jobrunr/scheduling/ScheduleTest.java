@@ -23,7 +23,7 @@ class ScheduleTest {
 
     @Test
     void createScheduleWithCarbonAwareSchedule() {
-        Schedule schedule = new MyTestSchedule("0 0 * * * [PT2H/PT0S]");
+        Schedule schedule = new MyTestSchedule("0 0 * * * [PT3H/PT0S]");
         CarbonAwareScheduleMargin carbonAwareScheduleMargin = schedule.getCarbonAwareScheduleMargin();
 
         assertThat(schedule.getExpression()).isEqualTo("0 0 * * *");

@@ -45,6 +45,7 @@ public abstract class AbstractJobScheduler {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
         }
         this.storageProvider = storageProvider;
+        // TODO can this be null?
         this.carbonAwareJobManager = carbonAwareJobManager;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
