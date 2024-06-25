@@ -9,7 +9,7 @@ Open and free for commercial use.  <br/>
 Recommended and <a href="https://www.thoughtworks.com/radar/languages-and-frameworks/jobrunr">loved by ThoughtWorks</a>.
 </p>  
 <br/>
-=======
+
 # jobsprintr
 
 > [!NOTE]
@@ -199,3 +199,17 @@ Build without testing
 * `./gradlew assemble`
 Publish to local repository
 * `./gradlew publishToMavenLocal`
+
+Build without testing
+* `./gradlew assemble`
+
+Publish to local repository
+* `./gradlew publishToMavenLocal`
+
+## Add changes from jobrunr
+```bash
+git remote add upstream git@github.com:jobrunr/jobrunr.git
+git fetch upstream
+git merge upstream/master
+```
+
