@@ -12,7 +12,7 @@ import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;

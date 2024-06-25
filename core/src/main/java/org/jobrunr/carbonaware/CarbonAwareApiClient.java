@@ -1,8 +1,8 @@
-package org.jobrunr.server.carbonaware;
+package org.jobrunr.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;
-import org.jobrunr.utils.annotations.Retry;
+import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,25 +35,25 @@ public class CarbonAwareApiClient {
 
     public DayAheadEnergyPrices fetchLatestDayAheadEnergyPrices(Optional<String> areaCode) {
         try {
-            String dayAheadEnergyPricesAsString = fetchLatestDayAheadEnergyPricesAsString(areaCode);
+            String dayAheadEnergyPricesAsString = fetchLatestDayAheadEnergyPricesAsStringWithRetries(areaCode);
             return jsonMapper.deserialize(dayAheadEnergyPricesAsString, DayAheadEnergyPrices.class);
-        } catch (IOException e) {
-            String errorMessage = String.format("Network error fetching energy prices for area code '%s': %s", areaCode.orElse("unknown"), e.getMessage());
-            LOGGER.error(errorMessage, e);
-            return createErrorResponse(errorMessage);
         } catch (Exception e) {
-            String errorMessage = String.format("Error processing energy prices for area code '%s': %s", areaCode.orElse("unknown"), e.getMessage());
-            LOGGER.error(errorMessage, e);
-            return createErrorResponse(errorMessage);
+            LOGGER.error("Error processing energy prices for area code '{}'", areaCode.orElse("unknown"), e);
+            return null;
         }
     }
 
-    @Retry(maxAttempts = 3, delayMs = 100)
-    private String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) throws IOException {
+    private String fetchLatestDayAheadEnergyPricesAsStringWithRetries(Optional<String> areaCode) {
+        return Exceptions.retryOnException(() -> fetchLatestDayAheadEnergyPricesAsString(areaCode), 3, 1000);
+    }
+
+    private String fetchLatestDayAheadEnergyPricesAsString(Optional<String> areaCode) {
         HttpURLConnection connection = null;
         try {
             connection = createHttpConnection(getCarbonAwareApiDayAheadEnergyPricesUrl(areaCode));
             return readResponse(connection);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -75,15 +75,13 @@ public class CarbonAwareApiClient {
     }
 
     private String readResponse(HttpURLConnection con) throws IOException {
+        if (con.getResponseCode() > 299) {
+            throw new CarbonAwareApiClientException(con.getResponseCode(), readErrorStream(con));
+        }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
             StringBuilder content = new StringBuilder();
             reader.lines().forEach(content::append);
             return content.toString();
-        } catch (IOException e) {
-            if (con.getResponseCode() != 200) {
-                throw new IOException("Error from server: " + readErrorStream(con), e);
-            }
-            throw e;
         }
     }
 
@@ -98,11 +96,5 @@ public class CarbonAwareApiClient {
             }
         }
         return "No error details available";
-    }
-
-    private DayAheadEnergyPrices createErrorResponse(String errorMessage) {
-        DayAheadEnergyPrices errorResponse = new DayAheadEnergyPrices();
-        errorResponse.setErrorMessage(errorMessage);
-        return errorResponse;
     }
 }

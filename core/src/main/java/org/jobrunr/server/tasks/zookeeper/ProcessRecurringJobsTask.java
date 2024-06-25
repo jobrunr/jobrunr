@@ -6,7 +6,7 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.RecurringJobsResult;
 
 import java.time.Instant;

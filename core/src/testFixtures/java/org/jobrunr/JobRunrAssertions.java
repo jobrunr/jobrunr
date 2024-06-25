@@ -20,7 +20,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
-import org.jobrunr.server.carbonaware.DayAheadEnergyPrices;
+import org.jobrunr.carbonaware.DayAheadEnergyPrices;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;

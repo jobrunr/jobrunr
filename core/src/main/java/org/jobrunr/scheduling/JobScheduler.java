@@ -13,7 +13,7 @@ import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.interval.Interval;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 
 import java.time.Duration;

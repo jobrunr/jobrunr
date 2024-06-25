@@ -1,9 +1,9 @@
 package org.jobrunr.scheduling.carbonaware;
 
+import org.jobrunr.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +26,9 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_14;
+import static org.jobrunr.carbonaware.CarbonApiMockResponses.GERMANY_2024_03_14;
+import static org.jobrunr.carbonaware.CarbonApiMockResponses.GERMANY_NO_DATA;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -34,9 +37,6 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.after;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.between;
-import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_14;
-import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_03_14;
-import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_NO_DATA;
 
 // TODO add this to BackgroundJob tests?
 public class CarbonAwareBackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTest {

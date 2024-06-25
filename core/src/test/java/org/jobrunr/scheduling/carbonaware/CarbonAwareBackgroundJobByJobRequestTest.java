@@ -1,11 +1,11 @@
 package org.jobrunr.scheduling.carbonaware;
 
+import org.jobrunr.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJobRequest;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestJobRequest;
@@ -31,6 +31,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -39,7 +40,6 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 
 // TODO add these to BackgroundJobRequest tests?
 public class CarbonAwareBackgroundJobByJobRequestTest extends AbstractCarbonAwareWiremockTest {

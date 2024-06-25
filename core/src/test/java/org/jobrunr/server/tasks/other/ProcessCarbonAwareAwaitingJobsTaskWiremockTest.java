@@ -1,6 +1,8 @@
 package org.jobrunr.server.tasks.other;
 
 import org.assertj.core.api.Assertions;
+import org.jobrunr.carbonaware.AbstractCarbonAwareWiremockTest;
+import org.jobrunr.carbonaware.CarbonApiMockResponses;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
@@ -8,8 +10,6 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.JobZooKeeper;
-import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
-import org.jobrunr.server.carbonaware.CarbonApiMockResponses;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;

@@ -2,11 +2,12 @@ package org.jobrunr.utils.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.carbonaware.CarbonAwareConfigurationReader;
 
 import java.time.Duration;
 
+// TODO register this so it can be accessed by simply using `assertThat`
 public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareConfigurationAssert, CarbonAwareConfigurationReader> {
     protected CarbonAwareConfigurationAssert(CarbonAwareConfigurationReader carbonAwareConfigurationReader) {
         super(carbonAwareConfigurationReader, CarbonAwareConfigurationAssert.class);

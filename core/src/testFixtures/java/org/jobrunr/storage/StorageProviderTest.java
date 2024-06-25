@@ -13,7 +13,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.LogAllStateChangesFilter;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;

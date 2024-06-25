@@ -1,4 +1,4 @@
-package org.jobrunr.server.carbonaware;
+package org.jobrunr.carbonaware;
 
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;

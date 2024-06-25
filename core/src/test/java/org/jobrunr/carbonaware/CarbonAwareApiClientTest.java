@@ -1,6 +1,5 @@
-package org.jobrunr.server.carbonaware;
+package org.jobrunr.carbonaware;
 
-import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,9 +12,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static java.time.Instant.now;
 import static java.time.Instant.parse;
-import static java.time.temporal.ChronoUnit.DAYS;
 import static org.jobrunr.utils.carbonaware.DayAheadEnergyPricesAssert.assertThat;
 
 class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
@@ -43,22 +40,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void whenNoData_thenReturnErrorResponse() {
-        // GIVEN
-        mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
-        CarbonAwarePeriod carbonAwarePeriod = CarbonAwarePeriod.before(now().plus(1, DAYS));
-
-        // WHEN
-        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("DE"));
-
-        // THEN
-        assertThat(result)
-                .hasError("An error occurred: No data available for areaCode: 'DE'")
-                .hasNoValidDataFor(carbonAwarePeriod);
-    }
-
-    @Test
-    void whenMultipleConcurrentRequests_thenHandleAllCorrectly() throws InterruptedException, ExecutionException {
+    void testFetchLatestDayAheadEnergyPricesCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
         // GIVEN
         mockResponseWhenRequestingAreaCode("multi-thread", CarbonApiMockResponses.BELGIUM_2024_03_12);
 
@@ -80,33 +62,19 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void whenInvalidJson_thenReturnErrorResponse() {
+    void testFetchLatestDayAheadEnergyPricesReturnsNullWhenNoApiResponseIsError() {
         // GIVEN
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.INVALID_JSON);
+        mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
 
         // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("DE"));
 
         // THEN
-        assertThat(dayAheadEnergyPrices)
-                .hasError("Error processing energy prices for area code 'BE': JobRunr encountered a problematic exception. Please create a bug report (if possible, provide the code to reproduce this and the stacktrace)");
+        assertThat(result).isNull();
     }
 
     @Test
-    void whenExtraFieldInResponse_thenReturnErrorResponse() {
-        // GIVEN
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
-
-        // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
-
-        // THEN
-        assertThat(dayAheadEnergyPrices)
-                .hasError("Error processing energy prices for area code 'BE': JobRunr encountered a problematic exception. Please create a bug report (if possible, provide the code to reproduce this and the stacktrace)");
-    }
-
-    @Test
-    void whenMissingFieldsInResponse_thenFieldShouldBeNull() {
+    void testFetchLatestDayAheadEnergyPricesSetsMissingFieldsToNull() {
         // GIVEN
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_UNIT_FIELD);
 
@@ -118,5 +86,29 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
                 .hasAreaCode("BE")
                 .hasHourlyEnergyPricesSize(33)
                 .hasNullUnit();
+    }
+
+    @Test
+    void testFetchLatestDayAheadEnergyPricesReturnsNullWhenParsingInvalidJson() {
+        // GIVEN
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.INVALID_JSON);
+
+        // WHEN
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+
+        // THEN
+        assertThat(dayAheadEnergyPrices).isNull();
+    }
+
+    @Test
+    void testFetchLatestDayAheadEnergyPricesReturnsNullWhenParsingResponseWithExtraFields() {
+        // GIVEN
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
+
+        // WHEN
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+
+        // THEN
+        assertThat(dayAheadEnergyPrices).isNull();
     }
 }

@@ -1,4 +1,4 @@
-package org.jobrunr.server.carbonaware;
+package org.jobrunr.carbonaware;
 
 import java.time.Duration;
 

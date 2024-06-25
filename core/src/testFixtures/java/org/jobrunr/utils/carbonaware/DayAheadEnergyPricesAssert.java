@@ -2,11 +2,12 @@ package org.jobrunr.utils.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.carbonaware.DayAheadEnergyPrices;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.server.carbonaware.DayAheadEnergyPrices;
 
 import java.time.Instant;
 
+// TODO move this class to the correct place
 public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPricesAssert, DayAheadEnergyPrices> {
     protected DayAheadEnergyPricesAssert(DayAheadEnergyPrices dayAheadEnergyPrices) {
         super(dayAheadEnergyPrices, DayAheadEnergyPricesAssert.class);
@@ -26,9 +27,9 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
         return this;
     }
 
-    public DayAheadEnergyPricesAssert hasHourlyEnergyPriceAt(int index, Instant dateTime, double price) {
+    public DayAheadEnergyPricesAssert hasHourlyEnergyPriceAt(int index, Instant periodStartAt, double price) {
         DayAheadEnergyPrices.HourlyEnergyPrice hourlyEnergyPrice = actual.getHourlyEnergyPrices().get(index);
-        Assertions.assertThat(hourlyEnergyPrice.getDateTime()).isEqualTo(dateTime);
+        Assertions.assertThat(hourlyEnergyPrice.getPeriodStartAt()).isEqualTo(periodStartAt);
         Assertions.assertThat(hourlyEnergyPrice.getPrice()).isEqualTo(price);
         return this;
     }
@@ -40,13 +41,6 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
 
     public DayAheadEnergyPricesAssert hasNoValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
         Assertions.assertThat(actual.hasDataForPeriod(carbonAwarePeriod)).isFalse();
-        return this;
-    }
-
-    public DayAheadEnergyPricesAssert hasError(String errorMessage) {
-        Assertions.assertThat(actual.getAreaCode()).isNull();
-        Assertions.assertThat(actual.getHourlyEnergyPrices()).isNull();
-        Assertions.assertThat(actual.getErrorMessage()).isEqualTo(errorMessage);
         return this;
     }
 

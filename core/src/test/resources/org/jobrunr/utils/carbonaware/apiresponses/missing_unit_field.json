@@ -4,167 +4,167 @@
   "timezone": "Europe/Brussels",
   "hourlyEnergyPrices": [
     {
-      "dateTime": "2024-03-12T03:00:00Z",
+      "periodStartAt": "2024-03-12T03:00:00Z",
       "price": 64.23,
       "rank": 1
     },
     {
-      "dateTime": "2024-03-12T22:00:00Z",
+      "periodStartAt": "2024-03-12T22:00:00Z",
       "price": 64.91,
       "rank": 2
     },
     {
-      "dateTime": "2024-03-12T02:00:00Z",
+      "periodStartAt": "2024-03-12T02:00:00Z",
       "price": 65.2,
       "rank": 3
     },
     {
-      "dateTime": "2024-03-12T00:00:00Z",
+      "periodStartAt": "2024-03-12T00:00:00Z",
       "price": 65.56,
       "rank": 4
     },
     {
-      "dateTime": "2024-03-12T01:00:00Z",
+      "periodStartAt": "2024-03-12T01:00:00Z",
       "price": 66.51,
       "rank": 5
     },
     {
-      "dateTime": "2024-03-11T22:00:00Z",
+      "periodStartAt": "2024-03-11T22:00:00Z",
       "price": 67.08,
       "rank": 6
     },
     {
-      "dateTime": "2024-03-11T23:00:00Z",
+      "periodStartAt": "2024-03-11T23:00:00Z",
       "price": 69.18,
       "rank": 7
     },
     {
-      "dateTime": "2024-03-12T04:00:00Z",
+      "periodStartAt": "2024-03-12T04:00:00Z",
       "price": 69.39,
       "rank": 8
     },
     {
-      "dateTime": "2024-03-12T12:00:00Z",
+      "periodStartAt": "2024-03-12T12:00:00Z",
       "price": 71.31,
       "rank": 9
     },
     {
-      "dateTime": "2024-03-12T13:00:00Z",
+      "periodStartAt": "2024-03-12T13:00:00Z",
       "price": 71.84,
       "rank": 10
     },
     {
-      "dateTime": "2024-03-11T14:00:00Z",
+      "periodStartAt": "2024-03-11T14:00:00Z",
       "price": 73.43,
       "rank": 11
     },
     {
-      "dateTime": "2024-03-12T11:00:00Z",
+      "periodStartAt": "2024-03-12T11:00:00Z",
       "price": 73.89,
       "rank": 12
     },
     {
-      "dateTime": "2024-03-12T10:00:00Z",
+      "periodStartAt": "2024-03-12T10:00:00Z",
       "price": 74.93,
       "rank": 13
     },
     {
-      "dateTime": "2024-03-12T21:00:00Z",
+      "periodStartAt": "2024-03-12T21:00:00Z",
       "price": 74.94,
       "rank": 14
     },
     {
-      "dateTime": "2024-03-11T21:00:00Z",
+      "periodStartAt": "2024-03-11T21:00:00Z",
       "price": 75.02,
       "rank": 15
     },
     {
-      "dateTime": "2024-03-11T15:00:00Z",
+      "periodStartAt": "2024-03-11T15:00:00Z",
       "price": 75.76,
       "rank": 16
     },
     {
-      "dateTime": "2024-03-12T16:00:00Z",
+      "periodStartAt": "2024-03-12T16:00:00Z",
       "price": 76.24,
       "rank": 17
     },
     {
-      "dateTime": "2024-03-11T20:00:00Z",
+      "periodStartAt": "2024-03-11T20:00:00Z",
       "price": 76.68,
       "rank": 18
     },
     {
-      "dateTime": "2024-03-12T20:00:00Z",
+      "periodStartAt": "2024-03-12T20:00:00Z",
       "price": 77.16,
       "rank": 19
     },
     {
-      "dateTime": "2024-03-12T14:00:00Z",
+      "periodStartAt": "2024-03-12T14:00:00Z",
       "price": 77.38,
       "rank": 20
     },
     {
-      "dateTime": "2024-03-12T05:00:00Z",
+      "periodStartAt": "2024-03-12T05:00:00Z",
       "price": 78.88,
       "rank": 21
     },
     {
-      "dateTime": "2024-03-12T15:00:00Z",
+      "periodStartAt": "2024-03-12T15:00:00Z",
       "price": 80,
       "rank": 22
     },
     {
-      "dateTime": "2024-03-12T09:00:00Z",
+      "periodStartAt": "2024-03-12T09:00:00Z",
       "price": 84.07,
       "rank": 23
     },
     {
-      "dateTime": "2024-03-11T16:00:00Z",
+      "periodStartAt": "2024-03-11T16:00:00Z",
       "price": 85.58,
       "rank": 24
     },
     {
-      "dateTime": "2024-03-12T17:00:00Z",
+      "periodStartAt": "2024-03-12T17:00:00Z",
       "price": 87,
       "rank": 25
     },
     {
-      "dateTime": "2024-03-12T19:00:00Z",
+      "periodStartAt": "2024-03-12T19:00:00Z",
       "price": 87.93,
       "rank": 26
     },
     {
-      "dateTime": "2024-03-11T19:00:00Z",
+      "periodStartAt": "2024-03-11T19:00:00Z",
       "price": 87.99,
       "rank": 27
     },
     {
-      "dateTime": "2024-03-12T06:00:00Z",
+      "periodStartAt": "2024-03-12T06:00:00Z",
       "price": 92.36,
       "rank": 28
     },
     {
-      "dateTime": "2024-03-12T08:00:00Z",
+      "periodStartAt": "2024-03-12T08:00:00Z",
       "price": 93.8,
       "rank": 29
     },
     {
-      "dateTime": "2024-03-11T17:00:00Z",
+      "periodStartAt": "2024-03-11T17:00:00Z",
       "price": 98.71,
       "rank": 30
     },
     {
-      "dateTime": "2024-03-12T07:00:00Z",
+      "periodStartAt": "2024-03-12T07:00:00Z",
       "price": 100.3,
       "rank": 31
     },
     {
-      "dateTime": "2024-03-12T18:00:00Z",
+      "periodStartAt": "2024-03-12T18:00:00Z",
       "price": 105.01,
       "rank": 32
     },
     {
-      "dateTime": "2024-03-11T18:00:00Z",
+      "periodStartAt": "2024-03-11T18:00:00Z",
       "price": 107.98,
       "rank": 33
     }

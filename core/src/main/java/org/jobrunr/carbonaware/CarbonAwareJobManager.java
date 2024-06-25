@@ -1,9 +1,8 @@
-package org.jobrunr.server.carbonaware;
+package org.jobrunr.carbonaware;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,40 +11,40 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
+import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 
-@Beta(note = "Scheduling logic for CarbonAware jobs might change in the future. Changes will not affect the API and the end user.")
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
-    
+
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
-    private final CarbonAwareApiClient carbonAwareAPIClient;
+    private final CarbonAwareApiClient carbonAwareApiClient;
     private DayAheadEnergyPrices dayAheadEnergyPrices;
     private final Random rand = new Random();
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
-        this.carbonAwareAPIClient = createCarbonAwareApiClient(jsonMapper);
-        Optional<String> areaCode = Optional.ofNullable(this.carbonAwareConfiguration.getAreaCode());
-        this.dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
+        this.carbonAwareApiClient = createCarbonAwareApiClient(jsonMapper);
+        updateDayAheadEnergyPrices();
     }
 
     public Instant getZookeeperTaskDailyRunTime(int baseHour) { // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in 1 hour period, in 5 sec buckets
-        int randomOffsetToDistributeLoadOnAPI = rand.nextInt(721) * 5;
+        int randomOffsetToDistributeLoadOnApi = rand.nextInt(721) * 5;
         ZonedDateTime baseHourTodayUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
                 .withHour(baseHour).withMinute(0).withSecond(0)
-                .plusSeconds(randomOffsetToDistributeLoadOnAPI);
+                .plusSeconds(randomOffsetToDistributeLoadOnApi);
         return baseHourTodayUTC.toInstant();
     }
 
     public void updateDayAheadEnergyPrices() {
         Optional<String> areaCode = Optional.ofNullable(carbonAwareConfiguration.getAreaCode());
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareAPIClient.fetchLatestDayAheadEnergyPrices(areaCode);
-        if (dayAheadEnergyPrices.hasNoData()) {
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(areaCode);
+        if (Objects.isNull(dayAheadEnergyPrices) || dayAheadEnergyPrices.hasNoData()) {
             LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
             return;
         }
@@ -70,30 +69,29 @@ public class CarbonAwareJobManager {
         scheduleJobAtOptimalTime(job, state);
     }
 
-    private boolean handleImmediateSchedulingCases(Job job, CarbonAwareAwaitingState state) {
-        if (isDeadlinePassed(state)) {
-            scheduleJobImmediately(job, state, "Job has passed its deadline, scheduling job now");
+    private boolean handleImmediateSchedulingCases(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        if (isDeadlinePassed(carbonAwareAwaitingState)) {
+            scheduleJobImmediately(job, carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
             return true;
         }
 
-        if (isDeadlineNextHour(state)) {
-            scheduleJobImmediately(job, state, "Job is about to pass its deadline, scheduling job now");
+        if (isDeadlineNextHour(carbonAwareAwaitingState)) {
+            scheduleJobImmediately(job, carbonAwareAwaitingState, "Job is about to pass its deadline, scheduling job now");
             return true;
         }
 
         return false;
     }
 
-    private void handleUnavailableDataForPeriod(Job job, CarbonAwareAwaitingState state) {
-        String msg = String.format("No hourly energy prices available for areaCode '%s' at period %s %s.", carbonAwareConfiguration.getAreaCode(), state, dayAheadEnergyPrices.getErrorMessage());
-        if (shouldWaitWhenDataAreUnavailable(state)) {
-            LOGGER.warn(msg + " Waiting for prices to become available.");
+    private void handleUnavailableDataForPeriod(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        if (shouldWaitWhenDataAreUnavailable(carbonAwareAwaitingState)) {
+            LOGGER.warn("No hourly energy prices available for areaCode {} at period {} - {}. Waiting for prices to become available.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
             return;
         }
-        if (isFromTimeAfterNow(state)) {
-            scheduleAtFromTime(job, state);
+        if (isFromTimeAfterNow(carbonAwareAwaitingState)) {
+            scheduleAtFromTime(job, carbonAwareAwaitingState);
         } else {
-            scheduleJobImmediately(job, state, msg + " . Schedule job now.");
+            scheduleJobImmediately(job, carbonAwareAwaitingState, format("No hourly energy prices available for areaCode %s at period %s - %s. Job is scheduled at current instant.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo()));
         }
     }
 
@@ -125,17 +123,17 @@ public class CarbonAwareJobManager {
         return new CarbonAwareApiClient(this.carbonAwareConfiguration.getCarbonAwareApiUrl(), this.carbonAwareConfiguration.getApiClientConnectTimeout(), this.carbonAwareConfiguration.getApiClientReadTimeout(), jsonMapper);
     }
 
-    private boolean isDeadlinePassed(CarbonAwareAwaitingState state) {
-        return now().isAfter(state.getTo());
+    private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        return now().isAfter(carbonAwareAwaitingState.getTo());
     }
 
-    private boolean isDeadlineNextHour(CarbonAwareAwaitingState state) {
-        return now().isAfter(state.getTo().minus(1, HOURS));
+    private boolean isDeadlineNextHour(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        return now().isAfter(carbonAwareAwaitingState.getTo().minus(1, HOURS));
     }
 
-    private void scheduleJobImmediately(Job job, CarbonAwareAwaitingState state, String reason) {
-        LOGGER.warn(reason);
-        state.moveToNextState(job, now(), reason);
+    private void scheduleJobImmediately(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
+        Instant scheduleAt = Objects.isNull(carbonAwareAwaitingState.getPreferredInstant()) ? now() : carbonAwareAwaitingState.getPreferredInstant();
+        carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
     }
 
     private void scheduleAtFromTime(Job job, CarbonAwareAwaitingState state) {

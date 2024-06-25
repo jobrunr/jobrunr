@@ -1,8 +1,8 @@
-package org.jobrunr.server.carbonaware;
+package org.jobrunr.carbonaware;
 
 import java.time.Duration;
 
-import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrl;
+import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrl;
 
 // TODO should we rename carbonAwareApi to carbonIntensityApi?
 // TODO review some of the javadocs
