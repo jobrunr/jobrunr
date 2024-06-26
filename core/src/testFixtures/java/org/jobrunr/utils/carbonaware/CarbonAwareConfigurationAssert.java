@@ -31,7 +31,7 @@ public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareCo
     }
 
     public CarbonAwareConfigurationAssert hasCarbonAwareApiUrl(String url) {
-        Assertions.assertThat(actual.getCarbonAwareApiUrl()).isEqualTo(url);
+        Assertions.assertThat(actual.getCarbonIntensityApiUrl()).isEqualTo(url);
         return this;
     }
 

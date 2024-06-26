@@ -22,6 +22,11 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
         return this;
     }
 
+    public DayAheadEnergyPricesAssert hasNoData() {
+        Assertions.assertThat(actual.hasNoData()).isTrue();
+        return this;
+    }
+
     public DayAheadEnergyPricesAssert hasHourlyEnergyPricesSize(int size) {
         Assertions.assertThat(actual.getHourlyEnergyPrices()).hasSize(size);
         return this;

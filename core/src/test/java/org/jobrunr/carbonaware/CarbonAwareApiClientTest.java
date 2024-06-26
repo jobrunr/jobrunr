@@ -1,10 +1,8 @@
 package org.jobrunr.carbonaware;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,20 +15,14 @@ import static org.jobrunr.utils.carbonaware.DayAheadEnergyPricesAssert.assertTha
 
 class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
 
-    CarbonAwareApiClient carbonAwareApiClient;
-
-    @BeforeEach
-    void setUp() {
-        carbonAwareApiClient = createCarbonAwareApiClient();
-    }
-
     @Test
     void testFetchLatestDayAheadEnergyPrices() {
         // GIVEN
+        CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_03_12);
 
         // WHEN
-        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
 
         // THEN
         assertThat(result)
@@ -42,12 +34,13 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     @Test
     void testFetchLatestDayAheadEnergyPricesCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
         // GIVEN
-        mockResponseWhenRequestingAreaCode("multi-thread", CarbonApiMockResponses.BELGIUM_2024_03_12);
+        CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient("BE");
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_03_12);
 
         // WHEN
         ExecutorService service = Executors.newFixedThreadPool(10);
         List<Future<DayAheadEnergyPrices>> futures = IntStream.range(0, 10)
-                .mapToObj(i -> service.submit(() -> carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("multi-thread"))))
+                .mapToObj(i -> service.submit(carbonAwareApiClient::fetchLatestDayAheadEnergyPrices))
                 .collect(Collectors.toList());
 
         // THEN
@@ -64,22 +57,24 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     @Test
     void testFetchLatestDayAheadEnergyPricesReturnsNullWhenNoApiResponseIsError() {
         // GIVEN
+        CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient("DE");
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
 
         // WHEN
-        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("DE"));
+        DayAheadEnergyPrices result = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
 
         // THEN
-        assertThat(result).isNull();
+        assertThat(result).hasNoData();
     }
 
     @Test
     void testFetchLatestDayAheadEnergyPricesSetsMissingFieldsToNull() {
         // GIVEN
+        CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_UNIT_FIELD);
 
         // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
 
         // THEN
         assertThat(dayAheadEnergyPrices)
@@ -91,24 +86,26 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     @Test
     void testFetchLatestDayAheadEnergyPricesReturnsNullWhenParsingInvalidJson() {
         // GIVEN
+        CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.INVALID_JSON);
 
         // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
 
         // THEN
-        assertThat(dayAheadEnergyPrices).isNull();
+        assertThat(dayAheadEnergyPrices).hasNoData();
     }
 
     @Test
     void testFetchLatestDayAheadEnergyPricesReturnsNullWhenParsingResponseWithExtraFields() {
         // GIVEN
+        CarbonAwareApiClient carbonAwareApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
 
         // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices(Optional.of("BE"));
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
 
         // THEN
-        assertThat(dayAheadEnergyPrices).isNull();
+        assertThat(dayAheadEnergyPrices).hasNoData();
     }
 }

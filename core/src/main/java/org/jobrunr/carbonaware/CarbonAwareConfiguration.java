@@ -2,13 +2,13 @@ package org.jobrunr.carbonaware;
 
 import java.time.Duration;
 
-import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrl;
+import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl;
 
 // TODO should we rename carbonAwareApi to carbonIntensityApi?
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonAwareApiUrl("https://api.jobrunr.io");
+    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityDayAheadEnergyPricesApiUrl("https://api.jobrunr.io/carbon-intensity");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 

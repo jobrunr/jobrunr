@@ -16,17 +16,15 @@ import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.DEFAULT_CLIENT_API_READ_TIMEOUT;
 import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
-import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonAwareApiUrlPath;
+import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiPath;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 public class AbstractCarbonAwareWiremockTest {
 
     private static WireMockServer wireMockServer;
     private static JsonMapper jsonMapper;
-    private static final String carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonAwareApiUrl("http://localhost:10000");
+    private static final String carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl("http://localhost:10000");
 
     @BeforeAll
     static void beforeAll() {
@@ -47,12 +45,16 @@ public class AbstractCarbonAwareWiremockTest {
         wireMockServer.stop();
     }
 
-    protected CarbonAwareApiClient createCarbonAwareApiClient() {
-        return new CarbonAwareApiClient(CarbonAwareConfigurationReader.getCarbonAwareApiUrl("http://localhost:10000"), DEFAULT_CLIENT_API_CONNECT_TIMEOUT, DEFAULT_CLIENT_API_READ_TIMEOUT, jsonMapper);
+    protected CarbonAwareApiClient createCarbonAwareApiClient(String areaCode) {
+        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+                .andAreaCode(areaCode)
+                .andCarbonIntensityApiUrl("http://localhost:10000");
+
+        return new CarbonAwareApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), jsonMapper);
     }
 
     protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
-        String url = String.format(getCarbonAwareApiUrlPath() + "&areaCode=%s", areaCode);
+        String url = String.format(getCarbonIntensityDayAheadEnergyPricesApiPath() + "?areaCode=%s&state=", areaCode);
         wireMockServer.stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")

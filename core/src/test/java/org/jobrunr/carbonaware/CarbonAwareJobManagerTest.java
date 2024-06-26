@@ -7,12 +7,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CarbonAwareManagerTest {
-    private final CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());
+public class CarbonAwareJobManagerTest {
+    private final CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());
 
     @Test
     void testGetDailyRunTimeShouldGiveResultBetween18And19() {
