@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Chip from '@mui/material/Chip';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import {Schedule} from "@mui/icons-material";
-import {AlertCircleOutline, Check, Cogs, Delete, TimerSand} from "mdi-material-ui";
+import {AlertCircleOutline, Check, Cogs, Delete, LockClock, TimerSand} from "mdi-material-ui";
 import statsState from "../../StatsStateContext";
 
 const categories = [
-    {name: "awaiting", state: "AWAITING", label: "Awaiting", icon: <HourglassBottomIcon/>},
+    {name: "awaiting", state: "AWAITING", label: "Pending", icon: <LockClock/>},
     {name: "scheduled", state: "SCHEDULED", label: "Scheduled", icon: <Schedule/>},
     {name: "enqueued", state: "ENQUEUED", label: "Enqueued", icon: <TimerSand/>},
     {name: "processing", state: "PROCESSING", label: "Processing", icon: <Cogs/>},

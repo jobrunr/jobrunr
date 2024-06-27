@@ -46,7 +46,7 @@ context('Actions', () => {
     it('It can navigate to the awaiting jobs', config, () => {
         awaitingMenuBtn().should('contain', '0');
         awaitingMenuBtn().click();
-        title().should('contain', 'Awaiting jobs');
+        title().should('contain', 'Pending jobs');
 
         noJobsFoundMessage().should('be.visible')
         jobTable().should('not.exist');
@@ -130,7 +130,7 @@ context('Actions', () => {
 
     it('It can navigate to the recurring jobs page', config, () => {
         recurringJobsTabBtn().click();
-        recurringJobsTabBtn().get('span.MuiChip-label').should('contain', '2');
+        recurringJobsTabBtn().get('span.MuiChip-label').should('contain', '3');
     });
 
     it('It can navigate to the servers page', config, () => {
