@@ -175,61 +175,34 @@ const RecurringJobs = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {recurringJobs.map(recurringJob => {
-                                                console.log("Recurring Job: ", recurringJob) //TODO: remove this line (debugging)
-                                                const {nextRun} = recurringJob;
-                                                let nextRunDisplay;
-
-                                                // Check if nextRun has the instant or carbonAwarePeriod field
-                                                if (nextRun.instant) {
-                                                    const instantDate = new Date(nextRun.instant);
-                                                    nextRunDisplay = (
-                                                        <TimeAgo date={instantDate} title={instantDate.toString()}/>
-                                                    );
-                                                } else if (nextRun.carbonAwarePeriod) {
-                                                    const fromDate = new Date(nextRun.carbonAwarePeriod.from);
-                                                    const toDate = new Date(nextRun.carbonAwarePeriod.to);
-                                                    nextRunDisplay = (
-                                                        <div>
-                                                            <TimeAgo date={fromDate} title={fromDate.toString()}/>
-                                                            {" - "}
-                                                            <TimeAgo date={toDate} title={toDate.toString()}/>
-                                                        </div>
-                                                    );
-                                                } else {
-                                                    nextRunDisplay = <span>No data</span>;
-                                                }
-
-                                                return (
-                                                    <TableRow key={recurringJob.id}>
-                                                        <TableCell padding="checkbox">
-                                                            <Checkbox checked={recurringJob.selected}
-                                                                      onClick={(event) => selectRecurringJob(event, recurringJob)}/>
-                                                        </TableCell>
-                                                        <TableCell component="th" scope="row">
-                                                            {recurringJob.id}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {recurringJob.labels?.map((label) => <JobLabel
-                                                                text={label}/>)}
-                                                            {recurringJob.jobName}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {recurringJob.scheduleExpression.startsWith('P')
-                                                                ? recurringJob.scheduleExpression
-                                                                : cronstrue.toString(recurringJob.scheduleExpression)}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {recurringJob.zoneId}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {nextRunDisplay}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
+                                            {recurringJobs.map(recurringJob => (
+                                                <TableRow key={recurringJob.id}>
+                                                    <TableCell padding="checkbox">
+                                                        <Checkbox checked={recurringJob.selected}
+                                                                  onClick={(event) => selectRecurringJob(event, recurringJob)}/>
+                                                    </TableCell>
+                                                    <TableCell component="th" scope="row">
+                                                        {recurringJob.id}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
+                                                        {recurringJob.jobName}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {recurringJob.scheduleExpression.startsWith('P')
+                                                            ? recurringJob.scheduleExpression
+                                                            : cronstrue.toString(recurringJob.scheduleExpression)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {recurringJob.zoneId}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TimeAgo date={new Date(recurringJob.nextRun)}
+                                                                 title={new Date(recurringJob.nextRun).toString()}/>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
                                         </TableBody>
-
                                     </Table>
                                 </TableContainer>
                                 <TablePagination
