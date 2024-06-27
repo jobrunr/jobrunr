@@ -12,6 +12,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Grid from '@mui/material/Grid';
 import TimeAgo from "react-timeago/lib";
+import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
 import {Snackbar} from "@mui/material";
 import Alert from '@mui/material/Alert'
@@ -22,8 +23,6 @@ import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
 import {ItemsNotFound} from "../utils/items-not-found";
-import cronstrue from "cronstrue";
-import {formatCarbonAwareCron, formatDurationEveryX, identifyScheduleType} from "../../utils/helper-functions";
 
 const RecurringJobs = () => {
     const navigate = useNavigate();
@@ -126,19 +125,6 @@ const RecurringJobs = () => {
         })
     };
 
-    function formatScheduleExpression(scheduleExpression) {
-        const scheduleType = identifyScheduleType(scheduleExpression);
-        switch (scheduleType) {
-            case "Cron":
-                return cronstrue.toString(scheduleExpression);
-            case "CarbonAwareCron":
-                return formatCarbonAwareCron(scheduleExpression);
-            case "Duration":
-                return formatDurationEveryX(scheduleExpression);
-        }
-    }
-
-
     return (
         <div>
             <Box my={3}>
@@ -192,7 +178,6 @@ const RecurringJobs = () => {
                                             {recurringJobs.map(recurringJob => {
                                                 console.log("Recurring Job: ", recurringJob) //TODO: remove this line (debugging)
                                                 const {nextRun} = recurringJob;
-                                                console.log("nextRun: ", nextRun)
                                                 let nextRunDisplay;
 
                                                 // Check if nextRun has the instant or carbonAwarePeriod field
@@ -230,7 +215,9 @@ const RecurringJobs = () => {
                                                             {recurringJob.jobName}
                                                         </TableCell>
                                                         <TableCell>
-                                                            {formatScheduleExpression(recurringJob.scheduleExpression)}
+                                                            {recurringJob.scheduleExpression.startsWith('P')
+                                                                ? recurringJob.scheduleExpression
+                                                                : cronstrue.toString(recurringJob.scheduleExpression)}
                                                         </TableCell>
                                                         <TableCell>
                                                             {recurringJob.zoneId}

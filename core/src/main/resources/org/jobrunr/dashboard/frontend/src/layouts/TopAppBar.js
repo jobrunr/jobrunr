@@ -4,7 +4,6 @@ import AppBar from '@mui/material/AppBar';
 import Chip from '@mui/material/Chip';
 import Toolbar from '@mui/material/Toolbar';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import {Newspaper as NewsIcon} from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import {Link as RouterLink} from 'react-router-dom';
@@ -15,19 +14,6 @@ import {Badge} from "@mui/material";
 
 const StyledAppBar = styled(AppBar)(({theme}) => ({
     zIndex: theme.zIndex.drawer + 1
-}));
-
-const LogoImage = styled('img')(({theme}) => ({
-    width: 'auto',
-    height: '35px',
-    transition: 'transform 0.3s ease-in-out',
-    '&:hover': {
-        transform: 'scale(1.1)'
-    }
-}));
-
-const LogoLink = styled('a')(({theme}) => ({
-    textDecoration: 'none'
 }));
 
 const Buttons = styled("div")(({theme}) => ({
@@ -78,9 +64,7 @@ const TopAppBar = () => {
     return (
         <StyledAppBar position="fixed">
             <Toolbar style={{display: "flex", alignItems: "center"}}>
-                <LogoLink href="https://www.jobrunr.io">
-                    <LogoImage src={logo} alt="JobRunnr"/>
-                </LogoLink>
+                <img style={{width: 'auto', height: '35px'}} src={logo} alt="JobRunr"/>
                 <Buttons>
                     <OverviewButton/>
                     <Button id="jobs-btn" color="inherit" component={RouterLink} to="/dashboard/jobs">
@@ -103,14 +87,6 @@ const TopAppBar = () => {
                     href="https://github.com/jobrunr/jobrunr"
                     size="large">
                     <GitHubIcon/>
-                </IconButton>
-                <IconButton
-                    color="inherit"
-                    aria-label="What's new"
-                    target="_blank"
-                    href="https://github.com/jobrunr/jobrunr/releases"
-                    size="large">
-                    <NewsIcon/>
                 </IconButton>
             </Toolbar>
         </StyledAppBar>

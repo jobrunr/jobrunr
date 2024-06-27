@@ -10,7 +10,7 @@ const AvgProcessMemoryUsageCard = ({servers}) => {
 
     return (
         <StatCard title="Avg Process Memory Usage">
-            {humanFileSize(averageProcessMemoryUsage)}
+            {humanFileSize(averageProcessMemoryUsage, true)}
         </StatCard>
     );
 };
