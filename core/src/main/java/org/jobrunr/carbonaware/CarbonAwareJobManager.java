@@ -32,6 +32,10 @@ public class CarbonAwareJobManager {
         this.dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
     }
 
+    public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
+        return carbonAwareConfiguration;
+    }
+
     public Instant getZookeeperTaskDailyRunTime(int baseHour) { // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets
         int randomOffsetToDistributeLoadOnApi = rand.nextInt(721) * 5;
         ZonedDateTime baseHourTodayUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
@@ -47,6 +51,10 @@ public class CarbonAwareJobManager {
             return;
         }
         this.dayAheadEnergyPrices = dayAheadEnergyPrices;
+    }
+
+    public String getTimeZone() {
+        return Objects.isNull(dayAheadEnergyPrices.getTimezone()) ? "Europe/Brussels" : dayAheadEnergyPrices.getTimezone();
     }
 
     public void moveToNextState(Job job) {
@@ -105,10 +113,6 @@ public class CarbonAwareJobManager {
             carbonAwareAwaitingState.moveToNextState(job, leastExpensiveHour);
         }
         LOGGER.trace("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
-    }
-
-    public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
-        return carbonAwareConfiguration;
     }
 
     private CarbonAwareApiClient createCarbonAwareApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {

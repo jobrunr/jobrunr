@@ -39,6 +39,10 @@ public class DayAheadEnergyPrices {
         return unit;
     }
 
+    public String getTimezone() {
+        return timezone;
+    }
+
     public List<HourlyEnergyPrice> getHourlyEnergyPrices() {
         return hourlyEnergyPrices;
     }
