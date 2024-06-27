@@ -3,11 +3,9 @@ import {JobState} from "./job-state";
 const Awaiting = ({jobState}) => {
     const from = new Date(jobState.from);
     const to = new Date(jobState.to);
-    const title = "Awaiting in order to minimize carbon impact";
-
     return (
-        <JobState state="awaiting" title={title} from={jobState.from} to={jobState.to}>
-            Job is waiting. Will be scheduled between {from.toString()} and {to.toString()}
+        <JobState title="Pending" state="awaiting" date={new Date(jobState.createdAt)}>
+            Job is waiting to be scheduled at a time of low carbon emissions. It'll be scheduled between {from.toString()} and {to.toString()}.
         </JobState>
     )
 };

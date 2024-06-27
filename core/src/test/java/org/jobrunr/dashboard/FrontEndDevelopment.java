@@ -5,15 +5,20 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.scheduling.BackgroundJob;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
+import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
+import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.time.Duration;
 
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
@@ -42,16 +47,12 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-//        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
-//                x -> x.doWorkThatTakesLong(JobContext.Null));
-//        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-cron-minutely", Cron.minutely(),
-//                x -> x.doWorkThatTakesLong(15));
-//        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-cron-weekly", Cron.weekly(DayOfWeek.SUNDAY, 10),
-//                x -> x.doWorkThatTakesLong(15));
-//        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-duration-daily", Duration.ofDays(1),
-//                x -> x.doWorkThatTakesLong(15));
-//        BackgroundJob.<TestService>scheduleRecurrently("recurring-job-carbonAwareCron-weekly", CarbonAwareCron.weekly(1, 3),
-//                x -> x.doWorkThatTakesLong(15));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(7, 12), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-2", CarbonAware.dailyBefore(7), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-3", CarbonAware.using(Cron.daily(4), Duration.ofHours(2), Duration.ofHours(1)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-4", CarbonAware.before(Cron.daily(4), Duration.ofHours(4)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-5", "0 0 1 * * [P2DT6H/P10DT12H4M29.45S]", x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
 //        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
 
