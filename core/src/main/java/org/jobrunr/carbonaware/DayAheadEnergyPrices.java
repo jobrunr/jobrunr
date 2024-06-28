@@ -8,6 +8,7 @@ import java.util.List;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 
+@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class DayAheadEnergyPrices {
 
     private String areaCode;
@@ -35,6 +36,10 @@ public class DayAheadEnergyPrices {
         return areaCode;
     }
 
+    public String getState() {
+        return state;
+    }
+
     public String getUnit() {
         return unit;
     }
@@ -49,10 +54,6 @@ public class DayAheadEnergyPrices {
 
     public boolean hasNoData() {
         return hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty();
-    }
-
-    public Instant leastExpensiveHour(CarbonAwarePeriod period) {
-        return leastExpensiveHour(period.getFrom(), period.getTo());
     }
 
     public Instant leastExpensiveHour(Instant from, Instant to) {

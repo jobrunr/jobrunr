@@ -2,6 +2,7 @@ package org.jobrunr.carbonaware;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,50 +13,45 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static java.lang.String.format;
-import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-// TODO the only times data is fetched is at instantiation or by the Zookeeper Task
 // TODO Use system timezone as default timezone; use timezone from day ahead prices if available
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
+    private static final int DEFAULT_REFRESH_TIME = 19;
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
-    private final CarbonAwareApiClient carbonAwareApiClient;
-    private final Random rand = new Random();
-    private DayAheadEnergyPrices dayAheadEnergyPrices;
+    private final CarbonIntensityApiClient carbonIntensityApiClient;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final int randomRefreshTimeOffset = new Random().nextInt(721) * 5;
+    private volatile DayAheadEnergyPrices dayAheadEnergyPrices;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
-        this.carbonAwareApiClient = createCarbonAwareApiClient(this.carbonAwareConfiguration, jsonMapper);
-        this.dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
+        this.carbonIntensityApiClient = createCarbonIntensityApiClient(this.carbonAwareConfiguration, jsonMapper);
+        this.scheduledExecutorService = new PlatformThreadPoolJobRunrExecutor(1, 1, "carbon-aware-job-manager");
+        this.dayAheadEnergyPrices = new DayAheadEnergyPrices();
+        scheduleDayAheadEnergyPricesUpdate(Instant.now().plusSeconds(1));
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
         return carbonAwareConfiguration;
     }
 
-    public Instant getZookeeperTaskDailyRunTime(int baseHour) { // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets
-        int randomOffsetToDistributeLoadOnApi = rand.nextInt(721) * 5;
-        ZonedDateTime baseHourTodayUTC = ZonedDateTime.now(ZoneId.of("Europe/Brussels"))
-                .withHour(baseHour).withMinute(0).withSecond(0)
-                .plusSeconds(randomOffsetToDistributeLoadOnApi);
-        return baseHourTodayUTC.toInstant();
+    public Instant getDailyRefreshTime() {
+        return ZonedDateTime.now(getTimeZone())
+                .truncatedTo(HOURS)
+                .withHour(DEFAULT_REFRESH_TIME)
+                .plusSeconds(randomRefreshTimeOffset) // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets
+                .toInstant();
     }
 
-    public void updateDayAheadEnergyPrices() {
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonAwareApiClient.fetchLatestDayAheadEnergyPrices();
-        if (dayAheadEnergyPrices.hasNoData()) {
-            LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
-            return;
-        }
-        this.dayAheadEnergyPrices = dayAheadEnergyPrices;
-    }
-
-    public String getTimeZone() {
-        return Objects.isNull(dayAheadEnergyPrices.getTimezone()) ? "Europe/Brussels" : dayAheadEnergyPrices.getTimezone();
+    public ZoneId getTimeZone() {
+        return ZoneId.systemDefault();
     }
 
     public void moveToNextState(Job job) {
@@ -97,14 +93,13 @@ public class CarbonAwareJobManager {
     }
 
     private boolean shouldWaitWhenDataAreUnavailable(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        ZonedDateTime nowCET = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
-        LocalDate today = nowCET.toLocalDate();
-        LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(ZoneId.of("Europe/Brussels")).toLocalDate();
-        boolean todayIsDeadline = today.equals(deadlineDay);
-        boolean todayIsPreviousDayBeforeDeadline = today.equals(deadlineDay.minusDays(1));
-        boolean timeIsAfter18 = nowCET.getHour() >= 18;
-        boolean todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18 = todayIsPreviousDayBeforeDeadline && timeIsAfter18;
-        boolean shouldScheduleNow = todayIsDeadline || todayIsPreviousDayBeforeDeadlineAndTimeIsAfter18;
+        ZonedDateTime currentTimeInZone = ZonedDateTime.now(getTimeZone());
+        LocalDate today = currentTimeInZone.toLocalDate();
+        LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(getTimeZone()).toLocalDate();
+        boolean isDeadlineDay = today.equals(deadlineDay);
+        boolean isDayBeforeDeadlineDay = today.equals(deadlineDay.minusDays(1));
+        boolean isAfterRefreshTime = currentTimeInZone.getHour() >= DEFAULT_REFRESH_TIME;
+        boolean shouldScheduleNow = isDeadlineDay || (isDayBeforeDeadlineDay && isAfterRefreshTime);
         return !shouldScheduleNow;
     }
 
@@ -116,20 +111,34 @@ public class CarbonAwareJobManager {
         LOGGER.trace("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
     }
 
-    private CarbonAwareApiClient createCarbonAwareApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
-        return new CarbonAwareApiClient(carbonAwareConfiguration, jsonMapper);
-    }
-
-    private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        return now().isAfter(carbonAwareAwaitingState.getTo());
-    }
-
-    private boolean isDeadlineNextHour(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        return now().isAfter(carbonAwareAwaitingState.getTo().minus(1, HOURS));
-    }
-
     private void scheduleJobAtPreferredInstant(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
         Instant scheduleAt = Objects.isNull(carbonAwareAwaitingState.getPreferredInstant()) ? carbonAwareAwaitingState.getFrom() : carbonAwareAwaitingState.getPreferredInstant();
         carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
+    }
+
+    private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
+        return new CarbonIntensityApiClient(carbonAwareConfiguration, jsonMapper);
+    }
+
+    private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        return Instant.now().isAfter(carbonAwareAwaitingState.getTo());
+    }
+
+    private boolean isDeadlineNextHour(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        return Instant.now().isAfter(carbonAwareAwaitingState.getTo().minus(1, HOURS));
+    }
+
+    private void updateDayAheadEnergyPrices() {
+        DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+        scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime());
+        if (dayAheadEnergyPrices.hasNoData()) {
+            LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
+            return;
+        }
+        this.dayAheadEnergyPrices = dayAheadEnergyPrices;
+    }
+
+    private void scheduleDayAheadEnergyPricesUpdate(Instant scheduleAt) {
+        scheduledExecutorService.schedule(this::updateDayAheadEnergyPrices, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
     }
 }

@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 
 import static java.time.LocalTime.MAX;
@@ -33,7 +32,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @Override
     protected void runTask() {
-        carbonAwareJobManager.updateDayAheadEnergyPrices();
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
                 amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
@@ -49,6 +47,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private Instant getDeadlineBeforeWhichToQueryCarbonAwareJobs() {
-        return LocalDate.now().atTime(MAX).plusDays(1).atZone(ZoneId.of(carbonAwareJobManager.getTimeZone())).toInstant();
+        return LocalDate.now().atTime(MAX).plusDays(1).atZone(carbonAwareJobManager.getTimeZone()).toInstant();
     }
 }

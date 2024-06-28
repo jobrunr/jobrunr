@@ -14,13 +14,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.stream.Collectors;
 
-public class CarbonAwareApiClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareApiClient.class);
+public class CarbonIntensityApiClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonIntensityApiClient.class);
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final JsonMapper jsonMapper;
 
-    public CarbonAwareApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
+    public CarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = carbonAwareConfiguration;
         this.jsonMapper = jsonMapper;
     }
@@ -68,7 +68,7 @@ public class CarbonAwareApiClient {
 
     private String readResponse(HttpURLConnection con) throws IOException {
         if (con.getResponseCode() > 299) {
-            throw new CarbonAwareApiClientException(con.getResponseCode(), readErrorStream(con));
+            throw new CarbonIntensityApiClientException(con.getResponseCode(), readErrorStream(con));
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
             StringBuilder content = new StringBuilder();

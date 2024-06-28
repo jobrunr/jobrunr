@@ -45,12 +45,12 @@ public class AbstractCarbonAwareWiremockTest {
         wireMockServer.stop();
     }
 
-    protected CarbonAwareApiClient createCarbonAwareApiClient(String areaCode) {
+    protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
         CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
                 .andAreaCode(areaCode)
                 .andCarbonIntensityApiUrl("http://localhost:10000");
 
-        return new CarbonAwareApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), jsonMapper);
+        return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), jsonMapper);
     }
 
     protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
