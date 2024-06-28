@@ -67,13 +67,14 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
         }
 
+        registerRecurringJobRun(recurringJob, getLast(jobsToCreate));
+
         if (carbonAwareJobManager != null) {
             jobsToCreate.stream()
                     .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState)
                     .forEach(carbonAwareJobManager::moveToNextState);
         }
 
-        registerRecurringJobRun(recurringJob, getLast(jobsToCreate));
         return jobsToCreate;
     }
 

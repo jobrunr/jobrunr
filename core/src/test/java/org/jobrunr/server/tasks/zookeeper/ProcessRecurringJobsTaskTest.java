@@ -8,6 +8,7 @@ import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,6 +25,8 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR;
+import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -129,21 +132,30 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
 
-        runTask(task);
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
+            runTask(task);
 
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
-                .hasSize(2)
-                .allMatch(j -> j.getRecurringJobId().orElse("").equals(recurringJob.getId()))
-                .allMatch(j -> j.getState() == SCHEDULED);
+            verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+            assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
+                    .hasSize(2)
+                    .allMatch(j -> j.getRecurringJobId().orElse("").equals(recurringJob.getId()))
+                    .allMatch(j -> j.getState() == SCHEDULED);
 
-        Job lastJobSavedAfterFirstRun = jobsToSaveArgumentCaptor.getValue().get(1);
+            assertThat(((ScheduledState) jobsToSaveArgumentCaptor.getValue().get(0).getJobState()).getScheduledAt().plusSeconds(15))
+                    .isEqualTo(((ScheduledState) jobsToSaveArgumentCaptor.getValue().get(1).getJobState()).getScheduledAt());
+        }
 
-        clearInvocations(storageProvider);
 
-        runTask(task);
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR.plusSeconds(15))) {
+            Job lastSavedJob = jobsToSaveArgumentCaptor.getValue().get(1);
+            clearInvocations(storageProvider);
 
-        verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+            runTask(task);
+
+            verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+            assertThat(((ScheduledState) lastSavedJob.getJobState()).getScheduledAt().plusSeconds(15))
+                    .isEqualTo(((ScheduledState) jobsToSaveArgumentCaptor.getValue().get(0).getJobState()).getScheduledAt());
+        }
     }
 
     @Test
