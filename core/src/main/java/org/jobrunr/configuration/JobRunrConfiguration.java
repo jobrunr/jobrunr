@@ -1,5 +1,7 @@
 package org.jobrunr.configuration;
 
+import org.jobrunr.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
@@ -11,8 +13,6 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
-import org.jobrunr.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -28,7 +28,6 @@ import java.util.List;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.utils.mapper.JsonMapperValidator.validateJsonMapper;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
@@ -54,8 +53,6 @@ public class JobRunrConfiguration {
         this.jobMapper = new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
-        // TODO how should we handle cases where the CarbonAwareJobManager is not initialised
-        this.carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), jsonMapper);
     }
 
     /**

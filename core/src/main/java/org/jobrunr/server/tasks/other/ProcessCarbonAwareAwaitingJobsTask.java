@@ -16,7 +16,7 @@ import static java.util.Collections.emptyList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 
 // TODO should this class be under zookeeper?
-// TODO I think this task should not be concerned about the pollInterval?
+// TODO should this task be concerned about the pollInterval?
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessCarbonAwareAwaitingJobsTask.class);

@@ -5,7 +5,6 @@ import java.time.Instant;
 
 import static java.time.Instant.now;
 
-// TODO test new AWAITING state
 public class JobStats implements Comparable<JobStats> {
 
     private final Instant timeStamp;
@@ -62,7 +61,7 @@ public class JobStats implements Comparable<JobStats> {
         return total;
     }
 
-    private Long getAwaiting() {
+    public Long getAwaiting() {
         return awaiting;
     }
 

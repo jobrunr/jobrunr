@@ -309,9 +309,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        // TODO should be AtFixedRate?
-        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getDailyRefreshTime().plusSeconds(30 * 60)).toMillis(), DAYS.toMillis(1), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getDailyRefreshTime().plusSeconds(3 * 60 * 60)).toMillis(), DAYS.toMillis(1), MILLISECONDS); // why: add 1 retry in case the previous run failed
+        if (carbonAwareJobManager != null) {
+            // TODO should be AtFixedRate?
+            zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getDailyRefreshTime().plusSeconds(30 * 60)).toMillis(), DAYS.toMillis(1), MILLISECONDS);
+            zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getDailyRefreshTime().plusSeconds(3 * 60 * 60)).toMillis(), DAYS.toMillis(1), MILLISECONDS); // why: add 1 retry in case the previous run failed
+        }
     }
 
     private void stopZooKeepers() {

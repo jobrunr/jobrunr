@@ -13,7 +13,6 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.LogAllStateChangesFilter;
-import org.jobrunr.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.storage.Paging.AmountBasedList;
 import org.jobrunr.storage.Paging.OffsetBasedPage;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
@@ -30,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -61,6 +59,7 @@ import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
@@ -100,9 +99,6 @@ public abstract class StorageProviderTest {
         cleanup();
         final JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
         JobRunr.configure()
-                .useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
-                        .andApiClientConnectTimeout(Duration.ofMillis(1))
-                        .andApiClientReadTimeout(Duration.ofMillis(1))) // why: to speed up tests
                 .useStorageProvider(getStorageProvider())
                 .initialize();
         storageProvider = getStorageProvider();
@@ -954,13 +950,13 @@ public abstract class StorageProviderTest {
 
     @Test
     void testJobStats() {
-        // TODO test awaiting (copy from Pro?)
         storageProvider.announceBackgroundJobServer(backgroundJobServer.getServerStatus());
 
         assertThatCode(() -> storageProvider.getJobStats()).doesNotThrowAnyException();
 
         storageProvider.publishTotalAmountOfSucceededJobs(5);
         storageProvider.save(asList(
+                aCarbonAwaitingJob().build(),
                 anEnqueuedJob().build(),
                 anEnqueuedJob().build(),
                 anEnqueuedJob().build(),
@@ -975,6 +971,7 @@ public abstract class StorageProviderTest {
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("id2").build());
 
         final JobStats jobStats = storageProvider.getJobStats();
+        assertThat(jobStats.getAwaiting()).isEqualTo(1);
         assertThat(jobStats.getScheduled()).isEqualTo(1);
         assertThat(jobStats.getEnqueued()).isEqualTo(3);
         assertThat(jobStats.getProcessing()).isEqualTo(1);

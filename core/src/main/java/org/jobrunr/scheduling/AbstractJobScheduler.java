@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
@@ -12,7 +13,6 @@ import org.jobrunr.jobs.mappers.MDCMapper;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+// TODO should we refuse to schedule carbon aware recurring job if CarbonAwareJobManager is null?
 public abstract class AbstractJobScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
@@ -45,7 +46,6 @@ public abstract class AbstractJobScheduler {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
         }
         this.storageProvider = storageProvider;
-        // TODO can this be null?
         this.carbonAwareJobManager = carbonAwareJobManager;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
@@ -131,6 +131,7 @@ public abstract class AbstractJobScheduler {
     }
 
     JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
+        throwExceptionIfCarbonAwareJobManagerIsNull();
         Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo()));
         carbonAwareJobManager.moveToNextState(carbonAwareJob);
         return saveJob(carbonAwareJob);
@@ -170,5 +171,11 @@ public abstract class AbstractJobScheduler {
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);
         return savedJobs;
+    }
+
+    private void throwExceptionIfCarbonAwareJobManagerIsNull() {
+        if (carbonAwareJobManager == null) {
+            throw new IllegalStateException("CarbonAwareJobManager is not configured. Cannot schedule carbon aware jobs.");
+        }
     }
 }
