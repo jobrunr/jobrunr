@@ -3,14 +3,19 @@ package org.jobrunr.server.tasks.zookeeper;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -19,6 +24,7 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -98,5 +104,77 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
                 .hasSizeBetween(2, 3)
                 .extracting(Job::getState)
                 .containsOnly(SCHEDULED);
+    }
+
+    @Test
+    void taskSchedulesOneExtraJobAheadOfTime() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
+
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+
+        runTask(task);
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
+                .hasSize(2)
+                .allMatch(j -> j.getRecurringJobId().orElse("").equals(recurringJob.getId()))
+                .allMatch(j -> j.getState() == SCHEDULED);
+    }
+
+    @Test
+    void taskKeepsTrackOfRecurringJobRuns() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
+
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+
+        runTask(task);
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
+                .hasSize(2)
+                .allMatch(j -> j.getRecurringJobId().orElse("").equals(recurringJob.getId()))
+                .allMatch(j -> j.getState() == SCHEDULED);
+
+        Job lastJobSavedAfterFirstRun = jobsToSaveArgumentCaptor.getValue().get(1);
+
+        clearInvocations(storageProvider);
+
+        runTask(task);
+
+        verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+    }
+
+    @Test
+    void taskTakesSkipsAlreadyScheduledRecurringJobsOnStartup() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
+
+        Instant lastScheduledAt = Instant.now().plusSeconds(15);
+        when(storageProvider.getRecurringJobsLatestScheduledRun()).thenReturn(Map.of(recurringJob.getId(), lastScheduledAt));
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+
+        ProcessRecurringJobsTask task = new ProcessRecurringJobsTask(backgroundJobServer);
+
+        runTask(task);
+
+        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+        Job savedJob = jobsToSaveArgumentCaptor.getValue().get(0);
+        assertThat(savedJob)
+                .hasState(SCHEDULED)
+                .hasRecurringJobId(recurringJob.getId());
+        assertThat(savedJob.<ScheduledState>getJobState().getScheduledAt()).isAfter(lastScheduledAt);
+    }
+
+    @Test
+    void taskDoesNotThrowAnExceptionIfCarbonAwareJobManagerIsNotConfigured() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+
+        assertThat(backgroundJobServer.getCarbonAwareJobManager()).isNull();
+        assertThatCode(() -> runTask(task)).doesNotThrowAnyException();
     }
 }

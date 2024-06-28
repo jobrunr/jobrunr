@@ -1,15 +1,16 @@
 package org.jobrunr.server.tasks.zookeeper;
 
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.RecurringJobsResult;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
-        this.recurringJobRuns = storageProvider.getRecurringJobsLatestScheduledRun();
+        this.recurringJobRuns = new HashMap<>(storageProvider.getRecurringJobsLatestScheduledRun());
         this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
         this.recurringJobs = new RecurringJobsResult();
     }
@@ -66,9 +67,11 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
         }
 
-        jobsToCreate.stream()
-                .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState)
-                .forEach(carbonAwareJobManager::moveToNextState);
+        if (carbonAwareJobManager != null) {
+            jobsToCreate.stream()
+                    .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState)
+                    .forEach(carbonAwareJobManager::moveToNextState);
+        }
 
         registerRecurringJobRun(recurringJob, getLast(jobsToCreate));
         return jobsToCreate;

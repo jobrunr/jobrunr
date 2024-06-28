@@ -3,13 +3,13 @@ package org.jobrunr.server.tasks;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.LogAllStateChangesFilter;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.StorageProvider;
@@ -61,6 +61,10 @@ public abstract class AbstractTaskTest {
         // hook to override settings
     }
 
+    protected CarbonAwareJobManager setUpCarbonAwareJobManager() {
+        return null;
+    }
+
     protected void runTask(Task task) {
         runTask(task, backgroundJobServer.getConfiguration());
     }
@@ -71,8 +75,7 @@ public abstract class AbstractTaskTest {
     }
 
     private BackgroundJobServer createBackgroundJobServerSpy(StorageProvider storageProvider, BackgroundJobServerConfiguration configuration) {
-        CarbonAwareJobManager mockCarbonAwareJobManager = Mockito.mock(CarbonAwareJobManager.class);
-        return Mockito.spy(new BackgroundJobServer(storageProvider, mockCarbonAwareJobManager, new JacksonJsonMapper(), null, configuration) {
+        return Mockito.spy(new BackgroundJobServer(storageProvider, setUpCarbonAwareJobManager(), new JacksonJsonMapper(), null, configuration) {
             @Override
             protected JobSteward createJobSteward() {
                 return jobSteward;
