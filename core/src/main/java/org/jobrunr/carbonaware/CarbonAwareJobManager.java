@@ -18,13 +18,14 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 
 // TODO the only times data is fetched is at instantiation or by the Zookeeper Task
+// TODO Use system timezone as default timezone; use timezone from day ahead prices if available
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonAwareApiClient carbonAwareApiClient;
-    private DayAheadEnergyPrices dayAheadEnergyPrices;
     private final Random rand = new Random();
+    private DayAheadEnergyPrices dayAheadEnergyPrices;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);

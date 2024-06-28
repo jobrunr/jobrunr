@@ -1,10 +1,10 @@
 package org.jobrunr.server;
 
+import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.BackgroundJobServer.BackgroundJobServerLifecycleLock.LifeCycleLock;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
@@ -309,6 +309,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        // TODO should be AtFixedRate?
         zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getZookeeperTaskDailyRunTime(18)).toMillis(), DAYS.toMillis(1), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, between(now(), carbonAwareJobManager.getZookeeperTaskDailyRunTime(22)).toMillis(), DAYS.toMillis(1), MILLISECONDS); // why: add 1 retry in case the previous run failed
     }
