@@ -141,8 +141,7 @@ public class DiagnosticsBuilder {
             new Thread(() -> IOUtils.copyStreamNoException(process.getInputStream(), writer)).start();
 
             final int ignored = process.waitFor();
-            final String processOutput = writer.toString();
-            return processOutput;
+            return writer.toString();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return "Unable to run javap command (" + e.getMessage() + ").";
