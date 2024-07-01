@@ -39,5 +39,4 @@ public class InstantMocker {
         instantMock.when(Instant::now).thenReturn(instant);
         return instantMock;
     }
-
 }

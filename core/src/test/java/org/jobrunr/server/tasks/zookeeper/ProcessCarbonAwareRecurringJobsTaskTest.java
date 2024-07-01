@@ -5,7 +5,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 
 import java.util.List;
 
@@ -21,6 +21,8 @@ import static org.mockito.Mockito.when;
 class ProcessCarbonAwareRecurringJobsTaskTest extends AbstractJobZooKeeperTaskTest {
 
     ProcessRecurringJobsTask task;
+    @Mock
+    CarbonAwareJobManager carbonAwareJobManager;
 
     @BeforeEach
     void setUpTask() {
@@ -29,7 +31,7 @@ class ProcessCarbonAwareRecurringJobsTaskTest extends AbstractJobZooKeeperTaskTe
 
     @Override
     protected CarbonAwareJobManager setUpCarbonAwareJobManager() {
-        return Mockito.mock(CarbonAwareJobManager.class);
+        return carbonAwareJobManager;
     }
 
     @Test
@@ -43,7 +45,7 @@ class ProcessCarbonAwareRecurringJobsTaskTest extends AbstractJobZooKeeperTaskTe
         runTask(task);
 
         verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
-        verify(backgroundJobServer.getCarbonAwareJobManager(), times(1)).moveToNextState(any());
+        verify(carbonAwareJobManager, times(1)).moveToNextState(any());
         assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
                 .hasSize(3);
     }

@@ -18,8 +18,6 @@ import java.util.Set;
 import static java.time.ZoneId.systemDefault;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 
-// TODO cleanup
-
 /**
  * This class is used to build a {@link RecurringJob} using a job lambda or a {@link JobRequest}.
  * <p>

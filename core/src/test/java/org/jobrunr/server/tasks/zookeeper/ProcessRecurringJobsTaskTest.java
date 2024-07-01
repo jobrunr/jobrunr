@@ -143,6 +143,12 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
             assertThat(((ScheduledState) jobsToSaveArgumentCaptor.getValue().get(0).getJobState()).getScheduledAt().plusSeconds(15))
                     .isEqualTo(((ScheduledState) jobsToSaveArgumentCaptor.getValue().get(1).getJobState()).getScheduledAt());
+
+            clearInvocations(storageProvider);
+
+            runTask(task);
+
+            verify(storageProvider, times(0)).save(anyList());
         }
 
 

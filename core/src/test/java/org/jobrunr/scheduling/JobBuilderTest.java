@@ -7,7 +7,7 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
@@ -27,12 +27,10 @@ import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
-import static org.mockito.Mockito.mock;
 
 class JobBuilderTest {
 
     private final JobDetailsGenerator jobDetailsGenerator = new JobDetailsAsmGenerator();
-    private final CarbonAwareJobManager carbonAwareJobManager = mock(CarbonAwareJobManager.class);
     private final JobRequest jobRequest = new TestJobRequestWithoutJobAnnotation("Not important");
 
     private TestService testService;
@@ -157,11 +155,23 @@ class JobBuilderTest {
 
     @Test
     void testThatOnlyOneOfScheduleInScheduleIsAllowed() {
+        // TODO this test isn't doing what it's meant to do...
         assertThatThrownBy(() -> aJob().scheduleAt(Instant.now()).scheduleIn(Duration.ZERO).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testThatOnlyScheduleInOrScheduleCarbonAwareIsAllowed() {
+        assertThatThrownBy(() -> aJob().scheduleCarbonAware(CarbonAwarePeriod.after(now().plusSeconds(3600))).scheduleIn(Duration.ZERO).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware()");
+
+        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleCarbonAware(CarbonAwarePeriod.after(now().plusSeconds(3600))).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware()");
     }
 
     @Test

@@ -221,9 +221,4 @@ class RecurringJobBuilderTest {
                         .withJobRequest(jobRequest)
                         .build());
     }
-
-    @Test
-    void scheduleCanOnlyBeSet1Way() {
-        // TODO
-    }
 }

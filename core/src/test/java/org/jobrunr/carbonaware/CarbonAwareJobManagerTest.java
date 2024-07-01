@@ -3,7 +3,6 @@ package org.jobrunr.carbonaware;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
 
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -15,28 +14,28 @@ public class CarbonAwareJobManagerTest {
 
     @Test
     void testGetDailyRefreshTimeShouldGiveResultBetweenGivenRefreshTimeAndAnHourLater() {
-        Instant result = carbonAwareJobManager.getDailyRefreshTime();
+        ZonedDateTime result = carbonAwareJobManager.getDailyRefreshTime();
         ZonedDateTime expectedTime = ZonedDateTime.now(carbonAwareJobManager.getTimeZone())
                 .truncatedTo(HOURS)
-                .withHour(19);
+                .withHour(18);
 
-        assertThat(result).isAfterOrEqualTo(expectedTime.toInstant());
-        assertThat(result).isBefore(expectedTime.plusHours(1).toInstant());
+        assertThat(result).isAfterOrEqualTo(expectedTime);
+        assertThat(result).isBefore(expectedTime.plusHours(1));
     }
 
     @Test
     void testGetDailyRefreshTimeShouldGiveTheSameResultOnConsecutiveCalls() {
-        Instant firstCall = carbonAwareJobManager.getDailyRefreshTime();
-        Instant secondCall = carbonAwareJobManager.getDailyRefreshTime();
+        ZonedDateTime firstCall = carbonAwareJobManager.getDailyRefreshTime();
+        ZonedDateTime secondCall = carbonAwareJobManager.getDailyRefreshTime();
 
         assertThat(firstCall).isEqualTo(secondCall);
     }
 
     @Test
     void testDailyRefreshTimeShouldGiveResultsIn5SecondsBuckets() {
-        Instant firstCall = carbonAwareJobManager.getDailyRefreshTime();
+        ZonedDateTime firstCall = carbonAwareJobManager.getDailyRefreshTime();
 
-        assertThat(firstCall.getEpochSecond() % 5).isZero();
+        assertThat(firstCall.toInstant().getEpochSecond() % 5).isZero();
     }
 
 }

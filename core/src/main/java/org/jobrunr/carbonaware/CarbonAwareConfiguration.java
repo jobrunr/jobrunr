@@ -4,7 +4,6 @@ import java.time.Duration;
 
 import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl;
 
-// TODO should we rename carbonAwareApi to carbonIntensityApi?
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 

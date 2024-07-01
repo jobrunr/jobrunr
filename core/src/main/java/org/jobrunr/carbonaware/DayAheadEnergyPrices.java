@@ -19,7 +19,6 @@ public class DayAheadEnergyPrices {
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
 
-    // TODO constructor should not be public
     public DayAheadEnergyPrices() {
         this(null, null, null, null, null);
     }

@@ -12,22 +12,22 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-// TODO Use system timezone as default timezone; use timezone from day ahead prices if available
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
-    private static final int DEFAULT_REFRESH_TIME = 19;
+    private static final int DEFAULT_REFRESH_TIME = 18;
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonIntensityApiClient carbonIntensityApiClient;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final int randomRefreshTimeOffset = new Random().nextInt(721) * 5;
+    private final int randomRefreshTimeOffset = ThreadLocalRandom.current().nextInt(360, 721) * 5;
     private volatile DayAheadEnergyPrices dayAheadEnergyPrices;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
@@ -35,23 +35,26 @@ public class CarbonAwareJobManager {
         this.carbonIntensityApiClient = createCarbonIntensityApiClient(this.carbonAwareConfiguration, jsonMapper);
         this.scheduledExecutorService = new PlatformThreadPoolJobRunrExecutor(1, 1, "carbon-aware-job-manager");
         this.dayAheadEnergyPrices = new DayAheadEnergyPrices();
-        scheduleDayAheadEnergyPricesUpdate(Instant.now().plusSeconds(1));
+
+        scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime().toInstant());
+        if (getDailyRefreshTime().toInstant().isAfter(Instant.now().plus(5, MINUTES))) {
+            loadDayAheadPricesOnStartup();
+        }
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
         return carbonAwareConfiguration;
     }
 
-    public Instant getDailyRefreshTime() {
+    public ZonedDateTime getDailyRefreshTime() {
         return ZonedDateTime.now(getTimeZone())
                 .truncatedTo(HOURS)
                 .withHour(DEFAULT_REFRESH_TIME)
-                .plusSeconds(randomRefreshTimeOffset) // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets
-                .toInstant();
+                .plusSeconds(randomRefreshTimeOffset); // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets.
     }
 
     public ZoneId getTimeZone() {
-        return ZoneId.systemDefault();
+        return dayAheadEnergyPrices.getTimezone() == null ? ZoneId.systemDefault() : ZoneId.of(dayAheadEnergyPrices.getTimezone());
     }
 
     public void moveToNextState(Job job) {
@@ -130,7 +133,6 @@ public class CarbonAwareJobManager {
 
     private void updateDayAheadEnergyPrices() {
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
-        scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime());
         if (dayAheadEnergyPrices.hasNoData()) {
             LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
             return;
@@ -138,7 +140,19 @@ public class CarbonAwareJobManager {
         this.dayAheadEnergyPrices = dayAheadEnergyPrices;
     }
 
+    private void updateDayAheadEnergyPricesAndScheduleNextUpdate() {
+        try {
+            updateDayAheadEnergyPrices();
+        } finally {
+            scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime().plusDays(1).toInstant());
+        }
+    }
+
+    private void loadDayAheadPricesOnStartup() {
+        scheduledExecutorService.schedule(this::updateDayAheadEnergyPrices, 1000, MILLISECONDS);
+    }
+
     private void scheduleDayAheadEnergyPricesUpdate(Instant scheduleAt) {
-        scheduledExecutorService.schedule(this::updateDayAheadEnergyPrices, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
+        scheduledExecutorService.schedule(this::updateDayAheadEnergyPricesAndScheduleNextUpdate, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
     }
 }
