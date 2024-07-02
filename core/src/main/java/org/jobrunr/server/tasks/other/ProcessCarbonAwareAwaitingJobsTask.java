@@ -1,6 +1,6 @@
 package org.jobrunr.server.tasks.other;
 
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.tasks.zookeeper.AbstractJobZooKeeperTask;

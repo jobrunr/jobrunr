@@ -1,4 +1,4 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import org.junit.jupiter.api.Test;
 

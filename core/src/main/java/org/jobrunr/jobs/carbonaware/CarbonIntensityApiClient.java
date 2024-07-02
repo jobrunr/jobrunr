@@ -1,4 +1,4 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;

@@ -1,4 +1,4 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
@@ -17,7 +17,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class CarbonAwareJobManager {
@@ -36,10 +35,7 @@ public class CarbonAwareJobManager {
         this.scheduledExecutorService = new PlatformThreadPoolJobRunrExecutor(1, 1, "carbon-aware-job-manager");
         this.dayAheadEnergyPrices = new DayAheadEnergyPrices();
 
-        scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime().toInstant());
-        if (getDailyRefreshTime().toInstant().isAfter(Instant.now().plus(5, MINUTES))) {
-            loadDayAheadPricesOnStartup();
-        }
+        loadDayAheadPricesOnStartup();
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
@@ -140,6 +136,14 @@ public class CarbonAwareJobManager {
         this.dayAheadEnergyPrices = dayAheadEnergyPrices;
     }
 
+    private void loadDayAheadEnergyPricesAndScheduleNextUpdate() {
+        try {
+            updateDayAheadEnergyPrices();
+        } finally {
+            scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime().toInstant());
+        }
+    }
+
     private void updateDayAheadEnergyPricesAndScheduleNextUpdate() {
         try {
             updateDayAheadEnergyPrices();
@@ -149,7 +153,7 @@ public class CarbonAwareJobManager {
     }
 
     private void loadDayAheadPricesOnStartup() {
-        scheduledExecutorService.schedule(this::updateDayAheadEnergyPrices, 1000, MILLISECONDS);
+        scheduledExecutorService.schedule(this::loadDayAheadEnergyPricesAndScheduleNextUpdate, 1000, MILLISECONDS);
     }
 
     private void scheduleDayAheadEnergyPricesUpdate(Instant scheduleAt) {

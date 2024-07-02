@@ -1,6 +1,6 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
-import org.jobrunr.carbonaware.DayAheadEnergyPrices.HourlyEnergyPrice;
+import org.jobrunr.jobs.carbonaware.DayAheadEnergyPrices.HourlyEnergyPrice;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_12;
+import static org.jobrunr.jobs.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_12;
 
 class DayAheadEnergyPricesTest {
     @Test

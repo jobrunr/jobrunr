@@ -1,4 +1,6 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
+
+import org.jobrunr.jobs.carbonaware.DayAheadEnergyPrices;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

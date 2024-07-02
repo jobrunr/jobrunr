@@ -1,6 +1,6 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;

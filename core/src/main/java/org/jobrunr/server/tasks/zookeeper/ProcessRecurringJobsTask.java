@@ -1,6 +1,6 @@
 package org.jobrunr.server.tasks.zookeeper;
 
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;

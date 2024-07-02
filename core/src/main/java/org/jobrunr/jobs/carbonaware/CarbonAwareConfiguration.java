@@ -1,8 +1,8 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import java.time.Duration;
 
-import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl;
 
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {

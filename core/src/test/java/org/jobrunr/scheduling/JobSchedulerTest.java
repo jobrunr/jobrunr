@@ -8,7 +8,7 @@ import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;

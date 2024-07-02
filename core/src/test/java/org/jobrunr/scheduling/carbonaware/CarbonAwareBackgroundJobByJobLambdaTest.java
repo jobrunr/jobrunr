@@ -1,6 +1,6 @@
 package org.jobrunr.scheduling.carbonaware;
 
-import org.jobrunr.carbonaware.AbstractCarbonAwareWiremockTest;
+import org.jobrunr.jobs.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.scheduling.BackgroundJob;
@@ -26,9 +26,9 @@ import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_14;
-import static org.jobrunr.carbonaware.CarbonApiMockResponses.GERMANY_2024_03_14;
-import static org.jobrunr.carbonaware.CarbonApiMockResponses.GERMANY_NO_DATA;
+import static org.jobrunr.jobs.carbonaware.CarbonApiMockResponses.BELGIUM_2024_03_14;
+import static org.jobrunr.jobs.carbonaware.CarbonApiMockResponses.GERMANY_2024_03_14;
+import static org.jobrunr.jobs.carbonaware.CarbonApiMockResponses.GERMANY_NO_DATA;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;

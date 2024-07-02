@@ -1,4 +1,4 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import java.net.MalformedURLException;
 import java.net.URL;

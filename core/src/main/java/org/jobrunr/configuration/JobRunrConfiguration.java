@@ -1,7 +1,7 @@
 package org.jobrunr.configuration;
 
-import org.jobrunr.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;

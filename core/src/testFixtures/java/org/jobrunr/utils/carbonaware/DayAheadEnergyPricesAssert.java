@@ -2,7 +2,7 @@ package org.jobrunr.utils.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.jobrunr.carbonaware.DayAheadEnergyPrices;
+import org.jobrunr.jobs.carbonaware.DayAheadEnergyPrices;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
 import java.time.Instant;

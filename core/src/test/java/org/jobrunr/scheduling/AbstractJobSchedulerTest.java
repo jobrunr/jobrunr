@@ -1,7 +1,7 @@
 package org.jobrunr.scheduling;
 
 
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.JobDetailsTestBuilder;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDATE;
 

@@ -1,6 +1,6 @@
 package org.jobrunr.scheduling.carbonaware;
 
-import org.jobrunr.carbonaware.AbstractCarbonAwareWiremockTest;
+import org.jobrunr.jobs.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
@@ -31,7 +31,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;

@@ -1,6 +1,6 @@
 package org.jobrunr.server.tasks.zookeeper;
 
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;

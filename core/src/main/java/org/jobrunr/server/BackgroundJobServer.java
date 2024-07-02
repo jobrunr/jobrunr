@@ -1,6 +1,6 @@
 package org.jobrunr.server;
 
-import org.jobrunr.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;

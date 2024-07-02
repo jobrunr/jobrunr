@@ -1,5 +1,6 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 
@@ -7,7 +8,7 @@ import java.time.ZonedDateTime;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 
 public class CarbonAwareJobManagerTest {
     private final CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper());

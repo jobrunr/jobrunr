@@ -1,10 +1,13 @@
-package org.jobrunr.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.jobs.carbonaware.CarbonIntensityApiClient;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -16,8 +19,8 @@ import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.jobrunr.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
-import static org.jobrunr.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiPath;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiPath;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 public class AbstractCarbonAwareWiremockTest {
