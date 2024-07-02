@@ -3,6 +3,7 @@ package org.jobrunr.jobs.carbonaware;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
+import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +128,8 @@ public class CarbonAwareJobManager {
         return Instant.now().isAfter(carbonAwareAwaitingState.getTo().minus(1, HOURS));
     }
 
-    private void updateDayAheadEnergyPrices() {
+    @VisibleFor("testing")
+    void updateDayAheadEnergyPrices() {
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
         if (dayAheadEnergyPrices.hasNoData()) {
             LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");

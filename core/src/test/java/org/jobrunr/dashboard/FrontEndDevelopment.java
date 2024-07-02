@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
@@ -44,6 +45,7 @@ public class FrontEndDevelopment {
                 .useJsonMapper(new JacksonJsonMapper())
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
+                .useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration().andCarbonIntensityApiUrl("http://localhost:10000").andAreaCode("BE"))
                 .useBackgroundJobServer()
                 .initialize();
 

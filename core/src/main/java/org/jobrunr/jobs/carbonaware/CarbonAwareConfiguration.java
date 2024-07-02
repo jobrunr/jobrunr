@@ -7,11 +7,11 @@ import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCar
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityDayAheadEnergyPricesApiUrl("https://api.jobrunr.io/carbon-intensity");
+    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityDayAheadEnergyPricesApiUrl("https://api.jobrunr.io");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 
-    String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL; // TODO should this be configurable
+    String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL;
     String areaCode;
     String state;
     Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;

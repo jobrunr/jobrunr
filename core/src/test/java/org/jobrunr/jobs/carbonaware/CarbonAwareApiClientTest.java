@@ -55,7 +55,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestDayAheadEnergyPricesReturnsNullWhenNoApiResponseIsError() {
+    void testFetchLatestDayAheadEnergyPricesReturnsEmptyDayAheadPricesWhenApiResponseIsError() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("DE");
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
@@ -84,7 +84,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestDayAheadEnergyPricesReturnsNullWhenParsingInvalidJson() {
+    void testFetchLatestDayAheadEnergyPricesReturnsEmptyDayAheadPricesWhenParsingInvalidJson() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.INVALID_JSON);
@@ -97,7 +97,7 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestDayAheadEnergyPricesReturnsNullWhenParsingResponseWithExtraFields() {
+    void testFetchLatestDayAheadEnergyPricesReturnsEmptyDayAheadPricesWhenParsingResponseWithExtraFields() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
