@@ -145,7 +145,7 @@ public interface JobRunrConfiguration {
         Optional<Integer> getPollIntervalInSeconds();
 
         /**
-         * Sets the maximum number of jobs to update from awaiting to scheduled state per X hours
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
          */
         Optional<Integer> getCarbonAwaitingJobsRequestSize();
 

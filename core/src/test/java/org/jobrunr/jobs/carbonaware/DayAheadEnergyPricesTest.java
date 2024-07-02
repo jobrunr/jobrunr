@@ -24,11 +24,10 @@ class DayAheadEnergyPricesTest {
         JsonMapper jsonMapper = new JacksonJsonMapper();
         DayAheadEnergyPrices prices = jsonMapper.deserialize(BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
 
-        assertThat(prices.getAreaCode()).isEqualTo("BE");
-        assertThat(prices.getHourlyEnergyPrices().size()).isEqualTo(33);
-        HourlyEnergyPrice cheapestPrice = prices.getHourlyEnergyPrices().get(0);
-        assertThat(cheapestPrice.getPeriodStartAt()).isEqualTo(Instant.parse("2024-03-12T03:00:00Z"));
-        assertThat(cheapestPrice.getPrice()).isEqualTo(64.23);
+        assertThat(prices)
+                .hasAreaCode("BE")
+                .hasHourlyEnergyPricesSize(33)
+                .hasHourlyEnergyPriceAt(0, Instant.parse("2024-03-12T03:00:00Z"), 64.23);
     }
 
     @Test
@@ -36,11 +35,10 @@ class DayAheadEnergyPricesTest {
         JsonMapper jsonMapper = new JsonbJsonMapper();
         DayAheadEnergyPrices prices = jsonMapper.deserialize(BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
 
-        assertThat(prices.getAreaCode()).isEqualTo("BE");
-        assertThat(prices.getHourlyEnergyPrices().size()).isEqualTo(33);
-        HourlyEnergyPrice cheapestPrice = prices.getHourlyEnergyPrices().get(0);
-        assertThat(cheapestPrice.getPeriodStartAt()).isEqualTo(Instant.parse("2024-03-12T03:00:00Z"));
-        assertThat(cheapestPrice.getPrice()).isEqualTo(64.23);
+        assertThat(prices)
+                .hasAreaCode("BE")
+                .hasHourlyEnergyPricesSize(33)
+                .hasHourlyEnergyPriceAt(0, Instant.parse("2024-03-12T03:00:00Z"), 64.23);
     }
 
     @Test
@@ -48,11 +46,10 @@ class DayAheadEnergyPricesTest {
         JsonMapper jsonMapper = new GsonJsonMapper();
         DayAheadEnergyPrices prices = jsonMapper.deserialize(BELGIUM_2024_03_12, DayAheadEnergyPrices.class);
 
-        assertThat(prices.getAreaCode()).isEqualTo("BE");
-        assertThat(prices.getHourlyEnergyPrices().size()).isEqualTo(33);
-        HourlyEnergyPrice cheapestPrice = prices.getHourlyEnergyPrices().get(0);
-        assertThat(cheapestPrice.getPeriodStartAt()).isEqualTo(Instant.parse("2024-03-12T03:00:00Z"));
-        assertThat(cheapestPrice.getPrice()).isEqualTo(64.23);
+        assertThat(prices)
+                .hasAreaCode("BE")
+                .hasHourlyEnergyPricesSize(33)
+                .hasHourlyEnergyPriceAt(0, Instant.parse("2024-03-12T03:00:00Z"), 64.23);
     }
 
     @Test

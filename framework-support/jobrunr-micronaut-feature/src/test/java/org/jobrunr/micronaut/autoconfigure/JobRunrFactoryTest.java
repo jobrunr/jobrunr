@@ -6,14 +6,13 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -53,7 +52,7 @@ class JobRunrFactoryTest {
     }
 
     @Test
-    @Property(name = "jobrunr.jobs.carbon-aware.areaCode", value = "PL")
+    @Property(name = "jobrunr.jobs.carbon-aware.area-code", value = "PL")
     @Property(name = "jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms", value = "500")
     @Property(name = "jobrunr.jobs.carbon-aware.api-client-read-timeout-ms", value = "1000")
     void testCarbonAwareManagerConfiguration() {
@@ -61,7 +60,7 @@ class JobRunrFactoryTest {
         CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
         CarbonAwareConfigurationReader carbonAwareConfiguration = carbonAwareJobManager.getCarbonAwareConfiguration();
 
-        CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+        assertThat(carbonAwareConfiguration)
                 .hasAreaCode("PL")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
                 .hasApiClientReadTimeout(Duration.ofMillis(1000));

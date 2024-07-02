@@ -5,21 +5,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.time.Duration;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiPath;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 @WireMockTest
 public abstract class AbstractCarbonAwareWiremockTest {
@@ -56,15 +50,6 @@ public abstract class AbstractCarbonAwareWiremockTest {
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(response)));
-    }
-
-    protected void initializeJobRunr(int pollIntervalMs, String areaCode, StorageProvider storageProvider) {
-        JobRunr.configure()
-                .useStorageProvider(storageProvider)
-                .useCarbonAwareScheduling(usingStandardCarbonAwareConfiguration().andAreaCode(areaCode)
-                        .andCarbonIntensityApiUrl(carbonApiTestUrl))
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(pollIntervalMs)))
-                .initialize();
     }
 
 }

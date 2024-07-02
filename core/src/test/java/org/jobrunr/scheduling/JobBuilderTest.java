@@ -165,11 +165,11 @@ class JobBuilderTest {
 
     @Test
     void testThatOnlyScheduleInOrScheduleCarbonAwareIsAllowed() {
-        assertThatThrownBy(() -> aJob().scheduleCarbonAware(CarbonAwarePeriod.after(now().plusSeconds(3600))).scheduleIn(Duration.ZERO).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
+        assertThatThrownBy(() -> aJob().scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).scheduleIn(Duration.ZERO).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware()");
 
-        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleCarbonAware(CarbonAwarePeriod.after(now().plusSeconds(3600))).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
+        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware()");
     }

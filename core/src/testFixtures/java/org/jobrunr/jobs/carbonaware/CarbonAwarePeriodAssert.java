@@ -1,4 +1,4 @@
-package org.jobrunr.utils.carbonaware;
+package org.jobrunr.jobs.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;

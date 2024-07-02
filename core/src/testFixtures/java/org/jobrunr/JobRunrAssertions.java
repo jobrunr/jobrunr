@@ -16,17 +16,20 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobDetailsAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.jobs.carbonaware.DayAheadEnergyPrices;
+import org.jobrunr.jobs.carbonaware.DayAheadEnergyPricesAssert;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
-import org.jobrunr.jobs.carbonaware.DayAheadEnergyPrices;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderAssert;
-import org.jobrunr.utils.carbonaware.DayAheadEnergyPricesAssert;
 
 import javax.sql.DataSource;
 import java.net.http.HttpResponse;
@@ -90,6 +93,14 @@ public class JobRunrAssertions extends Assertions {
 
     public static DayAheadEnergyPricesAssert assertThat(DayAheadEnergyPrices dayAheadEnergyPrices) {
         return DayAheadEnergyPricesAssert.assertThat(dayAheadEnergyPrices);
+    }
+
+    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfiguration carbonAwareConfiguration) {
+        return CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration);
+    }
+
+    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfigurationReader carbonAwareConfiguration) {
+        return CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration);
     }
 
     public static String contentOfResource(String resourceName) {

@@ -1,10 +1,10 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import org.assertj.core.api.Assertions;
-import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.server.JobActivator;
 import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -128,9 +128,11 @@ class JobRunrProducerTest {
         when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
 
         CarbonAwareConfigurationReader carbonAwareConfiguration = jobRunrProducer.carbonAwareJobManager(jsonMapper).getCarbonAwareConfiguration();
-        assertThat(carbonAwareConfiguration.getAreaCode()).isEqualTo("DE");
-        assertThat(carbonAwareConfiguration.getApiClientConnectTimeout()).isEqualTo(Duration.ofMillis(500));
-        assertThat(carbonAwareConfiguration.getApiClientReadTimeout()).isEqualTo(Duration.ofMillis(1000));
+
+        assertThat(carbonAwareConfiguration).
+                hasAreaCode("DE")
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }
 
     @Test

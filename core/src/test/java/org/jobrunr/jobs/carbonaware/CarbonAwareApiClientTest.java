@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.time.Instant.parse;
-import static org.jobrunr.utils.carbonaware.DayAheadEnergyPricesAssert.assertThat;
+import static org.jobrunr.jobs.carbonaware.DayAheadEnergyPricesAssert.assertThat;
 
 class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
 

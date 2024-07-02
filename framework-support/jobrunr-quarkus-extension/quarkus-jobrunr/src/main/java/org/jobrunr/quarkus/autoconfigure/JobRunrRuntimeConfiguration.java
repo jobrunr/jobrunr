@@ -119,9 +119,9 @@ public interface JobRunrRuntimeConfiguration {
         Optional<BackgroundJobServerThreadType> threadType();
 
         /**
-         * Sets the maximum number of jobs to update from awaiting to scheduled state per X hours
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
          */
-        Optional<Integer> carbonAwatingJobsRequestSize();
+        Optional<Integer> carbonAwaitingJobsRequestSize();
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
@@ -193,10 +193,12 @@ public interface JobRunrRuntimeConfiguration {
          * areaCode is a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
          */
         Optional<String> areaCode();
+
         /**
          * Allows to set the connect timeout for the carbon api client
          */
         Optional<Integer> apiClientConnectTimeoutMs();
+
         /**
          * Allows to set the read timeout for the carbon api client
          */

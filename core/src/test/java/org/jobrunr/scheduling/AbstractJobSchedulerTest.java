@@ -1,10 +1,10 @@
 package org.jobrunr.scheduling;
 
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.JobDetailsTestBuilder;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDATE;
 
 class AbstractJobSchedulerTest {
@@ -30,7 +30,7 @@ class AbstractJobSchedulerTest {
     void scheduleCarbonAwareThrowsAnExceptionIfCarbonJobManagerIsNull() {
         AbstractJobScheduler jobScheduler = jobScheduler(new InMemoryStorageProvider(), null);
 
-        assertThatCode(() -> jobScheduler.scheduleCarbonAware(null, CarbonAwarePeriod.after(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build()))
+        assertThatCode(() -> jobScheduler.scheduleCarbonAware(null, CarbonAwarePeriod.before(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("CarbonAwareJobManager is not configured. Cannot schedule carbon aware jobs.");
     }
@@ -42,7 +42,7 @@ class AbstractJobSchedulerTest {
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
         AbstractJobScheduler jobScheduler = jobScheduler(storageProvider, new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), jsonMapper));
 
-        assertThatCode(() -> jobScheduler.scheduleCarbonAware(null, CarbonAwarePeriod.after(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build()))
+        assertThatCode(() -> jobScheduler.scheduleCarbonAware(null, CarbonAwarePeriod.before(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build()))
                 .doesNotThrowAnyException();
     }
 

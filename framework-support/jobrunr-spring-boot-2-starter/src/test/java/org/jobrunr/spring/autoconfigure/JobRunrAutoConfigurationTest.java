@@ -6,12 +6,12 @@ import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import io.lettuce.core.RedisClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -50,7 +50,6 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert.assertThat;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -137,7 +136,7 @@ public class JobRunrAutoConfigurationTest {
     void carbonAwareManagerAutoconfiguration() {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.job-scheduler.enabled=true")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.areaCode=FR")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.area-code=FR")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms=500")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout-ms=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {

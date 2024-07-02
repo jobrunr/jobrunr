@@ -6,12 +6,12 @@ import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import io.lettuce.core.RedisClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -31,7 +31,6 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
-import org.jobrunr.utils.carbonaware.CarbonAwareConfigurationAssert;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
@@ -136,13 +135,13 @@ public class JobRunrAutoConfigurationTest {
     void carbonAwareManagerAutoconfiguration() {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.job-scheduler.enabled=true")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.areaCode=FR")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.area-code=FR")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms=500")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout-ms=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
                     CarbonAwareConfigurationReader carbonAwareConfiguration = context.getBean(CarbonAwareJobManager.class).getCarbonAwareConfiguration();
-                    CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+                    assertThat(carbonAwareConfiguration)
                             .hasApiClientConnectTimeout(Duration.ofMillis(500))
                             .hasApiClientReadTimeout(Duration.ofMillis(300))
                             .hasAreaCode("FR");

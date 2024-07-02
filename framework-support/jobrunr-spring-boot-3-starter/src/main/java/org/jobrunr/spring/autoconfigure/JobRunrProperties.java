@@ -266,7 +266,7 @@ public class JobRunrProperties {
          */
         private Integer pollIntervalInSeconds = 15;
         /**
-         * Sets the maximum number of jobs to update from awaiting to scheduled state per X hours
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
          */
         private Integer carbonAwaitingJobsRequestSize = 1000;
 
@@ -518,9 +518,9 @@ public class JobRunrProperties {
     }
 
     public static class CarbonAware {
-        String areaCode = null;
-        Integer apiClientConnectTimeoutMs = null;
-        Integer apiClientReadTimeoutMs = null;
+        String areaCode;
+        Integer apiClientConnectTimeoutMs;
+        Integer apiClientReadTimeoutMs;
 
         public String getAreaCode() {
             return areaCode;
