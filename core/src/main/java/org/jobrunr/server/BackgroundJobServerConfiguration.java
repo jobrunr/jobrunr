@@ -144,9 +144,9 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the maximum number of jobs to update from awaiting to scheduled state every X hours.
+     * Allows to set the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
      *
-     * @param awaitingJobRequestSize maximum number of jobs to update
+     * @param awaitingJobRequestSize maximum number of jobs to update per database round-trip
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andCarbonAwaitingJobsRequestSize(int awaitingJobRequestSize) {
