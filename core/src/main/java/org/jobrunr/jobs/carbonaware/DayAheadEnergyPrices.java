@@ -13,22 +13,22 @@ public class DayAheadEnergyPrices {
 
     private String areaCode;
     private String state;
-    private String unit;
     private String timezone;
     // TODO: add field when data can be refreshed
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<HourlyEnergyPrice> hourlyEnergyPrices;
+    private Error error;
 
     public DayAheadEnergyPrices() {
         this(null, null, null, null, null);
     }
 
-    public DayAheadEnergyPrices(String areaCode, String state, String timezone, String unit, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices) {
+    public DayAheadEnergyPrices(String areaCode, String state, String timezone, ArrayList<HourlyEnergyPrice> hourlyEnergyPrices, Error error) {
         this.areaCode = areaCode;
         this.state = state;
-        this.unit = unit;
         this.timezone = timezone;
         this.hourlyEnergyPrices = hourlyEnergyPrices;
+        this.error = error;
     }
 
     public String getAreaCode() {
@@ -38,11 +38,7 @@ public class DayAheadEnergyPrices {
     public String getState() {
         return state;
     }
-
-    public String getUnit() {
-        return unit;
-    }
-
+    
     public String getTimezone() {
         return timezone;
     }
@@ -53,6 +49,14 @@ public class DayAheadEnergyPrices {
 
     public boolean hasNoData() {
         return hourlyEnergyPrices == null || hourlyEnergyPrices.isEmpty();
+    }
+
+    public Error getError() {
+        return error;
+    }
+
+    public boolean hasError() {
+        return error != null;
     }
 
     public Instant leastExpensiveHour(Instant from, Instant to) {
@@ -91,14 +95,16 @@ public class DayAheadEnergyPrices {
     public static class HourlyEnergyPrice {
         private Instant periodStartAt;
         private double price;
+        private String unit;
         private int rank;
 
         public HourlyEnergyPrice() {
         }
 
-        public HourlyEnergyPrice(Instant periodStartAt, double price, int rank) {
+        public HourlyEnergyPrice(Instant periodStartAt, double price, String unit, int rank) {
             this.periodStartAt = periodStartAt;
             this.price = price;
+            this.unit = unit;
             this.rank = rank;
         }
 
@@ -110,9 +116,14 @@ public class DayAheadEnergyPrices {
             return price;
         }
 
+        public String getUnit() {
+            return unit;
+        }
+
         public int getRank() {
             return rank;
         }
+
 
         public int compareTo(HourlyEnergyPrice other) {
             return Double.compare(this.price, other.price);
@@ -127,4 +138,26 @@ public class DayAheadEnergyPrices {
                     '}';
         }
     }
+
+    public static class Error {
+        private String code;
+        private String message;
+
+        public Error() {
+        }
+
+        public Error(String code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
 }

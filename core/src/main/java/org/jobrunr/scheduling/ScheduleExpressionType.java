@@ -21,10 +21,10 @@ public enum ScheduleExpressionType {
 
     public static Schedule getSchedule(String scheduleExpression) {
         if (Objects.nonNull(scheduleExpression) && !scheduleExpression.isEmpty()) {
-            if (scheduleExpression.matches(".*\\s.*")) {
-                return CRON_EXPRESSION.createSchedule(scheduleExpression);
-            } else if (scheduleExpression.startsWith("P")) {
+            if (scheduleExpression.startsWith("P")) {
                 return INTERVAL.createSchedule(scheduleExpression);
+            } else if (scheduleExpression.matches(".*\\s.*")) {
+                return CRON_EXPRESSION.createSchedule(scheduleExpression);
             }
         }
         throw new ScheduleException(scheduleExpression);

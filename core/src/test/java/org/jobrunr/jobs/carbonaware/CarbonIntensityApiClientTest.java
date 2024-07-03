@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.DayAheadEnergyPricesAssert.assertThat;
 
-class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
+class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
 
     @Test
     void testFetchLatestDayAheadEnergyPrices() {
@@ -55,7 +55,24 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestDayAheadEnergyPricesReturnsEmptyDayAheadPricesWhenApiResponseIsError() {
+    void testFetchLatestDayAheadEnergyPricesReturnsErrorDayAheadPricesWhenApiResponseIsDayAheadPricesNotFoundError() {
+        // GIVEN
+        CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("UNKNOWN");
+        mockResponseWhenRequestingAreaCode("UNKNOWN", CarbonApiMockResponses.UNKNOWN_AREA);
+
+        // WHEN
+        DayAheadEnergyPrices result = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+
+        // THEN
+        assertThat(result)
+                .hasNoData()
+                .hasError()
+                .hasErrorCode("AREA_CODE_NOT_FOUND")
+                .hasErrorMessage("AreaMapping not found for areaCode: UNKNOWN");
+    }
+
+    @Test
+    void testFetchLatestDayAheadEnergyPricesReturnsErrorDayAheadPricesWhenApiResponseIsAreaNotFoundError() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("DE");
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
@@ -64,14 +81,18 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
         DayAheadEnergyPrices result = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
 
         // THEN
-        assertThat(result).hasNoData();
+        assertThat(result)
+                .hasNoData()
+                .hasError()
+                .hasErrorCode("DAY_AHEAD_PRICES_NOT_FOUND")
+                .hasErrorMessage("No data available for areaCode: 'DE'");
     }
 
     @Test
     void testFetchLatestDayAheadEnergyPricesSetsMissingFieldsToNull() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_UNIT_FIELD);
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_STATE_FIELD);
 
         // WHEN
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
@@ -79,8 +100,8 @@ class CarbonAwareApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(dayAheadEnergyPrices)
                 .hasAreaCode("BE")
-                .hasHourlyEnergyPricesSize(33)
-                .hasNullUnit();
+                .hasState(null)
+                .hasHourlyEnergyPricesSize(33);
     }
 
     @Test

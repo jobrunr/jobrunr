@@ -1,3 +1,10 @@
 {
-  "errorMessage": "An error occurred: No data available for areaCode: 'DE'"
+  "areaCode": "DE",
+  "state": null,
+  "timezone": "Europe/Berlin",
+  "hourlyEnergyPrices": null,
+  "error": {
+    "code": "DAY_AHEAD_PRICES_NOT_FOUND",
+    "message": "No data available for areaCode: 'DE'"
+  }
 }

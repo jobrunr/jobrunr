@@ -1,0 +1,10 @@
+{
+  "areaCode": null,
+  "state": null,
+  "timezone": null,
+  "hourlyEnergyPrices": null,
+  "error": {
+    "code": "AREA_CODE_NOT_FOUND",
+    "message": "AreaMapping not found for areaCode: UNKNOWN"
+  }
+}

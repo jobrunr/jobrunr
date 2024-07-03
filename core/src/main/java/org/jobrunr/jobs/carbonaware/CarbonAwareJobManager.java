@@ -89,7 +89,11 @@ public class CarbonAwareJobManager {
             return;
         }
 
-        scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("No hourly energy prices available for areaCode %s at period %s - %s. Job is scheduled following the .", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo()));
+        if (dayAheadEnergyPrices.hasError()) {
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("Could not retrieve hourly energy prices: %s. Job will be scheduled at pre-defined preferred instant or immediately.", dayAheadEnergyPrices.getError().getMessage()));
+        } else {
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("No hourly energy prices available for areaCode %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo()));
+        }
     }
 
     private boolean shouldWaitWhenDataAreUnavailable(CarbonAwareAwaitingState carbonAwareAwaitingState) {
@@ -131,7 +135,7 @@ public class CarbonAwareJobManager {
     @VisibleFor("testing")
     void updateDayAheadEnergyPrices() {
         DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
-        if (dayAheadEnergyPrices.hasNoData()) {
+        if (dayAheadEnergyPrices.hasNoData() && !dayAheadEnergyPrices.hasError()) {
             LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
             return;
         }

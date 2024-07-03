@@ -1,6 +1,5 @@
 {
   "areaCode": "BE",
-  "state": null,
   "timezone": "Europe/Brussels",
   "hourlyEnergyPrices": [
     {

@@ -20,6 +20,11 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
         return this;
     }
 
+    public DayAheadEnergyPricesAssert hasState(String state) {
+        Assertions.assertThat(actual.getState()).isEqualTo(state);
+        return this;
+    }
+
     public DayAheadEnergyPricesAssert hasNoData() {
         Assertions.assertThat(actual.hasNoData()).isTrue();
         return this;
@@ -47,8 +52,18 @@ public class DayAheadEnergyPricesAssert extends AbstractAssert<DayAheadEnergyPri
         return this;
     }
 
-    public DayAheadEnergyPricesAssert hasNullUnit() {
-        Assertions.assertThat(actual.getUnit()).isNull();
+    public DayAheadEnergyPricesAssert hasError() {
+        Assertions.assertThat(actual.hasError()).isTrue();
+        return this;
+    }
+
+    public DayAheadEnergyPricesAssert hasErrorCode(String code) {
+        Assertions.assertThat(actual.getError().getCode()).isEqualTo(code);
+        return this;
+    }
+
+    public DayAheadEnergyPricesAssert hasErrorMessage(String message) {
+        Assertions.assertThat(actual.getError().getMessage()).isEqualTo(message);
         return this;
     }
 }
