@@ -87,6 +87,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         if (from.isAfter(to)) {
             throw new IllegalArgumentException(format("'from' (=%s) must be before 'to' (=%s)", from, to));
         }
+        // TODO isn't this dangerous for recurring jobs?
         if (to.isBefore(now().plus(ofHours(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION)))) {
             throw new IllegalArgumentException(format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", to));
         }
