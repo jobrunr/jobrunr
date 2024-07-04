@@ -8,6 +8,8 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
+import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
@@ -80,6 +83,14 @@ class JobBuilderTest {
                 .hasId()
                 .hasJobDetails(TestJobRequestWithoutJobAnnotation.TestWithoutJobAnnotationJobRequestHandler.class, "run", jobRequest)
                 .hasState(StateName.ENQUEUED);
+    }
+
+    @Test
+    void testDefaultJobWithInvalidJobRequest() {
+        assertThatCode(() -> aJob()
+                .withJobRequest(new TestInvalidJobRequest())
+                .build())
+                .isInstanceOf(JobMethodNotFoundException.class);
     }
 
     @Test

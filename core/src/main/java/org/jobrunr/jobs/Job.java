@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -44,7 +45,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
  * Defines the job with its JobDetails, History and Job Metadata.
- *
+ * <p>
  * <em>Note:</em> Jobs are managed by JobRunr and may under no circumstances be updated during Job Processing. They may be deleted though.
  * <p>
  * During Job Processing, JobRunr updates the job every x amount of seconds (where x is the pollIntervalInSeconds and defaults to 15s) to distinguish
@@ -68,7 +69,7 @@ public class Job extends AbstractJob {
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
-    private transient volatile Integer stateIndexBeforeStateChange;
+    private transient final AtomicInteger stateIndexBeforeStateChange;
 
     public static UUID newUUID() {
         return UUID_FACTORY.create();
@@ -79,6 +80,7 @@ public class Job extends AbstractJob {
         this.id = null;
         this.jobHistory = new CopyOnWriteArrayList<>();
         this.metadata = new ConcurrentHashMap<>();
+        this.stateIndexBeforeStateChange = new AtomicInteger(-1);
     }
 
     public Job(JobDetails jobDetails) {
@@ -102,7 +104,7 @@ public class Job extends AbstractJob {
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : newUUID();
         this.jobHistory = new CopyOnWriteArrayList<>(jobHistory);
-        this.stateIndexBeforeStateChange = version == 0 ? 0 : null;
+        this.stateIndexBeforeStateChange = new AtomicInteger(version == 0 ? 0 : -1);
         this.metadata = metadata;
     }
 
@@ -157,7 +159,8 @@ public class Job extends AbstractJob {
     }
     
     public boolean hasStateChange() {
-        return stateIndexBeforeStateChange != null && jobHistory.size() > stateIndexBeforeStateChange;
+        int actualStateChanges = stateIndexBeforeStateChange.get();
+        return actualStateChanges > -1 && jobHistory.size() > actualStateChanges;
     }
 
     /**
@@ -166,10 +169,9 @@ public class Job extends AbstractJob {
      * @return all the stateChanges since they were last retrieved.
      */
     public synchronized List<JobState> getStateChangesForJobFilters() {
-        if (stateIndexBeforeStateChange == null) return emptyList();
-        List<JobState> stateChanges = new ArrayList<>(jobHistory).subList(stateIndexBeforeStateChange, jobHistory.size());
-        stateIndexBeforeStateChange = null;
-        return stateChanges;
+        int actualStateChanges = stateIndexBeforeStateChange.getAndSet(-1);
+        if (actualStateChanges < 0) return emptyList();
+        return new ArrayList<>(jobHistory).subList(actualStateChanges, jobHistory.size());
     }
 
     public void enqueue() {
@@ -241,7 +243,7 @@ public class Job extends AbstractJob {
     }
 
     private void addJobState(JobState jobState) {
-        if (stateIndexBeforeStateChange == null) stateIndexBeforeStateChange = this.jobHistory.size();
+        stateIndexBeforeStateChange.compareAndSet(-1, this.jobHistory.size());
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }

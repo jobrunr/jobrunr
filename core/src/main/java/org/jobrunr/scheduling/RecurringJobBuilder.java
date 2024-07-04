@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static java.time.ZoneId.systemDefault;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 /**
  * This class is used to build a {@link RecurringJob} using a job lambda or a {@link JobRequest}.
@@ -220,7 +221,9 @@ public class RecurringJobBuilder {
         if (jobRequest == null) {
             throw new IllegalArgumentException("JobRequest must be present.");
         }
+
         JobDetails jobDetails = new JobDetails(jobRequest);
+        assertJobExists(jobDetails);
         return this.build(jobDetails);
     }
 

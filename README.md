@@ -5,7 +5,8 @@
 The ultimate library to perform background processing on the JVM.<br/>
 Dead simple API. Extensible. Reliable. <br/>
 Distributed and backed by persistent storage. <br/>
-Open and free for commercial use.
+Open and free for commercial use.  <br/>
+Recommended and <a href="https://www.thoughtworks.com/radar/languages-and-frameworks/jobrunr">loved by ThoughtWorks</a>.
 </p>  
 <br/>
 
