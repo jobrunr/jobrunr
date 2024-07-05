@@ -87,7 +87,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testMoveToNextStateEnqueuesCarbonAwaitingJobsThatHaveDeadlineInThePassed() {
+    void testMoveToNextStateEnqueuesCarbonAwaitingJobsThatHaveDeadlineInThePast() {
         mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_03_12);
         carbonAwareJobManager = new CarbonAwareJobManager(setupCarbonAwareConfiguration("BE"), jsonMapper);
         carbonAwareJobManager.updateDayAheadEnergyPrices();
