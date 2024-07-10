@@ -19,8 +19,8 @@ import org.jobrunr.jobs.RecurringJobAssert;
 import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
 import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.jobs.carbonaware.DayAheadEnergyPrices;
-import org.jobrunr.jobs.carbonaware.DayAheadEnergyPricesAssert;
+import org.jobrunr.jobs.carbonaware.CarbonIntensityForecast;
+import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -91,8 +91,8 @@ public class JobRunrAssertions extends Assertions {
         return DatabaseAssertions.assertThat(dataSource);
     }
 
-    public static DayAheadEnergyPricesAssert assertThat(DayAheadEnergyPrices dayAheadEnergyPrices) {
-        return DayAheadEnergyPricesAssert.assertThat(dayAheadEnergyPrices);
+    public static CarbonIntensityForecastAssert assertThat(CarbonIntensityForecast carbonIntensityForecast) {
+        return CarbonIntensityForecastAssert.assertThat(carbonIntensityForecast);
     }
 
     public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfiguration carbonAwareConfiguration) {

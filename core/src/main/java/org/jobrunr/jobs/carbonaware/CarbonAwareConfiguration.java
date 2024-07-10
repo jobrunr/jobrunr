@@ -13,7 +13,6 @@ public class CarbonAwareConfiguration {
 
     String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL;
     String areaCode;
-    String state;
     Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
     Duration apiClientReadTimeout = DEFAULT_CLIENT_API_READ_TIMEOUT;
 
@@ -30,21 +29,13 @@ public class CarbonAwareConfiguration {
     }
 
     /**
-     * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
+     * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts.
      *
-     * @param areaCode a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
+     * @param areaCode a supported area code (e.g., ISO 3166-2 code like 'BE' or 'US-CA' or a cloud provider region code).
      * @return the same configuration instance which provides a fluent api
      */
     public CarbonAwareConfiguration andAreaCode(String areaCode) {
         this.areaCode = areaCode;
-        return this;
-    }
-
-    /**
-     * For US. Allows to set the state of your datacenter (the state where your application is hosted) in order to have more accurate carbon emissions forecasts
-     */
-    public CarbonAwareConfiguration andState(String state) {
-        this.state = state;
         return this;
     }
 

@@ -1,8 +1,8 @@
 package org.jobrunr.jobs.carbonaware;
 
+import io.micrometer.core.instrument.util.NamedThreadFactory;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
-import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
@@ -18,6 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class CarbonAwareJobManager {
@@ -28,15 +29,15 @@ public class CarbonAwareJobManager {
     private final CarbonIntensityApiClient carbonIntensityApiClient;
     private final ScheduledExecutorService scheduledExecutorService;
     private final int randomRefreshTimeOffset = ThreadLocalRandom.current().nextInt(360, 721) * 5;
-    private volatile DayAheadEnergyPrices dayAheadEnergyPrices;
+    private volatile CarbonIntensityForecast carbonIntensityForecast;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
         this.carbonIntensityApiClient = createCarbonIntensityApiClient(this.carbonAwareConfiguration, jsonMapper);
-        this.scheduledExecutorService = new PlatformThreadPoolJobRunrExecutor(1, 1, "carbon-aware-job-manager");
-        this.dayAheadEnergyPrices = new DayAheadEnergyPrices();
+        this.scheduledExecutorService = newSingleThreadScheduledExecutor(new NamedThreadFactory("carbon-aware-job-manager"));
+        this.carbonIntensityForecast = new CarbonIntensityForecast();
 
-        loadDayAheadPricesOnStartup();
+        scheduleInitialCarbonIntensityRetrieval();
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
@@ -51,7 +52,7 @@ public class CarbonAwareJobManager {
     }
 
     public ZoneId getTimeZone() {
-        return dayAheadEnergyPrices.getTimezone() == null ? ZoneId.systemDefault() : ZoneId.of(dayAheadEnergyPrices.getTimezone());
+        return carbonIntensityForecast.getTimezone() == null ? ZoneId.systemDefault() : ZoneId.of(carbonIntensityForecast.getTimezone());
     }
 
     public void moveToNextState(Job job) {
@@ -62,7 +63,7 @@ public class CarbonAwareJobManager {
 
         if (handleImmediateSchedulingCases(job, carbonAwareAwaitingState)) return;
 
-        if (!dayAheadEnergyPrices.hasDataForPeriod(carbonAwareAwaitingState.getPeriod())) {
+        if (!carbonIntensityForecast.hasForecastForPeriod(carbonAwareAwaitingState.getPeriod())) {
             handleUnavailableDataForPeriod(job, carbonAwareAwaitingState);
             return;
         }
@@ -85,14 +86,14 @@ public class CarbonAwareJobManager {
 
     private void handleUnavailableDataForPeriod(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
         if (shouldWaitWhenDataAreUnavailable(carbonAwareAwaitingState)) {
-            LOGGER.trace("No hourly energy prices available for areaCode {} at period {} - {}. Waiting for prices to become available.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+            LOGGER.trace("No carbon intensity forecast available for region {} at period {} - {}. Waiting for forecast to become available.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
             return;
         }
 
-        if (dayAheadEnergyPrices.hasError()) {
-            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("Could not retrieve hourly energy prices: %s. Job will be scheduled at pre-defined preferred instant or immediately.", dayAheadEnergyPrices.getError().getMessage()));
+        if (carbonIntensityForecast.hasError()) {
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage()));
         } else {
-            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("No hourly energy prices available for areaCode %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo()));
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo()));
         }
     }
 
@@ -108,7 +109,7 @@ public class CarbonAwareJobManager {
     }
 
     private void scheduleJobAtOptimalTime(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        Instant leastExpensiveHour = dayAheadEnergyPrices.leastExpensiveHour(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        Instant leastExpensiveHour = carbonIntensityForecast.lowestCarbonIntensityInstant(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
         if (leastExpensiveHour != null) {
             carbonAwareAwaitingState.moveToNextState(job, leastExpensiveHour);
         }
@@ -133,36 +134,36 @@ public class CarbonAwareJobManager {
     }
 
     @VisibleFor("testing")
-    void updateDayAheadEnergyPrices() {
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
-        if (dayAheadEnergyPrices.hasNoData() && !dayAheadEnergyPrices.hasError()) {
-            LOGGER.warn("No new day ahead energy prices available. Keeping the old data.");
+    void updateCarbonIntensityForecast() {
+        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        if (carbonIntensityForecast.hasNoForecast() && !carbonIntensityForecast.hasError()) {
+            LOGGER.warn("No new carbon intensity forecast available. Keeping the old forecast.");
             return;
         }
-        this.dayAheadEnergyPrices = dayAheadEnergyPrices;
+        this.carbonIntensityForecast = carbonIntensityForecast;
     }
 
-    private void loadDayAheadEnergyPricesAndScheduleNextUpdate() {
+    private void loadCarbonIntensityForecastAndScheduleNextUpdate() {
         try {
-            updateDayAheadEnergyPrices();
+            updateCarbonIntensityForecast();
         } finally {
-            scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime().toInstant());
+            scheduleCarbonIntensityForecastUpdate(getDailyRefreshTime().toInstant());
         }
     }
 
-    private void updateDayAheadEnergyPricesAndScheduleNextUpdate() {
+    private void updateCarbonIntensityForecastAndScheduleNextUpdate() {
         try {
-            updateDayAheadEnergyPrices();
+            updateCarbonIntensityForecast();
         } finally {
-            scheduleDayAheadEnergyPricesUpdate(getDailyRefreshTime().plusDays(1).toInstant());
+            scheduleCarbonIntensityForecastUpdate(getDailyRefreshTime().plusDays(1).toInstant());
         }
     }
 
-    private void loadDayAheadPricesOnStartup() {
-        scheduledExecutorService.schedule(this::loadDayAheadEnergyPricesAndScheduleNextUpdate, 1000, MILLISECONDS);
+    private void scheduleInitialCarbonIntensityRetrieval() {
+        scheduledExecutorService.schedule(this::loadCarbonIntensityForecastAndScheduleNextUpdate, 1000, MILLISECONDS);
     }
 
-    private void scheduleDayAheadEnergyPricesUpdate(Instant scheduleAt) {
-        scheduledExecutorService.schedule(this::updateDayAheadEnergyPricesAndScheduleNextUpdate, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
+    private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt) {
+        scheduledExecutorService.schedule(this::updateCarbonIntensityForecastAndScheduleNextUpdate, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
     }
 }

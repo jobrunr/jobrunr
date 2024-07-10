@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiPath;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiPath;
 
 @WireMockTest
 public abstract class AbstractCarbonAwareWiremockTest {
@@ -45,7 +45,7 @@ public abstract class AbstractCarbonAwareWiremockTest {
     }
 
     protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
-        String url = String.format(getCarbonIntensityDayAheadEnergyPricesApiPath() + "?areaCode=%s&state=", areaCode);
+        String url = String.format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
         stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")

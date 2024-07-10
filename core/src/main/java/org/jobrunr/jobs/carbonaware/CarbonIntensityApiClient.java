@@ -25,24 +25,24 @@ public class CarbonIntensityApiClient {
         this.jsonMapper = jsonMapper;
     }
 
-    public DayAheadEnergyPrices fetchLatestDayAheadEnergyPrices() {
+    public CarbonIntensityForecast fetchLatestCarbonIntensityForecast() {
         try {
-            String dayAheadEnergyPricesAsString = fetchLatestDayAheadEnergyPricesAsStringWithRetries();
-            return jsonMapper.deserialize(dayAheadEnergyPricesAsString, DayAheadEnergyPrices.class);
+            String carbonIntensityForecastAsString = fetchLatestCarbonIntensityForecastAsStringWithRetries();
+            return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);
         } catch (Exception e) {
             LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareConfiguration.getAreaCode(), e);
-            return new DayAheadEnergyPrices();
+            return new CarbonIntensityForecast();
         }
     }
 
-    private String fetchLatestDayAheadEnergyPricesAsStringWithRetries() {
-        return Exceptions.retryOnException(this::fetchLatestDayAheadEnergyPricesAsString, 3, 1000);
+    private String fetchLatestCarbonIntensityForecastAsStringWithRetries() {
+        return Exceptions.retryOnException(this::fetchLatestCarbonIntensityForecastAsString, 3, 1000);
     }
 
-    private String fetchLatestDayAheadEnergyPricesAsString() {
+    private String fetchLatestCarbonIntensityForecastAsString() {
         HttpURLConnection connection = null;
         try {
-            connection = createHttpConnection(carbonAwareConfiguration.getCarbonAwareApiDayAheadEnergyPricesFullPathUrl());
+            connection = createHttpConnection(carbonAwareConfiguration.getCarbonIntensityForecastApiFullPathUrl());
             return readResponse(connection);
         } catch (IOException e) {
             throw new RuntimeException(e);

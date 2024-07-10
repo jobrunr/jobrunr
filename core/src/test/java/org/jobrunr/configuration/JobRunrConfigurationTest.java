@@ -1,9 +1,9 @@
 package org.jobrunr.configuration;
 
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;

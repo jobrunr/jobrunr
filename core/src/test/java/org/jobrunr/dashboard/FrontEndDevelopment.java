@@ -52,7 +52,7 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(7, 12), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
         BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-2", CarbonAware.dailyBefore(7), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
         BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-3", CarbonAware.using(Cron.daily(4), Duration.ofHours(2), Duration.ofHours(1)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
-        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-4", CarbonAware.before(Cron.daily(4), Duration.ofHours(4)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-4", CarbonAware.using(Cron.daily(4), Duration.ofHours(4), Duration.ZERO), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
         BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-5", "0 0 1 * * [P2DT6H/P10DT12H4M29.45S]", x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
         BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 

@@ -11,44 +11,44 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.time.Instant.parse;
-import static org.jobrunr.jobs.carbonaware.DayAheadEnergyPricesAssert.assertThat;
+import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
 
 class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
 
     @Test
-    void testFetchLatestDayAheadEnergyPrices() {
+    void testFetchLatestCarbonIntensityForecast() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_03_12);
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
 
         // WHEN
-        DayAheadEnergyPrices result = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+        CarbonIntensityForecast result = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
 
         // THEN
         assertThat(result)
-                .hasAreaCode("BE")
-                .hasHourlyEnergyPricesSize(33)
-                .hasHourlyEnergyPriceAt(0, parse("2024-03-12T03:00:00Z"), 64.23);
+                .hasDisplayName("Belgium")
+                .hasIntensityForecastSize(24)
+                .hasIntensityForecastAt(0, parse("2024-07-10T22:00:00Z"), 16);
     }
 
     @Test
-    void testFetchLatestDayAheadEnergyPricesCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
+    void testFetchLatestCarbonIntensityForecastCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_03_12);
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
 
         // WHEN
         ExecutorService service = Executors.newFixedThreadPool(10);
-        List<Future<DayAheadEnergyPrices>> futures = IntStream.range(0, 10)
-                .mapToObj(i -> service.submit(carbonIntensityApiClient::fetchLatestDayAheadEnergyPrices))
+        List<Future<CarbonIntensityForecast>> futures = IntStream.range(0, 10)
+                .mapToObj(i -> service.submit(carbonIntensityApiClient::fetchLatestCarbonIntensityForecast))
                 .collect(Collectors.toList());
 
         // THEN
-        for (Future<DayAheadEnergyPrices> future : futures) {
-            DayAheadEnergyPrices result = future.get();
+        for (Future<CarbonIntensityForecast> future : futures) {
+            CarbonIntensityForecast result = future.get();
             assertThat(result)
                     .isNotNull()
-                    .hasHourlyEnergyPricesSize(33);
+                    .hasIntensityForecastSize(24);
         }
 
         service.shutdown();
@@ -61,14 +61,14 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         mockResponseWhenRequestingAreaCode("UNKNOWN", CarbonApiMockResponses.UNKNOWN_AREA);
 
         // WHEN
-        DayAheadEnergyPrices result = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+        CarbonIntensityForecast result = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
 
         // THEN
         assertThat(result)
-                .hasNoData()
+                .hasNoForecast()
                 .hasError()
-                .hasErrorCode("AREA_CODE_NOT_FOUND")
-                .hasErrorMessage("AreaMapping not found for areaCode: UNKNOWN");
+                .hasErrorCode("DATA_PROVIDER_AREA_NOT_FOUND")
+                .hasErrorMessage("No DataProvider supports area UNKNOWN.");
     }
 
     @Test
@@ -78,43 +78,29 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
 
         // WHEN
-        DayAheadEnergyPrices result = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+        CarbonIntensityForecast result = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
 
         // THEN
         assertThat(result)
-                .hasNoData()
+                .hasNoForecast()
                 .hasError()
-                .hasErrorCode("DAY_AHEAD_PRICES_NOT_FOUND")
-                .hasErrorMessage("No data available for areaCode: 'DE'");
+                .hasErrorCode("FORECAST_NOT_AVAILABLE")
+                .hasErrorMessage("No forecast available for DataProvider ENTSO-E and area Germany.");
     }
 
     @Test
-    void testFetchLatestDayAheadEnergyPricesSetsMissingFieldsToNull() {
+    void testFetchLatestCarbonIntensityForecastSetsMissingFieldsToNull() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_STATE_FIELD);
 
         // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
 
         // THEN
-        assertThat(dayAheadEnergyPrices)
-                .hasAreaCode("BE")
-                .hasState(null)
-                .hasHourlyEnergyPricesSize(33);
-    }
-
-    @Test
-    void testFetchLatestDayAheadEnergyPricesReturnsEmptyDayAheadPricesWhenParsingInvalidJson() {
-        // GIVEN
-        CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.INVALID_JSON);
-
-        // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
-
-        // THEN
-        assertThat(dayAheadEnergyPrices).hasNoData();
+        assertThat(carbonIntensityForecast)
+                .hasDisplayName("Belgium")
+                .hasIntensityForecastSize(24);
     }
 
     @Test
@@ -124,9 +110,9 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
 
         // WHEN
-        DayAheadEnergyPrices dayAheadEnergyPrices = carbonIntensityApiClient.fetchLatestDayAheadEnergyPrices();
+        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
 
         // THEN
-        assertThat(dayAheadEnergyPrices).hasNoData();
+        assertThat(carbonIntensityForecast).hasNoForecast();
     }
 }
