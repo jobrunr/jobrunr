@@ -328,12 +328,14 @@ public class BackgroundJobByJobLambdaTest {
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING);
     }
 
+    // TODO should we this test here?
     @Test
     void testScheduleCarbonAware() {
         JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)), TestService::doStaticWork);
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 
+    // TODO should we this test here?
     @Test
     void testScheduleCarbonAwareWithNoCarbonIntensityDataAndDeadlineIsTodayThenJobIsEnqueuedImmediately() {
         JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(5, HOURS)), TestService::doStaticWork);

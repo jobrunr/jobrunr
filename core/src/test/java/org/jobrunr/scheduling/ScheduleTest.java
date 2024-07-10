@@ -28,7 +28,7 @@ class ScheduleTest {
 
         assertThat(schedule.getExpression()).isEqualTo("0 0 * * *");
         assertThat(schedule.isCarbonAware()).isTrue();
-        assertThat(carbonAwareScheduleMargin.getMarginBefore()).isEqualTo(Duration.ofHours(2));
+        assertThat(carbonAwareScheduleMargin.getMarginBefore()).isEqualTo(Duration.ofHours(3));
         assertThat(carbonAwareScheduleMargin.getMarginAfter()).isZero();
     }
 

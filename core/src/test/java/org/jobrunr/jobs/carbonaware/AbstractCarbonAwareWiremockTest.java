@@ -33,7 +33,7 @@ public abstract class AbstractCarbonAwareWiremockTest {
     @BeforeEach
     void setUp(WireMockRuntimeInfo wireMockRuntimeInfo) {
         carbonIntensityApiBaseUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl("http://localhost:" + wireMockRuntimeInfo.getHttpPort());
+        carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl("http://localhost:" + wireMockRuntimeInfo.getHttpPort());
     }
 
     protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {

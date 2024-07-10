@@ -2,12 +2,12 @@ package org.jobrunr.jobs.carbonaware;
 
 import java.time.Duration;
 
-import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityDayAheadEnergyPricesApiUrl;
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
 
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityDayAheadEnergyPricesApiUrl("https://api.jobrunr.io");
+    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiUrl("https://api.jobrunr.io");
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 

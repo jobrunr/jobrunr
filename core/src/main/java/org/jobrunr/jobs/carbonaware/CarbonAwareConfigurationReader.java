@@ -20,7 +20,7 @@ public class CarbonAwareConfigurationReader {
         return carbonAwareConfiguration.carbonIntensityApiUrl;
     }
 
-    public static String getCarbonIntensityDayAheadEnergyPricesApiUrl(String hostName) {
+    public static String getCarbonIntensityForecastApiUrl(String hostName) {
         return hostName + getCarbonIntensityForecastApiPath();
     }
 
@@ -41,10 +41,10 @@ public class CarbonAwareConfigurationReader {
     }
 
     URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {
-        return new URL(getCarbonIntensityDayAheadEnergyPricesApiUrl(getCarbonIntensityApiUrl()) + getDayAheadEnergyPricesQueryString());
+        return new URL(getCarbonIntensityForecastApiUrl(getCarbonIntensityApiUrl()) + getCarbonIntensityForecastQueryString());
     }
 
-    private String getDayAheadEnergyPricesQueryString() {
+    private String getCarbonIntensityForecastQueryString() {
         return "?" + ofNullable(getAreaCode()).map(r -> "region=" + r).orElse("");
     }
 }
