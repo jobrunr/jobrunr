@@ -64,7 +64,7 @@ public class CarbonAwareJobManager {
         if (handleImmediateSchedulingCases(job, carbonAwareAwaitingState)) return;
 
         if (!carbonIntensityForecast.hasForecastForPeriod(carbonAwareAwaitingState.getPeriod())) {
-            handleUnavailableDataForPeriod(job, carbonAwareAwaitingState);
+            handleUnavailableForecastForPeriod(job, carbonAwareAwaitingState);
             return;
         }
         scheduleJobAtOptimalTime(job, carbonAwareAwaitingState);
@@ -84,8 +84,8 @@ public class CarbonAwareJobManager {
         return false;
     }
 
-    private void handleUnavailableDataForPeriod(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        if (shouldWaitWhenDataAreUnavailable(carbonAwareAwaitingState)) {
+    private void handleUnavailableForecastForPeriod(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        if (shouldWaitWhenForecastUnavailable(carbonAwareAwaitingState)) {
             LOGGER.trace("No carbon intensity forecast available for region {} at period {} - {}. Waiting for forecast to become available.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
             return;
         }
@@ -97,7 +97,7 @@ public class CarbonAwareJobManager {
         }
     }
 
-    private boolean shouldWaitWhenDataAreUnavailable(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+    private boolean shouldWaitWhenForecastUnavailable(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         ZonedDateTime currentTimeInZone = ZonedDateTime.now(getTimeZone());
         LocalDate today = currentTimeInZone.toLocalDate();
         LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(getTimeZone()).toLocalDate();
@@ -147,7 +147,7 @@ public class CarbonAwareJobManager {
         try {
             updateCarbonIntensityForecast();
         } finally {
-            scheduleCarbonIntensityForecastUpdate(getDailyRefreshTime().toInstant());
+            scheduleCarbonIntensityForecastUpdate(getCarbonIntensityForecastScheduleAtAfterInitialRetrieval());
         }
     }
 
@@ -155,7 +155,7 @@ public class CarbonAwareJobManager {
         try {
             updateCarbonIntensityForecast();
         } finally {
-            scheduleCarbonIntensityForecastUpdate(getDailyRefreshTime().plusDays(1).toInstant());
+            scheduleCarbonIntensityForecastUpdate(getNextCarbonIntensityForecastScheduleAt());
         }
     }
 
@@ -165,5 +165,21 @@ public class CarbonAwareJobManager {
 
     private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt) {
         scheduledExecutorService.schedule(this::updateCarbonIntensityForecastAndScheduleNextUpdate, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
+    }
+
+    private Instant getCarbonIntensityForecastScheduleAtAfterInitialRetrieval() {
+        Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
+        if (nextForecastAvailableAt == null) {
+            return getDailyRefreshTime().toInstant();
+        }
+        return nextForecastAvailableAt;
+    }
+
+    private Instant getNextCarbonIntensityForecastScheduleAt() {
+        Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
+        if (nextForecastAvailableAt == null || nextForecastAvailableAt.isBefore(Instant.now())) {
+            return getDailyRefreshTime().plusDays(1).toInstant();
+        }
+        return nextForecastAvailableAt;
     }
 }
