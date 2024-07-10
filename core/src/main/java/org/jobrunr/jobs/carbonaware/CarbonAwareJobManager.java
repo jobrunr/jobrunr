@@ -109,11 +109,11 @@ public class CarbonAwareJobManager {
     }
 
     private void scheduleJobAtOptimalTime(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        Instant leastExpensiveHour = carbonIntensityForecast.lowestCarbonIntensityInstant(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
-        if (leastExpensiveHour != null) {
-            carbonAwareAwaitingState.moveToNextState(job, leastExpensiveHour);
+        Instant lowestCarbonIntensityInstant = carbonIntensityForecast.lowestCarbonIntensityInstant(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        if (lowestCarbonIntensityInstant != null) {
+            carbonAwareAwaitingState.moveToNextState(job, lowestCarbonIntensityInstant);
         }
-        LOGGER.trace("No hour found between {} and {} and greater or equal to current hour. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        LOGGER.trace("No lowest carbon intensity instant found between {} and {}. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
     }
 
     private void scheduleJobAtPreferredInstant(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
