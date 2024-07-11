@@ -1,9 +1,8 @@
-package org.jobrunr.server.tasks.other;
+package org.jobrunr.server.tasks.zookeeper;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.tasks.zookeeper.AbstractJobZooKeeperTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +15,6 @@ import static java.time.LocalTime.MAX;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 
-// TODO should this class be under zookeeper?
-// TODO should this task be concerned about the pollInterval?
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessCarbonAwareAwaitingJobsTask.class);
@@ -33,6 +30,8 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @Override
     protected void runTask() {
+        // TODO should we run another task in case carbonAwareJobManager is not enabled and add a dashboard notification to alert if carbon aware jobs are in DB?
+        if (carbonAwareJobManager == null) return;
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
                 amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));

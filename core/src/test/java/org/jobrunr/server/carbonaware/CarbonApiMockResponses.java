@@ -1,4 +1,4 @@
-package org.jobrunr.jobs.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
 

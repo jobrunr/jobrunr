@@ -1,6 +1,4 @@
-package org.jobrunr.jobs.carbonaware;
-
-import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+package org.jobrunr.server.carbonaware;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -79,10 +77,10 @@ public class CarbonIntensityForecast {
                 .map(TimestampedCarbonIntensityForecast::getPeriodStartAt).orElse(null);
     }
 
-    public boolean hasForecastForPeriod(CarbonAwarePeriod when) {
+    public boolean hasForecastForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
         if (hasNoForecast()) return false;
         return intensityForecast.stream().anyMatch(
-                price -> isInstantInPeriodAndAfterCurrentHour(price.getPeriodStartAt(), when.getFrom(), when.getTo())
+                intensity -> isInstantInPeriodAndAfterCurrentHour(intensity.getPeriodStartAt(), startOfPeriod, endOfPeriod)
         );
     }
 

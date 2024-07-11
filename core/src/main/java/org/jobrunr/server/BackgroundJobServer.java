@@ -1,7 +1,7 @@
 package org.jobrunr.server;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.BackgroundJobServer.BackgroundJobServerLifecycleLock.LifeCycleLock;
@@ -15,12 +15,12 @@ import org.jobrunr.server.runner.BackgroundJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticFieldJobWithoutIocRunner;
 import org.jobrunr.server.runner.BackgroundStaticJobWithoutIocRunner;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
-import org.jobrunr.server.tasks.other.ProcessCarbonAwareAwaitingJobsTask;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
+import org.jobrunr.server.tasks.zookeeper.ProcessCarbonAwareAwaitingJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessOrphanedJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
@@ -48,7 +48,6 @@ import static java.lang.Math.min;
 import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
@@ -301,17 +300,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void startJobZooKeepers() {
         long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
-        JobZooKeeper recurringAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessScheduledJobsTask(this));
+        JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
-        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        if (carbonAwareJobManager != null) {
-            JobZooKeeper carbonAwareAwaitingJobsProcessorZooKeeper = new JobZooKeeper(this, new ProcessCarbonAwareAwaitingJobsTask(this));
-            // TODO should be AtFixedRate?
-            zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareAwaitingJobsProcessorZooKeeper, configuration.getPollInterval().toMillis(), HOURS.toMillis(1), MILLISECONDS);
-        }
     }
 
     private void stopZooKeepers() {

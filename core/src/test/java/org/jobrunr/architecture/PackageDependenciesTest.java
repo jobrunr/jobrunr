@@ -82,6 +82,7 @@ class PackageDependenciesTest {
             .that().resideInAPackage("org.jobrunr.server..")
             .and().resideOutsideOfPackage("org.jobrunr.server.jmx..")
             .and().resideOutsideOfPackage("org.jobrunr.server.metrics..")
+            .and().resideOutsideOfPackage("org.jobrunr.server.carbonaware..")
             .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "org.slf4j..", "java..");
 
     @ArchTest

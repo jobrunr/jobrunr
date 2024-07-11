@@ -7,8 +7,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
@@ -56,13 +56,13 @@ public class JobRunrFactory {
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
-        return new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, emptyList());
+        return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
     @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
-        return new JobRequestScheduler(storageProvider, carbonAwareJobManager, emptyList());
+        return new JobRequestScheduler(storageProvider, emptyList());
     }
 
     @Singleton

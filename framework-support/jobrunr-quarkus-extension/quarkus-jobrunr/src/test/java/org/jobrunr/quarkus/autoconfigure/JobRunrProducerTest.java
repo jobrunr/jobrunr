@@ -1,8 +1,8 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import org.assertj.core.api.Assertions;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;

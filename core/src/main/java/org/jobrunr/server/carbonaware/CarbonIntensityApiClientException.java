@@ -1,4 +1,4 @@
-package org.jobrunr.jobs.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 public class CarbonIntensityApiClientException extends RuntimeException {
     public CarbonIntensityApiClientException(String message) {

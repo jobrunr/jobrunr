@@ -2,8 +2,9 @@ package org.jobrunr.jobs.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.jobrunr.jobs.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
+import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 
 import java.time.Instant;
 
@@ -47,12 +48,12 @@ public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensit
     }
 
     public CarbonIntensityForecastAssert hasValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
-        Assertions.assertThat(actual.hasForecastForPeriod(carbonAwarePeriod)).isTrue();
+        Assertions.assertThat(actual.hasForecastForPeriod(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo())).isTrue();
         return this;
     }
 
     public CarbonIntensityForecastAssert hasNoValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
-        Assertions.assertThat(actual.hasForecastForPeriod(carbonAwarePeriod)).isFalse();
+        Assertions.assertThat(actual.hasForecastForPeriod(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo())).isFalse();
         return this;
     }
 

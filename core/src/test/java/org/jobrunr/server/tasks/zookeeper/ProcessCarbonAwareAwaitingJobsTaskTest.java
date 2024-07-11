@@ -1,8 +1,8 @@
-package org.jobrunr.server.tasks.other;
+package org.jobrunr.server.tasks.zookeeper;
 
 import org.assertj.core.api.Assertions;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

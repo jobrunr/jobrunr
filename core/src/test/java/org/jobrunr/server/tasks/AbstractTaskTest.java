@@ -3,7 +3,7 @@ package org.jobrunr.server.tasks;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;

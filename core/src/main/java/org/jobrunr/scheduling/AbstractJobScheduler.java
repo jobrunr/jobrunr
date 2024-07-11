@@ -1,6 +1,5 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
@@ -24,29 +23,25 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-// TODO should we refuse to schedule carbon aware recurring job if CarbonAwareJobManager is null?
 public abstract class AbstractJobScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
     private final StorageProvider storageProvider;
-    private final CarbonAwareJobManager carbonAwareJobManager;
     private final JobFilterUtils jobFilterUtils;
 
     /**
-     * Creates a new AbstractJobScheduler using the provided storageProvider, carbonAwareJobManager and the list of JobFilters
+     * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters
      * that will be used for every background job
      *
-     * @param storageProvider       the storageProvider to use
-     * @param carbonAwareJobManager the carbonAwareJobManager to use
-     * @param jobFilters            list of jobFilters that will be used for every job
+     * @param storageProvider the storageProvider to use
+     * @param jobFilters      list of jobFilters that will be used for every job
      */
-    protected AbstractJobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, List<JobFilter> jobFilters) {
+    protected AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
         if (storageProvider == null) {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
         }
         this.storageProvider = storageProvider;
-        this.carbonAwareJobManager = carbonAwareJobManager;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
 
@@ -131,9 +126,7 @@ public abstract class AbstractJobScheduler {
     }
 
     JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
-        throwExceptionIfCarbonAwareJobManagerIsNull();
         Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo()));
-        carbonAwareJobManager.moveToNextState(carbonAwareJob);
         return saveJob(carbonAwareJob);
     }
 
@@ -171,11 +164,5 @@ public abstract class AbstractJobScheduler {
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);
         return savedJobs;
-    }
-
-    private void throwExceptionIfCarbonAwareJobManagerIsNull() {
-        if (carbonAwareJobManager == null) {
-            throw new IllegalStateException("CarbonAwareJobManager is not configured. Cannot schedule carbon aware jobs.");
-        }
     }
 }

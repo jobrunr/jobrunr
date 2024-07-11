@@ -1,6 +1,5 @@
 package org.jobrunr.server.tasks.zookeeper;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
@@ -25,13 +24,11 @@ import static org.jobrunr.utils.CollectionUtils.getLast;
 public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private final Map<String, Instant> recurringJobRuns;
-    private final CarbonAwareJobManager carbonAwareJobManager;
     private RecurringJobsResult recurringJobs;
 
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
         this.recurringJobRuns = new HashMap<>(storageProvider.getRecurringJobsLatestScheduledRun());
-        this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
         this.recurringJobs = new RecurringJobsResult();
     }
 
@@ -68,12 +65,6 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         }
 
         registerRecurringJobRun(recurringJob, getLast(jobsToCreate));
-
-        if (carbonAwareJobManager != null) {
-            jobsToCreate.stream()
-                    .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState)
-                    .forEach(carbonAwareJobManager::moveToNextState);
-        }
 
         return jobsToCreate;
     }

@@ -2,6 +2,8 @@ package org.jobrunr.jobs.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
 
 import java.time.Duration;
 

@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import jakarta.json.bind.Jsonb;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -79,14 +79,14 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties, CarbonAwareJobManager carbonAwareJobManager) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(properties.getJobScheduler().getJobDetailsGenerator());
-        return new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, emptyList());
+        return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
-        return new JobRequestScheduler(storageProvider, carbonAwareJobManager, emptyList());
+        return new JobRequestScheduler(storageProvider, emptyList());
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")

@@ -3,12 +3,12 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
 import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class JobSchedulerTest {
         testService = new TestService();
 
         jobClientLogFilter = new JobClientLogFilter();
-        jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, List.of(jobClientLogFilter));
+        jobScheduler = new JobScheduler(storageProvider, List.of(jobClientLogFilter));
     }
 
     @Test

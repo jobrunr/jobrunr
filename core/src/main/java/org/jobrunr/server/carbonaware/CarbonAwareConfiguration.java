@@ -1,8 +1,8 @@
-package org.jobrunr.jobs.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import java.time.Duration;
 
-import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
 
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {

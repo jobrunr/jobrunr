@@ -1,4 +1,4 @@
-package org.jobrunr.jobs.carbonaware;
+package org.jobrunr.server.carbonaware;
 
 import io.micrometer.core.instrument.util.NamedThreadFactory;
 import org.jobrunr.jobs.Job;
@@ -63,7 +63,7 @@ public class CarbonAwareJobManager {
 
         if (handleImmediateSchedulingCases(job, carbonAwareAwaitingState)) return;
 
-        if (!carbonIntensityForecast.hasForecastForPeriod(carbonAwareAwaitingState.getPeriod())) {
+        if (!carbonIntensityForecast.hasForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
             handleUnavailableForecastForPeriod(job, carbonAwareAwaitingState);
             return;
         }

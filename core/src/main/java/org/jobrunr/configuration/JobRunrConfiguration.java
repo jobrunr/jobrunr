@@ -1,9 +1,9 @@
 package org.jobrunr.configuration;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.JobFilter;
@@ -348,8 +348,8 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfigurationResult initialize() {
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
-        final JobScheduler jobScheduler = new JobScheduler(storageProvider, carbonAwareJobManager, jobDetailsGenerator, jobFilters);
-        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, carbonAwareJobManager, jobFilters);
+        final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
+        final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
     }
 

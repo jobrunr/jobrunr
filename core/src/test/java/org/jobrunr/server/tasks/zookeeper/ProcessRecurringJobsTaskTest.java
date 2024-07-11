@@ -3,6 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.RecurringJobsResult;
@@ -14,7 +15,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -22,6 +22,7 @@ import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.scheduling.carbonaware.CarbonAware.dailyBefore;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -165,7 +166,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void taskTakesSkipsAlreadyScheduledRecurringJobsOnStartup() {
+    void taskSkipsAlreadyScheduledRecurringJobsOnStartup() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
 
         Instant lastScheduledAt = Instant.now().plusSeconds(15);
@@ -186,13 +187,19 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void taskDoesNotThrowAnExceptionIfCarbonAwareJobManagerIsNotConfigured() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+    void taskSchedulesCarbonAwareRecurringJobsAndSetsThemToCarbonAwareAwaitingState() {
+        RecurringJob carbonAwareRecurringJob = aDefaultRecurringJob().withId("rj2").withCronExpression(dailyBefore(7)).build();
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
-        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(carbonAwareRecurringJob)));
 
-        assertThat(backgroundJobServer.getCarbonAwareJobManager()).isNull();
-        assertThatCode(() -> runTask(task)).doesNotThrowAnyException();
+        runTask(task);
+
+        verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+        assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
+                .hasSize(1)
+                .allMatch(j -> j.getRecurringJobId().orElse("").equals(carbonAwareRecurringJob.getId()))
+                .allMatch(j -> j.getState() == AWAITING)
+                .allMatch(j -> j.getJobState() instanceof CarbonAwareAwaitingState);
     }
 }
