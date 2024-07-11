@@ -3,6 +3,7 @@ package org.jobrunr.server.carbonaware;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Objects.isNull;
@@ -74,12 +75,10 @@ public class CarbonIntensityForecast {
         return apiResponse != null && !apiResponse.code.equals("OK");
     }
 
-    public Instant lowestCarbonIntensityInstant(Instant from, Instant to) {
+    public Instant lowestCarbonIntensityInstant(Instant startOfPeriod, Instant endOfPeriod) {
         if (hasNoForecast()) return null;
 
-        // TODO should we take a safe approach and sort the list?
-        return intensityForecast.stream()
-                .filter(forecast -> isInstantInPeriodAndAfterCurrentHour(forecast.getPeriodStartAt(), from, to))
+        return getForecastsForPeriod(startOfPeriod, endOfPeriod)
                 .sorted()
                 .findFirst()
                 .map(TimestampedCarbonIntensityForecast::getPeriodStartAt).orElse(null);
@@ -87,13 +86,16 @@ public class CarbonIntensityForecast {
 
     public boolean hasForecastForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
         if (hasNoForecast()) return false;
-        return intensityForecast.stream().anyMatch(
-                intensity -> isInstantInPeriodAndAfterCurrentHour(intensity.getPeriodStartAt(), startOfPeriod, endOfPeriod)
-        );
+        return getForecastsForPeriod(startOfPeriod, endOfPeriod).findAny().isPresent();
     }
 
     public boolean hasNoForecastForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
         return !hasForecastForPeriod(startOfPeriod, endOfPeriod);
+    }
+
+    private Stream<TimestampedCarbonIntensityForecast> getForecastsForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
+        return intensityForecast.stream()
+                .filter(forecast -> isInstantInPeriodAndAfterCurrentHour(forecast.getPeriodStartAt(), startOfPeriod, endOfPeriod));
     }
 
     private boolean isInstantInPeriodAndAfterCurrentHour(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {

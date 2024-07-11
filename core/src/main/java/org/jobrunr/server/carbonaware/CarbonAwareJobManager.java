@@ -48,7 +48,7 @@ public class CarbonAwareJobManager {
     }
 
     public ZoneId getTimeZone() {
-        return carbonIntensityForecast.getTimezone() == null ? ZoneId.systemDefault() : ZoneId.of(carbonIntensityForecast.getTimezone());
+        return nonNull(carbonIntensityForecast.getTimezone()) ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
     }
 
     public Instant getForecastEndPeriodOrNextRefreshTime() {

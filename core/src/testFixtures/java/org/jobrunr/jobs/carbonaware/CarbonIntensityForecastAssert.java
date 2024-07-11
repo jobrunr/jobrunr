@@ -57,7 +57,7 @@ public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensit
     }
 
     public CarbonIntensityForecastAssert hasNoForecastForPeriod(Instant periodStartAt, Instant periodEndAt) {
-        Assertions.assertThat(actual.hasNoForecastForPeriod(periodStartAt, periodEndAt)).isFalse();
+        Assertions.assertThat(actual.hasNoForecastForPeriod(periodStartAt, periodEndAt)).isTrue();
         return this;
     }
 
