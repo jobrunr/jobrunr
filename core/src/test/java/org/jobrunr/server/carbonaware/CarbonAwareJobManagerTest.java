@@ -16,15 +16,16 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024_07_11;
-import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024_07_11;
+import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.mockito.DatetimeMocker.mockZonedDateTime;
 import static org.mockito.InstantMocker.mockTime;
 
@@ -34,32 +35,6 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     @BeforeEach
     void setUp() {
         carbonAwareJobManager = new CarbonAwareJobManager(setupCarbonAwareConfiguration("DE"), jsonMapper);
-    }
-
-    @Test
-    void testGetDailyRefreshTimeShouldGiveResultBetweenGivenRefreshTimeAndAnHourLater() {
-        ZonedDateTime result = carbonAwareJobManager.getDailyRefreshTime();
-        ZonedDateTime expectedTime = ZonedDateTime.now(carbonAwareJobManager.getTimeZone())
-                .truncatedTo(HOURS)
-                .withHour(18);
-
-        assertThat(result).isAfterOrEqualTo(expectedTime);
-        assertThat(result).isBefore(expectedTime.plusHours(1));
-    }
-
-    @Test
-    void testGetDailyRefreshTimeShouldGiveTheSameResultOnConsecutiveCalls() {
-        ZonedDateTime firstCall = carbonAwareJobManager.getDailyRefreshTime();
-        ZonedDateTime secondCall = carbonAwareJobManager.getDailyRefreshTime();
-
-        assertThat(firstCall).isEqualTo(secondCall);
-    }
-
-    @Test
-    void testDailyRefreshTimeShouldGiveResultsIn5SecondsBuckets() {
-        ZonedDateTime firstCall = carbonAwareJobManager.getDailyRefreshTime();
-
-        assertThat(firstCall.toInstant().getEpochSecond() % 5).isZero();
     }
 
     @Test
@@ -78,12 +53,12 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
 
     @Test
-    void testMoveToNextStateDoesNotModifyJobsThatAreNotCarbonAwaiting() {
+    void testMoveToNextStateThrowsAnExceptionIfGivenJobsThatAreNotCarbonAwaiting() {
         Job job = anEnqueuedJob().build();
 
-        carbonAwareJobManager.moveToNextState(job);
-
-        assertThat(job).hasState(ENQUEUED);
+        assertThatCode(() -> carbonAwareJobManager.moveToNextState(job))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Only jobs in CarbonAwaitingState can move to a next state");
     }
 
     @Test
@@ -164,19 +139,6 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
             carbonAwareJobManager.moveToNextState(job1);
 
             assertThat(job1).hasStates(AWAITING);
-        }
-    }
-
-    @Test
-    void testMoveToNextStateSchedulesCarbonAwaitingJobsWhoseDeadlineIsNextDayWhenThereIsNoDataAndCurrentTimeIsAfterRefreshTime() {
-        try (MockedStatic<Instant> ignored1 = mockTime(carbonAwareJobManager.getDailyRefreshTime().toInstant());
-             MockedStatic<ZonedDateTime> ignored2 = mockZonedDateTime(carbonAwareJobManager.getDailyRefreshTime(), ZoneId.systemDefault())
-        ) {
-            Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(1, DAYS), now().plus(1, DAYS).plus(2, HOURS))).build();
-
-            carbonAwareJobManager.moveToNextState(job1);
-
-            assertThat(job1).hasStates(AWAITING, SCHEDULED);
         }
     }
 

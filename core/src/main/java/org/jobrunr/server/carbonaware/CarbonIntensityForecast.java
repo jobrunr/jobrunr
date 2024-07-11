@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.util.Objects.isNull;
+import static org.jobrunr.utils.CollectionUtils.getLast;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class CarbonIntensityForecast {
@@ -58,6 +60,12 @@ public class CarbonIntensityForecast {
         return intensityForecast == null || intensityForecast.isEmpty();
     }
 
+    public Instant getForecastEndPeriod() {
+        TimestampedCarbonIntensityForecast last = getLast(intensityForecast);
+        if (isNull(last)) return null;
+        return last.periodEndAt;
+    }
+
     public ApiResponseStatus getApiResponseStatus() {
         return apiResponse;
     }
@@ -82,6 +90,10 @@ public class CarbonIntensityForecast {
         return intensityForecast.stream().anyMatch(
                 intensity -> isInstantInPeriodAndAfterCurrentHour(intensity.getPeriodStartAt(), startOfPeriod, endOfPeriod)
         );
+    }
+
+    public boolean hasNoForecastForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
+        return !hasForecastForPeriod(startOfPeriod, endOfPeriod);
     }
 
     private boolean isInstantInPeriodAndAfterCurrentHour(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {

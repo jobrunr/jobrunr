@@ -1,17 +1,14 @@
 package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.List;
 
-import static java.time.LocalTime.MAX;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 
@@ -47,10 +44,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private Instant getDeadlineBeforeWhichToQueryCarbonAwareJobs() {
-        ZonedDateTime refreshTime = carbonAwareJobManager.getDailyRefreshTime();
-        ZonedDateTime localTime = ZonedDateTime.now(carbonAwareJobManager.getTimeZone());
-        return refreshTime.toLocalDate().equals(localTime.toLocalDate()) && localTime.isAfter(refreshTime.plusMinutes(30))
-                ? LocalDate.now().atTime(MAX).plusDays(1).atZone(carbonAwareJobManager.getTimeZone()).toInstant()
-                : Instant.now();
+        return carbonAwareJobManager.getForecastEndPeriodOrNextRefreshTime();
     }
 }

@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -17,19 +16,23 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.util.Objects.nonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
-    private static final int DEFAULT_REFRESH_TIME = 18;
+    private static final int DEFAULT_REFRESH_TIME = 19;
+
+    private final int randomRefreshTimeOffset = ThreadLocalRandom.current().nextInt(0, 361) * 5;
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonIntensityApiClient carbonIntensityApiClient;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final int randomRefreshTimeOffset = ThreadLocalRandom.current().nextInt(360, 721) * 5;
     private volatile CarbonIntensityForecast carbonIntensityForecast;
+    private volatile Instant nextRefreshTime;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
@@ -44,76 +47,45 @@ public class CarbonAwareJobManager {
         return carbonAwareConfiguration;
     }
 
-    public ZonedDateTime getDailyRefreshTime() {
-        return ZonedDateTime.now(getTimeZone())
-                .truncatedTo(HOURS)
-                .withHour(DEFAULT_REFRESH_TIME)
-                .plusSeconds(randomRefreshTimeOffset); // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets.
-    }
-
     public ZoneId getTimeZone() {
         return carbonIntensityForecast.getTimezone() == null ? ZoneId.systemDefault() : ZoneId.of(carbonIntensityForecast.getTimezone());
     }
 
+    public Instant getForecastEndPeriodOrNextRefreshTime() {
+        Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
+        if (forecastEndPeriod == null || forecastEndPeriod.isBefore(Instant.now())) {
+            return nextRefreshTime;
+        }
+        return forecastEndPeriod;
+    }
+
     public void moveToNextState(Job job) {
-        if (!(job.getJobState() instanceof CarbonAwareAwaitingState)) return;
+        if (!(job.getJobState() instanceof CarbonAwareAwaitingState)) {
+            throw new IllegalStateException("Only jobs in CarbonAwaitingState can move to a next state");
+        }
 
         CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
         LOGGER.trace("Determining the best moment to schedule Job(id={}, jobName='{}') to minimize carbon impact", job.getId(), job.getJobName());
 
-        if (handleImmediateSchedulingCases(job, carbonAwareAwaitingState)) return;
-
-        if (!carbonIntensityForecast.hasForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
-            handleUnavailableForecastForPeriod(job, carbonAwareAwaitingState);
-            return;
-        }
-        scheduleJobAtOptimalTime(job, carbonAwareAwaitingState);
-    }
-
-    private boolean handleImmediateSchedulingCases(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
         if (isDeadlinePassed(carbonAwareAwaitingState)) {
             scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
-            return true;
-        }
-
-        if (isDeadlineNextHour(carbonAwareAwaitingState)) {
-            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job is about to pass its deadline, scheduling job now");
-            return true;
-        }
-
-        return false;
-    }
-
-    private void handleUnavailableForecastForPeriod(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        if (shouldWaitWhenForecastUnavailable(carbonAwareAwaitingState)) {
-            LOGGER.trace("No carbon intensity forecast available for region {} at period {} - {}. Waiting for forecast to become available.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
-            return;
-        }
-
-        if (carbonIntensityForecast.hasError()) {
-            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage()));
+        } else if (carbonIntensityForecast.hasNoForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, getReasonForMissingForecast(carbonAwareAwaitingState));
         } else {
-            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo()));
+            scheduleJobAtOptimalTime(job, carbonAwareAwaitingState);
         }
     }
 
-    private boolean shouldWaitWhenForecastUnavailable(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        ZonedDateTime currentTimeInZone = ZonedDateTime.now(getTimeZone());
-        LocalDate today = currentTimeInZone.toLocalDate();
-        LocalDate deadlineDay = carbonAwareAwaitingState.getTo().atZone(getTimeZone()).toLocalDate();
-        boolean isDeadlineDay = today.equals(deadlineDay);
-        boolean isDayBeforeDeadlineDay = today.equals(deadlineDay.minusDays(1));
-        boolean isAfterRefreshTime = currentTimeInZone.getHour() >= DEFAULT_REFRESH_TIME;
-        boolean shouldScheduleNow = isDeadlineDay || (isDayBeforeDeadlineDay && isAfterRefreshTime);
-        return !shouldScheduleNow;
+    private String getReasonForMissingForecast(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        if (carbonIntensityForecast.hasError()) {
+            return format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage());
+        }
+        return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
     }
 
     private void scheduleJobAtOptimalTime(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState) {
         Instant lowestCarbonIntensityInstant = carbonIntensityForecast.lowestCarbonIntensityInstant(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
-        if (lowestCarbonIntensityInstant != null) {
-            carbonAwareAwaitingState.moveToNextState(job, lowestCarbonIntensityInstant);
-        }
-        LOGGER.trace("No lowest carbon intensity instant found between {} and {}. Keep waiting.", carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        carbonAwareAwaitingState.moveToNextState(job, lowestCarbonIntensityInstant);
     }
 
     private void scheduleJobAtPreferredInstant(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
@@ -121,16 +93,12 @@ public class CarbonAwareJobManager {
         carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
     }
 
-    private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
-        return new CarbonIntensityApiClient(carbonAwareConfiguration, jsonMapper);
-    }
-
     private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         return Instant.now().isAfter(carbonAwareAwaitingState.getTo());
     }
 
-    private boolean isDeadlineNextHour(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        return Instant.now().isAfter(carbonAwareAwaitingState.getTo().minus(1, HOURS));
+    private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
+        return new CarbonIntensityApiClient(carbonAwareConfiguration, jsonMapper);
     }
 
     @VisibleFor("testing")
@@ -147,7 +115,7 @@ public class CarbonAwareJobManager {
         try {
             updateCarbonIntensityForecast();
         } finally {
-            scheduleCarbonIntensityForecastUpdate(getCarbonIntensityForecastScheduleAtAfterInitialRetrieval());
+            scheduleCarbonIntensityForecastUpdate(getNextRefreshTimeUsingCarbonIntensityForecastOrFallbackTo(getDefaultDailyRefreshTime()));
         }
     }
 
@@ -155,31 +123,38 @@ public class CarbonAwareJobManager {
         try {
             updateCarbonIntensityForecast();
         } finally {
-            scheduleCarbonIntensityForecastUpdate(getNextCarbonIntensityForecastScheduleAt());
+            scheduleCarbonIntensityForecastUpdate(getNextRefreshTimeUsingCarbonIntensityForecastOrFallbackTo(getDefaultDailyRefreshTime()).plus(1, DAYS));
         }
     }
 
     private void scheduleInitialCarbonIntensityRetrieval() {
-        scheduledExecutorService.schedule(this::loadCarbonIntensityForecastAndScheduleNextUpdate, 1000, MILLISECONDS);
+        Instant scheduleAt = Instant.now().plusSeconds(1);
+        scheduledExecutorService.schedule(this::loadCarbonIntensityForecastAndScheduleNextUpdate, getScheduleDelay(scheduleAt), MILLISECONDS);
     }
 
     private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt) {
-        scheduledExecutorService.schedule(this::updateCarbonIntensityForecastAndScheduleNextUpdate, scheduleAt.toEpochMilli() - Instant.now().toEpochMilli(), MILLISECONDS);
+        scheduleCarbonIntensityForecastUpdate(scheduleAt, this::updateCarbonIntensityForecastAndScheduleNextUpdate);
     }
 
-    private Instant getCarbonIntensityForecastScheduleAtAfterInitialRetrieval() {
-        Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
-        if (nextForecastAvailableAt == null) {
-            return getDailyRefreshTime().toInstant();
-        }
-        return nextForecastAvailableAt;
+    private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt, Runnable runnable) {
+        LOGGER.trace("Scheduling carbon intensity forecast update for {}.", scheduleAt);
+        nextRefreshTime = scheduleAt;
+        scheduledExecutorService.schedule(runnable, getScheduleDelay(scheduleAt), MILLISECONDS);
     }
 
-    private Instant getNextCarbonIntensityForecastScheduleAt() {
+    private long getScheduleDelay(Instant scheduleAt) {
+        return scheduleAt.toEpochMilli() - Instant.now().toEpochMilli();
+    }
+
+    private Instant getNextRefreshTimeUsingCarbonIntensityForecastOrFallbackTo(Instant defaultNextRefreshTime) {
         Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
-        if (nextForecastAvailableAt == null || nextForecastAvailableAt.isBefore(Instant.now())) {
-            return getDailyRefreshTime().plusDays(1).toInstant();
-        }
-        return nextForecastAvailableAt;
+        Instant nextRefreshTime = nonNull(nextForecastAvailableAt) ? nextForecastAvailableAt : defaultNextRefreshTime;
+        return nextRefreshTime.plusSeconds(randomRefreshTimeOffset); // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets.;
+    }
+
+    private Instant getDefaultDailyRefreshTime() {
+        return ZonedDateTime.now(getTimeZone())
+                .truncatedTo(HOURS)
+                .withHour(DEFAULT_REFRESH_TIME).toInstant();
     }
 }

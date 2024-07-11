@@ -2,7 +2,6 @@ package org.jobrunr.jobs.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 
@@ -27,6 +26,11 @@ public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensit
         return this;
     }
 
+    public CarbonIntensityForecastAssert hasForecastEndPeriod(Instant forecastEndAt) {
+        Assertions.assertThat(actual.getForecastEndPeriod()).isEqualTo(forecastEndAt);
+        return this;
+    }
+
     public CarbonIntensityForecastAssert hasIntensityForecastSize(int size) {
         Assertions.assertThat(actual.getIntensityForecast()).hasSize(size);
         return this;
@@ -47,13 +51,13 @@ public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensit
         return this;
     }
 
-    public CarbonIntensityForecastAssert hasValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
-        Assertions.assertThat(actual.hasForecastForPeriod(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo())).isTrue();
+    public CarbonIntensityForecastAssert hasForecastForPeriod(Instant periodStartAt, Instant periodEndAt) {
+        Assertions.assertThat(actual.hasForecastForPeriod(periodStartAt, periodEndAt)).isTrue();
         return this;
     }
 
-    public CarbonIntensityForecastAssert hasNoValidDataFor(CarbonAwarePeriod carbonAwarePeriod) {
-        Assertions.assertThat(actual.hasForecastForPeriod(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo())).isFalse();
+    public CarbonIntensityForecastAssert hasNoForecastForPeriod(Instant periodStartAt, Instant periodEndAt) {
+        Assertions.assertThat(actual.hasNoForecastForPeriod(periodStartAt, periodEndAt)).isFalse();
         return this;
     }
 

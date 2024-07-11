@@ -39,7 +39,6 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     void setUp() {
         task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
         when(carbonAwareJobManager.getTimeZone()).thenReturn(ZONEID);
-        when(carbonAwareJobManager.getDailyRefreshTime()).thenReturn(ZonedDateTime.parse("2024-07-01T18:37:35+02:00[Europe/Brussels]"));
     }
 
     @Override

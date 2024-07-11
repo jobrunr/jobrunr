@@ -40,7 +40,8 @@ class CarbonIntensityForecastTest {
         assertThat(carbonIntensityForecast)
                 .hasDisplayName("Belgium")
                 .hasIntensityForecastSize(24)
-                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16);
+                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16)
+                .hasForecastEndPeriod(Instant.parse("2024-07-11T22:00:00Z"));
     }
 
     @Test
@@ -51,7 +52,8 @@ class CarbonIntensityForecastTest {
         assertThat(carbonIntensityForecast)
                 .hasDisplayName("Belgium")
                 .hasIntensityForecastSize(24)
-                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16);
+                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16)
+                .hasForecastEndPeriod(Instant.parse("2024-07-11T22:00:00Z"));
     }
 
     @Test
@@ -189,7 +191,9 @@ class CarbonIntensityForecastTest {
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(7200)); // 2 hours ahead
 
         // Act & Assert
-        assertThat(carbonIntensityForecast.hasForecastForPeriod(validPeriod.getFrom(), validPeriod.getTo())).isTrue();
+        assertThat(carbonIntensityForecast)
+                .hasForecastForPeriod(validPeriod.getFrom(), validPeriod.getTo())
+                .hasForecastEndPeriod(now.plusSeconds(3600 * 2));
     }
 
     @Test
@@ -204,7 +208,9 @@ class CarbonIntensityForecastTest {
         CarbonAwarePeriod invalidPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(1800)); // 30 minutes ahead
 
         // Act & Assert
-        assertThat(carbonIntensityForecast.hasForecastForPeriod(invalidPeriod.getFrom(), invalidPeriod.getTo())).isFalse();
+        assertThat(carbonIntensityForecast)
+                .hasNoForecastForPeriod(invalidPeriod.getFrom(), invalidPeriod.getTo())
+                .hasForecastEndPeriod(now.plusSeconds(3600 * 2));
     }
 
     @Test
@@ -216,7 +222,9 @@ class CarbonIntensityForecastTest {
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead
 
         // Act & Assert
-        assertThat(carbonIntensityForecast.hasForecastForPeriod(validPeriod.getFrom(), validPeriod.getTo())).isFalse();
+        assertThat(carbonIntensityForecast)
+                .hasNoForecastForPeriod(validPeriod.getFrom(), validPeriod.getTo())
+                .hasForecastEndPeriod(null);
     }
 
     @Test
@@ -228,6 +236,8 @@ class CarbonIntensityForecastTest {
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(3600)); // 1 hour ahead
 
         // Act & Assert
-        assertThat(carbonIntensityForecastData.hasForecastForPeriod(validPeriod.getFrom(), validPeriod.getTo())).isFalse();
+        assertThat(carbonIntensityForecastData)
+                .hasNoForecastForPeriod(validPeriod.getFrom(), validPeriod.getTo())
+                .hasForecastEndPeriod(null);
     }
 }
