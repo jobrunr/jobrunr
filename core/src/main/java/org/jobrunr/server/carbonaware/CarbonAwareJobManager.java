@@ -1,6 +1,5 @@
 package org.jobrunr.server.carbonaware;
 
-import io.micrometer.core.instrument.util.NamedThreadFactory;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.utils.annotations.VisibleFor;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
@@ -19,8 +17,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
@@ -30,24 +26,33 @@ public class CarbonAwareJobManager {
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonIntensityApiClient carbonIntensityApiClient;
-    private final ScheduledExecutorService scheduledExecutorService;
     private volatile CarbonIntensityForecast carbonIntensityForecast;
     private volatile Instant nextRefreshTime;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
         this.carbonIntensityApiClient = createCarbonIntensityApiClient(this.carbonAwareConfiguration, jsonMapper);
-        this.scheduledExecutorService = newSingleThreadScheduledExecutor(new NamedThreadFactory("carbon-aware-job-manager"));
+        nextRefreshTime = Instant.now();
         this.carbonIntensityForecast = new CarbonIntensityForecast();
+    }
 
-        scheduleInitialCarbonIntensityRetrieval();
+    public void updateCarbonIntensityForecastIfNecessary() {
+        if (!nextRefreshTime.isAfter(Instant.now())) {
+            try {
+                LOGGER.trace("Updating carbon intensity forecast.");
+                updateCarbonIntensityForecast();
+            } finally {
+                updateNextRefreshTime();
+                LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
+            }
+        }
     }
 
     public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
         return carbonAwareConfiguration;
     }
 
-    public Instant getTheLaterBetweenForecastEndPeriodAndNextRefreshTime() {
+    public Instant getTheLaterOfForecastEndAndNextRefreshTime() {
         Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
         return (nonNull(forecastEndPeriod) && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
     }
@@ -104,45 +109,22 @@ public class CarbonAwareJobManager {
         this.carbonIntensityForecast = carbonIntensityForecast;
     }
 
-    private void loadCarbonIntensityForecastAndScheduleNextUpdate() {
-        try {
-            updateCarbonIntensityForecast();
-        } finally {
-            scheduleCarbonIntensityForecastUpdate(getNextRefreshTimeUsingCarbonIntensityForecastOrFallbackTo(getDefaultDailyRefreshTime()));
-        }
-    }
-
-    private void updateCarbonIntensityForecastAndScheduleNextUpdate() {
-        try {
-            updateCarbonIntensityForecast();
-        } finally {
-            scheduleCarbonIntensityForecastUpdate(getNextRefreshTimeUsingCarbonIntensityForecastOrFallbackTo(getDefaultDailyRefreshTime()).plus(1, DAYS));
-        }
-    }
-
-    private void scheduleInitialCarbonIntensityRetrieval() {
-        Instant scheduleAt = Instant.now().plusSeconds(1);
-        scheduleCarbonIntensityForecastUpdate(scheduleAt, this::loadCarbonIntensityForecastAndScheduleNextUpdate);
-    }
-
-    private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt) {
-        scheduleCarbonIntensityForecastUpdate(scheduleAt, this::updateCarbonIntensityForecastAndScheduleNextUpdate);
-    }
-
-    private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt, Runnable runnable) {
-        LOGGER.trace("Scheduling carbon intensity forecast update for {}.", scheduleAt);
-        nextRefreshTime = scheduleAt;
-        scheduledExecutorService.schedule(runnable, getScheduleDelay(scheduleAt), MILLISECONDS);
-    }
-
-    private long getScheduleDelay(Instant scheduleAt) {
-        return scheduleAt.toEpochMilli() - Instant.now().toEpochMilli();
-    }
-
-    private Instant getNextRefreshTimeUsingCarbonIntensityForecastOrFallbackTo(Instant defaultNextRefreshTime) {
+    private void updateNextRefreshTime() {
         Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
-        Instant nextRefreshTime = nonNull(nextForecastAvailableAt) ? nextForecastAvailableAt : defaultNextRefreshTime;
-        return nextRefreshTime.plusSeconds(randomRefreshTimeOffset); // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets.;
+        Instant defaultDailyRefreshTime = getDefaultDailyRefreshTime();
+
+        Instant proposedNextRefreshTime = nonNull(nextForecastAvailableAt) ? nextForecastAvailableAt : defaultDailyRefreshTime;
+
+        if (proposedNextRefreshTime.isBefore(Instant.now())) {
+            nextRefreshTime = proposedNextRefreshTime.plus(1, DAYS).plusSeconds(randomRefreshTimeOffset);
+        } else {
+            nextRefreshTime = proposedNextRefreshTime.plusSeconds(randomRefreshTimeOffset);
+        }
+    }
+
+    @VisibleFor("testing")
+    Instant getNextRefreshTime() {
+        return nextRefreshTime;
     }
 
     @VisibleFor("testing")

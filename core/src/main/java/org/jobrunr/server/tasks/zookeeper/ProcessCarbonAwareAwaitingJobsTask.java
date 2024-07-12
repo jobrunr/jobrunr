@@ -29,7 +29,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     protected void runTask() {
         // TODO should we run another task in case carbonAwareJobManager is not enabled and add a dashboard notification to alert if carbon aware jobs are in DB?
         if (carbonAwareJobManager == null) return;
-
+        carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
                 amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
@@ -45,6 +45,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private Instant getDeadlineBeforeWhichToQueryCarbonAwareJobs() {
-        return carbonAwareJobManager.getTheLaterBetweenForecastEndPeriodAndNextRefreshTime().minusNanos(1);
+        return carbonAwareJobManager.getTheLaterOfForecastEndAndNextRefreshTime().minusNanos(1);
     }
 }
