@@ -5,15 +5,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiPath;
@@ -53,6 +52,26 @@ public abstract class AbstractCarbonAwareWiremockTest {
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(response)));
+    }
+
+    protected void mockResponseWhenRequestingAreaCodeWithScenarios(String areaCode, String... responses) {
+        for (int i = 0; i < responses.length; i++) {
+            String currentScenario = i == 0 ? Scenario.STARTED : "Scenario " + i;
+            String nextScenario = i == responses.length - 1 ? Scenario.STARTED : "Scenario " + (i + 1);
+            String url = String.format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
+            stubFor(WireMock.get(urlEqualTo(url))
+                    .inScenario("mock-responses")
+                    .whenScenarioStateIs(currentScenario)
+                    .willSetStateTo(nextScenario)
+                    .willReturn(aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(responses[i])));
+        }
+    }
+
+    protected void verifyApiCalls(String areaCode, int calls) {
+        String url = String.format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
+        WireMock.verify(calls, getRequestedFor(urlEqualTo(url)));
     }
 
 }

@@ -122,7 +122,7 @@ public class CarbonAwareJobManager {
 
     private void scheduleInitialCarbonIntensityRetrieval() {
         Instant scheduleAt = Instant.now().plusSeconds(1);
-        scheduledExecutorService.schedule(this::loadCarbonIntensityForecastAndScheduleNextUpdate, getScheduleDelay(scheduleAt), MILLISECONDS);
+        scheduleCarbonIntensityForecastUpdate(scheduleAt, this::loadCarbonIntensityForecastAndScheduleNextUpdate);
     }
 
     private void scheduleCarbonIntensityForecastUpdate(Instant scheduleAt) {
