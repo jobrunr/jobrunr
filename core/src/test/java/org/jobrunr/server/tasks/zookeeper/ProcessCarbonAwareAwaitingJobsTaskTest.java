@@ -38,7 +38,6 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     @BeforeEach
     void setUp() {
         task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
-        when(carbonAwareJobManager.getTimeZone()).thenReturn(ZONEID);
     }
 
     @Override

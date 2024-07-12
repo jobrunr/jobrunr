@@ -51,6 +51,31 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
         assertThat(carbonAwareJobManager.getTimeZone()).isEqualTo(ZoneId.of("Europe/Berlin"));
     }
 
+    @Test
+    void testGetDefaultDailyRefreshTimeShouldGiveResultBetweenGivenRefreshTimeAndAnHourLater() {
+        Instant result = carbonAwareJobManager.getDefaultDailyRefreshTime();
+        ZonedDateTime expectedTime = ZonedDateTime.now(carbonAwareJobManager.getTimeZone())
+                .truncatedTo(HOURS)
+                .withHour(19);
+
+        assertThat(result).isAfterOrEqualTo(expectedTime.toInstant());
+        assertThat(result).isBefore(expectedTime.plusHours(1).toInstant());
+    }
+
+    @Test
+    void testGetDefaultDailyRefreshTimeShouldGiveTheSameResultOnConsecutiveCalls() {
+        Instant firstCall = carbonAwareJobManager.getDefaultDailyRefreshTime();
+        Instant secondCall = carbonAwareJobManager.getDefaultDailyRefreshTime();
+
+        assertThat(firstCall).isEqualTo(secondCall);
+    }
+
+    @Test
+    void testGetDailyDefaultRefreshTimeShouldGiveResultsIn5SecondsBuckets() {
+        Instant firstCall = carbonAwareJobManager.getDefaultDailyRefreshTime();
+
+        assertThat(firstCall.getEpochSecond() % 5).isZero();
+    }
 
     @Test
     void testMoveToNextStateThrowsAnExceptionIfGivenJobsThatAreNotCarbonAwaiting() {

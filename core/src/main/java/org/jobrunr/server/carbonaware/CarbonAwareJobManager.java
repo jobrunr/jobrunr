@@ -47,16 +47,9 @@ public class CarbonAwareJobManager {
         return carbonAwareConfiguration;
     }
 
-    public ZoneId getTimeZone() {
-        return nonNull(carbonIntensityForecast.getTimezone()) ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
-    }
-
-    public Instant getForecastEndPeriodOrNextRefreshTime() {
+    public Instant getTheLaterBetweenForecastEndPeriodAndNextRefreshTime() {
         Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
-        if (forecastEndPeriod == null || forecastEndPeriod.isBefore(Instant.now())) {
-            return nextRefreshTime;
-        }
-        return forecastEndPeriod;
+        return (nonNull(forecastEndPeriod) && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
     }
 
     public void moveToNextState(Job job) {
@@ -152,7 +145,13 @@ public class CarbonAwareJobManager {
         return nextRefreshTime.plusSeconds(randomRefreshTimeOffset); // why: don't send all the requests to carbon-api at the same moment. Distribute api-calls in a 1-hour period, in 5 sec buckets.;
     }
 
-    private Instant getDefaultDailyRefreshTime() {
+    @VisibleFor("testing")
+    ZoneId getTimeZone() {
+        return nonNull(carbonIntensityForecast.getTimezone()) ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
+    }
+
+    @VisibleFor("testing")
+    Instant getDefaultDailyRefreshTime() {
         return ZonedDateTime.now(getTimeZone())
                 .truncatedTo(HOURS)
                 .withHour(DEFAULT_REFRESH_TIME).toInstant();

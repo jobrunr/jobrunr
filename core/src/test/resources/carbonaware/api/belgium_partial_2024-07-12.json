@@ -1,0 +1,88 @@
+{
+  "apiResponse": {
+    "code": "OK",
+    "message": "DataProvider ENTSO-E and area Belgium has 15 forecasts."
+  },
+  "dataProvider": "ENTSO-E",
+  "dataIdentifier": "10YBE----------2",
+  "displayName": "Belgium",
+  "timezone": "Europe/Brussels",
+  "nextForecastAvailableAt": null,
+  "intensityForecast": [
+    {
+      "periodStartAt": "2024-07-12T07:00:00Z",
+      "periodEndAt": "2024-07-12T08:00:00Z",
+      "rank": 8
+    },
+    {
+      "periodStartAt": "2024-07-12T08:00:00Z",
+      "periodEndAt": "2024-07-12T09:00:00Z",
+      "rank": 6
+    },
+    {
+      "periodStartAt": "2024-07-12T09:00:00Z",
+      "periodEndAt": "2024-07-12T10:00:00Z",
+      "rank": 5
+    },
+    {
+      "periodStartAt": "2024-07-12T10:00:00Z",
+      "periodEndAt": "2024-07-12T11:00:00Z",
+      "rank": 4
+    },
+    {
+      "periodStartAt": "2024-07-12T11:00:00Z",
+      "periodEndAt": "2024-07-12T12:00:00Z",
+      "rank": 2
+    },
+    {
+      "periodStartAt": "2024-07-12T12:00:00Z",
+      "periodEndAt": "2024-07-12T13:00:00Z",
+      "rank": 1
+    },
+    {
+      "periodStartAt": "2024-07-12T13:00:00Z",
+      "periodEndAt": "2024-07-12T14:00:00Z",
+      "rank": 0
+    },
+    {
+      "periodStartAt": "2024-07-12T14:00:00Z",
+      "periodEndAt": "2024-07-12T15:00:00Z",
+      "rank": 7
+    },
+    {
+      "periodStartAt": "2024-07-12T15:00:00Z",
+      "periodEndAt": "2024-07-12T16:00:00Z",
+      "rank": 10
+    },
+    {
+      "periodStartAt": "2024-07-12T16:00:00Z",
+      "periodEndAt": "2024-07-12T17:00:00Z",
+      "rank": 3
+    },
+    {
+      "periodStartAt": "2024-07-12T17:00:00Z",
+      "periodEndAt": "2024-07-12T18:00:00Z",
+      "rank": 9
+    },
+    {
+      "periodStartAt": "2024-07-12T18:00:00Z",
+      "periodEndAt": "2024-07-12T19:00:00Z",
+      "rank": 12
+    },
+    {
+      "periodStartAt": "2024-07-12T19:00:00Z",
+      "periodEndAt": "2024-07-12T20:00:00Z",
+      "rank": 14
+    },
+    {
+      "periodStartAt": "2024-07-12T20:00:00Z",
+      "periodEndAt": "2024-07-12T21:00:00Z",
+      "rank": 13
+    },
+    {
+      "periodStartAt": "2024-07-12T21:00:00Z",
+      "periodEndAt": "2024-07-12T22:00:00Z",
+      "rank": 11
+    }
+  ]
+}
