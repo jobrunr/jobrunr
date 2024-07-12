@@ -34,41 +34,31 @@ public class CarbonAwarePeriod {
     }
 
     public static CarbonAwarePeriod before(Instant to) {
-        Instant from = now().minusSeconds(1); // why: as otherwise the to is before the now()
-        return new CarbonAwarePeriod(from, to);
+        return between(now(), to);
     }
 
     public static CarbonAwarePeriod between(LocalDate from, LocalDate to) {
-        return new CarbonAwarePeriod(from.atStartOfDay(ZoneId.systemDefault()).toInstant(), to.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return between(from.atStartOfDay(ZoneId.systemDefault()).toInstant(), to.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
     public static CarbonAwarePeriod before(LocalDate date) {
-        Instant from = now().minusSeconds(1); // why: as otherwise the to is before the now()
         Instant to = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        return new CarbonAwarePeriod(from, to);
+        return before(to);
     }
 
     public static CarbonAwarePeriod between(LocalDateTime from, LocalDateTime to) {
-        return new CarbonAwarePeriod(from.atZone(ZoneId.systemDefault()).toInstant(), to.atZone(ZoneId.systemDefault()).toInstant());
+        return between(from.atZone(ZoneId.systemDefault()).toInstant(), to.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static CarbonAwarePeriod before(LocalDateTime dateTime) {
-        return new CarbonAwarePeriod(now().minusSeconds(1), dateTime.atZone(ZoneId.systemDefault()).toInstant());
-    }
-
-    public static CarbonAwarePeriod between(String from, String to) {
-        return new CarbonAwarePeriod(Instant.parse(from), Instant.parse(to));
-    }
-
-    public static CarbonAwarePeriod before(String dateTime) {
-        return new CarbonAwarePeriod(now().minusSeconds(1), Instant.parse(dateTime));
+        return before(dateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static CarbonAwarePeriod between(ZonedDateTime from, ZonedDateTime to) {
-        return new CarbonAwarePeriod(from.toInstant(), to.toInstant());
+        return between(from.toInstant(), to.toInstant());
     }
 
     public static CarbonAwarePeriod before(ZonedDateTime dateTime) {
-        return new CarbonAwarePeriod(now().minusSeconds(1), dateTime.toInstant());
+        return before(dateTime.toInstant());
     }
 }

@@ -25,9 +25,9 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
-import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024_07_11;
+import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PARTIAL_2024_07_12;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.UNKNOWN_AREA;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
@@ -112,12 +112,12 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
              MockedStatic<Instant> ignored2 = mockTime(currentTime.toInstant())
         ) {
             mockResponseWhenRequestingAreaCode("BE", UNKNOWN_AREA);
-            CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(setupCarbonAwareConfiguration("BE"), jsonMapper);
+            CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
 
             assertThat(carbonAwareJobManager.getTheLaterBetweenForecastEndPeriodAndNextRefreshTime()).isEqualTo(now().plusSeconds(1));
 
             await().atMost(Duration.ofMillis(1500)).untilAsserted(() -> verifyApiCalls("BE", 1));
-            await().atMost(Duration.ofMillis(500)).untilAsserted(() -> {
+            await().atMost(Duration.ofMillis(1000)).untilAsserted(() -> {
                 assertThat(carbonAwareJobManager.getTheLaterBetweenForecastEndPeriodAndNextRefreshTime()).isCloseTo(carbonAwareJobManager.getDefaultDailyRefreshTime(), within(30, MINUTES));
                 assertThat(carbonAwareJobManager.getTheLaterBetweenForecastEndPeriodAndNextRefreshTime().getEpochSecond() % 5).isZero();
             });
@@ -131,10 +131,10 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
              MockedStatic<Instant> ignored2 = mockTime(currentTime.toInstant())
         ) {
             mockResponseWhenRequestingAreaCodeWithScenarios("BE", BELGIUM_2024_07_11, UNKNOWN_AREA);
-            CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(setupCarbonAwareConfiguration("BE"), jsonMapper);
+            CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
 
             await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> verifyApiCalls("BE", 2));
-            await().atMost(Duration.ofMillis(500)).untilAsserted(() -> {
+            await().atMost(Duration.ofMillis(1000)).untilAsserted(() -> {
                 assertThat(carbonAwareJobManager.getTheLaterBetweenForecastEndPeriodAndNextRefreshTime()).isCloseTo(carbonAwareJobManager.getDefaultDailyRefreshTime().plus(1, DAYS), within(30, MINUTES));
                 assertThat(carbonAwareJobManager.getTheLaterBetweenForecastEndPeriodAndNextRefreshTime().getEpochSecond() % 5).isZero();
             });
@@ -153,9 +153,9 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testMoveToNextStateEnqueuesCarbonAwaitingJobsThatHaveDeadlineInThePast() {
-        mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
-        CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(setupCarbonAwareConfiguration("BE"), jsonMapper);
+    void testMoveToNextStateSchedulesImmediatelyCarbonAwaitingJobsThatHaveDeadlineInThePast() {
+        mockResponseWhenRequestingAreaCode("BE", BELGIUM_PARTIAL_2024_07_12);
+        CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
         carbonAwareJobManager.updateCarbonIntensityForecast();
         LocalDate localDate = LocalDate.of(2024, 7, 11);
         Job job;
@@ -166,7 +166,9 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate).plus(4, HOURS))) {
             carbonAwareJobManager.moveToNextState(job);
 
-            assertThat(job).hasStates(AWAITING, ENQUEUED);
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(now().minus(4, HOURS));
         }
     }
 
@@ -178,13 +180,17 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             carbonAwareJobManager.moveToNextState(job1);
 
-            assertThat(job1).hasStates(AWAITING, ENQUEUED);
+            assertThat(job1)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(now());
 
             Job job2 = aJob().withState(new CarbonAwareAwaitingState(now().plus(2, HOURS), now(), now().plus(4, HOURS))).build();
 
             carbonAwareJobManager.moveToNextState(job2);
 
-            assertThat(job2).hasStates(AWAITING, SCHEDULED).isScheduledAt(now().plus(2, HOURS));
+            assertThat(job2)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(now().plus(2, HOURS));
         }
     }
 
@@ -198,39 +204,9 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             carbonAwareJobManager.moveToNextState(job);
 
-            assertThat(job).hasStates(AWAITING, SCHEDULED);
-        }
-    }
-
-    @Test
-    void testMoveToNextStateDoesNotModifyJobsThatAreCarbonAwaitingButDeadlineIsAfterTomorrowRefreshTime() {
-        try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.of(2024, 7, 11)))) {
-            mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
-            CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
-            carbonAwareJobManager.updateCarbonIntensityForecast();
-
-            Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(2, DAYS), now().plus(4, DAYS))).build();
-
-            carbonAwareJobManager.moveToNextState(job1);
-
-            assertThat(job1).hasStates(AWAITING);
-        }
-    }
-
-    @Test
-    void testMoveToNextStateDoesNotModifyJobsThatAreCarbonAwaitingButDeadlineIsNextDayAndCurrentTimeIsBeforeRefreshTime() {
-        Instant startOfDay = startOfDay(LocalDate.of(2024, 7, 11));
-        try (MockedStatic<Instant> ignored1 = mockTime(startOfDay);
-             MockedStatic<ZonedDateTime> ignored2 = mockZonedDateTime(startOfDay.atZone(ZoneId.of("Europe/Brussels")), "Europe/Brussels")) {
-            mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
-            CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
-            carbonAwareJobManager.updateCarbonIntensityForecast();
-
-            Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(1, DAYS), now().plus(1, DAYS).plus(2, HOURS))).build();
-
-            carbonAwareJobManager.moveToNextState(job1);
-
-            assertThat(job1).hasStates(AWAITING);
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt("2024-07-11T02:00:00Z");
         }
     }
 

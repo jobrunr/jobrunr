@@ -36,6 +36,7 @@ public abstract class AbstractCarbonAwareWiremockTest {
     void setUp(WireMockRuntimeInfo wireMockRuntimeInfo) {
         carbonIntensityApiBaseUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
         carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl("http://localhost:" + wireMockRuntimeInfo.getHttpPort());
+        WireMock.reset();
     }
 
     protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {

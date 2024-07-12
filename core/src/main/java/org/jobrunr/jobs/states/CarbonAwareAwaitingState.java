@@ -72,12 +72,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         if (!(job.getJobState() instanceof CarbonAwareAwaitingState)) {
             throw new IllegalStateException("Only jobs in CarbonAwaitingState can move to a next state");
         }
-        if (!idealMoment.isAfter(now())) {
-            LOGGER.warn("Enqueueing job {}, as it's schedule instant is passed", job.getId());
-            job.enqueue();
-        } else {
-            job.scheduleAt(idealMoment, reason);
-        }
+        job.scheduleAt(idealMoment, reason);
     }
 
     public static void validateCarbonAwarePeriod(Instant from, Instant to) {
