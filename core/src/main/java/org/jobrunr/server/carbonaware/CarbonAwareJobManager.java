@@ -116,7 +116,7 @@ public class CarbonAwareJobManager {
         Instant proposedNextRefreshTime = nonNull(nextForecastAvailableAt) ? nextForecastAvailableAt : defaultDailyRefreshTime;
 
         if (proposedNextRefreshTime.isBefore(Instant.now())) {
-            nextRefreshTime = proposedNextRefreshTime.plus(1, DAYS).plusSeconds(randomRefreshTimeOffset);
+            nextRefreshTime = defaultDailyRefreshTime.plus(1, DAYS).plusSeconds(randomRefreshTimeOffset);
         } else {
             nextRefreshTime = proposedNextRefreshTime.plusSeconds(randomRefreshTimeOffset);
         }
