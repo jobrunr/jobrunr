@@ -83,7 +83,7 @@ public class RecurringJob extends AbstractJob {
      *
      * @param from the start of the time interval from which to create Scheduled Jobs
      * @param upTo the end of the time interval (not included)
-     * @return All jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     * @return all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
      */
     public List<Job> toJobsWith1FutureRun(Instant from, Instant upTo) {
         if (from.isAfter(upTo)) return emptyList();

@@ -25,7 +25,7 @@ public class CarbonIntensityApiClient {
         this.jsonMapper = jsonMapper;
     }
 
-    public CarbonIntensityForecast fetchLatestCarbonIntensityForecast() {
+    public CarbonIntensityForecast fetchCarbonIntensityForecast() {
         try {
             String carbonIntensityForecastAsString = fetchLatestCarbonIntensityForecastAsStringWithRetries();
             return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);

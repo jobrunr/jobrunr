@@ -258,7 +258,7 @@ public class JobBuilder {
 
     private AbstractJobState getState() {
         if (this.scheduleAt != null && this.carbonAwarePeriod != null) {
-            throw new IllegalArgumentException("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware(), which is not allowed. Specify either a time to schedule the job " +
+            throw new IllegalArgumentException("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware(), which is not allowed. Specify either a time to schedule the job " +
                     "or allow a carbonAwarePeriod for the job to be scheduled, not both.");
         }
         if (this.scheduleAt != null) {

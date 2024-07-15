@@ -38,8 +38,7 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
         if (job.getJobState() instanceof ScheduledState) {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
-        }
-        if (job.getJobState() instanceof CarbonAwareAwaitingState) {
+        } else if (job.getJobState() instanceof CarbonAwareAwaitingState) {
             document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(job.<CarbonAwareAwaitingState>getJobState().getTo()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
@@ -54,8 +53,7 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
         if (job.getJobState() instanceof ScheduledState) {
             document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
-        }
-        if (job.getJobState() instanceof CarbonAwareAwaitingState) {
+        } else if (job.getJobState() instanceof CarbonAwareAwaitingState) {
             document.put(Jobs.FIELD_DEADLINE, toMicroSeconds(job.<CarbonAwareAwaitingState>getJobState().getTo()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));

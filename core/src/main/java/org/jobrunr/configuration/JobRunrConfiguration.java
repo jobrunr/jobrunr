@@ -2,8 +2,6 @@ package org.jobrunr.configuration;
 
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.JobFilter;
@@ -13,6 +11,8 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -121,7 +121,7 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration useCarbonAwareScheduling(CarbonAwareConfiguration carbonAwareConfiguration) {
         if (this.backgroundJobServer != null) {
-            throw new IllegalStateException("Please configure the CarbonAwareJobManager before the BackgroundJobServer.");
+            throw new IllegalStateException("Please configure carbon aware job scheduling before the BackgroundJobServer.");
         }
         this.carbonAwareJobManager = new CarbonAwareJobManager(carbonAwareConfiguration, jsonMapper);
         return this;

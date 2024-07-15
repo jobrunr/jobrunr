@@ -8,6 +8,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 
@@ -188,6 +189,16 @@ public class RecurringJobBuilder {
     }
 
     /**
+     * Allows to specify a {@link CronExpression}, an ISO-8601 duration or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
+     *
+     * @param scheduleExpression the schedule expression that will be used to create the recurringJobs.
+     * @return the same builder instance which provides a fluent api
+     */
+    public RecurringJobBuilder withScheduleExpression(String scheduleExpression) {
+        return withCron(scheduleExpression);
+    }
+
+    /**
      * Allows to specify the zoneId that will be used to create the recurringJobs.
      * If no zoneId is set, the {@link ZoneId#systemDefault()} is used.
      *
@@ -229,7 +240,7 @@ public class RecurringJobBuilder {
 
     private RecurringJob build(JobDetails jobDetails) {
         if (schedule == null) {
-            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration() or withCarbonAwareCron()");
+            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration() or withScheduleExpression().");
         }
         if (zoneId == null) {
             zoneId = systemDefault();

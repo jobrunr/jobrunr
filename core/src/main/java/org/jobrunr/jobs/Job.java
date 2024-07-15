@@ -150,14 +150,10 @@ public class Job extends AbstractJob {
         return getJobState().getName();
     }
 
-    public JobState getState(StateName state) {
-        return jobHistory.stream().filter(jobState -> jobState.getName().equals(state)).findFirst().orElse(null);
-    }
-
     public boolean hasState(StateName state) {
         return getState().equals(state);
     }
-    
+
     public boolean hasStateChange() {
         int actualStateChanges = stateIndexBeforeStateChange.get();
         return actualStateChanges > -1 && jobHistory.size() > actualStateChanges;

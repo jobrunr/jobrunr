@@ -58,6 +58,7 @@ dependencies {
         api 'org.testcontainers:postgresql:1.19.8'
         api 'org.testcontainers:db2:1.19.8'
         api 'org.testcontainers:elasticsearch:1.19.8'
+        api 'com.github.tomakehurst:wiremock-jre8:3.0.1'
     }
 }
 

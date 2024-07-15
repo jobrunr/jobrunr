@@ -103,7 +103,25 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
             carbonAwareJobManager.updateCarbonIntensityForecast();
 
             assertThat(carbonAwareJobManager.getTheLaterOfForecastEndAndNextRefreshTime())
-                    .isCloseTo(Instant.now(), within(1, SECONDS));
+                    .isEqualTo(Instant.now());
+        }
+    }
+
+    @Test
+    void testUpdateCarbonIntensityForecastIfNecessaryTakesIntoAccountNextForecastAvailableAtWhenSettingNextRefreshTime() {
+        try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.of(2024, 7, 11)))) {
+            mockResponseWhenRequestingAreaCode("BE", BELGIUM_PARTIAL_2024_07_11_FULL_2024_07_12);
+            CarbonAwareJobManager carbonAwareJobManager = spy(getCarbonAwareJobManager("BE"));
+
+            assertThat(carbonAwareJobManager.getNextRefreshTime())
+                    .isEqualTo(Instant.now());
+
+            carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
+
+            verify(carbonAwareJobManager).updateCarbonIntensityForecast();
+
+            assertThat(carbonAwareJobManager.getNextRefreshTime())
+                    .isCloseTo("2024-07-12T16:30:00.873318Z", within(30, MINUTES));
         }
     }
 
@@ -115,7 +133,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
             CarbonAwareJobManager carbonAwareJobManager = spy(getCarbonAwareJobManager("DE"));
 
             assertThat(carbonAwareJobManager.getNextRefreshTime())
-                    .isCloseTo(Instant.now(), within(1, SECONDS));
+                    .isEqualTo(Instant.now());
 
             carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
 
@@ -140,7 +158,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
             CarbonAwareJobManager carbonAwareJobManager = spy(getCarbonAwareJobManager("DE"));
 
             assertThat(carbonAwareJobManager.getNextRefreshTime())
-                    .isCloseTo(Instant.now(), within(1, SECONDS));
+                    .isEqualTo(Instant.now());
 
             carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
 
@@ -148,24 +166,6 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             assertThat(carbonAwareJobManager.getNextRefreshTime())
                     .isCloseTo(dateTime.plusDays(1).withHour(19).toInstant(), within(30, MINUTES));
-        }
-    }
-
-    @Test
-    void testUpdateCarbonIntensityForecastIfNecessaryTakesIntoAccountNextForecastAvailableAtWhenSettingNextRefreshTime() {
-        try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.of(2024, 7, 11)))) {
-            mockResponseWhenRequestingAreaCode("BE", BELGIUM_PARTIAL_2024_07_11_FULL_2024_07_12);
-            CarbonAwareJobManager carbonAwareJobManager = spy(getCarbonAwareJobManager("BE"));
-
-            assertThat(carbonAwareJobManager.getNextRefreshTime())
-                    .isCloseTo(Instant.now(), within(1, SECONDS));
-
-            carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
-
-            verify(carbonAwareJobManager).updateCarbonIntensityForecast();
-
-            assertThat(carbonAwareJobManager.getNextRefreshTime())
-                    .isCloseTo("2024-07-12T16:30:00.873318Z", within(30, MINUTES));
         }
     }
 

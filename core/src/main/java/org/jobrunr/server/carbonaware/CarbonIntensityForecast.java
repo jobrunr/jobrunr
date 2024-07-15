@@ -23,14 +23,14 @@ public class CarbonIntensityForecast {
     public CarbonIntensityForecast() {
     }
 
-    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, ArrayList<TimestampedCarbonIntensityForecast> intensityForecast) {
+    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, List<TimestampedCarbonIntensityForecast> intensityForecast) {
         this.apiResponse = apiResponse;
         this.dataProvider = dataProvider;
         this.dataIdentifier = dataIdentifier;
         this.displayName = displayName;
         this.timezone = timezone;
         this.nextForecastAvailableAt = nextForecastAvailableAt;
-        this.intensityForecast = intensityForecast;
+        this.intensityForecast = isNull(intensityForecast) ? null : new ArrayList<>(intensityForecast);
     }
 
     public String getDataProvider() {

@@ -832,6 +832,16 @@ public abstract class StorageProviderTest {
         assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(1)))
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
+
+        Job aCarbonAwareJob = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build();
+        storageProvider.save(aCarbonAwareJob);
+
+        aCarbonAwareJob.scheduleAt(Instant.now(), "test");
+        storageProvider.save(aCarbonAwareJob);
+
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+                .hasSize(4)
+                .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
     }
 
     @Test

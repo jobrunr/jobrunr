@@ -5,17 +5,17 @@ import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static java.lang.String.format;
-import static java.time.Duration.ofHours;
 import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
 
-    public static final int MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION = 3;
+    public static final Duration MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION = Duration.ofHours(3);
 
     private final Instant preferredInstant;
     private final Instant from;
@@ -83,7 +83,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
             throw new IllegalArgumentException(format("'from' (=%s) must be before 'to' (=%s)", from, to));
         }
         // TODO isn't this dangerous for recurring jobs?
-        if (to.isBefore(now().plus(ofHours(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION)))) {
+        if (to.isBefore(now().plus(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION))) {
             throw new IllegalArgumentException(format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", to));
         }
     }

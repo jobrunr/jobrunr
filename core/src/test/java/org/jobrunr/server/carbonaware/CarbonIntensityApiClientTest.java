@@ -16,13 +16,13 @@ import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertT
 class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
 
     @Test
-    void testFetchLatestCarbonIntensityForecast() {
+    void testFetchCarbonIntensityForecast() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
 
         // WHEN
-        CarbonIntensityForecast result = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        CarbonIntensityForecast result = carbonIntensityApiClient.fetchCarbonIntensityForecast();
 
         // THEN
         assertThat(result)
@@ -32,7 +32,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestCarbonIntensityForecastCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
+    void testFetchCarbonIntensityForecastCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
@@ -40,7 +40,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // WHEN
         ExecutorService service = Executors.newFixedThreadPool(10);
         List<Future<CarbonIntensityForecast>> futures = IntStream.range(0, 10)
-                .mapToObj(i -> service.submit(carbonIntensityApiClient::fetchLatestCarbonIntensityForecast))
+                .mapToObj(i -> service.submit(carbonIntensityApiClient::fetchCarbonIntensityForecast))
                 .collect(Collectors.toList());
 
         // THEN
@@ -55,13 +55,13 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestCarbonIntensityForecastReturnsNotOkApiResponseStatusWhenApiResponseIsResponseIsAreaNotFoundError() {
+    void testFetchCarbonIntensityForecastReturnsNotOkApiResponseStatusWhenApiResponseIsResponseIsAreaNotFoundError() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("UNKNOWN");
         mockResponseWhenRequestingAreaCode("UNKNOWN", CarbonApiMockResponses.UNKNOWN_AREA);
 
         // WHEN
-        CarbonIntensityForecast result = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        CarbonIntensityForecast result = carbonIntensityApiClient.fetchCarbonIntensityForecast();
 
         // THEN
         assertThat(result)
@@ -72,13 +72,13 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestCarbonIntensityForecastReturnsNotOkApiResponseStatusWhenApiResponseIsForecastNotAvailableError() {
+    void testFetchCarbonIntensityForecastReturnsNotOkApiResponseStatusWhenApiResponseIsForecastNotAvailableError() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("DE");
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
 
         // WHEN
-        CarbonIntensityForecast result = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        CarbonIntensityForecast result = carbonIntensityApiClient.fetchCarbonIntensityForecast();
 
         // THEN
         assertThat(result)
@@ -89,13 +89,13 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestCarbonIntensityForecastSetsMissingFieldsToNull() {
+    void testFetchCarbonIntensityForecastSetsMissingFieldsToNull() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_STATE_FIELD);
 
         // WHEN
-        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
 
         // THEN
         assertThat(carbonIntensityForecast)
@@ -104,13 +104,13 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testFetchLatestCarbonIntensityForecastReturnsEmptyCarbonIntensityForecastWhenParsingResponseWithExtraFields() {
+    void testFetchCarbonIntensityForecastReturnsEmptyCarbonIntensityForecastWhenParsingResponseWithExtraFields() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
 
         // WHEN
-        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
 
         // THEN
         assertThat(carbonIntensityForecast).hasNoForecast();

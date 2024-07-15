@@ -529,8 +529,9 @@ public class BackgroundJobByJobLambdaTest {
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(1, SECONDS).untilAsserted(()
-                -> assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED));
+        await().during(1, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
+        });
     }
 
     @Test
@@ -545,8 +546,9 @@ public class BackgroundJobByJobLambdaTest {
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(1, SECONDS).untilAsserted(()
-                -> assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED));
+        await().during(1, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
+        });
     }
 
     @Test
@@ -561,8 +563,9 @@ public class BackgroundJobByJobLambdaTest {
             assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, DELETED);
         });
 
-        await().during(1, SECONDS).untilAsserted(()
-                -> assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED));
+        await().during(1, SECONDS).untilAsserted(() -> {
+            assertThat(storageProvider.getJobById(jobId)).doesNotHaveState(SUCCEEDED);
+        });
     }
 
     @Test
@@ -597,7 +600,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testJobInheritance() {
         SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
-        assertThatCode(someSysoutJobClass::schedule).doesNotThrowAnyException();
+        assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
     }
 
     @Test
@@ -648,7 +651,7 @@ public class BackgroundJobByJobLambdaTest {
         }
 
         public void schedule() {
-            BackgroundJob.scheduleRecurrently("test-id", cron, this::doWork);
+            BackgroundJob.scheduleRecurrently("test-id", cron, () -> doWork());
         }
     }
 

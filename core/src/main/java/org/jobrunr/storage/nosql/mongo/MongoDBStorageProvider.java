@@ -101,9 +101,9 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.fromMicroseconds;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.getIdAsUUID;
-import static org.jobrunr.utils.TimeUtils.fromMicroseconds;
-import static org.jobrunr.utils.TimeUtils.toMicroSeconds;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
@@ -324,13 +324,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
-        return findJobs(lt(Jobs.FIELD_DEADLINE, toMicroSeconds(deadlineBefore)), amountRequest);
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return findJobs(eq(Jobs.FIELD_STATE, state.name()), amountRequest);
     }
 
     @Override
-    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
-        return findJobs(eq(Jobs.FIELD_STATE, state.name()), amountRequest);
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return findJobs(and(eq(Jobs.FIELD_STATE, AWAITING), lt(Jobs.FIELD_DEADLINE, toMicroSeconds(deadlineBefore))), amountRequest);
     }
 
     @Override

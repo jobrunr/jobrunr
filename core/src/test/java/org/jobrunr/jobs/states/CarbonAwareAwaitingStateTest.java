@@ -63,6 +63,6 @@ class CarbonAwareAwaitingStateTest {
 
         assertThatCode(() -> carbonAwareAwaitingState.moveToNextState(notCarbonAwareJob, idealMoment))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Only jobs in AWAITING can move to a next state");
+                .hasMessage("Only jobs in CarbonAwaitingState can move to a next state");
     }
 }

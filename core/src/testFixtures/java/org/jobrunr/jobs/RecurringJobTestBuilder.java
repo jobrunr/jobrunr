@@ -104,6 +104,10 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
+    public RecurringJobTestBuilder withScheduleExpression(String scheduleExpression) {
+        return withCronExpression(scheduleExpression);
+    }
+
     public RecurringJobTestBuilder withLabels(String... labels) {
         this.labels = asSet(labels);
         return this;

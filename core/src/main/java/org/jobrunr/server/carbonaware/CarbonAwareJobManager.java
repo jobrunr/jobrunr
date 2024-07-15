@@ -101,7 +101,7 @@ public class CarbonAwareJobManager {
 
     @VisibleFor("testing")
     void updateCarbonIntensityForecast() {
-        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchLatestCarbonIntensityForecast();
+        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
         if (carbonIntensityForecast.hasNoForecast() && !carbonIntensityForecast.hasError()) {
             LOGGER.warn("No new carbon intensity forecast available. Keeping the old forecast.");
             return;

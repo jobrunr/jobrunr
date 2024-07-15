@@ -1,9 +1,9 @@
 package org.jobrunr.configuration;
 
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
@@ -169,6 +169,6 @@ class JobRunrConfigurationTest {
 
         assertThatCode(() -> jobRunrConfiguration.useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Please configure the CarbonAwareJobManager before the BackgroundJobServer.");
+                .hasMessage("Please configure carbon aware job scheduling before the BackgroundJobServer.");
     }
 }

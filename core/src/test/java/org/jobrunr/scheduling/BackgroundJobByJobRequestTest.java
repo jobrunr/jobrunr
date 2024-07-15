@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
@@ -37,7 +38,6 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
-import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -209,7 +209,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testScheduleUsingDateTimeInTheFutureIsNotEnqueued() {
-        JobId jobId = BackgroundJobRequest.schedule(now().plus(100, DAYS), new TestJobRequest("from testScheduleUsingDateTimeInTheFutureIsNotEnqueued"));
+        JobId jobId = BackgroundJobRequest.schedule(now().plus(100, ChronoUnit.DAYS), new TestJobRequest("from testScheduleUsingDateTimeInTheFutureIsNotEnqueued"));
         await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED);
     }
@@ -220,7 +220,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -231,7 +231,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -240,7 +240,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -249,7 +249,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -258,7 +258,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -269,7 +269,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test
@@ -278,7 +278,7 @@ public class BackgroundJobByJobRequestTest {
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+        assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

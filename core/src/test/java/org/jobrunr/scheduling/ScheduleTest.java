@@ -33,7 +33,7 @@ class ScheduleTest {
     }
 
     @Test
-    void createScheduleWithEmptyOrNullExpression() {
+    void createScheduleWithEmptyOrNullExpressionThrowsIllegalArgumentException() {
         assertThatCode(() -> new MyTestSchedule(""))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Expected scheduleWithOptionalCarbonAwareScheduleMargin to be non-null and non-empty.");

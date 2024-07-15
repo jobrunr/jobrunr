@@ -1,10 +1,10 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.BackgroundJobServer.BackgroundJobServerLifecycleLock.LifeCycleLock;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
@@ -60,8 +60,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
-    private final DashboardNotificationManager dashboardNotificationManager;
     private final CarbonAwareJobManager carbonAwareJobManager;
+    private final DashboardNotificationManager dashboardNotificationManager;
     private final JsonMapper jsonMapper;
     private final List<BackgroundJobRunner> backgroundJobRunners;
     private final JobDefaultFilters jobDefaultFilters;
@@ -91,8 +91,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
-        this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
         this.carbonAwareJobManager = carbonAwareJobManager;
+        this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
         this.jobDefaultFilters = new JobDefaultFilters();

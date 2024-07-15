@@ -23,10 +23,10 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
@@ -178,11 +178,11 @@ class JobBuilderTest {
     void testThatOnlyScheduleInOrScheduleCarbonAwareIsAllowed() {
         assertThatThrownBy(() -> aJob().scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).scheduleIn(Duration.ZERO).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware()");
+                .hasMessageContaining("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware()");
 
         assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("You called one of [scheduleAt(), scheduleIn()] and scheduleCarbonAware()");
+                .hasMessageContaining("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware()");
     }
 
     @Test

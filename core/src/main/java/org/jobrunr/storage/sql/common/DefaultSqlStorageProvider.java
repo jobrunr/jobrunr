@@ -245,18 +245,18 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectCarbonAwareJobsWithDeadlineBefore(deadlineBefore, amountRequest);
+            return jobTable(conn).selectJobsByState(state, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
 
     @Override
-    public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsByState(state, amountRequest);
+            return jobTable(conn).selectCarbonAwareJobsWithDeadlineBefore(deadlineBefore, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

@@ -124,7 +124,7 @@ public abstract class Schedule implements Comparable<Schedule> {
             if (marginBefore.isNegative() || marginAfter.isNegative()) {
                 throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be positive Durations.", marginBefore, marginAfter));
             }
-            if (marginBefore.plus(marginAfter).minus(Duration.ofHours(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION)).isNegative()) {
+            if (marginBefore.plus(marginAfter).minus(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION).isNegative()) {
                 throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to span at least %s hours so a moment of low carbon emissions can be optimally selected.", marginBefore, marginAfter, MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION));
             }
             this.marginBefore = marginBefore;

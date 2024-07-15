@@ -3,7 +3,6 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
 import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobClientFilter;
@@ -35,9 +34,7 @@ class JobSchedulerTest {
 
     @Mock
     private StorageProvider storageProvider;
-    @Mock
-    CarbonAwareJobManager carbonAwareJobManager;
-
+    
     private TestService testService;
     private JobScheduler jobScheduler;
     private JobClientLogFilter jobClientLogFilter;

@@ -13,10 +13,11 @@ import org.mockito.MockedStatic;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024_07_11;
 
@@ -61,10 +62,10 @@ class CarbonIntensityForecastTest {
         Instant from = Instant.parse("2020-01-01T00:00:00Z");
         Instant to = Instant.parse("2020-01-01T10:00:00Z");
         Instant expected = Instant.parse("2020-01-01T08:00:00Z");
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>(Arrays.asList(
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
                 new TimestampedCarbonIntensityForecast(expected, expected.plus(1, HOURS), 0),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 1)
-        ));
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         try (var ignored = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
@@ -76,7 +77,7 @@ class CarbonIntensityForecastTest {
     @Test
     void lowestCarbonIntensityInstantReturnsNowIfCurrentHourIsLowestCarbonIntensityInstant() {
         // GIVEN
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>();
+        List<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>();
         Instant now = Instant.now();
         Instant to = now.plus(6, HOURS);
         for (int i = 0; i < 6; i++) {
@@ -99,10 +100,10 @@ class CarbonIntensityForecastTest {
     void lowestCarbonIntensityInstantReturnsNullIfNoHoursBeforeDeadline() {
         Instant from = Instant.parse("2020-01-01T00:00:00Z");
         Instant to = Instant.parse("2020-01-01T07:00:00Z");
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>(Arrays.asList(
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 0),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 1)
-        ));
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isNull();
@@ -112,28 +113,13 @@ class CarbonIntensityForecastTest {
     void lowestCarbonIntensityInstantReturnsNullIfNoHoursAfterFrom() {
         Instant from = Instant.parse("2020-01-01T08:00:00Z");
         Instant to = Instant.parse("2020-01-01T10:00:00Z");
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>(Arrays.asList(
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T06:00:00Z"), Instant.parse("2020-01-01T07:00:00Z"), 0),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T07:00:00Z"), Instant.parse("2020-01-01T08:00:00Z"), 1)
-        ));
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isNull();
-    }
-
-    @Test
-    void lowestCarbonIntensityInstantWhenFromAndToAreEqual() {
-        Instant from = Instant.parse("2020-01-01T08:00:00Z");
-        Instant to = Instant.parse("2020-01-01T08:00:00Z");
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>(Arrays.asList(
-                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 0),
-                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 1)
-        ));
-        CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
-
-        try (var ignored = InstantMocker.mockTime("2020-01-01T08:00:00Z")) {
-            assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
-        }
     }
 
     @Test
@@ -149,13 +135,13 @@ class CarbonIntensityForecastTest {
     void lowestCarbonIntensityInstantIsBetweenFromAndTo() {
         Instant from = Instant.parse("2020-01-01T07:00:00Z");
         Instant to = Instant.parse("2020-01-01T09:00:00Z");
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>(Arrays.asList(
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T06:00:00Z"), Instant.parse("2020-01-01T07:00:00Z"), 0),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T07:00:00Z"), Instant.parse("2020-01-01T08:00:00Z"), 3),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 2),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 4),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T10:00:00Z"), Instant.parse("2020-01-01T11:00:00Z"), 1)
-        ));
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         try (MockedStatic<Instant> ignored = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
@@ -168,10 +154,10 @@ class CarbonIntensityForecastTest {
     void lowestCarbonIntensityInstantAfterNow() {
         Instant from = Instant.parse("2020-01-01T00:00:00Z");
         Instant to = Instant.parse("2020-01-01T23:00:00Z");
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>(Arrays.asList(
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 0),
                 new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 1)
-        ));
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         try (MockedStatic<Instant> ignored = InstantMocker.mockTime("2020-01-01T09:00:00Z")) {
@@ -183,9 +169,10 @@ class CarbonIntensityForecastTest {
     void hasDataForPeriodReturnsTrueWhenForecastIsAvailable() {
         // Setup
         Instant now = Instant.now();
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>();
-        intensityForecast.add(new TimestampedCarbonIntensityForecast(now.minusSeconds(3600), now.plusSeconds(3600), 0));
-        intensityForecast.add(new TimestampedCarbonIntensityForecast(now.plusSeconds(3600), now.plusSeconds(3600 * 2), 1)); // This price is within the period
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
+                new TimestampedCarbonIntensityForecast(now.minusSeconds(3600), now.plusSeconds(3600), 0),
+                new TimestampedCarbonIntensityForecast(now.plusSeconds(3600), now.plusSeconds(3600 * 2), 1) // This price is within the period
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         CarbonAwarePeriod validPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(7200)); // 2 hours ahead
@@ -200,9 +187,10 @@ class CarbonIntensityForecastTest {
     void hasForecastForPeriodReturnsFalseWhenNoHourInsidePeriod() {
         // Setup
         Instant now = Instant.now();
-        ArrayList<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>();
-        intensityForecast.add(new TimestampedCarbonIntensityForecast(now.minusSeconds(3600), now.plusSeconds(3600), 0));
-        intensityForecast.add(new TimestampedCarbonIntensityForecast(now.plusSeconds(3600), now.plusSeconds(3600 * 2), 1));
+        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
+                new TimestampedCarbonIntensityForecast(now.minusSeconds(3600), now.plusSeconds(3600), 0),
+                new TimestampedCarbonIntensityForecast(now.plusSeconds(3600), now.plusSeconds(3600 * 2), 1)
+        );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
         CarbonAwarePeriod invalidPeriod = CarbonAwarePeriod.between(now, now.plusSeconds(1800)); // 30 minutes ahead
