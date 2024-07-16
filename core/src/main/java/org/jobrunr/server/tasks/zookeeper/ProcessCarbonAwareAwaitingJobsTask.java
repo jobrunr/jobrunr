@@ -1,6 +1,7 @@
 package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.nonNull;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
@@ -27,8 +29,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @Override
     protected void runTask() {
-        // TODO should we run another task in case carbonAwareJobManager is not enabled and add a dashboard notification to alert if carbon aware jobs are in DB?
-        if (carbonAwareJobManager == null) return;
         carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
@@ -37,14 +37,27 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
+        if (carbonAwareJobManager == null) {
+            return storageProvider.getCarbonAwareJobList(Instant.MAX, ascOnCarbonAwareDeadline(pageRequestSize));
+        }
         return storageProvider.getCarbonAwareJobList(getDeadlineBeforeWhichToQueryCarbonAwareJobs(), ascOnCarbonAwareDeadline(pageRequestSize));
     }
 
     private void moveCarbonAwareJobToNextState(Job job) {
-        carbonAwareJobManager.moveToNextState(job);
+        if (carbonAwareJobManager == null) {
+            moveJobToScheduledAsCarbonAwareSchedulingIsNotEnabled(job);
+        } else {
+            carbonAwareJobManager.moveToNextState(job);
+        }
     }
 
     private Instant getDeadlineBeforeWhichToQueryCarbonAwareJobs() {
         return carbonAwareJobManager.getAvailableForecastEndTime().minusNanos(1);
+    }
+
+    private void moveJobToScheduledAsCarbonAwareSchedulingIsNotEnabled(Job job) {
+        CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
+        Instant scheduleAt = nonNull(carbonAwareAwaitingState.getPreferredInstant()) ? carbonAwareAwaitingState.getPreferredInstant() : carbonAwareAwaitingState.getFrom();
+        carbonAwareAwaitingState.moveToNextState(job, scheduleAt, "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
     }
 }
