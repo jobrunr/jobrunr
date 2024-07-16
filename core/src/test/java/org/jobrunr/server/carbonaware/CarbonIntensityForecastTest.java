@@ -8,11 +8,8 @@ import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.InstantMocker;
-import org.mockito.MockedStatic;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -68,41 +65,18 @@ class CarbonIntensityForecastTest {
         );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
-        try (var ignored = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
-            assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(expected);
-            assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(expected);
-        }
+        assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(expected);
+        assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(expected);
     }
 
     @Test
-    void lowestCarbonIntensityInstantReturnsNowIfCurrentHourIsLowestCarbonIntensityInstant() {
-        // GIVEN
-        List<TimestampedCarbonIntensityForecast> intensityForecast = new ArrayList<>();
-        Instant now = Instant.now();
-        Instant to = now.plus(6, HOURS);
-        for (int i = 0; i < 6; i++) {
-            Instant hour = now.plus(i, HOURS);
-            // Make the current hour the cheapest, increase the rank with each subsequent hour
-            intensityForecast.add(new TimestampedCarbonIntensityForecast(hour, now.plus(i + 1, HOURS), i));
-        }
-        CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
-
-        // WHEN
-        Instant result = carbonIntensityForecast.lowestCarbonIntensityInstant(now, to);
-
-        // THEN
-        Instant expected = now.truncatedTo(HOURS);
-        Instant actual = result.truncatedTo(HOURS);
-        assertThat(actual).isEqualTo(expected); // The least expensive hour should be the current hour, truncated to hours for comparison.
-    }
-
-    @Test
-    void lowestCarbonIntensityInstantReturnsNullIfNoHoursBeforeDeadline() {
+    void lowestCarbonIntensityInstantReturnsNullIfNoForecastBeforeDeadline() {
         Instant from = Instant.parse("2020-01-01T00:00:00Z");
         Instant to = Instant.parse("2020-01-01T07:00:00Z");
         List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
-                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 0),
-                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 1)
+                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T07:00:00Z"), Instant.parse("2020-01-01T08:00:00Z"), 0),
+                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 1),
+                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 2)
         );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
@@ -110,7 +84,7 @@ class CarbonIntensityForecastTest {
     }
 
     @Test
-    void lowestCarbonIntensityInstantReturnsNullIfNoHoursAfterFrom() {
+    void lowestCarbonIntensityInstantReturnsNullIfNoForecastAfterFrom() {
         Instant from = Instant.parse("2020-01-01T08:00:00Z");
         Instant to = Instant.parse("2020-01-01T10:00:00Z");
         List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
@@ -144,25 +118,7 @@ class CarbonIntensityForecastTest {
         );
         CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
 
-        try (MockedStatic<Instant> ignored = InstantMocker.mockTime("2020-01-01T00:00:00Z")) {
-            assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
-        }
-    }
-
-
-    @Test
-    void lowestCarbonIntensityInstantAfterNow() {
-        Instant from = Instant.parse("2020-01-01T00:00:00Z");
-        Instant to = Instant.parse("2020-01-01T23:00:00Z");
-        List<TimestampedCarbonIntensityForecast> intensityForecast = asList(
-                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T08:00:00Z"), Instant.parse("2020-01-01T09:00:00Z"), 0),
-                new TimestampedCarbonIntensityForecast(Instant.parse("2020-01-01T09:00:00Z"), Instant.parse("2020-01-01T10:00:00Z"), 1)
-        );
-        CarbonIntensityForecast carbonIntensityForecast = new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin", Instant.now().plus(1, DAYS), intensityForecast);
-
-        try (MockedStatic<Instant> ignored = InstantMocker.mockTime("2020-01-01T09:00:00Z")) {
-            assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(Instant.parse("2020-01-01T09:00:00Z"));
-        }
+        assertThat(carbonIntensityForecast.lowestCarbonIntensityInstant(from, to)).isEqualTo(Instant.parse("2020-01-01T08:00:00Z"));
     }
 
     @Test

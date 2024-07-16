@@ -24,8 +24,23 @@ public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareCo
         return new CarbonAwareConfigurationAssert(carbonAwareConfiguration);
     }
 
+    public CarbonAwareConfigurationAssert hasDataProvider(String dataProvider) {
+        Assertions.assertThat(actual.getDataProvider()).isEqualTo(dataProvider);
+        return this;
+    }
+
     public CarbonAwareConfigurationAssert hasAreaCode(String areaCode) {
         Assertions.assertThat(actual.getAreaCode()).isEqualTo(areaCode);
+        return this;
+    }
+
+    public CarbonAwareConfigurationAssert hasExternalCode(String externalCode) {
+        Assertions.assertThat(actual.getExternalCode()).isEqualTo(externalCode);
+        return this;
+    }
+
+    public CarbonAwareConfigurationAssert hasExternalIdentifier(String externalIdentifier) {
+        Assertions.assertThat(actual.getExternalIdentifier()).isEqualTo(externalIdentifier);
         return this;
     }
 

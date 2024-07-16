@@ -10,6 +10,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
 import static java.lang.String.format;
+import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.states.CarbonAwareAwaitingState.MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
@@ -66,6 +67,13 @@ public abstract class Schedule implements Comparable<Schedule> {
 
     public boolean isCarbonAware() {
         return carbonAwareScheduleMargin != null;
+    }
+
+    public final Duration durationBetweenSchedules() {
+        Instant base = Instant.EPOCH.plusSeconds(3600);
+        Instant run1 = this.next(base, base, ZoneOffset.UTC);
+        Instant run2 = this.next(base, run1, ZoneOffset.UTC);
+        return between(run1, run2);
     }
 
     /**
@@ -125,7 +133,7 @@ public abstract class Schedule implements Comparable<Schedule> {
                 throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be positive Durations.", marginBefore, marginAfter));
             }
             if (marginBefore.plus(marginAfter).minus(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION).isNegative()) {
-                throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to span at least %s hours so a moment of low carbon emissions can be optimally selected.", marginBefore, marginAfter, MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION));
+                throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to span at least %s so a moment of low carbon emissions can be optimally selected.", marginBefore, marginAfter, MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION));
             }
             this.marginBefore = marginBefore;
             this.marginAfter = marginAfter;

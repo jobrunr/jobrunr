@@ -76,33 +76,33 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testGetTheLaterOfForecastEndAndNextRefreshTimeReturnsNextRefreshTimeWhenForecastIsNotAvailable() {
+    void testGetAvailableForecastEndTimeReturnsNextRefreshTimeWhenForecastIsNotAvailable() {
         CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("DE");
 
-        assertThat(carbonAwareJobManager.getTheLaterOfForecastEndAndNextRefreshTime())
+        assertThat(carbonAwareJobManager.getAvailableForecastEndTime())
                 .isCloseTo(Instant.now(), within(1, SECONDS));
     }
 
     @Test
-    void testGetTheLaterOfForecastEndAndNextRefreshTimeReturnsForecastEndPeriodWhenItsLaterThanNextRefreshTime() {
+    void testGetAvailableForecastEndTimeReturnsForecastEndPeriodWhenItsLaterThanNextRefreshTime() {
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.of(2024, 7, 11)))) {
             mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
             CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
             carbonAwareJobManager.updateCarbonIntensityForecast();
 
-            assertThat(carbonAwareJobManager.getTheLaterOfForecastEndAndNextRefreshTime())
+            assertThat(carbonAwareJobManager.getAvailableForecastEndTime())
                     .isEqualTo("2024-07-11T22:00:00Z");
         }
     }
 
     @Test
-    void testGetTheLaterOfForecastEndAndNextRefreshTimeReturnsNextRefreshTimeWhenItsLaterThanForecastEndPeriod() {
+    void testGetAvailableForecastEndTimeReturnsNextRefreshTimeWhenItsLaterThanForecastEndPeriod() {
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.of(2024, 7, 12)))) {
             mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
             CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
             carbonAwareJobManager.updateCarbonIntensityForecast();
 
-            assertThat(carbonAwareJobManager.getTheLaterOfForecastEndAndNextRefreshTime())
+            assertThat(carbonAwareJobManager.getAvailableForecastEndTime())
                     .isEqualTo(Instant.now());
         }
     }
@@ -234,7 +234,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             assertThat(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt("2024-07-11T02:00:00Z");
+                    .isScheduledAt("2024-07-11T01:00:00Z");
         }
     }
 

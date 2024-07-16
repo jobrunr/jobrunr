@@ -6,6 +6,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
@@ -621,9 +622,11 @@ public abstract class StorageProviderTest {
         Instant now = now();
         RecurringJob recurringJob1 = aDefaultRecurringJob().withId("r1").build();
         RecurringJob recurringJob2 = aDefaultRecurringJob().withId("r2").build();
+        RecurringJob recurringJob3 = aDefaultRecurringJob().withId("r3").build();
 
         storageProvider.saveRecurringJob(recurringJob1);
         storageProvider.saveRecurringJob(recurringJob2);
+        storageProvider.saveRecurringJob(recurringJob3);
 
         assertThat(storageProvider.getRecurringJobsLatestScheduledRun()).isEqualTo(emptyMap());
 
@@ -638,13 +641,18 @@ public abstract class StorageProviderTest {
                 .withRecurringJobId(recurringJob2.getId())
                 .withState(new ScheduledState(now))
                 .build();
+        Job job1RJ3 = aJob().withJobDetails(TestService::doStaticWork)
+                .withRecurringJobId(recurringJob3.getId())
+                .withState(new CarbonAwareAwaitingState(now, now, now.plus(5, HOURS)))
+                .build();
 
-        storageProvider.save(asList(job, job1RJ1, job1RJ2));
+        storageProvider.save(asList(job, job1RJ1, job1RJ2, job1RJ3));
 
         Map<String, Instant> latestScheduledRun1 = storageProvider.getRecurringJobsLatestScheduledRun();
-        assertThat(latestScheduledRun1).hasSize(2);
+        assertThat(latestScheduledRun1).hasSize(3);
         assertThat(latestScheduledRun1.get(recurringJob1.getId())).isCloseTo(now, within(500, MILLIS));
         assertThat(latestScheduledRun1.get(recurringJob2.getId())).isCloseTo(now, within(500, MILLIS));
+        assertThat(latestScheduledRun1.get(recurringJob3.getId())).isCloseTo(now, within(500, MILLIS));
 
         Job job2RJ1 = aJob().withJobDetails(TestService::doStaticWork)
                 .withRecurringJobId(recurringJob1.getId())

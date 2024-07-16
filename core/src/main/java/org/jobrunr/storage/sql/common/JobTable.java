@@ -180,6 +180,7 @@ public class JobTable extends Sql<Job> {
                 .collect(Collectors.toSet());
     }
 
+    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
         return countRecurringJobInstances(recurringJobId, states) > 0;
     }

@@ -1,10 +1,16 @@
 package org.jobrunr.server.carbonaware;
 
+import org.jobrunr.utils.StringUtils;
+import org.jobrunr.utils.annotations.VisibleFor;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Map;
+import java.util.StringJoiner;
 
 import static java.util.Optional.ofNullable;
+import static org.jobrunr.utils.CollectionUtils.mapOf;
 
 /**
  * Internal class for JobRunr to access all {@link CarbonAwareConfiguration} details
@@ -28,8 +34,20 @@ public class CarbonAwareConfigurationReader {
         return "/carbon-intensity/forecast";
     }
 
+    public String getDataProvider() {
+        return carbonAwareConfiguration.dataProvider;
+    }
+
     public String getAreaCode() {
         return carbonAwareConfiguration.areaCode;
+    }
+
+    public String getExternalCode() {
+        return carbonAwareConfiguration.externalCode;
+    }
+
+    public String getExternalIdentifier() {
+        return carbonAwareConfiguration.externalIdentifier;
     }
 
     public Duration getApiClientConnectTimeout() {
@@ -44,7 +62,11 @@ public class CarbonAwareConfigurationReader {
         return new URL(getCarbonIntensityForecastApiUrl(getCarbonIntensityApiUrl()) + getCarbonIntensityForecastQueryString());
     }
 
-    private String getCarbonIntensityForecastQueryString() {
-        return "?" + ofNullable(getAreaCode()).map(r -> "region=" + r).orElse("");
+    @VisibleFor("testing")
+    String getCarbonIntensityForecastQueryString() {
+        StringJoiner sj = new StringJoiner("&");
+        Map<String, String> queryParams = mapOf("region", getAreaCode(), "dataProvider", getDataProvider(), "externalCode", getExternalCode(), "externalIdentifier", getExternalIdentifier());
+        queryParams.forEach((key, value) -> ofNullable(value).ifPresent(v -> sj.add(key + "=" + StringUtils.urlEncode(v))));
+        return "?" + sj;
     }
 }

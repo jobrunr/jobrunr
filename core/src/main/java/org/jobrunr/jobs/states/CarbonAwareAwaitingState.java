@@ -2,8 +2,6 @@ package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,8 +11,6 @@ import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareAwaitingState.class);
-
     public static final Duration MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION = Duration.ofHours(3);
 
     private final Instant preferredInstant;

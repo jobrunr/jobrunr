@@ -17,6 +17,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualToOther;
 
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
@@ -37,7 +38,7 @@ public class CarbonAwareJobManager {
     }
 
     public void updateCarbonIntensityForecastIfNecessary() {
-        if (!nextRefreshTime.isAfter(Instant.now())) {
+        if (isInstantBeforeOrEqualToOther(nextRefreshTime, Instant.now())) {
             try {
                 LOGGER.trace("Updating carbon intensity forecast.");
                 updateCarbonIntensityForecast();
@@ -52,7 +53,7 @@ public class CarbonAwareJobManager {
         return carbonAwareConfiguration;
     }
 
-    public Instant getTheLaterOfForecastEndAndNextRefreshTime() {
+    public Instant getAvailableForecastEndTime() {
         Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
         return (nonNull(forecastEndPeriod) && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
     }

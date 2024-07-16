@@ -189,7 +189,23 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify a {@link CronExpression}, an ISO-8601 duration or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
+     * Allows to specify a {@link CronExpression} (preferably use {@link RecurringJobBuilder#withCron(String)}),
+     * an ISO-8601 duration (preferably use {@link RecurringJobBuilder#withDuration(Duration)})
+     * or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
+     *
+     * <h5>Examples:</h5>
+     *
+     * <pre>{@code
+     *      aRecurringJob()
+     *          .withScheduleExpression(CarbonAware.dailyBefore(7))
+     *          .withDetails(() -> service.doWork());
+     * }</pre>
+     *
+     * <pre>{@code
+     *      aRecurringJob()
+     *          .withScheduleExpression("0 * * * * [PT0H/PT7H]")
+     *          .withDetails(() -> service.doWork());
+     * }</pre>
      *
      * @param scheduleExpression the schedule expression that will be used to create the recurringJobs.
      * @return the same builder instance which provides a fluent api

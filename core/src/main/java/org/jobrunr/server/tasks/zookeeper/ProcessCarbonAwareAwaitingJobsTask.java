@@ -45,6 +45,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private Instant getDeadlineBeforeWhichToQueryCarbonAwareJobs() {
-        return carbonAwareJobManager.getTheLaterOfForecastEndAndNextRefreshTime().minusNanos(1);
+        return carbonAwareJobManager.getAvailableForecastEndTime().minusNanos(1);
     }
 }

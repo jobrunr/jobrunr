@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Objects.isNull;
 import static org.jobrunr.utils.CollectionUtils.getLast;
+import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualToOther;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class CarbonIntensityForecast {
@@ -94,23 +94,11 @@ public class CarbonIntensityForecast {
     }
 
     private Stream<TimestampedCarbonIntensityForecast> getForecastsForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
-        return intensityForecast.stream()
-                .filter(forecast -> isInstantInPeriodAndAfterCurrentHour(forecast.getPeriodStartAt(), startOfPeriod, endOfPeriod));
+        return intensityForecast.stream().filter(forecast -> isInstantInPeriod(forecast.getPeriodStartAt(), startOfPeriod, endOfPeriod));
     }
 
-    private boolean isInstantInPeriodAndAfterCurrentHour(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {
-        return isInstantInRequestedPeriod(instant, startOfPeriod, endOfPeriod) && isInstantAfterCurrentHour(instant);
-    }
-
-    private boolean isInstantInRequestedPeriod(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {
-        boolean isAfterStart = !instant.isBefore(startOfPeriod);
-        boolean isBeforeEnd = !instant.isAfter(endOfPeriod);
-        return isAfterStart && isBeforeEnd;
-    }
-
-    private boolean isInstantAfterCurrentHour(Instant instant) {
-        Instant currentHour = Instant.now().truncatedTo(HOURS);
-        return !instant.isBefore(currentHour);
+    private boolean isInstantInPeriod(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {
+        return isInstantAfterOrEqualToOther(instant, startOfPeriod) && instant.isBefore(endOfPeriod);
     }
 
     public static class TimestampedCarbonIntensityForecast implements Comparable<TimestampedCarbonIntensityForecast> {
