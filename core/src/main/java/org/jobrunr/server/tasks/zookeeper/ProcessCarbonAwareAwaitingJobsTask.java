@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.util.List;
 
+import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.nonNull;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
@@ -38,7 +39,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
         if (carbonAwareJobManager == null) {
-            return storageProvider.getCarbonAwareJobList(Instant.MAX, ascOnCarbonAwareDeadline(pageRequestSize));
+            return storageProvider.getCarbonAwareJobList(Instant.now().plus(1, YEARS), ascOnCarbonAwareDeadline(pageRequestSize));
         }
         return storageProvider.getCarbonAwareJobList(getDeadlineBeforeWhichToQueryCarbonAwareJobs(), ascOnCarbonAwareDeadline(pageRequestSize));
     }
