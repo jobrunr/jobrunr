@@ -10,8 +10,9 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.util.List;
 
-import static java.time.temporal.ChronoUnit.YEARS;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
 
@@ -30,7 +31,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @Override
     protected void runTask() {
-        carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
+        if (nonNull(carbonAwareJobManager)) carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
                 amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
@@ -38,14 +39,14 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
-        if (carbonAwareJobManager == null) {
-            return storageProvider.getCarbonAwareJobList(Instant.now().plus(1, YEARS), ascOnCarbonAwareDeadline(pageRequestSize));
+        if (isNull(carbonAwareJobManager)) {
+            return storageProvider.getCarbonAwareJobList(Instant.now().plus(365, DAYS), ascOnCarbonAwareDeadline(pageRequestSize));
         }
         return storageProvider.getCarbonAwareJobList(getDeadlineBeforeWhichToQueryCarbonAwareJobs(), ascOnCarbonAwareDeadline(pageRequestSize));
     }
 
     private void moveCarbonAwareJobToNextState(Job job) {
-        if (carbonAwareJobManager == null) {
+        if (isNull(carbonAwareJobManager)) {
             moveJobToScheduledAsCarbonAwareSchedulingIsNotEnabled(job);
         } else {
             carbonAwareJobManager.moveToNextState(job);

@@ -113,8 +113,6 @@ public class JobTestBuilder {
         return aJob()
                 .withName("a carbon aware awaiting job")
                 .withJobDetails(systemOutPrintLnJobDetails("a carbon aware awaiting job"))
-                .withState(new ScheduledState(now().minusSeconds(15)))
-                .withState(new EnqueuedState())
                 .withState(new CarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minusSeconds(200), now().plus(10, HOURS))));
     }
 
