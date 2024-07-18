@@ -104,7 +104,7 @@ describe('parseScheduleExpression', () => {
         expect(parseScheduleExpression('PT12H4M29.45S [PT0S/PT3H30M2.30S]')).toEqual({
             scheduleExpression: "PT12H4M29.45S",
             marginBefore: "PT0S",
-            marginAfter: "PT3H30M2S.30S"
+            marginAfter: "PT3H30M2.30S"
         });
     });
 })
