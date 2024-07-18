@@ -9,11 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
+import org.mockito.DatetimeMocker;
 import org.mockito.MockedStatic;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -30,35 +29,26 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.DatetimeMocker.mockZonedDateTime;
 import static org.mockito.InstantMocker.mockTime;
-import static org.mockito.LocalDateMocker.mockLocalDate;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     private ProcessCarbonAwareAwaitingJobsTask task;
-    @Mock
     CarbonAwareJobManager carbonAwareJobManager;
+
     @Captor
     ArgumentCaptor<Instant> instantArgumentCaptor;
-
-    private static final ZoneId ZONEID = ZoneId.of("Europe/Brussels");
-
+    
     @BeforeEach
     void setUp() {
         task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
-    }
-
-    @Override
-    protected CarbonAwareJobManager setUpCarbonAwareJobManager() {
-        return carbonAwareJobManager;
+        carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
     }
 
     @Test
-    void taskCallsCarbonAwareJobManagerMoveToNextState() {
+    void taskCallsCarbonAwareJobManager() {
         Job job = aCarbonAwaitingJob().build();
 
         when(storageProvider.getCarbonAwareJobList(any(), any())).thenReturn(List.of(job));
@@ -66,61 +56,42 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
         runTask(task);
 
         verify(carbonAwareJobManager).moveToNextState(job);
+        verify(carbonAwareJobManager).updateCarbonIntensityForecastIfNecessary();
+        verify(carbonAwareJobManager).getAvailableForecastEndTime();
     }
 
     @Test
-    void taskRetrievesCarbonAwareJobsBeforeComputedInstant() {
-        try (MockedStatic<Instant> ignored1 = mockTime(Instant.parse("2024-07-01T14:00:00Z"));
-             MockedStatic<LocalDate> ignored2 = mockLocalDate(LocalDate.parse("2024-07-01"));
-             MockedStatic<ZonedDateTime> ignored3 = mockZonedDateTime(ZonedDateTime.parse("2024-07-01T16:00:00+02:00[Europe/Brussels]"), ZONEID)) {
+    void taskCarbonAwaitingJobsToNextUsingCarbonAwareJobManager() {
+        ZonedDateTime currentTime = ZonedDateTime.now();
+        try (MockedStatic<Instant> ignored1 = mockTime(currentTime.toInstant());
+             MockedStatic<ZonedDateTime> ignored2 = DatetimeMocker.mockZonedDateTime(currentTime, ZoneId.systemDefault())) {
+            mockResponseWhenRequestingAreaCode("BE");
+
             runTask(task);
 
             verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-            assertThat(instantArgumentCaptor.getValue()).isEqualTo(now());
-        }
+            assertThat(instantArgumentCaptor.getValue()).isEqualTo(toEndOfNextDay(currentTime));
 
-        clearInvocations(storageProvider);
+            Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(4, HOURS))).build();
+            Job job2 = aJob().withState(new CarbonAwareAwaitingState(Instant.now().plus(2, HOURS), Instant.now(), Instant.now().plus(4, HOURS))).build();
+            Job job3 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now().plus(4, HOURS), Instant.now().plus(8, HOURS))).build();
+            Job job4 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now().plus(12, HOURS), Instant.now().plus(16, HOURS))).build();
 
-        try (MockedStatic<Instant> ignored1 = mockTime(Instant.parse("2024-07-01T17:07:34Z"));
-             MockedStatic<LocalDate> ignored2 = mockLocalDate(LocalDate.parse("2024-07-01"));
-             MockedStatic<ZonedDateTime> ignored3 = mockZonedDateTime(ZonedDateTime.parse("2024-07-01T19:07:34+02:00[Europe/Brussels]"), ZONEID)) {
+            when(storageProvider.getCarbonAwareJobList(any(), any())).thenReturn(List.of(job1, job2, job3, job4));
             runTask(task);
 
-            verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-            assertThat(instantArgumentCaptor.getValue()).isEqualTo(now());
-        }
-
-        clearInvocations(storageProvider);
-
-        try (MockedStatic<Instant> ignored1 = mockTime(Instant.parse("2024-07-01T17:07:36Z"));
-             MockedStatic<LocalDate> ignored2 = mockLocalDate(LocalDate.parse("2024-07-01"));
-             MockedStatic<ZonedDateTime> ignored3 = mockZonedDateTime(ZonedDateTime.parse("2024-07-01T19:07:36+02:00[Europe/Brussels]"), ZONEID)) {
-            runTask(task);
-
-            verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-            assertThat(instantArgumentCaptor.getValue()).isEqualTo("2024-07-02T21:59:59.999999999Z");
-        }
-
-        clearInvocations(storageProvider);
-
-        try (MockedStatic<Instant> ignored1 = mockTime(Instant.parse("2024-07-01T20:07:36Z"));
-             MockedStatic<LocalDate> ignored2 = mockLocalDate(LocalDate.parse("2024-07-01"));
-             MockedStatic<ZonedDateTime> ignored3 = mockZonedDateTime(ZonedDateTime.parse("2024-07-01T21:07:36+02:00[Europe/Brussels]"), ZONEID)) {
-            runTask(task);
-
-            verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-            assertThat(instantArgumentCaptor.getValue()).isEqualTo("2024-07-02T21:59:59.999999999Z");
-        }
-
-        clearInvocations(storageProvider);
-
-        try (MockedStatic<Instant> ignored1 = mockTime(Instant.parse("2024-07-01T22:07:36Z"));
-             MockedStatic<LocalDate> ignored2 = mockLocalDate(LocalDate.parse("2024-07-01"));
-             MockedStatic<ZonedDateTime> ignored3 = mockZonedDateTime(ZonedDateTime.parse("2024-07-01T00:07:36+02:00[Europe/Brussels]"), ZONEID)) {
-            runTask(task);
-
-            verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-            assertThat(instantArgumentCaptor.getValue()).isEqualTo(now());
+            assertThat(job1)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(Instant.now().plus(1, HOURS).truncatedTo(HOURS));
+            assertThat(job2)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(Instant.now().plus(1, HOURS).truncatedTo(HOURS));
+            assertThat(job3)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(Instant.now().plus(5, HOURS).truncatedTo(HOURS));
+            assertThat(job4)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(Instant.now().plus(13, HOURS).truncatedTo(HOURS));
         }
     }
 

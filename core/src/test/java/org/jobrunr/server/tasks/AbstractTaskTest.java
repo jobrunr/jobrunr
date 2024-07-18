@@ -9,25 +9,30 @@ import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.LogAllStateChangesFilter;
+import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
-public abstract class AbstractTaskTest {
+public abstract class AbstractTaskTest extends AbstractCarbonAwareWiremockTest {
+
+    private final JsonMapper jsonMapper = new JacksonJsonMapper();
 
     protected BackgroundJobServer backgroundJobServer;
     @Mock
@@ -62,7 +67,7 @@ public abstract class AbstractTaskTest {
     }
 
     protected CarbonAwareJobManager setUpCarbonAwareJobManager() {
-        return null;
+        return spy(new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration().andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl).andAreaCode("BE"), jsonMapper));
     }
 
     protected void runTask(Task task) {
@@ -75,7 +80,7 @@ public abstract class AbstractTaskTest {
     }
 
     private BackgroundJobServer createBackgroundJobServerSpy(StorageProvider storageProvider, BackgroundJobServerConfiguration configuration) {
-        return Mockito.spy(new BackgroundJobServer(storageProvider, setUpCarbonAwareJobManager(), new JacksonJsonMapper(), null, configuration) {
+        return spy(new BackgroundJobServer(storageProvider, setUpCarbonAwareJobManager(), jsonMapper, null, configuration) {
             @Override
             protected JobSteward createJobSteward() {
                 return jobSteward;
