@@ -36,11 +36,11 @@ import static org.mockito.Mockito.when;
 
 class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     private ProcessCarbonAwareAwaitingJobsTask task;
-    CarbonAwareJobManager carbonAwareJobManager;
+    private CarbonAwareJobManager carbonAwareJobManager;
 
     @Captor
     ArgumentCaptor<Instant> instantArgumentCaptor;
-    
+
     @BeforeEach
     void setUp() {
         task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);

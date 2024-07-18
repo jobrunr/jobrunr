@@ -10,11 +10,13 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.LogAllStateChangesFilter;
+import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.StaticTestService;
@@ -29,6 +31,7 @@ import org.slf4j.MDC;
 
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -53,6 +56,7 @@ import static org.awaitility.Durations.FIVE_HUNDRED_MILLISECONDS;
 import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_MINUTE;
 import static org.awaitility.Durations.ONE_SECOND;
+import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
@@ -68,13 +72,14 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.between;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 /**
  * Must be public as used as a background job
  */
-public class BackgroundJobByJobLambdaTest {
+public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTest {
 
     private TestService testService;
     private StorageProvider storageProvider;
@@ -84,6 +89,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @BeforeEach
     void setUpTests() {
+        mockResponseWhenRequestingAreaCode("BE");
         testService = new TestService();
         testService.reset();
         storageProvider = new InMemoryStorageProvider();
@@ -91,6 +97,7 @@ public class BackgroundJobByJobLambdaTest {
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
+                .useCarbonAwareScheduling(getCarbonAwareConfigurationForAreaCode("BE"))
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
 
@@ -328,19 +335,20 @@ public class BackgroundJobByJobLambdaTest {
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING);
     }
 
-    // TODO should we this test here?
     @Test
     void testScheduleCarbonAware() {
         JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)), TestService::doStaticWork);
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 
-    // TODO should we this test here?
     @Test
-    void testScheduleCarbonAwareWithNoCarbonIntensityDataAndDeadlineIsTodayThenJobIsEnqueuedImmediately() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(5, HOURS)), TestService::doStaticWork);
-        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
-        assertThat(storageProvider.getJobById(jobId)).hasStates(AWAITING, ENQUEUED, PROCESSING, SUCCEEDED);
+    void testScheduleCarbonAwareIsScheduledAtTheLowestPossibleCarbonIntensityTime() {
+        Instant from = now();
+        JobId jobId = BackgroundJob.scheduleCarbonAware(between(from, now().plus(5, HOURS)), TestService::doStaticWork);
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId))
+                .isScheduledAt(from.plus(1, HOURS).truncatedTo(HOURS))
+                .hasStates(AWAITING, SCHEDULED)
+        );
     }
 
     @Test
@@ -433,6 +441,15 @@ public class BackgroundJobByJobLambdaTest {
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testRecurringCarbonAwareJob() {
+        BackgroundJob.scheduleRecurrently("theId", CarbonAware.dailyBefore(7), () -> testService.doWork(5));
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SCHEDULED) == 1);
+
+        final Job job = storageProvider.getJobList(SCHEDULED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(job).hasStates(AWAITING, SCHEDULED);
     }
 
     @Test

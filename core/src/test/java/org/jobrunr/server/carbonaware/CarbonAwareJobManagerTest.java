@@ -28,7 +28,6 @@ import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PART
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PARTIAL_2024_07_12;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.UNKNOWN_AREA;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.mockito.DatetimeMocker.mockZonedDateTime;
 import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.clearInvocations;
@@ -239,11 +238,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     private CarbonAwareJobManager getCarbonAwareJobManager(String areaCode) {
-        return new CarbonAwareJobManager(setupCarbonAwareConfiguration(areaCode), jsonMapper);
-    }
-
-    private CarbonAwareConfiguration setupCarbonAwareConfiguration(String areaCode) {
-        return usingStandardCarbonAwareConfiguration().andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl).andAreaCode(areaCode);
+        return new CarbonAwareJobManager(getCarbonAwareConfigurationForAreaCode(areaCode), jsonMapper);
     }
 
     private Instant startOfDay(LocalDate localDate) {

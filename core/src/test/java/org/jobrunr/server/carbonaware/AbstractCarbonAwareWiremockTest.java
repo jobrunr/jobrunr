@@ -27,6 +27,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiPath;
 
 @WireMockTest
@@ -52,7 +53,7 @@ public abstract class AbstractCarbonAwareWiremockTest {
     }
 
     protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
-        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+        CarbonAwareConfiguration carbonAwareConfiguration = usingStandardCarbonAwareConfiguration()
                 .andAreaCode(areaCode)
                 .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl);
 
@@ -75,7 +76,11 @@ public abstract class AbstractCarbonAwareWiremockTest {
                         .withBody(generateCarbonIntensityForecastForTheNextDay())));
     }
 
-    public Instant toEndOfNextDay(ZonedDateTime dateTime) {
+    protected CarbonAwareConfiguration getCarbonAwareConfigurationForAreaCode(String areaCode) {
+        return usingStandardCarbonAwareConfiguration().andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl).andAreaCode("BE");
+    }
+
+    protected Instant toEndOfNextDay(ZonedDateTime dateTime) {
         return dateTime.toLocalDate().atTime(LocalTime.MAX).plusDays(1).atZone(ZoneId.systemDefault()).toInstant();
     }
 

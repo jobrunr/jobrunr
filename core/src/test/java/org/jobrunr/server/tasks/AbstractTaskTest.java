@@ -26,7 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,7 +66,7 @@ public abstract class AbstractTaskTest extends AbstractCarbonAwareWiremockTest {
     }
 
     protected CarbonAwareJobManager setUpCarbonAwareJobManager() {
-        return spy(new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration().andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl).andAreaCode("BE"), jsonMapper));
+        return spy(new CarbonAwareJobManager(getCarbonAwareConfigurationForAreaCode("BE"), jsonMapper));
     }
 
     protected void runTask(Task task) {
