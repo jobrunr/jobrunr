@@ -97,7 +97,7 @@ public class CarbonAwareJobManager {
     private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         if (carbonIntensityForecast.hasNoForecast()) return false;
         Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
-        return carbonAwareMarginDuration.compareTo(carbonIntensityForecast.getMinimumScheduleMargin()) < 0;
+        return carbonAwareMarginDuration.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
     }
 
     private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {

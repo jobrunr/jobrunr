@@ -18,21 +18,21 @@ public class CarbonIntensityForecast {
     private String displayName;
     private String timezone;
     private Instant nextForecastAvailableAt;
-    private Duration minimumScheduleMargin;
+    private Duration forecastInterval;
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<TimestampedCarbonIntensityForecast> intensityForecast;
 
     public CarbonIntensityForecast() {
     }
 
-    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, Duration minimumScheduleMargin, List<TimestampedCarbonIntensityForecast> intensityForecast) {
+    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, Duration forecastInterval, List<TimestampedCarbonIntensityForecast> intensityForecast) {
         this.apiResponse = apiResponse;
         this.dataProvider = dataProvider;
         this.dataIdentifier = dataIdentifier;
         this.displayName = displayName;
         this.timezone = timezone;
         this.nextForecastAvailableAt = nextForecastAvailableAt;
-        this.minimumScheduleMargin = minimumScheduleMargin;
+        this.forecastInterval = forecastInterval;
         this.intensityForecast = isNull(intensityForecast) ? null : new ArrayList<>(intensityForecast);
     }
 
@@ -56,8 +56,8 @@ public class CarbonIntensityForecast {
         return nextForecastAvailableAt;
     }
 
-    public Duration getMinimumScheduleMargin() {
-        return minimumScheduleMargin;
+    public Duration getForecastInterval() {
+        return forecastInterval;
     }
 
     public List<TimestampedCarbonIntensityForecast> getIntensityForecast() {

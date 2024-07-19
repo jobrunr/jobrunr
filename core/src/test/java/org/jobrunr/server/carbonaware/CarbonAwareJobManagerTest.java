@@ -185,12 +185,9 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
         CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
         carbonAwareJobManager.updateCarbonIntensityForecast();
         LocalDate localDate = LocalDate.of(2024, 7, 11);
-        Job job;
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate))) {
-            job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minus(8, HOURS), now().minus(4, HOURS))).build();
-        }
+            Job job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minus(8, HOURS), now().minus(4, HOURS))).build();
 
-        try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate))) {
             carbonAwareJobManager.moveToNextState(job);
 
             assertThat(job)
@@ -205,9 +202,8 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
         CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
         carbonAwareJobManager.updateCarbonIntensityForecast();
         LocalDate localDate = LocalDate.of(2024, 7, 11);
-        Job job;
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate))) {
-            job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plusSeconds(300))).build();
+            Job job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plusSeconds(300))).build();
             carbonAwareJobManager.moveToNextState(job);
 
             assertThat(job)

@@ -8,5 +8,6 @@
   "displayName": null,
   "timezone": null,
   "nextForecastAvailableAt": null,
+  "forecastInterval": null,
   "intensityForecast": null
 }
