@@ -4,10 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
-import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
-import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -18,44 +14,8 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024_07_11;
 
 class CarbonIntensityForecastTest {
-
-    @Test
-    void canDeserializeCarbonIntensityForecastUsingJackson() {
-        JsonMapper jsonMapper = new JacksonJsonMapper();
-        CarbonIntensityForecast carbonIntensityForecast = jsonMapper.deserialize(BELGIUM_2024_07_11, CarbonIntensityForecast.class);
-
-        assertThat(carbonIntensityForecast)
-                .hasDisplayName("Belgium")
-                .hasIntensityForecastSize(24)
-                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16);
-    }
-
-    @Test
-    void canDeserializeCarbonIntensityForecastUsingJsonB() {
-        JsonMapper jsonMapper = new JsonbJsonMapper();
-        CarbonIntensityForecast carbonIntensityForecast = jsonMapper.deserialize(BELGIUM_2024_07_11, CarbonIntensityForecast.class);
-
-        assertThat(carbonIntensityForecast)
-                .hasDisplayName("Belgium")
-                .hasIntensityForecastSize(24)
-                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16)
-                .hasForecastEndPeriod(Instant.parse("2024-07-11T22:00:00Z"));
-    }
-
-    @Test
-    void canDeserializeCarbonIntensityForecastUsingGson() {
-        JsonMapper jsonMapper = new GsonJsonMapper();
-        CarbonIntensityForecast carbonIntensityForecast = jsonMapper.deserialize(BELGIUM_2024_07_11, CarbonIntensityForecast.class);
-
-        assertThat(carbonIntensityForecast)
-                .hasDisplayName("Belgium")
-                .hasIntensityForecastSize(24)
-                .hasIntensityForecastAt(0, Instant.parse("2024-07-10T22:00:00Z"), 16)
-                .hasForecastEndPeriod(Instant.parse("2024-07-11T22:00:00Z"));
-    }
 
     @Test
     void lowestCarbonIntensityInstantReturnsTheLowestCarbonIntensityInstantBeforeDeadline() {

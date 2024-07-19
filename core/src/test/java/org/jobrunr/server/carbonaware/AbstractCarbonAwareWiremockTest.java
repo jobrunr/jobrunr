@@ -1,7 +1,5 @@
 package org.jobrunr.server.carbonaware;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -9,7 +7,6 @@ import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Duration;
@@ -33,17 +30,10 @@ import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getC
 @WireMockTest
 public abstract class AbstractCarbonAwareWiremockTest {
 
-    protected static JsonMapper jsonMapper;
+    private final JsonMapper jsonMapper = getJsonMapper();
 
     protected String carbonIntensityApiBaseUrl;
     protected String carbonApiTestUrl;
-
-    @BeforeAll
-    static void beforeAll() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        jsonMapper = new JacksonJsonMapper(mapper);
-    }
 
     @BeforeEach
     void setUp(WireMockRuntimeInfo wireMockRuntimeInfo) {
@@ -52,12 +42,8 @@ public abstract class AbstractCarbonAwareWiremockTest {
         WireMock.reset();
     }
 
-    protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
-        CarbonAwareConfiguration carbonAwareConfiguration = usingStandardCarbonAwareConfiguration()
-                .andAreaCode(areaCode)
-                .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl);
-
-        return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), jsonMapper);
+    protected JsonMapper getJsonMapper() {
+        return new JacksonJsonMapper();
     }
 
     protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
@@ -84,7 +70,7 @@ public abstract class AbstractCarbonAwareWiremockTest {
         return dateTime.toLocalDate().atTime(LocalTime.MAX).plusDays(1).atZone(ZoneId.systemDefault()).toInstant();
     }
 
-    private String generateCarbonIntensityForecastForTheNextDay() {
+    protected String generateCarbonIntensityForecastForTheNextDay() {
         ZonedDateTime currentTime = ZonedDateTime.now();
         Instant startingInstant = currentTime.toInstant().truncatedTo(HOURS);
         long limit = Duration.between(startingInstant, toEndOfNextDay(currentTime)).toHours() + 1;

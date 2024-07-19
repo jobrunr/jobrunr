@@ -251,7 +251,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     private CarbonAwareJobManager getCarbonAwareJobManager(String areaCode) {
-        return new CarbonAwareJobManager(getCarbonAwareConfigurationForAreaCode(areaCode), jsonMapper);
+        return new CarbonAwareJobManager(getCarbonAwareConfigurationForAreaCode(areaCode), getJsonMapper());
     }
 
     private Instant startOfDay(LocalDate localDate) {

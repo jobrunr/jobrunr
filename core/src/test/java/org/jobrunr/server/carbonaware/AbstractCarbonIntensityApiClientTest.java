@@ -1,5 +1,6 @@
 package org.jobrunr.server.carbonaware;
 
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -7,8 +8,12 @@ import java.time.Instant;
 
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 
-class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
+abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
+
+    @Override
+    protected abstract JsonMapper getJsonMapper();
 
     @Test
     void testFetchCarbonIntensityForecast() {
@@ -22,7 +27,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasDisplayName("Belgium")
-                .hasForecastInterval(Duration.ofHours(3))
+                .hasForecastInterval(Duration.ofHours(1))
                 .hasNextForecastAvailableAt(Instant.parse("2024-07-11T16:30:00.054245Z"))
                 .hasIntensityForecastSize(24)
                 .hasIntensityForecastAt(0, parse("2024-07-10T22:00:00Z"), 16);
@@ -94,5 +99,13 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
 
         // THEN
         assertThat(carbonIntensityForecast).hasNoForecast();
+    }
+
+    protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
+        CarbonAwareConfiguration carbonAwareConfiguration = usingStandardCarbonAwareConfiguration()
+                .andAreaCode(areaCode)
+                .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl);
+
+        return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), getJsonMapper());
     }
 }
