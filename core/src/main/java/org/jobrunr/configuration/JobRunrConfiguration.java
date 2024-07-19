@@ -114,7 +114,7 @@ public class JobRunrConfiguration {
     }
 
     /**
-     * Provides a {@link CarbonAwareJobManager} for carbon aware job scheduling using the given {@link CarbonAwareConfiguration}.
+     * Allows to configure carbon aware job scheduling using the given {@link CarbonAwareConfiguration}.
      *
      * @param carbonAwareConfiguration the carbonAwareConfiguration to use for scheduling jobs in a moment of low carbon emissions.
      * @return the same configuration instance which provides a fluent api
