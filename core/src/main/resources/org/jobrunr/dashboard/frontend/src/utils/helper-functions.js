@@ -52,6 +52,6 @@ export function parseScheduleExpression(scheduleExpressionWithOptionalCarbonAwar
 }
 
 function getComponentsOfISO8601Duration(durationString) {
-    const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
+    const iso8601TimePattern = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?)?$/;
     return iso8601TimePattern.exec(durationString);
 }

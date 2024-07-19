@@ -97,7 +97,7 @@ public abstract class AbstractCarbonAwareWiremockTest {
                         new ApiResponseStatus("OK", "DataProvider MOCK_PROVIDER and area MOCK_AREA has 24 forecasts."),
                         "MOCK_PROVIDER", "MOCK_ID", "MOCK_AREA",
                         ZoneId.systemDefault().getId(), currentTime.truncatedTo(DAYS).plusDays(1).withHour(18).withMinute(30).toInstant(),
-                        Duration.ofHours(3),
+                        Duration.ofHours(1),
                         forecast
                 )
         );

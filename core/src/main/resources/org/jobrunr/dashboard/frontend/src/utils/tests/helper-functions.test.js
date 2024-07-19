@@ -55,6 +55,11 @@ describe('convertISO8601DurationToSeconds', () => {
         expect(convertISO8601DurationToSeconds('PT1H30M')).toBe(5400);
         expect(convertISO8601DurationToSeconds('PT1H30M10S')).toBe(5410);
         expect(convertISO8601DurationToSeconds('PT12H4M29.45S')).toBe(43469.45);
+
+        expect(convertISO8601DurationToSeconds('P1D')).toBe(86400);
+        expect(convertISO8601DurationToSeconds('P30D')).toBe(2592000);
+        expect(convertISO8601DurationToSeconds('P1DT24H')).toBe(172800);
+        expect(convertISO8601DurationToSeconds('P1DT1H1M29.45S')).toBe(90089.45);
     });
 })
 

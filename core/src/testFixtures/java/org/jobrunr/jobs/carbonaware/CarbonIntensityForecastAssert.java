@@ -22,8 +22,8 @@ public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensit
         return this;
     }
 
-    public CarbonIntensityForecastAssert hasMinimumScheduleMargin(Duration minimumScheduleMargin) {
-        Assertions.assertThat(actual.getForecastInterval()).isEqualTo(minimumScheduleMargin);
+    public CarbonIntensityForecastAssert hasForecastInterval(Duration forecastInterval) {
+        Assertions.assertThat(actual.getForecastInterval()).isEqualTo(forecastInterval);
         return this;
     }
 

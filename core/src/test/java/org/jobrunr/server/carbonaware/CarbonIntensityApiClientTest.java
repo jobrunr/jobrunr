@@ -22,7 +22,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasDisplayName("Belgium")
-                .hasMinimumScheduleMargin(Duration.ofHours(3))
+                .hasForecastInterval(Duration.ofHours(3))
                 .hasNextForecastAvailableAt(Instant.parse("2024-07-11T16:30:00.054245Z"))
                 .hasIntensityForecastSize(24)
                 .hasIntensityForecastAt(0, parse("2024-07-10T22:00:00Z"), 16);
@@ -40,7 +40,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasNoForecast()
-                .hasMinimumScheduleMargin(null)
+                .hasForecastInterval(null)
                 .hasNextForecastAvailableAt(null)
                 .hasError()
                 .hasErrorCode("DATA_PROVIDER_AREA_NOT_FOUND")
@@ -59,7 +59,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasNoForecast()
-                .hasMinimumScheduleMargin(null)
+                .hasForecastInterval(null)
                 .hasNextForecastAvailableAt(null)
                 .hasError()
                 .hasErrorCode("FORECAST_NOT_AVAILABLE")
@@ -78,7 +78,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(carbonIntensityForecast)
                 .hasDisplayName("Belgium")
-                .hasMinimumScheduleMargin(null)
+                .hasForecastInterval(null)
                 .hasNextForecastAvailableAt(null)
                 .hasIntensityForecastSize(24);
     }
