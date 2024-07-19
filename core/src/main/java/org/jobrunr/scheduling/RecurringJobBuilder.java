@@ -203,7 +203,7 @@ public class RecurringJobBuilder {
      *
      * <pre>{@code
      *      aRecurringJob()
-     *          .withScheduleExpression("0 * * * * [PT0H/PT7H]")
+     *          .withScheduleExpression("0 0 * * * [PT0H/PT7H]")
      *          .withDetails(() -> service.doWork());
      * }</pre>
      *

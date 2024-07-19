@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
-// TODO review some of the javadocs
 public class CarbonAwareConfiguration {
 
     public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiUrl("https://api.jobrunr.io");
