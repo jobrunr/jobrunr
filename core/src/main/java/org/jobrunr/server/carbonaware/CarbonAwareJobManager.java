@@ -150,8 +150,7 @@ public class CarbonAwareJobManager {
         return carbonIntensityForecast.getTimezone() != null ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
     }
 
-    @VisibleFor("testing")
-    Instant getDefaultDailyRefreshTime() {
+    private Instant getDefaultDailyRefreshTime() {
         return ZonedDateTime.now(getTimeZone())
                 .truncatedTo(HOURS)
                 .withHour(DEFAULT_REFRESH_TIME).toInstant();
