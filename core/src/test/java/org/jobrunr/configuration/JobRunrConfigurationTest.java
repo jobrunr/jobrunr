@@ -147,6 +147,17 @@ class JobRunrConfigurationTest {
     }
 
     @Test
+    void carbonAwareJobManagerIsAlwaysAvailable() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(4)
+                .initialize();
+
+        assertThat(configurationResult.getJobScheduler()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getCarbonAwareJobManager()).isNotNull();
+    }
+
+    @Test
     void initializeWithCarbonAwareScheduling() {
         JobRunrConfigurationResult configurationResult = JobRunr.configure()
                 .useStorageProvider(storageProvider)

@@ -28,6 +28,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.doReturn;
@@ -98,7 +99,8 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     @Test
     void jobsAreScheduledEvenIfCarbonAwareSchedulingIsNotEnabled() {
         Instant now = now();
-        doReturn(null).when(backgroundJobServer).getCarbonAwareJobManager();
+        CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(false), getJsonMapper());
+        doReturn(carbonAwareJobManager).when(backgroundJobServer).getCarbonAwareJobManager();
         ProcessCarbonAwareAwaitingJobsTask task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
         Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now, now.plus(4, HOURS))).build();
         Job job2 = aJob().withState(new CarbonAwareAwaitingState(now.plus(2, HOURS), now, now.plus(4, HOURS))).build();
@@ -110,9 +112,9 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
         assertThat(instantArgumentCaptor.getValue()).isCloseTo(now.plus(365, DAYS), within(1, SECONDS));
         assertThat(job1)
                 .hasStates(AWAITING, SCHEDULED)
-                .isScheduledAt(now);
+                .isScheduledAt(now, "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
         assertThat(job2)
                 .hasStates(AWAITING, SCHEDULED)
-                .isScheduledAt(now.plus(2, HOURS));
+                .isScheduledAt(now.plus(2, HOURS), "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
     }
 }

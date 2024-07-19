@@ -22,6 +22,10 @@ public class CarbonAwareConfigurationReader {
         this.carbonAwareConfiguration = carbonAwareConfiguration;
     }
 
+    public boolean isEnabled() {
+        return carbonAwareConfiguration.enabled;
+    }
+
     public String getCarbonIntensityApiUrl() {
         return carbonAwareConfiguration.carbonIntensityApiUrl;
     }

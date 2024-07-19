@@ -9,6 +9,7 @@ import org.springframework.boot.convert.DurationUnit;
 import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 @ConfigurationProperties(prefix = "org.jobrunr")
@@ -514,9 +515,59 @@ public class JobRunrProperties {
     }
 
     public static class CarbonAware {
+        /**
+         * Enables carbon aware scheduling.
+         */
+        boolean enabled = true;
+
+        /**
+         * Sets your preferred carbon intensity forecast dataProvider.
+         */
+        String dataProvider;
+
+        /**
+         * Sets the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts.
+         * Cannot be used together with externalCode or externalIdentifier.
+         */
         String areaCode;
-        Integer apiClientConnectTimeoutMs;
-        Integer apiClientReadTimeoutMs;
+
+        /**
+         * Sets the code of an area as defined by your specified dataProvider in order to have more accurate carbon emissions forecasts.
+         * Cannot be used together with areaCode or externalIdentifier and without dataProvider.
+         */
+        String externalCode;
+
+        /**
+         * Sets the identifier of an area as defined by your specified dataProvider in order to have more accurate carbon emissions forecasts.
+         * Cannot be used together with areaCode or externalCode and without dataProvider.
+         */
+        String externalIdentifier;
+
+        /**
+         * Sets the connect timeout for the API client.
+         */
+        @DurationUnit(MILLIS)
+        Duration apiClientConnectTimeout;
+
+        /**
+         * Sets the read timeout for the API client.
+         */
+        @DurationUnit(MILLIS)
+        Duration apiClientReadTimeout;
+
+        /**
+         * Sets the carbon intensity API URL (should only be set if the default URL changes unexpectedly).
+         */
+        String carbonIntensityApiUrl;
+
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
 
         public String getAreaCode() {
             return areaCode;
@@ -526,20 +577,52 @@ public class JobRunrProperties {
             this.areaCode = areaCode;
         }
 
-        public Integer getApiClientConnectTimeoutMs() {
-            return apiClientConnectTimeoutMs;
+        public String getDataProvider() {
+            return dataProvider;
         }
 
-        public void setApiClientConnectTimeoutMs(Integer apiClientConnectTimeoutMs) {
-            this.apiClientConnectTimeoutMs = apiClientConnectTimeoutMs;
+        public void setDataProvider(String dataProvider) {
+            this.dataProvider = dataProvider;
         }
 
-        public Integer getApiClientReadTimeoutMs() {
-            return apiClientReadTimeoutMs;
+        public String getExternalCode() {
+            return externalCode;
         }
 
-        public void setApiClientReadTimeoutMs(Integer apiClientReadTimeoutMs) {
-            this.apiClientReadTimeoutMs = apiClientReadTimeoutMs;
+        public void setExternalCode(String externalCode) {
+            this.externalCode = externalCode;
+        }
+
+        public Duration getApiClientConnectTimeout() {
+            return apiClientConnectTimeout;
+        }
+
+        public void setApiClientConnectTimeout(Duration apiClientConnectTimeout) {
+            this.apiClientConnectTimeout = apiClientConnectTimeout;
+        }
+
+        public String getExternalIdentifier() {
+            return externalIdentifier;
+        }
+
+        public void setExternalIdentifier(String externalIdentifier) {
+            this.externalIdentifier = externalIdentifier;
+        }
+
+        public Duration getApiClientReadTimeout() {
+            return apiClientReadTimeout;
+        }
+
+        public void setApiClientReadTimeout(Duration apiClientReadTimeout) {
+            this.apiClientReadTimeout = apiClientReadTimeout;
+        }
+
+        public String getCarbonIntensityApiUrl() {
+            return carbonIntensityApiUrl;
+        }
+
+        public void setCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
+            this.carbonIntensityApiUrl = carbonIntensityApiUrl;
         }
     }
 }

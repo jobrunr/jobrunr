@@ -137,13 +137,14 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("org.jobrunr.job-scheduler.enabled=true")
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.area-code=FR")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms=500")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout-ms=300")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout=500")
+                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
                     CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
                     CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
                     assertThat(carbonAwareConfiguration)
+                            .hasEnabled(true)
                             .hasApiClientConnectTimeout(Duration.ofMillis(500))
                             .hasApiClientReadTimeout(Duration.ofMillis(300))
                             .hasAreaCode("FR");

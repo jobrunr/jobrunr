@@ -24,6 +24,11 @@ public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareCo
         return new CarbonAwareConfigurationAssert(carbonAwareConfiguration);
     }
 
+    public CarbonAwareConfigurationAssert hasEnabled(boolean enabled) {
+        Assertions.assertThat(actual.isEnabled()).isEqualTo(enabled);
+        return this;
+    }
+
     public CarbonAwareConfigurationAssert hasDataProvider(String dataProvider) {
         Assertions.assertThat(actual.getDataProvider()).isEqualTo(dataProvider);
         return this;

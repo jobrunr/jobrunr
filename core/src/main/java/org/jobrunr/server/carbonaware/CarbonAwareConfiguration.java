@@ -13,6 +13,7 @@ public class CarbonAwareConfiguration {
     public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
 
+    boolean enabled = true;
     String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL;
     String areaCode;
     String dataProvider;
@@ -31,6 +32,17 @@ public class CarbonAwareConfiguration {
      */
     public static CarbonAwareConfiguration usingStandardCarbonAwareConfiguration() {
         return new CarbonAwareConfiguration();
+    }
+
+    /**
+     * Allows to enable or disable carbon aware scheduling.
+     *
+     * @param enabled the status of carbon aware scheduling
+     * @return the same configuration instance which provides a fluent api
+     */
+    public CarbonAwareConfiguration andCarbonAwareSchedulingEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
     }
 
     /**
