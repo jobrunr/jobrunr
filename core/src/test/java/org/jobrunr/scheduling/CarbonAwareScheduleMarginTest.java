@@ -47,9 +47,6 @@ class CarbonAwareScheduleMarginTest {
         assertThatCode(() -> parse("[-PT2H/PT2H]"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Expected marginBefore (='PT-2H') and marginAfter (='PT2H') to be positive Durations.");
-        assertThatCode(() -> parse("[PT2H/PT0S]"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Expected marginBefore (='PT2H') and marginAfter (='PT0S') to span at least PT3H so a moment of low carbon emissions can be optimally selected.");
 
         assertThat(parse("[PT10H/PT0S]"))
                 .isNotNull()

@@ -9,7 +9,6 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -157,11 +156,6 @@ public class RecurringJob extends AbstractJob {
                 ", jobSignature='" + getJobSignature() + '\'' +
                 ", jobName='" + getJobName() + '\'' +
                 '}';
-    }
-
-    public Duration durationBetweenRecurringJobInstances() {
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        return schedule.durationBetweenSchedules();
     }
 }
 

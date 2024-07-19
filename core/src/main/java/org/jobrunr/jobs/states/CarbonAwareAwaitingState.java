@@ -3,15 +3,12 @@ package org.jobrunr.jobs.states;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
-import java.time.Duration;
 import java.time.Instant;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
-    public static final Duration MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION = Duration.ofHours(3);
-
     private final Instant preferredInstant;
     private final Instant from;
     private final Instant to;

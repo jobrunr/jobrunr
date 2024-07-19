@@ -27,12 +27,11 @@ import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDA
 
 class AbstractJobSchedulerTest {
 
+    StorageProvider storageProvider;
+
     @Test
     void scheduleCarbonAwareSavesJobInAwaitingState() {
-        JsonMapper jsonMapper = new JacksonJsonMapper();
-        StorageProvider storageProvider = new InMemoryStorageProvider();
-        storageProvider.setJobMapper(new JobMapper(jsonMapper));
-        AbstractJobScheduler jobScheduler = jobScheduler(storageProvider);
+        AbstractJobScheduler jobScheduler = jobScheduler();
 
         jobScheduler.scheduleCarbonAware(null, CarbonAwarePeriod.before(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build());
 
@@ -41,7 +40,7 @@ class AbstractJobSchedulerTest {
 
     @Test
     void scheduleRecurrentlyValidatesScheduleDoesNotThrowExceptionWhenUsingInMemoryStorageProvider() {
-        AbstractJobScheduler jobScheduler = jobScheduler(new InMemoryStorageProvider());
+        AbstractJobScheduler jobScheduler = jobScheduler();
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
         assertThatCode(() -> jobScheduler.scheduleRecurrently(recurringJob)).doesNotThrowAnyException();
     }
@@ -55,7 +54,25 @@ class AbstractJobSchedulerTest {
                 .hasMessage("The smallest supported duration between recurring job instances is 5 seconds (because of the smallest supported pollInterval).");
     }
 
+    @Test
+    void scheduleRecurrentlyValidatesScheduleDoesThrowExceptionWhenScheduleIntervalIsLowerCarbonAwareMargin() {
+        AbstractJobScheduler jobScheduler = jobScheduler();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("* * * * * * [PT0S/PT1M]").build();
+        assertThatCode(() -> jobScheduler.scheduleRecurrently(recurringJob))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("The total carbon aware margin must be lower than the duration between each schedule.");
+    }
+
+    AbstractJobScheduler jobScheduler() {
+        JsonMapper jsonMapper = new JacksonJsonMapper();
+        StorageProvider storageProvider = new InMemoryStorageProvider();
+        storageProvider.setJobMapper(new JobMapper(jsonMapper));
+
+        return jobScheduler(storageProvider);
+    }
+
     AbstractJobScheduler jobScheduler(StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
         return new AbstractJobScheduler(storageProvider, emptyList()) {
             @Override
             JobId create(JobBuilder jobBuilder) {

@@ -139,7 +139,7 @@ public abstract class AbstractJobScheduler {
 
     String scheduleRecurrently(RecurringJob recurringJob) {
         jobFilterUtils.runOnCreatingFilter(recurringJob);
-        storageProvider.validateRecurringJobInterval(recurringJob.durationBetweenRecurringJobInstances());
+        validateRecurringJobSchedule(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
         jobFilterUtils.runOnCreatedFilter(recurringJob);
         return savedRecurringJob.getId();
@@ -164,5 +164,12 @@ public abstract class AbstractJobScheduler {
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);
         return savedJobs;
+    }
+
+    private void validateRecurringJobSchedule(RecurringJob recurringJob) {
+        Schedule schedule = ScheduleExpressionType.getSchedule(recurringJob.getScheduleExpression());
+
+        schedule.validate();
+        storageProvider.validateRecurringJobInterval(schedule.durationBetweenSchedules());
     }
 }

@@ -13,15 +13,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 
 class CarbonAwareAwaitingStateTest {
-
-    @Test
-    void testCarbonAwareJobsOnCreationThrowsExceptionIfDeadlineNot3HoursInTheFuture() {
-        Instant now = now();
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now.plus(2, HOURS))).build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(String.format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", now.plus(2, HOURS)));
-    }
-
+    
     @Test
     void testCarbonAwareJobsOnCreationAcceptsDeadlineIfEqualTo3HoursInTheFuture() {
         assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(3, HOURS).plusMillis(1000))).build())
