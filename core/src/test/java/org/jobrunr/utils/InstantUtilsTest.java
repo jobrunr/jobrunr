@@ -5,26 +5,39 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualToOther;
-import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualToOther;
+import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualTo;
+import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
+import static org.jobrunr.utils.InstantUtils.isInstantInPeriod;
 
 class InstantUtilsTest {
 
     @Test
-    void testIsInstantBeforeOrEqualToOther() {
+    void testIsInstantInPeriod() {
         Instant now = Instant.now();
-        assertThat(isInstantBeforeOrEqualToOther(now, now)).isTrue();
-        assertThat(isInstantBeforeOrEqualToOther(now, now.plusSeconds(1))).isTrue();
+        Instant startPeriod = now.minusSeconds(10);
+        Instant endPeriod = now.plusSeconds(10);
+        
+        assertThat(isInstantInPeriod(now, startPeriod, endPeriod)).isTrue();
 
-        assertThat(isInstantBeforeOrEqualToOther(now, now.minusSeconds(1))).isFalse();
+        assertThat(isInstantInPeriod(now.minusSeconds(20), startPeriod, endPeriod)).isFalse();
+        assertThat(isInstantInPeriod(now.plusSeconds(20), startPeriod, endPeriod)).isFalse();
     }
 
     @Test
-    void testIsInstantAfterOrEqualToOther() {
+    void testIsInstantBeforeOrEqualTo() {
         Instant now = Instant.now();
-        assertThat(isInstantAfterOrEqualToOther(now, now)).isTrue();
-        assertThat(isInstantAfterOrEqualToOther(now, now.minusSeconds(1))).isTrue();
+        assertThat(isInstantBeforeOrEqualTo(now, now)).isTrue();
+        assertThat(isInstantBeforeOrEqualTo(now, now.plusSeconds(1))).isTrue();
 
-        assertThat(isInstantAfterOrEqualToOther(now, now.plusSeconds(1))).isFalse();
+        assertThat(isInstantBeforeOrEqualTo(now, now.minusSeconds(1))).isFalse();
+    }
+
+    @Test
+    void testIsInstantAfterOrEqualTo() {
+        Instant now = Instant.now();
+        assertThat(isInstantAfterOrEqualTo(now, now)).isTrue();
+        assertThat(isInstantAfterOrEqualTo(now, now.minusSeconds(1))).isTrue();
+
+        assertThat(isInstantAfterOrEqualTo(now, now.plusSeconds(1))).isFalse();
     }
 }

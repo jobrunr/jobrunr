@@ -8,7 +8,6 @@ import java.time.Instant;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
-import static java.util.Objects.isNull;
 
 public class CarbonAwareAwaitingState extends AbstractJobState {
     public static final Duration MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION = Duration.ofHours(3);
@@ -71,16 +70,12 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
         job.scheduleAt(idealMoment, reason);
     }
 
-    public static void validateCarbonAwarePeriod(Instant from, Instant to) {
-        if (isNull(from) || isNull(to)) {
+    private static void validateCarbonAwarePeriod(Instant from, Instant to) {
+        if (from == null || to == null) {
             throw new IllegalArgumentException(format("'from' (=%s) and 'to' (=%s) must be non-null", from, to));
         }
         if (from.isAfter(to)) {
             throw new IllegalArgumentException(format("'from' (=%s) must be before 'to' (=%s)", from, to));
-        }
-        // TODO isn't this dangerous for recurring jobs?
-        if (to.isBefore(now().plus(MINIMUM_CARBON_AWARE_SCHEDULE_INTERVAL_DURATION))) {
-            throw new IllegalArgumentException(format("'to' (=%s) must be at least 3 hours in the future to use carbon aware scheduling", to));
         }
     }
 

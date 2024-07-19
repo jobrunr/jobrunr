@@ -1,13 +1,14 @@
 package org.jobrunr.server.carbonaware;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
-import static org.jobrunr.utils.CollectionUtils.getLast;
-import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualToOther;
+import static org.jobrunr.utils.CollectionUtils.findLast;
+import static org.jobrunr.utils.InstantUtils.isInstantInPeriod;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class CarbonIntensityForecast {
@@ -17,19 +18,21 @@ public class CarbonIntensityForecast {
     private String displayName;
     private String timezone;
     private Instant nextForecastAvailableAt;
+    private Duration minimumScheduleMargin;
     // use ArrayList instead of List to avoid Jackson deserialization issues (https://github.com/FasterXML/jackson-databind/issues/3892)
     private ArrayList<TimestampedCarbonIntensityForecast> intensityForecast;
 
     public CarbonIntensityForecast() {
     }
 
-    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, List<TimestampedCarbonIntensityForecast> intensityForecast) {
+    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, Duration minimumScheduleMargin, List<TimestampedCarbonIntensityForecast> intensityForecast) {
         this.apiResponse = apiResponse;
         this.dataProvider = dataProvider;
         this.dataIdentifier = dataIdentifier;
         this.displayName = displayName;
         this.timezone = timezone;
         this.nextForecastAvailableAt = nextForecastAvailableAt;
+        this.minimumScheduleMargin = minimumScheduleMargin;
         this.intensityForecast = isNull(intensityForecast) ? null : new ArrayList<>(intensityForecast);
     }
 
@@ -53,6 +56,10 @@ public class CarbonIntensityForecast {
         return nextForecastAvailableAt;
     }
 
+    public Duration getMinimumScheduleMargin() {
+        return minimumScheduleMargin;
+    }
+
     public List<TimestampedCarbonIntensityForecast> getIntensityForecast() {
         return intensityForecast;
     }
@@ -62,9 +69,9 @@ public class CarbonIntensityForecast {
     }
 
     public Instant getForecastEndPeriod() {
-        TimestampedCarbonIntensityForecast last = getLast(intensityForecast);
-        if (isNull(last)) return null;
-        return last.periodEndAt;
+        return findLast(intensityForecast)
+                .map(TimestampedCarbonIntensityForecast::getPeriodEndAt)
+                .orElse(null);
     }
 
     public ApiResponseStatus getApiResponseStatus() {
@@ -95,10 +102,6 @@ public class CarbonIntensityForecast {
 
     private Stream<TimestampedCarbonIntensityForecast> getForecastsForPeriod(Instant startOfPeriod, Instant endOfPeriod) {
         return intensityForecast.stream().filter(forecast -> isInstantInPeriod(forecast.getPeriodStartAt(), startOfPeriod, endOfPeriod));
-    }
-
-    private boolean isInstantInPeriod(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {
-        return isInstantAfterOrEqualToOther(instant, startOfPeriod) && instant.isBefore(endOfPeriod);
     }
 
     public static class TimestampedCarbonIntensityForecast implements Comparable<TimestampedCarbonIntensityForecast> {

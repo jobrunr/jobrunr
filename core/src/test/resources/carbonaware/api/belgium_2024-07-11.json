@@ -8,6 +8,7 @@
   "displayName": "Belgium",
   "timezone": "Europe/Brussels",
   "nextForecastAvailableAt": "2024-07-11T16:30:00.054245Z",
+  "minimumScheduleMargin": "PT3H",
   "intensityForecast": [
     {
       "periodStartAt": "2024-07-10T22:00:00Z",

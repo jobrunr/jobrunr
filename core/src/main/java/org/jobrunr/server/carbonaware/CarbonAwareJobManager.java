@@ -7,6 +7,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -15,9 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualToOther;
+import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
@@ -33,12 +32,12 @@ public class CarbonAwareJobManager {
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
         this.carbonIntensityApiClient = createCarbonIntensityApiClient(this.carbonAwareConfiguration, jsonMapper);
-        nextRefreshTime = Instant.now();
+        this.nextRefreshTime = Instant.now();
         this.carbonIntensityForecast = new CarbonIntensityForecast();
     }
 
     public void updateCarbonIntensityForecastIfNecessary() {
-        if (isInstantBeforeOrEqualToOther(nextRefreshTime, Instant.now())) {
+        if (isInstantBeforeOrEqualTo(nextRefreshTime, Instant.now())) {
             try {
                 LOGGER.trace("Updating carbon intensity forecast.");
                 updateCarbonIntensityForecast();
@@ -49,13 +48,9 @@ public class CarbonAwareJobManager {
         }
     }
 
-    public CarbonAwareConfigurationReader getCarbonAwareConfiguration() {
-        return carbonAwareConfiguration;
-    }
-
     public Instant getAvailableForecastEndTime() {
         Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
-        return (nonNull(forecastEndPeriod) && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
+        return (forecastEndPeriod != null && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
     }
 
     public void moveToNextState(Job job) {
@@ -68,6 +63,9 @@ public class CarbonAwareJobManager {
 
         if (isDeadlinePassed(carbonAwareAwaitingState)) {
             scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
+        } else if (hasTooSmallScheduleMargin(carbonAwareAwaitingState)) {
+            Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job does not have enough margin (" + carbonAwareMarginDuration + ") to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
         } else if (carbonIntensityForecast.hasNoForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
             scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, getReasonForMissingForecast(carbonAwareAwaitingState));
         } else {
@@ -88,12 +86,18 @@ public class CarbonAwareJobManager {
     }
 
     private void scheduleJobAtPreferredInstant(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
-        Instant scheduleAt = isNull(carbonAwareAwaitingState.getPreferredInstant()) ? carbonAwareAwaitingState.getFrom() : carbonAwareAwaitingState.getPreferredInstant();
+        Instant scheduleAt = carbonAwareAwaitingState.getPreferredInstant() == null ? carbonAwareAwaitingState.getFrom() : carbonAwareAwaitingState.getPreferredInstant();
         carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
     }
 
     private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         return Instant.now().isAfter(carbonAwareAwaitingState.getTo());
+    }
+
+    private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        if (carbonIntensityForecast.hasNoForecast()) return false;
+        Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
+        return carbonAwareMarginDuration.compareTo(carbonIntensityForecast.getMinimumScheduleMargin()) < 0;
     }
 
     private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
@@ -114,13 +118,17 @@ public class CarbonAwareJobManager {
         Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
         Instant defaultDailyRefreshTime = getDefaultDailyRefreshTime();
 
-        Instant proposedNextRefreshTime = nonNull(nextForecastAvailableAt) ? nextForecastAvailableAt : defaultDailyRefreshTime;
+        Instant proposedNextRefreshTime = nextForecastAvailableAt != null ? nextForecastAvailableAt : defaultDailyRefreshTime;
 
         if (proposedNextRefreshTime.isBefore(Instant.now())) {
             nextRefreshTime = defaultDailyRefreshTime.plus(1, DAYS).plusSeconds(randomRefreshTimeOffset);
         } else {
             nextRefreshTime = proposedNextRefreshTime.plusSeconds(randomRefreshTimeOffset);
         }
+    }
+
+    private static Duration getCarbonAwareMarginDuration(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+        return Duration.between(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
     }
 
     @VisibleFor("testing")
@@ -130,7 +138,7 @@ public class CarbonAwareJobManager {
 
     @VisibleFor("testing")
     ZoneId getTimeZone() {
-        return nonNull(carbonIntensityForecast.getTimezone()) ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
+        return carbonIntensityForecast.getTimezone() != null ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
     }
 
     @VisibleFor("testing")

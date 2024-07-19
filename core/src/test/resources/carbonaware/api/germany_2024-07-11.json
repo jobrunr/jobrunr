@@ -8,6 +8,7 @@
   "displayName": "Germany",
   "timezone": "Europe/Berlin",
   "nextForecastAvailableAt": "2024-07-11T16:30:00.359216Z",
+  "minimumScheduleMargin": "PT3H",
   "intensityForecast": [
     {
       "periodStartAt": "2024-07-10T22:00:00Z",

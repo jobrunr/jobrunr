@@ -2,13 +2,8 @@ package org.jobrunr.server.carbonaware;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.time.Duration;
+import java.time.Instant;
 
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
@@ -27,31 +22,10 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasDisplayName("Belgium")
+                .hasMinimumScheduleMargin(Duration.ofHours(3))
+                .hasNextForecastAvailableAt(Instant.parse("2024-07-11T16:30:00.054245Z"))
                 .hasIntensityForecastSize(24)
                 .hasIntensityForecastAt(0, parse("2024-07-10T22:00:00Z"), 16);
-    }
-
-    @Test
-    void testFetchCarbonIntensityForecastCorrectlyHandleConcurrentRequests() throws InterruptedException, ExecutionException {
-        // GIVEN
-        CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
-
-        // WHEN
-        ExecutorService service = Executors.newFixedThreadPool(10);
-        List<Future<CarbonIntensityForecast>> futures = IntStream.range(0, 10)
-                .mapToObj(i -> service.submit(carbonIntensityApiClient::fetchCarbonIntensityForecast))
-                .collect(Collectors.toList());
-
-        // THEN
-        for (Future<CarbonIntensityForecast> future : futures) {
-            CarbonIntensityForecast result = future.get();
-            assertThat(result)
-                    .isNotNull()
-                    .hasIntensityForecastSize(24);
-        }
-
-        service.shutdown();
     }
 
     @Test
@@ -66,6 +40,8 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasNoForecast()
+                .hasMinimumScheduleMargin(null)
+                .hasNextForecastAvailableAt(null)
                 .hasError()
                 .hasErrorCode("DATA_PROVIDER_AREA_NOT_FOUND")
                 .hasErrorMessage("No DataProvider supports area UNKNOWN.");
@@ -83,6 +59,8 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(result)
                 .hasNoForecast()
+                .hasMinimumScheduleMargin(null)
+                .hasNextForecastAvailableAt(null)
                 .hasError()
                 .hasErrorCode("FORECAST_NOT_AVAILABLE")
                 .hasErrorMessage("No forecast available for DataProvider ENTSO-E and area Germany.");
@@ -92,7 +70,7 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
     void testFetchCarbonIntensityForecastSetsMissingFieldsToNull() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_STATE_FIELD);
+        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_FIELDS);
 
         // WHEN
         CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -100,6 +78,8 @@ class CarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
         // THEN
         assertThat(carbonIntensityForecast)
                 .hasDisplayName("Belgium")
+                .hasMinimumScheduleMargin(null)
+                .hasNextForecastAvailableAt(null)
                 .hasIntensityForecastSize(24);
     }
 

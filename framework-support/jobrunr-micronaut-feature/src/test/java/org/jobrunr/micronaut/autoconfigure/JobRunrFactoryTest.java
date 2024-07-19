@@ -6,12 +6,12 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -21,6 +21,7 @@ import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @MicronautTest(rebuildContext = true)
 @TestMethodOrder(MethodOrderer.MethodName.class)
@@ -58,7 +59,7 @@ class JobRunrFactoryTest {
     void testCarbonAwareManagerConfiguration() {
         assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
         CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
-        CarbonAwareConfigurationReader carbonAwareConfiguration = carbonAwareJobManager.getCarbonAwareConfiguration();
+        CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
 
         assertThat(carbonAwareConfiguration)
                 .hasAreaCode("PL")

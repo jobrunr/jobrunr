@@ -6,12 +6,12 @@ import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import io.lettuce.core.RedisClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -49,6 +49,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -140,7 +141,8 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout-ms=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
-                    CarbonAwareConfigurationReader carbonAwareConfiguration = context.getBean(CarbonAwareJobManager.class).getCarbonAwareConfiguration();
+                    CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
+                    CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
                     assertThat(carbonAwareConfiguration)
                             .hasApiClientConnectTimeout(Duration.ofMillis(500))
                             .hasApiClientReadTimeout(Duration.ofMillis(300))

@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 
+import java.time.Duration;
 import java.time.Instant;
 
 public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensityForecastAssert, CarbonIntensityForecast> {
@@ -18,6 +19,16 @@ public class CarbonIntensityForecastAssert extends AbstractAssert<CarbonIntensit
 
     public CarbonIntensityForecastAssert hasDisplayName(String displayName) {
         Assertions.assertThat(actual.getDisplayName()).isEqualTo(displayName);
+        return this;
+    }
+
+    public CarbonIntensityForecastAssert hasMinimumScheduleMargin(Duration minimumScheduleMargin) {
+        Assertions.assertThat(actual.getMinimumScheduleMargin()).isEqualTo(minimumScheduleMargin);
+        return this;
+    }
+
+    public CarbonIntensityForecastAssert hasNextForecastAvailableAt(Instant nextForecastAvailableAt) {
+        Assertions.assertThat(actual.getNextForecastAvailableAt()).isEqualTo(nextForecastAvailableAt);
         return this;
     }
 

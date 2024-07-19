@@ -30,7 +30,7 @@ class CarbonAwareConfigurationTest {
     void andExternalCodeThrowsAnExceptionIfDataProviderIsNotSet() {
         assertThatCode(() -> carbonAwareConfiguration.andExternalCode("IT-North"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Please set the dataProvider must be setting the externalCode.");
+                .hasMessage("Please set the dataProvider before setting the externalCode.");
 
         assertThatCode(() -> carbonAwareConfiguration.andDataProvider("ENTSO-E").andExternalCode("IT-North"))
                 .doesNotThrowAnyException();
@@ -51,7 +51,7 @@ class CarbonAwareConfigurationTest {
     void andExternalIdentifierThrowsAnExceptionIfDataProviderIsNotSet() {
         assertThatCode(() -> carbonAwareConfiguration.andExternalIdentifier("10Y1001A1001A73I"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Please set the dataProvider must be setting the externalIdentifier.");
+                .hasMessage("Please set the dataProvider before setting the externalIdentifier.");
 
         assertThatCode(() -> carbonAwareConfiguration.andDataProvider("ENTSO-E").andExternalIdentifier("10Y1001A1001A73I"))
                 .doesNotThrowAnyException();

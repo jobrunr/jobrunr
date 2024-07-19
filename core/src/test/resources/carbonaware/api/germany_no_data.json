@@ -8,5 +8,6 @@
   "displayName": "Germany",
   "timezone": "Europe/Berlin",
   "nextForecastAvailableAt": null,
+  "minimumScheduleMargin": null,
   "intensityForecast": null
 }

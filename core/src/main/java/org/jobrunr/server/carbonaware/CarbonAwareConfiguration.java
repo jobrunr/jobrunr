@@ -1,10 +1,11 @@
 package org.jobrunr.server.carbonaware;
 
 import java.time.Duration;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 // TODO review some of the javadocs
 public class CarbonAwareConfiguration {
@@ -53,9 +54,7 @@ public class CarbonAwareConfiguration {
      * @throws IllegalStateException if either externalCode or externalIdentifier is specified
      */
     public CarbonAwareConfiguration andAreaCode(String areaCode) {
-        if (nonNull(externalCode) || nonNull(externalIdentifier)) {
-            throw new IllegalStateException("You can only set either areaCode, externalCode or externalIdentifier.");
-        }
+        validateConfiguration(areaCode, externalCode, externalIdentifier);
         this.areaCode = areaCode;
         return this;
     }
@@ -68,11 +67,9 @@ public class CarbonAwareConfiguration {
      * @throws IllegalStateException if a dataProvider is not specified, or if either areaCode or externalIdentifier is specified
      */
     public CarbonAwareConfiguration andExternalCode(String externalCode) {
-        if (isNull(dataProvider)) {
-            throw new IllegalStateException("Please set the dataProvider must be setting the externalCode.");
-        }
-        if (nonNull(areaCode) || nonNull(externalIdentifier)) {
-            throw new IllegalStateException("You can only set either areaCode, externalCode or externalIdentifier.");
+        validateConfiguration(areaCode, externalCode, externalIdentifier);
+        if (isNullOrEmpty(dataProvider)) {
+            throw new IllegalStateException("Please set the dataProvider before setting the externalCode.");
         }
         this.externalCode = externalCode;
         return this;
@@ -86,11 +83,9 @@ public class CarbonAwareConfiguration {
      * @throws IllegalStateException if a dataProvider is not specified
      */
     public CarbonAwareConfiguration andExternalIdentifier(String externalIdentifier) {
-        if (isNull(dataProvider)) {
-            throw new IllegalStateException("Please set the dataProvider must be setting the externalIdentifier.");
-        }
-        if (nonNull(areaCode) || nonNull(externalCode)) {
-            throw new IllegalStateException("You can only set either areaCode, externalCode or externalIdentifier.");
+        validateConfiguration(areaCode, externalCode, externalIdentifier);
+        if (isNullOrEmpty(dataProvider)) {
+            throw new IllegalStateException("Please set the dataProvider before setting the externalIdentifier.");
         }
         this.externalIdentifier = externalIdentifier;
         return this;
@@ -118,5 +113,11 @@ public class CarbonAwareConfiguration {
     public CarbonAwareConfiguration andApiClientReadTimeout(Duration apiClientReadTimeout) {
         this.apiClientReadTimeout = apiClientReadTimeout;
         return this;
+    }
+
+    private void validateConfiguration(String areaCode, String externalCode, String externalIdentifier) {
+        if (Stream.of(areaCode, externalCode, externalIdentifier).filter(Objects::nonNull).count() > 1) {
+            throw new IllegalStateException("You can only set either areaCode, externalCode or externalIdentifier.");
+        }
     }
 }

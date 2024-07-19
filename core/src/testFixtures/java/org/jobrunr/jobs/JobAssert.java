@@ -155,6 +155,13 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert isScheduledAt(Instant instant, String reason) {
+        ScheduledState scheduledState = actual.getJobState();
+        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);
+        Assertions.assertThat(scheduledState.getReason()).isEqualTo(reason);
+        return this;
+    }
+
     public JobAssert isEqualTo(Job otherJob) {
         return isEqualTo(otherJob, "locker", "newState", "jobHistory.exception", "stateIndexBeforeStateChange");
     }

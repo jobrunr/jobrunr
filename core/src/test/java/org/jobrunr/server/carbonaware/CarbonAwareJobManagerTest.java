@@ -180,22 +180,39 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     }
 
     @Test
-    void testMoveToNextStateSchedulesImmediatelyCarbonAwaitingJobsThatHaveDeadlineInThePast() {
+    void testMoveToNextStateSchedulesCarbonAwaitingJobsImmediatelyThatHaveDeadlineInThePast() {
         mockResponseWhenRequestingAreaCode("BE", BELGIUM_PARTIAL_2024_07_12);
         CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
         carbonAwareJobManager.updateCarbonIntensityForecast();
         LocalDate localDate = LocalDate.of(2024, 7, 11);
         Job job;
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate))) {
-            job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build();
+            job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minus(8, HOURS), now().minus(4, HOURS))).build();
         }
 
-        try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate).plus(4, HOURS))) {
+        try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate))) {
             carbonAwareJobManager.moveToNextState(job);
 
             assertThat(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(now().minus(4, HOURS));
+                    .isScheduledAt(now().minus(8, HOURS), "Job has passed its deadline, scheduling job now");
+        }
+    }
+
+    @Test
+    void testMoveToNextStateSchedulesCarbonAwaitingJobsImmediatelyIfMarginIsSmallerThanMinimumScheduleMargin() {
+        mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
+        CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("BE");
+        carbonAwareJobManager.updateCarbonIntensityForecast();
+        LocalDate localDate = LocalDate.of(2024, 7, 11);
+        Job job;
+        try (MockedStatic<Instant> ignored = mockTime(startOfDay(localDate))) {
+            job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plusSeconds(300))).build();
+            carbonAwareJobManager.moveToNextState(job);
+
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(now(), "Job does not have enough margin (PT5M) to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
         }
     }
 
