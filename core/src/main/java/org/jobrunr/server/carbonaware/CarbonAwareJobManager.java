@@ -76,6 +76,8 @@ public class CarbonAwareJobManager {
                 scheduleJobAtOptimalTime(job, carbonAwareAwaitingState);
             }
         } else {
+            LOGGER.trace("Carbon aware scheduling is not enabled. Job(id={}, jobName='{}') will be scheduled at pre-defined preferred instant.", job.getId(), job.getJobName());
+
             scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
         }
     }

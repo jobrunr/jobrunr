@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
 public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
     @Test
     void testGetTimezoneReturnsSystemZoneIdByDefault() {
-        assertThat(getCarbonAwareJobManager("DE").getTimeZone()).isEqualTo(ZoneId.systemDefault());
+        assertThat(getCarbonAwareJobManager("UNKNOWN").getTimeZone()).isEqualTo(ZoneId.systemDefault());
     }
 
     @Test
