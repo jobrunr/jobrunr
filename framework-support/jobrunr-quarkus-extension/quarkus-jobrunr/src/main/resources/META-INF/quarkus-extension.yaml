@@ -13,7 +13,7 @@ metadata:
   sponsor: "Rosoco BV"
   categories:
     - "miscellaneous"
-  status: "preview"
+  status: "stable"
   extension-dependencies:
     - "io.quarkus:quarkus-arc"
     - "io.quarkus:quarkus-core"
