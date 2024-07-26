@@ -31,6 +31,8 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDet
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -39,16 +41,26 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws Exception {
-        StorageProvider storageProvider = postgresStorageProvider();
+        StorageProvider storageProvider = inMemoryStorageProvider();
 
         //StubDataProvider.using(storageProvider)
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addSomeRecurringJobs();
 
+        storageProvider.saveRecurringJob(aDefaultRecurringJob()
+                .withId("rj-with-labels")
+                .withName("Recurring job with labels")
+                .withCronExpression("*/5 * * * * *")
+                .withLabels("tenant: JobRunr", "a second label", "123")
+                .build());
+
         storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
+
+        storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
+        storageProvider.save(anEnqueuedJob().withEnqueuedState(Instant.now()).withName("A job").build());
 
         JobRunr
                 .configure()

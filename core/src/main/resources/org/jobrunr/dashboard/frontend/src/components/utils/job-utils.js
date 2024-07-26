@@ -13,6 +13,10 @@ export function jobStateToHumanReadableName(jobState) {
         case 'DELETED':
             return "Deleted jobs";
         default:
-            return 'Unknown state'
+            return 'Unknown state';
     }
+}
+
+export function getSortedLabels(job) {
+    return job.labels?.sort();
 }

@@ -11,6 +11,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "./job-label";
 import {ItemsNotFound} from "./items-not-found";
 import {styled} from "@mui/material/styles";
+import {getSortedLabels} from "./job-utils";
 
 const IdColumn = styled(TableCell)`
     width: 20%;
@@ -80,12 +81,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                             }}>{job.id}</Link>
                                         </IdColumn>
                                         <TableCell>
-                                            {job.labels &&
-                                                <>
-                                                    {job.labels.map((label) => <JobLabel text={label}/>)}
-                                                    <span style={{marginRight: '0.5rem'}}></span>
-                                                </>
-                                            }
+                                            {job.labels && getSortedLabels(job).map((label) => <JobLabel key={label} text={label}/>)}
                                             <Link to={{
                                                 pathname: `/dashboard/jobs/${job.id}`,
                                                 job: job
