@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -140,9 +139,7 @@ public class ServerZooKeeper implements Runnable {
     }
 
     private static Instant min(Instant instant1, Instant instant2) {
-        Instant[] instants = new Instant[]{instant1, instant2};
-        Arrays.sort(instants);
-        return instants[0];
+        return instant1.isBefore(instant2) ? instant1 : instant2;
     }
 
     private Optional<Integer> cpuAllocationIrregularity(Instant lastSignalAlive, Instant lastHeartbeat) {
