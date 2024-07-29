@@ -23,7 +23,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Box from "@mui/material/Box";
 import LoadingIndicator from "../LoadingIndicator";
-import {getSortedLabels, jobStateToHumanReadableName} from "../utils/job-utils";
+import {jobStateToHumanReadableName} from "../utils/job-utils";
 import SucceededNotification from "./notifications/succeeded-notification";
 import DeletedNotification from "./notifications/deleted-notification";
 import JobDetailsNotCacheableNotification from "./notifications/job-details-not-cacheable-notification";
@@ -173,7 +173,7 @@ const JobView = (props) => {
                                         </Grid>
                                         <Grid item xs={12} style={{paddingTop: 0}}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
-                                                {job.jobName} {getSortedLabels(job).map((label) => <JobLabel key={label} text={label}/>)}
+                                                {job.jobName} {job.labels?.map((label) => <JobLabel text={label}/>)}
                                             </Typography>
                                         </Grid>
                                     </Grid>

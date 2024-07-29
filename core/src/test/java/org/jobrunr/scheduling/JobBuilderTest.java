@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -168,7 +169,7 @@ class JobBuilderTest {
                 .build(jobDetailsGenerator);
 
         assertThat(job)
-                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasLabels(List.of("Email", "TestLabel"))
                 .hasState(StateName.ENQUEUED);
     }
 

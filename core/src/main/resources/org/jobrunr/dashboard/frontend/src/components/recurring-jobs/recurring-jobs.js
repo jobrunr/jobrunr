@@ -23,7 +23,6 @@ import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
 import {ItemsNotFound} from "../utils/items-not-found";
-import {getSortedLabels} from "../utils/job-utils";
 
 const RecurringJobs = () => {
     const navigate = useNavigate();
@@ -186,7 +185,7 @@ const RecurringJobs = () => {
                                                         {recurringJob.id}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {getSortedLabels(recurringJob)?.map((label) => <JobLabel key={label} text={label}/>)}
+                                                        {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
                                                         {recurringJob.jobName}
                                                     </TableCell>
                                                     <TableCell>

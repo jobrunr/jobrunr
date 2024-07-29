@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -130,7 +131,7 @@ class RecurringJobBuilderTest {
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
-                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasLabels(List.of("Email", "TestLabel"))
                 .hasId()
                 .hasScheduleExpression(every5Seconds);
     }

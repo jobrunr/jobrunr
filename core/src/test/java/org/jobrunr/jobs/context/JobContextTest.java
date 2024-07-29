@@ -7,7 +7,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +26,7 @@ public class JobContextTest {
         assertThat(jobContext.getJobId()).isEqualTo(job.getId());
         assertThat(jobContext.getJobName()).isEqualTo("job1");
         assertThat(jobContext.getJobSignature()).isEqualTo(job.getJobSignature());
-        assertThat(jobContext.getJobLabels()).isEqualTo(Set.of("my-label"));
+        assertThat(jobContext.getJobLabels()).isEqualTo(List.of("my-label"));
         assertThat(jobContext.getCreatedAt()).isEqualTo(job.getCreatedAt());
         assertThat(jobContext.getUpdatedAt()).isEqualTo(job.getUpdatedAt());
         assertThat(jobContext.progressBar(10)).isNotNull();

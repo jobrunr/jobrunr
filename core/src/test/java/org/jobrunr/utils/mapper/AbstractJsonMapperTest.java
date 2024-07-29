@@ -20,7 +20,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -262,7 +262,7 @@ public abstract class AbstractJsonMapperTest {
         final RecurringJob actualRecurringJob = jsonMapper.deserialize(recurringJobAsStringFrom5, RecurringJob.class);
         assertThat(actualRecurringJob)
                 .isNotNull()
-                .hasLabels(emptySet());
+                .hasLabels(emptyList());
     }
 
     @Test
@@ -274,7 +274,7 @@ public abstract class AbstractJsonMapperTest {
         final Job actualJob = jsonMapper.deserialize(enqueuedJobAsStringFrom5, Job.class);
         assertThat(actualJob)
                 .isNotNull()
-                .hasLabels(emptySet());
+                .hasLabels(emptyList());
     }
 
     @Test

@@ -8,10 +8,10 @@ import jakarta.json.JsonValue;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.ArrayList;
+import java.util.List;
 
-public class JobLabelsAdapter implements JsonbAdapter<Set<String>, JsonArray> {
+public class JobLabelsAdapter implements JsonbAdapter<List<String>, JsonArray> {
 
     private final JobRunrJsonb jsonb;
 
@@ -20,7 +20,7 @@ public class JobLabelsAdapter implements JsonbAdapter<Set<String>, JsonArray> {
     }
 
     @Override
-    public JsonArray adaptToJson(Set<String> labels) {
+    public JsonArray adaptToJson(List<String> labels) {
         final JsonArrayBuilder historyJsonObject = Json.createArrayBuilder();
         for (String label : labels) {
             historyJsonObject.add(label);
@@ -29,8 +29,8 @@ public class JobLabelsAdapter implements JsonbAdapter<Set<String>, JsonArray> {
     }
 
     @Override
-    public Set<String> adaptFromJson(JsonArray jsonArray) {
-        final Set<String> result = new TreeSet<>();
+    public List<String> adaptFromJson(JsonArray jsonArray) {
+        final List<String> result = new ArrayList<>();
         if (jsonArray != null) {
             for (JsonValue jsonValue : jsonArray) {
                 result.add(((JsonString) jsonValue).getString());

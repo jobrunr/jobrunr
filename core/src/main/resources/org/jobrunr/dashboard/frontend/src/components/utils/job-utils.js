@@ -16,7 +16,3 @@ export function jobStateToHumanReadableName(jobState) {
             return 'Unknown state';
     }
 }
-
-export function getSortedLabels(job) {
-    return job.labels?.sort();
-}
