@@ -23,18 +23,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
+import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
-import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
@@ -53,7 +52,7 @@ public class JobTestBuilder {
     private String name;
     private Integer amountOfRetries;
     private String recurringJobId;
-    private Set<String> labels;
+    private List<String> labels;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
@@ -209,10 +208,10 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withLabels(String... labels) {
-        return withLabels(asSet(labels));
+        return withLabels(asList(labels));
     }
 
-    public JobTestBuilder withLabels(Set<String> labels) {
+    public JobTestBuilder withLabels(List<String> labels) {
         this.labels = labels;
         return this;
     }
@@ -321,7 +320,7 @@ public class JobTestBuilder {
         job.setJobName(name);
         job.setRecurringJobId(recurringJobId);
 
-        if(withoutStateChanges) {
+        if (withoutStateChanges) {
             job.getStateChangesForJobFilters(); // reset state changes
         }
         return job;

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import static java.time.Instant.now;
@@ -163,12 +163,12 @@ class JobBuilderTest {
     @Test
     void testWithLabels() {
         Job job = aJob()
-                .withLabels(Set.of("TestLabel", "Email"))
+                .withLabels(List.of("TestLabel", "Email"))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
-                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasLabels(List.of("TestLabel", "Email"))
                 .hasState(StateName.ENQUEUED);
     }
 

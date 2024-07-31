@@ -13,10 +13,10 @@ import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Duration;
 import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
 
 import static java.time.ZoneId.systemDefault;
-import static org.jobrunr.utils.CollectionUtils.asSet;
+import static java.util.Arrays.asList;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 /**
@@ -42,7 +42,7 @@ public class RecurringJobBuilder {
     private String jobId;
     private String jobName;
     private Integer retries;
-    private Set<String> labels;
+    private List<String> labels;
     private JobRunrJob jobRunrJob;
     private JobRequest jobRequest;
     private Schedule schedule;
@@ -102,17 +102,17 @@ public class RecurringJobBuilder {
      * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withLabels(String... labels) {
-        return withLabels(asSet(labels));
+        return withLabels(asList(labels));
     }
 
     /**
      * Allows to provide a set of labels to be shown in the dashboard.
      * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
      *
-     * @param labels the set of labels to be added to the recurringJob
+     * @param labels the list of labels to be added to the recurringJob
      * @return the same builder instance which provides a fluent api
      */
-    public RecurringJobBuilder withLabels(Set<String> labels) {
+    public RecurringJobBuilder withLabels(List<String> labels) {
         this.labels = labels;
         return this;
     }

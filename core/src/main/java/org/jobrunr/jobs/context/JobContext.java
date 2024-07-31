@@ -4,8 +4,8 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.unmodifiableMap;
@@ -54,7 +54,7 @@ public class JobContext {
         return job.getJobName();
     }
 
-    public Set<String> getJobLabels() {
+    public List<String> getJobLabels() {
         return job.getLabels();
     }
 

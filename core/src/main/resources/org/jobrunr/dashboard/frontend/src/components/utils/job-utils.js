@@ -13,6 +13,6 @@ export function jobStateToHumanReadableName(jobState) {
         case 'DELETED':
             return "Deleted jobs";
         default:
-            return 'Unknown state'
+            return 'Unknown state';
     }
 }
