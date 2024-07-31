@@ -5,7 +5,6 @@ import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.Lockable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
@@ -85,7 +84,7 @@ public abstract class AbstractJob implements Lockable {
         return unmodifiableList(labels);
     }
 
-    public void setLabels(Collection<String> labels) {
+    public void setLabels(List<String> labels) {
         if (isNotNullOrEmpty(labels)) {
             if (labels.size() > MAX_AMOUNT_OF_LABELS) {
                 throw new IllegalArgumentException(String.format("Per job a maximum of %d labels can be provided.", MAX_AMOUNT_OF_LABELS));
@@ -93,7 +92,7 @@ public abstract class AbstractJob implements Lockable {
             if (labels.stream().anyMatch(label -> label.length() > 45)) {
                 throw new IllegalArgumentException(String.format("Label length must be less than %d characters.", MAX_LABEL_LENGTH));
             }
-            this.labels = labels.stream().distinct().sorted().collect(toCollection(ArrayList::new));
+            this.labels = labels.stream().distinct().collect(toCollection(ArrayList::new));
         }
     }
 

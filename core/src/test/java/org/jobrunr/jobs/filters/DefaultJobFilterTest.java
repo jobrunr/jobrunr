@@ -79,7 +79,7 @@ class DefaultJobFilterTest {
 
         defaultJobFilter.onCreating(job);
 
-        assertThat(job).hasLabels(List.of("Email", "TestLabel"));
+        assertThat(job).hasLabels(List.of("TestLabel", "Email"));
     }
 
     @Test

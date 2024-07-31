@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static java.time.ZoneId.systemDefault;
@@ -125,13 +124,13 @@ class RecurringJobBuilderTest {
     @Test
     void testWithLabels() {
         RecurringJob recurringJob = aRecurringJob()
-                .withLabels(Set.of("TestLabel", "Email"))
+                .withLabels(List.of("TestLabel", "Email"))
                 .withCron(every5Seconds)
                 .withDetails(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
-                .hasLabels(List.of("Email", "TestLabel"))
+                .hasLabels(List.of("TestLabel", "Email"))
                 .hasId()
                 .hasScheduleExpression(every5Seconds);
     }
