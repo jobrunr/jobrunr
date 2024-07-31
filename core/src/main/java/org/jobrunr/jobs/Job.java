@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.FailedState;
@@ -37,6 +38,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -58,6 +60,7 @@ public class Job extends AbstractJob {
         ALLOWED_SORT_COLUMNS.put(FIELD_CREATED_AT, Job::getCreatedAt);
         ALLOWED_SORT_COLUMNS.put(FIELD_UPDATED_AT, Job::getUpdatedAt);
         ALLOWED_SORT_COLUMNS.put(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof ScheduledState ? ((ScheduledState) job.getJobState()).getScheduledAt() : null);
+        ALLOWED_SORT_COLUMNS.put(FIELD_DEADLINE, job -> job.getJobState() instanceof CarbonAwareAwaitingState ? ((CarbonAwareAwaitingState) job.getJobState()).getTo() : null);
     }
 
     private static final UUIDv7Factory UUID_FACTORY = UUIDv7Factory.builder().withIncrementPlus1().build();

@@ -15,6 +15,7 @@ import org.jobrunr.utils.resilience.MultiLock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -141,6 +142,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return storageProvider.getCarbonAwareJobList(deadlineBefore, amountRequest);
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
     }
@@ -163,6 +169,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         return storageProvider.recurringJobExists(recurringJobId, states);
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        return storageProvider.countRecurringJobInstances(recurringJobId, states);
     }
 
     @Override
@@ -213,6 +224,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public void validateRecurringJobInterval(Duration durationBetweenRecurringJobInstances) {
         storageProvider.validateRecurringJobInterval(durationBetweenRecurringJobInstances);
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        return storageProvider.getRecurringJobsLatestScheduledRun();
     }
 
     public StorageProvider getStorageProvider() {

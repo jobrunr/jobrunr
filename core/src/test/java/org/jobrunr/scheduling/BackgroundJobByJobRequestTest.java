@@ -38,6 +38,7 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -47,6 +48,7 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -55,6 +57,7 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
@@ -212,6 +215,12 @@ public class BackgroundJobByJobRequestTest {
         JobId jobId = BackgroundJobRequest.schedule(now().plus(100, ChronoUnit.DAYS), new TestJobRequest("from testScheduleUsingDateTimeInTheFutureIsNotEnqueued"));
         await().during(TWO_SECONDS).atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED);
+    }
+
+    @Test
+    void testScheduleCarbonAware() {
+        JobId jobId = BackgroundJobRequest.scheduleCarbonAware(before(now().plus(1, DAYS)), new TestJobRequest("from testScheduleCarbonAware"));
+        assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 
     @Test

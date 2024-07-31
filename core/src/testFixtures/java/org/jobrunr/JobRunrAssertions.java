@@ -16,6 +16,11 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobDetailsAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
+import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -84,6 +89,18 @@ public class JobRunrAssertions extends Assertions {
 
     public static DatabaseAssertions assertThat(DataSource dataSource) {
         return DatabaseAssertions.assertThat(dataSource);
+    }
+
+    public static CarbonIntensityForecastAssert assertThat(CarbonIntensityForecast carbonIntensityForecast) {
+        return CarbonIntensityForecastAssert.assertThat(carbonIntensityForecast);
+    }
+
+    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfiguration carbonAwareConfiguration) {
+        return CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration);
+    }
+
+    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfigurationReader carbonAwareConfiguration) {
+        return CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration);
     }
 
     public static String contentOfResource(String resourceName) {

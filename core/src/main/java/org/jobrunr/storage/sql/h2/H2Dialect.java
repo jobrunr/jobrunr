@@ -5,7 +5,8 @@ import org.jobrunr.storage.sql.common.db.AnsiDialect;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+
+import static java.time.temporal.ChronoUnit.MICROS;
 
 public class H2Dialect extends AnsiDialect {
 
@@ -17,7 +18,7 @@ public class H2Dialect extends AnsiDialect {
     @Override
     public void setTimestamp(PreparedStatement ps, int i, Instant instant) throws SQLException {
         // why: https://github.com/h2database/h2database/issues/3935
-        Instant roundedInstant = instant.plusNanos(500).truncatedTo(ChronoUnit.MICROS);
+        Instant roundedInstant = instant.plusNanos(500).truncatedTo(MICROS);
         super.setTimestamp(ps, i, roundedInstant);
     }
 }

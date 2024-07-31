@@ -3,7 +3,7 @@ import SwitchableTimeAgo from "../../utils/time-ago";
 import Icon from "@mui/material/Icon";
 import Typography from "@mui/material/Typography";
 import {Schedule} from "@mui/icons-material";
-import {Check, Cogs, Delete, TimerSand} from "mdi-material-ui";
+import {Check, Cogs, Delete, LockClock, TimerSand} from "mdi-material-ui";
 import {styled} from "@mui/material/styles";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import ExpandMore from "@mui/icons-material/ExpandMore";
@@ -45,6 +45,18 @@ const COLOR_VARIANTS = {
     success: {
         color: "rgb(30, 70, 32)",
         backgroundColor: "rgb(237, 247, 237)",
+    },
+    awaiting: {
+        color: "rgb(161, 164, 157)",
+        backgroundColor: "rgb(250 254 245)",
+        '& div.MuiAlert-icon': {
+            color: 'rgb(161, 164, 157)',
+            backgroundColor: 'rgb(250 254 245)',
+        },
+        '& div.MuiAlert-standardInfo': {
+            color: 'rgb(161, 164, 157)',
+            backgroundColor: 'rgb(250 254 245)',
+        }
     }
 }
 
@@ -53,7 +65,8 @@ const ICON_VARIANTS = {
     scheduled: Schedule,
     processing: Cogs,
     enqueued: TimerSand,
-    success: Check
+    success: Check,
+    awaiting: LockClock
 }
 
 const ALERT_SEVERITY_VARIANTS = {
@@ -62,7 +75,8 @@ const ALERT_SEVERITY_VARIANTS = {
     processing: "warning",
     enqueued: "info",
     success: "success",
-    failed: "error"
+    failed: "error",
+    awaiting: "info"
 }
 
 const StyledAccordionSummary = styled(AccordionSummary,

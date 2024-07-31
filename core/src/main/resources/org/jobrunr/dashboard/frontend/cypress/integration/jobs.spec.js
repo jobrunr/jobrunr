@@ -7,6 +7,7 @@ context('Actions', () => {
 
     const config = {retries: 2};
 
+    const awaitingMenuBtn = () => cy.get('#awaiting-menu-btn');
     const scheduledMenuBtn = () => cy.get('#scheduled-menu-btn');
     const enqueuedMenuBtn = () => cy.get('#enqueued-menu-btn');
     const processingMenuBtn = () => cy.get('#processing-menu-btn');
@@ -42,6 +43,14 @@ context('Actions', () => {
         jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.enabled');
     });
 
+    it('It can navigate to the awaiting jobs', config, () => {
+        awaitingMenuBtn().should('contain', '0');
+        awaitingMenuBtn().click();
+        title().should('contain', 'Pending jobs');
+
+        noJobsFoundMessage().should('be.visible')
+        jobTable().should('not.exist');
+    });
 
     it('It can navigate to the scheduled jobs', config, () => {
         scheduledMenuBtn().should('contain', '1');
@@ -121,7 +130,7 @@ context('Actions', () => {
 
     it('It can navigate to the recurring jobs page', config, () => {
         recurringJobsTabBtn().click();
-        recurringJobsTabBtn().get('span.MuiChip-label').should('contain', '2');
+        recurringJobsTabBtn().get('span.MuiChip-label').should('contain', '3');
     });
 
     it('It can navigate to the servers page', config, () => {

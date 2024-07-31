@@ -4,7 +4,6 @@ import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +54,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(ScheduleExpressionType.getSchedule("*/15 * * * *")), eq(ZoneId.systemDefault()));
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
         assertThat(actualJobDetails)
                 .isCacheable()
@@ -92,7 +91,7 @@ class JobRunrRecurringJobSchedulerTest {
 
         jobRunrRecurringJobScheduler.schedule(executableMethod);
 
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(ScheduleExpressionType.getSchedule("*/15 * * * *")), eq(ZoneId.systemDefault()));
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
         assertThat(actualJobDetails)
                 .isCacheable()

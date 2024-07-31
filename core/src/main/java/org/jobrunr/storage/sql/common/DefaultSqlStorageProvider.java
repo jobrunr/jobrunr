@@ -28,6 +28,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -253,6 +254,15 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).selectCarbonAwareJobsWithDeadlineBefore(deadlineBefore, amountRequest);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, amountRequest);
@@ -323,6 +333,24 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn).recurringJobExists(recurringJobId, states);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).countRecurringJobInstances(recurringJobId, states);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        try (final Connection conn = dataSource.getConnection()) {
+            return jobTable(conn).getRecurringJobsLatestScheduledRun();
         } catch (SQLException e) {
             throw new StorageException(e);
         }

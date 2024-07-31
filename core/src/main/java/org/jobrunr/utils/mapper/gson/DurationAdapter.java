@@ -16,10 +16,15 @@ public class DurationAdapter extends TypeAdapter<Duration> {
 
     @Override
     public Duration read(final JsonReader jsonReader) throws IOException {
-        final BigDecimal durationAsSecAndNanoSec = new BigDecimal(jsonReader.nextString());
-        return Duration.ofSeconds(
-                durationAsSecAndNanoSec.longValue(),
-                durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(durationAsSecAndNanoSec.scale()).abs().longValue()
-        );
+        String durationAsString = jsonReader.nextString();
+        if (durationAsString.startsWith("P")) {
+            return Duration.parse(durationAsString);
+        } else {
+            final BigDecimal durationAsSecAndNanoSec = new BigDecimal(durationAsString);
+            return Duration.ofSeconds(
+                    durationAsSecAndNanoSec.longValue(),
+                    durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(durationAsSecAndNanoSec.scale()).abs().longValue()
+            );
+        }
     }
 }

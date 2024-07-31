@@ -6,13 +6,11 @@ import org.bson.UuidRepresentation;
 import org.bson.types.Binary;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+import static java.time.temporal.ChronoUnit.MICROS;
 import static org.bson.internal.UuidHelper.decodeBinaryToUuid;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
-import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class MongoUtils {
 
@@ -39,13 +37,6 @@ public class MongoUtils {
         throw shouldNotHappenException("Unknown id: " + document.get("_id").getClass());
     }
 
-    public static Object toValueForBson(String fieldName, String value) {
-        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT).contains(fieldName)) {
-            return toMicroSeconds(Instant.parse(value));
-        }
-        return value;
-    }
-
     public static byte[] clone(final byte[] array) {
         final byte[] result = new byte[array.length];
         System.arraycopy(array, 0, result, 0, array.length);
@@ -53,6 +44,13 @@ public class MongoUtils {
     }
 
     public static long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
+        return MICROS.between(Instant.EPOCH, instant);
+    }
+
+    public static Instant fromMicroseconds(Long micros) {
+        if (micros == null) {
+            return null;
+        }
+        return Instant.ofEpochSecond(micros / 1_000_000, (micros % 1_000_000) * 1_000);
     }
 }

@@ -7,10 +7,10 @@ import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.time.temporal.ChronoUnit.MICROS;
 import static java.util.stream.Collectors.joining;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.NAME;
 
@@ -80,6 +80,10 @@ public class RedisUtilities {
         return toRedisKey(keyPrefix, "queue", "scheduledjobs");
     }
 
+    public static String carbonAwaitingDeadlineKey(String keyPrefix) {
+        return toRedisKey(keyPrefix, "queue", "carbonAwaitingDeadline");
+    }
+
     public static String jobKey(String keyPrefix, Job job) {
         return jobKey(keyPrefix, job.getId());
     }
@@ -115,7 +119,7 @@ public class RedisUtilities {
     }
 
     public static long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
+        return MICROS.between(Instant.EPOCH, instant);
     }
 }
 

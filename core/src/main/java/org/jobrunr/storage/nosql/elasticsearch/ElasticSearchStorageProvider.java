@@ -12,7 +12,6 @@ import co.elastic.clients.elasticsearch._types.aggregations.SumAggregate;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryVariant;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
@@ -60,6 +59,7 @@ import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.storage.nosql.NoSqlStorageProvider;
 import org.jobrunr.utils.annotations.Beta;
 import org.jobrunr.utils.resilience.RateLimiter;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -84,6 +84,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.jobrunr.jobs.Job.ALLOWED_SORT_COLUMNS;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -96,6 +97,7 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
@@ -111,9 +113,11 @@ import static org.jobrunr.storage.nosql.elasticsearch.ElasticSearchUtils.JOBRUNR
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Beta(note = "The ElasticSearchStorageProvider is still in Beta. My first impression is that other StorageProviders are faster than ElasticSearch.")
 public class ElasticSearchStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
+    private static final Logger LOGGER = getLogger(ElasticSearchStorageProvider.class);
 
     @SuppressWarnings("unchecked")
     private static final Class<Map> MAP_CLASS = Map.class;
@@ -122,6 +126,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public static final String DEFAULT_RECURRING_JOB_INDEX_NAME = JOBRUNR_PREFIX + RecurringJobs.NAME;
     public static final String DEFAULT_BACKGROUND_JOB_SERVER_INDEX_NAME = JOBRUNR_PREFIX + BackgroundJobServers.NAME;
     public static final String DEFAULT_METADATA_INDEX_NAME = JOBRUNR_PREFIX + Metadata.NAME;
+    public static final String DEFAULT_CARBON_AWARE_DEADLINE_INDEX_NAME = JOBRUNR_PREFIX + "carbon_aware_deadline";
     public static final int MAX_SIZE = 10_000;
 
     private final ElasticsearchClient client;
@@ -470,7 +475,13 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
-        final QueryVariant query = withStateAndUpdatedBefore(state, updatedBefore);
+        final QueryVariant query = withStateAndFieldBefore(state, FIELD_UPDATED_AT, updatedBefore);
+        return findJobs(query, amountRequest);
+    }
+
+    @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        final QueryVariant query = withStateAndFieldBefore(AWAITING, FIELD_DEADLINE, deadlineBefore);
         return findJobs(query, amountRequest);
     }
 
@@ -484,10 +495,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
-        final QueryVariant query = QueryBuilders.range()
-                .field(FIELD_SCHEDULED_AT)
-                .to(Long.toString(scheduledBefore.toEpochMilli()))
-                .build();
+        final QueryVariant query = withStateAndFieldBefore(SCHEDULED, FIELD_SCHEDULED_AT, scheduledBefore);
         return findJobs(query, amountRequest);
     }
 
@@ -542,7 +550,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         try {
-            final QueryVariant query = withStateAndUpdatedBefore(state, updatedBefore);
+            final QueryVariant query = withStateAndFieldBefore(state, FIELD_UPDATED_AT, updatedBefore);
 
             final DeleteByQueryResponse response = client.deleteByQuery(
                     d -> d.index(jobIndexName)
@@ -560,10 +568,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         }
     }
 
-    private static QueryVariant withStateAndUpdatedBefore(final StateName state, final Instant updatedBefore) {
+    private static QueryVariant withStateAndFieldBefore(final StateName state, final String fieldName, final Instant before) {
         return bool()
                 .must(must -> must.match(m -> m.field(FIELD_STATE).query(String.valueOf(state))))
-                .must(must -> must.range(m -> m.field(FIELD_UPDATED_AT).to(Long.toString(updatedBefore.toEpochMilli()))))
+                .must(must -> must.range(m -> m.field(fieldName).to(Long.toString(before.toEpochMilli()))))
                 .build();
     }
 
@@ -608,6 +616,20 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
         } catch (final IOException e) {
             throw new StorageException(e);
         }
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        try {
+            final QueryVariant query = bool()
+                    .must(shouldMatch(states))
+                    .must(mu -> mu.match(ma -> ma.field(FIELD_RECURRING_JOB_ID).query(recurringJobId)))
+                    .build();
+            return countJobs(query);
+        } catch (final IOException e) {
+            throw new StorageException(e);
+        }
+
     }
 
     @Override
@@ -714,6 +736,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             return new JobStats(
                     now,
                     0L,
+                    count(buckets, AWAITING),
                     count(buckets, SCHEDULED),
                     count(buckets, ENQUEUED),
                     count(buckets, PROCESSING),
@@ -778,6 +801,12 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
             throw new StorageException(e);
         }
     }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        throw new UnsupportedOperationException();
+    }
+
 
     long countJobs(final QueryVariant query) throws IOException {
         final CountResponse response = client.count(

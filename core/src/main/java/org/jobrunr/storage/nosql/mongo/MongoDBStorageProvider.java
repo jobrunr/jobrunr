@@ -63,6 +63,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import static com.mongodb.client.model.Accumulators.max;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.match;
@@ -84,6 +85,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -99,6 +101,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.fromMicroseconds;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.getIdAsUUID;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
@@ -326,13 +329,18 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return findJobs(and(eq(Jobs.FIELD_STATE, AWAITING), lt(Jobs.FIELD_DEADLINE, toMicroSeconds(deadlineBefore))), amountRequest);
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return findJobs(and(eq(Jobs.FIELD_STATE, SCHEDULED), lt(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(scheduledBefore))), amountRequest);
     }
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        if(jobs.isEmpty()) return jobs;
+        if (jobs.isEmpty()) return jobs;
 
         try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             if (jobListVersioner.areNewJobs()) {
@@ -385,10 +393,27 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        return countRecurringJobInstances(recurringJobId, states) > 0;
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         if (states.length < 1) {
-            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
+            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         }
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
+        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)));
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        Map<String, Instant> lastRuns = new HashMap<>();
+
+        jobCollection.aggregate(asList(
+                match(ne(Jobs.FIELD_RECURRING_JOB_ID, null)),
+                group("$" + Jobs.FIELD_RECURRING_JOB_ID, max("latestScheduledAt", "$" + Jobs.FIELD_SCHEDULED_AT))
+        )).forEach(doc -> lastRuns.put(doc.getString("_id"), fromMicroseconds(doc.getLong("latestScheduledAt"))));
+
+        return lastRuns;
     }
 
     @Override
@@ -435,6 +460,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                         limit(10)))
                 .into(new ArrayList<>());
 
+
+        Long awaitingCount = getCount(AWAITING, stateAggregation);
         Long scheduledCount = getCount(SCHEDULED, stateAggregation);
         Long enqueuedCount = getCount(ENQUEUED, stateAggregation);
         Long processingCount = getCount(PROCESSING, stateAggregation);
@@ -449,6 +476,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         return new JobStats(
                 instant,
                 total,
+                awaitingCount,
                 scheduledCount,
                 enqueuedCount,
                 processingCount,
@@ -469,8 +497,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     private Long getCount(StateName stateName, List<Document> aggregates) {
         Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
         BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger(Jobs.FIELD_STATE)).orElse(defaultValue);
-        long aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
-        return aggregateCount;
+        return (long) count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
     }
 
     public static String toMongoId(String id) {

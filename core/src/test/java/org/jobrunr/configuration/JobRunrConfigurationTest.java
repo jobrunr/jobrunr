@@ -3,6 +3,7 @@ package org.jobrunr.configuration;
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
@@ -16,6 +17,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Duration;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -62,7 +65,7 @@ class JobRunrConfigurationTest {
 
         verify(storageProvider).setJobMapper(jobMapperCaptor.capture());
         JobMapper jobMapper = jobMapperCaptor.getValue();
-        assertThat((JsonMapper)getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
+        assertThat((JsonMapper) getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
     }
 
     @Test
@@ -141,5 +144,42 @@ class JobRunrConfigurationTest {
 
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
+    }
+
+    @Test
+    void carbonAwareJobManagerIsAlwaysAvailable() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(4)
+                .initialize();
+
+        assertThat(configurationResult.getJobScheduler()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getCarbonAwareJobManager()).isNotNull();
+    }
+
+    @Test
+    void initializeWithCarbonAwareScheduling() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+                        .andAreaCode("DE")
+                        .andApiClientConnectTimeout(Duration.ofMillis(1000))
+                        .andApiClientReadTimeout(Duration.ofMillis(1000)))
+                .useBackgroundJobServer(4)
+                .initialize();
+
+        assertThat(configurationResult.getJobScheduler()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getCarbonAwareJobManager()).isNotNull();
+    }
+
+    @Test
+    void initializeWithCarbonAwareSchedulingFailsIfBackgroundJobServerIsAlreadyConfigured() {
+        JobRunrConfiguration jobRunrConfiguration = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(4);
+
+        assertThatCode(() -> jobRunrConfiguration.useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Please configure carbon aware job scheduling before the BackgroundJobServer.");
     }
 }

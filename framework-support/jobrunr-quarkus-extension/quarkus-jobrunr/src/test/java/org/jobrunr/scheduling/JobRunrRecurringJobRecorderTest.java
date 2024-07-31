@@ -4,7 +4,6 @@ import io.quarkus.arc.runtime.BeanContainer;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +62,7 @@ class JobRunrRecurringJobRecorderTest {
 
         jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(ScheduleExpressionType.getSchedule("*/15 * * * *")), eq(ZoneId.systemDefault()));
         assertThat(jobDetailsArgumentCaptor.getValue())
                 .hasClassName(jobDetails.getClassName())
                 .hasMethodName(jobDetails.getMethodName())
@@ -147,7 +146,7 @@ class JobRunrRecurringJobRecorderTest {
 
         jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
 
-        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
+        verify(jobScheduler).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(ScheduleExpressionType.getSchedule("*/15 * * * *")), eq(ZoneId.systemDefault()));
         assertThat(jobDetailsArgumentCaptor.getValue())
                 .hasClassName(jobDetails.getClassName())
                 .hasMethodName(jobDetails.getMethodName())

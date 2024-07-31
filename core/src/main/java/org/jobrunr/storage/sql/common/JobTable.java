@@ -5,6 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.ConcurrentJobModificationException;
@@ -20,6 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -29,8 +31,10 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
@@ -54,8 +58,9 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
-                .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
-                .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));
+                .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElse(null))
+                .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null))
+                .with(FIELD_DEADLINE, job -> job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(CarbonAwareAwaitingState::getTo).orElse(null));
     }
 
     public JobTable withId(UUID id) {
@@ -78,8 +83,13 @@ public class JobTable extends Sql<Job> {
         return this;
     }
 
+    public JobTable withDeadlineBefore(Instant deadlineBefore) {
+        with(FIELD_DEADLINE, deadlineBefore);
+        return this;
+    }
+
     public JobTable with(String columnName, String sqlName, String value) {
-        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT).contains(columnName)) {
+        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT, FIELD_DEADLINE).contains(columnName)) {
             with(sqlName, Instant.parse(value));
         } else {
             with(sqlName, value);
@@ -157,19 +167,36 @@ public class JobTable extends Sql<Job> {
                 .collect(toList());
     }
 
+    public List<Job> selectCarbonAwareJobsWithDeadlineBefore(Instant deadlineBefore, AmountRequest amountRequest) {
+        return withState(StateName.AWAITING)
+                .withDeadlineBefore(deadlineBefore)
+                .selectJobs("jobAsJson from jobrunr_jobs where state = 'AWAITING' and deadline <= :deadline", pageRequestMapper.map(amountRequest))
+                .collect(toList());
+    }
+
     public Set<String> getDistinctJobSignatures(StateName[] states) {
         return select("distinct jobSignature from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")")
                 .map(resultSet -> resultSet.asString(FIELD_JOB_SIGNATURE))
                 .collect(Collectors.toSet());
     }
 
+    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
+        return countRecurringJobInstances(recurringJobId, states) > 0;
+    }
+
+    public long countRecurringJobInstances(String recurringJobId, StateName[] states) throws SQLException {
         if (states.length < 1) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                    .selectExists("from jobrunr_jobs where recurringJobId = :recurringJobId");
+                    .selectCount("from jobrunr_jobs where recurringJobId = :recurringJobId");
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+                .selectCount("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+    }
+
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        String statement = "recurringJobId, MAX(scheduledAt) as latestScheduledAt FROM jobrunr_jobs WHERE recurringJobId IS NOT NULL GROUP BY recurringJobId";
+        return select(statement).collect(toMap(rs -> rs.asString("recurringJobId"), rs -> rs.asInstant("latestScheduledAt")));
     }
 
     public int deletePermanently(UUID... ids) throws SQLException {
@@ -183,19 +210,19 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertOneJob(Job jobToSave) throws SQLException {
-        insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
+        insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId, :deadline)");
     }
 
     void updateOneJob(Job jobToSave) throws SQLException {
-        update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt, deadline = :deadline WHERE id = :id and version = :previousVersion");
     }
 
     void insertAllJobs(List<Job> jobs) throws SQLException {
-        insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
+        insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId, :deadline)");
     }
 
     void updateAllJobs(List<Job> jobs) throws SQLException {
-        updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt, deadline = :deadline WHERE id = :id and version = :previousVersion");
     }
 
     private Stream<Job> selectJobs(String statement) {

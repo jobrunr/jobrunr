@@ -9,10 +9,8 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static java.time.Duration.between;
+import static java.util.Collections.emptyList;
 
 public class RecurringJob extends AbstractJob {
 
@@ -69,42 +67,43 @@ public class RecurringJob extends AbstractJob {
         return scheduleExpression;
     }
 
-    /**
-     * Returns the next job to for this recurring job based on the current instant.
-     *
-     * @return the next job to for this recurring job based on the current instant.
-     */
-    public Job toScheduledJob() {
-        return toJob(new ScheduledState(getNextRun(), this));
-    }
-
-    /**
-     * Creates all jobs that must be scheduled between the given start and end time.
-     *
-     * @param from the start time from which to create Scheduled Jobs
-     * @param upTo the end time until which to create Scheduled Jobs
-     * @return creates all jobs that must be scheduled
-     */
-    public List<Job> toScheduledJobs(Instant from, Instant upTo) {
-        List<Job> jobs = new ArrayList<>();
-        Instant nextRun = getNextRun(from);
-        while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = getNextRun(nextRun);
-        }
-        return jobs;
-    }
-
-    public Job toEnqueuedJob() {
-        return toJob(new EnqueuedState());
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     public String getZoneId() {
         return zoneId;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
+    /**
+     * Creates all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     *
+     * @param from the start of the time interval from which to create Scheduled Jobs
+     * @param upTo the end of the time interval (not included)
+     * @return all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     */
+    public List<Job> toJobsWith1FutureRun(Instant from, Instant upTo) {
+        if (from.isAfter(upTo)) return emptyList();
+
+        List<Job> jobs = new ArrayList<>();
+
+        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
+        ZoneId zoneId = ZoneId.of(this.zoneId);
+
+        Instant nextRun = schedule.next(createdAt, from, zoneId);
+        while (nextRun.isBefore(upTo)) {
+            jobs.add(toJob(toJobState(schedule, nextRun)));
+            nextRun = schedule.next(createdAt, nextRun, zoneId);
+        }
+
+        // add 1 more job
+        jobs.add(toJob(toJobState(schedule, nextRun)));
+
+        return jobs;
+    }
+
+    public Job toEnqueuedJob() {
+        return toJob(new EnqueuedState());
     }
 
     public Instant getNextRun() {
@@ -141,6 +140,13 @@ public class RecurringJob extends AbstractJob {
         return job;
     }
 
+    private JobState toJobState(Schedule schedule, Instant scheduleAt) {
+        if (schedule.isCarbonAware()) {
+            return schedule.getCarbonAwareScheduleMargin().toCarbonAwareAwaitingState(scheduleAt);
+        }
+        return new ScheduledState(scheduleAt, this);
+    }
+
     @Override
     public String toString() {
         return "RecurringJob{" +
@@ -151,12 +157,6 @@ public class RecurringJob extends AbstractJob {
                 ", jobName='" + getJobName() + '\'' +
                 '}';
     }
-
-    public Duration durationBetweenRecurringJobInstances() {
-        Instant base = Instant.EPOCH.plusSeconds(3600);
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
-        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
-        return between(run1, run2);
-    }
 }
+
+

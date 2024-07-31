@@ -14,6 +14,8 @@ import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
@@ -56,6 +58,25 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public CarbonAwareJobManager carbonAwareJobManager(JobRunrProperties properties, JsonMapper jobRunrJsonMapper) {
+        PropertyMapper map = PropertyMapper.get();
+        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();
+        JobRunrProperties.CarbonAware carbonAwareProperties = properties.getJobs().getCarbonAware();
+
+        map.from(carbonAwareProperties::isEnabled).to(carbonAwareConfiguration::andCarbonAwareSchedulingEnabled);
+        map.from(carbonAwareProperties::getDataProvider).whenNonNull().to(carbonAwareConfiguration::andDataProvider);
+        map.from(carbonAwareProperties::getAreaCode).whenNonNull().to(carbonAwareConfiguration::andAreaCode);
+        map.from(carbonAwareProperties::getExternalCode).whenNonNull().to(carbonAwareConfiguration::andExternalCode);
+        map.from(carbonAwareProperties::getExternalIdentifier).whenNonNull().to(carbonAwareConfiguration::andExternalIdentifier);
+        map.from(carbonAwareProperties::getApiClientConnectTimeout).whenNonNull().to(carbonAwareConfiguration::andApiClientConnectTimeout);
+        map.from(carbonAwareProperties::getApiClientReadTimeout).whenNonNull().to(carbonAwareConfiguration::andApiClientReadTimeout);
+        map.from(carbonAwareProperties::getCarbonIntensityApiUrl).whenNonNull().to(carbonAwareConfiguration::andCarbonIntensityApiUrl);
+        return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(properties.getJobScheduler().getJobDetailsGenerator());
@@ -72,8 +93,8 @@ public class JobRunrAutoConfiguration {
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
-    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration, JobRunrProperties properties) {
-        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
+    public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration, JobRunrProperties properties, CarbonAwareJobManager carbonAwareJobManager) {
+        final BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, carbonAwareJobManager, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
         backgroundJobServer.setJobFilters(singletonList(new RetryFilter(properties.getJobs().getDefaultNumberOfRetries(), properties.getJobs().getRetryBackOffTimeSeed())));
         return backgroundJobServer;
     }
@@ -103,6 +124,7 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         map.from(backgroundJobServerProperties::getScheduledJobsRequestSize).to(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
+        map.from(backgroundJobServerProperties::getCarbonAwaitingJobsRequestSize).to(backgroundJobServerConfiguration::andCarbonAwaitingJobsRequestSize);
         map.from(backgroundJobServerProperties::getOrphanedJobsRequestSize).to(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
         map.from(backgroundJobServerProperties::getSucceededJobsRequestSize).to(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
         map.from(backgroundJobServerProperties::getInterruptJobsAwaitDurationOnStop).to(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);

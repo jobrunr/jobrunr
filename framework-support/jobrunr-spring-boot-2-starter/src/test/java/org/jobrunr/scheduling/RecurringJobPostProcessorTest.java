@@ -3,7 +3,6 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +61,7 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJob(), "not important");
 
         // THEN
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(ScheduleExpressionType.getSchedule("0 0/15 * * *")), any(ZoneId.class));
 
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
         assertThat(actualJobDetails)
@@ -81,7 +80,7 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringCronJobUsingJobContext(), "not important");
 
         // THEN
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(ScheduleExpressionType.getSchedule("0 0/15 * * *")), any(ZoneId.class));
 
         final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
         assertThat(actualJobDetails)
@@ -166,7 +165,7 @@ class RecurringJobPostProcessorTest {
                     context.getBean(RecurringJobPostProcessor.class)
                             .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
 
-                    verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), eq(ZoneId.of("Asia/Taipei")));
+                    verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(ScheduleExpressionType.getSchedule("0 0/15 * * *")), eq(ZoneId.of("Asia/Taipei")));
                 });
     }
 
