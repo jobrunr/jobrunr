@@ -166,22 +166,22 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         }
     }
 
-    boolean isStarted() {
+    public boolean isStarted() {
         return !isStopped();
     }
 
-    boolean isStopped() {
+    public boolean isStopped() {
         try (LifeCycleLock ignored = lifecycleLock.readLock()) {
             if (isStopping()) return true;
             return zookeeperThreadPool == null;
         }
     }
 
-    boolean isPaused() {
+    public boolean isPaused() {
         return !isProcessing();
     }
 
-    boolean isProcessing() {
+    public boolean isProcessing() {
         try (LifeCycleLock ignored = lifecycleLock.readLock()) {
             return isRunning;
         }
