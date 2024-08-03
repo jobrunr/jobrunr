@@ -48,6 +48,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
         options.encoding = "UTF-8"
+        options.release = 11
     }
 
     javadoc {
