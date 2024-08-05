@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "",
-  "proxy": "http://localhost:8000",
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
@@ -20,9 +19,9 @@
     "react-timeago": "^7.2.0"
   },
   "scripts": {
-    "start": "react-scripts --openssl-legacy-provider start",
-    "build": "react-scripts --openssl-legacy-provider build",
-    "test": "react-scripts test",
+    "start": "rsbuild dev",
+    "build": "rsbuild build",
+    "test": "jest",
     "eject": "react-scripts eject",
     "owasp": "owasp-dependency-check --project \"JobRunr\" -f HTML JSON"
   },
@@ -42,9 +41,11 @@
     ]
   },
   "devDependencies": {
+    "@rsbuild/core": "^1.0.1-beta.10",
+    "@rsbuild/plugin-react": "^1.0.1-beta.10",
     "cypress": "^13.6.3",
     "cypress-failed-log": "^2.7.0",
-    "owasp-dependency-check": "^0.0.21",
-    "react-scripts": "^5.0.1"
+    "jest": "^29.7.0",
+    "owasp-dependency-check": "^0.0.21"
   }
 }
