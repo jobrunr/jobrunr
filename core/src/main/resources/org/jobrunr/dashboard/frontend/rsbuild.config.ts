@@ -27,11 +27,4 @@ export default defineConfig({
             '/api': 'http://localhost:8000',
         },
     },
-    performance: {
-        chunkSplit: {
-            forceSplitting: {
-                apexcharts: /node_modules[\\/]apexcharts/,
-            },
-        },
-    }
 });

@@ -1,20 +1,38 @@
-import { useRef, useState } from 'react';
-import * as React from 'react';
+import {lazy, Suspense, useEffect, useRef, useState} from 'react';
 
 import Box from "@mui/material/Box";
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Chart from "react-apexcharts";
-import ApexCharts from "apexcharts";
 import statsState from "../../../StatsStateContext";
+import LoadingIndicator from "../../LoadingIndicator";
+
+function getArrayWithLimitedLength(length) {
+    const array = [];
+
+    array.push = function () {
+        if (this.length >= length) {
+            this.shift();
+        }
+        return Array.prototype.push.apply(this, arguments);
+    }
+
+    for (let i = 0; i < length; i++) {
+        array.push(0);
+    }
+
+    return array;
+
+}
+
+const Chart = lazy(() => import("react-apexcharts"));
 
 const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
 
-    const [stats, setStats] = React.useState(statsState.getStats());
-    React.useEffect(() => {
+    const [stats, setStats] = useState(statsState.getStats());
+    useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])
@@ -54,7 +72,7 @@ const RealtimeGraph = () => {
         ]
     });
 
-    React.useEffect(() => {
+    useEffect(() => {
         const oldStats = oldStatsRef.current;
 
         if (!stats.succeeded || stats.succeeded < 1) return;
@@ -85,33 +103,17 @@ const RealtimeGraph = () => {
                 <Typography id="title" variant="h5">Realtime graph</Typography>
             </Box>
             <Paper>
-                <Chart
-                    options={graphState.options}
-                    series={graphState.series}
-                    type="bar"
-                    height={500}
-                />
+                <Suspense fallback={<LoadingIndicator/>}>
+                    <Chart
+                        options={graphState.options}
+                        series={graphState.series}
+                        type="bar"
+                        height={500}
+                    />
+                </Suspense>
             </Paper>
         </div>
     );
-
-    function getArrayWithLimitedLength(length) {
-        const array = [];
-
-        array.push = function () {
-            if (this.length >= length) {
-                this.shift();
-            }
-            return Array.prototype.push.apply(this, arguments);
-        }
-
-        for (let i = 0; i < length; i++) {
-            array.push(0);
-        }
-
-        return array;
-
-    }
 };
 
 export default RealtimeGraph;
