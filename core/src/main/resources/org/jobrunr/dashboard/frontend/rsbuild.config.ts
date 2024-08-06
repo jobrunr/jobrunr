@@ -16,6 +16,7 @@ export default defineConfig({
             root: 'build',
         },
         assetPrefix: process.env.PUBLIC_URL,
+        manifest: 'asset-manifest.json',
     },
     source: {
         define: publicVars,
@@ -26,4 +27,11 @@ export default defineConfig({
             '/api': 'http://localhost:8000',
         },
     },
+    performance: {
+        chunkSplit: {
+            forceSplitting: {
+                apexcharts: /node_modules[\\/]apexcharts/,
+            },
+        },
+    }
 });
