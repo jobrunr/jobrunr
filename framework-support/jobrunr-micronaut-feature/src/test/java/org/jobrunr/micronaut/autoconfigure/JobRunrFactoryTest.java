@@ -93,6 +93,17 @@ class JobRunrFactoryTest {
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.poll-interval-in-seconds", value = "5")
+    @Property(name = "jobrunr.background-job-server.server-timeout-poll-interval-multiplicand", value = "10")
+    void backgroundJobServerAutoConfigurationTakesIntoPollIntervalAndServerTimeoutPollIntervalMultiplicand() {
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+        assertThat(backgroundJobServerConfiguration)
+                .hasPollIntervalInSeconds(5)
+                .hasServerTimeoutPollIntervalMultiplicand(10);
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     @Property(name = "jobrunr.jobs.default-number-of-retries", value = "3")
     void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);

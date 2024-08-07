@@ -32,6 +32,11 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
         return this;
     }
 
+    public BackgroundJobServerConfigurationAssert hasServerTimeoutPollIntervalMultiplicand(int serverTimeoutPollIntervalMultiplicand) {
+        Assertions.assertThat(actual.getServerTimeoutPollIntervalMultiplicand()).isEqualTo(serverTimeoutPollIntervalMultiplicand);
+        return this;
+    }
+
     public BackgroundJobServerConfigurationAssert hasWorkerCount(Integer workerCount) {
         BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = actual.getBackgroundJobServerWorkerPolicy();
         Assertions.assertThat(backgroundJobServerWorkerPolicy.toWorkDistributionStrategy(null).getWorkerCount()).isEqualTo(workerCount);

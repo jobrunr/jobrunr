@@ -132,6 +132,11 @@ public interface JobRunrConfiguration {
         Optional<Integer> getPollIntervalInSeconds();
 
         /**
+         * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
+         */
+        Optional<Integer> getServerTimeoutPollIntervalMultiplicand();
+
+        /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         Optional<Integer> getScheduledJobsRequestSize();

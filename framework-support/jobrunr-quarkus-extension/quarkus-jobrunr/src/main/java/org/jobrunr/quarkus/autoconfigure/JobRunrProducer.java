@@ -83,6 +83,7 @@ public class JobRunrProducer {
 
             jobRunrRuntimeConfiguration.backgroundJobServer().name().ifPresent(backgroundJobServerConfiguration::andName);
             jobRunrRuntimeConfiguration.backgroundJobServer().pollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
+            jobRunrRuntimeConfiguration.backgroundJobServer().serverTimeoutPollIntervalMultiplicand().ifPresent(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
             jobRunrRuntimeConfiguration.backgroundJobServer().deleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
             jobRunrRuntimeConfiguration.backgroundJobServer().permanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
             jobRunrRuntimeConfiguration.backgroundJobServer().scheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);

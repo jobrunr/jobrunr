@@ -98,7 +98,8 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
-     * Allows to set the pollInterval multiplicand after which a BackgroundJobServer will be seen as timed out (e.g. because it crashed, was stopped, ...).
+     * Allows to set the pollInterval multiplicand used to determine when a BackgroundJobServer should be seen as timed out (e.g. because it crashed, was stopped, ...)
+     * and jobs being processed should be considered orphaned.
      * <p>
      * You can increase this value if you have long stop the world GC cycles or are running on shared hosting and experiencing CPU starvation.
      *

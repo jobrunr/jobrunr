@@ -134,6 +134,11 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> pollIntervalInSeconds();
 
         /**
+         * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
+         */
+        Optional<Integer> serverTimeoutPollIntervalMultiplicand();
+
+        /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
          */
         Optional<Duration> deleteSucceededJobsAfter();

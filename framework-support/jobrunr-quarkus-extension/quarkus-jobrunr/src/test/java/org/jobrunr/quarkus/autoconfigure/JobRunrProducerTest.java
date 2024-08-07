@@ -3,6 +3,7 @@ package org.jobrunr.quarkus.autoconfigure;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -132,7 +133,10 @@ class JobRunrProducerTest {
         when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
 
         when(backgroundJobServerRunTimeConfiguration.name()).thenReturn(Optional.of("test"));
+        when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(25));
+        when(backgroundJobServerRunTimeConfiguration.threadType()).thenReturn(Optional.of(BackgroundJobServerThreadType.PlatformThreads));
         when(backgroundJobServerRunTimeConfiguration.pollIntervalInSeconds()).thenReturn(Optional.of(5));
+        when(backgroundJobServerRunTimeConfiguration.serverTimeoutPollIntervalMultiplicand()).thenReturn(Optional.of(10));
         when(backgroundJobServerRunTimeConfiguration.scheduledJobsRequestSize()).thenReturn(Optional.of(1));
         when(backgroundJobServerRunTimeConfiguration.orphanedJobsRequestSize()).thenReturn(Optional.of(2));
         when(backgroundJobServerRunTimeConfiguration.succeededJobRequestSize()).thenReturn(Optional.of(3));
@@ -140,11 +144,13 @@ class JobRunrProducerTest {
         when(backgroundJobServerRunTimeConfiguration.permanentlyDeleteDeletedJobsAfter()).thenReturn(Optional.of(Duration.of(1, DAYS)));
         when(backgroundJobServerRunTimeConfiguration.interruptJobsAwaitDurationOnStop()).thenReturn(Optional.of(Duration.of(20, SECONDS)));
 
-        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class));
+        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrProducer.backgroundJobServerConfiguration(jobRunrProducer.backgroundJobServerWorkerPolicy());
         assertThat(backgroundJobServerConfiguration)
                 .isNotNull()
                 .hasName("test")
+                .hasWorkerCount(25)
                 .hasPollIntervalInSeconds(5)
+                .hasServerTimeoutPollIntervalMultiplicand(10)
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
                 .hasSucceededJobRequestSize(3)
