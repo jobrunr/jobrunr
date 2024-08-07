@@ -254,6 +254,11 @@ public class JobRunrProperties {
         private Integer pollIntervalInSeconds = 15;
 
         /**
+         * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
+         */
+        private Integer serverTimeoutPollIntervalMultiplicand = 4;
+
+        /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         private Integer scheduledJobsRequestSize = 1000;
@@ -332,6 +337,14 @@ public class JobRunrProperties {
 
         public void setPollIntervalInSeconds(Integer pollIntervalInSeconds) {
             this.pollIntervalInSeconds = pollIntervalInSeconds;
+        }
+
+        public Integer getServerTimeoutPollIntervalMultiplicand() {
+            return serverTimeoutPollIntervalMultiplicand;
+        }
+
+        public void setServerTimeoutPollIntervalMultiplicand(Integer serverTimeoutPollIntervalMultiplicand) {
+            this.serverTimeoutPollIntervalMultiplicand = serverTimeoutPollIntervalMultiplicand;
         }
 
         public Integer getScheduledJobsRequestSize() {
