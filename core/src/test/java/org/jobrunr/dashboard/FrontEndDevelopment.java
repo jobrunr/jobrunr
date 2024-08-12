@@ -61,7 +61,7 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
                 x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofSeconds(5), TestService::doWork);
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {
