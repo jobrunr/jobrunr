@@ -160,9 +160,22 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.background-job-server.thread-type=PlatformThreads")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
-                    assertThat(context.getBean(BackgroundJobServer.class));
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasWorkerCount(4);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesPollIntervalInSecondsAndServerTimeoutPollIntervalMultiplicand() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.poll-interval-in-seconds=5")
+                .withPropertyValues("org.jobrunr.background-job-server.server-timeout-poll-interval-multiplicand=10")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasPollIntervalInSeconds(5)
+                            .hasServerTimeoutPollIntervalMultiplicand(10);
                 });
     }
 
