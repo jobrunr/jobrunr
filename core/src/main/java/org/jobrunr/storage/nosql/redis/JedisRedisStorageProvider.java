@@ -472,6 +472,16 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final Jedis jedis = getJedis(); Transaction t = jedis.multi()) {
             t.set(recurringJobKey(keyPrefix, recurringJob.getId()), jobMapper.serializeRecurringJob(recurringJob));

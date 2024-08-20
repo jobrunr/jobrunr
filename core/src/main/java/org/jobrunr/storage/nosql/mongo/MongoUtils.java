@@ -11,7 +11,9 @@ import java.util.UUID;
 
 import static org.bson.internal.UuidHelper.decodeBinaryToUuid;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class MongoUtils {
@@ -54,5 +56,12 @@ public class MongoUtils {
 
     public static long toMicroSeconds(Instant instant) {
         return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
+    }
+
+    public static Instant fromMicroseconds(Long micros) {
+        if (micros == null) {
+            return null;
+        }
+        return Instant.ofEpochSecond(micros / 1_000_000, (micros % 1_000_000) * 1_000);
     }
 }

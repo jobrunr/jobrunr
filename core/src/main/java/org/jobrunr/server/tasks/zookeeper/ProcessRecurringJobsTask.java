@@ -66,7 +66,8 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private boolean isAlreadyScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
-        return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+        return storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED) > 1 ||
+                storageProvider.countRecurringJobInstances(recurringJob.getId(), ENQUEUED, PROCESSING) > 0;
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {

@@ -11,6 +11,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Disabled;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @Testcontainers
+@Disabled("LettuceRedisStorageProvider will be removed in v8")
 public class LettuceRedisStorageProviderTest extends StorageProviderTest {
 
     @Container

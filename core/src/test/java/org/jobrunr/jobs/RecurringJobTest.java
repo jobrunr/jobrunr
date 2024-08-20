@@ -2,7 +2,6 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
@@ -21,6 +20,7 @@ import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
@@ -62,38 +62,48 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndPlusAnExtraJobScheduledAheadOfTime() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
                 .withCronExpression("*/5 * * * * *")
                 .build();
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
-        assertThat(jobs).hasSize(1);
-        ScheduledState scheduledState = jobs.get(0).getJobState();
-        assertThat(scheduledState.getScheduledAt()).isAfter(now());
+        assertThatJobs(jobs)
+                .hasSize(2)
+                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
+                .allMatch(job -> job.getState().equals(SCHEDULED));
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndNoResults() {
+    void testToScheduledJobsSchedulesNoJobsBetweenStartAndEndButSchedulesAnExtraAheadOfTime() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression(Cron.weekly())
+                .withId("the-recurring-job")
+                .withIntervalExpression("PT1H")
                 .build();
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
-        assertThat(jobs).isEmpty();
+        assertThatJobs(jobs)
+                .hasSize(1)
+                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
+                .allMatch(job -> job.getState().equals(SCHEDULED));
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResults() {
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResultsPlusAnExtraJobScheduledAheadOfTime() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
                 .withCronExpression("*/5 * * * * *")
                 .build();
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
 
-        assertThat(jobs).hasSize(4);
+        assertThatJobs(jobs)
+                .hasSize(5)
+                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
+                .allMatch(job -> job.getState().equals(SCHEDULED));
     }
 
     @Test

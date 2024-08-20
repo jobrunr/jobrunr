@@ -63,6 +63,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import static com.mongodb.client.model.Accumulators.max;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.match;
@@ -99,6 +100,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
 import static org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.fromMicroseconds;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.getIdAsUUID;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
@@ -332,7 +334,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        if(jobs.isEmpty()) return jobs;
+        if (jobs.isEmpty()) return jobs;
 
         try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             if (jobListVersioner.areNewJobs()) {
@@ -384,11 +386,29 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        return countRecurringJobInstances(recurringJobId, states) > 0;
+    }
+
+    @Override
+    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         if (states.length < 1) {
-            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
+            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         }
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
+        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)));
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        Map<String, Instant> lastRuns = new HashMap<>();
+
+        jobCollection.aggregate(asList(
+                match(ne(Jobs.FIELD_RECURRING_JOB_ID, null)),
+                group("$" + Jobs.FIELD_RECURRING_JOB_ID, max("latestScheduledAt", "$" + Jobs.FIELD_SCHEDULED_AT))
+        )).forEach(doc -> lastRuns.put(doc.getString("_id"), fromMicroseconds(doc.getLong("latestScheduledAt"))));
+
+        return lastRuns;
     }
 
     @Override
