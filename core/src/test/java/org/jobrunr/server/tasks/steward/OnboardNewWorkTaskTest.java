@@ -59,7 +59,7 @@ class OnboardNewWorkTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void taskIsNotDoneConcurrently() throws InterruptedException {
+    void taskIsNotDoneConcurrentlyBecauseOfTheReentrantLock() throws InterruptedException {
         when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any())).thenAnswer((invocationOnMock) -> {
             sleep(100);
             return emptyList();

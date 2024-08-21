@@ -1,7 +1,6 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.server.tasks.OneOffTaskRunInfo;
 import org.jobrunr.server.tasks.steward.OnboardNewWorkTask;
 import org.jobrunr.server.tasks.steward.UpdateJobsInProgressTask;
 
@@ -60,6 +59,6 @@ public class JobSteward extends JobHandler implements Runnable {
 
     public void notifyThreadIdle() {
         this.occupiedWorkers.decrementAndGet();
-        onboardNewWorkTask.run(new OneOffTaskRunInfo(backgroundJobServerConfiguration()));
+        onboardNewWorkTask.runTaskThreadSafe();
     }
 }
