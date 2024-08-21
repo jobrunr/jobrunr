@@ -1,9 +1,12 @@
 package org.jobrunr.server;
 
+import ch.qos.logback.Logback.TemporarilyLogLevelChange;
+import ch.qos.logback.classic.Level;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.server.tasks.steward.OnboardNewWorkTask;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.Mocks;
 import org.jobrunr.utils.SleepUtils;
@@ -20,6 +23,7 @@ import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 
+import static ch.qos.logback.Logback.temporarilyChangeLogLevel;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -100,9 +104,11 @@ class JobStewardTest {
             threads.add(thread);
         }
 
-        threads.forEach(Thread::start);
+        try (TemporarilyLogLevelChange ignored = temporarilyChangeLogLevel(OnboardNewWorkTask.class, Level.INFO)) {
+            threads.forEach(Thread::start);
+            countDownLatch.await();
+        }
 
-        countDownLatch.await();
         assertThat(throwables).isEmpty();
         verify(backgroundJobServer, times(concurrency)).isRunning();
         verify(backgroundJobServer, atLeast(1)).processJob(enqueuedJob); // due to ReentrantLock
@@ -121,4 +127,6 @@ class JobStewardTest {
         when(backgroundJobServer.getJobSteward()).thenReturn(jobSteward);
         return jobSteward;
     }
+
+
 }
