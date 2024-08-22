@@ -84,6 +84,11 @@ public interface JobRunrRuntimeConfiguration {
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
         Optional<Integer> retryBackOffTimeSeed();
+
+        /**
+         * Configures MicroMeter metrics related to jobs
+         */
+        MetricsConfiguration metrics();
     }
 
     interface JobSchedulerConfiguration {
@@ -152,6 +157,11 @@ public interface JobRunrRuntimeConfiguration {
          * Sets the duration to wait before interrupting threads/jobs when the server is stopped.
          */
         Optional<Duration> interruptJobsAwaitDurationOnStop();
+
+        /**
+         * Configures MicroMeter metrics related to the background job server
+         */
+        MetricsConfiguration metrics();
     }
 
     interface DashboardConfiguration {
@@ -181,5 +191,13 @@ public interface JobRunrRuntimeConfiguration {
         @WithDefault("true")
         boolean allowAnonymousDataUsage();
     }
-}
 
+    interface MetricsConfiguration {
+
+        /**
+         * Configures whether metrics are reported to MicroMeter.
+         */
+        @WithDefault("false")
+        boolean enabled();
+    }
+}
