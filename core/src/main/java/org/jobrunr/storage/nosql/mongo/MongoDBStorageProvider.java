@@ -246,8 +246,12 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
-        this.metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), metadata.getId()), metadataDocumentMapper.toUpdateDocument(metadata), new UpdateOptions().upsert(true));
-        notifyMetadataChangeListeners();
+        try {
+            this.metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), metadata.getId()), metadataDocumentMapper.toUpdateDocument(metadata), new UpdateOptions().upsert(true));
+            notifyMetadataChangeListeners();
+        } catch (MongoException e) {
+            throw new StorageException(e);
+        }
     }
 
     @Override
@@ -265,9 +269,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void deleteMetadata(String name) {
-        final DeleteResult deleteResult = metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
-        long deletedCount = deleteResult.getDeletedCount();
-        notifyMetadataChangeListeners(deletedCount > 0);
+        try {
+            final DeleteResult deleteResult = metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
+            long deletedCount = deleteResult.getDeletedCount();
+            notifyMetadataChangeListeners(deletedCount > 0);
+        } catch (MongoException e) {
+            throw new StorageException(e);
+        }
     }
 
     @Override
@@ -332,7 +340,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> save(List<Job> jobs) {
-        if(jobs.isEmpty()) return jobs;
+        if (jobs.isEmpty()) return jobs;
 
         try (JobListVersioner jobListVersioner = new JobListVersioner(jobs)) {
             if (jobListVersioner.areNewJobs()) {
