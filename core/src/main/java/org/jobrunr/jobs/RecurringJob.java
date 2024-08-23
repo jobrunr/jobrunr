@@ -98,7 +98,9 @@ public class RecurringJob extends AbstractJob {
         }
 
         // job scheduled ahead of time
-        jobs.add(toJob(new ScheduledState(nextRun, this)));
+        if (jobs.isEmpty()) {
+            jobs.add(toJob(new ScheduledState(nextRun, this)));
+        }
 
         return jobs;
     }
