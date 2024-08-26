@@ -35,6 +35,11 @@ public abstract class Task {
         this.jobFilterUtils = new JobFilterUtils(backgroundJobServer.getJobFilters());
     }
 
+    /**
+     * This method is not thread-safe and should not be accessed concurrently by different Threads.
+     *
+     * @param runInfo all information related to the current run (like startTime, ...).
+     */
     public void run(TaskRunInfo runInfo) {
         try {
             this.runInfo = runInfo;

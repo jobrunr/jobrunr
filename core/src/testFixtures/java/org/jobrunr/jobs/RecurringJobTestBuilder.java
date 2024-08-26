@@ -11,10 +11,10 @@ import org.jobrunr.scheduling.interval.Interval;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
-import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class RecurringJobTestBuilder {
 
@@ -24,7 +24,7 @@ public class RecurringJobTestBuilder {
     private JobDetails jobDetails;
     private Schedule schedule;
     private ZoneId zoneId;
-    private Set<String> labels;
+    private List<String> labels;
     private Instant createdAt = Instant.now();
 
     private RecurringJobTestBuilder() {
@@ -105,7 +105,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withLabels(String... labels) {
-        this.labels = asSet(labels);
+        this.labels = asList(labels);
         return this;
     }
 

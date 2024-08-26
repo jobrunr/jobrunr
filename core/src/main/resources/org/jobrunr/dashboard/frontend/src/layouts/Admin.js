@@ -91,7 +91,7 @@ const AdminUI = function () {
         ]).then(([jobRunrInfo, problems, latestVersion, apiNotification]) => {
             setJobRunrInfo(jobRunrInfo);
             setProblems(problems);
-            setLatestVersion(latestVersion["latestVersion"]);
+            setLatestVersion(latestVersion?.["latestVersion"]);
             setApiNotification(apiNotification);
         }).catch(error => console.log(error));
     }, []);

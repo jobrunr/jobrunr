@@ -4,10 +4,11 @@ import org.jobrunr.utils.JobUtils;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.Lockable;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
-import static java.util.Collections.unmodifiableSet;
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toCollection;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 
 public abstract class AbstractJob implements Lockable {
@@ -20,13 +21,13 @@ public abstract class AbstractJob implements Lockable {
     private String jobSignature;
     private String jobName;
     private Integer amountOfRetries;
-    private HashSet<String> labels;
+    private ArrayList<String> labels;
     private JobDetails jobDetails;
 
     protected AbstractJob() {
         // used for deserialization
         this.locker = new Lock();
-        this.labels = new HashSet<>();
+        this.labels = new ArrayList<>();
     }
 
     protected AbstractJob(JobDetails jobDetails) {
@@ -79,11 +80,11 @@ public abstract class AbstractJob implements Lockable {
         this.amountOfRetries = retries;
     }
 
-    public Set<String> getLabels() {
-        return unmodifiableSet(labels);
+    public List<String> getLabels() {
+        return unmodifiableList(labels);
     }
 
-    public void setLabels(Set<String> labels) {
+    public void setLabels(List<String> labels) {
         if (isNotNullOrEmpty(labels)) {
             if (labels.size() > MAX_AMOUNT_OF_LABELS) {
                 throw new IllegalArgumentException(String.format("Per job a maximum of %d labels can be provided.", MAX_AMOUNT_OF_LABELS));
@@ -91,7 +92,7 @@ public abstract class AbstractJob implements Lockable {
             if (labels.stream().anyMatch(label -> label.length() > 45)) {
                 throw new IllegalArgumentException(String.format("Label length must be less than %d characters.", MAX_LABEL_LENGTH));
             }
-            this.labels = new HashSet<>(labels);
+            this.labels = labels.stream().distinct().collect(toCollection(ArrayList::new));
         }
     }
 

@@ -267,6 +267,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             commands.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));
             commands.exec();
             notifyMetadataChangeListeners();
+        } catch (RedisException e) {
+            throw new StorageException(e);
         }
     }
 
@@ -323,6 +325,8 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
                 commands.exec();
                 notifyMetadataChangeListeners();
             }
+        } catch (RedisException e) {
+            throw new StorageException(e);
         }
     }
 

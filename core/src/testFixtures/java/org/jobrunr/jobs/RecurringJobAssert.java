@@ -4,7 +4,7 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.JobRunrAssertions;
 
-import java.util.Set;
+import java.util.List;
 
 public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, RecurringJob> {
 
@@ -44,7 +44,7 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
         return this;
     }
 
-    public RecurringJobAssert hasLabels(Set<String> labels) {
+    public RecurringJobAssert hasLabels(List<String> labels) {
         Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
         return this;
     }

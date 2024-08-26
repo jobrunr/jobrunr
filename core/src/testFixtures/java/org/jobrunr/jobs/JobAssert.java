@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -128,7 +127,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
-    public JobAssert hasLabels(Set<String> labels) {
+    public JobAssert hasLabels(List<String> labels) {
         Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
         return this;
     }

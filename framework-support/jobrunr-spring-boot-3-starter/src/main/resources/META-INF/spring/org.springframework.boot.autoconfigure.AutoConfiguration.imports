@@ -3,5 +3,6 @@ org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfigur
 org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration
 org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceRedisClientStorageAutoConfiguration
 org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration
+org.jobrunr.spring.autoconfigure.storage.JobRunrDocumentDBStorageAutoConfiguration
 org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration
 org.jobrunr.spring.autoconfigure.metrics.JobRunrMetricsAutoConfiguration

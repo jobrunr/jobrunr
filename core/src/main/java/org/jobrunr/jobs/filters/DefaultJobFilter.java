@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.JobUtils.getJobAnnotation;
 import static org.jobrunr.utils.JobUtils.getReadableNameFromJobDetails;
 
@@ -51,9 +51,7 @@ public class DefaultJobFilter implements JobClientFilter {
 
     private void setLabels(AbstractJob job, Optional<Job> jobAnnotation) {
         Optional<String[]> labelsFromAnnotation = getStringArrayFromAnnotation(jobAnnotation, Job::labels);
-        if (labelsFromAnnotation.isPresent()) {
-            job.setLabels(stream(labelsFromAnnotation.get()).map(s -> resolveParameters(s, job)).collect(toSet()));
-        }
+        labelsFromAnnotation.ifPresent(strings -> job.setLabels(stream(strings).map(s -> resolveParameters(s, job)).collect(toList())));
     }
 
     private Optional<String> getFromAnnotation(Optional<Job> jobAnnotation, Function<Job, String> mappingFunction) {

@@ -2,7 +2,7 @@ package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.tasks.AbstractTaskTest;
-import org.jobrunr.server.tasks.OneOffTaskRunInfo;
+import org.jobrunr.server.tasks.PeriodicTaskRunInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.reflection.Whitebox;
@@ -15,6 +15,7 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -30,7 +31,7 @@ public class AbstractJobZooKeeperTaskTest extends AbstractTaskTest {
                 // nothing to do
             }
         };
-        Whitebox.setInternalState(task, "runInfo", new OneOffTaskRunInfo(backgroundJobServer.getConfiguration()));
+        Whitebox.setInternalState(task, "runInfo", mock(PeriodicTaskRunInfo.class));
     }
 
     @Test
