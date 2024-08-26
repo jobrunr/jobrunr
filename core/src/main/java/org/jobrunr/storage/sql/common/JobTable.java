@@ -165,18 +165,13 @@ public class JobTable extends Sql<Job> {
                 .collect(Collectors.toSet());
     }
 
-    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
-        return countRecurringJobInstances(recurringJobId, states) > 0;
-    }
-
-    public long countRecurringJobInstances(String recurringJobId, StateName[] states) throws SQLException {
         if (states.length < 1) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                    .selectCount("from jobrunr_jobs where recurringJobId = :recurringJobId");
+                    .selectExists("from jobrunr_jobs where recurringJobId = :recurringJobId");
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .selectCount("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
     }
 
     public Map<String, Instant> getRecurringJobsLatestScheduledRun() {

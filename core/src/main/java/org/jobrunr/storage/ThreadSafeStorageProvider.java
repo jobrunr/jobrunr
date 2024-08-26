@@ -162,14 +162,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         return storageProvider.recurringJobExists(recurringJobId, states);
-    }
-
-    @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
-        return storageProvider.countRecurringJobInstances(recurringJobId, states);
     }
 
     @Override

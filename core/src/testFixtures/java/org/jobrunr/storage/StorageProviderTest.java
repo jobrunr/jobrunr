@@ -577,40 +577,6 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testCountRecurringJobInstances() {
-        JobDetails jobDetails = defaultJobDetails().build();
-        RecurringJob recurringJob = aDefaultRecurringJob().withJobDetails(jobDetails).build();
-        Job scheduledRecurringJob1 = recurringJob.toScheduledJobs(now(), now().plusSeconds(15)).get(0);
-        Job scheduledRecurringJob2 = recurringJob.toScheduledJobs(now(), now().plusSeconds(15)).get(0);
-        Job anEnqueuedJob = anEnqueuedJob().build();
-
-        storageProvider.save(asList(scheduledRecurringJob1, anEnqueuedJob));
-
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId())).isEqualTo(1);
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).isEqualTo(1);
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED)).isEqualTo(1);
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), ENQUEUED, PROCESSING)).isEqualTo(0);
-
-        scheduledRecurringJob1.enqueue();
-        storageProvider.save(scheduledRecurringJob1);
-        storageProvider.save(scheduledRecurringJob2);
-
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).isEqualTo(2);
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), ENQUEUED)).isEqualTo(1);
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEqualTo(1);
-
-        scheduledRecurringJob1.delete("For test");
-        storageProvider.save(scheduledRecurringJob1);
-
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).isEqualTo(1);
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId(), DELETED)).isEqualTo(1);
-
-        storageProvider.deletePermanently(scheduledRecurringJob1.getId());
-
-        assertThat(storageProvider.countRecurringJobInstances(recurringJob.getId())).isEqualTo(1);
-    }
-
-    @Test
     void testGetRecurringJobsLatestScheduledRun() {
         Instant now = now();
         RecurringJob recurringJob1 = aDefaultRecurringJob().withId("r1").build();

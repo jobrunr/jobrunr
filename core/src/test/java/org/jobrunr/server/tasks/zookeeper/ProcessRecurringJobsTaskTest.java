@@ -82,7 +82,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
 
         // FIRST RUN - No Jobs scheduled yet.
-        when(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(0L);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
         runTask(task);
 
@@ -94,7 +94,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // SECOND RUN - the 1 job scheduled in the first run is still active.
         clearInvocations(storageProvider);
-        when(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(1L);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
         runTask(task);
 
@@ -102,7 +102,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // THIRD RUN - the 1 scheduled job is no longer active
         clearInvocations(storageProvider);
-        when(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(0L);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
         runTask(task);
 
@@ -152,7 +152,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
-        when(storageProvider.countRecurringJobInstances(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(0L);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
             runTask(task);

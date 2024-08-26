@@ -249,27 +249,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        return jobQueue.values().stream()
-                .anyMatch(job ->
-                        asList(getStateNames(states)).contains(job.getState())
-                                && job.getRecurringJobId()
-                                .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
-                                .orElse(false));
-    }
-
-    @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         if (states.length == 0) {
             return jobQueue.values().stream()
-                    .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                    .count();
+                    .anyMatch(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)));
         }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                .filter(job -> asList(getStateNames(states)).contains(job.getState()))
-                .count();
+                .anyMatch(job -> asList(getStateNames(states)).contains(job.getState()));
     }
 
     @Override

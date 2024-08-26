@@ -394,17 +394,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        return countRecurringJobInstances(recurringJobId, states) > 0;
-    }
-
-    @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         if (states.length < 1) {
-            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
+            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
         }
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)));
+        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
     }
 
     @Override

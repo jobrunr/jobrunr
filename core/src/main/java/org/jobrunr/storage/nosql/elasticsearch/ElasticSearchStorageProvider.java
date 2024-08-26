@@ -611,11 +611,6 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
         throw new UnsupportedOperationException();
     }
