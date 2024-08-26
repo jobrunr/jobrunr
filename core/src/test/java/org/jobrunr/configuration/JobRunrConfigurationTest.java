@@ -163,7 +163,7 @@ class JobRunrConfigurationTest {
     }
 
     @Test
-    void initializeShouldThrowAJsonMapperExceptionIfNoneOfTheSupportedJsonLibrariesIsOnTheClasspathButAndACustomJsonMapperIsNotProvided() {
+    void initializeShouldThrowAJsonMapperExceptionIfNoneOfTheSupportedJsonLibrariesIsOnTheClasspathAndACustomJsonMapperIsNotProvided() {
         assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
 
         try (MockedStatic<ReflectionUtils> mockedReflectionUtils = Mockito.mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
