@@ -106,6 +106,9 @@ steps:
       - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
       - ./gradlew --continue -Djib.console=plain --no-daemon -i clean build jacocoTestReport sonar
+    environment:
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
     volumes:
       - name: dockersock
