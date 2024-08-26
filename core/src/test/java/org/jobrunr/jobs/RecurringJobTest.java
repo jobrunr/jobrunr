@@ -11,16 +11,18 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
@@ -62,7 +64,7 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndPlusAnExtraJobScheduledAheadOfTime() {
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withId("the-recurring-job")
                 .withCronExpression("*/5 * * * * *")
@@ -70,10 +72,7 @@ class RecurringJobTest {
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
-        assertThatJobs(jobs)
-                .hasSize(2)
-                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
-                .allMatch(job -> job.getState().equals(SCHEDULED));
+        assertThat(jobs).hasSize(1);
     }
 
     @Test
@@ -85,14 +84,12 @@ class RecurringJobTest {
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
-        assertThatJobs(jobs)
-                .hasSize(1)
-                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
-                .allMatch(job -> job.getState().equals(SCHEDULED));
+        assertThat(jobs).hasSize(1);
+        assertThat(jobs.get(0)).hasScheduledAtCloseTo(now().plus(1, HOURS), within(1, ChronoUnit.MINUTES));
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResultsPlusAnExtraJobScheduledAheadOfTime() {
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResults() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withId("the-recurring-job")
                 .withCronExpression("*/5 * * * * *")
@@ -100,10 +97,7 @@ class RecurringJobTest {
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
 
-        assertThatJobs(jobs)
-                .hasSize(5)
-                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
-                .allMatch(job -> job.getState().equals(SCHEDULED));
+        assertThat(jobs).hasSize(4);
     }
 
     @Test

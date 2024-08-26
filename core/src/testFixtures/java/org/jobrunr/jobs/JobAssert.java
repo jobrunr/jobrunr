@@ -8,6 +8,7 @@ import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 
 import java.time.Instant;
@@ -58,6 +59,12 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     public JobAssert hasUpdatedAtCloseTo(Instant instant, TemporalOffset<Temporal> temporalOffset) {
         Assertions.assertThat(actual.getUpdatedAt()).isCloseTo(instant, temporalOffset);
+        return this;
+    }
+
+    public JobAssert hasScheduledAtCloseTo(Instant instant, TemporalOffset<Temporal> temporalOffset) {
+        hasState(StateName.SCHEDULED);
+        Assertions.assertThat(((ScheduledState) actual.getJobState()).getScheduledAt()).isCloseTo(instant, temporalOffset);
         return this;
     }
 
