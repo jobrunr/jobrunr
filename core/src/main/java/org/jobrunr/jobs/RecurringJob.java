@@ -79,11 +79,12 @@ public class RecurringJob extends AbstractJob {
     }
 
     /**
-     * Creates all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     * Creates all jobs that must be scheduled in the time interval [from, upTo).
+     * If no job is scheduled in the time interval, a job is scheduled ahead of time.
      *
      * @param from the start of the time interval from which to create Scheduled Jobs
      * @param upTo the end of the time interval (not included)
-     * @return all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     * @return all jobs that must be scheduled in the time interval [from, upTo), or a job scheduled ahead of time.
      */
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
         List<Job> jobs = new ArrayList<>();
