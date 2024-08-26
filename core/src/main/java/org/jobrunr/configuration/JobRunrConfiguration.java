@@ -47,7 +47,7 @@ public class JobRunrConfiguration {
 
     JobRunrConfiguration() {
         this.jsonMapper = determineJsonMapper();
-        this.jobMapper = new JobMapper(jsonMapper);
+        this.jobMapper = this.jsonMapper == null ? null : new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
     }
@@ -330,6 +330,9 @@ public class JobRunrConfiguration {
      * @return a JobScheduler to enqueue/schedule new jobs
      */
     public JobRunrConfigurationResult initialize() {
+        if (jsonMapper == null) {
+            throw new JsonMapperException("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath. You may also configure a custom JsonMapper.");
+        }
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
@@ -343,9 +346,8 @@ public class JobRunrConfiguration {
             return new GsonJsonMapper();
         } else if (classExists("jakarta.json.bind.JsonbBuilder")) {
             return new JsonbJsonMapper();
-        } else {
-            throw new JsonMapperException("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath");
         }
+        return null;
     }
 
     public static class JobRunrConfigurationResult {
