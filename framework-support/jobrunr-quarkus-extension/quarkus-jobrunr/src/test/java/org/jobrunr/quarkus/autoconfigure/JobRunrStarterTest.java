@@ -4,8 +4,8 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.inject.Instance;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DashboardConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration.DashboardConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 class JobRunrStarterTest {
 
     @Mock
-    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Mock
     BackgroundJobServerConfiguration backgroundJobServerConfiguration;
@@ -53,14 +53,14 @@ class JobRunrStarterTest {
 
     @BeforeEach
     void setUpJobRunrMetricsStarter() {
-        when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
-        when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
+        when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
+        when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
 
         lenient().when(backgroundJobServerInstance.get()).thenReturn(backgroundJobServer);
         lenient().when(dashboardWebServerInstance.get()).thenReturn(dashboardWebServer);
         lenient().when(storageProviderInstance.get()).thenReturn(storageProvider);
 
-        jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
+        jobRunrStarter = new JobRunrStarter(jobRunrRuntimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
     }
 
     @Test

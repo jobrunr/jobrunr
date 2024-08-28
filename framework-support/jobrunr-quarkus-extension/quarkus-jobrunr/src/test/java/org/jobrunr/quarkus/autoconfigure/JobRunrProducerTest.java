@@ -38,10 +38,6 @@ class JobRunrProducerTest {
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
     @Mock
     JobRunrBuildTimeConfiguration.JobSchedulerConfiguration jobSchedulerBuildTimeConfiguration;
-    @Mock
-    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerBuildTimeConfiguration;
-    @Mock
-    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardBuildTimeConfiguration;
 
 
     @Mock
@@ -71,8 +67,6 @@ class JobRunrProducerTest {
     @BeforeEach
     void setUp() {
         lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerBuildTimeConfiguration);
-        lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerBuildTimeConfiguration);
-        lenient().when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardBuildTimeConfiguration);
 
         lenient().when(jobRunrRuntimeConfiguration.database()).thenReturn(databaseRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
@@ -116,21 +110,21 @@ class JobRunrProducerTest {
 
     @Test
     void backgroundJobServerConfigurationIsNotSetupWhenNotConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNull();
     }
 
     @Test
     void backgroundJobServerConfigurationIsSetupWhenConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNotNull();
     }
 
     @Test
     void backgroundJobServerConfigurationMapsCorrectConfigurationWhenConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
 
         when(backgroundJobServerRunTimeConfiguration.name()).thenReturn(Optional.of("test"));
         when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(25));
@@ -161,42 +155,42 @@ class JobRunrProducerTest {
 
     @Test
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
     }
 
     @Test
     void dashboardWebServerConfigurationIsNotSetupWhenNotConfigured() {
-        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(dashboardRunTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.dashboardWebServerConfiguration()).isNull();
     }
 
     @Test
     void dashboardWebServerConfigurationIsSetupWhenConfigured() {
-        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(dashboardRunTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.dashboardWebServerConfiguration()).isNotNull();
     }
 
     @Test
     void dashboardWebServerIsNotSetupWhenNotConfigured() {
-        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(dashboardRunTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.dashboardWebServer(storageProvider, jsonMapper, usingStandardDashboardConfiguration())).isNull();
     }
 
     @Test
     void dashboardWebServerIsSetupWhenConfigured() {
-        when(dashboardBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(dashboardRunTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.dashboardWebServer(storageProvider, jsonMapper, usingStandardDashboardConfiguration())).isNotNull();
     }

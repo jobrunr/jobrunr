@@ -26,16 +26,6 @@ public interface JobRunrBuildTimeConfiguration {
     JobSchedulerConfiguration jobScheduler();
 
     /**
-     * Allows to configure JobRunr BackgroundJobServer related settings
-     */
-    BackgroundJobServerConfiguration backgroundJobServer();
-
-    /**
-     * Allows to configure JobRunr Dashboard related settings
-     */
-    DashboardConfiguration dashboard();
-
-    /**
      * Whether or not an health check is published in case the smallrye-health extension is present.
      */
     @WithParentName
@@ -58,24 +48,6 @@ public interface JobRunrBuildTimeConfiguration {
          * Enables the scheduling of jobs.
          */
         @WithDefault("true")
-        boolean enabled();
-    }
-
-    interface BackgroundJobServerConfiguration {
-
-        /**
-         * Enables the background processing of jobs.
-         */
-        @WithDefault("false")
-        boolean enabled();
-    }
-
-    interface DashboardConfiguration {
-
-        /**
-         * Enables the JobRunr dashboard.
-         */
-        @WithDefault("false")
         boolean enabled();
     }
 }
