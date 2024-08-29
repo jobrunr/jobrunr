@@ -156,7 +156,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public void stop() {
         try (LifeCycleLock ignored = lifecycleLock.writeLock()) {
             if (isStopped()) return;
-            LOGGER.info("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)");
+            LOGGER.info("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max {})", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
             isMaster = null;
             stopWorkers();
             stopZooKeepers();
