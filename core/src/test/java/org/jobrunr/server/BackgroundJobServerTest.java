@@ -99,7 +99,7 @@ class BackgroundJobServerTest {
         doAnswer(invocation -> {
             // simulate long during migration
             JobRunrMetadata metadata = invocation.getArgument(0);
-            if("database_version".equals(metadata.getName()) && "6.0.0".equals(metadata.getValue())) {
+            if ("database_version".equals(metadata.getName()) && "6.0.0".equals(metadata.getValue())) {
                 sleep(5, SECONDS);
             }
             return invocation.callRealMethod();
@@ -229,6 +229,7 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // PAUSE -> STOP
         assertThatCode(() -> backgroundJobServer.stop()).doesNotThrowAnyException();
@@ -236,18 +237,21 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isTrue();
 
         // STOP -> RESUME
         assertThatThrownBy(() -> backgroundJobServer.resumeProcessing()).isInstanceOf(IllegalStateException.class);
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isTrue();
 
         // STOP -> PAUSE
         assertThatThrownBy(() -> backgroundJobServer.pauseProcessing()).isInstanceOf(IllegalStateException.class);
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isTrue();
 
         // STOP -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
@@ -255,18 +259,21 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // START -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // START -> RESUME
         assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // RESUME -> RESUME
         assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();

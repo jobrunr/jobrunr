@@ -172,7 +172,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     boolean isStopped() {
         try (LifeCycleLock ignored = lifecycleLock.readLock()) {
-            if (isStopping()) return true;
             return zookeeperThreadPool == null;
         }
     }
@@ -203,7 +202,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     void setIsMaster(Boolean isMaster) {
-        if (isStopped()) return;
+        if (isStopping() || isStopped()) return;
 
         this.isMaster = isMaster;
         if (isMaster != null) {
@@ -381,7 +380,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private boolean isStopping() {
-        return jobExecutor != null && jobExecutor.isStopping();
+        final JobRunrExecutor tmpJobExecutor = jobExecutor;
+        return tmpJobExecutor != null && tmpJobExecutor.isStopping();
     }
 
     static class BackgroundJobServerLifecycleLock {

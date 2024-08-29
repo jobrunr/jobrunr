@@ -7,7 +7,10 @@ import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.JsonMapperException;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,12 +18,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
@@ -62,7 +68,7 @@ class JobRunrConfigurationTest {
 
         verify(storageProvider).setJobMapper(jobMapperCaptor.capture());
         JobMapper jobMapper = jobMapperCaptor.getValue();
-        assertThat((JsonMapper)getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
+        assertThat((JsonMapper) getInternalState(jobMapper, "jsonMapper")).isEqualTo(jsonMapper);
     }
 
     @Test
@@ -141,5 +147,32 @@ class JobRunrConfigurationTest {
 
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
+    }
+
+    @Test
+    void initializeShouldNotThrowAJsonMapperExceptionIfNoneOfTheSupportedJsonLibrariesIsOnTheClasspathButACustomJsonMapperIsProvided() {
+        assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
+
+        try (MockedStatic<ReflectionUtils> mockedReflectionUtils = Mockito.mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedReflectionUtils.when(() -> ReflectionUtils.classExists(any())).thenReturn(false);
+
+            assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isFalse();
+            assertThatCode(() -> JobRunr.configure().useJsonMapper(new JacksonJsonMapper()).useStorageProvider(storageProvider).initialize())
+                    .doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void initializeShouldThrowAJsonMapperExceptionIfNoneOfTheSupportedJsonLibrariesIsOnTheClasspathAndACustomJsonMapperIsNotProvided() {
+        assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
+
+        try (MockedStatic<ReflectionUtils> mockedReflectionUtils = Mockito.mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedReflectionUtils.when(() -> ReflectionUtils.classExists(any())).thenReturn(false);
+
+            assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isFalse();
+            assertThatCode(() -> JobRunr.configure().useStorageProvider(storageProvider).initialize())
+                    .isInstanceOf(JsonMapperException.class)
+                    .hasMessage("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath. You may also configure a custom JsonMapper.");
+        }
     }
 }

@@ -240,6 +240,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
             t.sadd(metadatasKey(keyPrefix), metadataKey(keyPrefix, metadata));
             t.exec();
             notifyMetadataChangeListeners();
+        } catch (JedisException e) {
+            throw new StorageException(e);
         }
     }
 
@@ -293,6 +295,8 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
                 }
                 notifyMetadataChangeListeners();
             }
+        } catch (JedisException e) {
+            throw new StorageException(e);
         }
     }
 

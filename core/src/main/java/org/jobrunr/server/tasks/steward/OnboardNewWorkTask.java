@@ -3,6 +3,8 @@ package org.jobrunr.server.tasks.steward;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.server.tasks.Task;
+import org.jobrunr.server.tasks.TaskRunInfo;
 import org.jobrunr.storage.navigation.AmountRequest;
 
 import java.util.List;
@@ -17,6 +19,14 @@ public class OnboardNewWorkTask extends AbstractJobStewardTask {
         super(backgroundJobServer);
         this.reentrantLock = new ReentrantLock();
         this.workDistributionStrategy = backgroundJobServer.getWorkDistributionStrategy();
+    }
+
+    /**
+     * As the {@link Task#run(TaskRunInfo)} is not thread-safe due to mutable field <code>runInfo</code> containing
+     * the {@link TaskRunInfo}, we use it thread-safe here by not assigning or using the <code>runInfo</code> field.
+     */
+    public void runTaskThreadSafe() {
+        runTask();
     }
 
     @Override

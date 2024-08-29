@@ -51,7 +51,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         } else if (jobsToSchedule.size() > 1) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs. This means a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size());
         } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
-            LOGGER.debug("Recurring job '{}' is already scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
+            LOGGER.info("Recurring job '{}' is already scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
             jobsToSchedule.clear();
         } else if (jobsToSchedule.size() == 1) {
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
