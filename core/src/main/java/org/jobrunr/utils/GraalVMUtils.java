@@ -12,6 +12,7 @@ import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobDashboardLogger;
@@ -71,7 +72,7 @@ public class GraalVMUtils {
             // JobRunr States
             AbstractJobState.class, DeletedState.class, EnqueuedState.class, FailedState.class, JobState.class, ProcessingState.class, ScheduledState.class, StateName.class, SucceededState.class,
             // JobRunr Job
-            AbstractJob.class, Job.class, JobDetails.class, JobDetailsAsmGenerator.class, JobParameter.class, RecurringJob.class,
+            AbstractJob.class, Job.class, JobDetails.class, JobDetailsAsmGenerator.class, JobParameter.class, RecurringJob.class, JobParameterNotDeserializableException.class,
             // JobRunr annotation
             org.jobrunr.jobs.annotations.Job.class, Recurring.class,
             // JobRunr Dashboard

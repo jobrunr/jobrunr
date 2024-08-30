@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core/JobRunr.core.main.iml" filepath="$PROJECT_DIR$/.idea/modules/core/JobRunr.core.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/JobRunr.framework-support.jobrunr-micronaut-feature.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/JobRunr.framework-support.jobrunr-micronaut-feature.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/JobRunr.framework-support.jobrunr-micronaut-feature.test.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/JobRunr.framework-support.jobrunr-micronaut-feature.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-quarkus-extension/quarkus-jobrunr-deployment/JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-quarkus-extension/quarkus-jobrunr-deployment/JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main.iml" />
