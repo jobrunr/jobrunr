@@ -8,6 +8,7 @@ import org.jobrunr.storage.RecurringJobsResult;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,41 +50,36 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     List<Job> toScheduledJobs(RecurringJob recurringJob) {
         Instant from = getSchedulingWindowLowerBound(recurringJob);
         Instant upUntil = getSchedulingWindowUpperBound();
-
         List<Job> jobsToSchedule = getJobsToSchedule(recurringJob, from, upUntil);
 
         if (jobsToSchedule.isEmpty()) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job in time range {} - {} ({}).", recurringJob.getJobName(), from, upUntil, Duration.between(from, upUntil));
-            }
+            LOGGER.trace("Recurring job '{}' is already scheduled ahead of time.", recurringJob.getJobName());
         } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
             jobsToSchedule.clear();
         } else if (jobsToSchedule.size() > 1) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}). This means either it's schedule is smaller than the pollInterval, your server was down or a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
-        } else {
-            if (LOGGER.isTraceEnabled()) {
-                if (((ScheduledState) jobsToSchedule.get(0).getJobState()).getScheduledAt().isAfter(upUntil)) {
-                    LOGGER.trace("Recurring job '{}' resulted in 1 job scheduled ahead of time.", recurringJob.getJobName());
-                } else {
-                    LOGGER.trace("Recurring job '{}' resulted in 1 scheduled job in time range {} - {} ({}).", recurringJob.getJobName(), from, upUntil, Duration.between(from, upUntil));
-                }
+        } else if (LOGGER.isTraceEnabled()) {
+            Instant scheduledAt = getScheduledAtOfJob(jobsToSchedule.get(0));
+            if (scheduledAt.isAfter(upUntil)) {
+                LOGGER.trace("Recurring job '{}' resulted in 1 job scheduled ahead of time at {}.", recurringJob.getJobName(), scheduledAt);
+            } else {
+                LOGGER.trace("Recurring job '{}' resulted in 1 scheduled job in time range {} - {} ({}).", recurringJob.getJobName(), from, upUntil, Duration.between(from, upUntil));
             }
         }
 
-        Job latestScheduledJob = getLast(jobsToSchedule);
-        if (latestScheduledJob != null) {
-            registerRecurringJobRun(recurringJob, latestScheduledJob);
-        } else {
-            registerRecurringJobRun(recurringJob, upUntil);
-        }
+        registerRecurringJobRun(recurringJob, jobsToSchedule);
 
         return jobsToSchedule;
     }
 
     private List<Job> getJobsToSchedule(RecurringJob recurringJob, Instant from, Instant upUntil) {
-        if (from.isAfter(upUntil)) return emptyList();
-        return recurringJob.toScheduledJobs(from, upUntil);
+        if (from.isAfter(upUntil)) return emptyList(); // why: recurringJob is already scheduled ahead of time
+        List<Job> scheduledJobs = new ArrayList<>(recurringJob.toScheduledJobs(from, upUntil));
+        if (scheduledJobs.isEmpty()) { // why: schedule one job ahead of time
+            scheduledJobs.add(recurringJob.toScheduledJobAheadOfTime(upUntil));
+        }
+        return scheduledJobs;
     }
 
     private Instant getSchedulingWindowLowerBound(RecurringJob recurringJob) {
@@ -98,11 +94,18 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
     }
 
-    private void registerRecurringJobRun(RecurringJob recurringJob, Job latestScheduledJob) {
-        registerRecurringJobRun(recurringJob, ((ScheduledState) latestScheduledJob.getJobState()).getScheduledAt());
+    private void registerRecurringJobRun(RecurringJob recurringJob, List<Job> jobsToSchedule) {
+        if (jobsToSchedule.isEmpty()) return;
+
+        Job latestScheduledJob = getLast(jobsToSchedule);
+        registerRecurringJobRun(recurringJob, getScheduledAtOfJob(latestScheduledJob));
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {
         recurringJobRuns.put(recurringJob.getId(), upUntil);
+    }
+
+    private Instant getScheduledAtOfJob(Job job) {
+        return ((ScheduledState) job.getJobState()).getScheduledAt();
     }
 }

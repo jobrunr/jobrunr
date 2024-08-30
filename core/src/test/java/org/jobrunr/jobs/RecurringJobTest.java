@@ -2,10 +2,12 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.lang3.NotImplementedException;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,7 +19,7 @@ import java.util.List;
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
-import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
@@ -63,34 +65,37 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
+    void testToScheduledJobsThrowsExceptionIfFromIsAfterUpTo() {
+        throw new NotImplementedException("implement me");
+    }
+
+    @Test
+    void testToScheduledJobsGetsAllJobsBetweenFromAndUpTo() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withId("the-recurring-job")
                 .withCronExpression("*/5 * * * * *")
                 .build();
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
         assertThat(jobs).hasSize(1);
+        ScheduledState scheduledState = jobs.get(0).getJobState();
+        assertThat(scheduledState.getScheduledAt()).isAfter(now());
     }
 
     @Test
-    void testToScheduledJobsSchedulesNoJobsBetweenStartAndEndButSchedulesAnExtraAheadOfTime() {
+    void testToScheduledJobsGetsAllJobsBetweenFromAndUpToNoResults() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withId("the-recurring-job")
-                .withIntervalExpression("PT1H")
+                .withCronExpression(Cron.weekly())
                 .build();
 
         final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
-        assertThat(jobs).hasSize(1);
-        assertThat(jobs.get(0)).hasScheduledAtCloseTo(now().plus(1, HOURS), within(1, ChronoUnit.MINUTES));
+        assertThat(jobs).isEmpty();
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResults() {
+    void testToScheduledJobsGetsAllJobsBetweenFromAndUpToMultipleResults() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withId("the-recurring-job")
                 .withCronExpression("*/5 * * * * *")
                 .build();
 
@@ -100,18 +105,39 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJob() {
+    void testToScheduledJobAheadOfTime() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withId("the-recurring-job")
                 .withName("the recurring job")
+                .withZoneId(ZoneOffset.UTC)
                 .build();
 
-        final Job job = recurringJob.toScheduledJob();
+        final Job job = recurringJob.toScheduledJobAheadOfTime(Instant.now());
+
+        Instant nextExpectedRun = now().plus(1, DAYS).truncatedTo(DAYS);
+        assertThat(job)
+                .hasRecurringJobId("the-recurring-job")
+                .hasJobName("the recurring job")
+                .hasState(SCHEDULED)
+                .hasScheduledAtCloseTo(nextExpectedRun, within(0, ChronoUnit.SECONDS));
+    }
+
+    @Test
+    void testToScheduledJobAheadOfTimeAlwaysReturnsAJobScheduledAfterTheGivenInstant() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withId("the-recurring-job")
+                .withName("the recurring job")
+                .withZoneId(ZoneOffset.UTC)
+                .build();
+
+        Instant input = now().plus(1, DAYS).truncatedTo(DAYS);
+        final Job job = recurringJob.toScheduledJobAheadOfTime(input);
 
         assertThat(job)
                 .hasRecurringJobId("the-recurring-job")
                 .hasJobName("the recurring job")
-                .hasState(SCHEDULED);
+                .hasState(SCHEDULED)
+                .hasScheduledAtCloseTo(input.plus(1, DAYS), within(0, ChronoUnit.SECONDS));
     }
 
     @Test

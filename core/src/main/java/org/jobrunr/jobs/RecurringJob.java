@@ -74,33 +74,37 @@ public class RecurringJob extends AbstractJob {
      *
      * @return the next job to for this recurring job based on the current instant.
      */
+    @Deprecated
     public Job toScheduledJob() {
         return toJob(new ScheduledState(getNextRun(), this));
     }
 
     /**
+     * Returns the next job to for this recurring job based on the current instant.
+     *
+     * @return the next job to for this recurring job based on the current instant.
+     */
+    public Job toScheduledJobAheadOfTime(Instant after) {
+        return toJob(new ScheduledState(getNextRun(after), this));
+    }
+
+    /**
      * Creates all jobs that must be scheduled in the time interval [from, upTo).
-     * If no job is scheduled in the time interval, a job is scheduled ahead of time.
      *
      * @param from the start of the time interval from which to create Scheduled Jobs
      * @param upTo the end of the time interval (not included)
-     * @return all jobs that must be scheduled in the time interval [from, upTo), or a job scheduled ahead of time.
+     * @return all jobs that must be scheduled in the time interval [from, upTo)
      */
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
-        List<Job> jobs = new ArrayList<>();
-
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        ZoneId zoneId = ZoneId.of(this.zoneId);
-
-        Instant nextRun = schedule.next(createdAt, from, zoneId);
-        while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
-            nextRun = schedule.next(createdAt, nextRun, zoneId);
+        if (from.isAfter(upTo)) {
+            throw new IllegalArgumentException("from must be after upTo");
         }
 
-        // job scheduled ahead of time
-        if (jobs.isEmpty()) {
+        List<Job> jobs = new ArrayList<>();
+        Instant nextRun = getNextRun(from);
+        while (nextRun.isBefore(upTo)) {
             jobs.add(toJob(new ScheduledState(nextRun, this)));
+            nextRun = getNextRun(nextRun);
         }
 
         return jobs;

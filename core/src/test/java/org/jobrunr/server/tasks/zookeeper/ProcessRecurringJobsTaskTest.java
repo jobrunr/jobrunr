@@ -9,11 +9,13 @@ import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.testcontainers.shaded.org.apache.commons.lang3.NotImplementedException;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import static java.time.Instant.now;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -126,10 +128,15 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    void ifJobIsScheduledAheadOfTimeTaskDoesNotCheckIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+        throw new NotImplementedException("Implement me");
+    }
+
+    @Test
     void taskSkipsAlreadyScheduledRecurringJobsOnStartup() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
 
-        Instant lastScheduledAt = Instant.now().plusSeconds(15);
+        Instant lastScheduledAt = now().plusSeconds(15);
         when(storageProvider.getRecurringJobsLatestScheduledRun()).thenReturn(Map.of(recurringJob.getId(), lastScheduledAt));
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));

@@ -80,7 +80,7 @@
         <module name="JobRunr.framework-support.jobrunr-micronaut-feature.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="21">
+    <bytecodeTargetLevel target="20">
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.main" target="11" />
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.deployment.test" target="11" />
       <module name="JobRunr.framework-support.jobrunr-quarkus-extension.runtime.main" target="11" />
