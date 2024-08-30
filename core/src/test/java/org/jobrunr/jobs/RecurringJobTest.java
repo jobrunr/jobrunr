@@ -7,7 +7,6 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.org.apache.commons.lang3.NotImplementedException;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -20,6 +19,7 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
@@ -66,7 +66,13 @@ class RecurringJobTest {
 
     @Test
     void testToScheduledJobsThrowsExceptionIfFromIsAfterUpTo() {
-        throw new NotImplementedException("implement me");
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("*/5 * * * * *")
+                .build();
+
+        assertThatCode(() -> recurringJob.toScheduledJobs(Instant.now().plus(1, SECONDS), Instant.now()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("from must be after upTo");
     }
 
     @Test
