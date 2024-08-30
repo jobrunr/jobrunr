@@ -41,6 +41,7 @@ import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderPr
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
 import org.jobrunr.utils.GraalVMUtils;
 
 import java.util.Collection;
@@ -85,6 +86,7 @@ class JobRunrExtensionProcessor {
     public void registerRuntimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> producer) {
         // Classes using java.util.Random, which need to be runtime initialized
         producer.produce(new RuntimeInitializedClassBuildItem(Job.class.getName()));
+        producer.produce(new RuntimeInitializedClassBuildItem(NoSqlDatabaseCreator.class.getName()));
     }
 
     @BuildStep
