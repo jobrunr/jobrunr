@@ -321,7 +321,6 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    @Deprecated
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         try (final Connection conn = dataSource.getConnection()) {
             return jobTable(conn).recurringJobExists(recurringJobId, states);
