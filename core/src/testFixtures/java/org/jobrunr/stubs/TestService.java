@@ -160,7 +160,7 @@ public class TestService implements TestServiceInterface {
         LOGGER.debug("Doing some work... " + processedJobs);
     }
 
-    @Job(name = "Doing some work with input")
+    @Job(name = "Doing some work with input: %0")
     public void doWork(String input) {
         LOGGER.debug("Doing some work with input " + input);
     }
