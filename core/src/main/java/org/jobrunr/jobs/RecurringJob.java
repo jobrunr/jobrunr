@@ -70,9 +70,9 @@ public class RecurringJob extends AbstractJob {
     }
 
     /**
-     * Returns the next job to for this recurring job based on the current instant.
+     * Returns the next job to schedule for this recurring job based on the current instant.
      *
-     * @return the next job to for this recurring job based on the current instant.
+     * @return the next job to schedule for this recurring job based on the current instant.
      */
     @Deprecated
     public Job toScheduledJob() {
@@ -80,9 +80,9 @@ public class RecurringJob extends AbstractJob {
     }
 
     /**
-     * Returns the next job to for this recurring job based on the given instant.
+     * Returns the next job to schedule for this recurring job based on the given instant.
      *
-     * @return the next job to for this recurring job based on the given instant
+     * @return the next job to schedule for this recurring job based on the given instant
      */
     public Job toScheduledJobAheadOfTime(Instant after) {
         return toJob(new ScheduledState(getNextRun(after), this));
