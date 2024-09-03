@@ -35,12 +35,6 @@ class JobRunrProducerTest {
     JobRunrProducer jobRunrProducer;
 
     @Mock
-    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
-    @Mock
-    JobRunrBuildTimeConfiguration.JobSchedulerConfiguration jobSchedulerBuildTimeConfiguration;
-
-
-    @Mock
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration.DatabaseConfiguration databaseRunTimeConfiguration;
@@ -66,8 +60,6 @@ class JobRunrProducerTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerBuildTimeConfiguration);
-
         lenient().when(jobRunrRuntimeConfiguration.database()).thenReturn(databaseRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
@@ -76,34 +68,33 @@ class JobRunrProducerTest {
         lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
 
         jobRunrProducer = new JobRunrProducer();
-        setInternalState(jobRunrProducer, "jobRunrBuildTimeConfiguration", jobRunrBuildTimeConfiguration);
         setInternalState(jobRunrProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
     }
 
     @Test
     void jobSchedulerIsNotSetupWhenConfigured() {
-        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNull();
     }
 
     @Test
     void jobSchedulerIsSetupWhenConfigured() {
-        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNotNull();
     }
 
     @Test
     void jobRequestSchedulerIsNotSetupWhenConfigured() {
-        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(false);
 
         assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNull();
     }
 
     @Test
     void jobRequestSchedulerIsSetupWhenConfigured() {
-        when(jobSchedulerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(true);
 
         assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
     }

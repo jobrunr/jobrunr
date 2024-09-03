@@ -34,16 +34,13 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 public class JobRunrProducer {
 
     @Inject
-    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
-
-    @Inject
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Produces
     @DefaultBean
     @Singleton
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
+        if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
             final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
             return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         }
@@ -54,7 +51,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
-        if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
+        if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
             return new JobRequestScheduler(storageProvider, emptyList());
         }
         return null;

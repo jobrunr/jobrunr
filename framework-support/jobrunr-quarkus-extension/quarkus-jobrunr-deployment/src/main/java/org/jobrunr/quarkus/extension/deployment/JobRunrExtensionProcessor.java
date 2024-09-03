@@ -88,16 +88,14 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem addMetrics(Optional<MetricsCapabilityBuildItem> metricsCapability, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
+    AdditionalBeanBuildItem addMetrics(Optional<MetricsCapabilityBuildItem> metricsCapability) {
         if (metricsCapability.isPresent() && metricsCapability.get().metricsSupported(MetricsFactory.MICROMETER)) {
             final AdditionalBeanBuildItem.Builder additionalBeanBuildItemBuilder = AdditionalBeanBuildItem.builder()
                     .setUnremovable()
                     .addBeanClasses(JobRunrMetricsStarter.class)
                     .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
 
-            if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
-                additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
-            }
+
             return additionalBeanBuildItemBuilder
                     .build();
         }
@@ -163,9 +161,6 @@ class JobRunrExtensionProcessor {
             BuildProducer<NativeImageResourceDirectoryBuildItem> nativeImageResourceDirectoryProducer,
             JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration
     ) {
-        if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
-            nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/dashboard/frontend/build"));
-        }
 
         if ("sql".equalsIgnoreCase(jobRunrBuildTimeConfiguration.database().type().orElse("sql"))) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/storage/sql"));

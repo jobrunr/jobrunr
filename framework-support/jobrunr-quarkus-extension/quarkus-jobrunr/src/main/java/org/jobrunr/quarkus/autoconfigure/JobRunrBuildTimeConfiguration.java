@@ -19,12 +19,6 @@ public interface JobRunrBuildTimeConfiguration {
      */
     DatabaseConfiguration database();
 
-
-    /**
-     * Allows to configure JobRunr JobScheduler related settings
-     */
-    JobSchedulerConfiguration jobScheduler();
-
     /**
      * Whether or not an health check is published in case the smallrye-health extension is present.
      */
@@ -39,15 +33,5 @@ public interface JobRunrBuildTimeConfiguration {
          * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
          */
         Optional<String> type();
-    }
-
-    @ConfigGroup
-    interface JobSchedulerConfiguration {
-
-        /**
-         * Enables the scheduling of jobs.
-         */
-        @WithDefault("true")
-        boolean enabled();
     }
 }

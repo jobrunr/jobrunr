@@ -11,10 +11,11 @@ import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import org.jboss.jandex.IndexView;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DatabaseConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.JobSchedulerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
@@ -52,6 +53,9 @@ class JobRunrExtensionProcessorTest {
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
     @Mock
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
+    @Mock
     JobSchedulerConfiguration jobSchedulerConfiguration;
 
     @Mock
@@ -67,7 +71,7 @@ class JobRunrExtensionProcessorTest {
         jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
         lenient().when(jobRunrBuildTimeConfiguration.database()).thenReturn(databaseConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
-        lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
@@ -182,21 +186,21 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void addMetricsDoesNotAddMetricsIfNotEnabled() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.empty(), jobRunrBuildTimeConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.empty());
 
         assertThat(metricsBeanBuildItem).isNull();
     }
 
     @Test
     void addMetricsDoesNotAddMetricsIfEnabledButNoMicroMeterSupport() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> false)), jobRunrBuildTimeConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> false)));
 
         assertThat(metricsBeanBuildItem).isNull();
     }
 
     @Test
     void addMetricsDoesAddStorageProviderMetricsIfEnabledAndMicroMeterSupport() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))));
 
         assertThat(metricsBeanBuildItem.getBeanClasses())
                 .contains(JobRunrMetricsStarter.class.getName())
@@ -206,14 +210,11 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void addMetricsDoesAddStorageProviderAndBackgroundJobServerMetricsIfEnabledAndMicroMeterSupport() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
-
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
+        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))));
 
         assertThat(metricsBeanBuildItem.getBeanClasses())
                 .contains(JobRunrMetricsStarter.class.getName())
-                .contains(JobRunrMetricsProducer.StorageProviderMetricsProducer.class.getName())
-                .contains(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class.getName());
+                .contains(JobRunrMetricsProducer.StorageProviderMetricsProducer.class.getName());
     }
 
 }
