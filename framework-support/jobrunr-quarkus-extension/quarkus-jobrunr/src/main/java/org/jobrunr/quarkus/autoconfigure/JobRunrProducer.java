@@ -64,7 +64,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy() {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             BackgroundJobServerThreadType threadType = jobRunrRuntimeConfiguration.backgroundJobServer().threadType().orElse(BackgroundJobServerThreadType.getDefaultThreadType());
             int workerCount = jobRunrRuntimeConfiguration.backgroundJobServer().workerCount().orElse(threadType.getDefaultWorkerCount());
             return new DefaultBackgroundJobServerWorkerPolicy(workerCount, threadType);
@@ -76,7 +76,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     BackgroundJobServerConfiguration backgroundJobServerConfiguration(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
 
             backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(backgroundJobServerWorkerPolicy);
@@ -99,7 +99,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             int defaultNbrOfRetries = jobRunrRuntimeConfiguration.jobs().defaultNumberOfRetries().orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
             int retryBackOffTimeSeed = jobRunrRuntimeConfiguration.jobs().retryBackOffTimeSeed().orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
             BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);

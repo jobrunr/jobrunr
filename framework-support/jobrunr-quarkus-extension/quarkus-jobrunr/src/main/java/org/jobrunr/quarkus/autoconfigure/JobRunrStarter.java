@@ -15,21 +15,24 @@ public class JobRunrStarter {
 
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
 
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
     Instance<BackgroundJobServer> backgroundJobServerInstance;
 
     Instance<JobRunrDashboardWebServer> dashboardWebServerInstance;
 
     Instance<StorageProvider> storageProviderInstance;
 
-    public JobRunrStarter(JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration, Instance<BackgroundJobServer> backgroundJobServerInstance, Instance<JobRunrDashboardWebServer> dashboardWebServerInstance, Instance<StorageProvider> storageProviderInstance) {
+    public JobRunrStarter(JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration, JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration, Instance<BackgroundJobServer> backgroundJobServerInstance, Instance<JobRunrDashboardWebServer> dashboardWebServerInstance, Instance<StorageProvider> storageProviderInstance) {
         this.jobRunrBuildTimeConfiguration = jobRunrBuildTimeConfiguration;
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
         this.backgroundJobServerInstance = backgroundJobServerInstance;
         this.dashboardWebServerInstance = dashboardWebServerInstance;
         this.storageProviderInstance = storageProviderInstance;
     }
 
     void startup(@Observes StartupEvent event) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             backgroundJobServerInstance.get().start();
         }
         if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
@@ -38,7 +41,7 @@ public class JobRunrStarter {
     }
 
     void shutdown(@Observes ShutdownEvent event) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             backgroundJobServerInstance.get().stop();
         }
         if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {

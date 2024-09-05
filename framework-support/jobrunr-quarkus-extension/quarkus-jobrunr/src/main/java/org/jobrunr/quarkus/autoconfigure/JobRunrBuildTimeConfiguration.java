@@ -76,12 +76,6 @@ public interface JobRunrBuildTimeConfiguration {
     interface BackgroundJobServerConfiguration {
 
         /**
-         * Enables the background processing of jobs.
-         */
-        @WithDefault("false")
-        boolean enabled();
-
-        /**
          * Configures MicroMeter metrics related to the background job server
          */
         MetricsConfiguration metrics();
@@ -105,4 +99,3 @@ public interface JobRunrBuildTimeConfiguration {
         boolean enabled();
     }
 }
-

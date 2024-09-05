@@ -55,9 +55,6 @@ class JobRunrExtensionProcessorTest {
     JobSchedulerConfiguration jobSchedulerConfiguration;
 
     @Mock
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
-
-    @Mock
     DatabaseConfiguration databaseConfiguration;
 
     JobRunrExtensionProcessor jobRunrExtensionProcessor;
@@ -67,7 +64,6 @@ class JobRunrExtensionProcessorTest {
         jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
         lenient().when(jobRunrBuildTimeConfiguration.database()).thenReturn(databaseConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
-        lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
@@ -195,19 +191,7 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void addMetricsDoesAddStorageProviderMetricsIfEnabledAndMicroMeterSupport() {
-        final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
-
-        assertThat(metricsBeanBuildItem.getBeanClasses())
-                .contains(JobRunrMetricsStarter.class.getName())
-                .contains(JobRunrMetricsProducer.StorageProviderMetricsProducer.class.getName())
-                .doesNotContain(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class.getName());
-    }
-
-    @Test
     void addMetricsDoesAddStorageProviderAndBackgroundJobServerMetricsIfEnabledAndMicroMeterSupport() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
-
         final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
 
         assertThat(metricsBeanBuildItem.getBeanClasses())

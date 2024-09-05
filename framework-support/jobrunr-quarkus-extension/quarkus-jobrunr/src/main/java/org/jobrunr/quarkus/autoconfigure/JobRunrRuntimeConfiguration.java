@@ -97,6 +97,12 @@ public interface JobRunrRuntimeConfiguration {
     interface BackgroundJobServerConfiguration {
 
         /**
+         * Enables the background processing of jobs.
+         */
+        @WithDefault("false")
+        boolean enabled();
+
+        /**
          * Sets the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
          */
         Optional<String> name();
@@ -182,4 +188,3 @@ public interface JobRunrRuntimeConfiguration {
         boolean allowAnonymousDataUsage();
     }
 }
-

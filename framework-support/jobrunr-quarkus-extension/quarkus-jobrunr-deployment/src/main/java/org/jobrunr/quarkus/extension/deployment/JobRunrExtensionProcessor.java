@@ -95,11 +95,9 @@ class JobRunrExtensionProcessor {
             final AdditionalBeanBuildItem.Builder additionalBeanBuildItemBuilder = AdditionalBeanBuildItem.builder()
                     .setUnremovable()
                     .addBeanClasses(JobRunrMetricsStarter.class)
-                    .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
+                    .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class)
+                    .addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
 
-            if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
-                additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
-            }
             return additionalBeanBuildItemBuilder
                     .build();
         }
