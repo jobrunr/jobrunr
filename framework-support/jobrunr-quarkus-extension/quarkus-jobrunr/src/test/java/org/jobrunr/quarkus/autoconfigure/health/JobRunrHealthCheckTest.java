@@ -4,6 +4,7 @@ import jakarta.enterprise.inject.Instance;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.Enabled;
 import org.jobrunr.server.BackgroundJobServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,13 +44,13 @@ class JobRunrHealthCheckTest {
 
     @Test
     void givenDisabledBackgroundJobServer_ThenHealthIsOutOfService() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.FALSE);
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
     }
 
     @Test
     void givenEnabledBackgroundJobServerAndBackgroundJobServerRunning_ThenHealthIsUp() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.TRUE);
         when(backgroundJobServer.isRunning()).thenReturn(true);
 
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
@@ -57,7 +58,7 @@ class JobRunrHealthCheckTest {
 
     @Test
     void givenEnabledBackgroundJobServerAndBackgroundJobServerStopped_ThenHealthIsDown() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.TRUE);
         when(backgroundJobServer.isRunning()).thenReturn(false);
 
         assertThat(jobRunrHealthCheck.call().getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);

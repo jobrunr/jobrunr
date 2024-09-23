@@ -1,6 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import org.assertj.core.api.Assertions;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.Enabled;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
@@ -116,21 +117,21 @@ class JobRunrProducerTest {
 
     @Test
     void backgroundJobServerConfigurationIsNotSetupWhenNotConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(Enabled.FALSE);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNull();
     }
 
     @Test
     void backgroundJobServerConfigurationIsSetupWhenConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(Enabled.TRUE);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNotNull();
     }
 
     @Test
     void backgroundJobServerConfigurationMapsCorrectConfigurationWhenConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(Enabled.TRUE);
 
         when(backgroundJobServerRunTimeConfiguration.name()).thenReturn(Optional.of("test"));
         when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(25));
@@ -161,14 +162,14 @@ class JobRunrProducerTest {
 
     @Test
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(Enabled.FALSE);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
-        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerBuildTimeConfiguration.enabled()).thenReturn(Enabled.TRUE);
 
         Assertions.assertThat(jobRunrProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
     }

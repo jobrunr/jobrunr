@@ -97,7 +97,7 @@ class JobRunrExtensionProcessor {
                     .addBeanClasses(JobRunrMetricsStarter.class)
                     .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
 
-            if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+            if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled().isAddedToBuild()) {
                 additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
             }
             return additionalBeanBuildItemBuilder

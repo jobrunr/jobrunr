@@ -14,6 +14,7 @@ import org.jobrunr.storage.StorageProvider;
 public class JobRunrStarter {
 
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     Instance<BackgroundJobServer> backgroundJobServerInstance;
 
@@ -21,15 +22,22 @@ public class JobRunrStarter {
 
     Instance<StorageProvider> storageProviderInstance;
 
-    public JobRunrStarter(JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration, Instance<BackgroundJobServer> backgroundJobServerInstance, Instance<JobRunrDashboardWebServer> dashboardWebServerInstance, Instance<StorageProvider> storageProviderInstance) {
+    public JobRunrStarter(JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration, JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration, Instance<BackgroundJobServer> backgroundJobServerInstance, Instance<JobRunrDashboardWebServer> dashboardWebServerInstance, Instance<StorageProvider> storageProviderInstance) {
         this.jobRunrBuildTimeConfiguration = jobRunrBuildTimeConfiguration;
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
         this.backgroundJobServerInstance = backgroundJobServerInstance;
         this.dashboardWebServerInstance = dashboardWebServerInstance;
         this.storageProviderInstance = storageProviderInstance;
     }
 
     void startup(@Observes StartupEvent event) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        System.out.println("Build: " + jobRunrBuildTimeConfiguration);
+        System.out.println("Build / BGJS: " + jobRunrBuildTimeConfiguration.backgroundJobServer());
+        System.out.println("Build / BGJS / enabled: " + jobRunrBuildTimeConfiguration.backgroundJobServer().enabled());
+        System.out.println("Runtime: " + jobRunrRuntimeConfiguration);
+        System.out.println("Runtime / BGJS: " + jobRunrRuntimeConfiguration.backgroundJobServer());
+        System.out.println("Runtime / BGJS / enabled: " + jobRunrRuntimeConfiguration.backgroundJobServer().enabled());
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled().isEnabled() || jobRunrRuntimeConfiguration.backgroundJobServer().enabled().isEnabled()) {
             backgroundJobServerInstance.get().start();
         }
         if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
@@ -38,7 +46,7 @@ public class JobRunrStarter {
     }
 
     void shutdown(@Observes ShutdownEvent event) {
-        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled().isEnabled() || jobRunrRuntimeConfiguration.backgroundJobServer().enabled().isEnabled()) {
             backgroundJobServerInstance.get().stop();
         }
         if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
@@ -46,4 +54,6 @@ public class JobRunrStarter {
         }
         storageProviderInstance.get().close();
     }
+
+
 }

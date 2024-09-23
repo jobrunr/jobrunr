@@ -14,6 +14,35 @@ import java.util.Optional;
 @ConfigMapping(prefix = "quarkus.jobrunr")
 public interface JobRunrBuildTimeConfiguration {
 
+    enum Enabled {
+        FALSE,
+        TRUE {
+            @Override
+            public boolean isAddedToBuild() {
+                return true;
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        },
+        RUNTIME {
+            @Override
+            public boolean isAddedToBuild() {
+                return true;
+            }
+        };
+
+        public boolean isAddedToBuild() {
+            return false;
+        }
+
+        public boolean isEnabled() {
+            return false;
+        }
+    }
+
     /**
      * Allows to configure JobRunr database related settings
      */
@@ -79,7 +108,7 @@ public interface JobRunrBuildTimeConfiguration {
          * Enables the background processing of jobs.
          */
         @WithDefault("false")
-        boolean enabled();
+        Enabled enabled();
 
         /**
          * Configures MicroMeter metrics related to the background job server

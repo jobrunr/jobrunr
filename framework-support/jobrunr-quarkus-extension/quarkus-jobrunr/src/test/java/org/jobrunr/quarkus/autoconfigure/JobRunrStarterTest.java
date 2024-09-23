@@ -6,6 +6,7 @@ import jakarta.enterprise.inject.Instance;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DashboardConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.Enabled;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,9 @@ class JobRunrStarterTest {
 
     @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+
+    @Mock
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Mock
     BackgroundJobServerConfiguration backgroundJobServerConfiguration;
@@ -60,12 +64,12 @@ class JobRunrStarterTest {
         lenient().when(dashboardWebServerInstance.get()).thenReturn(dashboardWebServer);
         lenient().when(storageProviderInstance.get()).thenReturn(storageProvider);
 
-        jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
+        jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, jobRunrRuntimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
     }
 
     @Test
     void jobRunrStarterDoesNotStartBackgroundJobServerIfNotConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.FALSE);
 
         jobRunrStarter.startup(new StartupEvent());
 
@@ -74,7 +78,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStartsBackgroundJobServerIfConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.TRUE);
 
         jobRunrStarter.startup(new StartupEvent());
 
@@ -101,7 +105,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStopBackgroundJobServerIfNotConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.FALSE);
 
         jobRunrStarter.shutdown(new ShutdownEvent());
 
@@ -110,7 +114,7 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStopsBackgroundJobServerIfConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.TRUE);
 
         jobRunrStarter.shutdown(new ShutdownEvent());
 

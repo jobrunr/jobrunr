@@ -26,7 +26,7 @@ public class JobRunrHealthCheck implements HealthCheck {
     @Override
     public HealthCheckResponse call() {
         final HealthCheckResponseBuilder healthResponseBuilder = HealthCheckResponse.named("JobRunr");
-        if (!jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+        if (!(jobRunrBuildTimeConfiguration.backgroundJobServer().enabled().isEnabled())) {
             healthResponseBuilder
                     .up()
                     .withData("backgroundJobServer", "disabled");

@@ -13,6 +13,7 @@ import org.jboss.jandex.IndexView;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DatabaseConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.Enabled;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.JobSchedulerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
@@ -206,7 +207,7 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void addMetricsDoesAddStorageProviderAndBackgroundJobServerMetricsIfEnabledAndMicroMeterSupport() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerConfiguration.enabled()).thenReturn(Enabled.TRUE);
 
         final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
 
