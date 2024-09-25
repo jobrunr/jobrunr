@@ -1,12 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.runtime.ShutdownEvent;
-import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.inject.Instance;
-import org.jobrunr.dashboard.JobRunrDashboardWebServer;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DashboardConfiguration;
-import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,24 +19,17 @@ class JobRunrStarterTest {
 
     @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
+    @Mock
+    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerBuildTimeConfiguration;
+    @Mock
+    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardBuildTimeConfiguration;
 
     @Mock
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
-
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
     @Mock
-    DashboardConfiguration dashboardConfiguration;
-
+    JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerRuntimeConfiguration;
     @Mock
-    Instance<BackgroundJobServer> backgroundJobServerInstance;
-
-    @Mock
-    BackgroundJobServer backgroundJobServer;
-
-    @Mock
-    Instance<JobRunrDashboardWebServer> dashboardWebServerInstance;
-
-    @Mock
-    JobRunrDashboardWebServer dashboardWebServer;
+    JobRunrRuntimeConfiguration.DashboardConfiguration dashboardRuntimeConfiguration;
 
     @Mock
     Instance<StorageProvider> storageProviderInstance;
@@ -52,87 +40,84 @@ class JobRunrStarterTest {
     JobRunrStarter jobRunrStarter;
 
     @BeforeEach
-    void setUpJobRunrMetricsStarter() {
-        when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
-        when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
+    void setup() {
+        lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerBuildTimeConfiguration);
+        lenient().when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardBuildTimeConfiguration);
 
-        lenient().when(backgroundJobServerInstance.get()).thenReturn(backgroundJobServer);
-        lenient().when(dashboardWebServerInstance.get()).thenReturn(dashboardWebServer);
+        lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRuntimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRuntimeConfiguration);
+
         lenient().when(storageProviderInstance.get()).thenReturn(storageProvider);
 
-        jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);
+        jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, jobRunrRuntimeConfiguration, storageProviderInstance);
     }
 
     @Test
-    void jobRunrStarterDoesNotStartBackgroundJobServerIfNotConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheBackgroundJobServerIsIncludedAndEnabled() {
+        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(true);
+        lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(true);
 
-        jobRunrStarter.startup(new StartupEvent());
-
-        verify(backgroundJobServerInstance, never()).get();
+        assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
     }
 
     @Test
-    void jobRunrStarterStartsBackgroundJobServerIfConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheBackgroundJobServerIsIncludedAndNotEnabled() {
+        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(false);
+        when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(false);
 
-        jobRunrStarter.startup(new StartupEvent());
-
-        verify(backgroundJobServer).start();
+        assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
     }
 
     @Test
-    void jobRunrStarterDoesNotStartDashboardIfNotConfigured() {
-        when(dashboardConfiguration.enabled()).thenReturn(false);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheBackgroundJobServerIsNotIncludedAndNotEnabled() {
+        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(false);
+        when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(false);
 
-        jobRunrStarter.startup(new StartupEvent());
-
-        verify(dashboardWebServerInstance, never()).get();
+        assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
     }
 
     @Test
-    void jobRunrStarterStartsDashboardIfConfigured() {
-        when(dashboardConfiguration.enabled()).thenReturn(true);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheBackgroundJobServerIsNotIncludedButEnabled() {
+        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(false);
+        when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(true);
 
-        jobRunrStarter.startup(new StartupEvent());
-
-        verify(dashboardWebServer).start();
+        assertThatCode(() -> jobRunrStarter.startup(null)).
+                isInstanceOf(IllegalStateException.class)
+                .hasMessage("The BackgroundJobServer cannot be enabled, its resources were not included at build time. Please rebuild your project to include the required resources or disable the BackgroundJobServer.");
     }
 
     @Test
-    void jobRunrStarterDoesNotStopBackgroundJobServerIfNotConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(false);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheDashboardIsIncludedAndEnabled() {
+        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(true);
+        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(true);
 
-        jobRunrStarter.shutdown(new ShutdownEvent());
-
-        verify(backgroundJobServerInstance, never()).get();
+        assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
     }
 
     @Test
-    void jobRunrStarterStopsBackgroundJobServerIfConfigured() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheDashboardIsIncludedAndNotEnabled() {
+        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(true);
+        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(false);
 
-        jobRunrStarter.shutdown(new ShutdownEvent());
-
-        verify(backgroundJobServer).stop();
+        assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
     }
 
     @Test
-    void jobRunrStarterDoesNotStopsDashboardIfNotConfigured() {
-        when(dashboardConfiguration.enabled()).thenReturn(false);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheDashboardIsNotIncludedAndNotEnabled() {
+        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(false);
+        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(false);
 
-        jobRunrStarter.shutdown(new ShutdownEvent());
-
-        verify(dashboardWebServerInstance, never()).get();
+        assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
     }
 
     @Test
-    void jobRunrStarterStopsDashboardIfConfigured() {
-        when(dashboardConfiguration.enabled()).thenReturn(true);
+    void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheDashboardIsNotIncludedButEnabled() {
+        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(false);
+        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(true);
 
-        jobRunrStarter.shutdown(new ShutdownEvent());
-
-        verify(dashboardWebServer).stop();
+        assertThatCode(() -> jobRunrStarter.startup(null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("The JobRunrDashboardWebServer cannot be enabled, its resources were not included at build time. Please rebuild your project to include the required resources or disable the JobRunrDashboardWebServer.");
     }
 
     @Test

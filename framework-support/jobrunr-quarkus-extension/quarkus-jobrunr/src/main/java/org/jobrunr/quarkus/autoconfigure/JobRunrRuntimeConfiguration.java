@@ -95,6 +95,12 @@ public interface JobRunrRuntimeConfiguration {
     }
 
     interface BackgroundJobServerConfiguration {
+        
+        /**
+         * Enables the background processing of jobs.
+         */
+        @WithDefault("false")
+        boolean enabled();
 
         /**
          * Sets the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
@@ -155,6 +161,11 @@ public interface JobRunrRuntimeConfiguration {
     }
 
     interface DashboardConfiguration {
+        /**
+         * Enables the JobRunr dashboard.
+         */
+        @WithDefault("false")
+        boolean enabled();
 
         /**
          * The port on which the Dashboard should run

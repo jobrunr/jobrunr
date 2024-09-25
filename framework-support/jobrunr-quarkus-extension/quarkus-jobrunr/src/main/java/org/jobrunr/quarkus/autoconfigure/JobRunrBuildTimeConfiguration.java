@@ -76,10 +76,10 @@ public interface JobRunrBuildTimeConfiguration {
     interface BackgroundJobServerConfiguration {
 
         /**
-         * Enables the background processing of jobs.
+         * Includes the necessary resources to start the background job processing servers.
          */
-        @WithDefault("false")
-        boolean enabled();
+        @WithDefault("true")
+        boolean included();
 
         /**
          * Configures MicroMeter metrics related to the background job server
@@ -90,10 +90,10 @@ public interface JobRunrBuildTimeConfiguration {
     interface DashboardConfiguration {
 
         /**
-         * Enables the JobRunr dashboard.
+         * Includes the necessary resources to start the dashboard webserver.
          */
-        @WithDefault("false")
-        boolean enabled();
+        @WithDefault("true")
+        boolean included();
     }
 
     interface MetricsConfiguration {
