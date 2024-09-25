@@ -20,11 +20,6 @@ public interface JobRunrBuildTimeConfiguration {
     DatabaseConfiguration database();
 
     /**
-     * Allows to configure JobRunr job related settings
-     */
-    JobsConfiguration jobs();
-
-    /**
      * Allows to configure JobRunr JobScheduler related settings
      */
     JobSchedulerConfiguration jobScheduler();
@@ -55,14 +50,6 @@ public interface JobRunrBuildTimeConfiguration {
         Optional<String> type();
     }
 
-    interface JobsConfiguration {
-
-        /**
-         * Configures MicroMeter metrics related to jobs
-         */
-        MetricsConfiguration metrics();
-    }
-
     @ConfigGroup
     interface JobSchedulerConfiguration {
 
@@ -80,11 +67,6 @@ public interface JobRunrBuildTimeConfiguration {
          */
         @WithDefault("true")
         boolean included();
-
-        /**
-         * Configures MicroMeter metrics related to the background job server
-         */
-        MetricsConfiguration metrics();
     }
 
     interface DashboardConfiguration {
@@ -94,15 +76,6 @@ public interface JobRunrBuildTimeConfiguration {
          */
         @WithDefault("true")
         boolean included();
-    }
-
-    interface MetricsConfiguration {
-
-        /**
-         * Configures whether metrics are reported to MicroMeter.
-         */
-        @WithDefault("false")
-        boolean enabled();
     }
 }
 
