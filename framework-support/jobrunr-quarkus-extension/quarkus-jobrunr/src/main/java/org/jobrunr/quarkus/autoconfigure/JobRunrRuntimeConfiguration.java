@@ -92,6 +92,13 @@ public interface JobRunrRuntimeConfiguration {
     }
 
     interface JobSchedulerConfiguration {
+        
+        /**
+         * Enables the scheduling of jobs.
+         */
+        @WithDefault("true")
+        boolean enabled();
+
         /**
          * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
          * JobDetailsGenerator, and it should have a default no-argument constructor.

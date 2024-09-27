@@ -11,10 +11,6 @@ import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import org.jboss.jandex.IndexView;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DashboardConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DatabaseConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.JobSchedulerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.dashboard.JobRunrDashboardProducer;
@@ -44,7 +40,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,18 +50,12 @@ class JobRunrExtensionProcessorTest {
 
     @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
-
     @Mock
-    JobSchedulerConfiguration jobSchedulerConfiguration;
-
+    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
     @Mock
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
-
+    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardConfiguration;
     @Mock
-    DashboardConfiguration dashboardConfiguration;
-
-    @Mock
-    DatabaseConfiguration databaseConfiguration;
+    JobRunrBuildTimeConfiguration.DatabaseConfiguration databaseConfiguration;
 
     JobRunrExtensionProcessor jobRunrExtensionProcessor;
 
@@ -74,9 +63,9 @@ class JobRunrExtensionProcessorTest {
     void setUpExtensionProcessor() {
         jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
         lenient().when(jobRunrBuildTimeConfiguration.database()).thenReturn(databaseConfiguration);
-        lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
+
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
@@ -134,32 +123,16 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void producesJobRunrRecurringJobsFinderIfJobSchedulerIsEnabled() throws NoSuchMethodException {
+    void producesJobRunrRecurringJobsFinder() throws NoSuchMethodException {
         RecorderContext recorderContext = mock(RecorderContext.class);
         CombinedIndexBuildItem combinedIndex = mock(CombinedIndexBuildItem.class);
         when(combinedIndex.getIndex()).thenReturn(mock(IndexView.class));
         BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
         JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
 
-        when(jobSchedulerConfiguration.enabled()).thenReturn(true);
-
-        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
+        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder);
 
         verify(recorderContext, times(2)).registerNonDefaultConstructor(any(), any());
-    }
-
-    @Test
-    void producesNoJobRunrRecurringJobsFinderIfJobSchedulerIsNotEnabled() throws NoSuchMethodException {
-        RecorderContext recorderContext = mock(RecorderContext.class);
-        CombinedIndexBuildItem combinedIndex = mock(CombinedIndexBuildItem.class);
-        BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
-        JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
-
-        when(jobSchedulerConfiguration.enabled()).thenReturn(false);
-
-        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
-
-        verifyNoInteractions(recorderContext);
     }
 
     @Test

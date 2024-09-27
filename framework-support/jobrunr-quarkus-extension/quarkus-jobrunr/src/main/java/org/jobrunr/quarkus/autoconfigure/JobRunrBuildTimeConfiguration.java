@@ -1,7 +1,6 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
-import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
@@ -18,11 +17,6 @@ public interface JobRunrBuildTimeConfiguration {
      * Allows to configure JobRunr database related settings
      */
     DatabaseConfiguration database();
-
-    /**
-     * Allows to configure JobRunr JobScheduler related settings
-     */
-    JobSchedulerConfiguration jobScheduler();
 
     /**
      * Allows to configure JobRunr BackgroundJobServer related settings
@@ -48,16 +42,6 @@ public interface JobRunrBuildTimeConfiguration {
          * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
          */
         Optional<String> type();
-    }
-
-    @ConfigGroup
-    interface JobSchedulerConfiguration {
-
-        /**
-         * Enables the scheduling of jobs.
-         */
-        @WithDefault("true")
-        boolean enabled();
     }
 
     interface BackgroundJobServerConfiguration {

@@ -1,6 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.arc.DefaultBean;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -21,16 +22,14 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 public class JobRunrProducer {
 
     @Inject
-    JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
-
-    @Inject
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Produces
     @DefaultBean
     @Singleton
+    @LookupIfProperty(name = "quarkus.jobrunr.job-scheduler.enabled", stringValue = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
+        if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
             final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
             return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         }
@@ -40,8 +39,9 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
+    @LookupIfProperty(name = "quarkus.jobrunr.job-scheduler.enabled", stringValue = "true")
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
-        if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
+        if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
             return new JobRequestScheduler(storageProvider, emptyList());
         }
         return null;
