@@ -14,12 +14,10 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
 import org.jobrunr.quarkus.autoconfigure.dashboard.JobRunrDashboardProducer;
-import org.jobrunr.quarkus.autoconfigure.dashboard.JobRunrDashboardStarter;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.server.JobRunrBackgroundJobServerProducer;
-import org.jobrunr.quarkus.autoconfigure.server.JobRunrBackgroundJobServerStarter;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
@@ -88,10 +86,7 @@ class JobRunrExtensionProcessorTest {
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.addBackgroundJobServer(jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(
-                        JobRunrBackgroundJobServerProducer.class.getName(),
-                        JobRunrBackgroundJobServerStarter.class.getName()
-                );
+                .contains(JobRunrBackgroundJobServerProducer.class.getName());
     }
 
     @Test
@@ -108,10 +103,7 @@ class JobRunrExtensionProcessorTest {
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.addDashboard(jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(
-                        JobRunrDashboardProducer.class.getName(),
-                        JobRunrDashboardStarter.class.getName()
-                );
+                .contains(JobRunrDashboardProducer.class.getName());
     }
 
     @Test
