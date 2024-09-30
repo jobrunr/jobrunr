@@ -65,7 +65,9 @@ class JobRunrStarterTest {
         lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRuntimeConfiguration);
 
         lenient().when(backgroundJobServerInstance.get()).thenReturn(backgroundJobServer);
+        lenient().when(backgroundJobServerInstance.isResolvable()).thenReturn(true);
         lenient().when(dashboardWebServerInstance.get()).thenReturn(dashboardWebServer);
+        lenient().when(dashboardWebServerInstance.isResolvable()).thenReturn(true);
         lenient().when(storageProviderInstance.get()).thenReturn(storageProvider);
 
         jobRunrStarter = new JobRunrStarter(jobRunrBuildTimeConfiguration, jobRunrRuntimeConfiguration, backgroundJobServerInstance, dashboardWebServerInstance, storageProviderInstance);

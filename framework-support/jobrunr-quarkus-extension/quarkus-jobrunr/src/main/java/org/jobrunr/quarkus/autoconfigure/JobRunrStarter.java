@@ -42,10 +42,10 @@ public class JobRunrStarter {
     }
 
     void shutdown(@Observes ShutdownEvent event) {
-        if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
+        if (backgroundJobServerInstance.isResolvable() && jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             backgroundJobServerInstance.get().stop();
         }
-        if (jobRunrRuntimeConfiguration.dashboard().enabled()) {
+        if (dashboardWebServerInstance.isResolvable() && jobRunrRuntimeConfiguration.dashboard().enabled()) {
             dashboardWebServerInstance.get().stop();
         }
         storageProviderInstance.get().close();
