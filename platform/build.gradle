@@ -8,7 +8,7 @@ version = System.getenv('DRONE_TAG') ?: "v1.0.0-SNAPSHOT"
 
 dependencies {
     constraints {
-        api 'org.slf4j:slf4j-api:2.0.13'
+        api 'org.slf4j:slf4j-api:2.0.16'
         api 'org.ow2.asm:asm:9.7'
         api 'org.ow2.asm:asm-util:9.7'
 
@@ -26,7 +26,7 @@ dependencies {
         api 'org.postgresql:postgresql:42.7.4'
         api 'com.google.cloud.sql:postgres-socket-factory:1.18.0'
         api 'com.oracle.database.jdbc:ojdbc8:23.5.0.24.07'
-        api 'org.mariadb.jdbc:mariadb-java-client:3.4.0'
+        api 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
         api 'mysql:mysql-connector-java:8.0.33'
         api 'com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre8'
         api 'com.ibm.db2:jcc:11.5.9.0'
