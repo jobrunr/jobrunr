@@ -25,8 +25,8 @@ dependencies {
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.27.0'
     testImplementation 'org.awaitility:awaitility:4.2.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testImplementation 'org.testcontainers:testcontainers:1.19.8'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.8'
+    testImplementation 'org.testcontainers:testcontainers:1.20.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
 }
 
 test.dependsOn(':core:publishToMavenLocal')
