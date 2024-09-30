@@ -11,7 +11,7 @@ import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
 @Dependent
 public class JobRunrMetricsStarter {
 
-    private Logger LOGGER = Logger.getLogger(JobRunrMetricsStarter.class);
+    private final Logger LOGGER = Logger.getLogger(JobRunrMetricsStarter.class);
 
     Instance<StorageProviderMetricsBinder> storageProviderMetricsBinderInstance;
 

@@ -9,6 +9,7 @@ import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Recurring;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.utils.StringUtils;
@@ -26,7 +27,15 @@ public class JobRunrRecurringJobRecorder {
 
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
+    public JobRunrRecurringJobRecorder(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    }
+
     public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
+        if (!jobRunrRuntimeConfiguration.jobScheduler().enabled()) return;
+
         JobScheduler scheduler = container.beanInstance(JobScheduler.class);
         String jobId = getId(id);
         String optionalCronExpression = getCronExpression(cron);

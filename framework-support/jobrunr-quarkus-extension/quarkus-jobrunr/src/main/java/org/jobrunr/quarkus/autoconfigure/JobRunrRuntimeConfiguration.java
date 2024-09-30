@@ -84,9 +84,21 @@ public interface JobRunrRuntimeConfiguration {
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
         Optional<Integer> retryBackOffTimeSeed();
+
+        /**
+         * Configures MicroMeter metrics related to jobs
+         */
+        MetricsConfiguration metrics();
     }
 
     interface JobSchedulerConfiguration {
+        
+        /**
+         * Enables the scheduling of jobs.
+         */
+        @WithDefault("true")
+        boolean enabled();
+
         /**
          * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
          * JobDetailsGenerator, and it should have a default no-argument constructor.
@@ -95,6 +107,12 @@ public interface JobRunrRuntimeConfiguration {
     }
 
     interface BackgroundJobServerConfiguration {
+
+        /**
+         * Enables the background processing of jobs.
+         */
+        @WithDefault("false")
+        boolean enabled();
 
         /**
          * Sets the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
@@ -152,9 +170,19 @@ public interface JobRunrRuntimeConfiguration {
          * Sets the duration to wait before interrupting threads/jobs when the server is stopped.
          */
         Optional<Duration> interruptJobsAwaitDurationOnStop();
+
+        /**
+         * Configures MicroMeter metrics related to the background job server
+         */
+        MetricsConfiguration metrics();
     }
 
     interface DashboardConfiguration {
+        /**
+         * Enables the JobRunr dashboard.
+         */
+        @WithDefault("false")
+        boolean enabled();
 
         /**
          * The port on which the Dashboard should run
@@ -180,6 +208,15 @@ public interface JobRunrRuntimeConfiguration {
          */
         @WithDefault("true")
         boolean allowAnonymousDataUsage();
+    }
+
+    interface MetricsConfiguration {
+
+        /**
+         * Configures whether metrics are reported to MicroMeter.
+         */
+        @WithDefault("false")
+        boolean enabled();
     }
 }
 

@@ -4,6 +4,8 @@ import io.quarkus.arc.runtime.BeanContainer;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration.JobSchedulerConfiguration;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +36,11 @@ class JobRunrRecurringJobRecorderTest {
 
     @Mock
     JobScheduler jobScheduler;
+
+    @Mock
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+    @Mock
+    JobSchedulerConfiguration jobSchedulerConfiguration;
 
     @Mock
     ConfigProviderResolver configProviderResolver;
@@ -46,11 +55,14 @@ class JobRunrRecurringJobRecorderTest {
 
     @BeforeEach
     void setUpJobRunrRecorder() {
-        jobRunrRecurringJobRecorder = new JobRunrRecurringJobRecorder();
-        when(beanContainer.beanInstance(JobScheduler.class)).thenReturn(jobScheduler);
+        jobRunrRecurringJobRecorder = new JobRunrRecurringJobRecorder(jobRunrRuntimeConfiguration);
+        lenient().when(beanContainer.beanInstance(JobScheduler.class)).thenReturn(jobScheduler);
+
+        when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
+        when(jobSchedulerConfiguration.enabled()).thenReturn(true);
 
         ConfigProviderResolver.setInstance(configProviderResolver);
-        when(configProviderResolver.getConfig()).thenReturn(config);
+        lenient().when(configProviderResolver.getConfig()).thenReturn(config);
     }
 
     @Test
@@ -171,5 +183,19 @@ class JobRunrRecurringJobRecorderTest {
                 .hasClassName(jobDetails.getClassName())
                 .hasMethodName(jobDetails.getMethodName())
                 .hasArgs(jobDetails.getJobParameterValues());
+    }
+
+    @Test
+    void scheduleDoesNotSchedulesCronJobWithJobRunrIfJobSchedulerIsNotEnabled() {
+        final String id = "my-job-id";
+        final JobDetails jobDetails = jobDetails().build();
+        final String cron = "*/15 * * * *";
+        final String interval = null;
+        final String zoneId = null;
+
+        when(jobSchedulerConfiguration.enabled()).thenReturn(false);
+        jobRunrRecurringJobRecorder.schedule(beanContainer, id, cron, interval, zoneId, jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
+
+        verify(jobScheduler, never()).scheduleRecurrently(eq(id), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("*/15 * * * *")), eq(ZoneId.systemDefault()));
     }
 }
