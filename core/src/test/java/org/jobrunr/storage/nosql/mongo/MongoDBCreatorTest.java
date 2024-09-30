@@ -25,14 +25,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
 class MongoDBCreatorTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.6").withExposedPorts(27017);
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:latest").withExposedPorts(27017);
 
     @BeforeEach
     void clearAllCollections() {
