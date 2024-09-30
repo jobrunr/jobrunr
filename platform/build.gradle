@@ -31,11 +31,11 @@ dependencies {
         api 'com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre8'
         api 'com.ibm.db2:jcc:11.5.9.0'
         api 'com.zaxxer:HikariCP:6.0.0'
-        api 'io.agroal:agroal-pool:2.4'
+        api 'io.agroal:agroal-pool:2.5'
         api 'org.apache.commons:commons-dbcp2:2.12.0'
         api 'org.apache.tomcat:tomcat-jdbc:10.1.24'
         api 'redis.clients:jedis:5.2.0'
-        api 'io.lettuce:lettuce-core:6.3.2.RELEASE'
+        api 'io.lettuce:lettuce-core:6.4.0.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:5.2.0'
         api 'co.elastic.clients:elasticsearch-java:8.13.4'
 
