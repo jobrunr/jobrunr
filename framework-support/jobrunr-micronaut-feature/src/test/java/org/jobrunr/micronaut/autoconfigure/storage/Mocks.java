@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListCollectionNamesIterable;
 import com.mongodb.client.ListIndexesIterable;
@@ -17,6 +18,9 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.bson.Document;
+import org.bson.UuidRepresentation;
+import org.bson.codecs.UuidCodec;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.jobrunr.storage.StorageProviderUtils;
 
@@ -75,6 +79,9 @@ public class Mocks {
 
     public static MongoClient mongoClient() {
         MongoClient mongoClientMock = mock(MongoClient.class);
+        when(mongoClientMock.getCodecRegistry()).thenReturn(CodecRegistries.fromRegistries(
+                CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.JAVA_LEGACY)),
+                MongoClientSettings.getDefaultCodecRegistry()));
         MongoDatabase mongoDatabaseMock = mock(MongoDatabase.class);
         when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
         when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(ListCollectionNamesIterable.class));

@@ -501,6 +501,9 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         if (codecRegistryGetter.isPresent()) {
             try {
                 CodecRegistry codecRegistry = (CodecRegistry) codecRegistryGetter.get().invoke(mongoClient);
+                if (codecRegistry == null) {
+                    throw new StorageException("No CodecRegistry found and JobRunr needs to have a UUID Representation configured.");
+                }
                 UuidCodec uuidCodec = (UuidCodec) codecRegistry.get(UUID.class);
                 if (UuidRepresentation.UNSPECIFIED == uuidCodec.getUuidRepresentation()) {
                     throw new StorageException("\n" +
