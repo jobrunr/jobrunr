@@ -172,7 +172,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     boolean isStopped() {
         try (LifeCycleLock ignored = lifecycleLock.readLock()) {
-            return firstHeartbeat == null;
+            return zookeeperThreadPool == null;
         }
     }
 
