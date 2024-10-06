@@ -82,6 +82,7 @@ const SevereJobRunrExceptionProblem = ({problem, hasCpuAllocationIrregularity, r
                             }
                             <li>If you've configured database replicas, make sure JobRunr reads and writes from the primary node.</li>
                             <li>Make sure your servers have enough resources (memory, CPU, DB connections, etc.) to handle the workload.</li>
+                            <li>Check your server logs for failures in other components of your app that may be linked to this one.</li>
                         </ul>
                         <p>
                             Over the years, we've addressed many similar exceptions. Please check that yours is not already addressed
