@@ -100,7 +100,7 @@ const SevereJobRunrExceptionProblem = ({problem, hasCpuAllocationIrregularity, r
                                     all necessary information to your clipboard and paste it in the Github issue. Copying did not work? Please copy the data
                                     below and paste it in the Github issue as is.</>
                             }
-                            <br/><strong>You can still cancel the creation of the issue in Github if you think it contains sensitive information.</strong>.
+                            <br/><strong>Please remove any sensitive information from the pasted logs before submitting the issue.</strong>.
                         </p>
                         <p><em>Please also make sure you're following <a
                             target="_blank" rel="noopener noreferrer"
