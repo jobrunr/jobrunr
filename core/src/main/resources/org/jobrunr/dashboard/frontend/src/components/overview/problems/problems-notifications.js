@@ -18,6 +18,10 @@ const problemCompareFn = (a, b) => {
     return getProblemOrder(a.type) - getProblemOrder(b.type);
 }
 
+const hasProblemOfType = (problems, problemType) => {
+    return !!problems?.find(({type}) => type === problemType);
+}
+
 const Problems = () => {
     const {problems, reload, isLoading} = useContext(ProblemsContext);
 
@@ -44,7 +48,11 @@ const Problems = () => {
                                 </Grid>
                             case 'severe-jobrunr-exception':
                                 return <Grid item xs={12} key={problem.type}>
-                                    <SevereJobRunrExceptionProblem problem={problem} refresh={reload}/>
+                                    <SevereJobRunrExceptionProblem
+                                        problem={problem}
+                                        refresh={reload}
+                                        hasCpuAllocationIrregularity={hasProblemOfType(problems, "cpu-allocation-irregularity")}
+                                    />
                                 </Grid>
                             case 'cpu-allocation-irregularity':
                                 return <Grid item xs={12} key={problem.type}>
