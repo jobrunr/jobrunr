@@ -47,11 +47,11 @@ const SevereJobRunrExceptionProblem = ({problem, hasCpuAllocationIrregularity, r
             severity="error"
             endpoint="/api/problems/severe-jobrunr-exception"
             refresh={refresh}
+            extraAction={<Button variant="outlined" onClick={toggleShowIssueDialog} size="small">More&nbsp;details</Button>}
         >
             <div>JobRunr encountered an exception that should not happen that could result in the Background Job Servers stopping. <b>You need to look into
                 this.</b>
             </div>
-            <Button onClick={toggleShowIssueDialog} size="small">More details</Button>
             {copyStatus &&
                 <Snackbar open={true}
                           autoHideDuration={3000}

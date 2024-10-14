@@ -17,6 +17,7 @@ export default defineConfig({
         },
         assetPrefix: process.env.PUBLIC_URL,
         manifest: 'asset-manifest.json',
+        cleanDistPath: process.env.NODE_ENV === 'production'
     },
     source: {
         define: publicVars,
