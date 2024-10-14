@@ -5,6 +5,8 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestServiceInterface;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
@@ -24,6 +26,8 @@ public class CachingJobDetailsGeneratorTest extends AbstractJobDetailsGeneratorT
             "testWithSubClass",
             "testStreamWithMethodInvocationInLambda"
     );
+
+    private final TestServiceInterface myTestService = new TestService();
 
     @Override
     protected JobDetailsGenerator getJobDetailsGenerator() {
@@ -60,5 +64,15 @@ public class CachingJobDetailsGeneratorTest extends AbstractJobDetailsGeneratorT
             }
             throw throwable;
         }
+    }
+
+    @Test
+    void testInlineJobLambdaFromInterfaceWithAssignationIsCacheable() {
+        JobDetails jobDetails = toJobDetails((JobLambda) () -> myTestService.doWork());
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWork")
+                .isCacheable()
+                .hasNoArgs();
     }
 }
