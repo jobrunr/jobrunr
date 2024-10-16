@@ -38,7 +38,7 @@ public class ServerZooKeeper implements Runnable {
         this.restartAttempts = new AtomicInteger();
         this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();
-        LOGGER.debug(systemSupportsSleepDetection()
+        LOGGER.trace(systemSupportsSleepDetection()
                 ? "JobRunr can detect desktop sleeping."
                 : "JobRunr can not detect desktop sleeping.");
     }

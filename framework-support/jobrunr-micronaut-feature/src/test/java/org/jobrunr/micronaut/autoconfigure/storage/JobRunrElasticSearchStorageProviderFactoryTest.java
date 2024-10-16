@@ -8,6 +8,7 @@ import jakarta.inject.Singleton;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ class JobRunrElasticSearchStorageProviderFactoryTest {
     ApplicationContext context;
 
     @Test
+    @Disabled("Elastic will be removed from JobRunr 7")
     void elasticSearchStorageProviderAutoConfigurationTest() {
         assertThat(context).hasSingleBean(StorageProvider.class);
         assertThat(context.getBean(StorageProvider.class))

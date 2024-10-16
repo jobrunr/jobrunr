@@ -168,10 +168,11 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
         private static boolean isParentClassPassedAsFieldToPassJobDetailsClass(List<Field> declaredFields, JobDetails jobDetails) {
             if (declaredFields.isEmpty()) return false;
 
+            Class<?> jobDetailsClass = ReflectionUtils.toClass(jobDetails.getClassName());
+
             return stream(declaredFields.get(0).getType().getDeclaredFields())
                     .map(Field::getType)
-                    .map(Class::getName)
-                    .anyMatch(x -> x.equals(jobDetails.getClassName()));
+                    .anyMatch(x -> x.isAssignableFrom(jobDetailsClass));
         }
 
         private static boolean isClassPassedAsFieldToPassJobDetailsClass(List<Field> declaredFields, JobDetails jobDetails) {

@@ -41,7 +41,7 @@
     ]
   },
   "devDependencies": {
-    "@rsbuild/core": "^1.0.1-beta.10",
+    "@rsbuild/core": "^1.0.5",
     "@rsbuild/plugin-react": "^1.0.1-beta.10",
     "cypress": "^13.13.2",
     "cypress-failed-log": "^2.10.0",

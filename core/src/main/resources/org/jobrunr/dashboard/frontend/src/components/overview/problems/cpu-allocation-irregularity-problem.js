@@ -13,8 +13,8 @@ const CPUAllocationIrregularityProblem = (props) => {
             <br/>
             <ul>
                 {props.problem.cpuAllocationIrregularityMetadataSet.map((irregularity, index) => {
-                    return <li key={index}>{irregularity.owner} had a CPU Allocation Irregularity
-                        of {irregularity.value} seconds <TimeAgo
+                    return <li key={index}>{irregularity.owner} was <strong>not able to execute critical tasks for {irregularity.value} seconds</strong>
+                        {" "}<TimeAgo
                             style={{textDecoration: 'underline', textDecorationStyle: 'dotted'}}
                             date={new Date(irregularity.createdAt)}
                             title={new Date(irregularity.createdAt).toString()}/></li>
