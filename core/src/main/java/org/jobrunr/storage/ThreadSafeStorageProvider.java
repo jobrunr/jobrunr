@@ -9,6 +9,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.storage.navigation.AmountRequest;
+import org.jobrunr.utils.annotations.LockingJob;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.MultiLock;
 
@@ -102,6 +103,7 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    @LockingJob("locks the job so only one thread can save a job at the same time")
     public Job save(Job job) {
         try (Lock lock = job.lock()) {
             return storageProvider.save(job);
@@ -109,6 +111,7 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    @LockingJob("locks the job so only one thread can save a job at the same time")
     public List<Job> save(List<Job> jobs) {
         try (MultiLock lock = new MultiLock(jobs)) {
             return storageProvider.save(jobs);
