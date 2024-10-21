@@ -127,7 +127,7 @@ class DatabaseCreatorTest {
     }
 
     @Test
-    void testMigrationAreNotRunningConcurrently() throws InterruptedException {
+    void testMigrationsAreNotRunningConcurrently() throws InterruptedException {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test;DB_CLOSE_DELAY=-1");
         final DatabaseCreator databaseCreator1 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
         final DatabaseCreator databaseCreator2 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
@@ -178,6 +178,25 @@ class DatabaseCreatorTest {
 
         assertThat(loggerDbCreator)
                 .hasDebugMessageContaining("Updating lock on migrations table...", 2)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
+                .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
+    }
+
+    @Test
+    void checksThatMigrationsTableIsNoLongerLockedWhenThereAreNoNewMigrations() {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test-always-checks-lock;DB_CLOSE_DELAY=-1");
+        final DatabaseCreator databaseCreator = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+        final ListAppender<ILoggingEvent> loggerDbCreator = LoggerAssert.initFor(databaseCreator);
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThat(loggerDbCreator)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
+                .hasInfoMessageContaining("Waiting for database migrations to finish...", 0);
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThat(loggerDbCreator)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
                 .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
                 .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
     }

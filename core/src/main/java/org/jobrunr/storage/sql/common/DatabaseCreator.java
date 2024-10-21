@@ -140,7 +140,10 @@ public class DatabaseCreator {
     }
 
     private void runMigrations(List<SqlMigration> migrationsToRun) {
-        if (migrationsToRun.isEmpty()) return;
+        if (migrationsToRun.isEmpty()) {
+            migrationsTableLocker.waitUntilMigrationsAreDone();
+            return;
+        }
 
         if (isCreateMigrationsTableMigration(migrationsToRun.get(0))) {
             createMigrationsTable(migrationsToRun.remove(0));
@@ -224,7 +227,7 @@ public class DatabaseCreator {
                         throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
                                 "Please cleanup the migrations_table and remove duplicate entries.");
                     }
-                    result = numberOfRows >= 1;
+                    result = numberOfRows == 1;
                 }
             }
             return result;
