@@ -126,7 +126,8 @@ public class DatabaseCreator {
     }
 
     private boolean isMigrationsTableMissing() {
-        return getAllTableNames().stream().map(String::toUpperCase).noneMatch(x -> x.contains("JOBRUNR_MIGRATIONS"));
+        String migrationsFQTableName = tablePrefixStatementUpdater.getFQTableName("JOBRUNR_MIGRATIONS").toUpperCase();
+        return getAllTableNames().stream().map(String::toUpperCase).noneMatch(x -> x.contains(migrationsFQTableName));
     }
 
     @VisibleFor("testing")
