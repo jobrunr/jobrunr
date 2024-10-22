@@ -248,6 +248,7 @@ public class DatabaseCreator {
             }
             return result;
         } catch (SQLException sqlException) {
+            LOGGER.debug("Error checking if migration {} is already applied", migration.getFileName(), sqlException);
             throw new StorageException(sqlException);
         }
     }
