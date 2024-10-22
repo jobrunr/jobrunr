@@ -101,7 +101,7 @@ class DatabaseCreatorTest {
 
     @Test
     void testH2ValidateWithTablesInWrongSchema() {
-        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test-wrong-schema;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
         final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1.prefix_", H2StorageProvider.class);
         databaseCreatorForSchema1.runMigrations();
         final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2.prefix_", H2StorageProvider.class);
