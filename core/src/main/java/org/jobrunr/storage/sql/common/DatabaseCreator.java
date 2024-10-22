@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.JobRunrException;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
@@ -10,6 +11,7 @@ import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpd
 import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
 import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
 import org.jobrunr.utils.StringUtils;
+import org.jobrunr.utils.annotations.VisibleFor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -104,34 +107,47 @@ public class DatabaseCreator {
     }
 
     public void runMigrations() {
+        boolean isMigrationTableMissing = isMigrationsTableMissing();
         List<SqlMigration> migrationsToRun = getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
                 .sorted(comparing(SqlMigration::getFileName))
-                .filter(this::isNewMigration)
+                .filter(x -> isMigrationTableMissing || isNewMigration(x))
                 .collect(toList());
         runMigrations(migrationsToRun);
     }
 
     public void validateTables() {
+        List<String> expectedTables = stream(JOBRUNR_TABLES).map(tablePrefixStatementUpdater::getFQTableName).map(String::toUpperCase).collect(toList());
+        List<String> allTableNames = getAllTableNames();
+        expectedTables.removeAll(allTableNames);
+        if (!expectedTables.isEmpty()) {
+            throw new JobRunrException("Not all required tables are available by JobRunr!");
+        }
+    }
+
+    private boolean isMigrationsTableMissing() {
+        return getAllTableNames().stream().map(String::toUpperCase).noneMatch(x -> x.contains("JOBRUNR_MIGRATIONS"));
+    }
+
+    @VisibleFor("testing")
+    List<String> getAllTableNames() {
         try (final Connection conn = getConnection()) {
-            List<String> expectedTables = stream(JOBRUNR_TABLES).map(tablePrefixStatementUpdater::getFQTableName).map(String::toUpperCase).collect(toList());
+            List<String> allTableNames = new ArrayList<>();
             ResultSet tables = conn.getMetaData().getTables(null, null, "%", null);
             while (tables.next()) {
                 if (tablePrefixStatementUpdater.getSchema() != null) {
                     String tableSchema = tables.getString("TABLE_SCHEM");
                     String tableName = tables.getString("TABLE_NAME");
                     String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
-                    expectedTables.remove(completeTableName);
+                    allTableNames.add(completeTableName);
                 } else {
                     String tableName = tables.getString("TABLE_NAME").toUpperCase();
-                    expectedTables.removeIf(x -> x.contains(tableName));
+                    allTableNames.add(tableName);
                 }
             }
-            if (!expectedTables.isEmpty()) {
-                throw new JobRunrException("Not all required tables are available by JobRunr!");
-            }
+            return allTableNames;
         } catch (SQLException e) {
-            throw new JobRunrException("Unable to query database tables to see if JobRunr Tables were created.", e);
+            throw new StorageException("Unable to query database tables to see if JobRunr Tables were created.", e);
         }
     }
 
@@ -225,14 +241,14 @@ public class DatabaseCreator {
                     int numberOfRows = rs.getInt(1);
                     if (numberOfRows > 1) {
                         throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
-                                "Please cleanup the migrations_table and remove duplicate entries.");
+                                "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
                     }
                     result = numberOfRows == 1;
                 }
             }
             return result;
-        } catch (SQLException becauseTableDoesNotExist) {
-            return false;
+        } catch (SQLException sqlException) {
+            throw new StorageException(sqlException);
         }
     }
 

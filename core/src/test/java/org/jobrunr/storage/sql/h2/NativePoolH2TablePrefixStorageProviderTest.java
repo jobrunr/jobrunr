@@ -38,7 +38,7 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
     @Override
     protected DataSource getDataSource() {
         if (dataSource == null) {
-            dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test;INIT=CREATE SCHEMA IF NOT EXISTS SOME_SCHEMA;DB_CLOSE_DELAY=-1;", "sa", "sa");
+            dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test-native-pool;INIT=CREATE SCHEMA IF NOT EXISTS SOME_SCHEMA;DB_CLOSE_DELAY=-1;", "sa", "sa");
         }
         return dataSource;
     }
