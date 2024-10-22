@@ -121,7 +121,7 @@ class DatabaseCreatorTest {
         assertThatCode(databaseCreator::runMigrations)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("A migration was applied multiple times (probably because it took too long and the process was killed). " +
-                        "Please cleanup the migrations_table and remove duplicate entries.");
+                        "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
 
         verify(databaseCreator, never()).runMigration(any());
     }
