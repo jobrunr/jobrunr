@@ -19,7 +19,7 @@ public class HikariH2StorageProviderTest extends SqlStorageProviderTest {
 
     protected HikariDataSource getDataSource(boolean autoCommit) {
         if (dataSource == null) {
-            dataSource = toHikariDataSource("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "sa", autoCommit);
+            dataSource = toHikariDataSource("jdbc:h2:mem:test-hikari;DB_CLOSE_DELAY=-1", "sa", "sa", autoCommit);
         }
         return dataSource;
     }

@@ -101,7 +101,7 @@ class DatabaseCreatorTest {
 
     @Test
     void testH2ValidateWithTablesInWrongSchema() {
-        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test-wrong-schema;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
         final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1.prefix_", H2StorageProvider.class);
         databaseCreatorForSchema1.runMigrations();
         final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2.prefix_", H2StorageProvider.class);
@@ -121,13 +121,13 @@ class DatabaseCreatorTest {
         assertThatCode(databaseCreator::runMigrations)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("A migration was applied multiple times (probably because it took too long and the process was killed). " +
-                        "Please cleanup the migrations_table and remove duplicate entries.");
+                        "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
 
         verify(databaseCreator, never()).runMigration(any());
     }
 
     @Test
-    void testMigrationAreNotRunningConcurrently() throws InterruptedException {
+    void testMigrationsAreNotRunningConcurrently() throws InterruptedException {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test;DB_CLOSE_DELAY=-1");
         final DatabaseCreator databaseCreator1 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
         final DatabaseCreator databaseCreator2 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
@@ -178,6 +178,25 @@ class DatabaseCreatorTest {
 
         assertThat(loggerDbCreator)
                 .hasDebugMessageContaining("Updating lock on migrations table...", 2)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
+                .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
+    }
+
+    @Test
+    void checksThatMigrationsTableIsNoLongerLockedWhenThereAreNoNewMigrations() {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test-always-checks-lock;DB_CLOSE_DELAY=-1");
+        final DatabaseCreator databaseCreator = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+        final ListAppender<ILoggingEvent> loggerDbCreator = LoggerAssert.initFor(databaseCreator);
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThat(loggerDbCreator)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
+                .hasInfoMessageContaining("Waiting for database migrations to finish...", 0);
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThat(loggerDbCreator)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
                 .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
                 .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
     }

@@ -22,7 +22,7 @@ class AgroalH2StorageProviderTest extends SqlStorageProviderTest {
                         .connectionPoolConfiguration(cp -> cp
                                 .maxSize(2)
                                 .connectionFactoryConfiguration(cf -> cf
-                                        .jdbcUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+                                        .jdbcUrl("jdbc:h2:mem:test-agroal;DB_CLOSE_DELAY=-1")
                                         .principal(new NamePrincipal("sa"))
                                         .credential(new SimplePassword("sa"))
                                 )

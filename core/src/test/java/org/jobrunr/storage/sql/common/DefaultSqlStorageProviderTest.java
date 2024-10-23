@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,6 +41,8 @@ class DefaultSqlStorageProviderTest {
     @Mock
     private Connection connection;
     @Mock
+    private DatabaseMetaData databaseMetaData;
+    @Mock
     private Statement statement;
     @Mock
     private PreparedStatement preparedStatement;
@@ -54,8 +57,10 @@ class DefaultSqlStorageProviderTest {
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);
         when(datasource.getConnection()).thenReturn(connection);
+        when(connection.getMetaData()).thenReturn(databaseMetaData);
+        when(connection.getMetaData().getTables(null, null, "%", null)).thenReturn(resultSet);
         when(preparedStatement.executeUpdate()).thenReturn(1);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        lenient().when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
         jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE.CREATE);
         jobStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
