@@ -61,6 +61,17 @@ class CronExpressionTest {
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
+    @Test
+    void cronExpressionsDST() {
+        Instant from = Instant.parse("2024-10-27T01:00:15.660199Z");
+        Instant actualNextInstant = CronExpression.create("0 5 2 * * *").next(Instant.parse("2024-10-27T00:58:19.509707Z"), from, ZoneId.of("Europe/Brussels"));
+
+        assertThat(actualNextInstant)
+                .isNotNull()
+                .isEqualTo("2024-10-28T01:05:00.000Z")
+                .isAfter(from);
+    }
+
     // github issue 31
     @Test
     void dailyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
@@ -109,7 +120,8 @@ class CronExpressionTest {
         hour = hour >= 24 ? 0 : hour;
 
         Instant actualNextInstant = CronExpression.create(Cron.daily(hour)).next(Instant.now(), systemDefault());
-        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(ChronoUnit.HOURS).toInstant();;
+        Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(ChronoUnit.HOURS).toInstant();
+        ;
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
