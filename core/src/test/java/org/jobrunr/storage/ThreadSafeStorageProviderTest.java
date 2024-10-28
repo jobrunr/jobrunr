@@ -100,7 +100,7 @@ class ThreadSafeStorageProviderTest {
     }
 
     @Test
-    @Because("https://github.com/jobrunr/jobrunr-pro/issues/455")
+    @Because("github issue 455")
     void sameJobCanNotChangeStateWhileItIsSaved() throws InterruptedException {
         final Job jobInProgress = aJobInProgress().build();
 
@@ -119,7 +119,7 @@ class ThreadSafeStorageProviderTest {
         // the job cannot be updated with a new state and it must wait for the 100ms.
         // This is because the ThreadSafeStorageProvider is locking the job and the job itself is
         // also locking itself while adding a state change.
-        assertThat(between(before, after).toMillis()).isGreaterThan(50L);
+        assertThat(between(before, after).toMillis()).isGreaterThan(99L);
     }
 
     private Void saveAndCountDown(Job job, CountDownLatch countDownLatch) {
