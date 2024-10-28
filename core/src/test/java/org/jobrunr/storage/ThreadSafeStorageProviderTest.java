@@ -1,6 +1,7 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +16,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.time.Duration.between;
+import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -92,6 +97,29 @@ class ThreadSafeStorageProviderTest {
         final Instant after = Instant.now();
 
         assertThat(between(before, after).toMillis()).isGreaterThan(200L);
+    }
+
+    @Test
+    @Because("github issue 455")
+    void sameJobCanNotChangeStateWhileItIsSaved() throws InterruptedException {
+        final Job jobInProgress = aJobInProgress().build();
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(1);
+        final Callable<Void> runnable = () -> saveAndCountDown(jobInProgress, countDownLatch);
+        executorService.submit(runnable);
+
+        final Instant before = now();
+        jobInProgress.failed("This fails", new RuntimeException());
+        final Instant after = now();
+
+        countDownLatch.await();
+        // why: while the job is being saved to the DB (which due to mocking is taking about 100ms)
+        // the job cannot be updated with a new state and it must wait for the 100ms.
+        // This is because the ThreadSafeStorageProvider is locking the job and the job itself is
+        // also locking itself while adding a state change.
+        assertThat(between(before, after).toMillis()).isGreaterThan(99L);
     }
 
     private Void saveAndCountDown(Job job, CountDownLatch countDownLatch) {

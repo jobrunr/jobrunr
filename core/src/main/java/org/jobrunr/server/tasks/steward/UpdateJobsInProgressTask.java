@@ -3,8 +3,6 @@ package org.jobrunr.server.tasks.steward;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 
-import java.util.ArrayList;
-
 public class UpdateJobsInProgressTask extends AbstractJobStewardTask {
 
     public UpdateJobsInProgressTask(BackgroundJobServer backgroundJobServer) {
@@ -14,14 +12,16 @@ public class UpdateJobsInProgressTask extends AbstractJobStewardTask {
     @Override
     protected void runTask() {
         LOGGER.debug("Updating currently processed jobs... ");
-        convertAndProcessJobs(new ArrayList<>(backgroundJobServer.getJobSteward().getJobsInProgress()), this::updateCurrentlyProcessingJob);
+        convertAndProcessJobs(backgroundJobServer.getJobSteward().getJobsInProgress(), this::updateCurrentlyProcessingJob);
     }
 
     private Job updateCurrentlyProcessingJob(Job job) {
         try {
             return job.updateProcessing();
         } catch (ClassCastException e) {
-            // why: because of thread context switching there is a tiny chance that the job already succeeded or failed.
+            // why: there is a tiny chance that the job already succeeded or failed.
+            // For example, if the underlying data structure is a concurrent collection and the iteration is weakly
+            // consistent, it might return items in its iterator that have already been removed from the collection.
             return null;
         }
     }
