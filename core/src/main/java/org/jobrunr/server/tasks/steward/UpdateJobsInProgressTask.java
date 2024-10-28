@@ -19,7 +19,9 @@ public class UpdateJobsInProgressTask extends AbstractJobStewardTask {
         try {
             return job.updateProcessing();
         } catch (ClassCastException e) {
-            // why: because of thread context switching there is a tiny chance that the job already succeeded or failed.
+            // why: there is a tiny chance that the job already succeeded or failed.
+            // For example, if the underlying data structure is a concurrent collection and the iteration is weakly
+            // consistent, it might return items in its iterator that have already been removed from the collection.
             return null;
         }
     }
