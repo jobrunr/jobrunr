@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -55,7 +56,7 @@ public abstract class Task {
 
     protected abstract void runTask();
 
-    protected final <T> void convertAndProcessJobs(List<T> items, Function<T, Job> toJobFunction) {
+    protected final <T> void convertAndProcessJobs(Collection<T> items, Function<T, Job> toJobFunction) {
         List<Job> jobs = items.stream().map(toJobFunction).filter(Objects::nonNull).collect(toList());
         saveAndRunJobFilters(jobs);
     }

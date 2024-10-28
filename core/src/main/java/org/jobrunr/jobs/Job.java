@@ -13,6 +13,8 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
+import org.jobrunr.utils.annotations.LockingJob;
+import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.jobrunr.utils.uuid.UUIDv7Factory;
 
@@ -235,12 +237,15 @@ public class Job extends AbstractJob {
                 '}';
     }
 
+    @LockingJob("locks the job so the state of a job cannot be changed while it is being saved to the database")
     private void addJobState(JobState jobState) {
-        stateIndexBeforeStateChange.compareAndSet(-1, this.jobHistory.size());
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
-        this.jobHistory.add(jobState);
+        try (Lock lock = lock()) {
+            this.stateIndexBeforeStateChange.compareAndSet(-1, this.jobHistory.size());
+            this.jobHistory.add(jobState);
+        }
     }
 
     private void clearMetadata() {

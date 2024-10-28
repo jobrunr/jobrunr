@@ -1,22 +1,22 @@
 package org.jobrunr.utils.resilience;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Lock implements AutoCloseable {
 
-    private final Semaphore semaphore;
+    private final ReentrantLock reentrantLock;
 
     public Lock() {
-        this.semaphore = new Semaphore(1);
+        this.reentrantLock = new ReentrantLock();
     }
 
     public Lock lock() {
-        semaphore.acquireUninterruptibly();
+        reentrantLock.lock();
         return this;
     }
 
     public boolean isLocked() {
-        return this.semaphore.availablePermits() < 1;
+        return this.reentrantLock.isLocked();
     }
 
     @Override
@@ -25,6 +25,6 @@ public class Lock implements AutoCloseable {
     }
 
     public void unlock() {
-        semaphore.release();
+        reentrantLock.unlock();
     }
 }
