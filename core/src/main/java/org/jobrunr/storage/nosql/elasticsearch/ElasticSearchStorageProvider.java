@@ -493,6 +493,8 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
     @Override
     public List<Job> save(final List<Job> jobs) {
+        if (jobs.isEmpty()) return jobs;
+        
         try (final JobListVersioner versioner = new JobListVersioner(jobs)) {
             versioner.validateJobs();
 
