@@ -1,5 +1,5 @@
 import Alert from '@mui/material/Alert';
-import SwitchableTimeAgo from "../../utils/time-ago";
+import {SwitchableTimeAgo} from "../../utils/time-ago";
 import Icon from "@mui/material/Icon";
 import Typography from "@mui/material/Typography";
 import {Schedule} from "@mui/icons-material";

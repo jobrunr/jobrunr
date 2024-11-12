@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import TimeAgo from "react-timeago/lib";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
-const SwitchableTimeAgo = (props) => {
+const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} ${b}`;
+
+export const SuffixFreeTimeAgo = ({date, ...rest}) => <TimeAgo date={date} title={date.toString()} formatter={timeAgoFormatterWithoutSuffix} {...rest}/>;
+
+export const SwitchableTimeAgo = (props) => {
 
     const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
 
@@ -34,5 +38,3 @@ const SwitchableTimeAgo = (props) => {
         </>
     );
 }
-
-export default SwitchableTimeAgo;

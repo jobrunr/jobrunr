@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
 import {Link} from "react-router-dom";
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Chip from '@mui/material/Chip';
 import {Schedule} from "@mui/icons-material";
 import {AlertCircleOutline, Check, Cogs, Delete, TimerSand} from "mdi-material-ui";
-import statsState from "../../StatsStateContext";
+import {ListItemButton} from "@mui/material";
+import {StatChip} from "../ui/StatChip";
+import {useJobStats} from "../../hooks/useJobStats";
+import {useEffect} from "react";
 
 const categories = [
     {name: "scheduled", state: "SCHEDULED", label: "Scheduled", icon: <Schedule/>},
@@ -19,22 +19,17 @@ const categories = [
 ];
 
 const Sidebar = () => {
-    const [stats, setStats] = useState(statsState.getStats());
-    useEffect(() => {
-        statsState.addListener(setStats);
-        return () => statsState.removeListener(setStats);
-    }, [])
+    const [stats, _] = useJobStats();
 
     return (
         <List>
             <List component="div" disablePadding>
                 {categories.map(({name, state, label, icon}) => (
-                    <ListItem id={`${name}-menu-btn`} button key={label} title={label}
-                              component={Link} to={`/dashboard/jobs?state=${state}`}>
+                    <ListItemButton id={`${name}-menu-btn`} key={label} title={label} component={Link} to={`/dashboard/jobs?state=${state}`}>
                         <ListItemIcon>{icon}</ListItemIcon>
                         <ListItemText primary={label}/>
-                        <Chip label={stats[name]}/>
-                    </ListItem>
+                        <StatChip label={stats[name]}/>
+                    </ListItemButton>
                 ))}
             </List>
         </List>

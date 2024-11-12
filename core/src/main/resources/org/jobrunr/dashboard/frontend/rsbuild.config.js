@@ -28,5 +28,6 @@ export default defineConfig({
             '/api': 'http://localhost:8000',
             '/sse': 'http://localhost:8000',
         },
+        compress: false
     },
 });
