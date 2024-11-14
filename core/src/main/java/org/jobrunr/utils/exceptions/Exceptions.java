@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 public class Exceptions {
 
     public static boolean hasCause(Throwable t, Class<? extends Throwable> exceptionClass) {
-        if (t.getClass().isAssignableFrom(exceptionClass)) return true;
+        if (exceptionClass.isAssignableFrom(t.getClass())) return true;
         if (t.getCause() != null) {
             return hasCause(t.getCause(), exceptionClass);
         }
