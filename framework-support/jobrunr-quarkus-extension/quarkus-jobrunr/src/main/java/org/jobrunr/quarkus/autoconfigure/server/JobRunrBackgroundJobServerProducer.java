@@ -11,6 +11,7 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
@@ -83,7 +84,11 @@ public class JobRunrBackgroundJobServerProducer {
         return new JobActivator() {
             @Override
             public <T> T activateJob(Class<T> aClass) {
-                return CDI.current().select(aClass).get();
+                try {
+                    return CDI.current().select(aClass).get();
+                } catch (IllegalStateException e) {
+                    throw new JobActivatorShutdownException("Quarkus CDI container is shutting down", e);
+                }
             }
         };
     }

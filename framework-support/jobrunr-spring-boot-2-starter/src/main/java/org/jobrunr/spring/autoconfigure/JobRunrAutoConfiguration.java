@@ -14,6 +14,7 @@ import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
@@ -23,6 +24,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -131,7 +133,16 @@ public class JobRunrAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JobActivator jobActivator(ApplicationContext applicationContext) {
-        return applicationContext::getBean;
+        return new JobActivator() {
+            @Override
+            public <T> T activateJob(Class<T> type) throws JobActivatorShutdownException {
+                try {
+                    return applicationContext.getBean(type);
+                } catch (BeanCreationNotAllowedException e) {
+                    throw new JobActivatorShutdownException("Spring IoC container is shutting down", e);
+                }
+            }
+        };
     }
 
     @Bean
