@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
 import static java.time.ZoneOffset.UTC;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -81,6 +82,66 @@ class IntervalTest {
         assertThat(interval1)
                 .describedAs("Expecting %s to be less than %s. Current LocalDateTime", interval1.next(now, UTC).toString(), interval2.next(now, UTC).toString(), now.toString())
                 .isLessThan(interval2);
+    }
+
+    @Test
+    void intervalIsIdempotent1() {
+        Instant now = Instant.parse("2024-11-20T14:34:07.000Z");
+        Instant createdAt = Instant.parse("2024-11-19T04:01:57.000Z");
+
+        Interval interval = new Interval(Duration.ofHours(10));
+
+        Instant nextRun1 = interval.next(createdAt, now, UTC);
+        assertThat(nextRun1).isEqualTo(Instant.parse("2024-11-20T20:01:57.000Z"));
+
+        Instant nextRun2 = interval.next(createdAt, nextRun1, UTC);
+        assertThat(nextRun2).isEqualTo(nextRun1.plus(10, HOURS));
+
+        Instant currentInstant = nextRun1.minus(Duration.between(nextRun1, nextRun2)).minusSeconds(5);
+        Instant lastRun = interval.next(createdAt, currentInstant, UTC);
+        assertThat(lastRun).isEqualTo(Instant.parse("2024-11-20T10:01:57.000Z"));
+
+        assertThat(interval.next(createdAt, lastRun, UTC)).isEqualTo(nextRun1);
+    }
+
+    @Test
+    void intervalIsIdempotent2() {
+        Instant now = Instant.parse("2024-11-20T14:34:07.000Z");
+        Instant createdAt = Instant.parse("2024-11-20T04:01:57.000Z");
+
+        Interval interval = new Interval(Duration.ofHours(10));
+
+        Instant nextRun1 = interval.next(createdAt, now, UTC);
+        assertThat(nextRun1).isEqualTo(Instant.parse("2024-11-21T00:01:57.000Z"));
+
+        Instant nextRun2 = interval.next(createdAt, nextRun1, UTC);
+        assertThat(nextRun2).isEqualTo(nextRun1.plus(10, HOURS));
+
+        Instant currentInstant = nextRun1.minus(Duration.between(nextRun1, nextRun2)).minusSeconds(5);
+        Instant lastRun = interval.next(createdAt, currentInstant, UTC);
+        assertThat(lastRun).isEqualTo(Instant.parse("2024-11-20T14:01:57.000Z"));
+
+        assertThat(interval.next(createdAt, lastRun, UTC)).isEqualTo(nextRun1);
+    }
+
+    @Test
+    void intervalIsIdempotent3() {
+        Instant now = Instant.parse("2024-11-20T14:04:07.000Z");
+        Instant createdAt = Instant.parse("2024-11-20T14:01:57.000Z");
+
+        Interval interval = new Interval(Duration.ofHours(10));
+
+        Instant nextRun1 = interval.next(createdAt, now, UTC);
+        assertThat(nextRun1).isEqualTo(Instant.parse("2024-11-21T00:01:57.000Z"));
+
+        Instant nextRun2 = interval.next(createdAt, nextRun1, UTC);
+        assertThat(nextRun2).isEqualTo(nextRun1.plus(10, HOURS));
+
+        Instant currentInstant = nextRun1.minus(Duration.between(nextRun1, nextRun2)).minusSeconds(5);
+        Instant lastRun = interval.next(createdAt, currentInstant, UTC);
+        assertThat(lastRun).isEqualTo(Instant.parse("2024-11-20T14:01:57.000Z"));
+
+        assertThat(interval.next(createdAt, lastRun, UTC)).isEqualTo(nextRun1);
     }
 
     static Stream<Arguments> startInstantDurationAndResultInstant() {
