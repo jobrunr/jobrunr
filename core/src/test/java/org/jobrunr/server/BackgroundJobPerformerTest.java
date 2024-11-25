@@ -348,6 +348,7 @@ class BackgroundJobPerformerTest {
                         Map.of(
                                 "jobrunr.jobId", job.getId().toString(),
                                 "jobrunr.jobName", job.getJobName(),
+                                "jobrunr.jobSignature", job.getJobSignature(),
                                 "testKey", "testValue"
                         ));
 
@@ -378,6 +379,7 @@ class BackgroundJobPerformerTest {
                         Map.of(
                                 "jobrunr.jobId", job.getId().toString(),
                                 "jobrunr.jobName", job.getJobName(),
+                                "jobrunr.jobSignature", job.getJobSignature(),
                                 "testKey", "testValue"
                         ));
         assertThat(MDC.getCopyOfContextMap()).isNullOrEmpty(); // backgroundJobPerformer clears MDC Context
