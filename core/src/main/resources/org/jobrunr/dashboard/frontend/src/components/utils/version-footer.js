@@ -1,10 +1,10 @@
 import {useContext, useEffect} from 'react';
 import {Typography} from "@mui/material";
-import statsState from "../../StatsStateContext";
 import {JobRunrInfoContext} from "../../JobRunrInfoContext";
+import {useJobStats} from "../../hooks/useJobStats";
 
 export default function VersionFooter() {
-    const stats = statsState.getStats();
+    const [stats, _] = useJobStats();
     const jobRunrInfo = useContext(JobRunrInfoContext);
 
     useEffect(() => {

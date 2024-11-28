@@ -20,6 +20,8 @@ import {humanFileSize} from "../../utils/helper-functions";
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
 import {ItemsNotFound} from "../utils/items-not-found";
+import {useServers} from "../../hooks/useServers";
+import {openEventSource} from "../../stores/serversStore";
 
 const spin = keyframes`
     from {
@@ -47,7 +49,7 @@ const IdColumn = styled(TableCell)`
 
 const Servers = memo(() => {
     const [isLoading, setIsLoading] = useState(true);
-    const [servers, setServers] = useState([]);
+    const [servers, setServers] = useServers();
     const [open, setOpen] = useState(false);
     const [currentServer, setCurrentServer] = useState(null);
 
@@ -61,27 +63,14 @@ const Servers = memo(() => {
         setCurrentServer(null);
     };
 
-
     useEffect(() => {
         fetch(`/api/servers`)
             .then(res => res.json())
-            .then(response => {
-                setServers(sortServers(response));
-                setIsLoading(false);
-            })
-            .catch(error => console.log(error));
-
-        const eventSource = new EventSource(process.env.REACT_APP_SSE_URL + "/servers");
-        eventSource.addEventListener('message', e => setServers(sortServers(JSON.parse(e.data))));
-        eventSource.addEventListener('close', e => eventSource.close());
-        return function cleanUp() {
-            eventSource.close();
-        }
+            .then(setServers)
+            .catch(error => console.log(error))
+            .finally(() => setIsLoading(false));
+        return openEventSource();
     }, []);
-
-    const sortServers = (servers) => {
-        return [...servers].sort((a, b) => a.firstHeartbeat > b.firstHeartbeat);
-    }
 
     return (
         <div>

@@ -82,7 +82,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                         <TableCell>
                                             {job.labels &&
                                                 <>
-                                                    {job.labels.map((label) => <JobLabel text={label}/>)}
+                                                    {job.labels.map((label) => <JobLabel key={label} text={label}/>)}
                                                     <span style={{marginRight: '0.5rem'}}></span>
                                                 </>
                                             }

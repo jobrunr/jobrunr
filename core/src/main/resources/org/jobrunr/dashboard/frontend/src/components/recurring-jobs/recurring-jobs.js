@@ -185,7 +185,7 @@ const RecurringJobs = () => {
                                                         {recurringJob.id}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
+                                                        {recurringJob.labels?.map((label) => <JobLabel key={label} text={label}/>)}
                                                         {recurringJob.jobName}
                                                     </TableCell>
                                                     <TableCell>
