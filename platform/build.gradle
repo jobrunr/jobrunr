@@ -47,7 +47,7 @@ dependencies {
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.40.1'
         api 'org.mockito:mockito-inline:5.2.0'
         api 'org.mockito:mockito-junit-jupiter:5.14.1'
-        api 'ch.qos.logback:logback-classic:1.5.8'
+        api 'ch.qos.logback:logback-classic:1.5.12'
         api 'org.testcontainers:testcontainers:1.20.1'
         api 'org.testcontainers:junit-jupiter:1.20.1'
         api 'org.testcontainers:jdbc:1.20.1'

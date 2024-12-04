@@ -16,7 +16,7 @@ compileTestJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'ch.qos.logback:logback-classic:1.5.8'
+    implementation 'ch.qos.logback:logback-classic:1.5.12'
 
     testImplementation 'org.jobrunr:jobrunr:[7.2.3]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.11.0'
