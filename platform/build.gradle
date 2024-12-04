@@ -21,7 +21,7 @@ dependencies {
         api 'io.micrometer:micrometer-core:1.13.4'
         api 'io.insert-koin:koin-core:3.5.6'
 
-        api 'org.xerial:sqlite-jdbc:3.46.1.3'
+        api 'org.xerial:sqlite-jdbc:3.47.1.0'
         api 'com.h2database:h2:2.3.232'
         api 'org.postgresql:postgresql:42.7.4'
         api 'com.google.cloud.sql:postgres-socket-factory:1.18.0'
@@ -30,7 +30,7 @@ dependencies {
         api 'mysql:mysql-connector-java:8.0.33'
         api 'com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre8'
         api 'com.ibm.db2:jcc:11.5.9.0'
-        api 'com.zaxxer:HikariCP:6.0.0'
+        api 'com.zaxxer:HikariCP:6.2.1'
         api 'io.agroal:agroal-pool:2.5'
         api 'org.apache.commons:commons-dbcp2:2.12.0'
         api 'org.apache.tomcat:tomcat-jdbc:10.1.30'
