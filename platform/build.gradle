@@ -17,7 +17,7 @@ dependencies {
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.2'
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2'
         api 'com.google.code.gson:gson:2.11.0'
-        api 'org.eclipse:yasson:3.0.3'
+        api 'org.eclipse:yasson:3.0.4'
         api 'io.micrometer:micrometer-core:1.14.1'
         api 'io.insert-koin:koin-core:3.5.6'
 
