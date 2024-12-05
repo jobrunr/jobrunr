@@ -1,5 +1,5 @@
 plugins {
-    id 'com.google.cloud.tools.jib' version '3.3.2'
+    id 'com.google.cloud.tools.jib' version '3.4.4'
 }
 
 compileJava {
