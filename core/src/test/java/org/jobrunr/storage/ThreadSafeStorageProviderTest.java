@@ -110,6 +110,8 @@ class ThreadSafeStorageProviderTest {
         final Callable<Void> runnable = () -> saveAndCountDown(jobInProgress, countDownLatch);
         executorService.submit(runnable);
 
+        sleep(10); // to make sure the runnable is processing and prevent a race condition
+
         final Instant before = now();
         jobInProgress.failed("This fails", new RuntimeException());
         final Instant after = now();
@@ -119,7 +121,8 @@ class ThreadSafeStorageProviderTest {
         // the job cannot be updated with a new state and it must wait for the 100ms.
         // This is because the ThreadSafeStorageProvider is locking the job and the job itself is
         // also locking itself while adding a state change.
-        assertThat(between(before, after).toMillis()).isGreaterThan(99L);
+        // We take 80ms because we also sleep 10ms and want some margin
+        assertThat(between(before, after).toMillis()).isGreaterThan(80L);
     }
 
     private Void saveAndCountDown(Job job, CountDownLatch countDownLatch) {
