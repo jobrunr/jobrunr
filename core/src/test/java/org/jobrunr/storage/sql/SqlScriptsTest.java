@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -23,23 +22,21 @@ public class SqlScriptsTest {
             StorageProviderUtils.Metadata.NAME, StorageProviderUtils.Metadata.class,
             StorageProviderUtils.Jobs.NAME, StorageProviderUtils.Jobs.class,
             StorageProviderUtils.RecurringJobs.NAME, StorageProviderUtils.RecurringJobs.class,
-            StorageProviderUtils.BackgroundJobServers.NAME.replace("_", ""), StorageProviderUtils.BackgroundJobServers.class);
+            StorageProviderUtils.BackgroundJobServers.NAME.replace("_", ""), StorageProviderUtils.BackgroundJobServers.class,
+            StorageProviderUtils.JobStats.NAME, StorageProviderUtils.JobStats.class);
 
     @Test
     public void testSqlScriptsHaveCorrectColumnNamesAndCasing() throws Exception {
         List<FileWithContent> allSqlFiles = getAllSqlFiles();
 
         allSqlFiles.stream()
-                .filter(fileWithContent -> !fileWithContent.content.startsWith("-- Empty migration"))
+                .filter(this::isNotAnEmptyMigration)
                 .forEach(this::testNamingAndCasing);
     }
 
     private void testNamingAndCasing(FileWithContent fileWithContent) {
         List<String> relevantTablesWithFields = TABLES_WITH_FIELDS.keySet().stream()
-                .filter(tableName -> {
-                    Pattern pattern = Pattern.compile(".*\\b" + Pattern.quote("jobrunr_" + tableName) + "\\b.*", Pattern.DOTALL);
-                    return pattern.matcher(fileWithContent.content).matches();
-                })
+                .filter(tableName -> fileWithContent.content.toLowerCase().contains("jobrunr_" + tableName))
                 .collect(toList());
 
         assertThat(relevantTablesWithFields)
@@ -54,8 +51,7 @@ public class SqlScriptsTest {
 
         for (Field field : fields) {
             try {
-                int modifiers = field.getModifiers();
-                if (!(Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers))) continue;
+                if (isNotPublicStatic(field)) continue;
 
                 String fieldName = field.getName();
                 String fieldValue = field.get(clazz).toString();
@@ -66,19 +62,30 @@ public class SqlScriptsTest {
         }
     }
 
-    private void testNamingAndCasingForSqlField(FileWithContent fileWithContent, String storageProviderReference, String fieldValue) {
-        if (!fileWithContent.getContent().toLowerCase().contains(fieldValue.toLowerCase())) return;
+    private static boolean isNotPublicStatic(Field field) {
+        int modifiers = field.getModifiers();
+        return !(Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers));
+    }
 
-        int countWithoutCasing = fileWithContent.getContent().toLowerCase().split("\\b" + fieldValue.toLowerCase() + "\\b").length - 1;
-        int countWithCasing = fileWithContent.getContent().split("\\b" + fieldValue + "\\b").length - 1;
+    private void testNamingAndCasingForSqlField(FileWithContent fileWithContent, String storageProviderReference, String fieldValue) {
+        if (!fileWithContent.content.toLowerCase().contains(fieldValue.toLowerCase())) return;
+
+        int countWithoutCasing = countOccurrences(fileWithContent.content.toLowerCase(), fieldValue.toLowerCase());
+        int countWithCasing = countOccurrences(fileWithContent.content, fieldValue);
         assertThat(countWithoutCasing)
-                .describedAs("Found invalid casing in " + fileWithContent.getPath() + " for field " + storageProviderReference + " with value " + fieldValue)
+                .describedAs("Found invalid casing in " + fileWithContent.path + " for field " + storageProviderReference + " with value " + fieldValue)
                 .isEqualTo(countWithCasing);
     }
 
+    private int countOccurrences(String text, String substringToCount) {
+        return text.split("(?<!')\\b" + substringToCount + "\\b(?!')").length - 1;
+    }
+
+    private boolean isNotAnEmptyMigration(FileWithContent fileWithContent) {
+        return !fileWithContent.content.startsWith("-- Empty migration");
+    }
 
     public List<FileWithContent> getAllSqlFiles() throws Exception {
-        // Walk through all files in the directory
         try (Stream<Path> paths = Files.walk(Path.of("src/main/resources/org/jobrunr/storage/sql"))) {
             return paths.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().endsWith(".sql"))
@@ -98,14 +105,6 @@ public class SqlScriptsTest {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-
-        public Path getPath() {
-            return path;
-        }
-
-        public String getContent() {
-            return content;
         }
     }
 }
