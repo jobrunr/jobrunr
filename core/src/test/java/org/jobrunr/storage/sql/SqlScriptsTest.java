@@ -9,6 +9,8 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -16,21 +18,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqlScriptsTest {
 
+    public static final Map<String, Class<?>> TABLES_WITH_FIELDS = Map.of(
+            StorageProviderUtils.Migrations.NAME, StorageProviderUtils.Migrations.class,
+            StorageProviderUtils.Metadata.NAME, StorageProviderUtils.Metadata.class,
+            StorageProviderUtils.Jobs.NAME, StorageProviderUtils.Jobs.class,
+            StorageProviderUtils.RecurringJobs.NAME, StorageProviderUtils.RecurringJobs.class,
+            StorageProviderUtils.BackgroundJobServers.NAME.replace("_", ""), StorageProviderUtils.BackgroundJobServers.class);
+
     @Test
     public void testSqlScriptsHaveCorrectColumnNamesAndCasing() throws Exception {
         List<FileWithContent> allSqlFiles = getAllSqlFiles();
 
-        allSqlFiles.forEach(this::testNamingAndCasing);
+        allSqlFiles.stream()
+                .filter(fileWithContent -> !fileWithContent.content.startsWith("-- Empty migration"))
+                .forEach(this::testNamingAndCasing);
     }
 
     private void testNamingAndCasing(FileWithContent fileWithContent) {
-        testNamingAndCasingForAllFieldsDefinedIn(fileWithContent, StorageProviderUtils.Jobs.class);
-        testNamingAndCasingForAllFieldsDefinedIn(fileWithContent, StorageProviderUtils.RecurringJobs.class);
-        testNamingAndCasingForAllFieldsDefinedIn(fileWithContent, StorageProviderUtils.BackgroundJobServers.class);
+        List<String> relevantTablesWithFields = TABLES_WITH_FIELDS.keySet().stream()
+                .filter(tableName -> {
+                    Pattern pattern = Pattern.compile(".*\\b" + Pattern.quote("jobrunr_" + tableName) + "\\b.*", Pattern.DOTALL);
+                    return pattern.matcher(fileWithContent.content).matches();
+                })
+                .collect(toList());
+
+        assertThat(relevantTablesWithFields)
+                .describedAs("Did not find a matching table for %s", fileWithContent.path)
+                .isNotEmpty();
+
+        relevantTablesWithFields.forEach(tableName -> testNamingAndCasingForAllFieldsDefinedIn(fileWithContent, TABLES_WITH_FIELDS.get(tableName)));
     }
 
     private void testNamingAndCasingForAllFieldsDefinedIn(FileWithContent fileWithContent, Class<?> clazz) {
-        Field[] fields = clazz.getDeclaredFields();   // Get public fields (only public ones)
+        Field[] fields = clazz.getDeclaredFields();
 
         for (Field field : fields) {
             try {
