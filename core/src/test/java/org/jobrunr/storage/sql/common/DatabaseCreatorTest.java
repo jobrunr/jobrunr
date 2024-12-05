@@ -198,7 +198,7 @@ class DatabaseCreatorTest {
         assertThat(loggerDbCreator)
                 .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
                 .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
-                .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
+                .hasDebugMessageContaining("No migrations to run.", 1);
     }
 
     private JdbcDataSource createH2DataSource(String url) {

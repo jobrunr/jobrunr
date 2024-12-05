@@ -158,6 +158,7 @@ public class DatabaseCreator {
 
     private void runMigrations(List<SqlMigration> migrationsToRun) {
         if (migrationsToRun.isEmpty()) {
+            LOGGER.debug("No migrations to run.");
             migrationsTableLocker.waitUntilMigrationsAreDone();
             return;
         }
@@ -344,8 +345,10 @@ public class DatabaseCreator {
         }
 
         private void waitUntilMigrationsAreDone() {
-            LOGGER.info("Waiting for database migrations to finish...");
             try {
+                if (!isMigrationsTableLocked()) return;
+
+                LOGGER.info("Waiting for database migrations to finish...");
                 while (isMigrationsTableLocked()) {
                     sleep(2000);
                 }
