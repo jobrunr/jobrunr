@@ -88,12 +88,31 @@ public class StorageProviderUtils {
         public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
     }
 
+
+    public static final class JobStats {
+        private JobStats() {
+        }
+
+        public static final String NAME = "jobs_stats";
+
+        public static final String FIELD_TOTAL = "total";
+        public static final String FIELD_SCHEDULED = "scheduled";
+        public static final String FIELD_ENQUEUED = "enqueued";
+        public static final String FIELD_PROCESSING = "processing";
+        public static final String FIELD_FAILED = "failed";
+        public static final String FIELD_SUCCEEDED = "succeeded";
+        public static final String FIELD_ALL_TIME_SUCCEEDED = "allTimeSucceeded";
+        public static final String FIELD_DELETED = "deleted";
+        public static final String FIELD_NUMBER_OF_RECURRING_JOBS = "nbrOfRecurringJobs";
+        public static final String FIELD_NUMBER_OF_BACKGROUND_JOB_SERVERS = "nbrOfBackgroundJobServers";
+    }
+
     /**
      * @deprecated Is not used anymore in StorageProviders and will be removed
      */
     @Deprecated
-    public static final class JobStats {
-        private JobStats() {
+    public static final class DeprecatedJobStats {
+        private DeprecatedJobStats() {
         }
 
         public static final String NAME = "job_stats";
