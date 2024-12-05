@@ -9,7 +9,7 @@ SELECT count(*)                                                                 
 	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'PROCESSING') AS processing,
 	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'FAILED')     AS failed,
 	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'SUCCEEDED')  AS succeeded,
-	   (SELECT cast(cast(` value ` AS char(10)) AS decimal(10, 0))
+	   (SELECT cast(cast(`value` AS char(10)) AS decimal(10, 0))
 		FROM jobrunr_metadata jm
 		WHERE jm.id = 'succeeded-jobs-counter-cluster')                         AS allTimeSucceeded,
 	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'DELETED')    AS deleted,
