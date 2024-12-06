@@ -1,6 +1,8 @@
 package org.jobrunr.storage.sql;
 
 import org.jobrunr.storage.StorageProviderUtils;
+import org.jobrunr.storage.sql.common.migrations.SqlMigration;
+import org.jobrunr.storage.sql.common.migrations.SqlMigrationByPath;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -9,7 +11,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -17,36 +19,56 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqlScriptsTest {
 
-    public static final Map<String, Class<?>> TABLES_WITH_FIELDS = Map.of(
-            StorageProviderUtils.Migrations.NAME, StorageProviderUtils.Migrations.class,
-            StorageProviderUtils.Metadata.NAME, StorageProviderUtils.Metadata.class,
-            StorageProviderUtils.Jobs.NAME, StorageProviderUtils.Jobs.class,
-            StorageProviderUtils.RecurringJobs.NAME, StorageProviderUtils.RecurringJobs.class,
-            StorageProviderUtils.BackgroundJobServers.NAME.replace("_", ""), StorageProviderUtils.BackgroundJobServers.class,
-            StorageProviderUtils.JobStats.NAME, StorageProviderUtils.JobStats.class);
-
     @Test
-    public void testSqlScriptsHaveCorrectColumnNamesAndCasing() throws Exception {
-        List<FileWithContent> allSqlFiles = getAllSqlFiles();
-
-        allSqlFiles.stream()
-                .filter(this::isNotAnEmptyMigration)
-                .forEach(this::testNamingAndCasing);
+    void validateAllMigrationScriptsHaveCorrectSQLCasingAndCorrectFieldCasing() throws IOException {
+        allMigrations()
+                .forEach(this::validateSqlMigrationScript);
     }
 
-    private void testNamingAndCasing(FileWithContent fileWithContent) {
-        List<String> relevantTablesWithFields = TABLES_WITH_FIELDS.keySet().stream()
-                .filter(tableName -> fileWithContent.content.toLowerCase().contains("jobrunr_" + tableName))
-                .collect(toList());
-
-        assertThat(relevantTablesWithFields)
-                .describedAs("Did not find a matching table for %s", fileWithContent.path)
-                .isNotEmpty();
-
-        relevantTablesWithFields.forEach(tableName -> testNamingAndCasingForAllFieldsDefinedIn(fileWithContent, TABLES_WITH_FIELDS.get(tableName)));
+    void validateSqlMigrationScript(SqlMigrationByPath sqlMigration) {
+        assertSQLKeywordsHaveCorrectCasing(sqlMigration);
+        assertColumnNamingHaveCorrectCasing(sqlMigration);
     }
 
-    private void testNamingAndCasingForAllFieldsDefinedIn(FileWithContent fileWithContent, Class<?> clazz) {
+    private void assertSQLKeywordsHaveCorrectCasing(SqlMigrationByPath sqlMigration) {
+        SQL_KEYWORDS.forEach(sqlKeyword -> testNamingAndCasingForSqlKeyword(sqlMigration, sqlKeyword));
+    }
+
+    private void assertColumnNamingHaveCorrectCasing(SqlMigrationByPath sqlMigration) {
+        TABLES_WITH_FIELDS.forEach(tableWithFields -> testNamingAndCasingForAllFieldsDefinedIn(sqlMigration, tableWithFields));
+    }
+
+    private List<SqlMigrationByPath> allMigrations() throws IOException {
+        Path migrationsFolder = Path.of("src/main/resources/org/jobrunr/storage/sql");
+        try (Stream<Path> paths = Files.walk(migrationsFolder)) {
+            return paths.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(".sql"))
+                    .map(SqlMigrationByPath::new)
+                    .collect(toList());
+        }
+    }
+
+    private void testNamingAndCasingForSqlField(SqlMigrationByPath sqlMigration, String storageProviderReference, String fieldValue) {
+        testCasingForString(sqlMigration, fieldValue, "Found invalid casing in " + sqlMigration + " for field " + storageProviderReference + " with value '" + fieldValue + "'");
+    }
+
+    private void testNamingAndCasingForSqlKeyword(SqlMigrationByPath sqlMigration, String sqlKeyword) {
+        testCasingForString(sqlMigration, sqlKeyword, "Found invalid casing in " + sqlMigration + " for sql clause '" + sqlKeyword + "'");
+    }
+
+    private void testCasingForString(SqlMigrationByPath sqlMigration, String string, String describedAsErrorMessage) {
+        String sqlMigrationScript = getMigrationScriptWithoutComments(sqlMigration);
+
+        if (!sqlMigrationScript.toLowerCase().contains(string.toLowerCase())) return;
+
+        int countWithoutCasing = countOccurrences(sqlMigrationScript.toLowerCase(), string.toLowerCase());
+        int countWithCasing = countOccurrences(sqlMigrationScript, string);
+        assertThat(countWithoutCasing)
+                .describedAs(describedAsErrorMessage)
+                .isEqualTo(countWithCasing);
+    }
+
+    private void testNamingAndCasingForAllFieldsDefinedIn(SqlMigrationByPath sqlMigration, Class<?> clazz) {
         Field[] fields = clazz.getDeclaredFields();
 
         for (Field field : fields) {
@@ -55,7 +77,7 @@ public class SqlScriptsTest {
 
                 String fieldName = field.getName();
                 String fieldValue = field.get(clazz).toString();
-                testNamingAndCasingForSqlField(fileWithContent, clazz.getName() + "." + fieldName, fieldValue);
+                testNamingAndCasingForSqlField(sqlMigration, clazz.getSimpleName() + "." + fieldName, fieldValue);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -67,44 +89,29 @@ public class SqlScriptsTest {
         return !(Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers));
     }
 
-    private void testNamingAndCasingForSqlField(FileWithContent fileWithContent, String storageProviderReference, String fieldValue) {
-        if (!fileWithContent.content.toLowerCase().contains(fieldValue.toLowerCase())) return;
-
-        int countWithoutCasing = countOccurrences(fileWithContent.content.toLowerCase(), fieldValue.toLowerCase());
-        int countWithCasing = countOccurrences(fileWithContent.content, fieldValue);
-        assertThat(countWithoutCasing)
-                .describedAs("Found invalid casing in " + fileWithContent.path + " for field " + storageProviderReference + " with value " + fieldValue)
-                .isEqualTo(countWithCasing);
+    private String getMigrationScriptWithoutComments(SqlMigration sqlMigration) {
+        try {
+            String migrationSql = sqlMigration.getMigrationSql();
+            return migrationSql
+                    .replaceAll("(?m)^--.*$", "") // remove all single line sql comments
+                    .replaceAll("/\\*.*?\\*/", ""); // remove all multi line sql comments
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load SQL file", e);
+        }
     }
 
     private int countOccurrences(String text, String substringToCount) {
         return text.split("(?<!')\\b" + substringToCount + "\\b(?!')").length - 1;
     }
 
-    private boolean isNotAnEmptyMigration(FileWithContent fileWithContent) {
-        return !fileWithContent.content.startsWith("-- Empty migration");
-    }
+    private static final Set<Class<?>> TABLES_WITH_FIELDS = Set.of(
+            StorageProviderUtils.Migrations.class,
+            StorageProviderUtils.Metadata.class,
+            StorageProviderUtils.Jobs.class,
+            StorageProviderUtils.RecurringJobs.class,
+            StorageProviderUtils.BackgroundJobServers.class,
+            StorageProviderUtils.JobStats.class);
 
-    public List<FileWithContent> getAllSqlFiles() throws Exception {
-        try (Stream<Path> paths = Files.walk(Path.of("src/main/resources/org/jobrunr/storage/sql"))) {
-            return paths.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().endsWith(".sql"))
-                    .map(FileWithContent::new)
-                    .collect(toList());
-        }
-    }
-
-    public static class FileWithContent {
-        private final Path path;
-        private final String content;
-
-        public FileWithContent(Path path) {
-            try {
-                this.path = path;
-                this.content = Files.readString(path);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+    private static final Set<String> SQL_KEYWORDS = Set.of("SELECT", "CREATE", "UNIQUE", "INDEX", "DROP", " VIEW", "REPLACE",
+            "FROM", "WHERE", "ON", "AS", "NOT", " NULL", "PRIMARY", "ALTER", "MODIFY", "ADD");
 }
