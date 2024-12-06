@@ -16,17 +16,17 @@ compileTestJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'ch.qos.logback:logback-classic:1.5.8'
+    implementation 'ch.qos.logback:logback-classic:1.5.12'
 
-    testImplementation 'org.jobrunr:jobrunr:[7.2.3]:test-fixtures'
+    testImplementation 'org.jobrunr:jobrunr:[7.3.2]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.11.0'
 
     testImplementation 'org.assertj:assertj-core:3.25.3'
-    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.27.0'
+    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.0'
     testImplementation 'org.awaitility:awaitility:4.2.2'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testImplementation 'org.testcontainers:testcontainers:1.20.1'
-    testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
+    testImplementation 'org.testcontainers:testcontainers:1.20.4'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
 }
 
 test.dependsOn(':core:publishToMavenLocal')
