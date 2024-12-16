@@ -95,6 +95,7 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
@@ -181,11 +182,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public void setUpStorageProvider(final DatabaseOptions options) {
+    public void setUpStorageProvider(final DatabaseOptions databaseOptions) {
         final ElasticSearchDBCreator creator = new ElasticSearchDBCreator(this, client, indexPrefix);
-        if (DatabaseOptions.CREATE == options) {
+        if (databaseOptions == CREATE) {
             creator.runMigrations();
-        } else {
+        } else if (databaseOptions == SKIP_CREATE) {
             creator.validateIndices();
         }
     }

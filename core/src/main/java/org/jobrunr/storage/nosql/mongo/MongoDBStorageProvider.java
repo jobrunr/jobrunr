@@ -94,6 +94,7 @@ import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
@@ -189,9 +190,9 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if (CREATE == databaseOptions) {
+        if (databaseOptions == CREATE) {
             runMigrations(mongoClient, databaseName, collectionPrefix);
-        } else {
+        } else if (databaseOptions == SKIP_CREATE) {
             validateTables(mongoClient, databaseName, collectionPrefix);
         }
     }
