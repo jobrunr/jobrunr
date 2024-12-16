@@ -1,8 +1,9 @@
 plugins {
+    id 'com.github.ben-manes.versions' version '0.51.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.22'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.0'
 }
 
 dependencies {
@@ -15,6 +16,12 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+}
+
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        !it.candidate.version.startsWith('2.1')
+    }
 }
 
 java {
@@ -41,12 +48,12 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-kotlin-1.8-support'
+            artifactId = 'jobrunr-kotlin-2.1-support'
             version = project.version
             from components.java
 
             pom {
-                name = 'JobRunr Kotlin 1.8 Support'
+                name = 'JobRunr Kotlin 2.1 Support'
                 description = 'An easy way to perform background processing in Kotlin. Backed by persistent storage. Open and free for commercial use.'
                 url = 'https://github.com/jobrunr/jobrunr'
                 licenses {

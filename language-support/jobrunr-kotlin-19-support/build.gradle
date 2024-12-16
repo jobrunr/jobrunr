@@ -1,8 +1,9 @@
 plugins {
+    id 'com.github.ben-manes.versions' version '0.51.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.jetbrains.kotlin.jvm' version '1.9.24'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
 }
 
 dependencies {
@@ -15,6 +16,12 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+}
+
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        !it.candidate.version.startsWith('1.9')
+    }
 }
 
 java {
