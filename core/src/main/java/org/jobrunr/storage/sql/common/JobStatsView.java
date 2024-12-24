@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.common;
 
 import org.jobrunr.storage.JobStats;
+import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.storage.sql.common.db.SqlResultSet;
@@ -27,16 +28,16 @@ public class JobStatsView extends Sql<JobStats> {
     private JobStats toJobStats(SqlResultSet resultSet, Instant instant) {
         return new JobStats(
                 instant,
-                resultSet.asLong("total"),
-                resultSet.asLong("scheduled"),
-                resultSet.asLong("enqueued"),
-                resultSet.asLong("processing"),
-                resultSet.asLong("failed"),
-                resultSet.asLong("succeeded"),
-                resultSet.asLong("allTimeSucceeded"),
-                resultSet.asLong("deleted"),
-                resultSet.asInt("nbrOfRecurringJobs"),
-                resultSet.asInt("nbrOfBackgroundJobServers")
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_TOTAL),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_SCHEDULED),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_ENQUEUED),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_PROCESSING),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_FAILED),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_SUCCEEDED),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_ALL_TIME_SUCCEEDED),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_DELETED),
+                resultSet.asInt(StorageProviderUtils.JobStats.FIELD_NUMBER_OF_RECURRING_JOBS),
+                resultSet.asInt(StorageProviderUtils.JobStats.FIELD_NUMBER_OF_BACKGROUND_JOB_SERVERS)
         );
     }
 }

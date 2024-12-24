@@ -41,7 +41,7 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 class ElasticSearchStorageProviderTest extends StorageProviderTest {
 
     @Container
-    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.3")
+    private static final ElasticsearchContainer elasticSearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.16.1")
             .withEnv("ES_JAVA_OPTS", "-Xmx2048m")
             .withEnv("xpack.security.enabled", Boolean.FALSE.toString())
             .withPassword("password")

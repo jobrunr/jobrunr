@@ -1,5 +1,6 @@
 package org.jobrunr.utils.exceptions;
 
+import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.storage.StorageException;
 import org.junit.jupiter.api.Test;
 
@@ -17,8 +18,14 @@ class ExceptionsTest {
     }
 
     @Test
-    void hasCauseReturnsFalseIfExceptionDoesNotHaveGivenCause() {
+    void hasCauseReturnsFalseIfExceptionDoesNotHaveGivenCause1() {
         final boolean hasInterruptedExceptionAsCause = Exceptions.hasCause(new RuntimeException(new IllegalStateException()), InterruptedException.class);
+        assertThat(hasInterruptedExceptionAsCause).isFalse();
+    }
+
+    @Test
+    void hasCauseReturnsFalseIfExceptionDoesNotHaveGivenCause2() {
+        final boolean hasInterruptedExceptionAsCause = Exceptions.hasCause(new JobActivatorShutdownException("Shutdown", new Exception()), InterruptedException.class);
         assertThat(hasInterruptedExceptionAsCause).isFalse();
     }
 

@@ -6,14 +6,9 @@ import ch.qos.logback.core.read.ListAppender;
 import org.h2.jdbcx.JdbcDataSource;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.migrations.DefaultSqlMigrationProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
-import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
-import org.jobrunr.storage.sql.mysql.MySqlStorageProvider;
-import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
-import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,10 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static ch.qos.logback.LoggerAssert.assertThat;
-import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,15 +42,6 @@ class DatabaseCreatorTest {
     void setupJobStorageProvider() throws IOException {
         JobRunr.configure();
         Files.deleteIfExists(Paths.get(SQLITE_DB1));
-    }
-
-    @Test
-    void noSmallSQLKeywordsInSqlFilesSoTablePrefixStatementUpdaterWorksCorrectly() {
-        migrationsFor(H2StorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(MariaDbStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(MySqlStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(PostgresStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(SqLiteStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
     }
 
     @Test
@@ -198,7 +182,7 @@ class DatabaseCreatorTest {
         assertThat(loggerDbCreator)
                 .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
                 .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
-                .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
+                .hasDebugMessageContaining("No migrations to run.", 1);
     }
 
     private JdbcDataSource createH2DataSource(String url) {
@@ -222,22 +206,6 @@ class DatabaseCreatorTest {
             databaseCreator.updateMigrationsTable(connection, migration);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-
-    private Stream<SqlMigration> migrationsFor(Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
-        return new DatabaseMigrationsProvider(sqlStorageProviderClass).getMigrations().sorted(comparing(SqlMigration::getFileName));
-    }
-
-    private void assertNoLowerCaseSQLKeywords(SqlMigration sqlMigration) {
-        try {
-            String migrationSql = sqlMigration.getMigrationSql();
-            assertThat(migrationSql)
-                    .describedAs("Migration " + sqlMigration.getFileName() + " contains lowercase SQL Keyword")
-                    .doesNotContain("create ", "unique", "index", "drop", " on ", " view", " replace");
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load SQL file", e);
         }
     }
 

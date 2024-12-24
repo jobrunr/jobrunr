@@ -58,6 +58,17 @@
                 <maven.compiler.compilerVersion>21</maven.compiler.compilerVersion>
             </properties>
         </profile>
+        <profile>
+            <id>jdk-24</id>
+            <activation>
+                <jdk>24</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>24</maven.compiler.source>
+                <maven.compiler.target>24</maven.compiler.target>
+                <maven.compiler.compilerVersion>24</maven.compiler.compilerVersion>
+            </properties>
+        </profile>
     </profiles>
 
     <build>

@@ -17,7 +17,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
 @Because("https://github.com/jobrunr/jobrunr/issues/83")
-class DatabaseMigrationsProvider {
+public class DatabaseMigrationsProvider {
 
     private final Class<? extends SqlStorageProvider> sqlStorageProviderClass;
 
@@ -37,7 +37,7 @@ class DatabaseMigrationsProvider {
 
             return actualMigrations.values().stream();
         } catch (IllegalStateException e) {
-            if(e.getMessage().startsWith("Duplicate key")) {
+            if (e.getMessage().startsWith("Duplicate key")) {
                 throw new IllegalStateException("It seems you have JobRunr twice on your classpath. Please make sure to only have one JobRunr jar in your classpath.", e);
             }
             throw e;

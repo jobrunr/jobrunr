@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.mappers.MDCMapper;
@@ -32,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -157,6 +160,46 @@ class BackgroundJobPerformerTest {
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
         assertThatThrownBy(() -> backgroundJobPerformer.run())
                 .isInstanceOf(IllegalJobStateChangeException.class);
+    }
+
+    @Test
+    void onInterruptedExceptionThreadIsInterruptedAndJobIsRescheduled() throws Exception {
+        Job job = anEnqueuedJob().build();
+
+        mockBackgroundJobRunner(job, jobFromStorage -> {
+            throw new JobRunrException("Thread interrupted", new InterruptedException());
+        });
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        backgroundJobPerformer.run();
+
+        assertThat(job.getJobState(-1))
+                .hasFieldOrPropertyWithValue("state", SCHEDULED)
+                .hasFieldOrPropertyWithValue("reason", "Retry 1 of 10");
+
+        assertThat(job.getJobState(-2))
+                .hasFieldOrPropertyWithValue("state", FAILED)
+                .hasFieldOrPropertyWithValue("message", "Job processing was stopped as background job server has stopped");
+    }
+
+    @Test
+    void onJobActivatorShutdownExceptionThreadIsInterruptedAndJobIsRescheduled() throws Exception {
+        Job job = anEnqueuedJob().build();
+
+        mockBackgroundJobRunner(job, jobFromStorage -> {
+            throw new JobActivatorShutdownException("The JobActivator is in shutdown", new Exception());
+        });
+
+        BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
+        backgroundJobPerformer.run();
+
+        assertThat(job.getJobState(-1))
+                .hasFieldOrPropertyWithValue("state", SCHEDULED)
+                .hasFieldOrPropertyWithValue("reason", "Retry 1 of 10");
+
+        assertThat(job.getJobState(-2))
+                .hasFieldOrPropertyWithValue("state", FAILED)
+                .hasFieldOrPropertyWithValue("message", "Job processing was stopped as background job server has stopped");
     }
 
     @Test
@@ -305,6 +348,7 @@ class BackgroundJobPerformerTest {
                         Map.of(
                                 "jobrunr.jobId", job.getId().toString(),
                                 "jobrunr.jobName", job.getJobName(),
+                                "jobrunr.jobSignature", job.getJobSignature(),
                                 "testKey", "testValue"
                         ));
 
@@ -335,6 +379,7 @@ class BackgroundJobPerformerTest {
                         Map.of(
                                 "jobrunr.jobId", job.getId().toString(),
                                 "jobrunr.jobName", job.getJobName(),
+                                "jobrunr.jobSignature", job.getJobSignature(),
                                 "testKey", "testValue"
                         ));
         assertThat(MDC.getCopyOfContextMap()).isNullOrEmpty(); // backgroundJobPerformer clears MDC Context

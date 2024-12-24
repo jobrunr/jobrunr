@@ -17,6 +17,8 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
+import org.jobrunr.server.tasks.startup.ShutdownExecutorServiceTask;
+import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessOrphanedJobsTask;
@@ -39,6 +41,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -325,11 +329,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void runStartupTasks() {
         try {
-            List<Runnable> startupTasks = asList(
+            ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+            singleThreadExecutor.submit(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new MigrateFromV5toV6Task(this));
-            startupTasks.forEach(jobExecutor::execute);
+                    new MigrateFromV5toV6Task(this),
+                    new ShutdownExecutorServiceTask(singleThreadExecutor)
+            ));
         } catch (Exception notImportant) {
             // server is shut down immediately
         }

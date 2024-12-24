@@ -48,6 +48,13 @@ class JdkTest {
                 .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
+    @Test
+    void jdk24OpenJDK() {
+        assertThat(buildAndTestOnImage("openjdk:24", "68.0"))
+                .contains("BUILD SUCCESS")
+                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+    }
+
     private String buildAndTestOnImage(String dockerfile, String javaClassVersion) {
         final MavenBuildAndTestContainer buildAndTestContainer = new MavenBuildAndTestContainer(dockerfile);
         try {
