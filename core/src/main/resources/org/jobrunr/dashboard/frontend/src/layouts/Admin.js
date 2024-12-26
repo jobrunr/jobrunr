@@ -13,8 +13,9 @@ import {DEFAULT_JOBRUNR_INFO, JobRunrInfoContext} from "../JobRunrInfoContext";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {ProblemsContext} from "../ProblemsContext";
 import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY} from "../components/overview/problems/new-jobrunr-version-available";
-import {getApiNotificationProblem} from "../components/overview/problems/jobrunr-api-notification";
+import {getApiNotificationProblem, LATEST_DISMISSED_API_NOTIFICATION} from "../components/overview/problems/jobrunr-api-notification";
 
+const isNotDismissed = (key, value) => localStorage.getItem(key) !== value;
 
 const Main = styled("main")(({theme}) => ({
     padding: theme.spacing(3),
@@ -74,6 +75,10 @@ const AdminUI = function () {
         setLatestVersion(undefined);
     }, []);
 
+    const resetApiNotification = useCallback(() => {
+        setApiNotification(undefined);
+    }, []);
+
     const reloadProblems = useCallback(() => {
         setIsLoadingProblems(true);
         fetch(`/api/problems`).then(res => res.json())
@@ -91,18 +96,21 @@ const AdminUI = function () {
         ]).then(([jobRunrInfo, problems, latestVersion, apiNotification]) => {
             setJobRunrInfo(jobRunrInfo);
             setProblems(problems);
-            setLatestVersion(latestVersion["latestVersion"]);
+            setLatestVersion(latestVersion?.["latestVersion"]);
             setApiNotification(apiNotification);
         }).catch(error => console.log(error));
     }, []);
 
     const problemsContext = useMemo(() => {
             const p = [...problems];
-            if (latestVersion && localStorage.getItem(LATEST_DISMISSED_VERSION_STORAGE_KEY) !== latestVersion) {
+            if (latestVersion && isNotDismissed(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion)) {
                 const newVersionProblem = getNewVersionProblem(jobRunrInfo.version, latestVersion);
                 if (newVersionProblem) p.push({...newVersionProblem, reset: resetLatestVersion});
             }
-            if (apiNotification) p.push(getApiNotificationProblem(apiNotification));
+            if (apiNotification && isNotDismissed(LATEST_DISMISSED_API_NOTIFICATION, apiNotification["id"])) {
+                const apiNotificationProblem = getApiNotificationProblem(apiNotification);
+                p.push({...apiNotificationProblem, reset: resetApiNotification});
+            }
 
             return {
                 problems: p,
