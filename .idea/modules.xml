@@ -2,9 +2,13 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core/JobRunr.core.main.iml" filepath="$PROJECT_DIR$/.idea/modules/core/JobRunr.core.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/JobRunr.framework-support.jobrunr-micronaut-feature.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/JobRunr.framework-support.jobrunr-micronaut-feature.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-quarkus-extension/quarkus-jobrunr-deployment/JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-quarkus-extension/quarkus-jobrunr-deployment/JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr-deployment.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-quarkus-extension/quarkus-jobrunr/JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-quarkus-extension/quarkus-jobrunr/JobRunr.framework-support.jobrunr-quarkus-extension.quarkus-jobrunr.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-spring-boot-2-starter/JobRunr.framework-support.jobrunr-spring-boot-2-starter.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-spring-boot-2-starter/JobRunr.framework-support.jobrunr-spring-boot-2-starter.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-spring-boot-3-starter/JobRunr.framework-support.jobrunr-spring-boot-3-starter.main.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-spring-boot-3-starter/JobRunr.framework-support.jobrunr-spring-boot-3-starter.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/org.jobrunr.JobRunr.framework-support.jobrunr-micronaut-feature.test.iml" filepath="$PROJECT_DIR$/.idea/modules/framework-support/jobrunr-micronaut-feature/org.jobrunr.JobRunr.framework-support.jobrunr-micronaut-feature.test.iml" />
     </modules>
   </component>
 </project>
