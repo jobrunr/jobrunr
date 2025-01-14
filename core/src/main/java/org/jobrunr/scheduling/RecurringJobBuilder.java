@@ -17,6 +17,7 @@ import java.util.List;
 
 import static java.time.ZoneId.systemDefault;
 import static java.util.Arrays.asList;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 /**
@@ -234,7 +235,7 @@ public class RecurringJobBuilder {
         if (zoneId == null) {
             zoneId = systemDefault();
         }
-        RecurringJob recurringJob = new RecurringJob(jobId, jobDetails, schedule, zoneId);
+        RecurringJob recurringJob = new RecurringJob(jobId, jobDetails, schedule, zoneId, API);
         setJobName(recurringJob);
         setAmountOfRetries(recurringJob);
         setLabels(recurringJob);

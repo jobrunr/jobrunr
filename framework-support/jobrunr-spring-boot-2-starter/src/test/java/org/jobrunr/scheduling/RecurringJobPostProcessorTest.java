@@ -1,10 +1,8 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,12 +13,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
-import java.time.ZoneId;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -34,7 +29,7 @@ class RecurringJobPostProcessorTest {
     private JobScheduler jobScheduler;
 
     @Captor
-    private ArgumentCaptor<JobDetails> jobDetailsArgumentCaptor;
+    private ArgumentCaptor<RecurringJob> recurringJobArgumentCaptor;
 
     @BeforeEach
     void setUpJobSchedulerObjectFactory() {
@@ -62,10 +57,14 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringJob(), "not important");
 
         // THEN
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+        verify(jobScheduler).scheduleRecurrently(recurringJobArgumentCaptor.capture());
 
-        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
-        assertThat(actualJobDetails)
+        final RecurringJob actualRecurringJob = recurringJobArgumentCaptor.getValue();
+        assertThat(actualRecurringJob)
+                .hasId("my-recurring-job")
+                .hasScheduleExpression("0 0/15 * * *")
+                .hasCreatedBy(ANNOTATION);
+        assertThat(actualRecurringJob.getJobDetails())
                 .isCacheable()
                 .hasClassName(MyServiceWithRecurringJob.class.getName())
                 .hasMethodName("myRecurringMethod")
@@ -81,10 +80,14 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringCronJobUsingJobContext(), "not important");
 
         // THEN
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(CronExpression.create("0 0/15 * * *")), any(ZoneId.class));
+        verify(jobScheduler).scheduleRecurrently(recurringJobArgumentCaptor.capture());
 
-        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
-        assertThat(actualJobDetails)
+        final RecurringJob actualRecurringJob = recurringJobArgumentCaptor.getValue();
+        assertThat(actualRecurringJob)
+                .hasId("my-recurring-job")
+                .hasScheduleExpression("0 0/15 * * *")
+                .hasCreatedBy(ANNOTATION);
+        assertThat(actualRecurringJob.getJobDetails())
                 .isCacheable()
                 .hasClassName(MyServiceWithRecurringCronJobUsingJobContext.class.getName())
                 .hasMethodName("myRecurringMethod")
@@ -100,10 +103,13 @@ class RecurringJobPostProcessorTest {
         recurringJobPostProcessor.postProcessAfterInitialization(new MyServiceWithRecurringIntervalJobUsingJobContext(), "not important");
 
         // THEN
-        verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), jobDetailsArgumentCaptor.capture(), eq(new Interval("PT10M")), any(ZoneId.class));
+        verify(jobScheduler).scheduleRecurrently(recurringJobArgumentCaptor.capture());
 
-        final JobDetails actualJobDetails = jobDetailsArgumentCaptor.getValue();
-        assertThat(actualJobDetails)
+        final RecurringJob actualRecurringJob = recurringJobArgumentCaptor.getValue();
+        assertThat(actualRecurringJob)
+                .hasId("my-recurring-job")
+                .hasScheduleExpression("PT10M");
+        assertThat(actualRecurringJob.getJobDetails())
                 .isCacheable()
                 .hasClassName(MyServiceWithRecurringIntervalJobUsingJobContext.class.getName())
                 .hasMethodName("myRecurringMethod")
@@ -166,7 +172,11 @@ class RecurringJobPostProcessorTest {
                     context.getBean(RecurringJobPostProcessor.class)
                             .postProcessAfterInitialization(new MyServiceWithRecurringAnnotationContainingPropertyPlaceholder(), "not important");
 
-                    verify(jobScheduler).scheduleRecurrently(eq("my-recurring-job"), any(JobDetails.class), eq(CronExpression.create("0 0/15 * * *")), eq(ZoneId.of("Asia/Taipei")));
+                    verify(jobScheduler).scheduleRecurrently(recurringJobArgumentCaptor.capture());
+                    assertThat(recurringJobArgumentCaptor.getValue())
+                            .hasId("my-recurring-job")
+                            .hasScheduleExpression("0 0/15 * * *")
+                            .hasZoneId("Asia/Taipei");
                 });
     }
 

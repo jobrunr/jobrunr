@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.RecurringJob.CreatedBy;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
@@ -25,6 +26,7 @@ public class RecurringJobTestBuilder {
     private Schedule schedule;
     private ZoneId zoneId;
     private List<String> labels;
+    private CreatedBy createdBy = CreatedBy.API;
     private Instant createdAt = Instant.now();
 
     private RecurringJobTestBuilder() {
@@ -109,8 +111,13 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
+    public RecurringJobTestBuilder withCreatedBy(CreatedBy createdBy) {
+        this.createdBy = createdBy;
+        return this;
+    }
+
     public RecurringJob build() {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdBy, createdAt);
         if (amountOfRetries != null) {
             recurringJob.setAmountOfRetries(amountOfRetries);
         }

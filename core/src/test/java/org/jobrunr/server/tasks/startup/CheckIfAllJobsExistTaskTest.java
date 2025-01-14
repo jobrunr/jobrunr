@@ -19,9 +19,11 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,14 +49,16 @@ class CheckIfAllJobsExistTaskTest {
     }
 
     @Test
-    void onRunItLogsAllRecurringJobsThatDoNotExist() {
+    void onRunItDeletesRecurringJobsCreatedViaTheAnnotationAndLogsAllRecurringJobsCreatedViaTheAPIThatDoNotExist() {
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(asList(
                 aDefaultRecurringJob().build(),
-                aDefaultRecurringJob().withJobDetails(classThatDoesNotExistJobDetails()).build()
+                aDefaultRecurringJob().withJobDetails(classThatDoesNotExistJobDetails()).build(),
+                aDefaultRecurringJob().withId("my-recurring-job-created-via-an-annotation").withJobDetails(methodThatDoesNotExistJobDetails()).withCreatedBy(ANNOTATION).build()
         )));
 
         checkIfAllJobsExistTask.run();
 
+        verify(storageProvider).deleteRecurringJob("my-recurring-job-created-via-an-annotation");
         assertThat(logger)
                 .hasWarningMessageContaining("JobRunr found RECURRING jobs that do not exist anymore")
                 .hasWarningMessageContaining("i.dont.exist.Class.notImportant(java.lang.Integer)")

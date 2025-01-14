@@ -18,5 +18,6 @@
   "id": "anId",
   "scheduleExpression": "0 0 * * *",
   "zoneId": "${json-unit.ignore}",
+  "createdBy": "API",
   "createdAt": "${json-unit.ignore}"
 }
