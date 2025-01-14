@@ -1,17 +1,19 @@
 package org.jobrunr.server.tasks.startup;
 
-import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.JobUtils.jobExists;
 
@@ -47,10 +49,18 @@ public class CheckIfAllJobsExistTask implements Runnable {
     }
 
     private Set<String> getDistinctRecurringJobSignaturesThatDoNotExistAnymore() {
-        return storageProvider.getRecurringJobs().stream()
-                .map(AbstractJob::getJobSignature)
-                .filter(jobSignature -> !jobExists(jobSignature))
-                .collect(toSet());
+        Set<String> unexistingRecurringJobSignatures = new HashSet<>();
+        for (RecurringJob recurringJob : storageProvider.getRecurringJobs()) {
+            if (!jobExists(recurringJob.getJobSignature())) {
+                if (ANNOTATION.equals(recurringJob.getCreatedBy())) {
+                    storageProvider.deleteRecurringJob(recurringJob.getId());
+                    LOGGER.info("Deleting recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                } else {
+                    unexistingRecurringJobSignatures.add(recurringJob.getJobSignature());
+                }
+            }
+        }
+        return unexistingRecurringJobSignatures;
     }
 
     private Set<String> getDistinctScheduledJobSignaturesThatDoNotExistAnymore() {
