@@ -8,17 +8,16 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
-import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
-import org.jobrunr.utils.StringUtils;
 
 import java.time.ZoneId;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
@@ -33,20 +32,17 @@ public class JobRunrRecurringJobRecorder {
         this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
     }
 
-    public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
+    public void schedule(BeanContainer container, String id, String cronAsString, String intervalAsString, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
         if (!jobRunrRuntimeConfiguration.jobScheduler().enabled()) return;
 
         JobScheduler scheduler = container.beanInstance(JobScheduler.class);
         String jobId = getId(id);
-        String optionalCronExpression = getCronExpression(cron);
-        String optionalInterval = getInterval(interval);
+        String cron = getCronExpression(cronAsString);
+        String interval = getInterval(intervalAsString);
+        String scheduleAsString = ScheduleExpressionType.findSchedule(cron, interval);
 
-        if (StringUtils.isNullOrEmpty(cron) && StringUtils.isNullOrEmpty(optionalInterval))
-            throw new IllegalArgumentException("Either cron or interval attribute is required.");
-        if (StringUtils.isNotNullOrEmpty(cron) && StringUtils.isNotNullOrEmpty(optionalInterval))
-            throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
 
-        if (Recurring.RECURRING_JOB_DISABLED.equals(optionalCronExpression) || Recurring.RECURRING_JOB_DISABLED.equals(optionalInterval)) {
+        if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleAsString)) {
             if (isNullOrEmpty(jobId)) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
@@ -55,11 +51,9 @@ public class JobRunrRecurringJobRecorder {
         } else {
             JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);
             jobDetails.setCacheable(true);
-            if (isNotNullOrEmpty(optionalCronExpression)) {
-                scheduler.scheduleRecurrently(id, jobDetails, CronExpression.create(optionalCronExpression), getZoneId(zoneId));
-            } else {
-                scheduler.scheduleRecurrently(id, jobDetails, new Interval(optionalInterval), getZoneId(zoneId));
-            }
+            Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleAsString);
+            RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, getZoneId(zoneId), ANNOTATION);
+            scheduler.scheduleRecurrently(recurringJob);
         }
     }
 
