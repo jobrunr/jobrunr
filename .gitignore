@@ -15,30 +15,13 @@ out/
 # Allow some project-specific settings
 !.idea/codeStyles/
 !.idea/deployment.xml
-!.idea/modules.xml
 !.idea/vcs.xml
-!.idea/workspace.xml
-
-# Ignore user-specific or OS-specific settings
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/dictionaries
-.idea/libraries
-.idea/assetWizardSettings.xml
-.idea/jsLibraryMappings.xml
-.idea/shelf
-
-# Ignore IDE caches
-.idea/dataSources/
-.idea/dataSources.ids
-.idea/dataSources.local.xml
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
-.idea/uiDesigner.xml
-.idea/httpRequests
-.idea/inspectionProfiles
-.idea/runConfigurations/
-
+!.idea/jarRepositories.xml
+!.idea/dataSources.xml
+!.idea/sqldialects.xml
+!.idea/git_toolbox_prj.xml
+!.idea/.name
+!.idea/libraries-with-intellij-classes.xml
 
 ### Java ###
 # Compiled class file
