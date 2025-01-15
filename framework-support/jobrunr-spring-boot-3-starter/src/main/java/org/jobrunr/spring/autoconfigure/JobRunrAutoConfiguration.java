@@ -42,6 +42,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Optional;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -59,6 +61,11 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 public class JobRunrAutoConfiguration {
 
     @Bean
+    public JobRunrStarter jobRunrStarter(Optional<BackgroundJobServer> backgroundJobServer, Optional<JobRunrDashboardWebServer> webServer) {
+        return new JobRunrStarter(backgroundJobServer, webServer);
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
@@ -73,7 +80,7 @@ public class JobRunrAutoConfiguration {
         return new JobRequestScheduler(storageProvider, emptyList());
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
     public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration, JobRunrProperties properties) {
@@ -115,7 +122,7 @@ public class JobRunrAutoConfiguration {
         return backgroundJobServerConfiguration;
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.dashboard", name = "enabled", havingValue = "true")
     public JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration) {
