@@ -56,7 +56,7 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
         return updatedStatement;
     }
 
-    private String updateStatementWithTablePrefixForOtherStatements(String statement) {
+    protected String updateStatementWithTablePrefixForOtherStatements(String statement) {
         return statement.replace(DEFAULT_PREFIX, elementPrefixer(tablePrefix, DEFAULT_PREFIX));
     }
 

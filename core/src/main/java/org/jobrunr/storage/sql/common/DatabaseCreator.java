@@ -5,11 +5,7 @@ import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.Transaction;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
-import org.jobrunr.storage.sql.common.tables.AnsiDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.NoOpTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.OracleAndDB2TablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.SqlServerDatabaseTablePrefixStatementUpdater;
-import org.jobrunr.storage.sql.common.tables.TablePrefixStatementUpdater;
+import org.jobrunr.storage.sql.common.tables.*;
 import org.jobrunr.utils.StringUtils;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.slf4j.Logger;
@@ -126,7 +122,10 @@ public class DatabaseCreator {
     }
 
     private boolean isMigrationsTableMissing() {
-        String migrationsFQTableName = tablePrefixStatementUpdater.getFQTableName("JOBRUNR_MIGRATIONS").toUpperCase();
+        String migrationsFQTableName = tablePrefixStatementUpdater.getFQTableName("JOBRUNR_MIGRATIONS")
+            // the table name may be escaped => remove surrounding quotes
+            .replaceAll("^\"(.*)\"$", "$1")
+            .toUpperCase();
         return getAllTableNames().stream().map(String::toUpperCase).noneMatch(x -> x.contains(migrationsFQTableName));
     }
 
@@ -274,6 +273,8 @@ public class DatabaseCreator {
                         return new OracleAndDB2TablePrefixStatementUpdater(tablePrefix);
                     } else if ("Microsoft SQL Server".equals(databaseProductName)) {
                         return new SqlServerDatabaseTablePrefixStatementUpdater(tablePrefix);
+                    } else if ("PostgreSQL".equals(databaseProductName)) {
+                        return new PostgresDatabaseTablePrefixStatementUpdater(tablePrefix);
                     } else {
                         return new AnsiDatabaseTablePrefixStatementUpdater(tablePrefix);
                     }
