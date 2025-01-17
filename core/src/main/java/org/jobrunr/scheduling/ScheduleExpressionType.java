@@ -35,7 +35,7 @@ public enum ScheduleExpressionType {
         throw new ScheduleException(scheduleExpression);
     }
 
-    public static String findSchedule(String cron, String interval) {
+    public static String selectConfiguredScheduleExpression(String cron, String interval) {
         List<String> validScheduleExpressions = Stream.of(cron, interval).filter(StringUtils::isNotNullOrEmpty).collect(toList());
         int count = validScheduleExpressions.size();
         if (count == 0) throw new IllegalArgumentException("Either cron or interval attribute is required.");

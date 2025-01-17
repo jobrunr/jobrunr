@@ -76,9 +76,9 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
             String id = getId(recurringAnnotation);
             String cron = resolveStringValue(recurringAnnotation.cron());
             String interval = resolveStringValue(recurringAnnotation.interval());
-            String scheduleAsString = ScheduleExpressionType.findSchedule(cron, interval);
+            String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(cron, interval);
 
-            if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleAsString)) {
+            if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
                 if (id == null) {
                     LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
@@ -87,7 +87,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
             } else {
                 JobDetails jobDetails = getJobDetails(method);
                 ZoneId zoneId = getZoneId(recurringAnnotation);
-                Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleAsString);
+                Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
 
                 RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, ANNOTATION);
                 beanFactory.getBean(JobScheduler.class).scheduleRecurrently(recurringJob);

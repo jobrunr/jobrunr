@@ -11,17 +11,17 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class ScheduleExpressionTypeTest {
 
     @Test
-    void findValidSchedule() {
-        assertThat(ScheduleExpressionType.findSchedule("* * * * *", "")).isEqualTo("* * * * *");
-        assertThat(ScheduleExpressionType.findSchedule("", "PT10M")).isEqualTo("PT10M");
-        assertThat(ScheduleExpressionType.findSchedule("-", "")).isEqualTo("-");
-        assertThat(ScheduleExpressionType.findSchedule("", "-")).isEqualTo("-");
+    void selectConfiguredScheduleExpression() {
+        assertThat(ScheduleExpressionType.selectConfiguredScheduleExpression("* * * * *", "")).isEqualTo("* * * * *");
+        assertThat(ScheduleExpressionType.selectConfiguredScheduleExpression("", "PT10M")).isEqualTo("PT10M");
+        assertThat(ScheduleExpressionType.selectConfiguredScheduleExpression("-", "")).isEqualTo("-");
+        assertThat(ScheduleExpressionType.selectConfiguredScheduleExpression("", "-")).isEqualTo("-");
 
-        assertThatCode(() -> ScheduleExpressionType.findSchedule("", ""))
+        assertThatCode(() -> ScheduleExpressionType.selectConfiguredScheduleExpression("", ""))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Either cron or interval attribute is required.");
 
-        assertThatCode(() -> ScheduleExpressionType.findSchedule("* * * * *", "PT10M"))
+        assertThatCode(() -> ScheduleExpressionType.selectConfiguredScheduleExpression("* * * * *", "PT10M"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Both cron and interval attribute provided. Only one is allowed.");
     }

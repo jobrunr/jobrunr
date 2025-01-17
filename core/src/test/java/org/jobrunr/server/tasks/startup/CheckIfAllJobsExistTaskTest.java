@@ -9,6 +9,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,7 +24,7 @@ import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,17 +52,23 @@ class CheckIfAllJobsExistTaskTest {
     @Test
     void onRunItDeletesRecurringJobsCreatedViaTheAnnotationAndLogsAllRecurringJobsCreatedViaTheAPIThatDoNotExist() {
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(asList(
-                aDefaultRecurringJob().build(),
-                aDefaultRecurringJob().withJobDetails(classThatDoesNotExistJobDetails()).build(),
-                aDefaultRecurringJob().withId("my-recurring-job-created-via-an-annotation").withJobDetails(methodThatDoesNotExistJobDetails()).withCreatedBy(ANNOTATION).build()
+                aDefaultRecurringJob().withId("created-by-api").build(),
+                aDefaultRecurringJob().withId("created-by-annotation-but-annotation-deleted").withCreatedBy(ANNOTATION).build(),
+                aDefaultRecurringJob().withId("created-by-api-but-code-deleted").withJobDetails(classThatDoesNotExistJobDetails()).build(),
+                aDefaultRecurringJob().withId("created-by-annotation-but-code-deleted").withJobDetails(methodThatDoesNotExistJobDetails().withMethodName("methodA")).withCreatedBy(ANNOTATION).build(),
+                aDefaultRecurringJob().withId("no-created-by-but-code-deleted").withJobDetails(methodThatDoesNotExistJobDetails().withMethodName("methodB")).withCreatedBy(null).build()
         )));
 
         checkIfAllJobsExistTask.run();
 
-        verify(storageProvider).deleteRecurringJob("my-recurring-job-created-via-an-annotation");
+        InOrder inOrder = inOrder(storageProvider);
+        inOrder.verify(storageProvider).deleteRecurringJob("created-by-annotation-but-annotation-deleted");
+        inOrder.verify(storageProvider).deleteRecurringJob("created-by-annotation-but-code-deleted");
+        
         assertThat(logger)
                 .hasWarningMessageContaining("JobRunr found RECURRING jobs that do not exist anymore")
                 .hasWarningMessageContaining("i.dont.exist.Class.notImportant(java.lang.Integer)")
+                .hasWarningMessageContaining("org.jobrunr.stubs.TestService.methodB(java.lang.Integer)")
                 .hasNoErrorLogMessages();
     }
 

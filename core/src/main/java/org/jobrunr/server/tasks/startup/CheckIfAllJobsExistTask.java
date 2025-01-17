@@ -15,7 +15,9 @@ import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.JobUtils.getRecurringAnnotation;
 import static org.jobrunr.utils.JobUtils.jobExists;
+import static org.jobrunr.utils.OptionalUtils.isNotPresent;
 
 public class CheckIfAllJobsExistTask implements Runnable {
 
@@ -49,18 +51,21 @@ public class CheckIfAllJobsExistTask implements Runnable {
     }
 
     private Set<String> getDistinctRecurringJobSignaturesThatDoNotExistAnymore() {
-        Set<String> unexistingRecurringJobSignatures = new HashSet<>();
+        Set<String> missingRecurringJobSignatures = new HashSet<>();
         for (RecurringJob recurringJob : storageProvider.getRecurringJobs()) {
-            if (!jobExists(recurringJob.getJobSignature())) {
-                if (ANNOTATION.equals(recurringJob.getCreatedBy())) {
+            if (ANNOTATION.equals(recurringJob.getCreatedBy())) {
+                if (!jobExists(recurringJob.getJobSignature())) {
                     storageProvider.deleteRecurringJob(recurringJob.getId());
                     LOGGER.info("Deleting recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
-                } else {
-                    unexistingRecurringJobSignatures.add(recurringJob.getJobSignature());
+                } else if (isNotPresent(getRecurringAnnotation(recurringJob.getJobDetails()))) {
+                    storageProvider.deleteRecurringJob(recurringJob.getId());
+                    LOGGER.info("Deleting recurring job {} ({}) as it was created by the @Recurring annotation but is not annotated by the  @Recurring annotation anymore", recurringJob.getId(), recurringJob.getJobSignature());
                 }
+            } else if (!jobExists(recurringJob.getJobSignature())) {
+                missingRecurringJobSignatures.add(recurringJob.getJobSignature());
             }
         }
-        return unexistingRecurringJobSignatures;
+        return missingRecurringJobSignatures;
     }
 
     private Set<String> getDistinctScheduledJobSignaturesThatDoNotExistAnymore() {
