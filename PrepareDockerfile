@@ -5,10 +5,10 @@ RUN apt-get install -y software-properties-common git ca-certificates curl gnupg
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 RUN source /root/.bashrc
-RUN nvm install 18.17
+RUN nvm install 18.17.1
 RUN npm -v
-RUN ln -s /root/.nvm/versions/node/v18.17.0/bin/npm /usr/bin/npm
-RUN ln -s /root/.nvm/versions/node/v18.17.0/bin/node /usr/bin/node
+RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npm /usr/bin/npm
+RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
 
 ENV GRADLE_VERSION 8.5
 COPY gradle /home/gradle/gradle
