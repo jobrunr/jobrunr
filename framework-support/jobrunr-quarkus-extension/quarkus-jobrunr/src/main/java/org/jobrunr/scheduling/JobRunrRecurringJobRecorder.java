@@ -39,10 +39,10 @@ public class JobRunrRecurringJobRecorder {
         String jobId = getId(id);
         String cron = getCronExpression(cronAsString);
         String interval = getInterval(intervalAsString);
-        String scheduleAsString = ScheduleExpressionType.findSchedule(cron, interval);
+        String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(cron, interval);
 
 
-        if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleAsString)) {
+        if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
             if (isNullOrEmpty(jobId)) {
                 LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
             } else {
@@ -51,7 +51,7 @@ public class JobRunrRecurringJobRecorder {
         } else {
             JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);
             jobDetails.setCacheable(true);
-            Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleAsString);
+            Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
             RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, getZoneId(zoneId), ANNOTATION);
             scheduler.scheduleRecurrently(recurringJob);
         }
