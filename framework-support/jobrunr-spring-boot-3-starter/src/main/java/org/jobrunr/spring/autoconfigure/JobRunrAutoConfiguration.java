@@ -8,7 +8,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.scheduling.JobGatewayPostProcessor;
+import org.jobrunr.scheduling.AsyncJobPostProcessor;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.scheduling.RecurringJobPostProcessor;
@@ -168,8 +168,8 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnBean(JobScheduler.class)
-    public static JobGatewayPostProcessor jobGatewayPostProcessor() {
-        return new JobGatewayPostProcessor();
+    public static AsyncJobPostProcessor asyncJobPostProcessor() {
+        return new AsyncJobPostProcessor();
     }
 
     @Configuration

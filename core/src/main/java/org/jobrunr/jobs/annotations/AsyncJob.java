@@ -7,7 +7,7 @@ import java.lang.annotation.*;
  *
  * <h5>An example:</h5>
  * <pre>
- *     &#64;JobGateway
+ *     &#64;AsyncJob
  *     public class MyService {
  *         &#64;Job(name = "Doing some work")
  *         public void doWork() {
@@ -22,5 +22,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface JobGateway {
+public @interface AsyncJob {
 }
