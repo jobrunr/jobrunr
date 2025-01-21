@@ -33,13 +33,14 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
-    compileOnly 'net.bytebuddy:byte-buddy'
 
     compileOnly 'org.springframework.data:spring-data-redis'
     compileOnly 'redis.clients:jedis'
     compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'co.elastic.clients:elasticsearch-java'
+
+    implementation 'net.bytebuddy:byte-buddy'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
