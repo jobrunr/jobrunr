@@ -1,10 +1,8 @@
 package org.jobrunr.scheduling;
 
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.matcher.ElementMatchers;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.annotations.AsyncJob;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -31,14 +29,16 @@ public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAwar
 
     public Object applyJobEnhancement(Object bean) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         JobScheduler jobScheduler = beanFactory.getBean(JobScheduler.class);
-        Class<?> dynamicType = new ByteBuddy()
-                .subclass(bean.getClass())
-                .method(ElementMatchers.isAnnotatedWith(Job.class))
-                .intercept(MethodDelegation.to(new JobInterceptor(jobScheduler)))
-                .make()
-                .load(bean.getClass().getClassLoader())
-                .getLoaded();
-        return dynamicType.getConstructor().newInstance();
+        ProxyFactory proxyFactory = new ProxyFactory(bean);
+        proxyFactory.setProxyTargetClass(true);
+        proxyFactory.addAdvice((org.aopalliance.intercept.MethodInterceptor) invocation -> {
+            if (invocation.getMethod().isAnnotationPresent(Job.class)) {
+                return new JobInterceptor(jobScheduler).intercept(invocation);
+            }
+            return invocation.proceed();
+        });
+
+        return proxyFactory.getProxy();
     }
 
     @Override

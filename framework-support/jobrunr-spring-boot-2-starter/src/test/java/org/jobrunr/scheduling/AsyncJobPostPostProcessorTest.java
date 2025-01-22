@@ -10,8 +10,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 
 import java.util.List;
@@ -35,8 +33,6 @@ public class AsyncJobPostPostProcessorTest {
         this.beanFactory = mock(BeanFactory.class);
         when(beanFactory.getBean(JobScheduler.class)).thenReturn(jobScheduler);
     }
-
-    private static final Logger log = LoggerFactory.getLogger(AsyncJobPostPostProcessorTest.class);
 
     @Test
     void classAnnotatedWithAsyncJobAnnotationWillAutomaticallyBeRegistered() throws Exception {

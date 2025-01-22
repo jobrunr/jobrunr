@@ -30,8 +30,6 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'co.elastic.clients:elasticsearch-java'
 
-    implementation 'net.bytebuddy:byte-buddy'
-
     testImplementation testFixtures(project(":core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
