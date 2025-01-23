@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.server.runner.ThreadLocalJobContext;
 import org.jobrunr.utils.JobUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,7 +32,7 @@ public class JobInterceptor implements MethodInterceptor {
         }
 
         // If running within a job context or method is not annotated with @Job, proceed as usual
-        if (ThreadLocalJobContext.getJobContext() != null || !method.isAnnotationPresent(Job.class)) {
+        if (ThreadLocalJobContext.getJobContext() != null || !AnnotatedElementUtils.hasAnnotation(method, Job.class)) {
             return invocation.proceed();
         }
 
