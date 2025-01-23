@@ -1,43 +1,35 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.annotations.AsyncJob;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.stereotype.Component;
-
-import java.lang.reflect.InvocationTargetException;
 
 @Component
 public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAware {
-    BeanFactory beanFactory;
+    private BeanFactory beanFactory;
+    private JobInterceptor jobInterceptor;
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        if (bean.getClass().isAnnotationPresent(AsyncJob.class)) {
-            try {
-                return applyJobEnhancement(bean);
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
+        if (AnnotatedElementUtils.hasAnnotation(bean.getClass(), AsyncJob.class)) {
+            return applyJobEnhancement(bean);
         }
         return bean;
     }
 
-    public Object applyJobEnhancement(Object bean) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        JobScheduler jobScheduler = beanFactory.getBean(JobScheduler.class);
+    public Object applyJobEnhancement(Object bean) {
+        if (jobInterceptor == null) {
+            JobScheduler jobScheduler = beanFactory.getBean(JobScheduler.class);
+            jobInterceptor = new JobInterceptor(jobScheduler);
+        }
         ProxyFactory proxyFactory = new ProxyFactory(bean);
         proxyFactory.setProxyTargetClass(true);
-        proxyFactory.addAdvice((org.aopalliance.intercept.MethodInterceptor) invocation -> {
-            if (invocation.getMethod().isAnnotationPresent(Job.class)) {
-                return new JobInterceptor(jobScheduler).intercept(invocation);
-            }
-            return invocation.proceed();
-        });
-
+        proxyFactory.addAdvice(jobInterceptor);
         return proxyFactory.getProxy();
     }
 
