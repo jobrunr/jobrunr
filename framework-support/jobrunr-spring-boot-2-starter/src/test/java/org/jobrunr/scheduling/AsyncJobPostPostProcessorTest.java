@@ -1,8 +1,10 @@
 package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.annotations.AsyncJob;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,12 +37,12 @@ public class AsyncJobPostPostProcessorTest {
     }
 
     @Test
-    void classAnnotatedWithAsyncJobAnnotationWillAutomaticallyBeRegistered() throws Exception {
+    void classAnnotatedWithAsyncJobAnnotationWillAutomaticallyBeRegistered() {
         MyServiceWithAsyncJobAnnotation myService = new MyServiceWithAsyncJobAnnotation();
         final AsyncJobPostProcessor asyncJobPostProcessor = getAsyncJobPostProcessor();
         MyServiceWithAsyncJobAnnotation myServicePostInitialisation = (MyServiceWithAsyncJobAnnotation) asyncJobPostProcessor.postProcessBeforeInitialization(myService, "myService");
         myServicePostInitialisation.myMethodWithJobAnnotation1();
-        myServicePostInitialisation.myMethodWithJobAnnotation2();
+        myServicePostInitialisation.myMethodWithJobAnnotation2("test-input");
         myServicePostInitialisation.myMethodWithoutJobAnnotation();
         verify(jobScheduler, times(2)).enqueue(ArgumentMatchers.isNull(), jobDetailsArgumentCaptor.capture());
 
@@ -51,11 +53,19 @@ public class AsyncJobPostPostProcessorTest {
                 .sorted()
                 .collect(Collectors.toList());
 
+        List<List<JobParameter>> enqueuedJobParams = jobDetailsArgumentCaptor
+                .getAllValues()
+                .stream()
+                .map(JobDetails::getJobParameters)
+                .collect(Collectors.toList());
+
         assertEquals(2, enqueuedMethods.size());
         assertTrue(enqueuedMethods.contains("myMethodWithJobAnnotation1"));
         assertTrue(enqueuedMethods.contains("myMethodWithJobAnnotation2"));
         assertFalse(enqueuedMethods.contains("myMethodWithoutJobAnnotation"));
-
+        assertEquals(0, enqueuedJobParams.get(0).size());
+        assertEquals(1, enqueuedJobParams.get(1).size());
+        assertEquals("test-input", enqueuedJobParams.get(1).get(0).getObject());
     }
 
     private AsyncJobPostProcessor getAsyncJobPostProcessor() {
@@ -72,8 +82,8 @@ public class AsyncJobPostPostProcessorTest {
         }
 
         @Job(name = "my-annotated-job-2")
-        public void myMethodWithJobAnnotation2() {
-            System.out.print("My method with Job annotation 2");
+        public void myMethodWithJobAnnotation2(String input) {
+            System.out.print("My method with Job annotation 2 -" + input);
         }
 
         public void myMethodWithoutJobAnnotation() {
