@@ -16,7 +16,6 @@ import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.mongo.migrations.MongoMigration;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -25,6 +24,7 @@ import static java.util.Collections.singletonList;
 import static org.jobrunr.storage.StorageProviderUtils.Migrations;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.listCollectionNames;
 
 
 public class MongoDBCreator extends NoSqlDatabaseCreator<MongoMigration> {
@@ -51,7 +51,7 @@ public class MongoDBCreator extends NoSqlDatabaseCreator<MongoMigration> {
 
     public void validateCollections() {
         final List<String> requiredCollectionNames = asList(Jobs.NAME, RecurringJobs.NAME, BackgroundJobServers.NAME, Metadata.NAME);
-        final List<String> availableCollectionNames = jobrunrDatabase.listCollectionNames().into(new ArrayList<>());
+        final List<String> availableCollectionNames = listCollectionNames(jobrunrDatabase);
         for (String requiredCollectionName : requiredCollectionNames) {
             if (!availableCollectionNames.contains(elementPrefixer(collectionPrefix, requiredCollectionName))) {
                 throw new JobRunrException("Not all required collections are available by JobRunr!");
