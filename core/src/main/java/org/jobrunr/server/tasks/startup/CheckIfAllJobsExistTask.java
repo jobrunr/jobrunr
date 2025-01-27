@@ -56,10 +56,10 @@ public class CheckIfAllJobsExistTask implements Runnable {
             if (ANNOTATION.equals(recurringJob.getCreatedBy())) {
                 if (!jobExists(recurringJob.getJobSignature())) {
                     storageProvider.deleteRecurringJob(recurringJob.getId());
-                    LOGGER.info("Deleting recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                    LOGGER.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
                 } else if (isNotPresent(getRecurringAnnotation(recurringJob.getJobDetails()))) {
                     storageProvider.deleteRecurringJob(recurringJob.getId());
-                    LOGGER.info("Deleting recurring job {} ({}) as it was created by the @Recurring annotation but is not annotated by the  @Recurring annotation anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                    LOGGER.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but is not annotated by the  @Recurring annotation anymore", recurringJob.getId(), recurringJob.getJobSignature());
                 }
             } else if (!jobExists(recurringJob.getJobSignature())) {
                 missingRecurringJobSignatures.add(recurringJob.getJobSignature());

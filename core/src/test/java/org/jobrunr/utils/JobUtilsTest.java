@@ -39,7 +39,7 @@ class JobUtilsTest {
     void testGetRecurringAnnotation() {
         ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(JobUtils.class);
 
-        assertThatCode(() -> JobUtils.getJobAnnotation(classThatDoesNotExistJobDetails().build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.getRecurringAnnotation(classThatDoesNotExistJobDetails().build())).doesNotThrowAnyException();
         assertThat(logger).hasWarningMessageContaining("Trying to find Job Annotations for 'i.dont.exist.Class.notImportant(java.lang.Integer)' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job.");
     }
 }
