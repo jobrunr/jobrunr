@@ -1,10 +1,9 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.annotations.AsyncJob;
-import org.jobrunr.jobs.annotations.Recurring;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.BeanFactory;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,27 +42,15 @@ public class AsyncJobPostPostProcessorTest {
         myServicePostInitialisation.myMethodWithJobAnnotation2("test-input");
         myServicePostInitialisation.myMethodWithoutJobAnnotation();
         verify(jobScheduler, times(2)).enqueue(ArgumentMatchers.isNull(), jobDetailsArgumentCaptor.capture());
-
-        List<String> enqueuedMethods = jobDetailsArgumentCaptor
-                .getAllValues()
-                .stream()
-                .map(JobDetails::getMethodName)
-                .sorted()
-                .collect(Collectors.toList());
-
-        List<List<JobParameter>> enqueuedJobParams = jobDetailsArgumentCaptor
-                .getAllValues()
-                .stream()
-                .map(JobDetails::getJobParameters)
-                .collect(Collectors.toList());
-
-        assertEquals(2, enqueuedMethods.size());
-        assertTrue(enqueuedMethods.contains("myMethodWithJobAnnotation1"));
-        assertTrue(enqueuedMethods.contains("myMethodWithJobAnnotation2"));
-        assertFalse(enqueuedMethods.contains("myMethodWithoutJobAnnotation"));
-        assertEquals(0, enqueuedJobParams.get(0).size());
-        assertEquals(1, enqueuedJobParams.get(1).size());
-        assertEquals("test-input", enqueuedJobParams.get(1).get(0).getObject());
+        List<JobDetails> jobDetails = jobDetailsArgumentCaptor.getAllValues();
+        JobRunrAssertions.assertThat(jobDetails.get(0))
+                .hasClass(MyServiceWithAsyncJobAnnotation.class)
+                .hasMethodName("myMethodWithJobAnnotation1")
+                .hasNoArgs();
+        JobRunrAssertions.assertThat(jobDetails.get(1))
+                .hasClass(MyServiceWithAsyncJobAnnotation.class)
+                .hasMethodName("myMethodWithJobAnnotation2")
+                .hasArgs("test-input");
     }
 
     private AsyncJobPostProcessor getAsyncJobPostProcessor() {
