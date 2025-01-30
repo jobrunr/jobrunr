@@ -134,7 +134,8 @@ public class DatabaseCreator {
     List<String> getAllTableNames() {
         try (final Connection conn = getConnection()) {
             List<String> allTableNames = new ArrayList<>();
-            ResultSet tables = conn.getMetaData().getTables(null, null, "%", null);
+            String catalog = conn.getCatalog();
+            ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null);
             while (tables.next()) {
                 if (tablePrefixStatementUpdater.getSchema() != null) {
                     String tableSchema = tables.getString("TABLE_SCHEM");
