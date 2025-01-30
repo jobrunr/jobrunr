@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
+
 public abstract class AbstractJobScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
@@ -124,7 +126,7 @@ public abstract class AbstractJobScheduler {
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
 
     String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, API);
         return scheduleRecurrently(recurringJob);
     }
 
