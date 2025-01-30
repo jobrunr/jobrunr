@@ -25,7 +25,8 @@
       "scheduleExpression": "0 0 * * *",
       "zoneId": "${json-unit.ignore}",
       "nextRun": "${json-unit.ignore}",
-      "createdAt": "${json-unit.ignore}"
+      "createdAt": "${json-unit.ignore}",
+      "createdBy": "API"
     },
     {
       "@class": "${json-unit.ignore-element}",
@@ -49,7 +50,8 @@
       "scheduleExpression": "0 0 * * *",
       "zoneId": "${json-unit.ignore}",
       "nextRun": "${json-unit.ignore}",
-      "createdAt": "${json-unit.ignore}"
+      "createdAt": "${json-unit.ignore}",
+      "createdBy": "API"
     }
   ],
   "limit": 20,

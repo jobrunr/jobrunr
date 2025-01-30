@@ -3,6 +3,7 @@ package org.jobrunr.jobs;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.JobRunrAssertions;
+import org.jobrunr.jobs.RecurringJob.CreatedBy;
 
 import java.util.List;
 
@@ -56,6 +57,11 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
 
     public RecurringJobAssert hasZoneId(String zoneId) {
         Assertions.assertThat(actual.getZoneId()).isEqualTo(zoneId);
+        return this;
+    }
+
+    public RecurringJobAssert hasCreatedBy(CreatedBy createdBy) {
+        Assertions.assertThat(actual.getCreatedBy()).isEqualTo(createdBy);
         return this;
     }
 
