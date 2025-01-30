@@ -265,7 +265,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public RecurringJobsResult getRecurringJobs() {
-        return new RecurringJobsResult(recurringJobs);
+        return new RecurringJobsResult(recurringJobs.stream().map(this::deepClone).collect(toList()));
     }
 
     @Override
@@ -317,6 +317,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
         setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
+        return result;
+    }
+
+    private RecurringJob deepClone(RecurringJob recurringJob) {
+        final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
+        final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
         return result;
     }
 
