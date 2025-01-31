@@ -303,6 +303,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
+    public void clearAllJobsAndRecurringJobs() {
+        jobQueue.clear();
+        recurringJobs.clear();
+    }
+
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
                 .sorted(getJobComparator(amountRequest));
