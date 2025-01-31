@@ -48,7 +48,7 @@ class E2EJDKTest {
 
     @AfterEach
     public void clearStorageProviderExceptBackgroundJobServers() {
-        storageProvider.clearAllJobsAndRecurringJobs();
+        storageProvider.clear();
     }
 
     @AfterAll

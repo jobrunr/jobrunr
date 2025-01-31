@@ -36,6 +36,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
@@ -303,9 +304,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
-    public void clearAllJobsAndRecurringJobs() {
+    public void clear() {
         jobQueue.clear();
         recurringJobs.clear();
+        metadata.keySet().removeIf(x -> !(x.endsWith(METADATA_OWNER_CLUSTER)));
     }
 
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
