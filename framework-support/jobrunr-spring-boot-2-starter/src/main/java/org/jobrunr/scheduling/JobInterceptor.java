@@ -22,7 +22,7 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 
 public class JobInterceptor implements MethodInterceptor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(org.jobrunr.scheduling.JobInterceptor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobInterceptor.class);
 
     private final BeanFactory beanFactory;
 
