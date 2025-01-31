@@ -15,8 +15,6 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +27,6 @@ import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
-import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 
 @EnabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
 class E2EJDKTest {
@@ -51,10 +48,7 @@ class E2EJDKTest {
 
     @AfterEach
     public void clearStorageProviderExceptBackgroundJobServers() {
-        // we cannot use whitebox as it is compiled with Java > 8 and some tests will fail
-        ((Map) getValueFromFieldOrProperty(storageProvider, "jobQueue")).clear();
-        ((List) getValueFromFieldOrProperty(storageProvider, "recurringJobs")).clear();
-        ((Map) getValueFromFieldOrProperty(storageProvider, "metadata")).clear();
+        storageProvider.clear();
     }
 
     @AfterAll
@@ -66,10 +60,10 @@ class E2EJDKTest {
     @Test
     void testExpectedJavaClassMajorVersion() throws IOException {
         String expectedJavaClassVersion = System.getenv("JAVA_CLASS_VERSION");
-        if(isNullOrEmpty(expectedJavaClassVersion)) throw new IllegalStateException("The environment variable 'JAVA_CLASS_VERSION' is missing");
+        if (isNullOrEmpty(expectedJavaClassVersion)) throw new IllegalStateException("The environment variable 'JAVA_CLASS_VERSION' is missing");
 
         String actualJavaClassVersion = getJavaClassMajorVersion(testService);
-        if(isNullOrEmpty(actualJavaClassVersion)) throw new IllegalStateException("The actual Java Class Version may not be null or empty. ");
+        if (isNullOrEmpty(actualJavaClassVersion)) throw new IllegalStateException("The actual Java Class Version may not be null or empty. ");
 
         assertThat(actualJavaClassVersion).isEqualTo(expectedJavaClassVersion);
     }

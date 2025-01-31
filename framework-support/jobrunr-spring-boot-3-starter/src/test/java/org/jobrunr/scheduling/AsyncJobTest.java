@@ -35,7 +35,7 @@ public class AsyncJobTest {
 
     @BeforeEach
     public void clearInMemoryStorage() {
-        storageProvider.clearAllJobsAndRecurringJobs();
+        storageProvider.clear();
     }
 
     @Test

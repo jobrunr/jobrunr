@@ -59,7 +59,7 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
             if (args[i] == JobContext.Null) {
                 Assertions.assertThat(actual.getJobParameterTypes()[i]).isEqualTo(JobContext.class);
             } else {
-                Assertions.assertThat(jobParameterValues[i]).isEqualTo(args[i]);
+                Assertions.assertThat(jobParameterValues[i]).usingRecursiveComparison().isEqualTo(args[i]);
             }
         }
         return this;
