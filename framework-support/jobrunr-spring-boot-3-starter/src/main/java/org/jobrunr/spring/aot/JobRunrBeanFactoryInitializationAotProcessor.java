@@ -4,6 +4,7 @@ import org.jobrunr.dashboard.ui.model.problems.Problem;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
@@ -116,6 +117,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
         registerRequiredResources(hints);
 
         registerAllAssignableTypesOf(hints, Problem.class);
+        registerAllAssignableTypesOf(hints, InMemoryStorageProvider.class);
         registerAllAssignableTypesOf(hints, SqlStorageProvider.class);
         registerAllAssignableTypesOf(hints, NoSqlMigration.class);
         registerAllAssignableTypesOf(hints, NoSqlMigrationProvider.class);
