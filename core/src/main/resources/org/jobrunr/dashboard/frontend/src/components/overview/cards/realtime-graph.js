@@ -24,18 +24,24 @@ function getArrayWithLimitedLength(length) {
 
 }
 
+const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
 const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
+    const apexChartsRef = useRef();
 
     const [stats, setStats] = useState(statsState.getStats());
     useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])
+
+    useEffect(() => {
+        ApexChartsModule.then(mod => apexChartsRef.current = mod);
+    }, []);
 
     const [graphState] = useState({
         options: {
@@ -89,10 +95,12 @@ const RealtimeGraph = () => {
         if (!isNaN(amountSucceeded) && !isNaN(amountFailed) && amountSucceeded >= 0 && amountFailed >= 0) {
             succeededData.push(amountSucceeded)
             failedData.push(amountFailed)
-            ApexCharts.exec('processing-chart', 'updateSeries', [
-                {data: failedData},
-                {data: succeededData}
-            ])
+            ApexChartsModule.then(({default: ApexCharts}) => {
+                ApexCharts.exec('processing-chart', 'updateSeries', [
+                    {data: failedData},
+                    {data: succeededData}
+                ])
+            })
         }
         oldStatsRef.current = stats;
     }, [stats]);
