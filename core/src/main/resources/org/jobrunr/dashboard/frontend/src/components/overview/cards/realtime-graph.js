@@ -31,17 +31,12 @@ const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
-    const apexChartsRef = useRef();
 
     const [stats, setStats] = useState(statsState.getStats());
     useEffect(() => {
         statsState.addListener(setStats);
         return () => statsState.removeListener(setStats);
     }, [])
-
-    useEffect(() => {
-        ApexChartsModule.then(mod => apexChartsRef.current = mod);
-    }, []);
 
     const [graphState] = useState({
         options: {
