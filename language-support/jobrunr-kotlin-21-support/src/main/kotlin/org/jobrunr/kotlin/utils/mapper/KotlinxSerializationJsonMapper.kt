@@ -3,13 +3,10 @@ package org.jobrunr.kotlin.utils.mapper
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.ClassDiscriminatorMode
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
-import kotlinx.serialization.serializer
-import org.jobrunr.jobs.Job
 import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.RecurringJob
 import org.jobrunr.jobs.states.JobState
@@ -17,7 +14,6 @@ import org.jobrunr.kotlin.serialization.*
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapper
 import java.io.OutputStream
-import kotlin.reflect.KClass
 
 private val jobRunrSerializersModule = SerializersModule {
 	polymorphic(JobState::class) {
@@ -28,6 +24,7 @@ private val jobRunrSerializersModule = SerializersModule {
 		subclass(ScheduledStateSerializer)
 		subclass(SucceededStateSerializer)
 	}
+	contextual(JobSerializer)
 	contextual(JobParameterNotDeserializableExceptionSerializer)
 	contextual(JobContextSerializer)
 	contextual(JobDashboardLogLineSerializer)
@@ -43,6 +40,8 @@ class KotlinxSerializationJsonMapper(
 	constructor(serializersModule: SerializersModule) : this(Json {
 		encodeDefaults = true
 		ignoreUnknownKeys = true
+		
+		classDiscriminator = "@class"
 		
 		this.serializersModule = serializersModule + jobRunrSerializersModule
 	})
@@ -63,7 +62,7 @@ class KotlinxSerializationJsonMapper(
 		fun <T : Any> encode(ogObj: Any): String? {
 			val obj = mapToKotlin<T>(ogObj)
 
-			return json.encodeToString((obj::class as KClass<T>).serializer(), obj)
+			return json.encodeToString(json.serializersModule.serializer(obj::class) as SerializationStrategy<T>, obj)
 		}
 
 		encode<Any>(obj)
@@ -82,7 +81,7 @@ class KotlinxSerializationJsonMapper(
 			@Suppress("UNCHECKED_CAST")
 			val serializable = getMappingSerializable(clazz) as KSerializable<T, T>?
 			val result = json.decodeFromString(
-				serializable?.serializer ?: clazz.kotlin.serializer(),
+				serializable?.serializer ?: json.serializersModule.serializer(clazz.kotlin)!!,
 				serializedObjectAsString,
 			)
 			serializable?.mapToJava(result) ?: result
@@ -90,7 +89,6 @@ class KotlinxSerializationJsonMapper(
 	}
 	
 	private fun getMappingSerializable(clazz: Class<*>): KSerializable<*, *>? = when (clazz) {
-		KJob::class.java, Job::class.java -> KJob
 		KRecurringJob::class.java, RecurringJob::class.java -> KRecurringJob
 		KJobDetails::class.java, JobDetails::class.java -> KJobDetails
 		else -> null
