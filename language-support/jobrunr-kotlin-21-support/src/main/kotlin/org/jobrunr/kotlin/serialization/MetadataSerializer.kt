@@ -12,7 +12,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeCollection
-import org.jobrunr.kotlin.utils.mapper.ContextualFallbackSerializer
+import org.jobrunr.kotlin.serialization.utils.ContextualFallbackSerializer
 
 object MetadataSerializer : KSerializer<Map<String, Any>> {
 	@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)

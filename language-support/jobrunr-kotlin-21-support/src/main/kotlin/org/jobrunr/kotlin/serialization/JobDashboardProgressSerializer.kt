@@ -5,7 +5,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.context.JobDashboardProgressBar
-import org.jobrunr.kotlin.utils.mapper.ContextualFallbackSerializer
+import org.jobrunr.kotlin.serialization.utils.ContextualFallbackSerializer
 
 object JobDashboardProgressSerializer : KSerializer<JobDashboardProgressBar.JobDashboardProgress>, ContextualFallbackSerializer.PolymorphicContinuationSerializer {
 	override val descriptor = buildClassSerialDescriptor(JobDashboardProgressBar.JobDashboardProgress::class.qualifiedName!!) {

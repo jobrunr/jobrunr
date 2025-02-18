@@ -1,19 +1,16 @@
-package org.jobrunr.kotlin.utils.mapper
+package org.jobrunr.kotlin.serialization.utils
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.listSerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.encoding.*
 import java.util.*
 
-@OptIn(InternalSerializationApi::class)
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class QueueSerializer<E>(private val elementSerializer: KSerializer<E>) : KSerializer<Queue<E>> {
 	override val descriptor = listSerialDescriptor(elementSerializer.descriptor)
-	
+
 	override fun deserialize(decoder: Decoder): Queue<E> = decoder.decodeStructure(descriptor) {
 		val list = LinkedList<E>()
 		while (true) {

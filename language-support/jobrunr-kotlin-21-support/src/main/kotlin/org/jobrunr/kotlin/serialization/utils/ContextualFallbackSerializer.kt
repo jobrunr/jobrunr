@@ -1,4 +1,4 @@
-package org.jobrunr.kotlin.utils.mapper
+package org.jobrunr.kotlin.serialization.utils
 
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
