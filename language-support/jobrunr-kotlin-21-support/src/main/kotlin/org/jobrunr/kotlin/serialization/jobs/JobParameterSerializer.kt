@@ -1,4 +1,4 @@
-package org.jobrunr.kotlin.serialization
+package org.jobrunr.kotlin.serialization.jobs
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi

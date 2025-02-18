@@ -8,11 +8,25 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
 import org.jobrunr.jobs.states.JobState
-import org.jobrunr.kotlin.serialization.*
+import org.jobrunr.kotlin.serialization.jobs.JobParameterNotDeserializableExceptionSerializer
+import org.jobrunr.kotlin.serialization.jobs.JobSerializer
+import org.jobrunr.kotlin.serialization.jobs.RecurringJobSerializer
+import org.jobrunr.kotlin.serialization.jobs.context.JobContextSerializer
+import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLineSerializer
+import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLinesSerializer
+import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardProgressSerializer
+import org.jobrunr.kotlin.serialization.jobs.states.DeletedStateSerializer
+import org.jobrunr.kotlin.serialization.jobs.states.EnqueuedStateSerializer
+import org.jobrunr.kotlin.serialization.jobs.states.FailedStateSerializer
+import org.jobrunr.kotlin.serialization.jobs.states.ProcessingStateSerializer
+import org.jobrunr.kotlin.serialization.jobs.states.ScheduledStateSerializer
+import org.jobrunr.kotlin.serialization.jobs.states.SucceededStateSerializer
+import org.jobrunr.kotlin.serialization.utils.DurationSerializer
 import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapper
 import java.io.OutputStream
+import kotlin.reflect.KClass
 
 private val jobRunrSerializersModule = SerializersModule {
 	polymorphic(JobState::class) {
@@ -30,6 +44,9 @@ private val jobRunrSerializersModule = SerializersModule {
 	contextual(JobDashboardLogLineSerializer)
 	contextual(JobDashboardLogLinesSerializer)
 	contextual(JobDashboardProgressSerializer)
+
+	contextual(DurationSerializer)
+	contextual(FileSerializer)
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -51,7 +68,10 @@ class KotlinxSerializationJsonMapper(
 	
 	override fun serialize(obj: Any): String? = rethrowSerializationException {
 		fun <T : Any> encode(obj: Any): String? {
-			return json.encodeToString(json.serializersModule.serializer(obj::class) as SerializationStrategy<T>, obj as T)
+			return json.encodeToString(
+				json.serializersModule.serializer(obj::class) as SerializationStrategy<T>?
+					?: throw noSerializerFound(obj::class), obj as T
+			)
 		}
 
 		encode<Any>(obj)
@@ -60,7 +80,8 @@ class KotlinxSerializationJsonMapper(
 	override fun serialize(outputStream: OutputStream, obj: Any) = rethrowSerializationException {
 		fun <T : Any> encode(obj: Any, outputStream: OutputStream) {
 			json.encodeToStream(
-				json.serializersModule.serializer(obj::class) as SerializationStrategy<T>,
+				json.serializersModule.serializer(obj::class) as SerializationStrategy<T>?
+					?: throw noSerializerFound(obj::class),
 				obj as T,
 				outputStream
 			)
@@ -72,11 +93,14 @@ class KotlinxSerializationJsonMapper(
 	override fun <T : Any> deserialize(serializedObjectAsString: String?, clazz: Class<T>): T? = rethrowSerializationException {
 		serializedObjectAsString?.let {
 			json.decodeFromString(
-				json.serializersModule.serializer(clazz.kotlin)!!,
+				json.serializersModule.serializer(clazz.kotlin)
+					?: throw noSerializerFound(clazz.kotlin),
 				serializedObjectAsString,
 			)
 		}
 	}
+	
+	fun noSerializerFound(kClass: KClass<*>): Exception = JobParameterJsonMapperException("No serializer for ${kClass.qualifiedName}")
 
 	fun <T> rethrowSerializationException(block: () -> T): T = try {
 		block()

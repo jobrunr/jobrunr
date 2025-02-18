@@ -1,15 +1,16 @@
-@file:OptIn(ExperimentalUuidApi::class)
+@file:OptIn(ExperimentalUuidApi::class, ExperimentalSerializationApi::class)
 
-package org.jobrunr.kotlin.serialization
+package org.jobrunr.kotlin.serialization.jobs.states
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.ClassSerialDescriptorBuilder
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.JsonClassDiscriminator
 import org.jobrunr.jobs.states.*
+import org.jobrunr.kotlin.serialization.utils.DurationSerializer
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -87,7 +88,6 @@ object DeletedStateSerializer : StateSerializer<DeletedState>(DeletedState::clas
 	}
 }
 
-@JsonClassDiscriminator("@class")
 object EnqueuedStateSerializer : StateSerializer<EnqueuedState>(EnqueuedState::class) {
 	override fun CompositeEncoder.serializeAdditional(state: EnqueuedState, name: String, index: Int) = Unit
 	
@@ -187,18 +187,18 @@ object ScheduledStateSerializer : StateSerializer<ScheduledState>(
 	override fun CompositeEncoder.serializeAdditional(state: ScheduledState, name: String, index: Int) {
 		when (name) {
 			"scheduledAt" -> encodeStringElement(descriptor, index, state.scheduledAt.toString())
-			"reason" -> encodeStringElement(descriptor, index, state.reason)
+			"reason" -> encodeNullableSerializableElement(descriptor, index, String.serializer(), state.reason)
 			else -> error("Unknown field: $name")
 		}
 	}
 	
 	override fun deserialize(decoder: Decoder): ScheduledState = decoder.decodeStructure(descriptor) {
 		lateinit var scheduledAt: String
-		lateinit var reason: String
+		var reason: String? = null
 		val createdAt = handleDeserialization { field, index ->
 			when (field.name) {
 				"scheduledAt" -> scheduledAt = decodeStringElement(descriptor, index)
-				"reason" -> reason = decodeStringElement(descriptor, index)
+				"reason" -> reason = decodeNullableSerializableElement(descriptor, index, String.serializer())
 				else -> error("Unknown field: ${field.name}")
 			}
 		}
@@ -211,27 +211,27 @@ object ScheduledStateSerializer : StateSerializer<ScheduledState>(
 
 object SucceededStateSerializer : StateSerializer<SucceededState>(
 	SucceededState::class,
-	Field("latencyDuration", String.serializer().descriptor),
-	Field("processDuration", String.serializer().descriptor),
+	Field("latencyDuration", DurationSerializer.descriptor),
+	Field("processDuration", DurationSerializer.descriptor),
 ) {
 	override fun CompositeEncoder.serializeAdditional(state: SucceededState, name: String, index: Int) = when (name) {
-		"latencyDuration" -> encodeStringElement(descriptor, index, state.latencyDuration.toString())
-		"processDuration" -> encodeStringElement(descriptor, index, state.processDuration.toString())
+		"latencyDuration" -> encodeSerializableElement(descriptor, index, DurationSerializer, state.latencyDuration)
+		"processDuration" -> encodeSerializableElement(descriptor, index, DurationSerializer, state.processDuration)
 		else -> error("Unknown field: $name")
 	}
 	
 	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
-		lateinit var latencyDuration: String
-		lateinit var processDuration: String
+		lateinit var latencyDuration: Duration
+		lateinit var processDuration: Duration
 		val createdAt = handleDeserialization { field, index ->
 			when (field.name) {
-				"latencyDuration" -> latencyDuration = decodeStringElement(descriptor, index)
-				"processDuration" -> processDuration = decodeStringElement(descriptor, index)
+				"latencyDuration" -> latencyDuration = decodeSerializableElement(descriptor, index, DurationSerializer)
+				"processDuration" -> processDuration = decodeSerializableElement(descriptor, index, DurationSerializer)
 				else -> error("Unknown field: ${field.name}")
 			}
 		}
-
-		SucceededState(Duration.parse(latencyDuration), Duration.parse(processDuration)).apply {
+		
+		SucceededState(latencyDuration, processDuration).apply {
 			this.createdAt = createdAt
 		}
 	}
