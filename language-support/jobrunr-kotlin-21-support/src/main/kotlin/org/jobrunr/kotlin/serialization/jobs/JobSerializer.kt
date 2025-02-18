@@ -1,4 +1,4 @@
-package org.jobrunr.kotlin.serialization
+package org.jobrunr.kotlin.serialization.jobs
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -15,6 +15,7 @@ import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.Job
 import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.states.JobState
+import org.jobrunr.kotlin.serialization.MetadataSerializer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.jvm.optionals.getOrNull
 import kotlin.uuid.ExperimentalUuidApi
