@@ -1,6 +1,7 @@
 package org.jobrunr.kotlin.serialization
 
 import kotlinx.serialization.Serializable
+import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.RecurringJob
 
 @Serializable
@@ -10,7 +11,7 @@ data class KRecurringJob(
 	val jobName: String,
 	val amountOfRetries: Int?,
 	val labels: Set<String>,
-	val jobDetails: KJobDetails,
+	val jobDetails: @Serializable(with = JobDetailsSerializer::class) JobDetails,
 	val scheduleExpression: String,
 	val zoneId: String,
 	val createdAt: String,
@@ -19,7 +20,7 @@ data class KRecurringJob(
 		override fun mapToJava(kotlin: KRecurringJob) = RecurringJob(
 			kotlin.id,
 			kotlin.version,
-			KJobDetails.mapToJava(kotlin.jobDetails),
+			kotlin.jobDetails,
 			kotlin.scheduleExpression,
 			kotlin.zoneId,
 			kotlin.createdAt
@@ -35,7 +36,7 @@ data class KRecurringJob(
 			jobName = java.jobName,
 			amountOfRetries = java.amountOfRetries,
 			labels = java.labels,
-			jobDetails = KJobDetails.mapToKotlin(java.jobDetails),
+			jobDetails = java.jobDetails,
 			scheduleExpression = java.scheduleExpression,
 			zoneId = java.zoneId,
 			createdAt = java.createdAt.toString(),
