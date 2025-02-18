@@ -86,6 +86,12 @@ public class JobDashboardLogger {
             this.logMessage = logMessage;
         }
 
+        public JobDashboardLogLine(Level level, Instant logInstant, String logMessage) {
+            this.level = level;
+            this.logInstant = logInstant;
+            this.logMessage = logMessage;
+        }
+
         public Level getLevel() {
             return level;
         }

@@ -40,6 +40,17 @@ public class FailedState extends AbstractJobState {
         this.doNotRetry = isProblematicAndDoNotRetry(exception);
     }
 
+    public FailedState(String message, String exceptionType, String exceptionMessage, String exceptionCauseType, String exceptionCauseMessage, String stackTrace, boolean doNotRetry) {
+        super(StateName.FAILED);
+        this.message = message;
+        this.exceptionType = exceptionType;
+        this.exceptionMessage = exceptionMessage;
+        this.exceptionCauseType = exceptionCauseType;
+        this.exceptionCauseMessage = exceptionCauseMessage;
+        this.stackTrace = stackTrace;
+        this.doNotRetry = doNotRetry;
+    }
+
     public String getMessage() {
         return message;
     }
