@@ -23,6 +23,10 @@ public abstract class AbstractJobState implements JobState {
         return createdAt;
     }
 
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     @Override
     public Instant getUpdatedAt() {
         return getCreatedAt();
