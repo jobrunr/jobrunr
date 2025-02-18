@@ -9,13 +9,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.JsonClassDiscriminator
-import org.jobrunr.jobs.states.AbstractJobState
-import org.jobrunr.jobs.states.DeletedState
-import org.jobrunr.jobs.states.EnqueuedState
-import org.jobrunr.jobs.states.FailedState
-import org.jobrunr.jobs.states.ProcessingState
-import org.jobrunr.jobs.states.ScheduledState
-import org.jobrunr.jobs.states.SucceededState
+import org.jobrunr.jobs.states.*
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -55,7 +49,7 @@ abstract class StateSerializer<State : AbstractJobState>(
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
 				CompositeDecoder.DECODE_DONE -> break
-				0 -> decodeStringElement(descriptor, 0)
+				0 -> decodeStringElement(descriptor, index)
 				1 -> createdAt = Instant.parse(decodeStringElement(descriptor, 1))
 				else -> {
 					val field = fields[index - 2]
@@ -93,6 +87,7 @@ object DeletedStateSerializer : StateSerializer<DeletedState>(DeletedState::clas
 	}
 }
 
+@JsonClassDiscriminator("@class")
 object EnqueuedStateSerializer : StateSerializer<EnqueuedState>(EnqueuedState::class) {
 	override fun CompositeEncoder.serializeAdditional(state: EnqueuedState, name: String, index: Int) = Unit
 	

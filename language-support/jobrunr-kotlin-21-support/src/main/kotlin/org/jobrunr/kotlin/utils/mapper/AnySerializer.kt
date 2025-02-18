@@ -12,9 +12,6 @@ import kotlin.reflect.KClass
 
 @OptIn(ExperimentalSerializationApi::class)
 open class AnySerializer<T : Any> : KSerializer<Any> {
-	private val fallbackSerializer: KSerializer<T>? = null
-	private val typeArgumentsSerializers: List<KSerializer<*>> = emptyList()
-
 	override val descriptor =
 		buildClassSerialDescriptor(AnySerializer::class.qualifiedName!!) {
 			element("@class", String.serializer().descriptor)
