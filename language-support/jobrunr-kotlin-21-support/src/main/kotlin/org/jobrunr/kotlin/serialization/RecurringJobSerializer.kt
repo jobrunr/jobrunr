@@ -48,6 +48,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob> {
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
+				CompositeDecoder.DECODE_DONE -> break
 				0 -> id = decodeStringElement(descriptor, 0)
 				1 -> version = decodeIntElement(descriptor, 1)
 				2 -> jobName = decodeStringElement(descriptor, 2)
@@ -57,8 +58,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob> {
 				6 -> scheduleExpression = decodeStringElement(descriptor, 6)
 				7 -> zoneId = decodeStringElement(descriptor, 7)
 				8 -> createdAt = decodeStringElement(descriptor, 8)
-				CompositeDecoder.DECODE_DONE -> break
-				else -> error("Unexpected index: $index")
+				else -> error("Unexpected index $index")
 			}
 		}
 

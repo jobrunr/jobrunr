@@ -29,8 +29,7 @@ open class AnySerializer<T : Any> : KSerializer<Any> {
 				descriptor,
 				1,
 				encoder.serializersModule.serializer(value::class as KClass<T>)
-					?: error("No serializer found for ${value::class.qualifiedName}")
-				,
+					?: error("No serializer found for ${value::class.qualifiedName}"),
 				value as T
 			)
 		encode<Any>()
@@ -50,10 +49,10 @@ open class AnySerializer<T : Any> : KSerializer<Any> {
 		
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
-				// type
+				CompositeDecoder.DECODE_DONE -> break
 				0 -> type = decodeStringElement(descriptor, 0)
 				1 -> return@decodeStructure decode<T>(type)
-				CompositeDecoder.DECODE_DONE -> break
+				else -> error("Unexpected index $index")
 			}
 		}
 		

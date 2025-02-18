@@ -50,6 +50,7 @@ object ContextualFallbackSerializer : KSerializer<Any> {
 						}
 					}
 				}
+				else -> error("Unexpected index $index")
 			}
 		}
 
