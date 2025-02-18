@@ -10,8 +10,8 @@ import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.listSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.context.JobDashboardLogger
-import org.jobrunr.kotlin.utils.mapper.ContextualFallbackSerializer
-import org.jobrunr.kotlin.utils.mapper.QueueSerializer
+import org.jobrunr.kotlin.serialization.utils.ContextualFallbackSerializer
+import org.jobrunr.kotlin.serialization.utils.QueueSerializer
 import java.time.Instant
 import java.util.*
 

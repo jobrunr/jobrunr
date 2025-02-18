@@ -12,7 +12,7 @@ import kotlinx.serialization.encoding.*
 import kotlinx.serialization.modules.SerializersModule
 import org.jobrunr.jobs.JobParameter
 import org.jobrunr.jobs.JobParameterNotDeserializableException
-import org.jobrunr.kotlin.utils.mapper.serializer
+import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapperUtils
 import kotlin.reflect.KClass

@@ -9,6 +9,7 @@ import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
 import org.jobrunr.jobs.states.JobState
 import org.jobrunr.kotlin.serialization.*
+import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapper
 import java.io.OutputStream
