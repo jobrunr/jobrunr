@@ -7,7 +7,6 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
-import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.RecurringJob
 import org.jobrunr.jobs.states.JobState
 import org.jobrunr.kotlin.serialization.*
@@ -90,7 +89,6 @@ class KotlinxSerializationJsonMapper(
 	
 	private fun getMappingSerializable(clazz: Class<*>): KSerializable<*, *>? = when (clazz) {
 		KRecurringJob::class.java, RecurringJob::class.java -> KRecurringJob
-		KJobDetails::class.java, JobDetails::class.java -> KJobDetails
 		else -> null
 	}
 
