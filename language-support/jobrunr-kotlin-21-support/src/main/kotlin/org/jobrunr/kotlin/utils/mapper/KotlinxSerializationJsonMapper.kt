@@ -31,6 +31,7 @@ private val jobRunrSerializersModule = SerializersModule {
 	contextual(JobDashboardProgressSerializer)
 }
 
+@Suppress("UNCHECKED_CAST")
 @ExperimentalSerializationApi
 @InternalSerializationApi
 class KotlinxSerializationJsonMapper(
@@ -47,48 +48,33 @@ class KotlinxSerializationJsonMapper(
 	
 	constructor() : this(jobRunrSerializersModule)
 	
-	@Suppress("UNCHECKED_CAST")
-	private fun <T : Any> mapToKotlin(obj: Any): T {
-		obj as T
-		val mapped = (getMappingSerializable(obj.javaClass) as KSerializable<*, T>?)
-			?.mapToKotlin(obj) as T?
-
-		return mapped ?: obj
-	}
-	
-	@Suppress("UNCHECKED_CAST")
 	override fun serialize(obj: Any): String? = rethrowSerializationException {
-		fun <T : Any> encode(ogObj: Any): String? {
-			val obj = mapToKotlin<T>(ogObj)
-
-			return json.encodeToString(json.serializersModule.serializer(obj::class) as SerializationStrategy<T>, obj)
+		fun <T : Any> encode(obj: Any): String? {
+			return json.encodeToString(json.serializersModule.serializer(obj::class) as SerializationStrategy<T>, obj as T)
 		}
 
 		encode<Any>(obj)
 	}
 
-	override fun serialize(outputStream: OutputStream, `object`: Any) = rethrowSerializationException {
-		json.encodeToStream(
-			mapToKotlin(`object`),
-			`object`,
-			outputStream
-		)
+	override fun serialize(outputStream: OutputStream, obj: Any) = rethrowSerializationException {
+		fun <T : Any> encode(obj: Any, outputStream: OutputStream) {
+			json.encodeToStream(
+				json.serializersModule.serializer(obj::class) as SerializationStrategy<T>,
+				obj as T,
+				outputStream
+			)
+		}
+		
+		encode<Any>(obj, outputStream)
 	}
 
 	override fun <T : Any> deserialize(serializedObjectAsString: String?, clazz: Class<T>): T? = rethrowSerializationException {
 		serializedObjectAsString?.let {
-			@Suppress("UNCHECKED_CAST")
-			val serializable = getMappingSerializable(clazz) as KSerializable<T, T>?
-			val result = json.decodeFromString(
-				serializable?.serializer ?: json.serializersModule.serializer(clazz.kotlin)!!,
+			json.decodeFromString(
+				json.serializersModule.serializer(clazz.kotlin)!!,
 				serializedObjectAsString,
 			)
-			serializable?.mapToJava(result) ?: result
 		}
-	}
-	
-	private fun getMappingSerializable(clazz: Class<*>): KSerializable<*, *>? = when (clazz) {
-		else -> null
 	}
 
 	fun <T> rethrowSerializationException(block: () -> T): T = try {
