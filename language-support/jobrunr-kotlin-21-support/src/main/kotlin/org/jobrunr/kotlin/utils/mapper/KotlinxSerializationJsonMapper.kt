@@ -7,7 +7,6 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
-import org.jobrunr.jobs.RecurringJob
 import org.jobrunr.jobs.states.JobState
 import org.jobrunr.kotlin.serialization.*
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
@@ -24,6 +23,7 @@ private val jobRunrSerializersModule = SerializersModule {
 		subclass(SucceededStateSerializer)
 	}
 	contextual(JobSerializer)
+	contextual(RecurringJobSerializer)
 	contextual(JobParameterNotDeserializableExceptionSerializer)
 	contextual(JobContextSerializer)
 	contextual(JobDashboardLogLineSerializer)
@@ -88,7 +88,6 @@ class KotlinxSerializationJsonMapper(
 	}
 	
 	private fun getMappingSerializable(clazz: Class<*>): KSerializable<*, *>? = when (clazz) {
-		KRecurringJob::class.java, RecurringJob::class.java -> KRecurringJob
 		else -> null
 	}
 
