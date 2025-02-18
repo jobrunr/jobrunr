@@ -36,10 +36,10 @@ object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashbo
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
+				CompositeDecoder.DECODE_DONE -> break
 				0 -> decodeStringElement(descriptor, 0)
 				1 -> logLines = decodeSerializableElement(descriptor, 1, QueueSerializer(JobDashboardLogLineSerializer))
-				CompositeDecoder.DECODE_DONE -> break
-				else -> error("Unexpected index: $index")
+				else -> error("Unexpected index $index")
 			}
 		}
 

@@ -7,11 +7,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.mapSerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeCollection
+import kotlinx.serialization.encoding.*
 import org.jobrunr.kotlin.serialization.utils.ContextualFallbackSerializer
 
 object MetadataSerializer : KSerializer<Map<String, Any>> {
@@ -32,7 +28,6 @@ object MetadataSerializer : KSerializer<Map<String, Any>> {
 	}
 
 	override fun deserialize(decoder: Decoder): Map<String, Any> = decoder.decodeStructure(descriptor) {
-		lateinit var className: String
 		val map = mutableMapOf<String, Any>()
 		
 		var currentKey = ""

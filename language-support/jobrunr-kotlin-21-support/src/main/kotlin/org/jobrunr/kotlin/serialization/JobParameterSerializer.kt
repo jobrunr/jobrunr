@@ -17,15 +17,14 @@ import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapperUtils
 import kotlin.reflect.KClass
 
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
 object JobParameterSerializer : KSerializer<JobParameter> {
-	@OptIn(InternalSerializationApi::class)
 	override val descriptor = buildClassSerialDescriptor("org.jobrunr.jobs.JobParameter") {
 		element("className", String.serializer().descriptor)
 		element("actualClassName", String.serializer().descriptor)
 		element("object", buildSerialDescriptor("org.jobrunr.kotlin.serialization.KJobParameter#object", SerialKind.CONTEXTUAL))
 	}
 
-	@OptIn(InternalSerializationApi::class)
 	private fun SerializersModule.serializer(className: String, actualClassName: String): KSerializer<Any>? {
 		val actual = JsonMapperUtils.getActualClassName(className, actualClassName)
 		val kClass = Class.forName(actual).kotlin
@@ -37,7 +36,6 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 		message
 	)
 
-	@OptIn(ExperimentalSerializationApi::class)
 	override fun serialize(encoder: Encoder, value: JobParameter) = encoder.encodeStructure(descriptor) {
 		encodeStringElement(descriptor, 0, value.className)
 		encodeStringElement(descriptor, 1, value.actualClassName)
@@ -62,6 +60,7 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
+				CompositeDecoder.DECODE_DONE -> break
 				0 -> className = decodeStringElement(descriptor, 0)
 				1 -> actualClassName = decodeStringElement(descriptor, 1)
 				2 -> {
@@ -77,7 +76,7 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 						}
 					}
 				}
-				CompositeDecoder.DECODE_DONE -> break
+				else -> error("Unexpected index $index")
 			}
 		}
 

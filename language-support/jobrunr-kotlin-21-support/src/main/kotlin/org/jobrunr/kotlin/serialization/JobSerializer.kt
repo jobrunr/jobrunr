@@ -1,5 +1,6 @@
 package org.jobrunr.kotlin.serialization
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.PolymorphicSerializer
@@ -21,7 +22,7 @@ import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-@OptIn(InternalSerializationApi::class, ExperimentalUuidApi::class)
+@OptIn(InternalSerializationApi::class, ExperimentalUuidApi::class, ExperimentalSerializationApi::class)
 object JobSerializer : KSerializer<Job> {
 	override val descriptor = buildClassSerialDescriptor(Job::class.qualifiedName!!) {
 		element("id", Uuid.serializer().descriptor)
@@ -62,6 +63,7 @@ object JobSerializer : KSerializer<Job> {
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
+				CompositeDecoder.DECODE_DONE -> break
 				0 -> id = decodeSerializableElement(descriptor, 0, Uuid.serializer())
 				1 -> version = decodeIntElement(descriptor, 1)
 				2 -> decodeStringElement(descriptor, 2)
@@ -70,8 +72,7 @@ object JobSerializer : KSerializer<Job> {
 				5 -> jobDetails = decodeSerializableElement(descriptor, 5, JobDetailsSerializer)
 				6 -> jobHistory = decodeSerializableElement(descriptor, 6, ListSerializer(PolymorphicSerializer(JobState::class)))
 				7 -> metadata = decodeSerializableElement(descriptor, 7, MetadataSerializer)
-				CompositeDecoder.DECODE_DONE -> break
-				else -> error("Unexpected index: $index")
+				else -> error("Unexpected index $index")
 			}
 		}
 
