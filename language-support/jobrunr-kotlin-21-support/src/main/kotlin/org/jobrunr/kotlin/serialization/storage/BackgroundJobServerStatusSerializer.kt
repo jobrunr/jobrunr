@@ -8,6 +8,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
 import org.jobrunr.storage.BackgroundJobServerStatus
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -52,5 +53,5 @@ object BackgroundJobServerStatusSerializer : KSerializer<BackgroundJobServerStat
 		encodeDoubleElement(descriptor, 15, value.processCpuLoad)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 }

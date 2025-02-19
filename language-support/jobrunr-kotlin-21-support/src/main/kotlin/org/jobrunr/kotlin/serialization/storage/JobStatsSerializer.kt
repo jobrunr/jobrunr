@@ -8,8 +8,9 @@ import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
-import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
+import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
 import org.jobrunr.storage.JobStats
 
 object JobStatsSerializer : KSerializer<JobStats>, ClassDiscriminatedContextualSerializer.PolymorphicContinuationSerializer<JobStats> {
@@ -49,5 +50,5 @@ object JobStatsSerializer : KSerializer<JobStats>, ClassDiscriminatedContextualS
 		encodeIntElement(descriptor, 11, value.backgroundJobServers)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 }
