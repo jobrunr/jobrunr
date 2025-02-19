@@ -7,7 +7,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel
 import org.jobrunr.kotlin.serialization.jobs.RecurringJobSerializer
-import org.jobrunr.kotlin.serialization.utils.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.InstantSerializer
 
 object RecurringJobUIModelSerializer : KSerializer<RecurringJobUIModel> {
 	override val descriptor = buildClassSerialDescriptor(RecurringJobUIModel::class.qualifiedName!!) {

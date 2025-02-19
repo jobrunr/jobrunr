@@ -27,8 +27,8 @@ import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardProgressSeriali
 import org.jobrunr.kotlin.serialization.jobs.states.*
 import org.jobrunr.kotlin.serialization.storage.*
 import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
-import org.jobrunr.kotlin.serialization.utils.DurationSerializer
-import org.jobrunr.kotlin.serialization.utils.QueueSerializer
+import org.jobrunr.kotlin.serialization.misc.DurationSerializer
+import org.jobrunr.kotlin.serialization.misc.QueueSerializer
 import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapper

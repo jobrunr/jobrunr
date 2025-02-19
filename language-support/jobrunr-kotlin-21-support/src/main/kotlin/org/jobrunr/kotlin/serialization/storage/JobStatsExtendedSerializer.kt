@@ -7,7 +7,7 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
-import org.jobrunr.kotlin.serialization.utils.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.InstantSerializer
 import org.jobrunr.storage.JobStatsExtended
 
 object JobStatsExtendedSerializer : KSerializer<JobStatsExtended> {
