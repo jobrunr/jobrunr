@@ -1,46 +1,23 @@
 package org.jobrunr.kotlin.serialization.storage
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
-import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
+import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import org.jobrunr.storage.Page
+import kotlin.reflect.KClass
 
-@OptIn(ExperimentalSerializationApi::class)
-class PageSerializer<T : Any>() : KSerializer<Page<T>> {
-	private val elementSerializer = AnyInlineSerializer<T>()
-	
-	override val descriptor = buildClassSerialDescriptor(Page::class.qualifiedName!!) {
-		element("total", Long.serializer().descriptor)
-		element("currentPage", Int.serializer().descriptor)
-		element("totalPages", Int.serializer().descriptor)
-		element("limit", Int.serializer().descriptor)
-		element("offset", Long.serializer().descriptor)
-		element("hasPrevious", Boolean.serializer().descriptor)
-		element("hasNext", Boolean.serializer().descriptor)
-		element("previousPage", String.serializer().descriptor)
-		element("nextPage", String.serializer().descriptor)
-		element("items", ListSerializer(elementSerializer).descriptor)
-	}
-
-	override fun serialize(encoder: Encoder, value: Page<T>) = encoder.encodeStructure(descriptor) {
-		encodeLongElement(descriptor, 0, value.total)
-		encodeIntElement(descriptor, 1, value.currentPage)
-		encodeIntElement(descriptor, 2, value.totalPages)
-		encodeIntElement(descriptor, 3, value.limit)
-		encodeLongElement(descriptor, 4, value.offset)
-		encodeBooleanElement(descriptor, 5, value.hasPreviousPage())
-		encodeBooleanElement(descriptor, 6, value.hasNextPage())
-		encodeNullableSerializableElement(descriptor, 7, String.serializer(), value.previousPage)
-		encodeNullableSerializableElement(descriptor, 8, String.serializer(), value.nextPage)
-		encodeSerializableElement(descriptor, 9, ListSerializer(elementSerializer), value.items as List<T>)
-	}
-
-	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
-}
+@Suppress("UNCHECKED_CAST")
+class PageSerializer<T : Any> : FieldBasedSerializer<Page<T>>(
+	Page::class as KClass<Page<T>>,
+	Field("total", Long.serializer()) { it.total },
+	Field("currentPage", Int.serializer()) { it.currentPage },
+	Field("totalPages", Int.serializer()) { it.totalPages },
+	Field("limit", Int.serializer()) { it.limit },
+	Field("offset", Long.serializer()) { it.offset },
+	Field("hasPrevious", Boolean.serializer()) { it.hasPreviousPage() },
+	Field("hasNext", Boolean.serializer()) { it.hasNextPage() },
+	Field("previousPage", String.serializer(), nullable = true) { it.previousPage },
+	Field("nextPage", String.serializer(), nullable = true) { it.nextPage },
+	Field("items", ListSerializer(AnyInlineSerializer())) { it.items as List<T> }
+)
