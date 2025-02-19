@@ -40,13 +40,12 @@ abstract class FieldBasedSerializer<T : Any>(
 		}
 	}
 	
-
 	override fun deserialize(decoder: Decoder): T = throw DeserializationUnsupportedException()
 	
 	data class Field<I, O>(
 		val name: String,
 		val serializer: KSerializer<O>,
 		var nullable: Boolean = false,
-		val getter: (I) -> O
+		val getter: (I) -> O?
 	)
 }
