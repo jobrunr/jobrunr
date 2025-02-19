@@ -19,13 +19,13 @@ import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-abstract class StateSerializer<State : AbstractJobState>(
+abstract class JobStateSerializer<State : AbstractJobState>(
 	kClass: KClass<State>,
 	private vararg val fields: Field<State, out Any>,
 ) : FieldBasedSerializer<State>(
 	kClass,
 	listOf(
-		Field("name", String.serializer()) { it.name.name },
+		Field("state", String.serializer()) { it.name.name },
 		Field("createdAt", InstantSerializer) { it.createdAt },
 		*fields
 	)
@@ -35,7 +35,7 @@ abstract class StateSerializer<State : AbstractJobState>(
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
 				CompositeDecoder.DECODE_DONE -> break
-				descriptor.getElementIndex("name") -> decodeStringElement(descriptor, index)
+				descriptor.getElementIndex("state") -> decodeStringElement(descriptor, index)
 				descriptor.getElementIndex("createdAt") -> createdAt = decodeSerializableElement(descriptor, 1, InstantSerializer)
 				else -> {
 					val elementName = descriptor.getElementName(index)
@@ -50,7 +50,7 @@ abstract class StateSerializer<State : AbstractJobState>(
 	}
 }
 
-object DeletedStateSerializer : StateSerializer<DeletedState>(
+object DeletedStateSerializer : JobStateSerializer<DeletedState>(
 	DeletedState::class,
 	Field("reason", String.serializer()) { it.reason },
 ) {
@@ -69,7 +69,7 @@ object DeletedStateSerializer : StateSerializer<DeletedState>(
 	}
 }
 
-object EnqueuedStateSerializer : StateSerializer<EnqueuedState>(EnqueuedState::class) {
+object EnqueuedStateSerializer : JobStateSerializer<EnqueuedState>(EnqueuedState::class) {
 	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
 		EnqueuedState().apply { 
 			createdAt = handleDeserialization { _, _ -> }
@@ -77,7 +77,7 @@ object EnqueuedStateSerializer : StateSerializer<EnqueuedState>(EnqueuedState::c
 	}
 }
 
-object FailedStateSerializer : StateSerializer<FailedState>(
+object FailedStateSerializer : JobStateSerializer<FailedState>(
 	FailedState::class,
 	Field("message", String.serializer()) { it.message },
 	Field("exceptionType", String.serializer()) { it.exceptionType },
@@ -114,7 +114,7 @@ object FailedStateSerializer : StateSerializer<FailedState>(
 	}
 }
 
-object ProcessingStateSerializer : StateSerializer<ProcessingState>(
+object ProcessingStateSerializer : JobStateSerializer<ProcessingState>(
 	ProcessingState::class,
 	Field("serverId", Uuid.serializer()) { it.serverId.toKotlinUuid() },
 	Field("serverName", String.serializer()) { it.serverName },
@@ -140,7 +140,7 @@ object ProcessingStateSerializer : StateSerializer<ProcessingState>(
 	}
 }
 
-object ScheduledStateSerializer : StateSerializer<ScheduledState>(
+object ScheduledStateSerializer : JobStateSerializer<ScheduledState>(
 	ScheduledState::class,
 	Field("scheduledAt", InstantSerializer) { it.scheduledAt },
 	Field("reason", String.serializer(), nullable = true) { it.reason },
@@ -162,7 +162,7 @@ object ScheduledStateSerializer : StateSerializer<ScheduledState>(
 	}
 }
 
-object SucceededStateSerializer : StateSerializer<SucceededState>(
+object SucceededStateSerializer : JobStateSerializer<SucceededState>(
 	SucceededState::class,
 	Field("latencyDuration", DurationSerializer) { it.latencyDuration },
 	Field("processDuration", DurationSerializer) { it.processDuration},
