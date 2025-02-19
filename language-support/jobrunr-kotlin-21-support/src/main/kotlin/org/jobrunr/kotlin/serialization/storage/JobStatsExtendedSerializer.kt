@@ -1,49 +1,36 @@
 package org.jobrunr.kotlin.serialization.storage
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
-import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
+import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import org.jobrunr.storage.JobStatsExtended
 
-object JobStatsExtendedSerializer : KSerializer<JobStatsExtended> {
-	override val descriptor = buildClassSerialDescriptor(JobStatsExtended::class.qualifiedName!!) {
-		JobStatsSerializer.buildClassSerialDescriptorElements(this)
-		element("amountSucceeded", Long.serializer().descriptor)
-		element("amountFailed", Long.serializer().descriptor)
-		element("estimation", EstimationSerializer.descriptor)
-	}
+@Suppress("UNCHECKED_CAST")
+val JOB_STATS_EXTENDED_SERIALIZER_FIELDS = JOB_STATS_SERIALIZER_FIELDS
+	as List<FieldBasedSerializer.Field<JobStatsExtended, out Any>>
 
+@Suppress("UNCHECKED_CAST")
+object JobStatsExtendedSerializer : FieldBasedSerializer<JobStatsExtended>(
+	JobStatsExtended::class,
+	JOB_STATS_EXTENDED_SERIALIZER_FIELDS + listOf(
+		Field("amountSucceeded", Long.serializer()) { it.amountSucceeded },
+		Field("amountFailed", Long.serializer()) { it.amountFailed },
+		Field("estimation", EstimationSerializer) { it.estimation },
+	)
+) {
 	override fun serialize(encoder: Encoder, value: JobStatsExtended) = encoder.encodeStructure(descriptor) {
 		with (JobStatsSerializer) {
 			continueEncode(value)
 		}
-		encodeLongElement(descriptor, descriptor.getElementIndex("amountSucceeded"), value.amountSucceeded)
-		encodeLongElement(descriptor, descriptor.getElementIndex("amountFailed"), value.amountFailed)
-		encodeSerializableElement(descriptor, descriptor.getElementIndex("estimation"), EstimationSerializer, value.estimation)
+		continueEncode(value)
 	}
-
-	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 	
-	@OptIn(ExperimentalSerializationApi::class)
-	object EstimationSerializer : KSerializer<JobStatsExtended.Estimation> {
-		override val descriptor = buildClassSerialDescriptor(JobStatsExtended.Estimation::class.qualifiedName!!) {
-			element("processingDone", Boolean.serializer().descriptor)
-			element("estimatedProcessingTimeAvailable", Boolean.serializer().descriptor)
-			element("estimatedProcessingFinishedAt", InstantSerializer.descriptor)
-		}
-
-		override fun serialize(encoder: Encoder, value: JobStatsExtended.Estimation) = encoder.encodeStructure(descriptor) {
-			encodeBooleanElement(descriptor, 0, value.isProcessingDone)
-			encodeBooleanElement(descriptor, 1, value.isEstimatedProcessingFinishedInstantAvailable)
-			encodeNullableSerializableElement(descriptor, 2, InstantSerializer, value.estimatedProcessingFinishedAt)
-		}
-
-		override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
-	}
+	object EstimationSerializer : FieldBasedSerializer<JobStatsExtended.Estimation>(
+		JobStatsExtended.Estimation::class,
+		Field("processingDone", Boolean.serializer()) { it.isProcessingDone },
+		Field("estimatedProcessingTimeAvailable", Boolean.serializer()) { it.isEstimatedProcessingFinishedInstantAvailable },
+		Field("estimatedProcessingFinishedAt", InstantSerializer, nullable = true) { it.estimatedProcessingFinishedAt },
+	)
 }
