@@ -8,6 +8,7 @@ import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel
 import org.jobrunr.kotlin.serialization.jobs.RecurringJobSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
 
 object RecurringJobUIModelSerializer : KSerializer<RecurringJobUIModel> {
 	override val descriptor = buildClassSerialDescriptor(RecurringJobUIModel::class.qualifiedName!!) {
@@ -22,5 +23,5 @@ object RecurringJobUIModelSerializer : KSerializer<RecurringJobUIModel> {
 		encodeSerializableElement(descriptor, descriptor.getElementIndex("nextRun"), InstantSerializer, value.nextRun)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 }

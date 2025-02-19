@@ -7,6 +7,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.dashboard.ui.model.VersionUIModel
+import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
 
 object VersionUIModelSerializer : KSerializer<VersionUIModel> {
 	override val descriptor = buildClassSerialDescriptor(VersionUIModel::class.qualifiedName!!) {
@@ -21,5 +22,5 @@ object VersionUIModelSerializer : KSerializer<VersionUIModel> {
 		encodeStringElement(descriptor, 2, value.clusterId)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 }

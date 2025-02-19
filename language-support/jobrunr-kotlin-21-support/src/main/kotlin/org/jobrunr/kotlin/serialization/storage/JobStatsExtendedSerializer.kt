@@ -8,6 +8,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
 import org.jobrunr.storage.JobStatsExtended
 
 object JobStatsExtendedSerializer : KSerializer<JobStatsExtended> {
@@ -27,7 +28,7 @@ object JobStatsExtendedSerializer : KSerializer<JobStatsExtended> {
 		encodeSerializableElement(descriptor, descriptor.getElementIndex("estimation"), EstimationSerializer, value.estimation)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 	
 	@OptIn(ExperimentalSerializationApi::class)
 	object EstimationSerializer : KSerializer<JobStatsExtended.Estimation> {
@@ -43,6 +44,6 @@ object JobStatsExtendedSerializer : KSerializer<JobStatsExtended> {
 			encodeNullableSerializableElement(descriptor, 2, InstantSerializer, value.estimatedProcessingFinishedAt)
 		}
 
-		override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+		override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 	}
 }

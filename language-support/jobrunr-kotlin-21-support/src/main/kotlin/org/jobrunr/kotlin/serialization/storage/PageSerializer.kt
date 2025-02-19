@@ -9,6 +9,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
+import org.jobrunr.kotlin.serialization.utils.DeserializationUnsupportedException
 import org.jobrunr.storage.Page
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -41,5 +42,5 @@ class PageSerializer<T : Any>() : KSerializer<Page<T>> {
 		encodeSerializableElement(descriptor, 9, ListSerializer(elementSerializer), value.items as List<T>)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 }

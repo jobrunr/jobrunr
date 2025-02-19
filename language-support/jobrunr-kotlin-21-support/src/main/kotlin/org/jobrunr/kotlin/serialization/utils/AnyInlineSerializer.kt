@@ -20,5 +20,5 @@ class AnyInlineSerializer<T : Any> : KSerializer<T> {
 		)
 	}
 
-	override fun deserialize(decoder: Decoder) = TODO("Not yet implemented")
+	override fun deserialize(decoder: Decoder) = throw DeserializationUnsupportedException()
 }
