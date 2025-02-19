@@ -67,7 +67,7 @@ dependencies {
     testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.testcontainers:mssqlserver'
     testImplementation 'org.testcontainers:mysql'
-    testImplementation 'org.testcontainers:oracle-xe'
+    testImplementation 'org.testcontainers:oracle-free'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:db2'
     testImplementation 'org.testcontainers:elasticsearch'
