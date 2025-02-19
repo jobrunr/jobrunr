@@ -54,7 +54,7 @@ dependencies {
         api 'org.testcontainers:mariadb:1.20.4'
         api 'org.testcontainers:mssqlserver:1.20.4'
         api 'org.testcontainers:mysql:1.20.4'
-        api 'org.testcontainers:oracle-xe:1.20.4'
+        api 'org.testcontainers:oracle-free:1.20.4'
         api 'org.testcontainers:postgresql:1.20.4'
         api 'org.testcontainers:db2:1.20.4'
         api 'org.testcontainers:elasticsearch:1.20.4'

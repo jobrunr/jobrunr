@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.extension.AfterAllSubclasses;
 import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
-import org.testcontainers.containers.OracleContainer;
+import org.testcontainers.oracle.OracleContainer;
 
 import javax.sql.DataSource;
 import java.time.Duration;
@@ -17,7 +17,7 @@ import static java.time.Instant.now;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractOracleStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static OracleContainer sqlContainer = new OracleContainer("gvenzl/oracle-xe")
+    protected static OracleContainer sqlContainer = new OracleContainer("gvenzl/oracle-free:latest-faststart")
             .withStartupTimeoutSeconds(900)
             .withConnectTimeoutSeconds(500)
             .withEnv("DB_SID", "ORCL")
