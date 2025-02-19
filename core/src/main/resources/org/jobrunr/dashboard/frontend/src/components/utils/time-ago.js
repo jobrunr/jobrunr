@@ -1,38 +1,50 @@
-import { useState } from 'react';
+import {useSyncExternalStore} from 'react';
 import TimeAgo from "react-timeago/lib";
-import { useNavigate } from "react-router-dom";
 
-const SwitchableTimeAgo = (props) => {
+const SwitchableTimeAgo = ({date}) => {
 
     const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
 
-    const [style, setStyle] = useState(localStorage.getItem('switchableTimeAgoStyle'));
-    const navigate = useNavigate();
+    const style = useDateStyles();
 
     const setNewStyle = (e, style) => {
         e.stopPropagation();
-        localStorage.setItem('switchableTimeAgoStyle', style);
-        setStyle(style);
-        navigate(0);
+        setDateStyle(style);
     }
 
-    let result;
+    let result = <TimeAgo onClick={e => setNewStyle(e, possibleStyles.readableStyle)} date={date} title={date.toString()}/>;
     if (style === possibleStyles.readableStyle) {
-        let dateAsString = props.date.toString();
+        let dateAsString = date.toString();
         result = <span onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>{dateAsString.substring(0, dateAsString.indexOf(' ('))}</span>
-    } else if (style === possibleStyles.iso8601Style) {
-        result = <span onClick={e => setNewStyle(e, possibleStyles.defaultStyle)}>{props.date.toISOString()}</span>
-    } else if (style === possibleStyles.defaultStyle) {
-        result = <TimeAgo onClick={e => setNewStyle(e, possibleStyles.readableStyle)} date={props.date} title={props.date.toString()}/>;
-    } else {
-        result = <TimeAgo onClick={e => setNewStyle(e, possibleStyles.readableStyle)} date={props.date} title={props.date.toString()}/>;
+    }
+    if (style === possibleStyles.iso8601Style) {
+        result = <span onClick={e => setNewStyle(e, possibleStyles.defaultStyle)}>{date.toISOString()}</span>
     }
 
-    return (
-        <>
-            {result}
-        </>
-    );
+    return <span style={{cursor: "pointer"}}>{result}</span>;
 }
 
 export default SwitchableTimeAgo;
+
+
+let dateStyle = localStorage.getItem('switchableTimeAgoStyle');
+let dateStyleChangeListeners = [];
+
+const getSnapshot = () => dateStyle;
+
+const subscribe = (listener) => {
+    dateStyleChangeListeners = [...dateStyleChangeListeners, listener];
+    return () => {
+        dateStyleChangeListeners = dateStyleChangeListeners.filter(l => l !== listener);
+    };
+}
+
+const setDateStyle = (style) => {
+    localStorage.setItem('switchableTimeAgoStyle', style);
+    dateStyle = style;
+    dateStyleChangeListeners.forEach(listener => listener());
+}
+
+const useDateStyles = () => {
+    return useSyncExternalStore(subscribe, getSnapshot);
+}
