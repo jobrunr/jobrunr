@@ -1,4 +1,4 @@
-package org.jobrunr.kotlin.serialization.utils
+package org.jobrunr.kotlin.serialization.misc
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

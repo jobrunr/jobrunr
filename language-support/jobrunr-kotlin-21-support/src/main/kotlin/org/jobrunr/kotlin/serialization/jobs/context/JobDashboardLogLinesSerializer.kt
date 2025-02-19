@@ -11,8 +11,8 @@ import kotlinx.serialization.descriptors.listSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.context.JobDashboardLogger
 import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
-import org.jobrunr.kotlin.serialization.utils.InstantSerializer
-import org.jobrunr.kotlin.serialization.utils.QueueSerializer
+import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.QueueSerializer
 import java.time.Instant
 import java.util.*
 

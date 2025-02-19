@@ -9,9 +9,9 @@ import kotlinx.serialization.descriptors.ClassSerialDescriptorBuilder
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.states.*
-import org.jobrunr.kotlin.serialization.utils.DurationSerializer
+import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.utils.Field
-import org.jobrunr.kotlin.serialization.utils.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.InstantSerializer
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
