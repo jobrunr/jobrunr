@@ -10,12 +10,13 @@ import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.listSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.context.JobDashboardLogger
-import org.jobrunr.kotlin.serialization.utils.ContextualFallbackSerializer
+import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
+import org.jobrunr.kotlin.serialization.utils.InstantSerializer
 import org.jobrunr.kotlin.serialization.utils.QueueSerializer
 import java.time.Instant
 import java.util.*
 
-object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashboardLogLines>, ContextualFallbackSerializer.PolymorphicContinuationSerializer {
+object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashboardLogLines>, ClassDiscriminatedContextualSerializer.PolymorphicContinuationDeserializer {
 	@OptIn(ExperimentalSerializationApi::class)
 	override val descriptor = buildClassSerialDescriptor(JobDashboardLogger.JobDashboardLogLines::class.qualifiedName!!) {
 		element("@class", String.serializer().descriptor)
@@ -43,7 +44,7 @@ object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashbo
 			}
 		}
 
-		return JobDashboardLogger.JobDashboardLogLines().apply { 
+		return JobDashboardLogger.JobDashboardLogLines().apply {
 			this.logLines.addAll(logLines)
 		}
 	}
@@ -52,32 +53,32 @@ object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashbo
 object JobDashboardLogLineSerializer : KSerializer<JobDashboardLogger.JobDashboardLogLine> {
 	override val descriptor = buildClassSerialDescriptor(JobDashboardLogger.JobDashboardLogLine::class.qualifiedName!!) {
 		element("level", LevelSerializer.descriptor)
-		element("logInstant", String.serializer().descriptor)
+		element("logInstant", InstantSerializer.descriptor)
 		element("logMessage", String.serializer().descriptor)
 	}
 
 	override fun serialize(encoder: Encoder, value: JobDashboardLogger.JobDashboardLogLine) = encoder.encodeStructure(descriptor) {
 		encodeSerializableElement(descriptor, 0, LevelSerializer, value.level)
-		encodeStringElement(descriptor, 1, value.logInstant.toString())
+		encodeSerializableElement(descriptor, 1, InstantSerializer, value.logInstant)
 		encodeStringElement(descriptor, 2, value.logMessage)
 	}
 
 	override fun deserialize(decoder: Decoder): JobDashboardLogger.JobDashboardLogLine = decoder.decodeStructure(descriptor) {
 		lateinit var level: JobDashboardLogger.Level
-		lateinit var logInstant: String
+		lateinit var logInstant: Instant
 		lateinit var logMessage: String
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
-				0 -> level = decodeSerializableElement(descriptor, 0, LevelSerializer)
-				1 -> logInstant = decodeStringElement(descriptor, 1)
-				2 -> logMessage = decodeStringElement(descriptor, 2)
 				CompositeDecoder.DECODE_DONE -> break
+				0 -> level = decodeSerializableElement(descriptor, 0, LevelSerializer)
+				1 -> logInstant = decodeSerializableElement(descriptor, 1, InstantSerializer)
+				2 -> logMessage = decodeStringElement(descriptor, 2)
 				else -> error("Unexpected index: $index")
 			}
 		}
 
-		JobDashboardLogger.JobDashboardLogLine(level, Instant.parse(logInstant), logMessage)
+		JobDashboardLogger.JobDashboardLogLine(level, logInstant, logMessage)
 	}
 }
 
