@@ -3,15 +3,14 @@
 package org.jobrunr.kotlin.serialization.jobs.states
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.ClassSerialDescriptorBuilder
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.decodeStructure
 import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
-import org.jobrunr.kotlin.serialization.utils.Field
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -20,41 +19,29 @@ import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-fun ClassSerialDescriptorBuilder.abstractJobStateElements() {
-	element("state", String.serializer().descriptor)
-	element("createdAt", InstantSerializer.descriptor)
-}
-
 abstract class StateSerializer<State : AbstractJobState>(
 	kClass: KClass<State>,
-	private vararg val fields: Field,
-) : KSerializer<State> {
-	override val descriptor = buildClassSerialDescriptor(kClass.qualifiedName!!) {
-		abstractJobStateElements()
-		fields.forEach {
-			element(it.name, it.descriptor)
-		}
-	}
-
-	override fun serialize(encoder: Encoder, value: State) = encoder.encodeStructure(descriptor) {
-		encodeStringElement(descriptor, 0, value.name.name)
-		encodeSerializableElement(descriptor, 1, InstantSerializer, value.createdAt)
-		fields.forEachIndexed { index, field ->
-			serializeAdditional(value, field.name, index + 2)
-		}
-	}
-
-	abstract fun CompositeEncoder.serializeAdditional(state: State, name: String, index: Int)
-
-	protected fun CompositeDecoder.handleDeserialization(callback: (field: Field, index: Int) -> Unit): Instant {
+	private vararg val fields: Field<State, out Any>,
+) : FieldBasedSerializer<State>(
+	kClass,
+	listOf(
+		Field("name", String.serializer()) { it.name.name },
+		Field("createdAt", InstantSerializer) { it.createdAt },
+		*fields
+	)
+) {
+	protected fun CompositeDecoder.handleDeserialization(callback: (field: Field<State, out Any>, index: Int) -> Unit): Instant {
 		lateinit var createdAt: Instant
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
 				CompositeDecoder.DECODE_DONE -> break
-				0 -> decodeStringElement(descriptor, index)
-				1 -> createdAt = decodeSerializableElement(descriptor, 1, InstantSerializer)
+				descriptor.getElementIndex("name") -> decodeStringElement(descriptor, index)
+				descriptor.getElementIndex("createdAt") -> createdAt = decodeSerializableElement(descriptor, 1, InstantSerializer)
 				else -> {
-					val field = fields[index - 2]
+					val elementName = descriptor.getElementName(index)
+					val field = fields.singleOrNull { 
+						it.name == elementName
+					} ?: error("Unknown field: $elementName")
 					callback(field, index)
 				}
 			}
@@ -63,12 +50,10 @@ abstract class StateSerializer<State : AbstractJobState>(
 	}
 }
 
-object DeletedStateSerializer : StateSerializer<DeletedState>(DeletedState::class, Field("reason", String.serializer().descriptor)) {
-	override fun CompositeEncoder.serializeAdditional(state: DeletedState, name: String, index: Int) = when (name) {
-		"reason" -> encodeStringElement(descriptor, index, state.reason)
-		else -> error("Unknown field: $name")
-	}
-	
+object DeletedStateSerializer : StateSerializer<DeletedState>(
+	DeletedState::class,
+	Field("reason", String.serializer()) { it.reason },
+) {
 	override fun deserialize(decoder: Decoder): DeletedState = decoder.decodeStructure(descriptor) {
 		lateinit var reason: String
 		val createdAt = handleDeserialization { field, index ->
@@ -85,8 +70,6 @@ object DeletedStateSerializer : StateSerializer<DeletedState>(DeletedState::clas
 }
 
 object EnqueuedStateSerializer : StateSerializer<EnqueuedState>(EnqueuedState::class) {
-	override fun CompositeEncoder.serializeAdditional(state: EnqueuedState, name: String, index: Int) = Unit
-	
 	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
 		EnqueuedState().apply { 
 			createdAt = handleDeserialization { _, _ -> }
@@ -96,25 +79,14 @@ object EnqueuedStateSerializer : StateSerializer<EnqueuedState>(EnqueuedState::c
 
 object FailedStateSerializer : StateSerializer<FailedState>(
 	FailedState::class,
-	Field("message", String.serializer().descriptor),
-	Field("exceptionType", String.serializer().descriptor),
-	Field("exceptionMessage", String.serializer().descriptor),
-	Field("exceptionCauseType", String.serializer().descriptor),
-	Field("exceptionCauseMessage", String.serializer().descriptor),
-	Field("stackTrace", String.serializer().descriptor),
-	Field("doNotRetry", Boolean.serializer().descriptor),
+	Field("message", String.serializer()) { it.message },
+	Field("exceptionType", String.serializer()) { it.exceptionType },
+	Field("exceptionMessage", String.serializer()) { it.exceptionMessage },
+	Field("exceptionCauseType", String.serializer(), nullable = true) { it.exceptionCauseType },
+	Field("exceptionCauseMessage", String.serializer(), nullable = true) { it.exceptionCauseMessage },
+	Field("stackTrace", String.serializer()) { it.stackTrace },
+	Field("doNotRetry", Boolean.serializer()) { it.mustNotRetry() },
 ) {
-	override fun CompositeEncoder.serializeAdditional(state: FailedState, name: String, index: Int) = when (name) {
-		"message" -> encodeStringElement(descriptor, index, state.message)
-		"exceptionType" -> encodeStringElement(descriptor, index, state.exceptionType)
-		"exceptionMessage" -> encodeStringElement(descriptor, index, state.exceptionMessage)
-		"exceptionCauseType" -> encodeNullableSerializableElement(descriptor, index, String.serializer(), state.exceptionCauseType)
-		"exceptionCauseMessage" -> encodeNullableSerializableElement(descriptor, index, String.serializer(), state.exceptionCauseMessage)
-		"stackTrace" -> encodeStringElement(descriptor, index, state.stackTrace)
-		"doNotRetry" -> encodeBooleanElement(descriptor, index, state.mustNotRetry())
-		else -> error("Unknown field: $name")
-	}
-	
 	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
 		lateinit var message: String
 		lateinit var exceptionType: String
@@ -144,17 +116,10 @@ object FailedStateSerializer : StateSerializer<FailedState>(
 
 object ProcessingStateSerializer : StateSerializer<ProcessingState>(
 	ProcessingState::class,
-	Field("serverId", Uuid.serializer().descriptor),
-	Field("serverName", String.serializer().descriptor),
-	Field("updatedAt", String.serializer().descriptor),
+	Field("serverId", Uuid.serializer()) { it.serverId.toKotlinUuid() },
+	Field("serverName", String.serializer()) { it.serverName },
+	Field("updatedAt", InstantSerializer) { it.updatedAt },
 ) {
-	override fun CompositeEncoder.serializeAdditional(state: ProcessingState, name: String, index: Int) = when (name) {
-		"serverId" -> encodeSerializableElement(descriptor, index, Uuid.serializer(), state.serverId.toKotlinUuid())
-		"serverName" -> encodeStringElement(descriptor, index, state.serverName)
-		"updatedAt" -> encodeStringElement(descriptor, index, state.updatedAt.toString())
-		else -> error("Unknown field: $name")
-	}
-
 	override fun deserialize(decoder: Decoder): ProcessingState = decoder.decodeStructure(descriptor) {
 		lateinit var serverId: Uuid
 		lateinit var serverName: String
@@ -163,7 +128,7 @@ object ProcessingStateSerializer : StateSerializer<ProcessingState>(
 			when (field.name) {
 				"serverId" -> serverId = decodeSerializableElement(descriptor, index, Uuid.serializer())
 				"serverName" -> serverName = decodeStringElement(descriptor, index)
-				"updatedAt" -> updatedAt = Instant.parse(decodeStringElement(descriptor, index))
+				"updatedAt" -> updatedAt = decodeSerializableElement(descriptor, index, InstantSerializer)
 				else -> error("Unknown field: $field")
 			}
 		}
@@ -177,29 +142,21 @@ object ProcessingStateSerializer : StateSerializer<ProcessingState>(
 
 object ScheduledStateSerializer : StateSerializer<ScheduledState>(
 	ScheduledState::class,
-	Field("scheduledAt", String.serializer().descriptor),
-	Field("reason", String.serializer().descriptor),
+	Field("scheduledAt", InstantSerializer) { it.scheduledAt },
+	Field("reason", String.serializer(), nullable = true) { it.reason },
 ) {
-	override fun CompositeEncoder.serializeAdditional(state: ScheduledState, name: String, index: Int) {
-		when (name) {
-			"scheduledAt" -> encodeStringElement(descriptor, index, state.scheduledAt.toString())
-			"reason" -> encodeNullableSerializableElement(descriptor, index, String.serializer(), state.reason)
-			else -> error("Unknown field: $name")
-		}
-	}
-	
 	override fun deserialize(decoder: Decoder): ScheduledState = decoder.decodeStructure(descriptor) {
-		lateinit var scheduledAt: String
+		lateinit var scheduledAt: Instant
 		var reason: String? = null
 		val createdAt = handleDeserialization { field, index ->
 			when (field.name) {
-				"scheduledAt" -> scheduledAt = decodeStringElement(descriptor, index)
+				"scheduledAt" -> scheduledAt = decodeSerializableElement(descriptor, index, InstantSerializer)
 				"reason" -> reason = decodeNullableSerializableElement(descriptor, index, String.serializer())
 				else -> error("Unknown field: ${field.name}")
 			}
 		}
 
-		ScheduledState(Instant.parse(scheduledAt), reason).apply {
+		ScheduledState(scheduledAt, reason).apply {
 			this.createdAt = createdAt
 		}
 	}
@@ -207,15 +164,9 @@ object ScheduledStateSerializer : StateSerializer<ScheduledState>(
 
 object SucceededStateSerializer : StateSerializer<SucceededState>(
 	SucceededState::class,
-	Field("latencyDuration", DurationSerializer.descriptor),
-	Field("processDuration", DurationSerializer.descriptor),
+	Field("latencyDuration", DurationSerializer) { it.latencyDuration },
+	Field("processDuration", DurationSerializer) { it.processDuration},
 ) {
-	override fun CompositeEncoder.serializeAdditional(state: SucceededState, name: String, index: Int) = when (name) {
-		"latencyDuration" -> encodeSerializableElement(descriptor, index, DurationSerializer, state.latencyDuration)
-		"processDuration" -> encodeSerializableElement(descriptor, index, DurationSerializer, state.processDuration)
-		else -> error("Unknown field: $name")
-	}
-	
 	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
 		lateinit var latencyDuration: Duration
 		lateinit var processDuration: Duration
