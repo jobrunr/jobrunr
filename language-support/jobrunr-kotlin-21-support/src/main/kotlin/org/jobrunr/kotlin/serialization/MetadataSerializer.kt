@@ -8,7 +8,7 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.mapSerialDescriptor
 import kotlinx.serialization.encoding.*
-import org.jobrunr.kotlin.serialization.utils.ContextualFallbackSerializer
+import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 
 object MetadataSerializer : KSerializer<Map<String, Any>> {
 	@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
@@ -23,7 +23,7 @@ object MetadataSerializer : KSerializer<Map<String, Any>> {
 		encodeStringElement(descriptor, index++, value::class.qualifiedName!!)
 		value.forEach { (k, v) ->
 			encodeSerializableElement(descriptor, index++, String.serializer(), k)
-			encodeSerializableElement(descriptor, index++, ContextualFallbackSerializer, v)
+			encodeSerializableElement(descriptor, index++, ClassDiscriminatedContextualSerializer, v)
 		}
 	}
 
@@ -37,7 +37,7 @@ object MetadataSerializer : KSerializer<Map<String, Any>> {
 				index == CompositeDecoder.DECODE_DONE -> break
 				index == 0 || index == 1 -> decodeStringElement(descriptor, 0)
 				index % 2 == 0-> currentKey = decodeStringElement(descriptor, index)
-				index % 2 == 1 -> map[currentKey] = decodeSerializableElement(descriptor, index, ContextualFallbackSerializer)
+				index % 2 == 1 -> map[currentKey] = decodeSerializableElement(descriptor, index, ClassDiscriminatedContextualSerializer)
 			}
 		}
 		

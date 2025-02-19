@@ -6,11 +6,12 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.ClassSerialDescriptorBuilder
-import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.utils.DurationSerializer
+import org.jobrunr.kotlin.serialization.utils.Field
+import org.jobrunr.kotlin.serialization.utils.InstantSerializer
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -21,7 +22,7 @@ import kotlin.uuid.toKotlinUuid
 
 fun ClassSerialDescriptorBuilder.abstractJobStateElements() {
 	element("state", String.serializer().descriptor)
-	element("createdAt", String.serializer().descriptor)
+	element("createdAt", InstantSerializer.descriptor)
 }
 
 abstract class StateSerializer<State : AbstractJobState>(
@@ -37,7 +38,7 @@ abstract class StateSerializer<State : AbstractJobState>(
 
 	override fun serialize(encoder: Encoder, value: State) = encoder.encodeStructure(descriptor) {
 		encodeStringElement(descriptor, 0, value.name.name)
-		encodeStringElement(descriptor, 1, value.createdAt.toString())
+		encodeSerializableElement(descriptor, 1, InstantSerializer, value.createdAt)
 		fields.forEachIndexed { index, field ->
 			serializeAdditional(value, field.name, index + 2)
 		}
@@ -51,7 +52,7 @@ abstract class StateSerializer<State : AbstractJobState>(
 			when (val index = decodeElementIndex(descriptor)) {
 				CompositeDecoder.DECODE_DONE -> break
 				0 -> decodeStringElement(descriptor, index)
-				1 -> createdAt = Instant.parse(decodeStringElement(descriptor, 1))
+				1 -> createdAt = decodeSerializableElement(descriptor, 1, InstantSerializer)
 				else -> {
 					val field = fields[index - 2]
 					callback(field, index)
@@ -60,11 +61,6 @@ abstract class StateSerializer<State : AbstractJobState>(
 		}
 		return createdAt
 	}
-
-	data class Field(
-		val name: String,
-		val descriptor: SerialDescriptor,
-	)
 }
 
 object DeletedStateSerializer : StateSerializer<DeletedState>(DeletedState::class, Field("reason", String.serializer().descriptor)) {

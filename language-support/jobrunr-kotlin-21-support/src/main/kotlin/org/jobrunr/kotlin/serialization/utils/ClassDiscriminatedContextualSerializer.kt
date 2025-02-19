@@ -7,13 +7,14 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 
-object ContextualFallbackSerializer : KSerializer<Any> {
+object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
 	@OptIn(InternalSerializationApi::class)
-	override val descriptor = buildClassSerialDescriptor(ContextualFallbackSerializer::class.qualifiedName!!) {
+	override val descriptor = buildClassSerialDescriptor(ClassDiscriminatedContextualSerializer::class.qualifiedName!!) {
 		element("@class", String.serializer().descriptor)
 		element(
 			"value",
@@ -44,7 +45,7 @@ object ContextualFallbackSerializer : KSerializer<Any> {
 					val serializer = decoder.serializersModule.serializer(Class.forName(type).kotlin)
 						?: anySerializer
 					
-					if (serializer is PolymorphicContinuationSerializer) {
+					if (serializer is PolymorphicContinuationDeserializer) {
 						return@decodeStructure with (serializer) {
 							continueDecode()
 						}
@@ -56,8 +57,12 @@ object ContextualFallbackSerializer : KSerializer<Any> {
 
 		error("Unexpected end of input for type $type")
 	}
+
+	interface PolymorphicContinuationSerializer<T> {
+		fun CompositeEncoder.continueEncode(value: T)
+	}
 	
-	interface PolymorphicContinuationSerializer {
+	interface PolymorphicContinuationDeserializer {
 		fun CompositeDecoder.continueDecode(): Any
 	}
 }

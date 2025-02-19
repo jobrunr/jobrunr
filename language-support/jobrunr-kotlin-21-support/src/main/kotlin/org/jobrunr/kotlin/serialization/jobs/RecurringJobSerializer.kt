@@ -4,14 +4,16 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.ClassSerialDescriptorBuilder
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.JobDetails
 import org.jobrunr.jobs.RecurringJob
+import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 
 @OptIn(ExperimentalSerializationApi::class)
-object RecurringJobSerializer : KSerializer<RecurringJob> {
-	override val descriptor = buildClassSerialDescriptor(RecurringJob::class.qualifiedName!!) {
+object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedContextualSerializer.PolymorphicContinuationSerializer<RecurringJob> {
+	val buildClassSerialDescriptorElements = fun ClassSerialDescriptorBuilder.() {
 		element("id", String.serializer().descriptor)
 		element("version", Int.serializer().descriptor)
 		element("jobName", String.serializer().descriptor)
@@ -22,8 +24,14 @@ object RecurringJobSerializer : KSerializer<RecurringJob> {
 		element("zoneId", String.serializer().descriptor)
 		element("createdAt", String.serializer().descriptor)
 	}
+	
+	override val descriptor = buildClassSerialDescriptor(RecurringJob::class.qualifiedName!!, builderAction = buildClassSerialDescriptorElements)
 
 	override fun serialize(encoder: Encoder, value: RecurringJob) = encoder.encodeStructure(descriptor) {
+		continueEncode(value)
+	}
+
+	override fun CompositeEncoder.continueEncode(value: RecurringJob) {
 		encodeStringElement(descriptor, 0, value.id)
 		encodeIntElement(descriptor, 1, value.version)
 		encodeStringElement(descriptor, 2, value.jobName)
