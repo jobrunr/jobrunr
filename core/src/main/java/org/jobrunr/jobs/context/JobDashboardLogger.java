@@ -3,6 +3,7 @@ package org.jobrunr.jobs.context;
 import org.jobrunr.jobs.Job;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -64,6 +65,10 @@ public class JobDashboardLogger {
         public void add(JobDashboardLogLine line) {
             logLines.add(line);
         }
+        
+        public void addAll(Collection<JobDashboardLogLine> lines) {
+            logLines.addAll(lines);
+        }
 
         public Queue<JobDashboardLogLine> getLogLines() {
             return logLines;
@@ -83,6 +88,12 @@ public class JobDashboardLogger {
         public JobDashboardLogLine(Level level, String logMessage) {
             this.level = level;
             this.logInstant = Instant.now();
+            this.logMessage = logMessage;
+        }
+
+        public JobDashboardLogLine(Level level, Instant logInstant, String logMessage) {
+            this.level = level;
+            this.logInstant = logInstant;
             this.logMessage = logMessage;
         }
 
