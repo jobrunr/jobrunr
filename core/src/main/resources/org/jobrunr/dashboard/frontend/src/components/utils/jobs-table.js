@@ -6,11 +6,11 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import TimeAgo from "react-timeago/lib";
 import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "./job-label";
 import {ItemsNotFound} from "./items-not-found";
 import {styled} from "@mui/material/styles";
+import {SwitchableTimeAgo} from "./time-ago";
 
 const IdColumn = styled(TableCell)`
     width: 20%;
@@ -92,10 +92,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                             }}>{job.jobName}</Link>
                                         </TableCell>
                                         <TableCell>
-                                            <Link to={{pathname: `/dashboard/jobs/${job.id}`, job: job}}>
-                                                <TimeAgo date={new Date(columnFunction(job))}
-                                                         title={new Date(columnFunction(job)).toString()}/>
-                                            </Link>
+                                            <SwitchableTimeAgo date={new Date(columnFunction(job))}/>
                                         </TableCell>
                                     </TableRow>
                                 ))}
