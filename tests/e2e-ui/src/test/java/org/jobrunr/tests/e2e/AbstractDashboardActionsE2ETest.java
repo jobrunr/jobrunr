@@ -1,5 +1,6 @@
 package org.jobrunr.tests.e2e;
 
+import com.microsoft.playwright.options.LoadState;
 import org.jobrunr.tests.server.AbstractSimpleBackgroundJobServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,8 +20,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
 
     @BeforeEach
     void setUpNavigateToDashboard() {
-        page
-                .navigate("http://localhost:8000/dashboard/jobs");
+        page.navigate("http://localhost:8000/dashboard/jobs");
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
     }
 
     @Test
@@ -42,6 +44,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     void canNavigateToScheduledJobs() {
         assertThat(scheduledMenuBtn()).containsText("1");
         scheduledMenuBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+
         assertThat(title("Scheduled jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("the job");
@@ -66,6 +71,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     void canNavigateToProcessingJobs() {
         assertThat(processingMenuBtn()).containsText("0");
         processingMenuBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+
         assertThat(title("Jobs being processed")).isVisible();
 
         assertThat(noJobsFoundMessage()).isVisible();
@@ -76,6 +84,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     void canNavigateToSucceededJobs() {
         assertThat(succeededMenuBtn()).containsText("2");
         succeededMenuBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+
         assertThat(title("Succeeded jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("a succeeded job");
@@ -90,6 +101,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     void canNavigateToFailedJobs() {
         assertThat(failedMenuBtn()).containsText("1");
         failedMenuBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+
         assertThat(title("Failed jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("failed job");
@@ -103,6 +117,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     @Test
     void canNavigateToTheDetailsOfAJob() {
         failedMenuBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+
         assertThat(title("Failed jobs")).isVisible();
 
         jobTableRows().first().locator("td a").first().click();
@@ -121,12 +138,18 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     @Test
     void canNavigateToRecurringJobsPage() {
         recurringJobsTabBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+
         assertThat(recurringJobsTabBtn().locator("span.MuiChip-label")).containsText("2");
     }
 
     @Test
     void canNavigateToServersPage() {
         serversTabBtn().click();
+        page.waitForLoadState();
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+        
         assertThat(serversTabBtn().locator("span.MuiChip-label")).containsText("1");
     }
 
