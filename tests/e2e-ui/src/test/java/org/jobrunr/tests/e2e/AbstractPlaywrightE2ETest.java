@@ -11,7 +11,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 
 import java.nio.file.Path;
 
@@ -37,7 +36,7 @@ public class AbstractPlaywrightE2ETest {
 
     @BeforeEach
     final void setUpPlaywrightContextAndPage() {
-        context = browser.newContext();
+        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
         page = context.newPage();
     }
 
@@ -54,27 +53,13 @@ public class AbstractPlaywrightE2ETest {
         return page.locator("[role=" + role.name().toLowerCase() + "]", new Page.LocatorOptions().setHas(page.getByText(text)));
     }
 
-    protected void uncheckTheFirstClusterFromTheClustersMenu() {
-        // The first checkbox is the toggle all one. They're all checked by default.
-        clustersMenu().getByRole(AriaRole.CHECKBOX).all().get(1).click();
-    }
-
     protected Locator jobMenuOption(String title) {
         return page.getByTitle(title, new Page.GetByTitleOptions().setExact(true));
-    }
-
-    protected Locator clustersMenu() {
-        return page.locator("[aria-labelledby=jobrunr-clusters-menu]");
     }
 
     protected Locator jobTabButton() {
         return page.locator("#jobs-btn");
     }
-
-    protected Locator clustersMenuButton() {
-        return page.getByLabel("JobRunr clusters");
-    }
-
 
     protected Locator title(String name) {
         return page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(name));

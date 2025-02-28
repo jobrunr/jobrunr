@@ -1,14 +1,11 @@
 package org.jobrunr.tests.e2e;
 
-import org.assertj.core.api.Assertions;
 import org.jobrunr.tests.server.AbstractSimpleBackgroundJobServer;
-import org.jobrunr.tests.server.SimpleBackgroundJobServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.jobrunr.tests.e2e.PlaywrightAssertions.assertThat;
 
 public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywrightE2ETest {
 
@@ -22,7 +19,8 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
 
     @BeforeEach
     void setUpNavigateToDashboard() {
-        page.navigate("http://localhost:8000/dashboard/jobs");
+        page
+                .navigate("http://localhost:8000/dashboard/jobs");
     }
 
     @Test
@@ -30,7 +28,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobTabButton()).containsText("33");
         assertThat(title("Enqueued jobs")).isVisible();
 
-        Assertions.assertThat(jobTableRows().count()).isEqualTo(20);
+        assertThat(jobTableRows().count()).isEqualTo(20);
         assertThat(jobTableRows().first()).containsText("an enqueued job");
 
         assertThat(jobsTablePagination()).containsText("1–20 of 33");
@@ -47,7 +45,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Scheduled jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("the job");
-        Assertions.assertThat(jobTableRows().count()).isEqualTo(1);
+        assertThat(jobTableRows().count()).isEqualTo(1);
 
         assertThat(jobsTablePagination()).containsText("1–1 of 1");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -61,7 +59,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Enqueued jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("an enqueued job");
-        Assertions.assertThat(jobTableRows().count()).isEqualTo(20);
+        assertThat(jobTableRows().count()).isEqualTo(20);
     }
 
     @Test
@@ -81,7 +79,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Succeeded jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("a succeeded job");
-        Assertions.assertThat(jobTableRows().count()).isEqualTo(2);
+        assertThat(jobTableRows().count()).isEqualTo(2);
 
         assertThat(jobsTablePagination()).containsText("1–2 of 2");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -95,7 +93,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Failed jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("failed job");
-        Assertions.assertThat(jobTableRows().count()).isEqualTo(1);
+        assertThat(jobTableRows().count()).isEqualTo(1);
 
         assertThat(jobsTablePagination()).containsText("1–1 of 1");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -114,7 +112,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobNameTitle()).containsText("failed job");
         assertThat(jobHistoryPanel()).isVisible();
 
-        Assertions.assertThat(jobHistoryPanelItems().count()).isEqualTo(44);
+        assertThat(jobHistoryPanelItems().count()).isEqualTo(44);
         assertThat(jobHistoryPanelItems().first()).containsText("Job scheduled");
         jobHistorySortDescBtn().click();
         assertThat(jobHistoryPanelItems().first()).containsText("Job processing failed");
@@ -132,7 +130,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(serversTabBtn().locator("span.MuiChip-label")).containsText("1");
     }
 
-    public static void blockToDebugOnDashboard()  {
+    public static void blockToDebugOnDashboard() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
         try {
             Thread.currentThread().join();
@@ -140,7 +138,6 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
             throw new RuntimeException(e);
         }
     }
-
 
 
 }
