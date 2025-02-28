@@ -135,7 +135,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         recurringJobsTabBtn().click();
         page.waitForLoadState();
 
-        assertThat(recurringJobsTabBtn().locator("span.MuiChip-label")).containsText("2");
+        assertThat(recurringJobsTabBtn()).containsText("2");
     }
 
     @Test
@@ -143,17 +143,6 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         serversTabBtn().click();
         page.waitForLoadState();
 
-        assertThat(serversTabBtn().locator("span.MuiChip-label")).containsText("1");
+        assertThat(serversTabBtn()).containsText("1");
     }
-
-    public static void blockToDebugOnDashboard() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
-        try {
-            Thread.currentThread().join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
 }
