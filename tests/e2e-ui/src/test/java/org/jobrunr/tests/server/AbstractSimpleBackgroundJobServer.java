@@ -22,7 +22,7 @@ public abstract class AbstractSimpleBackgroundJobServer {
         return this;
     }
 
-    public AbstractSimpleBackgroundJobServer WithJacksonMapper() {
+    public AbstractSimpleBackgroundJobServer withJacksonMapper() {
         this.jsonMapper = new JacksonJsonMapper();
         return this;
     }

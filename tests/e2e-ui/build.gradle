@@ -15,15 +15,21 @@ compileTestJava {
 dependencies {
     implementation project(':core')
     implementation testFixtures(project(":core"))
-    implementation project(':tests:e2e-base')
     implementation 'ch.qos.logback:logback-classic'
-    implementation 'com.google.code.gson:gson'
 
     testImplementation project(':core')
+    testImplementation 'com.google.code.gson:gson'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.eclipse:yasson'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
     testImplementation 'com.microsoft.playwright:playwright'
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:postgresql'
-    testImplementation testFixtures(project(":tests:e2e-base"))
 }
 
 sonar {
