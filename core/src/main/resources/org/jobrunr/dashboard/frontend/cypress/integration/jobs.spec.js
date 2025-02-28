@@ -31,29 +31,7 @@ context('Actions', () => {
     const jobHistorySortAscBtn = () => cy.get('#jobhistory-sort-asc-btn');
     const jobHistorySortDescBtn = () => cy.get('#jobhistory-sort-desc-btn');
 
-    it('It opens the jobs dashboard page', config, () => {
-        jobsTabBtn().get('span.MuiChip-label').should('contain', '33');
-        title().should('contain', 'Enqueued jobs');
 
-        jobTableRows().should('have.length', 20);
-        jobTableRows().eq(0).should('contain', 'an enqueued job');
-        jobTablePagination().should('contain', '1–20 of 33');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.enabled');
-    });
-
-
-    it('It can navigate to the scheduled jobs', config, () => {
-        scheduledMenuBtn().should('contain', '1');
-        scheduledMenuBtn().click();
-        title().should('contain', 'Scheduled jobs');
-
-        jobTableRows().should('have.length', 1);
-        jobTableRows().eq(0).should('contain', 'the job');
-        jobTablePagination().should('contain', '1–1 of 1');
-        jobTablePagination().previousButton().should('have.attr', 'title', 'Go to previous page').and('be.disabled');
-        jobTablePagination().nextButton().should('have.attr', 'title', 'Go to next page').and('be.disabled');
-    });
 
     it('It can navigate to the enqueued jobs', config, () => {
         enqueuedMenuBtn().should('contain', '33');

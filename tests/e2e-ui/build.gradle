@@ -1,11 +1,15 @@
 plugins {
-    id 'com.google.cloud.tools.jib' version '3.4.4'
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-    options.release = 11
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    options.release = 21
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
@@ -16,23 +20,10 @@ dependencies {
     implementation 'com.google.code.gson:gson'
 
     testImplementation project(':core')
+    testImplementation 'com.microsoft.playwright:playwright'
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:postgresql'
     testImplementation testFixtures(project(":tests:e2e-base"))
-}
-
-test.dependsOn(jibDockerBuild)
-test.outputs.cacheIf { false }
-
-jib {
-    from {
-        image = "gcr.io/distroless/java:11"
-    }
-    to {
-        image = "jobrunr-${project.name}:1.0"
-    }
-    container {
-        jvmFlags = ["-Duser.timezone=Europe/Brussels"]
-        ports = ["8000"]
-    }
 }
 
 sonar {
