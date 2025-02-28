@@ -1,5 +1,4 @@
 plugins {
-    id 'com.google.cloud.tools.jib' version '3.4.4'
 }
 
 compileJava {
@@ -8,31 +7,29 @@ compileJava {
     options.release = 11
 }
 
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 dependencies {
     implementation project(':core')
     implementation testFixtures(project(":core"))
-    implementation project(':tests:e2e-base')
     implementation 'ch.qos.logback:logback-classic'
-    implementation 'com.google.code.gson:gson'
 
     testImplementation project(':core')
-    testImplementation testFixtures(project(":tests:e2e-base"))
-}
+    testImplementation 'com.google.code.gson:gson'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.eclipse:yasson'
 
-test.dependsOn(jibDockerBuild)
-test.outputs.cacheIf { false }
-
-jib {
-    from {
-        image = "gcr.io/distroless/java:11"
-    }
-    to {
-        image = "jobrunr-${project.name}:1.0"
-    }
-    container {
-        jvmFlags = ["-Duser.timezone=Europe/Brussels"]
-        ports = ["8000"]
-    }
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'com.microsoft.playwright:playwright'
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 sonar {

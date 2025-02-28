@@ -12,11 +12,9 @@ sourceSets {
         resources {
             exclude '**/node_modules/'
             exclude '**/dependency-check-bin/'
-            exclude '**/cypress/'
             exclude '**/public/'
             exclude '**/src/'
             exclude '**/jsconfig.json'
-            exclude '**/cypress.config.js'
             exclude '**/package.json'
             exclude '**/package-lock.json'
         }
