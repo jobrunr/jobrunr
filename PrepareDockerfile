@@ -10,8 +10,8 @@ RUN npm -v
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npm /usr/bin/npm
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npx /usr/bin/npx
-RUN npx playwright install
 RUN npx playwright install-deps
+RUN npx playwright install
 
 ENV GRADLE_VERSION 8.5
 COPY gradle /home/gradle/gradle
