@@ -43,8 +43,6 @@ steps:
         path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
       - name: maven-local
         path: /root/.m2
-      - name: playwright-cache
-        path: /root/.cache/ms-playwright
       - name: reports
         path: /tmp/reports
 
@@ -76,9 +74,6 @@ volumes:
   - name: frontend-build-cache
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/frontend-build
-  - name: playwright-cache
-    host:
-      path: /volume2/docker/jobrunr-services/drone-work-dir/playwright/cache
   - name: reports
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
@@ -128,8 +123,6 @@ steps:
         path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
       - name: maven-local
         path: /root/.m2
-      - name: playwright-cache
-        path: /root/.cache/ms-playwright
       - name: reports
         path: /tmp/reports
 
@@ -161,9 +154,6 @@ volumes:
   - name: frontend-build-cache
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/frontend-build
-  - name: playwright-cache
-    host:
-      path: /volume2/docker/jobrunr-services/drone-work-dir/playwright/cache
   - name: reports
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
@@ -209,8 +199,6 @@ steps:
         path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
       - name: maven-local
         path: /root/.m2
-      - name: playwright-cache
-        path: /root/.cache/ms-playwright
       - name: reports
         path: /tmp/reports
 
@@ -266,9 +254,6 @@ volumes:
   - name: frontend-build-cache
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/cache/frontend-build
-  - name: playwright-cache
-    host:
-      path: /volume2/docker/jobrunr-services/drone-work-dir/playwright/cache
   - name: reports
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
