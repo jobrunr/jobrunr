@@ -1,11 +1,14 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
+import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 
@@ -66,5 +69,12 @@ class JobDetailsTest {
                 .hasMethodName("run")
                 .hasArgs(jobRequest)
                 .isCacheable();
+    }
+
+    @Test
+    void testJobDetailsFromInvalidJobRequest() {
+        final TestInvalidJobRequest jobRequest = new TestInvalidJobRequest();
+        assertThatThrownBy(() -> new JobDetails(jobRequest))
+                .isInstanceOf(JobMethodNotFoundException.class);
     }
 }
