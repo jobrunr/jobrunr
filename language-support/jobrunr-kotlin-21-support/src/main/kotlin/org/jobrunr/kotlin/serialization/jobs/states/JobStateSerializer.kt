@@ -62,18 +62,15 @@ object DeletedStateSerializer : JobStateSerializer<DeletedState>(
 				else -> error("Unknown field: ${field.name}")
 			}
 		}
-		
-		DeletedState(reason).apply {
-			this.createdAt = createdAt
-		}
+
+		DeletedState(reason, createdAt)
 	}
 }
 
 object EnqueuedStateSerializer : JobStateSerializer<EnqueuedState>(EnqueuedState::class) {
 	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
-		EnqueuedState().apply { 
-			createdAt = handleDeserialization { _, _ -> }
-		}
+		val createdAt = handleDeserialization { _, _ -> }
+		EnqueuedState(createdAt)
 	}
 }
 
@@ -108,9 +105,7 @@ object FailedStateSerializer : JobStateSerializer<FailedState>(
 			}
 		}
 
-		FailedState(message, exceptionType, exceptionMessage, exceptionCauseType, exceptionCauseMessage, stackTrace, doNotRetry).apply {
-			this.createdAt = createdAt
-		}
+		FailedState(message, exceptionType, exceptionMessage, exceptionCauseType, exceptionCauseMessage, stackTrace, doNotRetry, createdAt)
 	}
 }
 
@@ -133,8 +128,7 @@ object ProcessingStateSerializer : JobStateSerializer<ProcessingState>(
 			}
 		}
 
-		ProcessingState(serverId.toJavaUuid(), serverName).apply {
-			this.createdAt = createdAt
+		ProcessingState(serverId.toJavaUuid(), serverName, createdAt).apply {
 			this.updatedAt = updatedAt
 		}
 	}
@@ -156,9 +150,7 @@ object ScheduledStateSerializer : JobStateSerializer<ScheduledState>(
 			}
 		}
 
-		ScheduledState(scheduledAt, reason).apply {
-			this.createdAt = createdAt
-		}
+		ScheduledState(scheduledAt, reason, createdAt)
 	}
 }
 
@@ -177,9 +169,7 @@ object SucceededStateSerializer : JobStateSerializer<SucceededState>(
 				else -> error("Unknown field: ${field.name}")
 			}
 		}
-		
-		SucceededState(latencyDuration, processDuration).apply {
-			this.createdAt = createdAt
-		}
+
+		SucceededState(latencyDuration, processDuration, createdAt)
 	}
 }

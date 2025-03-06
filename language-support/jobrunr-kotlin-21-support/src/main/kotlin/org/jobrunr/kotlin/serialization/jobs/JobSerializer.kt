@@ -45,7 +45,7 @@ object JobSerializer : KSerializer<Job> {
 		encodeIntElement(descriptor, 1, value.version)
 		encodeStringElement(descriptor, 2, value.jobSignature)
 		encodeStringElement(descriptor, 3, value.jobName)
-		encodeSerializableElement(descriptor, 4, SetSerializer(String.serializer()), value.labels)
+		encodeSerializableElement(descriptor, 4, ListSerializer(String.serializer()), value.labels)
 		encodeSerializableElement(descriptor, 5, JobDetailsSerializer, value.jobDetails)
 
 		encodeSerializableElement(descriptor, 6, ListSerializer(PolymorphicSerializer(JobState::class)), value.jobStates)
@@ -57,7 +57,7 @@ object JobSerializer : KSerializer<Job> {
 		lateinit var id: Uuid
 		var version = -1
 		lateinit var jobName: String
-		lateinit var labels: Set<String>
+		lateinit var labels: List<String>
 		lateinit var jobDetails: JobDetails
 		lateinit var jobHistory: List<JobState>
 		lateinit var metadata: Map<String, Any>
@@ -69,7 +69,7 @@ object JobSerializer : KSerializer<Job> {
 				1 -> version = decodeIntElement(descriptor, 1)
 				2 -> decodeStringElement(descriptor, 2)
 				3 -> jobName = decodeStringElement(descriptor, 3)
-				4 -> labels = decodeSerializableElement(descriptor, 4, SetSerializer(String.serializer()))
+				4 -> labels = decodeSerializableElement(descriptor, 4, ListSerializer(String.serializer()))
 				5 -> jobDetails = decodeSerializableElement(descriptor, 5, JobDetailsSerializer)
 				6 -> jobHistory = decodeSerializableElement(descriptor, 6, ListSerializer(PolymorphicSerializer(JobState::class)))
 				7 -> metadata = decodeSerializableElement(descriptor, 7, MetadataSerializer)

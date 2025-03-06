@@ -12,9 +12,10 @@ import kotlinx.serialization.encoding.*
 import org.jobrunr.jobs.context.JobDashboardLogger
 import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.ConcurrentLinkedQueueSerializer
 import org.jobrunr.kotlin.serialization.misc.QueueSerializer
 import java.time.Instant
-import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashboardLogLines>, ClassDiscriminatedContextualSerializer.PolymorphicContinuationDeserializer {
 	@OptIn(ExperimentalSerializationApi::class)
@@ -33,20 +34,18 @@ object JobDashboardLogLinesSerializer : KSerializer<JobDashboardLogger.JobDashbo
 	}
 
 	override fun CompositeDecoder.continueDecode(): JobDashboardLogger.JobDashboardLogLines {
-		lateinit var logLines: Queue<JobDashboardLogger.JobDashboardLogLine>
+		lateinit var logLines: ConcurrentLinkedQueue<JobDashboardLogger.JobDashboardLogLine>
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
 				CompositeDecoder.DECODE_DONE -> break
 				0 -> decodeStringElement(descriptor, 0)
-				1 -> logLines = decodeSerializableElement(descriptor, 1, QueueSerializer(JobDashboardLogLineSerializer))
+				1 -> logLines = decodeSerializableElement(descriptor, 1, ConcurrentLinkedQueueSerializer(JobDashboardLogLineSerializer))
 				else -> error("Unexpected index $index")
 			}
 		}
 
-		return JobDashboardLogger.JobDashboardLogLines().apply {
-			this.logLines.addAll(logLines)
-		}
+		return JobDashboardLogger.JobDashboardLogLines(logLines)
 	}
 }
 

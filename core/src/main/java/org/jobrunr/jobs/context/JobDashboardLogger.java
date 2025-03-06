@@ -62,12 +62,12 @@ public class JobDashboardLogger {
             this.logLines = new ConcurrentLinkedQueue<>();
         }
 
+        public JobDashboardLogLines(ConcurrentLinkedQueue<JobDashboardLogLine> logLines) {
+            this.logLines = logLines;
+        }
+
         public void add(JobDashboardLogLine line) {
             logLines.add(line);
-        }
-        
-        public void addAll(Collection<JobDashboardLogLine> lines) {
-            logLines.addAll(lines);
         }
 
         public Queue<JobDashboardLogLine> getLogLines() {
