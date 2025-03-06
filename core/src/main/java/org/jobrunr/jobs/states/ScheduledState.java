@@ -25,7 +25,11 @@ public class ScheduledState extends AbstractJobState {
     }
 
     public ScheduledState(Instant scheduledAt, String reason) {
-        super(StateName.SCHEDULED);
+        this(scheduledAt, reason, null);
+    }
+
+    public ScheduledState(Instant scheduledAt, String reason, Instant createdAt) {
+        super(StateName.SCHEDULED, createdAt);
         this.scheduledAt = scheduledAt;
         this.reason = reason;
     }
