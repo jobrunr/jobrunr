@@ -28,7 +28,7 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 @ExtendWith(MockitoExtension.class)
 class JobTest {
 
-    private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
+    private final BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     @Test
     void ifIdIsNullAnIdIsCreated() {
