@@ -12,11 +12,11 @@ public class DeletedState extends AbstractJobState {
     }
 
     public DeletedState(String reason) {
-        this(reason, null);
+        this(Instant.now(), reason);
     }
 
-    public DeletedState(String reason, Instant createdAt) {
-        super(StateName.DELETED, createdAt);
+    public DeletedState(Instant createdAt, String reason) {
+        super(createdAt, StateName.DELETED);
         this.reason = reason;
     }
 

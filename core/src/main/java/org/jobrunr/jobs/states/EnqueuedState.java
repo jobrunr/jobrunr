@@ -7,11 +7,11 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 public class EnqueuedState extends AbstractJobState {
 
     public EnqueuedState() {
-        this(null);
+        super(ENQUEUED);
     }
 
     public EnqueuedState(Instant createdAt) {
-        super(ENQUEUED, createdAt);
+        super(createdAt, ENQUEUED);
     }
 
     public Instant getEnqueuedAt() {

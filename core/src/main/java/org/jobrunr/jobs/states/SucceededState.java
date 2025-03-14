@@ -14,11 +14,11 @@ public class SucceededState extends AbstractJobState {
     }
 
     public SucceededState(Duration latencyDuration, Duration processDuration) {
-        this(latencyDuration, processDuration, null);
+        this(Instant.now(), latencyDuration, processDuration);
     }
 
-    public SucceededState(Duration latencyDuration, Duration processDuration, Instant createdAt) {
-        super(StateName.SUCCEEDED, createdAt);
+    public SucceededState(Instant createdAt, Duration latencyDuration, Duration processDuration) {
+        super(createdAt, StateName.SUCCEEDED);
         this.latencyDuration = latencyDuration;
         this.processDuration = processDuration;
     }

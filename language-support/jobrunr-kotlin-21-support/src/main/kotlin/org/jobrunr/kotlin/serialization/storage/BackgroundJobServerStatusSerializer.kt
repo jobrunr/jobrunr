@@ -3,16 +3,13 @@ package org.jobrunr.kotlin.serialization.storage
 import kotlinx.serialization.builtins.serializer
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.UUIDSerializer
 import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import org.jobrunr.storage.BackgroundJobServerStatus
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
-import kotlin.uuid.toKotlinUuid
 
-@OptIn(ExperimentalUuidApi::class)
 object BackgroundJobServerStatusSerializer : FieldBasedSerializer<BackgroundJobServerStatus>(
 	BackgroundJobServerStatus::class,
-	Field("id", Uuid.serializer()) { it.id.toKotlinUuid() },
+	Field("id", UUIDSerializer) { it.id },
 	Field("name", String.serializer()) { it.name },
 	Field("workerPoolSize", Int.serializer()) { it.workerPoolSize },
 	Field("pollIntervalInSeconds", Int.serializer()) { it.pollIntervalInSeconds },

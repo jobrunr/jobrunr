@@ -132,9 +132,9 @@ class KotlinxSerializationJsonMapper(
 		}
 	}
 
-	fun noSerializerFound(kClass: KClass<*>): Exception = JobParameterJsonMapperException("No serializer for ${kClass.qualifiedName}")
+	private fun noSerializerFound(kClass: KClass<*>): Exception = JobParameterJsonMapperException("No serializer for ${kClass.qualifiedName}")
 
-	fun <T> rethrowSerializationException(block: () -> T): T = try {
+	private fun <T> rethrowSerializationException(block: () -> T): T = try {
 		block()
 	} catch (e: Exception) {
 		LOGGER.error("An unexpected error occurred during serialization - please report this!", e)

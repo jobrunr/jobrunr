@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalUuidApi::class, ExperimentalSerializationApi::class)
+@file:OptIn(ExperimentalSerializationApi::class)
 
 package org.jobrunr.kotlin.serialization.jobs.states
 
@@ -10,14 +10,12 @@ import kotlinx.serialization.encoding.decodeStructure
 import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
+import org.jobrunr.kotlin.serialization.misc.UUIDSerializer
 import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 import kotlin.reflect.KClass
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
-import kotlin.uuid.toJavaUuid
-import kotlin.uuid.toKotlinUuid
 
 abstract class JobStateSerializer<State : AbstractJobState>(
 	kClass: KClass<State>,
@@ -63,7 +61,7 @@ object DeletedStateSerializer : JobStateSerializer<DeletedState>(
 			}
 		}
 
-		DeletedState(reason, createdAt)
+		DeletedState(createdAt, reason)
 	}
 }
 
@@ -105,32 +103,30 @@ object FailedStateSerializer : JobStateSerializer<FailedState>(
 			}
 		}
 
-		FailedState(message, exceptionType, exceptionMessage, exceptionCauseType, exceptionCauseMessage, stackTrace, doNotRetry, createdAt)
+		FailedState(createdAt, message, exceptionType, exceptionMessage, exceptionCauseType, exceptionCauseMessage, stackTrace, doNotRetry)
 	}
 }
 
 object ProcessingStateSerializer : JobStateSerializer<ProcessingState>(
 	ProcessingState::class,
-	Field("serverId", Uuid.serializer()) { it.serverId.toKotlinUuid() },
+	Field("serverId", UUIDSerializer) { it.serverId },
 	Field("serverName", String.serializer()) { it.serverName },
 	Field("updatedAt", InstantSerializer) { it.updatedAt },
 ) {
 	override fun deserialize(decoder: Decoder): ProcessingState = decoder.decodeStructure(descriptor) {
-		lateinit var serverId: Uuid
+		lateinit var serverId: UUID
 		lateinit var serverName: String
 		lateinit var updatedAt: Instant
 		val createdAt = handleDeserialization { field, index ->
 			when (field.name) {
-				"serverId" -> serverId = decodeSerializableElement(descriptor, index, Uuid.serializer())
+				"serverId" -> serverId = decodeSerializableElement(descriptor, index, UUIDSerializer)
 				"serverName" -> serverName = decodeStringElement(descriptor, index)
 				"updatedAt" -> updatedAt = decodeSerializableElement(descriptor, index, InstantSerializer)
 				else -> error("Unknown field: $field")
 			}
 		}
 
-		ProcessingState(serverId.toJavaUuid(), serverName, createdAt).apply {
-			this.updatedAt = updatedAt
-		}
+		ProcessingState(createdAt, updatedAt, serverId, serverName)
 	}
 }
 
@@ -150,7 +146,7 @@ object ScheduledStateSerializer : JobStateSerializer<ScheduledState>(
 			}
 		}
 
-		ScheduledState(scheduledAt, reason, createdAt)
+		ScheduledState(createdAt, scheduledAt, reason, null)
 	}
 }
 
@@ -170,6 +166,6 @@ object SucceededStateSerializer : JobStateSerializer<SucceededState>(
 			}
 		}
 
-		SucceededState(latencyDuration, processDuration, createdAt)
+		SucceededState(createdAt, latencyDuration, processDuration)
 	}
 }

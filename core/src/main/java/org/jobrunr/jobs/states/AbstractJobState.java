@@ -8,12 +8,13 @@ public abstract class AbstractJobState implements JobState {
     private final StateName state;
     private Instant createdAt;
 
-    protected AbstractJobState(StateName state, Instant createdAt) {
-        this.state = state;
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
+    protected AbstractJobState(StateName state) {
+        this(Instant.now(), state);
+    }
+
+    protected AbstractJobState(Instant createdAt, StateName state) {
         this.createdAt = createdAt;
+        this.state = state;
     }
 
     @Override
