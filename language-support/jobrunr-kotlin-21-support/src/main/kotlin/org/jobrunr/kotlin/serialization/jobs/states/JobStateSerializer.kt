@@ -3,169 +3,176 @@
 package org.jobrunr.kotlin.serialization.jobs.states
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
 import org.jobrunr.kotlin.serialization.misc.UUIDSerializer
-import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
-import kotlin.reflect.KClass
+import java.util.*
 
-abstract class JobStateSerializer<State : AbstractJobState>(
-	kClass: KClass<State>,
-	private vararg val fields: Field<State, out Any>,
-) : FieldBasedSerializer<State>(
-	kClass,
-	listOf(
-		Field("state", String.serializer()) { it.name.name },
-		Field("createdAt", InstantSerializer) { it.createdAt },
-		*fields
-	)
-) {
-	protected fun CompositeDecoder.handleDeserialization(callback: (field: Field<State, out Any>, index: Int) -> Unit): Instant {
-		lateinit var createdAt: Instant
-		while (true) {
-			when (val index = decodeElementIndex(descriptor)) {
-				CompositeDecoder.DECODE_DONE -> break
-				descriptor.getElementIndex("state") -> decodeStringElement(descriptor, index)
-				descriptor.getElementIndex("createdAt") -> createdAt = decodeSerializableElement(descriptor, 1, InstantSerializer)
-				else -> {
-					val elementName = descriptor.getElementName(index)
-					val field = fields.singleOrNull { 
-						it.name == elementName
-					} ?: error("Unknown field: $elementName")
-					callback(field, index)
-				}
-			}
-		}
-		return createdAt
+abstract class DTOSerializer<Java : Any, Kotlin : Any>(private val kDTOSerializer: KSerializer<Kotlin>) : KSerializer<Java> {
+	override val descriptor = kDTOSerializer.descriptor
+
+	abstract fun Java.toDTO(): Kotlin
+	override fun serialize(encoder: Encoder, value: Java) {
+		require(encoder is JsonEncoder)
+		
+		val kotlinValue = value.toDTO()
+		
+		val jsonObjectMap = encoder.json.encodeToJsonElement(kDTOSerializer, kotlinValue).jsonObject.toMutableMap()
+		jsonObjectMap["@class"] = JsonPrimitive(value.javaClass.canonicalName)
+		
+		encoder.encodeJsonElement(JsonObject(jsonObjectMap))
+	}
+
+	abstract fun Kotlin.fromDTO(): Java
+	override fun deserialize(decoder: Decoder): Java {
+		val kotlinValue = decoder.decodeSerializableValue(kDTOSerializer)
+		
+		return kotlinValue.fromDTO()
 	}
 }
 
-object DeletedStateSerializer : JobStateSerializer<DeletedState>(
-	DeletedState::class,
-	Field("reason", String.serializer()) { it.reason },
+@Serializable
+data class KDeletedState(
+	val state: StateName = StateName.DELETED,
+	val createdAt: @Serializable(with = InstantSerializer::class) Instant,
+	val reason: String,
 ) {
-	override fun deserialize(decoder: Decoder): DeletedState = decoder.decodeStructure(descriptor) {
-		lateinit var reason: String
-		val createdAt = handleDeserialization { field, index ->
-			when (field.name) {
-				"reason" -> reason = decodeStringElement(descriptor, index)
-				else -> error("Unknown field: ${field.name}")
-			}
-		}
+	object Serializer : DTOSerializer<DeletedState, KDeletedState>(serializer()) {
+		override fun DeletedState.toDTO() = KDeletedState(
+			createdAt = createdAt,
+			reason = reason,
+		)
 
-		DeletedState(createdAt, reason)
+		override fun KDeletedState.fromDTO() = DeletedState(createdAt, reason)
 	}
 }
 
-object EnqueuedStateSerializer : JobStateSerializer<EnqueuedState>(EnqueuedState::class) {
-	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
-		val createdAt = handleDeserialization { _, _ -> }
-		EnqueuedState(createdAt)
+@Serializable
+data class KEnqueuedState(
+	val state: StateName = StateName.ENQUEUED,
+	val createdAt: @Serializable(with = InstantSerializer::class) Instant,
+) {
+	object Serializer : DTOSerializer<EnqueuedState, KEnqueuedState>(serializer()) {
+		override fun EnqueuedState.toDTO() = KEnqueuedState(createdAt = createdAt)
+
+		override fun KEnqueuedState.fromDTO() = EnqueuedState(createdAt)
 	}
 }
 
-object FailedStateSerializer : JobStateSerializer<FailedState>(
-	FailedState::class,
-	Field("message", String.serializer()) { it.message },
-	Field("exceptionType", String.serializer()) { it.exceptionType },
-	Field("exceptionMessage", String.serializer()) { it.exceptionMessage },
-	Field("exceptionCauseType", String.serializer(), nullable = true) { it.exceptionCauseType },
-	Field("exceptionCauseMessage", String.serializer(), nullable = true) { it.exceptionCauseMessage },
-	Field("stackTrace", String.serializer()) { it.stackTrace },
-	Field("doNotRetry", Boolean.serializer()) { it.mustNotRetry() },
+@Serializable
+data class KFailedState(
+	val state: StateName = StateName.FAILED,
+	val createdAt: @Serializable(with = InstantSerializer::class) Instant,
+	val message: String,
+	val exceptionType: String,
+	val exceptionMessage: String,
+	val exceptionCauseType: String? = null,
+	val exceptionCauseMessage: String? = null,
+	val stackTrace: String,
+	val doNotRetry: Boolean = false,
 ) {
-	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
-		lateinit var message: String
-		lateinit var exceptionType: String
-		lateinit var exceptionMessage: String
-		var exceptionCauseType: String? = null
-		var exceptionCauseMessage: String? = null
-		lateinit var stackTrace: String
-		var doNotRetry = false
-		val createdAt = handleDeserialization { field, index ->
-			when (field.name) {
-				"message" -> message = decodeStringElement(descriptor, index)
-				"exceptionType" -> exceptionType = decodeStringElement(descriptor, index)
-				"exceptionMessage" -> exceptionMessage = decodeStringElement(descriptor, index)
-				"exceptionCauseType" -> exceptionCauseType = decodeNullableSerializableElement(descriptor, index, String.serializer())
-				"exceptionCauseMessage" -> exceptionCauseMessage = decodeNullableSerializableElement(descriptor, index, String.serializer())
-				"stackTrace" -> stackTrace = decodeStringElement(descriptor, index)
-				"doNotRetry" -> doNotRetry = decodeBooleanElement(descriptor, index)
-				else -> error("Unknown field: ${field.name}")
-			}
-		}
+	object Serializer : DTOSerializer<FailedState, KFailedState>(serializer()) {
+		override fun FailedState.toDTO() = KFailedState(
+			createdAt = createdAt,
+			message = message,
+			exceptionType = exceptionType,
+			exceptionMessage = exceptionMessage,
+			exceptionCauseType = exceptionCauseType,
+			exceptionCauseMessage = exceptionCauseMessage,
+			stackTrace = stackTrace,
+			doNotRetry = mustNotRetry(),
+		)
 
-		FailedState(createdAt, message, exceptionType, exceptionMessage, exceptionCauseType, exceptionCauseMessage, stackTrace, doNotRetry)
+		override fun KFailedState.fromDTO() = FailedState(
+			createdAt,
+			message,
+			exceptionType,
+			exceptionMessage,
+			exceptionCauseType,
+			exceptionCauseMessage,
+			stackTrace,
+			doNotRetry
+		)
 	}
 }
 
-object ProcessingStateSerializer : JobStateSerializer<ProcessingState>(
-	ProcessingState::class,
-	Field("serverId", UUIDSerializer) { it.serverId },
-	Field("serverName", String.serializer()) { it.serverName },
-	Field("updatedAt", InstantSerializer) { it.updatedAt },
+@Serializable
+data class KProcessingState(
+	val state: StateName = StateName.PROCESSING,
+	val createdAt: @Serializable(with = InstantSerializer::class) Instant,
+	val serverId: @Serializable(with = UUIDSerializer::class) UUID,
+	val serverName: String,
+	val updatedAt: @Serializable(with = InstantSerializer::class) Instant,
 ) {
-	override fun deserialize(decoder: Decoder): ProcessingState = decoder.decodeStructure(descriptor) {
-		lateinit var serverId: UUID
-		lateinit var serverName: String
-		lateinit var updatedAt: Instant
-		val createdAt = handleDeserialization { field, index ->
-			when (field.name) {
-				"serverId" -> serverId = decodeSerializableElement(descriptor, index, UUIDSerializer)
-				"serverName" -> serverName = decodeStringElement(descriptor, index)
-				"updatedAt" -> updatedAt = decodeSerializableElement(descriptor, index, InstantSerializer)
-				else -> error("Unknown field: $field")
-			}
-		}
+	object Serializer : DTOSerializer<ProcessingState, KProcessingState>(serializer()) {
+		override fun ProcessingState.toDTO() = KProcessingState(
+			createdAt = createdAt,
+			serverId = serverId,
+			serverName = serverName,
+			updatedAt = updatedAt,
+		)
 
-		ProcessingState(createdAt, updatedAt, serverId, serverName)
+		override fun KProcessingState.fromDTO() = ProcessingState(
+			createdAt,
+			updatedAt,
+			serverId,
+			serverName,
+		)
 	}
 }
 
-object ScheduledStateSerializer : JobStateSerializer<ScheduledState>(
-	ScheduledState::class,
-	Field("scheduledAt", InstantSerializer) { it.scheduledAt },
-	Field("reason", String.serializer(), nullable = true) { it.reason },
+@Serializable
+data class KScheduledState(
+	val state: StateName = StateName.SCHEDULED,
+	@Serializable(with = InstantSerializer::class) val createdAt: Instant,
+	@Serializable(with = InstantSerializer::class) val scheduledAt: Instant,
+	val reason: String? = null,
 ) {
-	override fun deserialize(decoder: Decoder): ScheduledState = decoder.decodeStructure(descriptor) {
-		lateinit var scheduledAt: Instant
-		var reason: String? = null
-		val createdAt = handleDeserialization { field, index ->
-			when (field.name) {
-				"scheduledAt" -> scheduledAt = decodeSerializableElement(descriptor, index, InstantSerializer)
-				"reason" -> reason = decodeNullableSerializableElement(descriptor, index, String.serializer())
-				else -> error("Unknown field: ${field.name}")
-			}
-		}
+	object Serializer : DTOSerializer<ScheduledState, KScheduledState>(serializer()) {
+		override fun ScheduledState.toDTO() = KScheduledState(
+			createdAt = createdAt,
+			scheduledAt = scheduledAt,
+			reason = reason,
+		)
 
-		ScheduledState(createdAt, scheduledAt, reason, null)
+		override fun KScheduledState.fromDTO() = ScheduledState(
+			createdAt,
+			scheduledAt,
+			reason,
+			null,
+		)
 	}
 }
 
-object SucceededStateSerializer : JobStateSerializer<SucceededState>(
-	SucceededState::class,
-	Field("latencyDuration", DurationSerializer) { it.latencyDuration },
-	Field("processDuration", DurationSerializer) { it.processDuration},
+@Serializable
+data class KSucceededState(
+	val state: StateName = StateName.SUCCEEDED,
+	val createdAt: @Serializable(with = InstantSerializer::class) Instant,
+	val latencyDuration: @Serializable(with = DurationSerializer::class) Duration,
+	val processDuration: @Serializable(with = DurationSerializer::class) Duration,
 ) {
-	override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {
-		lateinit var latencyDuration: Duration
-		lateinit var processDuration: Duration
-		val createdAt = handleDeserialization { field, index ->
-			when (field.name) {
-				"latencyDuration" -> latencyDuration = decodeSerializableElement(descriptor, index, DurationSerializer)
-				"processDuration" -> processDuration = decodeSerializableElement(descriptor, index, DurationSerializer)
-				else -> error("Unknown field: ${field.name}")
-			}
-		}
+	object Serializer : DTOSerializer<SucceededState, KSucceededState>(serializer()) {
+		override fun SucceededState.toDTO() = KSucceededState(
+			createdAt = createdAt,
+			latencyDuration = latencyDuration,
+			processDuration = processDuration,
+		)
 
-		SucceededState(createdAt, latencyDuration, processDuration)
+		override fun KSucceededState.fromDTO() = SucceededState(
+			createdAt,
+			latencyDuration,
+			processDuration,
+		)
 	}
 }

@@ -10,7 +10,7 @@ import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
 import org.jobrunr.dashboard.ui.model.problems.Problem
 import org.jobrunr.dashboard.ui.model.problems.Problems
-import org.jobrunr.jobs.states.JobState
+import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.RecurringJobUIModelSerializer
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.VersionUIModelSerializer
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.CpuAllocationIrregularityProblemSerializer
@@ -39,12 +39,12 @@ import kotlin.reflect.KClass
 
 private val jobRunrSerializersModule = SerializersModule {
 	polymorphic(JobState::class) {
-		subclass(DeletedStateSerializer)
-		subclass(EnqueuedStateSerializer)
-		subclass(FailedStateSerializer)
-		subclass(ProcessingStateSerializer)
-		subclass(ScheduledStateSerializer)
-		subclass(SucceededStateSerializer)
+		subclass(KDeletedState.Serializer)
+		subclass(KEnqueuedState.Serializer)
+		subclass(KFailedState.Serializer)
+		subclass(KProcessingState.Serializer)
+		subclass(KScheduledState.Serializer)
+		subclass(KSucceededState.Serializer)
 	}
 	contextual(JobSerializer)
 	contextual(RecurringJobSerializer)
