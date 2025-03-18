@@ -8,7 +8,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.jobrunr.utils.exceptions.Exceptions;
 
-import java.util.LinkedList;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.listCollectionNames;
 
 public abstract class MongoMigration {
 
@@ -27,7 +27,7 @@ public abstract class MongoMigration {
     }
 
     protected boolean collectionExists(MongoDatabase mongoDatabase, String collectionName) {
-        return mongoDatabase.listCollectionNames().into(new LinkedList<>()).contains(collectionName);
+        return listCollectionNames(mongoDatabase).contains(collectionName);
     }
 
     protected void dropIndexes(MongoCollection<Document> mongoCollection) {

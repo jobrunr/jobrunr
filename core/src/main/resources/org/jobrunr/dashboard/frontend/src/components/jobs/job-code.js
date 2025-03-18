@@ -8,7 +8,12 @@ const JobCode = (props) => {
     const className = job.jobDetails.className.substring(job.jobDetails.className.lastIndexOf(".") + 1);
     const staticFieldName = job.jobDetails.staticFieldName;
     const methodName = job.jobDetails.methodName;
-    const parameters = job.jobDetails.jobParameters.map(jobParameter => jobParameter.object).join(", ")
+    const parameters = job.jobDetails.jobParameters
+        .map(jobParameter => jobParameter.object)
+        .map(object => 
+            typeof object === "object" ? JSON.stringify(object) : object
+        )
+        .join(", ")
 
     let totalFunction = className;
     if (staticFieldName) {

@@ -1,16 +1,16 @@
 DROP VIEW jobrunr_jobs_stats;
 
 CREATE VIEW jobrunr_jobs_stats
-as
-select count(*)                                                                           as total,
-       (select count(*) from jobrunr_jobs jobs where jobs.state = 'AWAITING')             as awaiting,
-       (select count(*) from jobrunr_jobs jobs where jobs.state = 'SCHEDULED')            as scheduled,
-       (select count(*) from jobrunr_jobs jobs where jobs.state = 'ENQUEUED')             as enqueued,
-       (select count(*) from jobrunr_jobs jobs where jobs.state = 'PROCESSING')           as processing,
-       (select count(*) from jobrunr_jobs jobs where jobs.state = 'FAILED')               as failed,
-       (select((select count(*) from jobrunr_jobs jobs where jobs.state = 'SUCCEEDED') +
-               (select amount from jobrunr_job_counters jc where jc.name = 'SUCCEEDED'))) as succeeded,
-       (select count(*) from jobrunr_jobs jobs where jobs.state = 'DELETED')              as deleted,
-       (select count(*) from jobrunr_backgroundjobservers)                                as nbrOfBackgroundJobServers,
-       (select count(*) from jobrunr_recurring_jobs)                                      as nbrOfRecurringJobs
-from jobrunr_jobs j;
+AS
+SELECT count(*)                                                                           AS total,
+	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'AWAITING')             AS awaiting,
+	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'SCHEDULED')            AS scheduled,
+	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'ENQUEUED')             AS enqueued,
+	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'PROCESSING')           AS processing,
+	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'FAILED')               AS failed,
+	   (SELECT((SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'SUCCEEDED') +
+			   (SELECT amount FROM jobrunr_job_counters jc WHERE jc.name = 'SUCCEEDED'))) AS succeeded,
+	   (SELECT count(*) FROM jobrunr_jobs jobs WHERE jobs.state = 'DELETED')              AS deleted,
+	   (SELECT count(*) FROM jobrunr_backgroundjobservers)                                AS nbrOfBackgroundJobServers,
+	   (SELECT count(*) FROM jobrunr_recurring_jobs)                                      AS nbrOfRecurringJobs
+FROM jobrunr_jobs j;

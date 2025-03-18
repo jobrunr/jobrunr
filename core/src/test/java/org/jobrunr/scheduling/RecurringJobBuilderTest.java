@@ -19,6 +19,7 @@ import static java.time.ZoneId.systemDefault;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 
 class RecurringJobBuilderTest {
@@ -41,7 +42,8 @@ class RecurringJobBuilderTest {
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
-                .hasJobDetails(TestService.class, "doWork");
+                .hasJobDetails(TestService.class, "doWork")
+                .hasCreatedBy(API);
     }
 
     @Test
@@ -67,7 +69,8 @@ class RecurringJobBuilderTest {
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
-                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest);
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest)
+                .hasCreatedBy(API);
     }
 
     @Test

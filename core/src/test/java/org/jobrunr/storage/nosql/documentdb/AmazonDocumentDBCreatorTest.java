@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class AmazonDocumentDBCreatorTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:3.6").withExposedPorts(27017);
+    private static final GenericContainer mongoContainer = new GenericContainer("mongo:4.4").withExposedPorts(27017);
 
     @BeforeEach
     void clearAllCollections() {

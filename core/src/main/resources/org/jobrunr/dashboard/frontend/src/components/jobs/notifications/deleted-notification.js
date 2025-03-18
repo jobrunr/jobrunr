@@ -1,18 +1,13 @@
-import {useEffect, useState} from "react";
-import serversState from "../../../ServersStateContext";
 import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
 import TimeAgo from "react-timeago/lib";
 import {JobNotification} from "./job-notification";
+import {useServers} from "../../../hooks/useServers";
 
 const DeletedNotification = ({job}) => {
-    const [serverStats, setServerStats] = useState(serversState.getServers());
-    useEffect(() => {
-        serversState.addListener(setServerStats);
-        return () => serversState.removeListener(setServerStats);
-    }, [])
+    const [servers, _] = useServers();
 
-    const deleteDuration = serverStats[0].permanentlyDeleteDeletedJobsAfter;
-    const deleteDurationInSec = deleteDuration.toString().startsWith('PT') ? convertISO8601DurationToSeconds(deleteDuration) : deleteDuration;
+    const deleteDuration = servers[0]?.permanentlyDeleteDeletedJobsAfter;
+    const deleteDurationInSec = deleteDuration?.toString().startsWith('PT') ? convertISO8601DurationToSeconds(deleteDuration) : deleteDuration;
 
     const deletedState = job.jobHistory[job.jobHistory.length - 1]
     const deletedDate = new Date(deletedState.createdAt);
@@ -20,8 +15,9 @@ const DeletedNotification = ({job}) => {
 
     return (
         <JobNotification>
-            <strong>This job is deleted.</strong> It will automatically be removed in <TimeAgo date={deleteDate}
-                                                                                               title={deleteDate.toString()}/>.
+            <strong>This job is deleted.</strong> {servers.length
+            ? <>It will automatically be removed in <TimeAgo date={deleteDate} title={deleteDate.toString()}/>.</>
+            : <>Please start a background job server to enable automatic permanent deletion.</>}
         </JobNotification>
     )
 };

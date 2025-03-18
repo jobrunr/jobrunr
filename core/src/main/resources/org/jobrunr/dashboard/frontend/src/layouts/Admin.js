@@ -14,6 +14,7 @@ import {useCallback, useEffect, useMemo, useState} from "react";
 import {ProblemsContext} from "../ProblemsContext";
 import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY} from "../components/overview/problems/new-jobrunr-version-available";
 import {getApiNotificationProblem} from "../components/overview/problems/jobrunr-api-notification";
+import {setServers} from "../hooks/useServers";
 
 
 const Main = styled("main")(({theme}) => ({
@@ -84,11 +85,13 @@ const AdminUI = function () {
 
     useEffect(() => {
         Promise.all([
+            fetch("/api/servers").then(res => res.json()),
             fetch("/api/version").then(res => res.json()),
             fetch("/api/problems").then(res => res.json()),
             fetch("https://api.jobrunr.io/api/version/jobrunr/latest").then(res => res.json()).catch(() => undefined /* ignored */),
             fetch("https://api.jobrunr.io/api/notifications/jobrunr").then(res => res.json()).catch(() => undefined /* ignored */),
-        ]).then(([jobRunrInfo, problems, latestVersion, apiNotification]) => {
+        ]).then(([servers, jobRunrInfo, problems, latestVersion, apiNotification]) => {
+            setServers(servers);
             setJobRunrInfo(jobRunrInfo);
             setProblems(problems);
             setLatestVersion(latestVersion?.["latestVersion"]);

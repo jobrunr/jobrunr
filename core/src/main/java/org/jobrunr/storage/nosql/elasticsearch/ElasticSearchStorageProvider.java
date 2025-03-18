@@ -3,7 +3,7 @@ package org.jobrunr.storage.nosql.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.InlineScript;
+import co.elastic.clients.elasticsearch._types.Script;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.VersionType;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
@@ -71,7 +71,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static co.elastic.clients.elasticsearch._types.Refresh.True;
-import static co.elastic.clients.elasticsearch._types.ScriptBuilders.inline;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.bool;
@@ -96,6 +95,7 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_SIGNATURE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
@@ -112,6 +112,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
+@Deprecated
 @Beta(note = "The ElasticSearchStorageProvider is still in Beta. My first impression is that other StorageProviders are faster than ElasticSearch.")
 public class ElasticSearchStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
@@ -181,11 +182,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
-    public void setUpStorageProvider(final DatabaseOptions options) {
+    public void setUpStorageProvider(final DatabaseOptions databaseOptions) {
         final ElasticSearchDBCreator creator = new ElasticSearchDBCreator(this, client, indexPrefix);
-        if (DatabaseOptions.CREATE == options) {
+        if (databaseOptions == CREATE) {
             creator.runMigrations();
-        } else {
+        } else if (databaseOptions == SKIP_CREATE) {
             creator.validateIndices();
         }
     }
@@ -293,9 +294,10 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public int removeTimedOutBackgroundJobServers(final Instant heartbeatOlderThan) {
         final RangeQuery q = RangeQuery
                 .of(
-                        r -> r
+                        r -> r.date(d -> d
                                 .field(FIELD_LAST_HEARTBEAT)
                                 .to(Long.toString(heartbeatOlderThan.toEpochMilli()))
+                        )
                 );
 
         final long deleted = deleteByQuery(backgroundJobServerIndexName, q);
@@ -485,14 +487,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         final QueryVariant query = QueryBuilders.range()
-                .field(FIELD_SCHEDULED_AT)
-                .to(Long.toString(scheduledBefore.toEpochMilli()))
-                .build();
+                .date(d -> d
+                        .field(FIELD_SCHEDULED_AT)
+                        .to(Long.toString(scheduledBefore.toEpochMilli()))
+                ).build();
         return findJobs(query, amountRequest);
     }
 
     @Override
     public List<Job> save(final List<Job> jobs) {
+        if (jobs.isEmpty()) return jobs;
+
         try (final JobListVersioner versioner = new JobListVersioner(jobs)) {
             versioner.validateJobs();
 
@@ -563,7 +568,7 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     private static QueryVariant withStateAndUpdatedBefore(final StateName state, final Instant updatedBefore) {
         return bool()
                 .must(must -> must.match(m -> m.field(FIELD_STATE).query(String.valueOf(state))))
-                .must(must -> must.range(m -> m.field(FIELD_UPDATED_AT).to(Long.toString(updatedBefore.toEpochMilli()))))
+                .must(must -> must.range(m -> m.date(d -> d.field(FIELD_UPDATED_AT).to(Long.toString(updatedBefore.toEpochMilli())))))
                 .build();
     }
 
@@ -765,18 +770,18 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     public void publishTotalAmountOfSucceededJobs(final int amount) {
         try {
             final Map<String, JsonData> parameters = singletonMap("value", JsonData.of(amount));
-            final InlineScript inline = inline()
+            final Script script = Script.of(s -> s
                     .lang("painless")
                     .source("ctx._source." + FIELD_VALUE + " += params.value")
                     .params(parameters)
-                    .build();
+            );
 
             client.update(
                     u -> u
                             .index(metadataIndexName)
                             .id(STATS_ID)
                             .scriptedUpsert(true)
-                            .script(s -> s.inline(inline)),
+                            .script(script),
                     parameters.getClass()
             );
         } catch (IOException e) {

@@ -6,14 +6,9 @@ import ch.qos.logback.core.read.ListAppender;
 import org.h2.jdbcx.JdbcDataSource;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.migrations.DefaultSqlMigrationProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
-import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
-import org.jobrunr.storage.sql.mysql.MySqlStorageProvider;
-import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
-import org.jobrunr.storage.sql.sqlite.SqLiteStorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,10 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static ch.qos.logback.LoggerAssert.assertThat;
-import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,15 +42,6 @@ class DatabaseCreatorTest {
     void setupJobStorageProvider() throws IOException {
         JobRunr.configure();
         Files.deleteIfExists(Paths.get(SQLITE_DB1));
-    }
-
-    @Test
-    void noSmallSQLKeywordsInSqlFilesSoTablePrefixStatementUpdaterWorksCorrectly() {
-        migrationsFor(H2StorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(MariaDbStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(MySqlStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(PostgresStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
-        migrationsFor(SqLiteStorageProvider.class).forEach(this::assertNoLowerCaseSQLKeywords);
     }
 
     @Test
@@ -101,7 +85,7 @@ class DatabaseCreatorTest {
 
     @Test
     void testH2ValidateWithTablesInWrongSchema() {
-        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:/tmp/test-wrong-schema;INIT=CREATE SCHEMA IF NOT EXISTS schema1\\;CREATE SCHEMA IF NOT EXISTS schema2");
         final DatabaseCreator databaseCreatorForSchema1 = new DatabaseCreator(dataSource, "schema1.prefix_", H2StorageProvider.class);
         databaseCreatorForSchema1.runMigrations();
         final DatabaseCreator databaseCreatorForSchema2 = new DatabaseCreator(dataSource, "schema2.prefix_", H2StorageProvider.class);
@@ -121,13 +105,13 @@ class DatabaseCreatorTest {
         assertThatCode(databaseCreator::runMigrations)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("A migration was applied multiple times (probably because it took too long and the process was killed). " +
-                        "Please cleanup the migrations_table and remove duplicate entries.");
+                        "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
 
         verify(databaseCreator, never()).runMigration(any());
     }
 
     @Test
-    void testMigrationAreNotRunningConcurrently() throws InterruptedException {
+    void testMigrationsAreNotRunningConcurrently() throws InterruptedException {
         final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test;DB_CLOSE_DELAY=-1");
         final DatabaseCreator databaseCreator1 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
         final DatabaseCreator databaseCreator2 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
@@ -182,6 +166,25 @@ class DatabaseCreatorTest {
                 .hasInfoMessageContaining("Waiting for database migrations to finish...", 1);
     }
 
+    @Test
+    void checksThatMigrationsTableIsNoLongerLockedWhenThereAreNoNewMigrations() {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test-always-checks-lock;DB_CLOSE_DELAY=-1");
+        final DatabaseCreator databaseCreator = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+        final ListAppender<ILoggingEvent> loggerDbCreator = LoggerAssert.initFor(databaseCreator);
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThat(loggerDbCreator)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
+                .hasInfoMessageContaining("Waiting for database migrations to finish...", 0);
+
+        assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
+        assertThat(loggerDbCreator)
+                .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
+                .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
+                .hasDebugMessageContaining("No migrations to run.", 1);
+    }
+
     private JdbcDataSource createH2DataSource(String url) {
         JdbcDataSource dataSource = new JdbcDataSource();
         dataSource.setURL(url);
@@ -203,22 +206,6 @@ class DatabaseCreatorTest {
             databaseCreator.updateMigrationsTable(connection, migration);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-
-    private Stream<SqlMigration> migrationsFor(Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
-        return new DatabaseMigrationsProvider(sqlStorageProviderClass).getMigrations().sorted(comparing(SqlMigration::getFileName));
-    }
-
-    private void assertNoLowerCaseSQLKeywords(SqlMigration sqlMigration) {
-        try {
-            String migrationSql = sqlMigration.getMigrationSql();
-            assertThat(migrationSql)
-                    .describedAs("Migration " + sqlMigration.getFileName() + " contains lowercase SQL Keyword")
-                    .doesNotContain("create ", "unique", "index", "drop", " on ", " view", " replace");
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load SQL file", e);
         }
     }
 

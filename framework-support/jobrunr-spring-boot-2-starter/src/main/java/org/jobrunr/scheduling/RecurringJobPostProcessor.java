@@ -2,11 +2,9 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
-import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -23,7 +21,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactoryAware, EmbeddedValueResolverAware, InitializingBean {
@@ -78,13 +76,9 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
             String id = getId(recurringAnnotation);
             String cron = resolveStringValue(recurringAnnotation.cron());
             String interval = resolveStringValue(recurringAnnotation.interval());
+            String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(cron, interval);
 
-            if (StringUtils.isNullOrEmpty(cron) && StringUtils.isNullOrEmpty(interval))
-                throw new IllegalArgumentException("Either cron or interval attribute is required.");
-            if (StringUtils.isNotNullOrEmpty(cron) && StringUtils.isNotNullOrEmpty(interval))
-                throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
-
-            if (Recurring.RECURRING_JOB_DISABLED.equals(cron) || Recurring.RECURRING_JOB_DISABLED.equals(interval)) {
+            if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
                 if (id == null) {
                     LOGGER.warn("You are trying to disable a recurring job using placeholders but did not define an id.");
                 } else {
@@ -93,17 +87,16 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
             } else {
                 JobDetails jobDetails = getJobDetails(method);
                 ZoneId zoneId = getZoneId(recurringAnnotation);
-                if (isNotNullOrEmpty(cron)) {
-                    beanFactory.getBean(JobScheduler.class).scheduleRecurrently(id, jobDetails, CronExpression.create(cron), zoneId);
-                } else {
-                    beanFactory.getBean(JobScheduler.class).scheduleRecurrently(id, jobDetails, new Interval(interval), zoneId);
-                }
+                Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
+
+                RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, ANNOTATION);
+                beanFactory.getBean(JobScheduler.class).scheduleRecurrently(recurringJob);
             }
         }
 
         private boolean hasParametersOutsideOfJobContext(Method method) {
-            if(method.getParameterCount() == 0) return false;
-            else if(method.getParameterCount() > 1) return true;
+            if (method.getParameterCount() == 0) return false;
+            else if (method.getParameterCount() > 1) return true;
             else return !method.getParameterTypes()[0].equals(JobContext.class);
         }
 
@@ -114,7 +107,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
 
         private JobDetails getJobDetails(Method method) {
             List<JobParameter> jobParameters = new ArrayList<>();
-            if(method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(JobContext.class)) {
+            if (method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(JobContext.class)) {
                 jobParameters.add(JobParameter.JobContext);
             }
             final JobDetails jobDetails = new JobDetails(method.getDeclaringClass().getName(), null, method.getName(), jobParameters);

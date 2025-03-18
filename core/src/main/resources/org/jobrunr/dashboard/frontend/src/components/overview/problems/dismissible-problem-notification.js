@@ -2,12 +2,15 @@ import {ProblemNotification} from "./problem-notification";
 import {Button} from "@mui/material";
 
 
-export const DismissibleProblemNotification = ({onDismiss, children, ...rest}) => {
+export const DismissibleProblemNotification = ({onDismiss, extraAction, children, ...rest}) => {
     return (
         <ProblemNotification {...rest} action={
-            <Button color="inherit" size="small" style={{textTransform: "uppercase"}} onClick={onDismiss}>
-                dismiss
-            </Button>
+            <>
+                {extraAction}
+                <Button variant="contained" color="secondary" size="small" style={{textTransform: "uppercase", marginLeft: "1rem"}} onClick={onDismiss}>
+                    Dismiss
+                </Button>
+            </>
         }>
             {children}
         </ProblemNotification>

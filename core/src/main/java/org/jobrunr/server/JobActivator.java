@@ -3,6 +3,6 @@ package org.jobrunr.server;
 @FunctionalInterface
 public interface JobActivator {
 
-    <T> T activateJob(Class<T> type);
+    <T> T activateJob(Class<T> type) throws JobActivatorShutdownException;
 
 }

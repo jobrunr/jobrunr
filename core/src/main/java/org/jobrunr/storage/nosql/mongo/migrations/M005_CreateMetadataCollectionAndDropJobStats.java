@@ -10,7 +10,9 @@ import org.jobrunr.jobs.states.StateName;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Indexes.compoundIndex;
-import static org.jobrunr.storage.StorageProviderUtils.*;
+import static org.jobrunr.storage.StorageProviderUtils.DeprecatedJobStats;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata;
+import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 
 public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration {
@@ -32,10 +34,10 @@ public class M005_CreateMetadataCollectionAndDropJobStats extends MongoMigration
     }
 
     private void migrateExistingAllTimeSucceededFromJobStatsToMetadataAndDropJobStats(MongoDatabase jobrunrDatabase, MongoCollection<Document> metadataCollection) {
-        if (!collectionExists(jobrunrDatabase, JobStats.NAME)) return;
+        if (!collectionExists(jobrunrDatabase, DeprecatedJobStats.NAME)) return;
 
-        MongoCollection<Document> jobStatsCollection = jobrunrDatabase.getCollection(JobStats.NAME, Document.class);
-        final Document jobStats = jobStatsCollection.find(eq(toMongoId(JobStats.FIELD_ID), JobStats.FIELD_STATS)).first();
+        MongoCollection<Document> jobStatsCollection = jobrunrDatabase.getCollection(DeprecatedJobStats.NAME, Document.class);
+        final Document jobStats = jobStatsCollection.find(eq(toMongoId(DeprecatedJobStats.FIELD_ID), DeprecatedJobStats.FIELD_STATS)).first();
         long existingAmount = jobStats != null ? jobStats.getInteger(StateName.SUCCEEDED.name()) : 0;
         metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), Metadata.STATS_ID), Updates.inc(Metadata.FIELD_VALUE, existingAmount), new UpdateOptions().upsert(true));
         jobStatsCollection.drop();

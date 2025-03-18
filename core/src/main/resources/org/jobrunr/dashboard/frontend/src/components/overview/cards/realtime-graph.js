@@ -3,8 +3,8 @@ import {lazy, Suspense, useEffect, useRef, useState} from 'react';
 import Box from "@mui/material/Box";
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import statsState from "../../../StatsStateContext";
 import LoadingIndicator from "../../LoadingIndicator";
+import {useJobStats} from "../../../hooks/useJobStats";
 
 function getArrayWithLimitedLength(length) {
     const array = [];
@@ -24,6 +24,7 @@ function getArrayWithLimitedLength(length) {
 
 }
 
+const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
 const RealtimeGraph = () => {
@@ -31,11 +32,7 @@ const RealtimeGraph = () => {
     const succeededDataRef = useRef(getArrayWithLimitedLength(200));
     const failedDataRef = useRef(getArrayWithLimitedLength(200));
 
-    const [stats, setStats] = useState(statsState.getStats());
-    useEffect(() => {
-        statsState.addListener(setStats);
-        return () => statsState.removeListener(setStats);
-    }, [])
+    const [stats, _] = useJobStats();
 
     const [graphState] = useState({
         options: {
@@ -89,10 +86,12 @@ const RealtimeGraph = () => {
         if (!isNaN(amountSucceeded) && !isNaN(amountFailed) && amountSucceeded >= 0 && amountFailed >= 0) {
             succeededData.push(amountSucceeded)
             failedData.push(amountFailed)
-            ApexCharts.exec('processing-chart', 'updateSeries', [
-                {data: failedData},
-                {data: succeededData}
-            ])
+            ApexChartsModule.then(({default: ApexCharts}) => {
+                ApexCharts.exec('processing-chart', 'updateSeries', [
+                    {data: failedData},
+                    {data: succeededData}
+                ])
+            })
         }
         oldStatsRef.current = stats;
     }, [stats]);

@@ -10,6 +10,8 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -29,13 +31,17 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
 import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -46,7 +52,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.Mockito.doThrow;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -60,6 +68,15 @@ public class JobRunrAutoConfigurationTest {
                     JobRunrMongoDBStorageAutoConfiguration.class,
                     JobRunrSqlStorageAutoConfiguration.class
             ));
+
+    @Test
+    void onSpringShutdownInitiatedJobActivatorThrowsJobActivatorShutdownException() {
+        ApplicationContext applicationContextMock = Mockito.mock(ApplicationContext.class);
+        JobActivator jobActivator = new JobRunrAutoConfiguration().jobActivator(applicationContextMock);
+
+        doThrow(new BeanCreationNotAllowedException("TestService", "Boem")).when(applicationContextMock).getBean(TestService.class);
+        assertThatCode(() -> jobActivator.activateJob(TestService.class)).isInstanceOf(JobActivatorShutdownException.class);
+    }
 
     @Test
     void gsonIsIgnoredIfLibraryIsNotPresent() {

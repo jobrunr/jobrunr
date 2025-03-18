@@ -8,18 +8,22 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.architecture.PackageDependenciesTest.DoNotIncludeTestFixtures;
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.server.BackgroundJobPerformer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.Java11OrHigherInternalDesktopUtil;
 import org.jobrunr.server.dashboard.DashboardNotification;
+import org.jobrunr.utils.annotations.LockingJob;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(packages = "org.jobrunr", importOptions = {DoNotIncludeTests.class, DoNotIncludeTestFixtures.class})
@@ -31,6 +35,11 @@ class PackageDependenciesTest {
             return !location.toString().contains("test-fixtures");
         }
     }
+
+    @ArchTest
+    ArchRule jobRunrJobLockingTest = methods()
+            .that().areDeclaredIn(AbstractJob.class).and().haveName("lock")
+            .should().onlyBeCalled().byMethodsThat(annotatedWith(LockingJob.class));
 
     @ArchTest
     ArchRule jobRunrDependenciesTest = classes()

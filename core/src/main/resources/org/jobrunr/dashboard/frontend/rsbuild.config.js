@@ -17,6 +17,7 @@ export default defineConfig({
         },
         assetPrefix: process.env.PUBLIC_URL,
         manifest: 'asset-manifest.json',
+        cleanDistPath: process.env.NODE_ENV === 'production'
     },
     source: {
         define: publicVars,
@@ -25,6 +26,8 @@ export default defineConfig({
     server: {
         proxy: {
             '/api': 'http://localhost:8000',
+            '/sse': 'http://localhost:8000',
         },
+        compress: false
     },
 });

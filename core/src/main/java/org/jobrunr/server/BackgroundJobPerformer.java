@@ -158,7 +158,7 @@ public class BackgroundJobPerformer implements Runnable {
     }
 
     private boolean isJobServerStopped(Exception e) {
-        return hasCause(e, InterruptedException.class) && !job.hasState(StateName.DELETED);
+        return hasCause(e, JobActivatorShutdownException.class) || (hasCause(e, InterruptedException.class) && !job.hasState(StateName.DELETED));
     }
 
     private boolean isJobNotFoundException(Exception e) {

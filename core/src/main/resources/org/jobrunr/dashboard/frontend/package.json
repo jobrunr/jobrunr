@@ -4,18 +4,18 @@
   "private": true,
   "homepage": "",
   "dependencies": {
-    "@emotion/react": "^11.13.0",
-    "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^5.16.7",
-    "@mui/material": "^5.16.7",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^5.16.14",
+    "@mui/material": "^5.16.14",
     "apexcharts": "^3.52.0",
-    "cronstrue": "^2.50.0",
-    "mdi-material-ui": "^7.9.1",
+    "cronstrue": "^2.52.0",
+    "mdi-material-ui": "^7.9.3",
     "react": "^18.3.1",
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0",
-    "react-syntax-highlighter": "^15.5.0",
+    "react-router-dom": "^6.28.1",
+    "react-syntax-highlighter": "^15.6.1",
     "react-timeago": "^7.2.0"
   },
   "scripts": {
@@ -41,11 +41,11 @@
     ]
   },
   "devDependencies": {
-    "@rsbuild/core": "^1.0.1-beta.10",
-    "@rsbuild/plugin-react": "^1.0.1-beta.10",
-    "cypress": "^13.13.2",
+    "@rsbuild/core": "^1.1.13",
+    "@rsbuild/plugin-react": "^1.1.0",
+    "cypress": "^13.17.0",
     "cypress-failed-log": "^2.10.0",
     "jest": "^29.7.0",
-    "owasp-dependency-check": "^0.0.23"
+    "owasp-dependency-check": "^0.0.24"
   }
 }
