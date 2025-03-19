@@ -6,11 +6,11 @@ import org.slf4j.LoggerFactory;
 
 public class Logback {
 
-    public static TemporarilyLogLevelChange temporarilyChangeLogLevel(Class clazz, Level level) {
+    public static TemporarilyLogLevelChange temporarilyChangeLogLevel(Class<?> clazz, Level level) {
         return new TemporarilyLogLevelChange(clazz.getName(), level);
     }
 
-    public static void changeLogLevel(Class clazz, Level level) {
+    public static void changeLogLevel(Class<?> clazz, Level level) {
         changeLogLevel(clazz.getName(), level);
     }
 

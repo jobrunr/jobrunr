@@ -3,7 +3,6 @@ package org.jobrunr.server.tasks.zookeeper;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,37 +79,45 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
     @Test
     void taskDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+        Instant now = now();
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
 
         // FIRST RUN - No Jobs scheduled yet.
-        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+        try (MockedStatic<Instant> ignored = mockTime(now)) {
+            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
-        runTask(task);
+            runTask(task);
 
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
-                .hasSize(1)
-                .allMatch(job -> job.hasState(SCHEDULED))
-                .allMatch(job -> recurringJob.getId().equals(job.getRecurringJobId().orElse(null)));
+            verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
+            assertThatJobs(jobsToSaveArgumentCaptor.getAllValues().get(0))
+                    .hasSize(1)
+                    .allMatch(job -> job.hasState(SCHEDULED))
+                    .allMatch(job -> recurringJob.getId().equals(job.getRecurringJobId().orElse(null)));
+        }
+
 
         // SECOND RUN - the 1 job scheduled in the first run is still active.
-        clearInvocations(storageProvider);
-        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(backgroundJobServer.getConfiguration().getPollInterval()))) {
+            clearInvocations(storageProvider);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
-        runTask(task);
+            runTask(task);
 
-        verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+            verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+        }
 
         // THIRD RUN - the 1 scheduled job is no longer active
-        clearInvocations(storageProvider);
-        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(2)))) {
+            clearInvocations(storageProvider);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
-        runTask(task);
+            runTask(task);
 
-        verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+            verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+        }
     }
 
     @Test
@@ -158,12 +165,8 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         runTask(task);
 
-        verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        Job savedJob = jobsToSaveArgumentCaptor.getValue().get(0);
-        assertThat(savedJob)
-                .hasState(SCHEDULED)
-                .hasRecurringJobId(recurringJob.getId());
-        assertThat(savedJob.<ScheduledState>getJobState().getScheduledAt()).isAfter(lastScheduledAt);
+        verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
+        verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
     }
 
     @Test

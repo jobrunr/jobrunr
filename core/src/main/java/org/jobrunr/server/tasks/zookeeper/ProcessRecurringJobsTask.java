@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -68,15 +69,15 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             }
         }
 
-        registerRecurringJobRun(recurringJob, jobsToSchedule);
+        registerRecurringJobRun(recurringJob, getScheduledAtOfLatestScheduledJob(jobsToSchedule).orElse(from.isAfter(upUntil) ? from : upUntil));
 
         return jobsToSchedule;
     }
 
     private List<Job> getJobsToSchedule(RecurringJob recurringJob, Instant from, Instant upUntil) {
-        if (from.isAfter(upUntil)) return emptyList(); // why: recurringJob is already scheduled ahead of time
+        if (isScheduledAheadOfTime(from, upUntil)) return emptyList(); // why: recurringJob is already scheduled ahead of time
         List<Job> scheduledJobs = new ArrayList<>(recurringJob.toScheduledJobs(from, upUntil));
-        if (scheduledJobs.isEmpty()) { // why: schedule one job ahead of time
+        if (scheduledJobs.isEmpty() && shouldHaveBeenAlreadyEnqueuedIfScheduledAheadOfTime(from, upUntil)) { // why: schedule one job ahead of time
             scheduledJobs.add(recurringJob.toScheduledJobAheadOfTime(upUntil));
         }
         return scheduledJobs;
@@ -94,18 +95,28 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
     }
 
-    private void registerRecurringJobRun(RecurringJob recurringJob, List<Job> jobsToSchedule) {
-        if (jobsToSchedule.isEmpty()) return;
-
-        Job latestScheduledJob = getLast(jobsToSchedule);
-        registerRecurringJobRun(recurringJob, getScheduledAtOfJob(latestScheduledJob));
-    }
-
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {
         recurringJobRuns.put(recurringJob.getId(), upUntil);
     }
 
+    private Optional<Instant> getScheduledAtOfLatestScheduledJob(List<Job> jobsToSchedule) {
+        Job latestScheduledJob = getLast(jobsToSchedule);
+        if (latestScheduledJob != null && latestScheduledJob.hasState(SCHEDULED)) {
+            return Optional.of(getScheduledAtOfJob(latestScheduledJob));
+        }
+        return Optional.empty();
+    }
+
     private Instant getScheduledAtOfJob(Job job) {
         return ((ScheduledState) job.getJobState()).getScheduledAt();
+    }
+
+    private boolean isScheduledAheadOfTime(Instant from, Instant upUntil) {
+        return from.isAfter(upUntil);
+    }
+
+    private boolean shouldHaveBeenAlreadyEnqueuedIfScheduledAheadOfTime(Instant from, Instant upUntil) {
+        // why: the typical scheduling window size is at least a poll interval large; so a job was scheduled ahead of time but not enqueued yet by the ProcessScheduledJobsTask.
+        return Duration.between(from.plus(backgroundJobServerConfiguration().getPollInterval()), upUntil).toMillis() >= 0;
     }
 }

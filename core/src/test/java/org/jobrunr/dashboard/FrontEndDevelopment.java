@@ -1,5 +1,7 @@
 package org.jobrunr.dashboard;
 
+import ch.qos.logback.Logback;
+import ch.qos.logback.classic.Level;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
@@ -11,6 +13,7 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
+import org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
@@ -48,6 +51,8 @@ public class FrontEndDevelopment {
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addSomeRecurringJobs();
+
+        Logback.changeLogLevel(ProcessRecurringJobsTask.class, Level.TRACE);
 
         storageProvider.saveRecurringJob(aDefaultRecurringJob()
                 .withId("rj-with-labels")
