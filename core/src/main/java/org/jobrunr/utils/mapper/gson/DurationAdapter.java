@@ -11,7 +11,7 @@ import java.time.Duration;
 public class DurationAdapter extends TypeAdapter<Duration> {
     @Override
     public void write(final JsonWriter jsonWriter, final Duration duration) throws IOException {
-        jsonWriter.value(duration.getSeconds() + "." + String.format("%09d", duration.getNano()));
+        jsonWriter.value(new BigDecimal(duration.getSeconds() + "." + String.format("%09d", duration.getNano()))); // nanos = 9
     }
 
     @Override

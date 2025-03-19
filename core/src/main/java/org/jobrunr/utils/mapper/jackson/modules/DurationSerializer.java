@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Duration;
 
 
@@ -16,7 +17,7 @@ public class DurationSerializer extends StdSerializer<Duration> {
 
     @Override
     public void serialize(Duration duration, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeString(duration.getSeconds() + "." + String.format("%09d", duration.getNano())); // nanos = 9
+        jsonGenerator.writeNumber(BigDecimal.valueOf(duration.toNanos()).scaleByPowerOfTen(-9).toString()); // nanos = 9
     }
 
 }
