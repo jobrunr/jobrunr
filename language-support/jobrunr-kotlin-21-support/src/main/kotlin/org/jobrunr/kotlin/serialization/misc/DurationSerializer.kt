@@ -9,16 +9,16 @@ import java.math.BigDecimal
 import java.time.Duration
 
 object DurationSerializer : KSerializer<Duration> {
-	override val descriptor = PrimitiveSerialDescriptor(Duration::class.qualifiedName!!, PrimitiveKind.DOUBLE)
+    override val descriptor = PrimitiveSerialDescriptor(Duration::class.qualifiedName!!, PrimitiveKind.DOUBLE)
 
-	override fun serialize(encoder: Encoder, value: Duration) =
-			encoder.encodeDouble(BigDecimal.valueOf(value.toNanos()).scaleByPowerOfTen(-9).toDouble())
+    override fun serialize(encoder: Encoder, value: Duration) =
+        encoder.encodeString(BigDecimal.valueOf(value.toNanos()).scaleByPowerOfTen(-9).toString())
 
-	override fun deserialize(decoder: Decoder): Duration {
-		val durationAsSecAndNanoSec = BigDecimal.valueOf(decoder.decodeDouble())
-		return Duration.ofSeconds(
-			durationAsSecAndNanoSec.toLong(),
-			durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(durationAsSecAndNanoSec.scale()).abs().toLong()
-		)
-	}
+    override fun deserialize(decoder: Decoder): Duration {
+        val durationAsSecAndNanoSec = BigDecimal.valueOf(decoder.decodeDouble())
+        return Duration.ofSeconds(
+            durationAsSecAndNanoSec.toLong(),
+            durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(9).abs().toLong()
+        )
+    }
 }
