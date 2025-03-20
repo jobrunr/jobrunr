@@ -5,10 +5,16 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.utils.CollectionUtils.*;
+import static org.jobrunr.utils.CollectionUtils.findLast;
+import static org.jobrunr.utils.CollectionUtils.getLast;
+import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.CollectionUtils.isNullOrEmpty;
+import static org.jobrunr.utils.CollectionUtils.mapOf;
 
 class CollectionUtilsTest {
 
@@ -55,6 +61,20 @@ class CollectionUtilsTest {
     @Test
     void isNotNullOrEmptyIsFalseForEmptyArray() {
         assertThat(isNotNullOrEmpty(new String[]{})).isFalse();
+    }
+
+    @Test
+    void testFindLast() {
+        assertThat(findLast(null)).isEmpty();
+        assertThat(findLast(emptyList())).isEmpty();
+        assertThat(findLast(List.of(1, 2))).isEqualTo(Optional.of(2));
+    }
+
+    @Test
+    void testGetLast() {
+        assertThat(Optional.ofNullable(getLast(null))).isEmpty();
+        assertThat(Optional.ofNullable(getLast(emptyList()))).isEmpty();
+        assertThat(getLast(List.of(1, 2))).isEqualTo(2);
     }
 
     @Test

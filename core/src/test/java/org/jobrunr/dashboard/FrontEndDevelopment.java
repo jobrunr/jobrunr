@@ -1,5 +1,7 @@
 package org.jobrunr.dashboard;
 
+import ch.qos.logback.Logback;
+import ch.qos.logback.classic.Level;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
@@ -11,6 +13,7 @@ import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
+import org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
@@ -21,11 +24,11 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static java.time.Duration.ofSeconds;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
@@ -33,6 +36,7 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDe
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -47,6 +51,8 @@ public class FrontEndDevelopment {
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addSomeRecurringJobs();
+
+        Logback.changeLogLevel(ProcessRecurringJobsTask.class, Level.TRACE);
 
         storageProvider.saveRecurringJob(aDefaultRecurringJob()
                 .withId("rj-with-labels")
@@ -67,13 +73,15 @@ public class FrontEndDevelopment {
                 .useJsonMapper(new JacksonJsonMapper())
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
-                .useBackgroundJobServer()
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofSeconds(5)))
                 .initialize();
 
         BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
                 x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofSeconds(5), TestService::doWork);
+        BackgroundJob.<TestService>scheduleRecurrently("every-5-sec", ofSeconds(5), x -> x.doWork("every-5-sec"));
+        BackgroundJob.<TestService>scheduleRecurrently("every-10-sec", ofSeconds(10), x -> x.doWork("every-10-sec"));
+        BackgroundJob.<TestService>scheduleRecurrently("every-15-sec", ofSeconds(15), x -> x.doWork("every-15-sec"));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

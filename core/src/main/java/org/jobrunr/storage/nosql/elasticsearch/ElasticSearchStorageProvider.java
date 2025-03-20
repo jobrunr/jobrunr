@@ -616,6 +616,11 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
     }
 
     @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public RecurringJob saveRecurringJob(final RecurringJob job) {
         try {
             client.index(i -> i
