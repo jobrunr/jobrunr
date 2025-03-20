@@ -72,7 +72,7 @@ class RecurringJobTest {
 
         assertThatCode(() -> recurringJob.toScheduledJobs(Instant.now().plus(1, SECONDS), Instant.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("from must be after upTo");
+                .hasMessage("from must be before upTo");
     }
 
     @Test

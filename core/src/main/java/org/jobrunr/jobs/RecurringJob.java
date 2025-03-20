@@ -104,7 +104,7 @@ public class RecurringJob extends AbstractJob {
      */
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
         if (from.isAfter(upTo)) {
-            throw new IllegalArgumentException("from must be after upTo");
+            throw new IllegalArgumentException("from must be before upTo");
         }
 
         List<Job> jobs = new ArrayList<>();
