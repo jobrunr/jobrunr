@@ -17,7 +17,5 @@ class PageSerializer<T : Any> : FieldBasedSerializer<Page<T>>(
 	Field("offset", Long.serializer()) { it.offset },
 	Field("hasPrevious", Boolean.serializer()) { it.hasPreviousPage() },
 	Field("hasNext", Boolean.serializer()) { it.hasNextPage() },
-	Field("previousPage", String.serializer(), nullable = true) { it.previousPage },
-	Field("nextPage", String.serializer(), nullable = true) { it.nextPage },
 	Field("items", ListSerializer(AnyInlineSerializer())) { it.items as List<T> }
 )
