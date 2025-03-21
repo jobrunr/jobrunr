@@ -30,6 +30,8 @@ object JobSerializer : KSerializer<Job> {
 		element("jobDetails", JobDetailsSerializer.descriptor)
 		element("jobHistory", jobHistorySerializer.descriptor)
 		element("metadata", MetadataSerializer.descriptor)
+		element("amountOfRetries", Int.serializer().descriptor)
+		element("recurringJobId", String.serializer().descriptor)
 	}
 
 	override fun serialize(encoder: Encoder, value: Job) = encoder.encodeStructure(descriptor) {
@@ -43,16 +45,24 @@ object JobSerializer : KSerializer<Job> {
 		encodeSerializableElement(descriptor, 6, jobHistorySerializer, value.jobStates)
 
 		encodeSerializableElement(descriptor, 7, MetadataSerializer, value.metadata)
+		value.amountOfRetries?.let {
+			encodeIntElement(descriptor, 8, it)
+		}
+		value.recurringJobId.getOrNull()?.let {
+			encodeStringElement(descriptor, 9, it)
+		}
 	}
 
 	override fun deserialize(decoder: Decoder): Job = decoder.decodeStructure(descriptor) {
 		lateinit var id: UUID
 		var version = -1
 		lateinit var jobName: String
-		lateinit var labels: List<String>
+		var labels: List<String>? = null
 		lateinit var jobDetails: JobDetails
 		lateinit var jobHistory: List<JobState>
 		lateinit var metadata: Map<String, Any>
+		var amountOfRetries: Int? = null
+		var recurringJobId: String? = null
 
 		while (true) {
 			when (val index = decodeElementIndex(descriptor)) {
@@ -65,6 +75,8 @@ object JobSerializer : KSerializer<Job> {
 				5 -> jobDetails = decodeSerializableElement(descriptor, 5, JobDetailsSerializer)
 				6 -> jobHistory = decodeSerializableElement(descriptor, 6, jobHistorySerializer)
 				7 -> metadata = decodeSerializableElement(descriptor, 7, MetadataSerializer)
+				8 -> amountOfRetries = decodeNullableSerializableElement(descriptor, 8, Int.serializer())
+				9 -> recurringJobId = decodeNullableSerializableElement(descriptor, 8, String.serializer())
 				else -> error("Unexpected index $index")
 			}
 		}
@@ -76,9 +88,10 @@ object JobSerializer : KSerializer<Job> {
 			jobHistory,
 			ConcurrentHashMap(metadata),
 		).apply {
-			setRecurringJobId(recurringJobId.getOrNull())
 			this.jobName = jobName
-			this.labels = labels
+			this.amountOfRetries = amountOfRetries
+			setRecurringJobId(recurringJobId)
+			if (labels != null) this.labels = labels
 		}
 	}
 }

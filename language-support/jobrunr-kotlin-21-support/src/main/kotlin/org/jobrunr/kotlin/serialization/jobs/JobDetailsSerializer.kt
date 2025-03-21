@@ -21,7 +21,8 @@ object JobDetailsSerializer : KSerializer<JobDetails> {
 
 	override fun serialize(encoder: Encoder, value: JobDetails) = encoder.encodeStructure(descriptor) {
 		encodeStringElement(descriptor, 0, value.className)
-		encodeNullableSerializableElement(descriptor, 1, String.serializer(), value.staticFieldName)
+		if (value.staticFieldName != null)
+			encodeStringElement(descriptor, 1, value.staticFieldName)
 		encodeStringElement(descriptor, 2, value.methodName)
 		encodeSerializableElement(descriptor, 3, ListSerializer(JobParameterSerializer), value.jobParameters)
 		encodeBooleanElement(descriptor, 4, value.cacheable)

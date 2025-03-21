@@ -40,7 +40,7 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 		encodeStringElement(descriptor, 0, value.className)
 		encodeStringElement(descriptor, 1, value.actualClassName)
 		try {
-			val serializer = encoder.serializersModule.serializer(value.className, value.actualClassName)
+			val serializer = encoder.serializersModule.jobParameterSerializer(value.className, value.actualClassName)
 				?: throw JobParameterJsonMapperException("No serializer for ${JsonMapperUtils.getActualClassName(value.className, value.actualClassName)}")
 			encodeSerializableElement(descriptor, 2, serializer, value.`object`)
 		} catch (e: ClassNotFoundException) {
@@ -63,17 +63,16 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 				CompositeDecoder.DECODE_DONE -> break
 				0 -> className = decodeStringElement(descriptor, 0)
 				1 -> actualClassName = decodeStringElement(descriptor, 1)
-				2 -> {
-					try {
-						`object` = decodeSerializableElement(descriptor, 2, decoder.serializersModule.serializer(className, actualClassName) ?: continue)
-					} catch (e: Exception) {
-						when (e) {
-							is ClassNotFoundException, is SerializationException -> {
-								val ex = decodeSerializableElement(descriptor, 2, JobParameterNotDeserializableExceptionSerializer)
-								return@decodeStructure JobParameter(className, actualClassName, ex)
-							}
-							else -> throw e
+				2 -> `object` = try {
+					val elementSerializer = decoder.serializersModule.jobParameterSerializer(className, actualClassName)!!
+					decodeSerializableElement(descriptor, 2, elementSerializer)
+				} catch (e: Exception) {
+					when (e) {
+						is ClassNotFoundException, is SerializationException -> {
+							val ex = decodeSerializableElement(descriptor, 2, JobParameterNotDeserializableExceptionSerializer)
+							return@decodeStructure JobParameter(className, actualClassName, ex)
 						}
+						else -> throw e
 					}
 				}
 				else -> error("Unexpected index $index")
@@ -86,4 +85,11 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 			`object`
 		)
 	}
+}
+
+fun SerializersModule.jobParameterSerializer(className: String, actualClassName: String): KSerializer<Any>? {
+	val actualClass = Class.forName(actualClassName).kotlin as KClass<Any>
+	
+	return runCatching { serializer(actualClass) }.getOrNull()
+		?: serializer(Class.forName(className).kotlin as KClass<Any>)
 }

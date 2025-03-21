@@ -5,12 +5,10 @@ package org.jobrunr.kotlin.serialization.jobs.states
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonEncoder
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.*
 import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
@@ -18,9 +16,14 @@ import org.jobrunr.kotlin.serialization.misc.UUIDSerializer
 import java.time.Duration
 import java.time.Instant
 import java.util.*
+import kotlin.reflect.KClass
 
-abstract class DTOSerializer<Java : Any, Kotlin : Any>(private val kDTOSerializer: KSerializer<Kotlin>) : KSerializer<Java> {
-    override val descriptor = kDTOSerializer.descriptor
+abstract class DTOSerializer<Java : Any, Kotlin : Any>(
+    javaClass: KClass<Java>,
+    private val kDTOSerializer: KSerializer<Kotlin>,
+    private val patchJsonMap: (Kotlin, MutableMap<String, JsonElement>) -> Unit = { _, _ -> },
+) : KSerializer<Java> {
+    override val descriptor = SerialDescriptor(javaClass.qualifiedName!!, kDTOSerializer.descriptor)
 
     abstract fun Java.toDTO(): Kotlin
     override fun serialize(encoder: Encoder, value: Java) {
@@ -30,6 +33,8 @@ abstract class DTOSerializer<Java : Any, Kotlin : Any>(private val kDTOSerialize
 
         val jsonObjectMap = encoder.json.encodeToJsonElement(kDTOSerializer, kotlinValue).jsonObject.toMutableMap()
         jsonObjectMap["@class"] = JsonPrimitive(value.javaClass.canonicalName)
+        
+        patchJsonMap(kotlinValue, jsonObjectMap)
 
         encoder.encodeJsonElement(JsonObject(jsonObjectMap))
     }
@@ -48,7 +53,7 @@ data class KDeletedState(
     val createdAt: @Serializable(with = InstantSerializer::class) Instant,
     val reason: String,
 ) {
-    object Serializer : DTOSerializer<DeletedState, KDeletedState>(serializer()) {
+    object Serializer : DTOSerializer<DeletedState, KDeletedState>(DeletedState::class, serializer()) {
         override fun DeletedState.toDTO() = KDeletedState(
             createdAt = createdAt,
             reason = reason,
@@ -65,7 +70,13 @@ data class KScheduledState(
     @Serializable(with = InstantSerializer::class) val scheduledAt: Instant,
     val reason: String? = null,
 ) {
-    object Serializer : DTOSerializer<ScheduledState, KScheduledState>(serializer()) {
+    object Serializer : DTOSerializer<ScheduledState, KScheduledState>(
+        ScheduledState::class,
+        serializer(),
+        patchJsonMap = { it, map ->
+            if (it.reason == null) map.remove(KScheduledState::reason.name)
+        }
+    ) {
         override fun ScheduledState.toDTO() = KScheduledState(
             createdAt = createdAt,
             scheduledAt = scheduledAt,
@@ -86,7 +97,7 @@ data class KEnqueuedState(
     val state: StateName = StateName.ENQUEUED,
     val createdAt: @Serializable(with = InstantSerializer::class) Instant,
 ) {
-    object Serializer : DTOSerializer<EnqueuedState, KEnqueuedState>(serializer()) {
+    object Serializer : DTOSerializer<EnqueuedState, KEnqueuedState>(EnqueuedState::class, serializer()) {
         override fun EnqueuedState.toDTO() = KEnqueuedState(createdAt = createdAt)
 
         override fun KEnqueuedState.fromDTO() = EnqueuedState(createdAt)
@@ -102,7 +113,7 @@ data class KProcessingState(
     val serverName: String,
     val updatedAt: @Serializable(with = InstantSerializer::class) Instant,
 ) {
-    object Serializer : DTOSerializer<ProcessingState, KProcessingState>(serializer()) {
+    object Serializer : DTOSerializer<ProcessingState, KProcessingState>(ProcessingState::class, serializer()) {
         override fun ProcessingState.toDTO() = KProcessingState(
             createdAt = createdAt,
             serverId = serverId,
@@ -126,7 +137,7 @@ data class KSucceededState(
     val latencyDuration: @Serializable(with = DurationSerializer::class) Duration,
     val processDuration: @Serializable(with = DurationSerializer::class) Duration,
 ) {
-    object Serializer : DTOSerializer<SucceededState, KSucceededState>(serializer()) {
+    object Serializer : DTOSerializer<SucceededState, KSucceededState>(SucceededState::class, serializer()) {
         override fun SucceededState.toDTO() = KSucceededState(
             createdAt = createdAt,
             latencyDuration = latencyDuration,
@@ -147,20 +158,14 @@ data class KFailedState(
     val createdAt: @Serializable(with = InstantSerializer::class) Instant,
     val message: String,
     val exceptionType: String,
-    val exceptionMessage: String,
-    val exceptionCauseType: String? = null,
-    val exceptionCauseMessage: String? = null,
     val stackTrace: String,
     val doNotRetry: Boolean = false,
 ) {
-    object Serializer : DTOSerializer<FailedState, KFailedState>(serializer()) {
+    object Serializer : DTOSerializer<FailedState, KFailedState>(FailedState::class, serializer()) {
         override fun FailedState.toDTO() = KFailedState(
             createdAt = createdAt,
             message = message,
             exceptionType = exceptionType,
-            exceptionMessage = exceptionMessage,
-            exceptionCauseType = exceptionCauseType,
-            exceptionCauseMessage = exceptionCauseMessage,
             stackTrace = stackTrace,
             doNotRetry = mustNotRetry(),
         )
@@ -169,9 +174,9 @@ data class KFailedState(
             createdAt,
             message,
             exceptionType,
-            exceptionMessage,
-            exceptionCauseType,
-            exceptionCauseMessage,
+            null,
+            null,
+            null,
             stackTrace,
             doNotRetry
         )

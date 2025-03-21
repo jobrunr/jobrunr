@@ -1,16 +1,14 @@
 package org.jobrunr.kotlin.utils.mapper
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.modules.*
 import org.jobrunr.dashboard.ui.model.problems.Problem
 import org.jobrunr.dashboard.ui.model.problems.Problems
-import org.jobrunr.jobs.states.*
+import org.jobrunr.jobs.states.JobState
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.RecurringJobUIModelSerializer
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.VersionUIModelSerializer
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.CpuAllocationIrregularityProblemSerializer
@@ -25,8 +23,7 @@ import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLineSerializ
 import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLinesSerializer
 import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardProgressSerializer
 import org.jobrunr.kotlin.serialization.jobs.states.*
-import org.jobrunr.kotlin.serialization.misc.DurationSerializer
-import org.jobrunr.kotlin.serialization.misc.QueueSerializer
+import org.jobrunr.kotlin.serialization.misc.*
 import org.jobrunr.kotlin.serialization.storage.*
 import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
 import org.jobrunr.kotlin.serialization.utils.serializer
@@ -71,9 +68,16 @@ private val jobRunrSerializersModule = SerializersModule {
 	contextual(PageSerializer<Any>())
 
 	contextual(DurationSerializer)
+	contextual(InstantSerializer)
+	contextual(OffsetDateTimeSerializer)
+	contextual(LocalDateTimeSerializer)
+	
 	contextual(FileSerializer)
 	@Suppress("UNCHECKED_CAST")
 	contextual(ArrayList::class as KClass<List<Any>>, ListSerializer(AnyInlineSerializer()))
+	@Suppress("UNCHECKED_CAST")
+	contextual(SetSerializer(AnyInlineSerializer()))
+	contextual(UUIDSerializer)
 }
 
 @Suppress("UNCHECKED_CAST")

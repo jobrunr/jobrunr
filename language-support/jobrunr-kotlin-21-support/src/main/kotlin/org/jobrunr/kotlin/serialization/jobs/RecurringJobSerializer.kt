@@ -25,6 +25,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
 		element("version", Int.serializer().descriptor)
 		element("jobName", String.serializer().descriptor)
 		element("amountOfRetries", Int.serializer().descriptor)
+		element("jobSignature", String.serializer().descriptor)
 		element("labels", SetSerializer(String.serializer()).descriptor)
 		element("jobDetails", JobDetailsSerializer.descriptor)
 		element("scheduleExpression", String.serializer().descriptor)
@@ -43,13 +44,16 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
 		encodeStringElement(descriptor, 0, value.id)
 		encodeIntElement(descriptor, 1, value.version)
 		encodeStringElement(descriptor, 2, value.jobName)
-		encodeNullableSerializableElement(descriptor, 3, Int.serializer(), value.amountOfRetries)
-		encodeSerializableElement(descriptor, 4, ListSerializer(String.serializer()), value.labels)
-		encodeSerializableElement(descriptor, 5, JobDetailsSerializer, value.jobDetails)
-		encodeStringElement(descriptor, 6, value.scheduleExpression)
-		encodeStringElement(descriptor, 7, value.zoneId)
-		encodeStringElement(descriptor, 8, value.createdBy.name)
-		encodeStringElement(descriptor, 9, value.createdAt.toString())
+		value.amountOfRetries?.let {
+			encodeIntElement(descriptor, 3, it)
+		}
+		encodeStringElement(descriptor, 4, value.jobSignature)
+		encodeSerializableElement(descriptor, 5, ListSerializer(String.serializer()), value.labels)
+		encodeSerializableElement(descriptor, 6, JobDetailsSerializer, value.jobDetails)
+		encodeStringElement(descriptor, 7, value.scheduleExpression)
+		encodeStringElement(descriptor, 8, value.zoneId)
+		encodeStringElement(descriptor, 9, value.createdBy.name)
+		encodeStringElement(descriptor, 10, value.createdAt.toString())
 	}
 
 	override fun deserialize(decoder: Decoder): RecurringJob = decoder.decodeStructure(descriptor) {
@@ -57,11 +61,12 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
 		var version = -1
 		lateinit var jobName: String
 		var amountOfRetries: Int? = null
-		lateinit var labels: List<String>
+		var jobSignature: String? = null
+		var labels: List<String>? = null
 		lateinit var jobDetails: JobDetails
 		lateinit var scheduleExpression: String
 		lateinit var zoneId: String
-		lateinit var createdBy: RecurringJob.CreatedBy
+		var createdBy: RecurringJob.CreatedBy? = null
 		lateinit var createdAt: String
 
 		while (true) {
@@ -71,12 +76,13 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
 				1 -> version = decodeIntElement(descriptor, 1)
 				2 -> jobName = decodeStringElement(descriptor, 2)
 				3 -> amountOfRetries = decodeNullableSerializableElement(descriptor, 3, Int.serializer())
-				4 -> labels = decodeSerializableElement(descriptor, 4, ListSerializer(String.serializer()))
-				5 -> jobDetails = decodeSerializableElement(descriptor, 5, JobDetailsSerializer)
-				6 -> scheduleExpression = decodeStringElement(descriptor, 6)
-				7 -> zoneId = decodeStringElement(descriptor, 7)
-				8 -> createdBy = RecurringJob.CreatedBy.valueOf(decodeStringElement(createdByDescriptor, 8))
-				9 -> createdAt = decodeStringElement(descriptor, 9)
+				4 -> jobSignature = decodeStringElement(descriptor, 4)
+				5 -> labels = decodeSerializableElement(descriptor, 5, ListSerializer(String.serializer()))
+				6 -> jobDetails = decodeSerializableElement(descriptor, 6, JobDetailsSerializer)
+				7 -> scheduleExpression = decodeStringElement(descriptor, 7)
+				8 -> zoneId = decodeStringElement(descriptor, 8)
+				9 -> createdBy = RecurringJob.CreatedBy.valueOf(decodeStringElement(createdByDescriptor, 9))
+				10 -> createdAt = decodeStringElement(descriptor, 10)
 				else -> error("Unexpected index $index")
 			}
 		}
@@ -92,7 +98,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
 		).apply {
 			this.jobName = jobName
 			this.amountOfRetries = amountOfRetries
-			this.labels = labels
+			if (labels != null) this.labels = labels
 		}
 	}
 }
