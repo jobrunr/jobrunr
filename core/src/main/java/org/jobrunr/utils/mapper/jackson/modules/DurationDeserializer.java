@@ -19,7 +19,7 @@ public class DurationDeserializer extends StdDeserializer<Duration> {
         final BigDecimal durationAsSecAndNanoSec = jsonParser.getDecimalValue();
         return Duration.ofSeconds(
                 durationAsSecAndNanoSec.longValue(),
-                durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(durationAsSecAndNanoSec.scale()).abs().longValue()
+                durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(9).abs().longValue() // nanos = 9
         );
     }
 }

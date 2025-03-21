@@ -12,6 +12,7 @@ import org.jobrunr.stubs.Mocks;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.JsonMapperValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,6 +49,12 @@ abstract class JobMapperTest {
     }
 
     protected abstract JsonMapper getJsonMapper();
+    
+    @Test
+    void testValidateJsonMapper() {
+        assertThatCode(() -> JsonMapperValidator.validateJsonMapper(getJsonMapper()))
+                .doesNotThrowAnyException();
+    }
 
     @Test
     void testSerializeAndDeserializeJobWithVersion() {

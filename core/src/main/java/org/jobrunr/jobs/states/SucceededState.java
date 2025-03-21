@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.states;
 
 import java.time.Duration;
+import java.time.Instant;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class SucceededState extends AbstractJobState {
@@ -13,7 +14,11 @@ public class SucceededState extends AbstractJobState {
     }
 
     public SucceededState(Duration latencyDuration, Duration processDuration) {
-        super(StateName.SUCCEEDED);
+        this(Instant.now(), latencyDuration, processDuration);
+    }
+
+    public SucceededState(Instant createdAt, Duration latencyDuration, Duration processDuration) {
+        super(createdAt, StateName.SUCCEEDED);
         this.latencyDuration = latencyDuration;
         this.processDuration = processDuration;
     }

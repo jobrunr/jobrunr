@@ -59,9 +59,9 @@ class JobDetailsAsmGeneratorForKotlinTest {
     fun testJobLambdaCallMethodReference() {
         val jobDetails = toJobDetails { testService::doWorkWithoutParameters }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWorkWithoutParameters")
-                .hasNoArgs()
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWorkWithoutParameters")
+            .hasNoArgs()
     }
 
     @Test
@@ -88,72 +88,72 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val work: TestService.Work = TestService.Work(5, "string", uuid)
         val jobDetails = toJobDetails { testService.doWork(work) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(work)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(work)
     }
 
     @Test
     fun testJobLambdaCallInstanceMethod_BIPUSH() {
         val jobDetails = toJobDetails { testService.doWork(5) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(5)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(5)
     }
 
     @Test
     fun testJobLambdaCallInstanceMethod_SIPUSH() {
         val jobDetails = toJobDetails { testService.doWorkThatTakesLong(500) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWorkThatTakesLong")
-                .hasArgs(500)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWorkThatTakesLong")
+            .hasArgs(500)
     }
 
     @Test
     fun testJobLambdaCallInstanceMethod_LCONST() {
         val jobDetails = toJobDetails { testService.doWorkThatTakesLong(1L) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWorkThatTakesLong")
-                .hasArgs(1L)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWorkThatTakesLong")
+            .hasArgs(1L)
     }
 
     @Test
     fun testInlineJobLambdaCallInstanceMethod() {
         val jobDetails = toJobDetails { testService.doWork() }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasNoArgs()
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasNoArgs()
     }
 
     @Test
     fun testJobLambdaWithIntegerAndJobContext() {
         val jobDetails = toJobDetails { testService.doWork(3, JobContext.Null) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(3, JobContext.Null)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(3, JobContext.Null)
     }
 
     @Test
     fun testJobLambdaWithDouble() {
         val jobDetails = toJobDetails { testService.doWork(3.3) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(3.3)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(3.3)
     }
 
     @Test
     fun testJobLambdaWithMultipleInts() {
         val jobDetails = toJobDetails { testService.doWork(3, 97693) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(3, 97693)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(3, 97693)
     }
 
     @Test
@@ -162,9 +162,9 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val now = Instant.now()
             val jobDetails = toJobDetails { testService.doWork("some string", i, now) }
             assertThat(jobDetails)
-                    .hasClass(TestService::class.java)
-                    .hasMethodName("doWork")
-                    .hasArgs("some string", i, now)
+                .hasClass(TestService::class.java)
+                .hasMethodName("doWork")
+                .hasArgs("some string", i, now)
         }
     }
 
@@ -176,10 +176,10 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val jobParameter = jobDetails.jobParameters[0]
             assertThat(jobParameter.className).isEqualTo(TestService.Work::class.java.name)
             assertThat(jobParameter.getObject())
-                    .isInstanceOf(TestService.Work::class.java)
-                    .hasFieldOrPropertyWithValue("workCount", i)
-                    .hasFieldOrPropertyWithValue("someString", "a String")
-                    .hasFieldOrProperty("uuid")
+                .isInstanceOf(TestService.Work::class.java)
+                .hasFieldOrPropertyWithValue("workCount", i)
+                .hasFieldOrPropertyWithValue("someString", "a String")
+                .hasFieldOrProperty("uuid")
         }
     }
 
@@ -190,8 +190,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(File::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(File::class.java)
-                .isEqualTo(File("/tmp/file.txt"))
+            .isInstanceOf(File::class.java)
+            .isEqualTo(File("/tmp/file.txt"))
     }
 
     @Test
@@ -202,8 +202,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(Path::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(Path::class.java)
-                .isEqualTo(path)
+            .isInstanceOf(Path::class.java)
+            .isEqualTo(path)
     }
 
     @Test
@@ -213,8 +213,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(Path::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(Path::class.java)
-                .isEqualTo(Paths.get("/tmp/file.txt"))
+            .isInstanceOf(Path::class.java)
+            .isEqualTo(Paths.get("/tmp/file.txt"))
     }
 
     @Test
@@ -224,8 +224,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(Path::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(Path::class.java)
-                .isEqualTo(Paths.get("/tmp/folder/subfolder/file.txt"))
+            .isInstanceOf(Path::class.java)
+            .isEqualTo(Paths.get("/tmp/folder/subfolder/file.txt"))
     }
 
     @Test
@@ -235,8 +235,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(Path::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(Path::class.java)
-                .isEqualTo(Paths.get("/tmp/file.txt"))
+            .isInstanceOf(Path::class.java)
+            .isEqualTo(Paths.get("/tmp/file.txt"))
     }
 
     @Test
@@ -249,10 +249,10 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val jobParameter = jobDetails.jobParameters[0]
             assertThat(jobParameter.className).isEqualTo(TestService.Work::class.java.name)
             assertThat(jobParameter.getObject())
-                    .isInstanceOf(TestService.Work::class.java)
-                    .hasFieldOrPropertyWithValue("workCount", i)
-                    .hasFieldOrPropertyWithValue("someString", "a String")
-                    .hasFieldOrProperty("uuid")
+                .isInstanceOf(TestService.Work::class.java)
+                .hasFieldOrPropertyWithValue("workCount", i)
+                .hasFieldOrPropertyWithValue("someString", "a String")
+                .hasFieldOrProperty("uuid")
         }
     }
 
@@ -260,17 +260,17 @@ class JobDetailsAsmGeneratorForKotlinTest {
     fun testJobLambdaWithSupportedPrimitiveTypes() {
         val jobDetails = toJobDetails { testService.doWork(true, 3, 5L, 3.3f, 2.3) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(true, 3, 5L, 3.3f, 2.3)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(true, 3, 5L, 3.3f, 2.3)
     }
 
     @Test
     fun testJobLambdaWithUnsupportedPrimitiveTypes() {
         assertThatThrownBy { toJobDetails { testService.doWork(0x3.toByte(), 2.toShort(), 'c') } }
-                .isInstanceOf(JobRunrException::class.java)
-                .hasMessage("Error parsing lambda")
-                .hasCauseInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(JobRunrException::class.java)
+            .hasMessage("Error parsing lambda")
+            .hasCauseInstanceOf(IllegalArgumentException::class.java)
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)
@@ -287,14 +287,14 @@ class JobDetailsAsmGeneratorForKotlinTest {
             println("This is a test: $testId; $someInt; $someDouble; $someFloat; $someLong; $someBoolean; $someEnum; $now")
         }
         assertThat(jobDetails)
-                .hasClass(System::class.java)
-                .hasStaticFieldName("out")
-                .hasMethodName("println")
-                .hasArg { obj: Any ->
-                    (obj.toString().startsWith("This is a test: ")
-                            && obj.toString().contains(" 6; 5.3; 5.3; 3; true; Value1;")
-                            && obj.toString().contains(substringBeforeLast(LocalDateTime.now().toString(), ":")))
-                }
+            .hasClass(System::class.java)
+            .hasStaticFieldName("out")
+            .hasMethodName("println")
+            .hasArg { obj: Any ->
+                (obj.toString().startsWith("This is a test: ")
+                        && obj.toString().contains(" 6; 5.3; 5.3; 3; true; Value1;")
+                        && obj.toString().contains(substringBeforeLast(LocalDateTime.now().toString(), ":")))
+            }
     }
 
     @Test
@@ -304,9 +304,9 @@ class JobDetailsAsmGeneratorForKotlinTest {
             testService.doWork(testId)
         }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArg { obj: Any? -> obj is UUID }
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArg { obj: Any? -> obj is UUID }
     }
 
     @Test
@@ -322,26 +322,27 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(TestService.Work::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(TestService.Work::class.java)
-                .hasFieldOrPropertyWithValue("workCount", 2)
-                .hasFieldOrPropertyWithValue("someString", "a String")
-                .hasFieldOrProperty("uuid")
+            .isInstanceOf(TestService.Work::class.java)
+            .hasFieldOrPropertyWithValue("workCount", 2)
+            .hasFieldOrPropertyWithValue("someString", "a String")
+            .hasFieldOrProperty("uuid")
     }
 
     @Test
     fun testJobLambdaWhichReturnsSomething() {
         val jobDetails = toJobDetails { testService.doWorkAndReturnResult("someString") }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWorkAndReturnResult")
-                .hasArgs("someString")
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWorkAndReturnResult")
+            .hasArgs("someString")
     }
 
     @Test
     fun testJobLambdaWithStream() {
         val workStream: Sequence<UUID> = workSequence()
         val atomicInteger = AtomicInteger()
-        val allJobDetails = toJobDetails(workStream) { uuid: UUID -> testService.doWork(uuid.toString(), atomicInteger.incrementAndGet(), Instant.now()) }.toList()
+        val allJobDetails =
+            toJobDetails(workStream) { uuid: UUID -> testService.doWork(uuid.toString(), atomicInteger.incrementAndGet(), Instant.now()) }.toList()
         assertThat(allJobDetails).hasSize(5)
         assertThat(allJobDetails[0]).hasClass(TestService::class.java).hasMethodName("doWork")
         assertThat(allJobDetails[0].jobParameters[1].getObject()).isEqualTo(1)
@@ -364,54 +365,54 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val uuid = UUID.randomUUID()
         val jobDetails: JobDetails = toJobDetails { doWorkWithUUID(uuid) }
         assertThat(jobDetails)
-                .hasClass(JobDetailsAsmGeneratorForKotlinTest::class.java)
-                .hasMethodName("doWorkWithUUID")
-                .hasArgs(uuid)
+            .hasClass(JobDetailsAsmGeneratorForKotlinTest::class.java)
+            .hasMethodName("doWorkWithUUID")
+            .hasArgs(uuid)
     }
 
     @Test
     fun testIocJobLambda() {
         val jobDetails = toJobDetails<TestService> { it.doWork() }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasNoArgs()
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasNoArgs()
     }
 
     @Test
     fun testInlineIocJobLambda() {
         val jobDetails = toJobDetails<TestService> { it.doWork(5) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(5)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(5)
     }
 
     @Test
     fun testIocJobLambdaWithIntegerAndJobContext() {
         val jobDetails = toJobDetails<TestService> { it.doWork(3, JobContext.Null) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(3, JobContext.Null)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(3, JobContext.Null)
     }
 
     @Test
     fun testIocJobLambdaWithDouble() {
         val jobDetails = toJobDetails<TestService> { it.doWork(3456.3) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(3456.3)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(3456.3)
     }
 
     @Test
     fun testIocJobLambdaWithMultipleInts() {
         val jobDetails = toJobDetails<TestService> { it.doWork(3, 97693) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(3, 97693)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(3, 97693)
     }
 
     @Test
@@ -420,9 +421,9 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val now = Instant.now()
             val jobDetails = toJobDetails<TestService> { it.doWork("some string", i, now) }
             assertThat(jobDetails)
-                    .hasClass(TestService::class.java)
-                    .hasMethodName("doWork")
-                    .hasArgs("some string", i, now)
+                .hasClass(TestService::class.java)
+                .hasMethodName("doWork")
+                .hasArgs("some string", i, now)
         }
     }
 
@@ -434,10 +435,10 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val jobParameter = jobDetails.jobParameters[0]
             assertThat(jobParameter.className).isEqualTo(TestService.Work::class.java.name)
             assertThat(jobParameter.getObject())
-                    .isInstanceOf(TestService.Work::class.java)
-                    .hasFieldOrPropertyWithValue("workCount", i)
-                    .hasFieldOrPropertyWithValue("someString", "a String")
-                    .hasFieldOrProperty("uuid")
+                .isInstanceOf(TestService.Work::class.java)
+                .hasFieldOrPropertyWithValue("workCount", i)
+                .hasFieldOrPropertyWithValue("someString", "a String")
+                .hasFieldOrProperty("uuid")
         }
     }
 
@@ -448,8 +449,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(File::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(File::class.java)
-                .isEqualTo(File("/tmp/file.txt"))
+            .isInstanceOf(File::class.java)
+            .isEqualTo(File("/tmp/file.txt"))
     }
 
     @Test
@@ -460,8 +461,8 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(Path::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(Path::class.java)
-                .isEqualTo(path)
+            .isInstanceOf(Path::class.java)
+            .isEqualTo(path)
     }
 
     @Test
@@ -473,10 +474,10 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val jobParameter = jobDetails.jobParameters[0]
             assertThat(jobParameter.className).isEqualTo(TestService.Work::class.java.name)
             assertThat(jobParameter.getObject())
-                    .isInstanceOf(TestService.Work::class.java)
-                    .hasFieldOrPropertyWithValue("workCount", i)
-                    .hasFieldOrPropertyWithValue("someString", "a String")
-                    .hasFieldOrProperty("uuid")
+                .isInstanceOf(TestService.Work::class.java)
+                .hasFieldOrPropertyWithValue("workCount", i)
+                .hasFieldOrPropertyWithValue("someString", "a String")
+                .hasFieldOrProperty("uuid")
         }
     }
 
@@ -484,9 +485,9 @@ class JobDetailsAsmGeneratorForKotlinTest {
     fun testIocJobLambdaWithSupportedPrimitiveTypes() {
         val jobDetails = toJobDetails<TestService> { it.doWork(true, 3, 5L, 3.3f, 2.3) }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasArgs(true, 3, 5L, 3.3f, 2.3)
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasArgs(true, 3, 5L, 3.3f, 2.3)
     }
 
     @Test
@@ -498,18 +499,18 @@ class JobDetailsAsmGeneratorForKotlinTest {
             val finalD = 2.3 + i
             val jobDetails = toJobDetails<TestService> { it.doWork(finalB, i, finalL, finalF, finalD) }
             assertThat(jobDetails)
-                    .hasClass(TestService::class.java)
-                    .hasMethodName("doWork")
-                    .hasArgs(i % 2 == 0, i, 5L + i, 3.3f + i, 2.3 + i)
+                .hasClass(TestService::class.java)
+                .hasMethodName("doWork")
+                .hasArgs(i % 2 == 0, i, 5L + i, 3.3f + i, 2.3 + i)
         }
     }
 
     @Test
     fun testIocJobLambdaWithUnsupportedPrimitiveTypes() {
         assertThatThrownBy { toJobDetails<TestService> { it.doWork(0x3.toByte(), 2.toShort(), 'c') } }
-                .isInstanceOf(JobRunrException::class.java)
-                .hasMessage("Error parsing lambda")
-                .hasCauseInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(JobRunrException::class.java)
+            .hasMessage("Error parsing lambda")
+            .hasCauseInstanceOf(IllegalArgumentException::class.java)
     }
 
     @Test
@@ -517,18 +518,18 @@ class JobDetailsAsmGeneratorForKotlinTest {
         assertThatCode { jobDetailsGenerator.toJobDetails(5, { x: TestService, i: Int? -> x.doWork() }) }.doesNotThrowAnyException()
         val jobDetails = jobDetailsGenerator.toJobDetails(5, { x: TestService, i: Int? -> x.doWork() })
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasNoArgs()
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasNoArgs()
     }
 
     @Test
     fun testIocJobLambdaWhichReturnsSomething() {
         val jobDetails = toJobDetails<TestService> { it.doWorkAndReturnResult("someString") }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWorkAndReturnResult")
-                .hasArgs("someString")
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWorkAndReturnResult")
+            .hasArgs("someString")
     }
 
     @Test
@@ -536,7 +537,13 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val workSequence: Sequence<UUID> = workSequence()
         val atomicInteger = AtomicInteger()
 
-        val allJobDetails = toJobDetails<TestService, UUID>(workSequence) { service: TestService, uuid: UUID -> service.doWork(uuid.toString(), atomicInteger.incrementAndGet(), Instant.now()) }.toList()
+        val allJobDetails = toJobDetails<TestService, UUID>(workSequence) { service: TestService, uuid: UUID ->
+            service.doWork(
+                uuid.toString(),
+                atomicInteger.incrementAndGet(),
+                Instant.now()
+            )
+        }.toList()
         assertThat(allJobDetails).hasSize(5)
         assertThat(allJobDetails[0]).hasClass(TestService::class.java).hasMethodName("doWork")
         assertThat(allJobDetails[0].jobParameters[1].getObject()).isEqualTo(1)
@@ -550,41 +557,37 @@ class JobDetailsAsmGeneratorForKotlinTest {
         val jobParameter = jobDetails.jobParameters[0]
         assertThat(jobParameter.className).isEqualTo(TestService.Work::class.java.name)
         assertThat(jobParameter.getObject())
-                .isInstanceOf(TestService.Work::class.java)
-                .hasFieldOrPropertyWithValue("workCount", 2)
-                .hasFieldOrPropertyWithValue("someString", "a String")
-                .hasFieldOrProperty("uuid")
+            .isInstanceOf(TestService.Work::class.java)
+            .hasFieldOrPropertyWithValue("workCount", 2)
+            .hasFieldOrPropertyWithValue("someString", "a String")
+            .hasFieldOrProperty("uuid")
     }
 
     @Test
     fun testInlineJobLambdaFromInterface() {
         val jobDetails = toJobDetails { testServiceInterface.doWork() }
         assertThat(jobDetails)
-                .hasClass(TestService::class.java)
-                .hasMethodName("doWork")
-                .hasNoArgs()
+            .hasClass(TestService::class.java)
+            .hasMethodName("doWork")
+            .hasNoArgs()
     }
 
     @Test
     fun testMethodReferenceJobLambdaFromInterface() {
         val jobDetails = toJobDetails { testServiceInterface::doWork }
         assertThat(jobDetails)
-                .hasClass(TestServiceInterface::class.java)
-                .hasMethodName("doWork")
-                .hasNoArgs()
+            .hasClass(TestServiceInterface::class.java)
+            .hasMethodName("doWork")
+            .hasNoArgs()
     }
 
     @Test
     fun testMethodReferenceJobLambdaInSameClass() {
         val jobDetails = toJobDetails(::doWorkWithUUID)
         assertThat(jobDetails)
-                .hasClass(JobDetailsAsmGeneratorForKotlinTest::class.java)
-                .hasMethodName("doWorkWithUUID")
-                .hasNoArgs()
-    }
-
-    fun bla(job: JobLambda) {
-        job.run()
+            .hasClass(JobDetailsAsmGeneratorForKotlinTest::class.java)
+            .hasMethodName("doWorkWithUUID")
+            .hasNoArgs()
     }
 
     fun toJobDetails(job: JobLambda): JobDetails {
@@ -597,12 +600,12 @@ class JobDetailsAsmGeneratorForKotlinTest {
 
     fun <T> toJobDetails(input: Sequence<T>, jobFromStream: JobLambdaFromStream<T>): Sequence<JobDetails> {
         return input
-                .map { x -> jobDetailsGenerator.toJobDetails(x, jobFromStream) }
+            .map { x -> jobDetailsGenerator.toJobDetails(x, jobFromStream) }
     }
 
     inline fun <reified S, T> toJobDetails(input: Sequence<T>, jobFromStream: IocJobLambdaFromStream<S, T>): Sequence<JobDetails> {
         return input
-                .map { x -> jobDetailsGenerator.toJobDetails(x, jobFromStream) }
+            .map { x -> jobDetailsGenerator.toJobDetails(x, jobFromStream) }
     }
 
     fun workSequence(): Sequence<UUID> {
