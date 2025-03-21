@@ -1,84 +1,19 @@
 package org.jobrunr.kotlin.utils.mapper
 
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
-import kotlinx.serialization.modules.*
-import org.jobrunr.dashboard.ui.model.problems.Problem
-import org.jobrunr.dashboard.ui.model.problems.Problems
-import org.jobrunr.jobs.states.JobState
-import org.jobrunr.kotlin.serialization.dashboard.ui.model.RecurringJobUIModelSerializer
-import org.jobrunr.kotlin.serialization.dashboard.ui.model.VersionUIModelSerializer
-import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.CpuAllocationIrregularityProblemSerializer
-import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.PollIntervalInSecondsTimeBoxIsTooSmallProblemSerializer
-import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.ScheduledJobsNotFoundProblemSerializer
-import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.SevereJobRunrExceptionProblemSerializer
-import org.jobrunr.kotlin.serialization.jobs.JobParameterNotDeserializableExceptionSerializer
-import org.jobrunr.kotlin.serialization.jobs.JobSerializer
-import org.jobrunr.kotlin.serialization.jobs.RecurringJobSerializer
-import org.jobrunr.kotlin.serialization.jobs.context.JobContextSerializer
-import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLineSerializer
-import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLinesSerializer
-import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardProgressSerializer
-import org.jobrunr.kotlin.serialization.jobs.states.*
-import org.jobrunr.kotlin.serialization.misc.*
-import org.jobrunr.kotlin.serialization.storage.*
-import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.plus
 import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapper
 import org.slf4j.LoggerFactory
 import java.io.OutputStream
-import java.util.*
 import kotlin.reflect.KClass
-
-private val jobRunrSerializersModule = SerializersModule {
-	polymorphic(JobState::class) {
-		subclass(KDeletedState.Serializer)
-		subclass(KEnqueuedState.Serializer)
-		subclass(KFailedState.Serializer)
-		subclass(KProcessingState.Serializer)
-		subclass(KScheduledState.Serializer)
-		subclass(KSucceededState.Serializer)
-	}
-	contextual(JobSerializer)
-	contextual(RecurringJobSerializer)
-	contextual(JobParameterNotDeserializableExceptionSerializer)
-	contextual(JobContextSerializer)
-	contextual(JobDashboardLogLineSerializer)
-	contextual(JobDashboardLogLinesSerializer)
-	contextual(JobDashboardProgressSerializer)
-
-	contextual(JobStatsSerializer)
-	contextual(JobStatsExtendedSerializer)
-	contextual(BackgroundJobServerStatusSerializer)
-	contextual(RecurringJobUIModelSerializer)
-	contextual(VersionUIModelSerializer)
-	contextual(JobRunrMetadataSerializer)
-	@Suppress("UNCHECKED_CAST")
-	contextual(Problems::class as KClass<Queue<Problem>>, QueueSerializer(AnyInlineSerializer()))
-	polymorphic(Problem::class) {
-		subclass(CpuAllocationIrregularityProblemSerializer)
-		subclass(PollIntervalInSecondsTimeBoxIsTooSmallProblemSerializer)
-		subclass(ScheduledJobsNotFoundProblemSerializer)
-		subclass(SevereJobRunrExceptionProblemSerializer)
-	}
-	contextual(PageSerializer<Any>())
-
-	contextual(DurationSerializer)
-	contextual(InstantSerializer)
-	contextual(OffsetDateTimeSerializer)
-	contextual(LocalDateTimeSerializer)
-	
-	contextual(FileSerializer)
-	@Suppress("UNCHECKED_CAST")
-	contextual(ArrayList::class as KClass<List<Any>>, ListSerializer(AnyInlineSerializer()))
-	@Suppress("UNCHECKED_CAST")
-	contextual(SetSerializer(AnyInlineSerializer()))
-	contextual(UUIDSerializer)
-}
 
 @Suppress("UNCHECKED_CAST")
 @ExperimentalSerializationApi
