@@ -1,28 +1,24 @@
 package org.jobrunr.kotlin.serialization.jobs
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.modules.SerializersModule
 import org.jobrunr.jobs.JobParameter
 import org.jobrunr.jobs.JobParameterNotDeserializableException
+import org.jobrunr.kotlin.serialization.utils.AnySerializer
 import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapperUtils
 import kotlin.reflect.KClass
 
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
 object JobParameterSerializer : KSerializer<JobParameter> {
-	override val descriptor = buildClassSerialDescriptor("org.jobrunr.jobs.JobParameter") {
+	override val descriptor = buildClassSerialDescriptor(JobParameter::class.qualifiedName!!) {
 		element("className", String.serializer().descriptor)
 		element("actualClassName", String.serializer().descriptor)
-		element("object", buildSerialDescriptor("org.jobrunr.kotlin.serialization.KJobParameter#object", SerialKind.CONTEXTUAL))
+		element("object", AnySerializer<Any>().descriptor)
 	}
 
 	private fun SerializersModule.serializer(className: String, actualClassName: String): KSerializer<Any>? {

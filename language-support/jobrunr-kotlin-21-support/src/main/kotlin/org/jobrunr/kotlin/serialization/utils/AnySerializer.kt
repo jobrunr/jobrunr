@@ -1,6 +1,5 @@
 package org.jobrunr.kotlin.serialization.utils
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -10,7 +9,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlin.reflect.KClass
 
-@OptIn(ExperimentalSerializationApi::class)
 open class AnySerializer<T : Any> : KSerializer<Any> {
 	override val descriptor =
 		buildClassSerialDescriptor(AnySerializer::class.qualifiedName!!) {

@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package org.jobrunr.kotlin.serialization.jobs.states
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -21,7 +18,6 @@ import kotlin.reflect.KClass
 abstract class DTOSerializer<Java : Any, Kotlin : Any>(
     javaClass: KClass<Java>,
     private val kDTOSerializer: KSerializer<Kotlin>,
-    private val patchJsonMap: (Kotlin, MutableMap<String, JsonElement>) -> Unit = { _, _ -> },
 ) : KSerializer<Java> {
     override val descriptor = SerialDescriptor(javaClass.qualifiedName!!, kDTOSerializer.descriptor)
 
@@ -33,8 +29,8 @@ abstract class DTOSerializer<Java : Any, Kotlin : Any>(
 
         val jsonObjectMap = encoder.json.encodeToJsonElement(kDTOSerializer, kotlinValue).jsonObject.toMutableMap()
         jsonObjectMap["@class"] = JsonPrimitive(value.javaClass.canonicalName)
-        
-        patchJsonMap(kotlinValue, jsonObjectMap)
+
+        jsonObjectMap.entries.removeIf { it.value is JsonNull }
 
         encoder.encodeJsonElement(JsonObject(jsonObjectMap))
     }
@@ -69,25 +65,21 @@ data class KScheduledState(
     @Serializable(with = InstantSerializer::class) val createdAt: Instant,
     @Serializable(with = InstantSerializer::class) val scheduledAt: Instant,
     val reason: String? = null,
+    val recurringJobId: String? = null,
 ) {
-    object Serializer : DTOSerializer<ScheduledState, KScheduledState>(
-        ScheduledState::class,
-        serializer(),
-        patchJsonMap = { it, map ->
-            if (it.reason == null) map.remove(KScheduledState::reason.name)
-        }
-    ) {
+    object Serializer : DTOSerializer<ScheduledState, KScheduledState>(ScheduledState::class, serializer()) {
         override fun ScheduledState.toDTO() = KScheduledState(
             createdAt = createdAt,
             scheduledAt = scheduledAt,
             reason = reason,
+            recurringJobId = recurringJobId,
         )
 
         override fun KScheduledState.fromDTO() = ScheduledState(
             createdAt,
             scheduledAt,
             reason,
-            null,
+            recurringJobId,
         )
     }
 }
@@ -158,6 +150,9 @@ data class KFailedState(
     val createdAt: @Serializable(with = InstantSerializer::class) Instant,
     val message: String,
     val exceptionType: String,
+    val exceptionMessage: String? = null,
+    val exceptionCauseType: String? = null,
+    val exceptionCauseMessage: String? = null,
     val stackTrace: String,
     val doNotRetry: Boolean = false,
 ) {
@@ -166,6 +161,9 @@ data class KFailedState(
             createdAt = createdAt,
             message = message,
             exceptionType = exceptionType,
+            exceptionMessage = exceptionMessage,
+            exceptionCauseType = exceptionCauseType,
+            exceptionCauseMessage = exceptionCauseMessage,
             stackTrace = stackTrace,
             doNotRetry = mustNotRetry(),
         )
@@ -174,9 +172,9 @@ data class KFailedState(
             createdAt,
             message,
             exceptionType,
-            null,
-            null,
-            null,
+            exceptionMessage,
+            exceptionCauseType,
+            exceptionCauseMessage,
             stackTrace,
             doNotRetry
         )

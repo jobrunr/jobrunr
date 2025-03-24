@@ -26,6 +26,7 @@ import org.jobrunr.kotlin.serialization.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.*
 import org.jobrunr.kotlin.serialization.storage.*
 import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
+import org.jobrunr.kotlin.serialization.utils.AnySerializer
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -70,7 +71,6 @@ internal val jobRunrSerializersModule = SerializersModule {
 	contextual(FileSerializer)
 	@Suppress("UNCHECKED_CAST")
 	contextual(ArrayList::class as KClass<List<Any>>, ListSerializer(AnyInlineSerializer()))
-	@Suppress("UNCHECKED_CAST")
-	contextual(SetSerializer(AnyInlineSerializer()))
+	contextual(SetSerializer(AnySerializer<Any>()))
 	contextual(UUIDSerializer)
 }

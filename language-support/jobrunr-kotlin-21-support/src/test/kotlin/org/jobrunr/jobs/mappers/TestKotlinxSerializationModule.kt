@@ -79,8 +79,37 @@ object TestServiceWorkSerializer : KSerializer<TestService.Work> {
 	}
 }
 
+object TestServiceSimpleCommandSerializer : KSerializer<TestService.SimpleCommand> {
+	override val descriptor = buildClassSerialDescriptor(TestService.Work::class.qualifiedName!!) {
+		element("string", String.serializer().descriptor)
+		element("integer", Int.serializer().descriptor)
+	}
+
+	override fun serialize(encoder: Encoder, value: TestService.SimpleCommand) = encoder.encodeStructure(descriptor) {
+		encodeStringElement(descriptor, 0, value.string)
+		encodeIntElement(descriptor, 1, value.integer)
+	}
+
+	override fun deserialize(decoder: Decoder): TestService.SimpleCommand = decoder.decodeStructure(descriptor) {
+		lateinit var string: String
+		var integer = 0
+
+		while (true) {
+			when (val index = decodeElementIndex(descriptor)) {
+				0 -> string = decodeStringElement(descriptor, 0)
+				1 -> integer = decodeIntElement(descriptor, 1)
+				CompositeDecoder.DECODE_DONE -> break
+				else -> error("Unexpected index: $index")
+			}
+		}
+
+		TestService.SimpleCommand(string, integer)
+	}
+}
+
 val testModule = SerializersModule {
 	contextual(IllegalWorkSerializer)
 	contextual(PathSerializer)
 	contextual(TestService.Work::class, TestServiceWorkSerializer)
+	contextual(TestService.SimpleCommand::class, TestServiceSimpleCommandSerializer)
 }
