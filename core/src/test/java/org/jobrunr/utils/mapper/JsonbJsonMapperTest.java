@@ -18,7 +18,7 @@ public class JsonbJsonMapperTest extends AbstractJsonMapperTest {
 
     @Test
     @Disabled("No regression introduced for JsonB coming from 4.0.0")
-    void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
+    protected void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
     }
 
     @Test

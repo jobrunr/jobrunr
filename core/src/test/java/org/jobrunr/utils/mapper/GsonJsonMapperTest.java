@@ -13,7 +13,7 @@ public class GsonJsonMapperTest extends AbstractJsonMapperTest {
 
     @Test
     @Disabled("No regression introduced for Gson coming from 4.0.0")
-    void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
+    protected void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
     }
 
     @Test
