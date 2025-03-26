@@ -214,7 +214,7 @@ public abstract class AbstractJsonMapperTest {
 
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/254")
-    void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
+    protected void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
         // jobs created in 4.0.1
         Job job = aJob()
                 .withId(UUID.fromString("8bf98a10-f673-4fd8-9b9c-43ded0030910"))

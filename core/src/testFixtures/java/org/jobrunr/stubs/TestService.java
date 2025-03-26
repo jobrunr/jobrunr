@@ -478,6 +478,14 @@ public class TestService implements TestServiceInterface {
             LOGGER.debug("Simple Command " + string + " " + integer);
             return null;
         }
+
+        public String getString() {
+            return string;
+        }
+
+        public int getInteger() {
+            return integer;
+        }
     }
 
     public static class GithubIssue335 {

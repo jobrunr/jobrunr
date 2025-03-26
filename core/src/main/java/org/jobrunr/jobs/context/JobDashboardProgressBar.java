@@ -81,7 +81,7 @@ public class JobDashboardProgressBar {
         return JOBRUNR_PROGRESSBAR_KEY + "-" + jobStateNbr;
     }
 
-    private static class JobDashboardProgress implements JobContext.Metadata {
+    public static class JobDashboardProgress implements JobContext.Metadata {
 
         private Long totalAmount;
         private Long succeededAmount;
