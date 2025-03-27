@@ -9,6 +9,7 @@ import org.bson.types.Binary;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -80,6 +81,6 @@ public class MongoUtils {
         if (micros == null) {
             return null;
         }
-        return Instant.ofEpochSecond(micros / 1_000_000, (micros % 1_000_000) * 1_000);
+        return Instant.EPOCH.plus(Duration.of(micros, ChronoUnit.MICROS));
     }
 }

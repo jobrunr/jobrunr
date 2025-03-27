@@ -77,7 +77,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     private List<Job> getJobsToSchedule(RecurringJob recurringJob, Instant from, Instant upUntil) {
         if (isScheduledAheadOfTime(from, upUntil)) return emptyList(); // why: recurringJob is already scheduled ahead of time
         List<Job> scheduledJobs = new ArrayList<>(recurringJob.toScheduledJobs(from, upUntil));
-        if (scheduledJobs.isEmpty() && shouldHaveBeenAlreadyEnqueuedIfScheduledAheadOfTime(from, upUntil)) { // why: schedule one job ahead of time
+        if (scheduledJobs.isEmpty() && shouldAlreadyBeEnqueuedIfScheduledAheadOfTime(from, upUntil)) { // why: schedule one job ahead of time
             scheduledJobs.add(recurringJob.toScheduledJobAheadOfTime(upUntil));
         }
         return scheduledJobs;
@@ -115,8 +115,9 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         return from.isAfter(upUntil);
     }
 
-    private boolean shouldHaveBeenAlreadyEnqueuedIfScheduledAheadOfTime(Instant from, Instant upUntil) {
+    private boolean shouldAlreadyBeEnqueuedIfScheduledAheadOfTime(Instant from, Instant upUntil) {
         // why: the typical scheduling window size is at least a poll interval large; so a job was scheduled ahead of time but not enqueued yet by the ProcessScheduledJobsTask.
+        // this solves the problem of logging isAlreadyScheduledEnqueuedOrProcessing unnecessarily
         return Duration.between(from.plus(backgroundJobServerConfiguration().getPollInterval()), upUntil).toMillis() >= 0;
     }
 }

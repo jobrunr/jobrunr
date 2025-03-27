@@ -3,6 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR;
+import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE;
 import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
@@ -100,7 +102,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
 
         // SECOND RUN - the 1 job scheduled in the first run is still active.
-        try (MockedStatic<Instant> ignored = mockTime(now.plus(backgroundJobServer.getConfiguration().getPollInterval()))) {
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearInvocations(storageProvider);
             when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
@@ -110,7 +112,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         }
 
         // THIRD RUN - the 1 scheduled job is no longer active
-        try (MockedStatic<Instant> ignored = mockTime(now.plus(backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(2)))) {
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearInvocations(storageProvider);
             when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
@@ -156,7 +158,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     void taskSkipsAlreadyScheduledRecurringJobsOnStartup() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
 
-        Instant lastScheduledAt = now().plusSeconds(15);
+        Instant lastScheduledAt = now().plus(pollInterval());
         when(storageProvider.getRecurringJobsLatestScheduledRun()).thenReturn(Map.of(recurringJob.getId(), lastScheduledAt));
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
@@ -188,12 +190,42 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         }
 
 
-        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR.plusSeconds(15))) {
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR.plus(pollInterval()))) {
             clearInvocations(storageProvider);
 
             runTask(task);
 
             verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+        }
+    }
+
+    @Test
+    void taskDoesNotLogInfoMessageIfJobIsAlreadyScheduledEnqueuedOrProcessing() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
+
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE.minus(pollInterval()))) {
+            runTask(task);
+
+            verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+            clearInvocations(storageProvider);
+        }
+
+        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE)) {
+            runTask(task);
+
+            verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
+            assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:00Z - 2022-12-14T08:36:10.500Z (PT10.5S) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.");
+        }
+
+        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE.plus(pollInterval()))) {
+            runTask(task);
+
+            verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
+            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:10.500Z - 2022-12-14T08:36:25.500Z (PT15S) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.");
         }
     }
 

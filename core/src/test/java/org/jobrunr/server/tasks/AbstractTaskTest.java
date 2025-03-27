@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -81,6 +82,10 @@ public abstract class AbstractTaskTest {
                 return new BasicWorkDistributionStrategy(backgroundJobServer, 2);
             }
         });
+    }
+
+    protected Duration pollInterval() {
+        return backgroundJobServer.getConfiguration().getPollInterval();
     }
 
 }
