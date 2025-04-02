@@ -19,24 +19,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 class MySQLTablePrefixStorageProviderTest extends AbstractMySQLStorageProviderTest {
 
-    private static MysqlDataSource dataSource;
-
-    @Override
-    protected DataSource getDataSource() {
-        if (dataSource == null) {
-            dataSource = new MysqlConnectionPoolDataSource();
-            dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true&useSSL=false");
-            dataSource.setUser(sqlContainer.getUsername());
-            dataSource.setPassword(sqlContainer.getPassword());
-        }
-        return dataSource;
-    }
-
-    @AfterAll
-    public static void destroyDatasource() {
-        dataSource = null;
-    }
-
     @Override
     protected StorageProvider getStorageProvider() {
         final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_PREFIX_");

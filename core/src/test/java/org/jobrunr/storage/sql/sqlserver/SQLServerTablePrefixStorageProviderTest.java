@@ -24,22 +24,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SQLServerTablePrefixStorageProviderTest extends AbstractSQLServerStorageProviderTest {
 
-    private static HikariDataSource dataSource;
-
-    @Override
-    protected DataSource getDataSource() {
-        if (dataSource == null) {
-            dataSource = toHikariDataSource(sqlContainer);
-        }
-        return dataSource;
-    }
-
-    @AfterAll
-    public static void destroyDatasource() {
-        dataSource.close();
-        dataSource = null;
-    }
-
     @BeforeAll
     void runInitScript() {
         doInTransaction(getDataSource(),

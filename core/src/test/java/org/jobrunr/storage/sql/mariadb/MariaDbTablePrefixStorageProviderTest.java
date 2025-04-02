@@ -19,23 +19,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 class MariaDbTablePrefixStorageProviderTest extends AbstractMariaDbStorageProviderTest {
 
-    private static MariaDbPoolDataSource dataSource;
-
-    @Override
-    protected DataSource getDataSource() {
-        if (dataSource == null) {
-            try {
-                dataSource = new MariaDbPoolDataSource();
-                dataSource.setUrl(sqlContainer.getJdbcUrl() + "?rewriteBatchedStatements=true&pool=true&useBulkStmts=false");
-                dataSource.setUser(sqlContainer.getUsername());
-                dataSource.setPassword(sqlContainer.getPassword());
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return dataSource;
-    }
-
     @Override
     protected StorageProvider getStorageProvider() {
         final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_PREFIX_");
@@ -58,11 +41,5 @@ class MariaDbTablePrefixStorageProviderTest extends AbstractMariaDbStorageProvid
                 .hasTable("SOME_PREFIX_JOBRUNR_METADATA")
                 .hasView("SOME_PREFIX_JOBRUNR_JOBS_STATS")
                 .hasIndexesMatching(8, new Condition<>(name -> name.startsWith("SOME_PREFIX_JOBRUNR_"), "Index matches"));
-    }
-
-    @AfterAll
-    public static void destroyDatasource() {
-        dataSource.close();
-        dataSource = null;
     }
 }

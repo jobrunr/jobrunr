@@ -12,7 +12,7 @@ public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest 
     private static DataSource dataSource;
 
     @Override
-    protected DataSource getDataSource() {
+    public DataSource getDataSource() {
         return getDataSource(true);
     }
 
