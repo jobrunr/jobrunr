@@ -61,7 +61,7 @@ public class RecurringJob extends AbstractJob {
     public RecurringJob(String id, int version, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
         this(id, version, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
     }
-    
+
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
         this(id, 0, jobDetails, schedule, zoneId, createdBy, createdAt);
     }
@@ -101,12 +101,20 @@ public class RecurringJob extends AbstractJob {
      * @return creates all jobs that must be scheduled
      */
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
+        if (from.isAfter(upTo)) throw new IllegalArgumentException("from must be before upTo");
+
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
+            jobs.add(toJob(ScheduledState.fromRecurringJob(nextRun, this)));
             nextRun = getNextRun(nextRun);
         }
+
+        if (jobs.isEmpty()) {
+            Instant nextRunAtAheadOfTime = getNextRun(upTo);
+            jobs.add(toJob(ScheduledState.fromRecurringJobAheadOfTime(nextRunAtAheadOfTime, this)));
+        }
+
         return jobs;
     }
 

@@ -21,7 +21,6 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -41,19 +40,37 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws Exception {
-        StorageProvider storageProvider = inMemoryStorageProvider();
+        StorageProvider storageProvider = postgresStorageProvider();
 
         //StubDataProvider.using(storageProvider)
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addSomeRecurringJobs();
 
-        storageProvider.saveRecurringJob(aDefaultRecurringJob()
-                .withId("rj-with-labels")
-                .withName("Recurring job with labels")
-                .withCronExpression("*/5 * * * * *")
-                .withLabels("tenant: JobRunr", "a second label", "123")
-                .build());
+//        storageProvider.saveRecurringJob(aDefaultRecurringJob()
+//                .withId("rj-with-labels")
+//                .withName("Recurring job with labels")
+//                .withCronExpression("*/5 * * * * *")
+//                .withLabels("tenant: JobRunr", "a second label", "123")
+//                .build());
+
+        for (int i = 0; i < 1; i++) {
+            storageProvider.saveRecurringJob(aDefaultRecurringJob()
+                    .withId("every-3-m-" + i)
+                    .withName("Every 3 minutes")
+                    .withCronExpression("*/3 * * * *")
+                    .withJobDetails(() -> new TestService().doWork())
+                    .build());
+        }
+
+        for (int i = 0; i < 1; i++) {
+            storageProvider.saveRecurringJob(aDefaultRecurringJob()
+                    .withId("every-1-m-" + i)
+                    .withName("Every 1 minute")
+                    .withCronExpression(Cron.minutely())
+                    .withJobDetails(() -> new TestService().doWork())
+                    .build());
+        }
 
         storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
@@ -73,7 +90,7 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
                 x -> x.doWorkThatTakesLong(JobContext.Null));
 
-        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofSeconds(5), TestService::doWork);
+        //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofSeconds(5), TestService::doWork);
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {
