@@ -15,7 +15,7 @@ class AgroalH2StorageProviderTest extends SqlStorageProviderTest {
     private static AgroalDataSource dataSource;
 
     @Override
-    protected DataSource getDataSource() {
+    public DataSource getDataSource() {
         try {
             if (dataSource == null) {
                 AgroalDataSourceConfigurationSupplier configurationSupplier = new AgroalDataSourceConfigurationSupplier()

@@ -11,7 +11,7 @@ public class CommonsDbcpH2StorageProviderTest extends SqlStorageProviderTest {
     private static BasicDataSource dataSource;
 
     @Override
-    protected BasicDataSource getDataSource() {
+    public BasicDataSource getDataSource() {
         return getDataSource(true);
     }
 

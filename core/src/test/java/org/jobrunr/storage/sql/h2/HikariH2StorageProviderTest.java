@@ -13,7 +13,7 @@ public class HikariH2StorageProviderTest extends SqlStorageProviderTest {
     private static HikariDataSource dataSource;
 
     @Override
-    protected HikariDataSource getDataSource() {
+    public HikariDataSource getDataSource() {
         return getDataSource(true);
     }
 

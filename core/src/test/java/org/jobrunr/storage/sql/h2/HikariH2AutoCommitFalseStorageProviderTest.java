@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 public class HikariH2AutoCommitFalseStorageProviderTest extends HikariH2StorageProviderTest {
 
     @Override
-    protected HikariDataSource getDataSource() {
+    public HikariDataSource getDataSource() {
         return getDataSource(false);
     }
 }
