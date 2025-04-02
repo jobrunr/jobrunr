@@ -379,7 +379,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
-        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_CREATED_AT, toMicroSeconds(updatedBefore))));
+        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))));
         final long deletedCount = deleteResult.getDeletedCount();
         notifyJobStatsOnChangeListenersIf(deletedCount > 0);
         return (int) deletedCount;
