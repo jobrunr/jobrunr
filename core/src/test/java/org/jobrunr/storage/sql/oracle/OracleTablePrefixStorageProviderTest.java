@@ -26,29 +26,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 @RunTestBetween(from = "00:00", to = "03:00")
 public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageProviderTest {
 
-    private static HikariDataSource dataSource;
-
-    @Override
-    protected DataSource getDataSource() {
-        if (dataSource == null) {
-            // dataSource = toHikariDataSource("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"), "system", "oracle");
-
-            System.out.println("==========================================================================================");
-            System.out.println(sqlContainer.getLogs());
-            System.out.println("==========================================================================================");
-
-            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"), sqlContainer.getUsername(), sqlContainer.getPassword());
-        }
-
-        return dataSource;
-    }
-
-    @AfterAll
-    public static void destroyDatasource() {
-        dataSource.close();
-        dataSource = null;
-    }
-
     @BeforeAll
     void runInitScript() {
         doInTransaction(getDataSource(), statement -> {

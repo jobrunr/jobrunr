@@ -166,7 +166,8 @@ public class Job extends AbstractJob {
     public synchronized List<JobState> getStateChangesForJobFilters() {
         int actualStateChanges = stateIndexBeforeStateChange.getAndSet(-1);
         if (actualStateChanges < 0) return emptyList();
-        return new ArrayList<>(jobHistory).subList(actualStateChanges, jobHistory.size());
+        List<JobState> history = new ArrayList<>(jobHistory);
+        return history.subList(actualStateChanges, history.size());
     }
 
     public void enqueue() {
@@ -242,7 +243,7 @@ public class Job extends AbstractJob {
         if (isIllegalStateChange(getState(), jobState.getName())) {
             throw new IllegalJobStateChangeException(getState(), jobState.getName());
         }
-        try (Lock lock = lock()) {
+        try (Lock ignored = lock()) {
             this.stateIndexBeforeStateChange.compareAndSet(-1, this.jobHistory.size());
             this.jobHistory.add(jobState);
         }

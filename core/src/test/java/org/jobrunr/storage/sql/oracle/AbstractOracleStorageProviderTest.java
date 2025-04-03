@@ -1,7 +1,9 @@
 package org.jobrunr.storage.sql.oracle;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.SqlStorageProviderTest;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.extension.AfterAllSubclasses;
 import org.junit.jupiter.extension.BeforeAllSubclasses;
@@ -13,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 import static java.time.Instant.now;
+import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractOracleStorageProviderTest extends SqlStorageProviderTest {
@@ -29,6 +32,29 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
         Instant before = now();
         sqlContainer.start();
         printSqlContainerDetails(sqlContainer, Duration.between(before, now()));
+    }
+
+    protected static HikariDataSource dataSource;
+
+    @Override
+    public DataSource getDataSource() {
+        if (dataSource == null) {
+            // dataSource = toHikariDataSource("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"), "system", "oracle");
+
+            System.out.println("==========================================================================================");
+            System.out.println(sqlContainer.getLogs());
+            System.out.println("==========================================================================================");
+
+            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"), sqlContainer.getUsername(), sqlContainer.getPassword());
+        }
+
+        return dataSource;
+    }
+
+    @AfterAll
+    public static void destroyDatasource() {
+        dataSource.close();
+        dataSource = null;
     }
 
     @AfterAllSubclasses

@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 /**
  * This class is used to build a {@link Job} using a job lambda or a {@link JobRequest}.
@@ -208,7 +207,6 @@ public class JobBuilder {
             throw new IllegalArgumentException("JobRequest must be present.");
         }
         JobDetails jobDetails = new JobDetails(jobRequest);
-        assertJobExists(jobDetails);
         return build(jobDetails);
     }
 
