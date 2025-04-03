@@ -1,4 +1,4 @@
-package org.jobrunr.tests.e2e;
+package org.jobrunr.tests.server;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.configuration.JobRunrConfiguration;
@@ -12,29 +12,52 @@ import java.util.Calendar;
 
 import static java.util.Arrays.asList;
 
-public abstract class AbstractMain {
+public abstract class AbstractSimpleBackgroundJobServer {
 
-    public AbstractMain(String[] args) throws Exception {
-        if (args.length < 1) {
-            startBackgroundJobServerInRunningState(getJsonMapper(args));
-        } else if (asList(args).contains("--pause")) {
-            startBackgroundJobServerInPausedState(getJsonMapper(args));
-        } else {
-            System.out.println("Did not start server");
-        }
+    private JsonMapper jsonMapper;
+    private boolean paused;
+
+    public AbstractSimpleBackgroundJobServer withGsonMapper() {
+        this.jsonMapper = new GsonJsonMapper();
+        return this;
     }
 
-    private JsonMapper getJsonMapper(String[] args) {
-        if (args != null && args.length > 0) {
-            if (asList(args).contains("--jackson")) {
-                return new JacksonJsonMapper();
-            } else if (asList(args).contains("--gson")) {
-                return new GsonJsonMapper();
-            } else if (asList(args).contains("--jsonb")) {
-                return new JsonbJsonMapper();
-            }
+    public AbstractSimpleBackgroundJobServer withJacksonMapper() {
+        this.jsonMapper = new JacksonJsonMapper();
+        return this;
+    }
+
+    public AbstractSimpleBackgroundJobServer withJsonBMapper() {
+        this.jsonMapper = new JsonbJsonMapper();
+        return this;
+    }
+    
+    public AbstractSimpleBackgroundJobServer withPaused() {
+        this.paused = true;
+        return this;
+    }
+
+    public void stop() {
+        JobRunr.destroy();
+    }
+
+    public void start() {
+        try {
+            StorageProvider storageProvider = initStorageProvider();
+
+            JobRunrConfiguration jobRunrConfiguration = JobRunr
+                    .configure()
+                    .useJsonMapper(jsonMapper)
+                    .useStorageProvider(storageProvider);
+            loadDefaultData(storageProvider);
+
+            jobRunrConfiguration
+                    .useBackgroundJobServerIf(!paused)
+                    .useDashboard()
+                    .initialize();
+        } catch(Exception e) {
+            throw new RuntimeException(e);
         }
-        return new JacksonJsonMapper();
     }
 
     protected abstract StorageProvider initStorageProvider() throws Exception;
@@ -60,24 +83,11 @@ public abstract class AbstractMain {
                 .useBackgroundJobServerIf(startRunning)
                 .useDashboard()
                 .initialize();
-
-        logStartWaitForeverAndAddShutdownHook();
     }
 
     protected void loadDefaultData(StorageProvider storageProvider) {
         // hook that can be implemented by subclasses
     }
 
-    private void logStartWaitForeverAndAddShutdownHook() throws InterruptedException {
-        System.out.println(Calendar.getInstance().getTime() + " - Background Job server is ready ");
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
-        Thread.currentThread().join();
-    }
-
-    protected static String getEnvOrProperty(String name) {
-        if (System.getProperty(name) != null) return System.getProperty(name);
-        if (System.getenv(name) != null) return System.getenv(name);
-        return null;
-    }
 }

@@ -13,7 +13,7 @@ class SqLiteStorageProviderTest extends SqlStorageProviderTest {
     private static SQLiteDataSource dataSource;
 
     @Override
-    protected DataSource getDataSource() {
+    public DataSource getDataSource() {
         if (dataSource == null) {
             deleteFile("/tmp/jobrunr-test.db");
 

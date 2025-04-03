@@ -9,6 +9,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.utils.CollectionUtils.asArrayList;
+import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 public class JobDetails {
 
@@ -25,6 +26,7 @@ public class JobDetails {
 
     public JobDetails(JobRequest jobRequest) {
         this(jobRequest.getJobRequestHandler().getName(), null, "run", asList(new JobParameter(jobRequest)));
+        assertJobExists(this);
         this.cacheable = true;
     }
 

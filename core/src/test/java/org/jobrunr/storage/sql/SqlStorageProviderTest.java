@@ -69,7 +69,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
         System.out.println("=========================================================");
     }
 
-    protected abstract DataSource getDataSource();
+    public abstract DataSource getDataSource();
 
     protected void cleanupDatabase(DataSource dataSource) {
         if (getTestMethodIndex() < 3) {

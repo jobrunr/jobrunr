@@ -21,7 +21,7 @@ class CloudSqlPostgresStorageProviderTest extends SqlStorageProviderTest {
     private static HikariDataSource dataSource;
 
     @Override
-    protected DataSource getDataSource() {
+    public DataSource getDataSource() {
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(String.format("jdbc:postgresql:///%s", System.getenv("DB_NAME")));
