@@ -30,7 +30,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobTabButton()).containsText("33");
         assertThat(title("Enqueued jobs")).isVisible();
 
-        assertThat(jobTableRows().count()).isEqualTo(20);
+        assertThat(jobTableRows()).hasCount(20);
         assertThat(jobTableRows().first()).containsText("an enqueued job");
 
         assertThat(jobsTablePagination()).containsText("1–20 of 33");
@@ -49,7 +49,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Scheduled jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("the job");
-        assertThat(jobTableRows().count()).isEqualTo(1);
+        assertThat(jobTableRows()).hasCount(1);
 
         assertThat(jobsTablePagination()).containsText("1–1 of 1");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -63,7 +63,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Enqueued jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("an enqueued job");
-        assertThat(jobTableRows().count()).isEqualTo(20);
+        assertThat(jobTableRows()).hasCount(20);
     }
 
     @Test
@@ -87,7 +87,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Succeeded jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("a succeeded job");
-        assertThat(jobTableRows().count()).isEqualTo(2);
+        assertThat(jobTableRows()).hasCount(2);
 
         assertThat(jobsTablePagination()).containsText("1–2 of 2");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -103,7 +103,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Failed jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("failed job");
-        assertThat(jobTableRows().count()).isEqualTo(1);
+        assertThat(jobTableRows()).hasCount(1);
 
         assertThat(jobsTablePagination()).containsText("1–1 of 1");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -124,7 +124,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobNameTitle()).containsText("failed job");
         assertThat(jobHistoryPanel()).isVisible();
 
-        assertThat(jobHistoryPanelItems().count()).isEqualTo(44);
+        assertThat(jobHistoryPanelItems()).hasCount(44);
         assertThat(jobHistoryPanelItems().first()).containsText("Job scheduled");
         jobHistorySortDescBtn().click();
         assertThat(jobHistoryPanelItems().first()).containsText("Job processing failed");
