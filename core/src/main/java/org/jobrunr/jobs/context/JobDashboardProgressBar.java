@@ -115,11 +115,15 @@ public class JobDashboardProgressBar {
         }
 
         public void incrementFailed() {
-            setProgress(failedAmount + 1);
+            setProgress(this.succeededAmount, failedAmount + 1);
         }
 
         public boolean setProgress(Long succeededAmount) {
-            return setProgress(this.totalAmount, succeededAmount, this.failedAmount);
+            return setProgress(succeededAmount, this.failedAmount);
+        }
+
+        public boolean setProgress(Long succeededAmount, Long failedAmount) {
+            return setProgress(this.totalAmount, succeededAmount, failedAmount);
         }
 
         public boolean setProgress(long totalAmount, long succeededAmount, long failedAmount) {
