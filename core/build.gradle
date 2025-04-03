@@ -50,10 +50,7 @@ dependencies {
     compileOnly 'io.micrometer:micrometer-core'
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
-    compileOnly 'redis.clients:jedis'
-    compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'co.elastic.clients:elasticsearch-java'
 
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -70,7 +67,6 @@ dependencies {
     testImplementation 'org.testcontainers:oracle-free'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:db2'
-    testImplementation 'org.testcontainers:elasticsearch'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'
@@ -84,10 +80,7 @@ dependencies {
     testImplementation 'org.apache.commons:commons-dbcp2'
     testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
-    testImplementation 'redis.clients:jedis'
-    testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'co.elastic.clients:elasticsearch-java'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'

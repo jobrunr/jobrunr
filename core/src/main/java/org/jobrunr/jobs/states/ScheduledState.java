@@ -50,4 +50,18 @@ public class ScheduledState extends AbstractJobState {
     public String getReason() {
         return reason;
     }
+
+    public static ScheduledState fromRecurringJob(Instant scheduledAt, RecurringJob recurringJob) {
+        return fromRecurringJob(scheduledAt, recurringJob, "Scheduled by recurring job '" + recurringJob.getJobName() + "'");
+    }
+
+    public static ScheduledState fromRecurringJobAheadOfTime(Instant scheduledAt, RecurringJob recurringJob) {
+        return fromRecurringJob(scheduledAt, recurringJob, "Scheduled ahead of time by recurring job '" + recurringJob.getJobName() + "'");
+    }
+
+    private static ScheduledState fromRecurringJob(Instant scheduledAt, RecurringJob recurringJob, String reason) {
+        ScheduledState scheduledState = new ScheduledState(scheduledAt, reason);
+        scheduledState.recurringJobId = recurringJob.getId();
+        return scheduledState;
+    }
 }

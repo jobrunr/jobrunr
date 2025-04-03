@@ -13,7 +13,7 @@ public class JobRunrInMemoryStorageProviderProducer {
     @Produces
     @DefaultBean
     @Singleton
-    //TODO: make it return correct storageprovider based on Extensions (mongo, redis, elasticsearch)?
+    //TODO: make it return correct storageprovider based on Extensions (mongo)?
     public StorageProvider storageProvider(JobMapper jobMapper) {
         final InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(jobMapper);

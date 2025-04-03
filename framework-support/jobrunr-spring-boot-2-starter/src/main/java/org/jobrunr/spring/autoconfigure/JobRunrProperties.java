@@ -73,7 +73,7 @@ public class JobRunrProperties {
     }
 
     /**
-     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. Redis).
+     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. MongoDB).
      */
     public static class Database {
         /**
@@ -97,8 +97,8 @@ public class JobRunrProperties {
         private String datasource;
 
         /**
-         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and a MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql' and 'mongodb'.
          */
         private String type;
 

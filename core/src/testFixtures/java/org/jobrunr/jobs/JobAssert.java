@@ -8,6 +8,7 @@ import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 
 import java.time.Instant;
@@ -129,6 +130,12 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         Assertions.assertThat(actual.getRecurringJobId())
                 .isPresent()
                 .contains(recurringJobId);
+        return this;
+    }
+
+    public JobAssert hasScheduledAt(Instant scheduledAt) {
+        ScheduledState scheduledState = actual.getJobState();
+        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(scheduledAt);
         return this;
     }
 

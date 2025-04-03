@@ -1,7 +1,7 @@
 package org.jobrunr.micronaut.autoconfigure.storage;
 
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import com.mongodb.client.MongoClient;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -41,8 +41,8 @@ class JobRunrMultipleStorageProviderFactoryTest {
     }
 
     @Singleton
-    public ElasticsearchClient elasticsearchClient() throws IOException {
-        return Mocks.elasticsearchClient();
+    public MongoClient mongoClient() throws IOException {
+        return Mocks.mongoClient();
     }
 
 }

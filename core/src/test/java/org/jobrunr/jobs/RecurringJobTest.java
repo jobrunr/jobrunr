@@ -7,6 +7,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,12 +18,14 @@ import java.util.List;
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static java.time.Instant.parse;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.mockito.InstantMocker.mockTime;
 
 class RecurringJobTest {
 
@@ -31,11 +34,9 @@ class RecurringJobTest {
         assertThatCode(() -> aDefaultRecurringJob().withoutId().build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this-is-allowed-with-a-1").build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this_is_ALSO_allowed_with_a_2").build()).doesNotThrowAnyException();
-        assertThatCode(() -> aDefaultRecurringJob().withId("this_is_ALSO_allowed_with_a_2").build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("some-id".repeat(20).substring(0, 127)).build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withoutId().withJobDetails(new JobDetails(new SimpleJobRequest())).build()).doesNotThrowAnyException();
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("some-id".repeat(20)).build()).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> aDefaultRecurringJob().withId("this is not allowed").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this is not allowed").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this-is-also-not-allowed-because-of-$").build()).isInstanceOf(IllegalArgumentException.class);
     }
@@ -74,14 +75,21 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJobsGetsAllJobsBetweenStartAndEndNoResults() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression(Cron.weekly())
-                .build();
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndNoResultsThenReturnsJobScheduledAheadOfTime() {
+        try (MockedStatic<Instant> ignored = mockTime(parse("2025-04-02T00:00:00Z"))) {
+            final RecurringJob recurringJob = aDefaultRecurringJob()
+                    .withCronExpression(Cron.weekly())
+                    .withZoneId(ZoneOffset.UTC)
+                    .build();
 
-        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+            final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
 
-        assertThat(jobs).isEmpty();
+            assertThat(jobs).hasSize(1);
+            assertThat(jobs.get(0))
+                    .hasRecurringJobId(recurringJob.getId())
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(Instant.parse("2025-04-07T00:00:00Z"));
+        }
     }
 
     @Test

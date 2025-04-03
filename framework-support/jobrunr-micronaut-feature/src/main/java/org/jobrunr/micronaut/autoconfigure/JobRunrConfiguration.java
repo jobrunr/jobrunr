@@ -77,8 +77,8 @@ public interface JobRunrConfiguration {
         Optional<String> getDatasource();
 
         /**
-         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and a MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql' and 'mongodb'.
          */
         Optional<String> getType();
     }
