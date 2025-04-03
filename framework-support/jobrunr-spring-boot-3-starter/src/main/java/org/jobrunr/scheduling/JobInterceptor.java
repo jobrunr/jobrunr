@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,9 +28,8 @@ public class JobInterceptor implements MethodInterceptor {
         this.beanFactory = beanFactory;
     }
 
-    @Nullable
     @Override
-    public Object invoke(@Nonnull MethodInvocation invocation) throws Throwable {
+    public Object invoke(MethodInvocation invocation) throws Throwable {
         // If method is not annotated with @Job or it is running the actual method, proceed as usual
         if (!AnnotatedElementUtils.hasAnnotation(invocation.getMethod(), Job.class) || isRunningActualJob(invocation)) {
             return invocation.proceed();
