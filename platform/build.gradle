@@ -35,10 +35,7 @@ dependencies {
         api 'io.agroal:agroal-pool:2.5'
         api 'org.apache.commons:commons-dbcp2:2.13.0'
         api 'org.apache.tomcat:tomcat-jdbc:11.0.1'
-        api 'redis.clients:jedis:5.2.0'
-        api 'io.lettuce:lettuce-core:6.5.2.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:5.3.0'
-        api 'co.elastic.clients:elasticsearch-java:8.17.0'
 
         api 'org.junit.jupiter:junit-jupiter:5.11.4'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
@@ -58,7 +55,6 @@ dependencies {
         api 'org.testcontainers:oracle-free:1.20.4'
         api 'org.testcontainers:postgresql:1.20.4'
         api 'org.testcontainers:db2:1.20.4'
-        api 'org.testcontainers:elasticsearch:1.20.4'
     }
 }
 

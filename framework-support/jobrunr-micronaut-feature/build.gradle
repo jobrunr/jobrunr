@@ -31,19 +31,13 @@ dependencies {
     implementation 'io.micronaut:micronaut-management'
     implementation 'io.micronaut.validation:micronaut-validation'
     compileOnly 'io.micronaut.data:micronaut-data-connection-jdbc'
-    compileOnly 'redis.clients:jedis'
-    compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'co.elastic.clients:elasticsearch-java'
     compileOnly 'io.micrometer:micrometer-core'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'io.micronaut.test:micronaut-test-junit5'
     testImplementation 'io.micronaut:micronaut-jackson-databind'
-    testImplementation 'redis.clients:jedis'
-    testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'co.elastic.clients:elasticsearch-java'
     testImplementation 'io.micrometer:micrometer-core'
 }
 
