@@ -6,7 +6,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.io.IOException;
 
-public class AbstractObjectSseExchange extends SseExchange {
+public abstract class AbstractObjectSseExchange extends SseExchange {
 
     private final JsonMapper jsonMapper;
 
