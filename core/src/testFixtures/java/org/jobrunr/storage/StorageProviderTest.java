@@ -776,7 +776,7 @@ public abstract class StorageProviderTest {
         assertThat(recurringJobsResult3).hasSize(2);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult3.getLastModifiedHash())).isFalse());
 
-          int deleted = storageProvider.deleteRecurringJob("my-job");
+        int deleted = storageProvider.deleteRecurringJob("my-job");
         assertThat(deleted).isEqualTo(1);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult3.getLastModifiedHash())).isTrue());
         RecurringJobsResult recurringJobsResult4 = storageProvider.getRecurringJobs();
