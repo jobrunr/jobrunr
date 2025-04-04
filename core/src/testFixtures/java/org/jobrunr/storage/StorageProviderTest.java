@@ -776,14 +776,16 @@ public abstract class StorageProviderTest {
         assertThat(recurringJobsResult3).hasSize(2);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult3.getLastModifiedHash())).isFalse());
 
-        storageProvider.deleteRecurringJob("my-job");
+        int deleted = storageProvider.deleteRecurringJob("my-job");
+        assertThat(deleted).isEqualTo(1);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult3.getLastModifiedHash())).isTrue());
         RecurringJobsResult recurringJobsResult4 = storageProvider.getRecurringJobs();
         assertThat(recurringJobsResult4).hasSize(1);
         await().untilAsserted(() -> assertThat(storageProvider.recurringJobsUpdated(recurringJobsResult4.getLastModifiedHash())).isFalse());
 
         // DELETE NON EXISTENT RECURRING JOB
-        assertThatCode(() -> storageProvider.deleteRecurringJob("non-existing-recurring-job")).doesNotThrowAnyException();
+        int deletedForNonExistingJob = storageProvider.deleteRecurringJob("non-existing-recurring-job");
+        assertThat(deletedForNonExistingJob).isEqualTo(0);
     }
 
     @RepeatedIfExceptionsTest(repeats = 3)
