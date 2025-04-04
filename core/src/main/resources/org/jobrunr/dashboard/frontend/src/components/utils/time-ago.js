@@ -1,7 +1,11 @@
 import {useSyncExternalStore} from 'react';
 import TimeAgo from "react-timeago/lib";
 
-const SwitchableTimeAgo = ({date}) => {
+const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} ${b}`;
+
+export const SuffixFreeTimeAgo = ({date, ...rest}) => <TimeAgo date={date} title={date.toString()} formatter={timeAgoFormatterWithoutSuffix} {...rest}/>;
+
+export const SwitchableTimeAgo = ({date}) => {
 
     const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
 
@@ -23,9 +27,6 @@ const SwitchableTimeAgo = ({date}) => {
 
     return <span style={{cursor: "pointer"}}>{result}</span>;
 }
-
-export default SwitchableTimeAgo;
-
 
 let dateStyle = localStorage.getItem('switchableTimeAgoStyle');
 let dateStyleChangeListeners = [];

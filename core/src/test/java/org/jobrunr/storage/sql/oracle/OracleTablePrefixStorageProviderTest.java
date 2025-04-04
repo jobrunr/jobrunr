@@ -13,7 +13,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.executioncondition.RunTestBetween;
-import org.junit.jupiter.executioncondition.RunTestIfDockerImageExists;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import javax.sql.DataSource;
@@ -25,7 +24,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RunTestBetween(from = "00:00", to = "03:00")
-@RunTestIfDockerImageExists("container-registry.oracle.com/database/standard:12.1.0.2")
 public class OracleTablePrefixStorageProviderTest extends AbstractOracleStorageProviderTest {
 
     @BeforeAll

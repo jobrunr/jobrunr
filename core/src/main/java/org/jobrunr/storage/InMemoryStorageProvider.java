@@ -36,6 +36,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
@@ -265,7 +266,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public RecurringJobsResult getRecurringJobs() {
-        return new RecurringJobsResult(recurringJobs);
+        return new RecurringJobsResult(recurringJobs.stream().map(this::deepClone).collect(toList()));
     }
 
     @Override
@@ -303,6 +304,12 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
+    public void clear() {
+        jobQueue.clear();
+        recurringJobs.clear();
+        metadata.keySet().removeIf(x -> !(x.endsWith(METADATA_OWNER_CLUSTER)));
+    }
+
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
                 .sorted(getJobComparator(amountRequest));
@@ -317,6 +324,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
         setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
+        return result;
+    }
+
+    private RecurringJob deepClone(RecurringJob recurringJob) {
+        final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
+        final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
         return result;
     }
 

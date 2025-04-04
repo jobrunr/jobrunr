@@ -24,6 +24,11 @@ import static java.time.Duration.between;
 
 public class RecurringJob extends AbstractJob {
 
+    public enum CreatedBy {
+        API,
+        ANNOTATION
+    }
+
     public static Map<String, Function<RecurringJob, Comparable>> ALLOWED_SORT_COLUMNS = new HashMap<>();
 
     static {
@@ -34,29 +39,39 @@ public class RecurringJob extends AbstractJob {
     private String id;
     private String scheduleExpression;
     private String zoneId;
+    private CreatedBy createdBy;
     private Instant createdAt;
 
     private RecurringJob() {
         // used for deserialization
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId));
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy) {
+        this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy);
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
-        this(id, jobDetails, schedule, zoneId, Instant.now(Clock.system(zoneId)));
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy) {
+        this(id, jobDetails, schedule, zoneId, createdBy, Instant.now(Clock.system(zoneId)));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId), Instant.parse(createdAt));
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
+        this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
-        super(jobDetails);
+    public RecurringJob(String id, int version, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
+        this(id, version, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
+    }
+    
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
+        this(id, 0, jobDetails, schedule, zoneId, createdBy, createdAt);
+    }
+
+    public RecurringJob(String id, int version, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
+        super(jobDetails, version);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
         this.scheduleExpression = schedule.toString();
+        this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
 
@@ -103,6 +118,10 @@ public class RecurringJob extends AbstractJob {
         return zoneId;
     }
 
+    public CreatedBy getCreatedBy() {
+        return createdBy;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -113,7 +132,7 @@ public class RecurringJob extends AbstractJob {
 
     public Instant getNextRun(Instant sinceInstant) {
         return ScheduleExpressionType
-                .getSchedule(scheduleExpression)
+                .createScheduleFromString(scheduleExpression)
                 .next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
@@ -154,7 +173,7 @@ public class RecurringJob extends AbstractJob {
 
     public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
         Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
         Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
         return between(run1, run2);

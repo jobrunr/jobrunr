@@ -10,7 +10,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "./job-label";
 import {ItemsNotFound} from "./items-not-found";
 import {styled} from "@mui/material/styles";
-import SwitchableTimeAgo from "./time-ago";
+import {SwitchableTimeAgo} from "./time-ago";
 
 const IdColumn = styled(TableCell)`
     width: 20%;

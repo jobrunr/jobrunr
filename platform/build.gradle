@@ -20,6 +20,7 @@ dependencies {
         api 'org.eclipse:yasson:3.0.4'
         api 'io.micrometer:micrometer-core:1.14.3'
         api 'io.insert-koin:koin-core:4.0.1'
+        api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0'
 
         api 'org.xerial:sqlite-jdbc:3.47.1.0'
         api 'com.h2database:h2:2.3.232'
@@ -34,10 +35,7 @@ dependencies {
         api 'io.agroal:agroal-pool:2.5'
         api 'org.apache.commons:commons-dbcp2:2.13.0'
         api 'org.apache.tomcat:tomcat-jdbc:11.0.1'
-        api 'redis.clients:jedis:5.2.0'
-        api 'io.lettuce:lettuce-core:6.5.2.RELEASE'
         api 'org.mongodb:mongodb-driver-sync:5.3.0'
-        api 'co.elastic.clients:elasticsearch-java:8.17.0'
 
         api 'org.junit.jupiter:junit-jupiter:5.11.4'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
@@ -54,10 +52,9 @@ dependencies {
         api 'org.testcontainers:mariadb:1.20.4'
         api 'org.testcontainers:mssqlserver:1.20.4'
         api 'org.testcontainers:mysql:1.20.4'
-        api 'org.testcontainers:oracle-xe:1.20.4'
+        api 'org.testcontainers:oracle-free:1.20.4'
         api 'org.testcontainers:postgresql:1.20.4'
         api 'org.testcontainers:db2:1.20.4'
-        api 'org.testcontainers:elasticsearch:1.20.4'
         api 'com.microsoft.playwright:playwright:1.50.0'
     }
 }

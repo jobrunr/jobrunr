@@ -28,6 +28,24 @@ class JobDashboardProgressBarTest {
     }
 
     @Test
+    void canIncrementSucceeded() {
+        jobDashboardProgressBar.incrementSucceeded();
+
+        assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(1);
+        assertThat(jobDashboardProgressBar.getFailedAmount()).isEqualTo(0);
+        assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(10);
+    }
+
+    @Test
+    void canIncrementFailed() {
+        jobDashboardProgressBar.incrementFailed();
+
+        assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(0);
+        assertThat(jobDashboardProgressBar.getFailedAmount()).isEqualTo(1);
+        assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(0);
+    }
+
+    @Test
     void canConstructProgressBarWithSize0() {
         final Job job = aJobInProgress().build();
 

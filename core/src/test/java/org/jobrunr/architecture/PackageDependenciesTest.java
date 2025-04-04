@@ -122,13 +122,6 @@ class PackageDependenciesTest {
                             .or(assignableFrom(BackgroundJobServer.class))
                             .or(assignableFrom(BackgroundJobServerConfiguration.class)));
 
-    @ArchTest
-    ArchRule jobRunrStorageElasticSearchClassesDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.storage.nosql.elasticsearch..")
-            .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "co.elastic..", "org.elasticsearch.client..", "org.apache.http..", "jakarta.json..", "org.slf4j..", "java..")
-                            .or(are(equivalentTo(JobRunrException.class)))
-            );
 
     @ArchTest
     ArchRule jobRunrStorageMongoClassesDependenciesTest = classes()
@@ -138,18 +131,6 @@ class PackageDependenciesTest {
                             .or(are(equivalentTo(JobRunrException.class)))
                             .or(assignableFrom(BackgroundJobServer.class))
             ); // see https://github.com/TNG/ArchUnit/issues/519
-
-    @ArchTest
-    ArchRule jobRunrStorageRedisJedisClassesDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.storage.nosql.redis..")
-            .and().haveSimpleNameStartingWith("Jedis")
-            .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "redis.clients..", "org.slf4j..", "java..");
-
-    @ArchTest
-    ArchRule jobRunrStorageRedisLettuceClassesDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.storage.nosql.redis..")
-            .and().haveSimpleNameStartingWith("Lettuce")
-            .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "io.lettuce..", "org.apache.commons.pool2..", "org.slf4j..", "java..");
 
     @ArchTest
     ArchRule jobRunrStorageSqlClassesDependenciesTest = classes()

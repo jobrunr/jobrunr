@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Set;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
@@ -127,7 +126,7 @@ class RecurringJobTest {
                 .hasJobName("the recurring job")
                 .hasState(ENQUEUED)
                 .hasAmountOfRetries(3)
-                .hasLabels(Set.of("some label"));
+                .hasLabels(List.of("some label"));
     }
 
     @Test

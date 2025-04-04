@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
-import java.util.Set;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -79,7 +79,7 @@ class DefaultJobFilterTest {
 
         defaultJobFilter.onCreating(job);
 
-        assertThat(job).hasLabels(Set.of("TestLabel", "Email"));
+        assertThat(job).hasLabels(List.of("TestLabel", "Email"));
     }
 
     @Test
@@ -90,7 +90,7 @@ class DefaultJobFilterTest {
 
         defaultJobFilter.onCreating(job);
 
-        assertThat(job).hasLabels(Set.of("label-3 - customer name"));
+        assertThat(job).hasLabels(List.of("label-3 - customer name"));
     }
 
     @Test

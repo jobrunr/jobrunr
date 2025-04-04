@@ -5,14 +5,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.time.Duration.ofMinutes;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 
 public class RateLimiter {
 
     public static final Duration SECOND = ofSeconds(1);
-    public static final Duration MINUTE = ofMinutes(1);
 
     private final ReentrantLock lock;
     private final Duration perDuration;
