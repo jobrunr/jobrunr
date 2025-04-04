@@ -16,12 +16,12 @@ compileTestJava {
 
 dependencies {
     implementation project(':core')
-    implementation 'ch.qos.logback:logback-classic:1.5.16'
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
 
     testImplementation 'org.jobrunr:jobrunr:[7.3.2]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.11.0'
 
-    testImplementation 'org.assertj:assertj-core:3.27.2'
+    testImplementation 'org.assertj:assertj-core:3.27.3'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.0'
     testImplementation 'org.awaitility:awaitility:4.2.2'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
