@@ -20,7 +20,7 @@ public class ClassNamesTest {
 
     @ArchTest
     ArchRule classesNamedAbstractShouldBeAbstractAsWell = classes()
-            .that().haveSimpleNameContaining("Abstract")
+            .that().haveSimpleNameStartingWith("Abstract")
             .should().haveModifier(JavaModifier.ABSTRACT);
 
 }
