@@ -109,7 +109,10 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler deleteRecurringJob() {
         return (request, response) -> {
-            storageProvider.deleteRecurringJob(request.param(":id"));
+            int deleted = storageProvider.deleteRecurringJob(request.param(":id"));
+            if(deleted == 0) {
+                response.statusCode(404);
+            }
             response.statusCode(204);
         };
     }
