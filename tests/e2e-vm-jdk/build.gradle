@@ -18,7 +18,7 @@ dependencies {
     implementation project(':core')
     implementation 'ch.qos.logback:logback-classic:1.5.18'
 
-    testImplementation 'org.jobrunr:jobrunr:[7.3.2]:test-fixtures'
+    testImplementation 'org.jobrunr:jobrunr:[7.4.1]:test-fixtures'
     testImplementation 'com.google.code.gson:gson:2.12.1'
 
     testImplementation 'org.assertj:assertj-core:3.27.3'
