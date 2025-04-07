@@ -18,7 +18,7 @@ dependencies {
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3'
         api 'com.google.code.gson:gson:2.12.1'
         api 'org.eclipse:yasson:3.0.4'
-        api 'io.micrometer:micrometer-core:1.14.3'
+        api 'io.micrometer:micrometer-core:1.14.5'
         api 'io.insert-koin:koin-core:4.0.4'
 
         api 'org.xerial:sqlite-jdbc:3.47.1.0'
