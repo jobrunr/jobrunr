@@ -87,6 +87,8 @@ dependencies {
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
 
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'org.mockito:mockito-inline'
