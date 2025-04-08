@@ -10,6 +10,7 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.Paging;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.FreePortFinder;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static java.util.UUID.randomUUID;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -89,6 +91,12 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
+    void testRequeueJob_JobNotFoundReturns404() {
+        HttpResponse<String> requeueResponse = http.post("/api/jobs/%s/requeue", randomUUID());
+        assertThat(requeueResponse).hasStatusCode(404);
+    }
+
+    @Test
     void testDeleteJob() {
         final Job job = aFailedJobWithRetries().build();
         final Job savedJob = storageProvider.save(job);
@@ -99,6 +107,12 @@ abstract class JobRunrDashboardWebServerTest {
         HttpResponse<String> getResponse = http.get("/api/jobs/%s", savedJob.getId());
         assertThat(getResponse).hasStatusCode(200);
         assertThat(storageProvider.getJobById(savedJob.getId())).hasState(StateName.DELETED);
+    }
+
+    @Test
+    void testDeleteJob_JobNotFoundReturns404() {
+        HttpResponse<String> deleteResponse = http.delete("/api/jobs/%s", randomUUID());
+        assertThat(deleteResponse).hasStatusCode(404);
     }
 
     @Test
@@ -145,6 +159,12 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
+    void testDeleteProblem_UnknownProblemReturns500() {
+        HttpResponse<String> deleteResponse = http.delete("/api/problems/unknown-problem-type");
+        assertThat(deleteResponse).hasStatusCode(500);
+    }
+
+    @Test
     void testGetRecurringJobs() {
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-1").withName("Import sales data").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-2").withName("Generate sales reports").build());
@@ -156,13 +176,37 @@ abstract class JobRunrDashboardWebServerTest {
     }
 
     @Test
+    void testTriggerRecurringJob() {
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-1").withName("Import sales data").build());
+
+        HttpResponse<String> getResponse = http.post("/api/recurring-jobs/recurring-job-1/trigger");
+        assertThat(getResponse).hasStatusCode(204);
+
+        List<Job> jobs = storageProvider.getJobs(StateName.ENQUEUED, Paging.OffsetBasedPage.ascOnUpdatedAt(10)).getItems();
+        assertThat(jobs).hasSize(1);
+    }
+
+    @Test
+    void testTriggerRecurringJob_JobNotFoundReturns404() {
+        HttpResponse<String> getResponse = http.post("/api/recurring-jobs/unknown-recurring-job/trigger");
+        assertThat(getResponse).hasStatusCode(404);
+    }
+
+    @Test
     void testDeleteRecurringJob() {
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-1").withName("Import sales data").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("recurring-job-2").withName("Generate sales reports").build());
+        assertThat(storageProvider.getRecurringJobs()).hasSize(2);
 
         HttpResponse<String> deleteResponse = http.delete("/api/recurring-jobs/%s", "recurring-job-1");
         assertThat(deleteResponse).hasStatusCode(204);
         assertThat(storageProvider.getRecurringJobs()).hasSize(1);
+    }
+
+    @Test
+    void testDeleteRecurringJob_JobNotFoundReturns404() {
+        HttpResponse<String> deleteResponse = http.delete("/api/recurring-jobs/unknown-recurring-job");
+        assertThat(deleteResponse).hasStatusCode(404);
     }
 
     @Test

@@ -1,4 +1,4 @@
-package org.jobrunr.tests.e2e;
+package org.jobrunr.tests.server;
 
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.BackgroundJobServerStatus;
@@ -14,22 +14,13 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultBackgroundJobServerStatus;
 
-public class Main extends AbstractMain {
-
-    public static void main(String[] args) throws Exception {
-        new Main(args);
-    }
-
-    public Main(String[] args) throws Exception {
-        super(args);
-    }
-
+public class SimpleBackgroundJobServer extends AbstractSimpleBackgroundJobServer {
     @Override
-    protected StorageProvider initStorageProvider() {
+    protected StorageProvider initStorageProvider() throws Exception {
         return new InMemoryStorageProvider();
     }
 
-    // see https://github.com/eclipse/buildship/issues/991
+    @Override
     protected void loadDefaultData(StorageProvider storageProvider) {
         final BackgroundJobServerStatus backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withPollIntervalInSeconds(10).build();
         storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);

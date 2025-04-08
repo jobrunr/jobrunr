@@ -20,7 +20,5 @@ include ':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr'
 include ':framework-support:jobrunr-quarkus-extension:tests'
 include ':framework-support:jobrunr-spring-boot-2-starter'
 include ':framework-support:jobrunr-spring-boot-3-starter'
-include ':tests:e2e-base'
 include ':tests:e2e-ui'
 include ':tests:e2e-vm-jdk'
-
