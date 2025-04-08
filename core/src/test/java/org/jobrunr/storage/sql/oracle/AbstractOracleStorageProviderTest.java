@@ -8,7 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.extension.AfterAllSubclasses;
 import org.junit.jupiter.extension.BeforeAllSubclasses;
 import org.junit.jupiter.extension.ForAllSubclassesExtension;
-import org.testcontainers.containers.OracleContainer;
+import org.testcontainers.oracle.OracleContainer;
 
 import javax.sql.DataSource;
 import java.time.Duration;
@@ -20,7 +20,7 @@ import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractOracleStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static OracleContainer sqlContainer = new OracleContainer("gvenzl/oracle-xe")
+    protected static OracleContainer sqlContainer = new OracleContainer("gvenzl/oracle-free:latest-faststart")
             .withStartupTimeoutSeconds(900)
             .withConnectTimeoutSeconds(500)
             .withEnv("DB_SID", "ORCL")
@@ -39,13 +39,11 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
     @Override
     public DataSource getDataSource() {
         if (dataSource == null) {
-            // dataSource = toHikariDataSource("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"), "system", "oracle");
-
             System.out.println("==========================================================================================");
             System.out.println(sqlContainer.getLogs());
             System.out.println("==========================================================================================");
 
-            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"), sqlContainer.getUsername(), sqlContainer.getPassword());
+            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace("xepdb1", "FREEPDB1"), sqlContainer.getUsername(), sqlContainer.getPassword());
         }
 
         return dataSource;

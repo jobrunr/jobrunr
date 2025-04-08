@@ -65,7 +65,7 @@ dependencies {
     testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.testcontainers:mssqlserver'
     testImplementation 'org.testcontainers:mysql'
-    testImplementation 'org.testcontainers:oracle-xe'
+    testImplementation 'org.testcontainers:oracle-free'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:db2'
     testImplementation 'org.testcontainers:elasticsearch'
@@ -86,6 +86,8 @@ dependencies {
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'

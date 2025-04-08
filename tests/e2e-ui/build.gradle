@@ -30,6 +30,8 @@ dependencies {
     testImplementation 'com.microsoft.playwright:playwright'
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:postgresql'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 sonar {

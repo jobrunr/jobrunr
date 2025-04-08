@@ -47,6 +47,7 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
     void checkTablesAndIndicesUseCorrectPrefix() {
         assertThat(dataSource)
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_MIGRATIONS")
+                .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_JOBS")
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_METADATA")

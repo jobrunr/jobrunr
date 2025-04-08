@@ -19,8 +19,8 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:3.4.1')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.4.1')
+    api platform('org.springframework.boot:spring-boot-dependencies:3.4.4')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.4.4')
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter'
@@ -51,6 +51,8 @@ dependencies {
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
     testImplementation 'io.micrometer:micrometer-core'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 java {
