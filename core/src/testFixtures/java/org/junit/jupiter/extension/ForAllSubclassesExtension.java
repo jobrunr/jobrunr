@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -36,9 +37,9 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
             final int count = (int) paths.stream()
                     .filter(path -> path.toString().endsWith(".class"))
                     .map(ReflectionUtils::toClassFromPath)
-                    .filter(annotatedTestClass::isAssignableFrom)
+                    .filter(c -> annotatedTestClass.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers()))
                     .count();
-            atomicInteger = new AtomicInteger(count - 1);
+            atomicInteger = new AtomicInteger(count);
 
             setUpMethod.invoke(context.getRequiredTestClass());
             System.err.println("Invoking setup method for " + annotatedTestClass.getName());

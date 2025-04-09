@@ -39,13 +39,11 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
     @Override
     public DataSource getDataSource() {
         if (dataSource == null) {
-            // dataSource = toHikariDataSource("jdbc:oracle:thin:@localhost:1527:xe".replace(":xe", ":ORCL"), "system", "oracle");
-
             System.out.println("==========================================================================================");
             System.out.println(sqlContainer.getLogs());
             System.out.println("==========================================================================================");
 
-            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace(":xe", ":ORCL"), sqlContainer.getUsername(), sqlContainer.getPassword());
+            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace("xepdb1", "FREEPDB1"), sqlContainer.getUsername(), sqlContainer.getPassword());
         }
 
         return dataSource;

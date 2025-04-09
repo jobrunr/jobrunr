@@ -75,7 +75,6 @@ class JobRunrExtensionProcessorTest {
                 .containsOnly(
                         JobRunrProducer.class.getName(),
                         JobRunrStarter.class.getName(),
-                        JobRunrInMemoryStorageProviderProducer.class.getName(),
                         JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName()
                 );
     }
@@ -175,6 +174,15 @@ class JobRunrExtensionProcessorTest {
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrDocumentDBStorageProviderProducer.class.getName())
                 .doesNotContain(JobRunrMongoDBStorageProviderProducer.class.getName());
+    }
+
+    @Test
+    void jobRunrProducerUsesInMemoryStorageProviderIfDatabaseTypeIsEqualToMem() {
+        when(databaseConfiguration.type()).thenReturn(Optional.of("mem"));
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrInMemoryStorageProviderProducer.class.getName());
     }
 
     @Test

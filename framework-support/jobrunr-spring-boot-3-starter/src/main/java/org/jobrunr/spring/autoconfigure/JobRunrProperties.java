@@ -98,7 +98,7 @@ public class JobRunrProperties {
 
         /**
          * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql' and 'mongodb'.
+         * Valid values are 'sql', 'mongodb' and 'mem'.
          */
         private String type;
 
