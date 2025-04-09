@@ -1,4 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration,\
+  org.jobrunr.spring.autoconfigure.storage.JobRunrInMemoryStorageAutoConfiguration,\
   org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration,\
   org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration,\
   org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceRedisClientStorageAutoConfiguration,\
