@@ -29,7 +29,7 @@ public interface JobRunrBuildTimeConfiguration {
     DashboardConfiguration dashboard();
 
     /**
-     * Whether or not an health check is published in case the smallrye-health extension is present.
+     * Whether a health check is published in case the smallrye-health extension is present.
      */
     @WithParentName
     @ConfigDocMapKey("health.enabled")
@@ -39,7 +39,7 @@ public interface JobRunrBuildTimeConfiguration {
     interface DatabaseConfiguration {
         /**
          * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
+         * Valid values are 'sql', 'mongodb', 'documentdb', 'mem' and 'elasticsearch'.
          */
         Optional<String> type();
     }

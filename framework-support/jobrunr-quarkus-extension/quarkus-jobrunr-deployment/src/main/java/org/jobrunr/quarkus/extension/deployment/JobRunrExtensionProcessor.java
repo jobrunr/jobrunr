@@ -239,9 +239,10 @@ class JobRunrExtensionProcessor {
             return asSet(JobRunrMongoDBStorageProviderProducer.class);
         } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
             return asSet(JobRunrDocumentDBStorageProviderProducer.class);
-        } else {
+        } else if ("mem".equalsIgnoreCase(databaseType)) {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }
+        return Set.of();
     }
 
     private static boolean isCapabilityPresentAndConfigured(Capabilities capabilities, String capability, String requestedDatabaseType, String databaseType) {
