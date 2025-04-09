@@ -27,8 +27,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.12.1'
     testImplementation 'org.testcontainers:testcontainers:1.20.6'
     testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test.dependsOn(':core:publishToMavenLocal')
