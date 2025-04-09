@@ -78,7 +78,7 @@ public interface JobRunrConfiguration {
 
         /**
          * If multiple types of databases are available in the Spring Context (e.g. a DataSource and a MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql' and 'mongodb'.
+         * Valid values are 'sql' and 'mongodb' and 'mem'.
          */
         Optional<String> getType();
     }

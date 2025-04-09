@@ -46,6 +46,8 @@ steps:
         path: /root/.m2
       - name: reports
         path: /tmp/reports
+      - name: playwright
+        path: /root/.cache/ms-playwright
 
 #  - name: slack
 #    image: plugins/slack
@@ -78,6 +80,9 @@ volumes:
   - name: reports
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
+  - name: playwright
+    host:
+      path: /volume2/docker/jobrunr-services/drone-work-dir/playwright/cache
 
 ---
 kind: pipeline
@@ -126,6 +131,8 @@ steps:
         path: /root/.m2
       - name: reports
         path: /tmp/reports
+      - name: playwright
+        path: /root/.cache/ms-playwright
 
 #  - name: slack
 #    image: plugins/slack
@@ -158,6 +165,9 @@ volumes:
   - name: reports
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
+  - name: playwright
+    host:
+      path: /volume2/docker/jobrunr-services/drone-work-dir/playwright/cache
 
 
 ---
@@ -202,7 +212,9 @@ steps:
         path: /root/.m2
       - name: reports
         path: /tmp/reports
-
+      - name: playwright
+        path: /root/.cache/ms-playwright
+  
   #  - name: upload-to-github
   #    image: plugins/github-release
   #    settings:
@@ -258,4 +270,7 @@ volumes:
   - name: reports
     host:
       path: /volume2/docker/jobrunr-services/drone-work-dir/jobrunr/reports
+  - name: playwright
+    host:
+      path: /volume2/docker/jobrunr-services/drone-work-dir/playwright/cache
 

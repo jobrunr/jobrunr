@@ -20,12 +20,12 @@ class JarUtilsTest {
 
     @Test
     void gsonVersion() {
-        assertThat(JarUtils.getVersion(Gson.class)).isEqualTo("2.11.0");
+        assertThat(JarUtils.getVersion(Gson.class)).isEqualTo("2.12.1");
     }
 
     @Test
     void jacksonVersion() {
-        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.18.2");
+        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.18.3");
     }
 
     @Test

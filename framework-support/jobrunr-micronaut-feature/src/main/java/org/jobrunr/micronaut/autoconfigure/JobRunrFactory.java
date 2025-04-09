@@ -19,7 +19,6 @@ import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
-import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -126,13 +125,5 @@ public class JobRunrFactory {
     @Singleton
     public JsonMapper jobRunrJsonMapper() {
         return new JacksonJsonMapper();
-    }
-
-    @Singleton
-    @Requires(missingBeans = {StorageProvider.class})
-    public StorageProvider storageProvider(JobMapper jobMapper) {
-        final InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
-        storageProvider.setJobMapper(jobMapper);
-        return storageProvider;
     }
 }

@@ -1,14 +1,11 @@
 package org.jobrunr.storage.sql.mysql;
 
-import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
-import com.mysql.cj.jdbc.MysqlDataSource;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -36,6 +33,7 @@ class MySQLTablePrefixStorageProviderTest extends AbstractMySQLStorageProviderTe
     void checkTablesAndIndicesUseCorrectPrefix() {
         assertThat(dataSource)
                 .hasTable("SOME_PREFIX_JOBRUNR_MIGRATIONS")
+                .hasTable("SOME_PREFIX_JOBRUNR_JOBS")
                 .hasTable("SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("SOME_PREFIX_JOBRUNR_METADATA")

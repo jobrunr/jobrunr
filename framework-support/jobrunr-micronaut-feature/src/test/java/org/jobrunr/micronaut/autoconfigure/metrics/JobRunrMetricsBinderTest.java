@@ -18,6 +18,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 
 @MicronautTest(rebuildContext = true)
+@Property(name = "jobrunr.database.type", value = "mem")
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class JobRunrMetricsBinderTest {
 
