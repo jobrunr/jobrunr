@@ -41,8 +41,6 @@ dependencies {
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
     testImplementation 'io.micrometer:micrometer-core'
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named("dependencyUpdates").configure {

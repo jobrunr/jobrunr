@@ -51,8 +51,6 @@ dependencies {
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 java {
