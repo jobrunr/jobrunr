@@ -25,7 +25,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Arrays;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -171,7 +176,7 @@ public class JobTable extends Sql<Job> {
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
                 .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
     }
-
+    
     public int deletePermanently(UUID... ids) throws SQLException {
         return delete("from jobrunr_jobs where id in (" + stream(ids).map(uuid -> "'" + uuid.toString() + "'").collect(joining(",")) + ")");
     }
@@ -207,7 +212,35 @@ public class JobTable extends Sql<Job> {
         return select.map(this::toJob);
     }
 
+    // private Stream<Job> selectJobs(String statement, String filter) {
+    //     final Stream<SqlResultSet> select = super.select(statement, filter);
+    //     return select
+    //         .map(this::toJob)
+    //         .filter(Objects::nonNull);  // Important: filter out bad jobs
+    // }
+
+    // private Job toJob(SqlResultSet resultSet) {
+    //     return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
+    // }
+
     private Job toJob(SqlResultSet resultSet) {
-        return jobMapper.deserializeJob(resultSet.asString("jobAsJson"));
+        String jobAsJson = "UNKNOWN";
+        try {
+            Class.forName("org.jobrunr.jobs.states.ScheduledState");
+            System.out.println("✅ ScheduledState is loadable at runtime!");
+        } catch (ClassNotFoundException e) {
+            System.err.println("🚨 ScheduledState is NOT loadable at runtime! Classpath problem.");
+            e.printStackTrace();
+        }
+        
+        try {
+            jobAsJson = resultSet.asString("jobAsJson");
+            return jobMapper.deserializeJob(jobAsJson);
+        } catch (Exception e) {
+            System.err.println("🚨 Failed to deserialize Job with ID [" + jobAsJson + "] due to: " + e.getMessage());
+            e.printStackTrace();
+            return null; // will be filtered later
+        }
     }
+    
 }

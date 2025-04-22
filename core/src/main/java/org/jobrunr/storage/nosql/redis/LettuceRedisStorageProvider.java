@@ -718,4 +718,17 @@ public class LettuceRedisStorageProvider extends AbstractStorageProvider impleme
             throw new IllegalStateException(e);
         }
     }
+
+    public Long recurringJobsUpdatedHash(long offset, long limit) {
+        return null;
+    }
+
+    public List<RecurringJob> getRecurringJobsPage(long offset, long limit) {
+        return null;
+    }
+
+    public Map<String, Long> recurringJobsExists(StateName... states) {
+        return null;
+    }
+
 }

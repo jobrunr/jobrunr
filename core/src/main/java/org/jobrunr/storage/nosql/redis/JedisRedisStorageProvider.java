@@ -633,4 +633,17 @@ public class JedisRedisStorageProvider extends AbstractStorageProvider implement
         Stream.of(StateName.values()).forEach(stateName -> transaction.srem(jobDetailsKey(keyPrefix, stateName), getJobSignature(job.getJobDetails())));
         job.getRecurringJobId().ifPresent(recurringJobId -> Stream.of(StateName.values()).forEach(stateName -> transaction.srem(recurringJobKey(keyPrefix, stateName), recurringJobId)));
     }
+
+    public Long recurringJobsUpdatedHash(long offset, long limit) {
+        return null;
+    }
+
+    public List<RecurringJob> getRecurringJobsPage(long offset, long limit) {
+        return null;
+    }
+
+    public Map<String, Long> recurringJobsExists(StateName... states) {
+        return null;
+    }
+
 }

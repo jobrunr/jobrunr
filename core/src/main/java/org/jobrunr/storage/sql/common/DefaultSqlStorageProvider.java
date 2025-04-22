@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -328,6 +332,32 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         }
     }
 
+    // @Override
+    // @Override
+    public Map<String, Long> recurringJobsExists(StateName... states) {
+        try (Connection conn = dataSource.getConnection()) {
+            String sql =
+                "SELECT recurringJobId, COUNT(*) AS jobCount " +
+                "  FROM jobrunr_jobs " +
+                " WHERE state IN ('SCHEDULED','ENQUEUED','PROCESSING','SUCCEEDED') " +
+                " GROUP BY recurringJobId";
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+                Map<String, Long> counts = new HashMap<>();
+                while (rs.next()) {
+                    counts.put(
+                        rs.getString("recurringJobId"),
+                        rs.getLong("jobCount")
+                    );
+                }
+                return counts;
+            }
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+    
+
     @Override
     public RecurringJob saveRecurringJob(RecurringJob recurringJob) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
@@ -342,11 +372,22 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public RecurringJobsResult getRecurringJobs() {
         try (final Connection conn = dataSource.getConnection()) {
-            return new RecurringJobsResult(recurringJobTable(conn).selectAll());
+            RecurringJobsResult result = new RecurringJobsResult(recurringJobTable(conn).selectAll());
+            return result;
         } catch (SQLException e) {
             throw new StorageException(e);
         }
     }
+
+    public RecurringJobsResult getRecurringJobsPage(long windowStartEpoch, long windowEndEpoch) {
+        try (final Connection conn = dataSource.getConnection()) {
+            RecurringJobsResult result = new RecurringJobsResult(recurringJobTable(conn).selectFixedPage(windowStartEpoch,windowEndEpoch));
+            return result;
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
 
     @Override
     public boolean recurringJobsUpdated(Long recurringJobsUpdatedHash) {
@@ -357,6 +398,16 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
             throw new StorageException(e);
         }
     }
+
+    public Long recurringJobsUpdatedHash(long windowStartEpoch, long windowEndEpoch) {
+        try (final Connection conn = dataSource.getConnection()) {
+            Long lastModifiedHash = recurringJobTable(conn).selectSumWithLimitOffset(RecurringJobs.FIELD_CREATED_AT, windowStartEpoch, windowEndEpoch);
+            return lastModifiedHash;
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
 
     @Override
     public int deleteRecurringJob(String id) {

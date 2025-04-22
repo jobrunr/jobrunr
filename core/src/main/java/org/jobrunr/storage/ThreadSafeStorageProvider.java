@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map;
 
 public class ThreadSafeStorageProvider implements StorageProvider {
 
@@ -183,6 +184,13 @@ public class ThreadSafeStorageProvider implements StorageProvider {
         return storageProvider.recurringJobsUpdated(recurringJobsUpdatedHash);
     }
 
+    public Long recurringJobsUpdatedHash(long offset, long limit) {
+        return storageProvider.recurringJobsUpdatedHash(offset, limit);
+    }
+    public List<RecurringJob> getRecurringJobsPage(long offset, long limit) {
+        return storageProvider.getRecurringJobsPage(offset, limit);
+    }
+
     @Override
     public int deleteRecurringJob(String id) {
         return storageProvider.deleteRecurringJob(id);
@@ -221,4 +229,9 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     public StorageProvider getStorageProvider() {
         return storageProvider;
     }
+
+    public Map<String, Long> recurringJobsExists(StateName... states) {
+        return null;
+    }
+
 }

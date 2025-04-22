@@ -548,4 +548,15 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         final Document document = jobrunrDatabase.runCommand(command);
         System.out.println(document.toJson());
     }
+
+    public Long recurringJobsUpdatedHash(long offset, long limit) {
+        return null;
+    }
+    public List<RecurringJob> getRecurringJobsPage(long offset, long limit) {
+        return null;
+    }
+
+    public Map<String, Long> recurringJobsExists(StateName... states) {
+        return null;
+    }
 }

@@ -847,4 +847,17 @@ public class ElasticSearchStorageProvider extends AbstractStorageProvider implem
 
         return new ElasticsearchClient(transport);
     }
+
+    public Long recurringJobsUpdatedHash(long offset, long limit) {
+        return null;
+    }
+    
+    public List<RecurringJob> getRecurringJobsPage(long offset, long limit) {
+        return null;
+    }
+    
+    public Map<String, Long> recurringJobsExists(StateName... states) {
+        return null;
+    }
+
 }

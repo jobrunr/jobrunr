@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -204,6 +205,8 @@ public interface StorageProvider extends AutoCloseable {
      */
     boolean recurringJobExists(String recurringJobId, StateName... states);
 
+    Map<String, Long> recurringJobsExists(StateName... states);
+
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten
      *
@@ -228,6 +231,19 @@ public interface StorageProvider extends AutoCloseable {
      * @return 1 if the RecurringJob with the given id was deleted, 0 otherwise
      */
     int deleteRecurringJob(String id);
+
+
+    Long recurringJobsUpdatedHash(long offset, long limit);
+
+    /**
+     * Returns a page of {@link RecurringJob RecurringJobs}.
+     *
+     * @param offset the offset to start from
+     * @param limit  the maximum amount of RecurringJobs to return
+     * @return a list {@link RecurringJob RecurringJobs}.
+     */
+    List<RecurringJob> getRecurringJobsPage(long offset, long limit);
+
 
     /**
      * Returns the statistics of the jobs (amount enqueued, amount scheduled, ...)
