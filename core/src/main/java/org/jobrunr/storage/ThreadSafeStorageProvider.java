@@ -187,9 +187,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     public Long recurringJobsUpdatedHash(long offset, long limit) {
         return storageProvider.recurringJobsUpdatedHash(offset, limit);
     }
+    
     public List<RecurringJob> getRecurringJobsPage(long offset, long limit) {
         return storageProvider.getRecurringJobsPage(offset, limit);
     }
+
 
     @Override
     public int deleteRecurringJob(String id) {
@@ -231,7 +233,7 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     public Map<String, Long> recurringJobsExists(StateName... states) {
-        return null;
+        return storageProvider.recurringJobsExists(states);
     }
 
 }

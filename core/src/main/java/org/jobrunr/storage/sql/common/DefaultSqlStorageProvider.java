@@ -333,26 +333,33 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     // @Override
-    // @Override
     public Map<String, Long> recurringJobsExists(StateName... states) {
-        try (Connection conn = dataSource.getConnection()) {
-            String sql =
-                "SELECT recurringJobId, COUNT(*) AS jobCount " +
-                "  FROM jobrunr_jobs " +
-                " WHERE state IN ('SCHEDULED','ENQUEUED','PROCESSING','SUCCEEDED') " +
-                " GROUP BY recurringJobId";
-            try (PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                Map<String, Long> counts = new HashMap<>();
-                while (rs.next()) {
-                    counts.put(
-                        rs.getString("recurringJobId"),
-                        rs.getLong("jobCount")
-                    );
-                }
-                return counts;
+    
+        String sql =
+            "SELECT recurringJobId, COUNT(*) AS jobCount " +
+            "  FROM jobrunr_jobs " +
+            " WHERE state IN ('SCHEDULED','ENQUEUED','PROCESSING','SUCCEEDED') " +
+            " GROUP BY recurringJobId";
+    
+        System.out.println("SQL → " + sql);
+    
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+    
+            Map<String, Long> counts = new HashMap<>();
+            while (rs.next()) {
+                String id = rs.getString("recurringJobId");
+                long cnt = rs.getLong("jobCount");
+                System.out.println("  ↳ row: " + id + " → " + cnt);
+                counts.put(id, cnt);
             }
+            System.out.println("recurringJobsExists returned " + counts.size() + " entries");
+            return counts;
+    
         } catch (SQLException e) {
+            System.out.println("Error running recurringJobsExists");
+            e.printStackTrace();
             throw new StorageException(e);
         }
     }

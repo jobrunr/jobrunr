@@ -56,6 +56,12 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             this.recurringJobs = storageProvider.getRecurringJobs();
             return recurringJobs;
         }
+
+        // Added this logic to avoid refetching even the hash. 
+        if (!storageProvider.recurringJobsUpdated(recurringJobs.getLastModifiedHash())) {
+            System.out.println("🏳️ NO NEED TO FETCH");
+            return recurringJobs;
+        }
     
         // make a mutable copy and sort by createdAt ascending
         List<RecurringJob> mutable = new ArrayList<>(recurringJobs);
@@ -215,6 +221,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             LOGGER.info("Recurring job '{}' is already scheduled, enqueued or processing. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName());
             jobsToSchedule.clear();
         } else if (jobsToSchedule.size() == 1) {
+            System.out.println("🏳️ Recurring job '" + recurringJob.getId() + "has intances in jobrunr_jobs? - " + isAlreadyScheduledEnqueuedOrProcessing(recurringJob));
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
         }
         registerRecurringJobRun(recurringJob, upUntil);
@@ -228,14 +235,21 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private Map<String, Long> fetchExistingCounts() {
         Map<String, Long> existingById = new HashMap<>();
+        System.out.println("🏳️ Fetching existing counts...");
         existingById = storageProvider.recurringJobsExists(SCHEDULED, ENQUEUED, PROCESSING);
         System.out.println("🏳️ Existing counts: " + existingById);
         return existingById;
     }
 
+    // private boolean isAlreadyScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
+    //     return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+    // }
+
     private boolean isAlreadyScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
-        return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+        // true if we saw ≥1 existing job for this ID
+        return existingById.getOrDefault(recurringJob.getId(), 0L) > 0;
     }
+    
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil) {
         recurringJobRuns.put(recurringJob.getId(), upUntil);
