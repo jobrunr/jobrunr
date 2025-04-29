@@ -54,16 +54,16 @@ public class RecurringJob extends AbstractJob {
         this(id, jobDetails, schedule, zoneId, createdBy, Instant.now(Clock.system(zoneId)));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
-        this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, Instant createdAt) {
+        this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, createdAt);
     }
 
-    public RecurringJob(String id, int version, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
-        this(id, version, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
-    }
-    
     public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
         this(id, 0, jobDetails, schedule, zoneId, createdBy, createdAt);
+    }
+
+    public RecurringJob(String id, int version, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, Instant createdAt) {
+        this(id, version, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, createdAt);
     }
 
     public RecurringJob(String id, int version, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {

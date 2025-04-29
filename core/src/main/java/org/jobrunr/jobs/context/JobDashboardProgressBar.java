@@ -49,8 +49,17 @@ public class JobDashboardProgressBar {
         jobDashboardProgress.incrementFailed();
     }
 
+    @Deprecated // will be removed in v8
     public int getProgress() {
         return jobDashboardProgress.getProgress();
+    }
+
+    public int getProgressAsPercentage() {
+        return jobDashboardProgress.getProgressAsPercentage();
+    }
+
+    public double getProgressAsRatio() {
+        return jobDashboardProgress.getProgressAsRatio();
     }
 
     public long getSucceededAmount() {
@@ -143,8 +152,17 @@ public class JobDashboardProgressBar {
             return failedAmount;
         }
 
+        @Deprecated
         public int getProgress() {
             return progress;
+        }
+
+        public int getProgressAsPercentage() {
+            return progress;
+        }
+
+        public double getProgressAsRatio() {
+            return totalAmount > 0 ? (double) succeededAmount / totalAmount : 1.0;
         }
 
         public boolean hasSucceeded() {

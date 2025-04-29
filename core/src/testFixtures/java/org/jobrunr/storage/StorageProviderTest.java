@@ -740,7 +740,7 @@ public abstract class StorageProviderTest {
                 .hasSize(2)
                 .contains(job1, job2);
 
-        Page<Job> jobPage2 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPageRequest.fromString(jobPage1.getNextPage()));
+        Page<Job> jobPage2 = storageProvider.getScheduledJobs(now().plus(5, ChronoUnit.SECONDS), OffsetBasedPageRequest.fromString(jobPage1.getNextPageRequest()));
 
         assertThatJobs(jobPage2.getItems())
                 .hasSize(1)
