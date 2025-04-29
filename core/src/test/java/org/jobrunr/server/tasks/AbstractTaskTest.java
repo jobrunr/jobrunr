@@ -21,12 +21,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class AbstractTaskTest {
+
+    public static final int POLL_INTERVAL_IN_SECONDS = 5;
 
     protected BackgroundJobServer backgroundJobServer;
     @Mock
@@ -47,7 +50,7 @@ public abstract class AbstractTaskTest {
 
     protected void setUpTaskDependencies(StorageProvider storageProvider) {
         logAllStateChangesFilter = new LogAllStateChangesFilter();
-        BackgroundJobServerConfiguration configuration = usingStandardBackgroundJobServerConfiguration();
+        BackgroundJobServerConfiguration configuration = usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(POLL_INTERVAL_IN_SECONDS);
         setUpBackgroundJobServerConfiguration(configuration);
         backgroundJobServer = createBackgroundJobServerSpy(storageProvider, configuration);
         backgroundJobServer.setJobFilters(List.of(logAllStateChangesFilter));
@@ -81,6 +84,10 @@ public abstract class AbstractTaskTest {
                 return new BasicWorkDistributionStrategy(backgroundJobServer, 2);
             }
         });
+    }
+
+    protected Duration pollInterval() {
+        return backgroundJobServer.getConfiguration().getPollInterval();
     }
 
 }

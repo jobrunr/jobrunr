@@ -9,6 +9,7 @@ import org.bson.types.Binary;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -74,5 +75,12 @@ public class MongoUtils {
 
     public static long toMicroSeconds(Instant instant) {
         return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
+    }
+
+    public static Instant fromMicroseconds(Long micros) {
+        if (micros == null) {
+            return null;
+        }
+        return Instant.EPOCH.plus(Duration.of(micros, ChronoUnit.MICROS));
     }
 }

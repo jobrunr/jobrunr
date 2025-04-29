@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -203,6 +204,8 @@ public interface StorageProvider extends AutoCloseable {
      * @return true if a Job exists created by a RecurringJob with the given id.
      */
     boolean recurringJobExists(String recurringJobId, StateName... states);
+
+    Map<String, Instant> getRecurringJobsLatestScheduledRun();
 
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten
