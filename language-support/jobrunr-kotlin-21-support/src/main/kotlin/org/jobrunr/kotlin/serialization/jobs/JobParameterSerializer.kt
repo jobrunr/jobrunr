@@ -1,14 +1,19 @@
 package org.jobrunr.kotlin.serialization.jobs
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import org.jobrunr.jobs.JobParameter
 import org.jobrunr.jobs.JobParameterNotDeserializableException
-import org.jobrunr.kotlin.serialization.utils.AnySerializer
+import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapperUtils
@@ -23,7 +28,7 @@ object JobParameterSerializer : KSerializer<JobParameter> {
     override val descriptor = buildClassSerialDescriptor(JobParameter::class.qualifiedName!!) {
         element("className", String.serializer().descriptor)
         element("actualClassName", String.serializer().descriptor)
-        element("object", AnySerializer<Any>().descriptor)
+        element("object", ClassDiscriminatedContextualSerializer.descriptor)
     }
 
     override fun serialize(encoder: Encoder, value: JobParameter) = encoder.encodeStructure(descriptor) {
@@ -40,38 +45,37 @@ object JobParameterSerializer : KSerializer<JobParameter> {
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
-    override fun deserialize(decoder: Decoder): JobParameter = decoder.decodeStructure(descriptor) {
-        lateinit var className: String
-        var actualClassName: String? = null
-        var `object`: Any? = null
+    override fun deserialize(decoder: Decoder): JobParameter {
+        require(decoder is JsonDecoder)
 
-        while (true) {
-            when (val index = decodeElementIndex(descriptor)) {
-                0 -> className = decodeStringElement(descriptor, 0)
-                1 -> actualClassName = decodeNullableSerializableElement(descriptor, 1, String.serializer())
-                CompositeDecoder.DECODE_DONE, 2 -> {
-                    `object` = `object` ?: try {
-                        val serializer =
-                            decoder.serializersModule.jobArgumentValueSerializer(className, actualClassName)
-                                ?: throw IllegalStateException("No serializer for ${JsonMapperUtils.getActualClassName(className, actualClassName)}")
-                        decodeNullableSerializableElement(descriptor, 2, serializer)
-                    } catch (e: Exception) {
-                        return@decodeStructure JobParameter(
-                            JobParameterNotDeserializableException(JsonMapperUtils.getActualClassName(className, actualClassName), e.message)
-                        )
-                    }
-                    if (index == CompositeDecoder.DECODE_DONE) break
-                }
+        val jsonElement = decoder.decodeJsonElement()
 
-                else -> error("Unexpected index $index")
+        if (jsonElement is JsonObject) {
+            val jsonObject = jsonElement.jsonObject
+            val className = jsonObject["className"]!!.jsonPrimitive.content
+            val actualClassName = jsonObject["actualClassName"]?.jsonPrimitive?.content
+            val `object`: Any?
+
+            try {
+                val serializer = decoder.serializersModule.jobArgumentValueSerializer(className, actualClassName)
+                    ?: throw IllegalStateException("No serializer for ${JsonMapperUtils.getActualClassName(className, actualClassName)}")
+
+                val payload = jsonObject["object"]
+
+                `object` = if (payload != null) decoder.json.decodeFromJsonElement(serializer, payload) else null
+            } catch (e: Exception) {
+                return JobParameter(
+                    JobParameterNotDeserializableException(JsonMapperUtils.getActualClassName(className, actualClassName), e.message)
+                )
             }
+
+            return JobParameter(
+                className,
+                actualClassName,
+                `object`
+            )
         }
 
-        JobParameter(
-            className,
-            actualClassName,
-            `object`
-        )
+        error("Unexpected json object: $jsonElement")
     }
 }

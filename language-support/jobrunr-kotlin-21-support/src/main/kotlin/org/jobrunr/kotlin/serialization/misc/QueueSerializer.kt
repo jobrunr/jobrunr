@@ -1,9 +1,6 @@
-@file:OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-
 package org.jobrunr.kotlin.serialization.misc
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.listSerialDescriptor
 import kotlinx.serialization.encoding.*
@@ -33,6 +30,7 @@ class QueueSerializer<E>(private val elementSerializer: KSerializer<E>) : KSeria
 }
 
 class ConcurrentLinkedQueueSerializer<E>(private val elementSerializer: KSerializer<E>) : KSerializer<ConcurrentLinkedQueue<E>> {
+    @OptIn(ExperimentalSerializationApi::class)
     override val descriptor = listSerialDescriptor(elementSerializer.descriptor)
 
     override fun deserialize(decoder: Decoder) = decoder.decodeStructure(descriptor) {

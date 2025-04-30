@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 
 @OptIn(InternalSerializationApi::class)
 class AnyInlineSerializer<T : Any> : KSerializer<T> {
-    override val descriptor = buildSerialDescriptor(AnyInlineSerializer::class.qualifiedName!!, SerialKind.CONTEXTUAL) {}
+    override val descriptor = buildSerialDescriptor(Any::class.qualifiedName!!, SerialKind.CONTEXTUAL) {}
 
     override fun serialize(encoder: Encoder, value: T) {
         encoder.encodeSerializableValue(

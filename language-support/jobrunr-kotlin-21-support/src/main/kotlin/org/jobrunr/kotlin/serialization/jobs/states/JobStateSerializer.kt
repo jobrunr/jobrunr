@@ -5,7 +5,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.jobrunr.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
@@ -28,7 +31,6 @@ abstract class DTOSerializer<Java : Any, Kotlin : Any>(
         val kotlinValue = value.toDTO()
 
         val jsonObjectMap = encoder.json.encodeToJsonElement(kDTOSerializer, kotlinValue).jsonObject.toMutableMap()
-        jsonObjectMap["@class"] = JsonPrimitive(value.javaClass.canonicalName)
 
         jsonObjectMap.entries.removeIf { it.value is JsonNull }
 
