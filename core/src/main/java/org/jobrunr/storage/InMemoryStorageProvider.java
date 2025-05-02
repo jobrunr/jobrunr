@@ -27,7 +27,9 @@ import java.util.stream.Stream;
 import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
+import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
@@ -249,12 +251,24 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
+        if (states.length == 0) {
+            return jobQueue.values().stream()
+                    .anyMatch(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)));
+        }
         return jobQueue.values().stream()
-                .anyMatch(job ->
-                        asList(getStateNames(states)).contains(job.getState())
-                                && job.getRecurringJobId()
-                                .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
-                                .orElse(false));
+                .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
+                .anyMatch(job -> asList(getStateNames(states)).contains(job.getState()));
+    }
+
+    @Override
+    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
+        return jobQueue.values().stream()
+                .filter(job -> job.getRecurringJobId().isPresent())
+                .collect(toMap(
+                        job -> job.getRecurringJobId().get(),
+                        job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")),
+                        maxBy(Instant::compareTo)
+                ));
     }
 
     @Override

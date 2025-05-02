@@ -94,19 +94,28 @@ public class RecurringJob extends AbstractJob {
     }
 
     /**
-     * Creates all jobs that must be scheduled between the given start and end time.
+     * Creates all jobs that must be scheduled in the time interval [from, upTo).
+     * Creates a job to schedule ahead of time if no jobs are created in the interval.
      *
-     * @param from the start time from which to create Scheduled Jobs
-     * @param upTo the end time until which to create Scheduled Jobs
-     * @return creates all jobs that must be scheduled
+     * @param from the start of the time interval from which to create Scheduled Jobs (inclusive)
+     * @param upTo the end of the time interval (exclusive)
+     * @return all created jobs that must be scheduled in the time interval [from, upTo), or a job scheduled ahead of time.
      */
     public List<Job> toScheduledJobs(Instant from, Instant upTo) {
+        if (from.isAfter(upTo)) throw new IllegalArgumentException("from must be before upTo");
+
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(new ScheduledState(nextRun, this)));
+            jobs.add(toJob(ScheduledState.fromRecurringJob(nextRun, this)));
             nextRun = getNextRun(nextRun);
         }
+
+        if (jobs.isEmpty()) {
+            Instant nextRunAtAheadOfTime = getNextRun(upTo);
+            jobs.add(toJob(ScheduledState.fromRecurringJobAheadOfTime(nextRunAtAheadOfTime, this)));
+        }
+
         return jobs;
     }
 
