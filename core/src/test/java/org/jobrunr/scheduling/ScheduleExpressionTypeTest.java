@@ -32,8 +32,9 @@ class ScheduleExpressionTypeTest {
         assertThat(ScheduleExpressionType.createScheduleFromString("PT10M")).isEqualTo(new Interval("PT10M"));
         assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("Not correct"))
                 .isInstanceOf(InvalidCronExpressionException.class)
-                .hasMessage("crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution)");
+                .hasMessage("crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution). Provided: Not correct");
     }
+
     @Test
     void canParseScheduleFromCronExpression() {
         Schedule schedule = ScheduleExpressionType.createScheduleFromString("* * * * *");

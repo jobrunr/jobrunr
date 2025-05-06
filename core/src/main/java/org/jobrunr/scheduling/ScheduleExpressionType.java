@@ -26,10 +26,10 @@ public enum ScheduleExpressionType {
 
     public static Schedule createScheduleFromString(String scheduleExpression) {
         if (isNotNullOrEmpty(scheduleExpression)) {
-            if (scheduleExpression.matches(".*\\s.*")) {
-                return CRON_EXPRESSION.createSchedule(scheduleExpression);
-            } else if (scheduleExpression.startsWith("P")) {
+            if (scheduleExpression.startsWith("P")) {
                 return INTERVAL.createSchedule(scheduleExpression);
+            } else if (scheduleExpression.matches(".*\\s.*")) {
+                return CRON_EXPRESSION.createSchedule(scheduleExpression);
             }
         }
         throw new ScheduleException(scheduleExpression);
