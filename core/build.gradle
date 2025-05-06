@@ -86,7 +86,7 @@ dependencies {
     testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'co.elastic.clients:elasticsearch-java'
-    
+
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'org.mockito:mockito-inline'
@@ -95,6 +95,7 @@ dependencies {
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
+    testFixturesApi 'io.micrometer:micrometer-core'
 }
 
 java {
