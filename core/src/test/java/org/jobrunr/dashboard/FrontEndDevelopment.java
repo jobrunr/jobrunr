@@ -20,7 +20,10 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.Instant;
 
+import static java.time.Instant.now;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -39,6 +42,9 @@ public class FrontEndDevelopment {
 //        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
 //        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
 //        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
+
+        storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
+        storageProvider.save(anEnqueuedJob().withEnqueuedState(now()).withName("A job").build());
 
         JobRunr
                 .configure()

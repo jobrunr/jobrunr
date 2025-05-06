@@ -83,6 +83,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         testImplementation 'ch.qos.logback:logback-classic'
         testImplementation 'org.mockito:mockito-inline'
         testImplementation 'org.mockito:mockito-junit-jupiter'
+
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     tasks.clean.doFirst {
@@ -99,6 +101,16 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         testLogging {
             minGranularity = 3
             events "passed", "skipped", "failed"
+        }
+    }
+
+    sonar {
+        properties {
+            property "sonar.sourceEncoding", "UTF-8"
+            property "sonar.projectKey", "jobrunr_jobrunr"
+            property "sonar.organization", "jobrunr"
+            property "sonar.branch.name", System.getenv("DRONE_BRANCH") ?: "master"
+            property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
         }
     }
 

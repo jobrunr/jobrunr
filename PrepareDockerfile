@@ -1,14 +1,17 @@
-FROM eclipse-temurin:17-jdk-focal@sha256:7f6e0f1356bb8d04aecc3d780fdaed5b01265b128692879eb13de1ba3e9214ab
+FROM openjdk:21-slim@sha256:7072053847a8a05d7f3a14ebc778a90b38c50ce7e8f199382128a53385160688
 
 RUN apt-get update
 RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 RUN source /root/.bashrc
-RUN nvm install 18.17
+RUN nvm install 18.17.1
 RUN npm -v
-RUN ln -s /root/.nvm/versions/node/v18.17.0/bin/npm /usr/bin/npm
-RUN ln -s /root/.nvm/versions/node/v18.17.0/bin/node /usr/bin/node
+RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npm /usr/bin/npm
+RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
+RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npx /usr/bin/npx
+RUN npx playwright install-deps
+RUN npx playwright install
 
 ENV GRADLE_VERSION 8.5
 COPY gradle /home/gradle/gradle

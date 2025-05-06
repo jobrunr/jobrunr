@@ -3,12 +3,18 @@ package org.jobrunr.utils;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.utils.CollectionUtils.*;
+import static org.jobrunr.utils.CollectionUtils.findLast;
+import static org.jobrunr.utils.CollectionUtils.getLast;
+import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.CollectionUtils.isNullOrEmpty;
+import static org.jobrunr.utils.CollectionUtils.mapOf;
 
 class CollectionUtilsTest {
 
@@ -55,6 +61,24 @@ class CollectionUtilsTest {
     @Test
     void isNotNullOrEmptyIsFalseForEmptyArray() {
         assertThat(isNotNullOrEmpty(new String[]{})).isFalse();
+    }
+
+    @Test
+    void findLastOfCollection() {
+        assertThat(findLast(null)).isEmpty();
+        assertThat(findLast(Collections.emptyList())).isEmpty();
+        assertThat(findLast(List.of("A"))).isEqualTo(Optional.of("A"));
+        assertThat(findLast(List.of("A", "B"))).isEqualTo(Optional.of("B"));
+        assertThat(findLast(List.of("A", "B", "C"))).isEqualTo(Optional.of("C"));
+    }
+
+    @Test
+    void findGetOfCollection() {
+        assertThat((Object) getLast(null)).isNull();
+        assertThat((Object) getLast(Collections.emptyList())).isNull();
+        assertThat(getLast(List.of("A"))).isEqualTo("A");
+        assertThat(getLast(List.of("A", "B"))).isEqualTo("B");
+        assertThat(getLast(List.of("A", "B", "C"))).isEqualTo("C");
     }
 
     @Test

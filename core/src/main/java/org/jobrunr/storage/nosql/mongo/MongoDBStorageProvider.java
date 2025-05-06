@@ -96,6 +96,7 @@ import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
+import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata;
@@ -192,9 +193,9 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void setUpStorageProvider(DatabaseOptions databaseOptions) {
-        if (CREATE == databaseOptions) {
+        if (databaseOptions == CREATE) {
             runMigrations(mongoClient, databaseName, collectionPrefix);
-        } else {
+        } else if (databaseOptions == SKIP_CREATE) {
             validateTables(mongoClient, databaseName, collectionPrefix);
         }
     }
@@ -249,8 +250,12 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void saveMetadata(JobRunrMetadata metadata) {
-        this.metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), metadata.getId()), metadataDocumentMapper.toUpdateDocument(metadata), new UpdateOptions().upsert(true));
-        notifyMetadataChangeListeners();
+        try {
+            this.metadataCollection.updateOne(eq(toMongoId(Metadata.FIELD_ID), metadata.getId()), metadataDocumentMapper.toUpdateDocument(metadata), new UpdateOptions().upsert(true));
+            notifyMetadataChangeListeners();
+        } catch (MongoException e) {
+            throw new StorageException(e);
+        }
     }
 
     @Override
@@ -268,9 +273,13 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void deleteMetadata(String name) {
-        final DeleteResult deleteResult = metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
-        long deletedCount = deleteResult.getDeletedCount();
-        notifyMetadataChangeListeners(deletedCount > 0);
+        try {
+            final DeleteResult deleteResult = metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
+            long deletedCount = deleteResult.getDeletedCount();
+            notifyMetadataChangeListeners(deletedCount > 0);
+        } catch (MongoException e) {
+            throw new StorageException(e);
+        }
     }
 
     @Override
@@ -378,7 +387,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
-        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_CREATED_AT, toMicroSeconds(updatedBefore))));
+        final DeleteResult deleteResult = jobCollection.deleteMany(and(eq(Jobs.FIELD_STATE, state.name()), lt(FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))));
         final long deletedCount = deleteResult.getDeletedCount();
         notifyJobStatsOnChangeListenersIf(deletedCount > 0);
         return (int) deletedCount;
@@ -393,15 +402,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        return countRecurringJobInstances(recurringJobId, states) > 0;
-    }
-
-    @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         if (states.length < 1) {
-            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
+            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
         }
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)));
+        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
     }
 
     @Override
@@ -520,6 +524,9 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         if (codecRegistryGetter.isPresent()) {
             try {
                 CodecRegistry codecRegistry = (CodecRegistry) codecRegistryGetter.get().invoke(mongoClient);
+                if (codecRegistry == null) {
+                    throw new StorageException("No CodecRegistry found and JobRunr needs to have a UUID Representation configured.");
+                }
                 UuidCodec uuidCodec = (UuidCodec) codecRegistry.get(UUID.class);
                 if (UuidRepresentation.UNSPECIFIED == uuidCodec.getUuidRepresentation()) {
                     throw new StorageException("\n" +

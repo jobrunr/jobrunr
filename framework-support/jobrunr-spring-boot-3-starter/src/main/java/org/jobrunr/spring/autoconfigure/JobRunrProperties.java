@@ -76,7 +76,7 @@ public class JobRunrProperties {
     }
 
     /**
-     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. Redis).
+     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. MongoDB).
      */
     public static class Database {
         /**
@@ -100,8 +100,8 @@ public class JobRunrProperties {
         private String datasource;
 
         /**
-         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb' and 'mem'.
          */
         private String type;
 
@@ -272,6 +272,11 @@ public class JobRunrProperties {
         private Integer carbonAwaitingJobsRequestSize = 1000;
 
         /**
+         * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
+         */
+        private Integer serverTimeoutPollIntervalMultiplicand = 4;
+
+        /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
         private Integer scheduledJobsRequestSize = 1000;
@@ -359,6 +364,14 @@ public class JobRunrProperties {
         public BackgroundJobServer setCarbonAwaitingJobsRequestSize(Integer carbonAwaitingJobsRequestSize) {
             this.carbonAwaitingJobsRequestSize = carbonAwaitingJobsRequestSize;
             return this;
+        }
+
+        public Integer getServerTimeoutPollIntervalMultiplicand() {
+            return serverTimeoutPollIntervalMultiplicand;
+        }
+
+        public void setServerTimeoutPollIntervalMultiplicand(Integer serverTimeoutPollIntervalMultiplicand) {
+            this.serverTimeoutPollIntervalMultiplicand = serverTimeoutPollIntervalMultiplicand;
         }
 
         public Integer getScheduledJobsRequestSize() {

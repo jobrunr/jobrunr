@@ -4,6 +4,7 @@ import org.assertj.core.api.Condition;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
@@ -225,7 +226,13 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringCronJob() {
-        BackgroundJobRequest.scheduleRecurrently(everySecond, new TestJobRequest("from testRecurringJob"));
+        TestJobRequest testJobRequest = new TestJobRequest("from testRecurringJob");
+        BackgroundJobRequest.scheduleRecurrently(everySecond, testJobRequest);
+        RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
+        assertThat(recurringJob)
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", testJobRequest)
+                .hasCreatedBy(RecurringJob.CreatedBy.API);
+
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -263,7 +270,13 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringIntervalJob() {
-        BackgroundJobRequest.scheduleRecurrently(Duration.ofSeconds(1), new TestJobRequest("from testRecurringJob"));
+        TestJobRequest testJobRequest = new TestJobRequest("from testRecurringJob");
+        BackgroundJobRequest.scheduleRecurrently(Duration.ofSeconds(1), testJobRequest);
+        RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
+        assertThat(recurringJob)
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", testJobRequest)
+                .hasCreatedBy(RecurringJob.CreatedBy.API);
+
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

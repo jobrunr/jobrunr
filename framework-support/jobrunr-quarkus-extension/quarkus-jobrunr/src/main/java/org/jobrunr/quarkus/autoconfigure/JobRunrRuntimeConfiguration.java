@@ -67,8 +67,8 @@ public interface JobRunrRuntimeConfiguration {
         Optional<String> datasource();
 
         /**
-         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb' and 'documentdb'.
          */
         Optional<String> type();
     }
@@ -89,9 +89,21 @@ public interface JobRunrRuntimeConfiguration {
          * Configures carbon-aware scheduling related properties
          */
         CarbonAwareConfiguration carbonAwareConfiguration();
+
+        /**
+         * Configures MicroMeter metrics related to jobs
+         */
+        MetricsConfiguration metrics();
     }
 
     interface JobSchedulerConfiguration {
+
+        /**
+         * Enables the scheduling of jobs.
+         */
+        @WithDefault("true")
+        boolean enabled();
+
         /**
          * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
          * JobDetailsGenerator, and it should have a default no-argument constructor.
@@ -100,6 +112,12 @@ public interface JobRunrRuntimeConfiguration {
     }
 
     interface BackgroundJobServerConfiguration {
+
+        /**
+         * Enables the background processing of jobs.
+         */
+        @WithDefault("false")
+        boolean enabled();
 
         /**
          * Sets the name of the {@link org.jobrunr.server.BackgroundJobServer} (used in the dashboard).
@@ -144,6 +162,11 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> pollIntervalInSeconds();
 
         /**
+         * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
+         */
+        Optional<Integer> serverTimeoutPollIntervalMultiplicand();
+
+        /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
          */
         Optional<Duration> deleteSucceededJobsAfter();
@@ -157,9 +180,19 @@ public interface JobRunrRuntimeConfiguration {
          * Sets the duration to wait before interrupting threads/jobs when the server is stopped.
          */
         Optional<Duration> interruptJobsAwaitDurationOnStop();
+
+        /**
+         * Configures MicroMeter metrics related to the background job server
+         */
+        MetricsConfiguration metrics();
     }
 
     interface DashboardConfiguration {
+        /**
+         * Enables the JobRunr dashboard.
+         */
+        @WithDefault("false")
+        boolean enabled();
 
         /**
          * The port on which the Dashboard should run
@@ -205,5 +238,14 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> apiClientReadTimeoutMs();
     }
 
+
+    interface MetricsConfiguration {
+
+        /**
+         * Configures whether metrics are reported to MicroMeter.
+         */
+        @WithDefault("false")
+        boolean enabled();
+    }
 }
 

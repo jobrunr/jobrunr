@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -133,7 +132,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
-    public JobAssert hasLabels(Set<String> labels) {
+    public JobAssert hasLabels(List<String> labels) {
         Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
         return this;
     }
@@ -160,6 +159,10 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);
         Assertions.assertThat(scheduledState.getReason()).isEqualTo(reason);
         return this;
+    }
+
+    public JobAssert hasScheduledAt(Instant scheduledAt) {
+        return isScheduledAt(scheduledAt);
     }
 
     public JobAssert isEqualTo(Job otherJob) {

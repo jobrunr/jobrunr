@@ -167,7 +167,7 @@ class BackgroundJobServerTest {
 
         // WHEN we shutdown the server
         backgroundJobServer.stop();
-        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)", 1);
+        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer - stopping (may take about PT10S)", 1);
 
         // THEN no running backgroundjob threads should exist
         await().atMost(TEN_SECONDS)
@@ -230,6 +230,7 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // PAUSE -> STOP
         assertThatCode(() -> backgroundJobServer.stop()).doesNotThrowAnyException();
@@ -237,18 +238,21 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isTrue();
 
         // STOP -> RESUME
         assertThatThrownBy(() -> backgroundJobServer.resumeProcessing()).isInstanceOf(IllegalStateException.class);
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isTrue();
 
         // STOP -> PAUSE
         assertThatThrownBy(() -> backgroundJobServer.pauseProcessing()).isInstanceOf(IllegalStateException.class);
         assertThat(backgroundJobServer.isAnnounced()).isFalse();
         assertThat(backgroundJobServer.isStarted()).isFalse();
         assertThat(backgroundJobServer.isRunning()).isFalse();
+        assertThat(backgroundJobServer.isStopped()).isTrue();
 
         // STOP -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
@@ -256,18 +260,21 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // START -> START
         assertThatCode(() -> backgroundJobServer.start()).doesNotThrowAnyException();
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // START -> RESUME
         assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
+        assertThat(backgroundJobServer.isStopped()).isFalse();
 
         // RESUME -> RESUME
         assertThatCode(() -> backgroundJobServer.resumeProcessing()).doesNotThrowAnyException();

@@ -133,7 +133,7 @@ const JobView = (props) => {
     };
 
     return (
-        <main style={{width: "100%"}}>
+        <main style={{width: "100%", overflowX: "hidden"}}>
             {isLoading
                 ? <LoadingIndicator/>
                 : <>{job === null

@@ -13,13 +13,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import static java.time.ZoneId.systemDefault;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 
 class RecurringJobBuilderTest {
@@ -42,7 +43,8 @@ class RecurringJobBuilderTest {
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
-                .hasJobDetails(TestService.class, "doWork");
+                .hasJobDetails(TestService.class, "doWork")
+                .hasCreatedBy(API);
     }
 
     @Test
@@ -68,7 +70,8 @@ class RecurringJobBuilderTest {
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
-                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest);
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest)
+                .hasCreatedBy(API);
     }
 
     @Test
@@ -125,13 +128,13 @@ class RecurringJobBuilderTest {
     @Test
     void testWithLabels() {
         RecurringJob recurringJob = aRecurringJob()
-                .withLabels(Set.of("TestLabel", "Email"))
+                .withLabels(List.of("TestLabel", "Email"))
                 .withCron(every5Seconds)
                 .withDetails(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
-                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasLabels(List.of("TestLabel", "Email"))
                 .hasId()
                 .hasScheduleExpression(every5Seconds);
     }

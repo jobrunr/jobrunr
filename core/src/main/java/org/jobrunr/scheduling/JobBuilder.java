@@ -16,11 +16,10 @@ import org.jobrunr.utils.JobUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
-import static org.jobrunr.utils.CollectionUtils.asSet;
-import static org.jobrunr.utils.JobUtils.assertJobExists;
+import static java.util.Arrays.asList;
 
 /**
  * This class is used to build a {@link Job} using a job lambda or a {@link JobRequest}.
@@ -55,7 +54,7 @@ public class JobBuilder {
     private Instant scheduleAt;
     private CarbonAwarePeriod carbonAwarePeriod;
     private Integer retries;
-    private Set<String> labels;
+    private List<String> labels;
     private JobRunrJob jobLambda;
     private JobRequest jobRequest;
 
@@ -142,17 +141,17 @@ public class JobBuilder {
      * @return the same builder instance which provides a fluent api
      */
     public JobBuilder withLabels(String... labels) {
-        return withLabels(asSet(labels));
+        return withLabels(asList(labels));
     }
 
     /**
      * Allows to provide a set of labels to be shown in the dashboard.
      * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
      *
-     * @param labels an array of labels to be added to the recurring job
+     * @param labels a list of labels to be added to the recurring job
      * @return the same builder instance which provides a fluent api
      */
-    public JobBuilder withLabels(Set<String> labels) {
+    public JobBuilder withLabels(List<String> labels) {
         this.labels = labels;
         return this;
     }
@@ -222,7 +221,6 @@ public class JobBuilder {
             throw new IllegalArgumentException("JobRequest must be present.");
         }
         JobDetails jobDetails = new JobDetails(jobRequest);
-        assertJobExists(jobDetails);
         return build(jobDetails);
     }
 

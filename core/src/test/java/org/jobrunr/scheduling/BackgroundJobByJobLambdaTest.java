@@ -6,6 +6,7 @@ import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.states.FailedState;
@@ -354,6 +355,11 @@ public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTes
     @Test
     void testRecurringCronJob() {
         BackgroundJob.scheduleRecurrently(everySecond, () -> testService.doWork(5));
+        RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
+        assertThat(recurringJob)
+                .hasJobDetails(TestService.class, "doWork", 5)
+                .hasCreatedBy(RecurringJob.CreatedBy.API);
+
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 3);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -398,6 +404,14 @@ public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTes
         assertThat(storageProvider.getJobById(job.getId())).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
+    @Test
+    void testRecurringCronJobSchedulesAheadOfTime() {
+        BackgroundJob.scheduleRecurrently("theId", Cron.weekly(), () -> testService.doWork(5));
+        backgroundJobServer.stop(); // why: to reset ProcessRecurringJobsTask as it runs before the Recurring Job is created
+        backgroundJobServer.start();
+        await().atMost(ofSeconds(5)).untilAsserted(() -> assertThat(storageProvider.countJobs(SCHEDULED)).isEqualTo(1));
+    }
+
     @RepeatedIfExceptionsTest(repeats = 3)
     void testRecurringCronJobDoesNotSkipRecurringJobsIfStopTheWorldGCOccurs() {
         TestServiceForRecurringJobsIfStopTheWorldGCOccurs testService = new TestServiceForRecurringJobsIfStopTheWorldGCOccurs();
@@ -417,6 +431,11 @@ public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTes
     @Test
     void testRecurringIntervalJob() {
         BackgroundJob.scheduleRecurrently(Duration.ofSeconds(1), () -> testService.doWork(5));
+        RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
+        assertThat(recurringJob)
+                .hasJobDetails(TestService.class, "doWork", 5)
+                .hasCreatedBy(RecurringJob.CreatedBy.API);
+
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

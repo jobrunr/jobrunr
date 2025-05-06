@@ -18,6 +18,8 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
+import org.jobrunr.server.tasks.startup.ShutdownExecutorServiceTask;
+import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessCarbonAwareAwaitingJobsTask;
@@ -41,6 +43,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.Integer.compare;
@@ -154,7 +159,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public void stop() {
         try (LifeCycleLock ignored = lifecycleLock.writeLock()) {
             if (isStopped()) return;
-            LOGGER.info("BackgroundJobServer and BackgroundJobPerformers - stopping (waiting for all jobs to complete - max 10 seconds)");
+            LOGGER.info("BackgroundJobServer - stopping (may take about {})", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
             isMaster = null;
             stopWorkers();
             stopZooKeepers();
@@ -170,7 +175,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     boolean isStopped() {
         try (LifeCycleLock ignored = lifecycleLock.readLock()) {
-            if (isStopping()) return true;
             return zookeeperThreadPool == null;
         }
     }
@@ -201,7 +205,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     void setIsMaster(Boolean isMaster) {
-        if (isStopped()) return;
+        if (isStopping() || isStopped()) return;
 
         this.isMaster = isMaster;
         if (isMaster != null) {
@@ -321,18 +325,20 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void stopWorkers() {
         if (jobExecutor == null) return;
-        LOGGER.info("JobRunr BackgroundJobServer shutdown requested - waiting for jobs to finish (at most {})", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
+        LOGGER.info("BackgroundJobPerformers - stopping (waiting at most {} for jobs to finish)", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         jobExecutor.stop(configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         this.jobExecutor = null;
     }
 
     private void runStartupTasks() {
         try {
-            List<Runnable> startupTasks = asList(
+            ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+            singleThreadExecutor.submit(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new MigrateFromV5toV6Task(this));
-            startupTasks.forEach(jobExecutor::execute);
+                    new MigrateFromV5toV6Task(this),
+                    new ShutdownExecutorServiceTask(singleThreadExecutor)
+            ));
         } catch (Exception notImportant) {
             // server is shut down immediately
         }
@@ -383,7 +389,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private boolean isStopping() {
-        return jobExecutor != null && jobExecutor.isStopping();
+        final JobRunrExecutor tmpJobExecutor = jobExecutor;
+        return tmpJobExecutor != null && tmpJobExecutor.isStopping();
     }
 
     static class BackgroundJobServerLifecycleLock {

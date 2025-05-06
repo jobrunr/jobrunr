@@ -60,7 +60,7 @@ public class JobTable extends Sql<Job> {
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
                 .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElse(null))
                 .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null))
-                .with(FIELD_DEADLINE, job -> job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(CarbonAwareAwaitingState::getTo).orElse(null));
+                .with(FIELD_DEADLINE, job -> job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(CarbonAwareAwaitingState::getTo).orElse(null));;
     }
 
     public JobTable withId(UUID id) {

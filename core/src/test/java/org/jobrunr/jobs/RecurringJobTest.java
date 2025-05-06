@@ -2,9 +2,7 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
-import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
@@ -16,17 +14,17 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Set;
 
+import static java.time.Duration.ofMillis;
+import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
+import static java.time.Instant.parse;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR;
 import static org.mockito.InstantMocker.mockTime;
 
 class RecurringJobTest {
@@ -36,11 +34,9 @@ class RecurringJobTest {
         assertThatCode(() -> aDefaultRecurringJob().withoutId().build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this-is-allowed-with-a-1").build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this_is_ALSO_allowed_with_a_2").build()).doesNotThrowAnyException();
-        assertThatCode(() -> aDefaultRecurringJob().withId("this_is_ALSO_allowed_with_a_2").build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("some-id".repeat(20).substring(0, 127)).build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withoutId().withJobDetails(new JobDetails(new SimpleJobRequest())).build()).doesNotThrowAnyException();
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("some-id".repeat(20)).build()).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> aDefaultRecurringJob().withId("this is not allowed").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this is not allowed").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this-is-also-not-allowed-because-of-$").build()).isInstanceOf(IllegalArgumentException.class);
     }
@@ -66,84 +62,60 @@ class RecurringJobTest {
     }
 
     @Test
-    void testToScheduledJobWith1FutureRun() {
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withCronExpression("*/5 * * * * *")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(1);
+        ScheduledState scheduledState = jobs.get(0).getJobState();
+        assertThat(scheduledState.getScheduledAt()).isAfter(now());
+    }
+
+    @Test
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndNoResultsThenReturnsJobScheduledAheadOfTime() {
+        try (MockedStatic<Instant> ignored = mockTime(parse("2025-04-02T00:00:00Z"))) {
+            final RecurringJob recurringJob = aDefaultRecurringJob()
+                    .withCronExpression(Cron.weekly())
+                    .withZoneId(ZoneOffset.UTC)
+                    .build();
+
+            final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+            assertThat(jobs).hasSize(1);
+            assertThat(jobs.get(0))
+                    .hasRecurringJobId(recurringJob.getId())
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(Instant.parse("2025-04-07T00:00:00Z"));
+        }
+    }
+
+    @Test
+    void testToScheduledJobsGetsAllJobsBetweenStartAndEndMultipleResults() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("*/5 * * * * *")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(4);
+    }
+
+    @Test
+    void testToScheduledJob() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withId("the-recurring-job")
                 .withName("the recurring job")
                 .build();
 
-        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(5));
+        final Job job = recurringJob.toScheduledJob();
 
-        assertThatJobs(jobs)
-                .hasSize(2)
-                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals("the-recurring-job"))
-                .allMatch(job -> job.getState().equals(SCHEDULED));
-    }
-
-    @Test
-    void testToJobsWith1FutureRunWithMissedRunsShouldCreateMultipleJobs() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression("*/5 * * * * *")
-                .build();
-
-        Instant from = now().minusSeconds(15);
-        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(from, now());
-
-        assertThatJobs(jobs).hasSize(4)
-                .allMatch(job -> job.getRecurringJobId().orElse("other-id").equals(recurringJob.getId()))
-                .allMatch(job -> job.getState().equals(SCHEDULED))
-                .allMatch(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isAfter(from));
-    }
-
-    @Test
-    void testToJobsWith1FutureRunShouldReturnOnly1FutureJobWhenJobScheduleDoesNotFitInTimeWindow() {
-        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
-            final RecurringJob recurringJob = aDefaultRecurringJob()
-                    .withCronExpression(Cron.weekly())
-                    .build();
-
-            final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now(), now());
-
-            assertThat(jobs).hasSize(1);
-        }
-    }
-
-    @Test
-    void testToJobsWith1FutureRunGetsAllJobsBetweenStartAndNowMultipleResults() {
-        final RecurringJob recurringJob = aDefaultRecurringJob()
-                .withCronExpression("*/5 * * * * *")
-                .build();
-
-        final List<Job> jobs = recurringJob.toJobsWith1FutureRun(now().minusSeconds(15), now().plusSeconds(5));
-
-        assertThat(jobs).hasSize(5);
-    }
-
-    @Test
-    void testToJobsWith1FutureRunCorrectlySetsTheInitialState() {
-        try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
-            final RecurringJob classicRecurringJob = aDefaultRecurringJob()
-                    .withCronExpression("*/5 * * * * *")
-                    .build();
-
-            final List<Job> classicJobs = classicRecurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(5));
-
-            assertThatJobs(classicJobs)
-                    .hasSize(2)
-                    .allMatch(job -> job.getJobState() instanceof ScheduledState);
-
-            final RecurringJob carbonAwareRecurringJob = aDefaultRecurringJob()
-                    .withCronExpression(CarbonAware.using(Cron.daily(7), Duration.ofHours(4), Duration.ZERO))
-                    .build();
-
-            final List<Job> carbonAwareRecurringJobs = carbonAwareRecurringJob.toJobsWith1FutureRun(now(), now().plusSeconds(5));
-
-            assertThatJobs(carbonAwareRecurringJobs)
-                    .hasSize(1)
-                    .allMatch(job -> job.getJobState() instanceof CarbonAwareAwaitingState);
-
-        }
+        assertThat(job)
+                .hasRecurringJobId("the-recurring-job")
+                .hasJobName("the recurring job")
+                .hasState(SCHEDULED);
     }
 
     @Test
@@ -162,7 +134,7 @@ class RecurringJobTest {
                 .hasJobName("the recurring job")
                 .hasState(ENQUEUED)
                 .hasAmountOfRetries(3)
-                .hasLabels(Set.of("some label"));
+                .hasLabels(List.of("some label"));
     }
 
     @Test
@@ -191,5 +163,26 @@ class RecurringJobTest {
                 .build();
         Instant nextRun = recurringJob.getNextRun();
         assertThat(nextRun).isAfter(now());
+    }
+
+    @Test
+    void testDurationBetweenRecurringJobInstancesForCronJob() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
+        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
+
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
+        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
+    }
+
+    @Test
+    void testDurationBetweenRecurringJobInstancesForIntervalJob() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withIntervalExpression(ofMillis(200).toString()).build();
+        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofMillis(200));
+
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(1).toString()).build();
+        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
+
+        RecurringJob recurringJob3 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(5).toString()).build();
+        assertThat(recurringJob3.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
     }
 }

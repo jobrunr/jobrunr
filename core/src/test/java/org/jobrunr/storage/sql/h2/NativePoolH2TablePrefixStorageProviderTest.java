@@ -36,9 +36,9 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
     }
 
     @Override
-    protected DataSource getDataSource() {
+    public DataSource getDataSource() {
         if (dataSource == null) {
-            dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test;INIT=CREATE SCHEMA IF NOT EXISTS SOME_SCHEMA;DB_CLOSE_DELAY=-1;", "sa", "sa");
+            dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test-native-pool;INIT=CREATE SCHEMA IF NOT EXISTS SOME_SCHEMA;DB_CLOSE_DELAY=-1;", "sa", "sa");
         }
         return dataSource;
     }
@@ -47,6 +47,7 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
     void checkTablesAndIndicesUseCorrectPrefix() {
         assertThat(dataSource)
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_MIGRATIONS")
+                .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_JOBS")
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_RECURRING_JOBS")
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_BACKGROUNDJOBSERVERS")
                 .hasTable("PUBLIC.SOME_PREFIX_JOBRUNR_METADATA")

@@ -9,8 +9,10 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +20,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static java.util.Collections.emptyList;
+import static java.time.Duration.between;
 
 public class RecurringJob extends AbstractJob {
+
+    public enum CreatedBy {
+        API,
+        ANNOTATION
+    }
 
     public static Map<String, Function<RecurringJob, Comparable>> ALLOWED_SORT_COLUMNS = new HashMap<>();
 
@@ -32,29 +39,39 @@ public class RecurringJob extends AbstractJob {
     private String id;
     private String scheduleExpression;
     private String zoneId;
+    private CreatedBy createdBy;
     private Instant createdAt;
 
     private RecurringJob() {
         // used for deserialization
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId));
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy) {
+        this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy);
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
-        this(id, jobDetails, schedule, zoneId, Instant.now(Clock.system(zoneId)));
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy) {
+        this(id, jobDetails, schedule, zoneId, createdBy, Instant.now(Clock.system(zoneId)));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, String createdAt) {
-        this(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), ZoneId.of(zoneId), Instant.parse(createdAt));
+    public RecurringJob(String id, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
+        this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, Instant createdAt) {
-        super(jobDetails);
+    public RecurringJob(String id, int version, JobDetails jobDetails, String scheduleExpression, String zoneId, CreatedBy createdBy, String createdAt) {
+        this(id, version, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, Instant.parse(createdAt));
+    }
+
+    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
+        this(id, 0, jobDetails, schedule, zoneId, createdBy, createdAt);
+    }
+
+    public RecurringJob(String id, int version, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
+        super(jobDetails, version);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
         this.scheduleExpression = schedule.toString();
+        this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
 
@@ -67,37 +84,37 @@ public class RecurringJob extends AbstractJob {
         return scheduleExpression;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public String getZoneId() {
-        return zoneId;
+    /**
+     * Returns the next job to for this recurring job based on the current instant.
+     *
+     * @return the next job to for this recurring job based on the current instant.
+     */
+    public Job toScheduledJob() {
+        return toJob(new ScheduledState(getNextRun(), this));
     }
 
     /**
-     * Creates all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     * Creates all jobs that must be scheduled in the time interval [from, upTo).
+     * Creates a job to schedule ahead of time if no jobs are created in the interval.
      *
-     * @param from the start of the time interval from which to create Scheduled Jobs
-     * @param upTo the end of the time interval (not included)
-     * @return all jobs that must be scheduled in the time interval [from, upTo), with one additional job scheduled ahead of time.
+     * @param from the start of the time interval from which to create Scheduled Jobs (inclusive)
+     * @param upTo the end of the time interval (exclusive)
+     * @return all created jobs that must be scheduled in the time interval [from, upTo), or a job scheduled ahead of time.
      */
-    public List<Job> toJobsWith1FutureRun(Instant from, Instant upTo) {
-        if (from.isAfter(upTo)) return emptyList();
+    public List<Job> toScheduledJobs(Instant from, Instant upTo) {
+        if (from.isAfter(upTo)) throw new IllegalArgumentException("from must be before upTo");
 
         List<Job> jobs = new ArrayList<>();
-
-        Schedule schedule = ScheduleExpressionType.getSchedule(scheduleExpression);
-        ZoneId zoneId = ZoneId.of(this.zoneId);
-
-        Instant nextRun = schedule.next(createdAt, from, zoneId);
+        Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(toJobState(schedule, nextRun)));
-            nextRun = schedule.next(createdAt, nextRun, zoneId);
+            jobs.add(toJob(ScheduledState.fromRecurringJob(nextRun, this)));
+            nextRun = getNextRun(nextRun);
         }
 
-        // add 1 more job
-        jobs.add(toJob(toJobState(schedule, nextRun)));
+        if (jobs.isEmpty()) {
+            Instant nextRunAtAheadOfTime = getNextRun(upTo);
+            jobs.add(toJob(ScheduledState.fromRecurringJobAheadOfTime(nextRunAtAheadOfTime, this)));
+        }
 
         return jobs;
     }
@@ -106,13 +123,25 @@ public class RecurringJob extends AbstractJob {
         return toJob(new EnqueuedState());
     }
 
+    public String getZoneId() {
+        return zoneId;
+    }
+
+    public CreatedBy getCreatedBy() {
+        return createdBy;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     public Instant getNextRun() {
         return getNextRun(Instant.now());
     }
 
     public Instant getNextRun(Instant sinceInstant) {
         return ScheduleExpressionType
-                .getSchedule(scheduleExpression)
+                .createScheduleFromString(scheduleExpression)
                 .next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
@@ -140,13 +169,6 @@ public class RecurringJob extends AbstractJob {
         return job;
     }
 
-    private JobState toJobState(Schedule schedule, Instant scheduleAt) {
-        if (schedule.isCarbonAware()) {
-            return schedule.getCarbonAwareScheduleMargin().toCarbonAwareAwaitingState(scheduleAt);
-        }
-        return new ScheduledState(scheduleAt, this);
-    }
-
     @Override
     public String toString() {
         return "RecurringJob{" +
@@ -157,6 +179,12 @@ public class RecurringJob extends AbstractJob {
                 ", jobName='" + getJobName() + '\'' +
                 '}';
     }
+
+    public Duration durationBetweenRecurringJobInstances() {
+        Instant base = Instant.EPOCH.plusSeconds(3600);
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
+        Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
+        Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
+        return between(run1, run2);
+    }
 }
-
-

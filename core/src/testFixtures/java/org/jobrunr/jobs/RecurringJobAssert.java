@@ -3,8 +3,9 @@ package org.jobrunr.jobs;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.JobRunrAssertions;
+import org.jobrunr.jobs.RecurringJob.CreatedBy;
 
-import java.util.Set;
+import java.util.List;
 
 public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, RecurringJob> {
 
@@ -44,7 +45,7 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
         return this;
     }
 
-    public RecurringJobAssert hasLabels(Set<String> labels) {
+    public RecurringJobAssert hasLabels(List<String> labels) {
         Assertions.assertThat(actual.getLabels()).isEqualTo(labels);
         return this;
     }
@@ -56,6 +57,11 @@ public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, Recur
 
     public RecurringJobAssert hasZoneId(String zoneId) {
         Assertions.assertThat(actual.getZoneId()).isEqualTo(zoneId);
+        return this;
+    }
+
+    public RecurringJobAssert hasCreatedBy(CreatedBy createdBy) {
+        Assertions.assertThat(actual.getCreatedBy()).isEqualTo(createdBy);
         return this;
     }
 

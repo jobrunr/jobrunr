@@ -8,18 +8,22 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.architecture.PackageDependenciesTest.DoNotIncludeTestFixtures;
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.server.BackgroundJobPerformer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.Java11OrHigherInternalDesktopUtil;
 import org.jobrunr.server.dashboard.DashboardNotification;
+import org.jobrunr.utils.annotations.LockingJob;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(packages = "org.jobrunr", importOptions = {DoNotIncludeTests.class, DoNotIncludeTestFixtures.class})
@@ -31,6 +35,11 @@ class PackageDependenciesTest {
             return !location.toString().contains("test-fixtures");
         }
     }
+
+    @ArchTest
+    ArchRule jobRunrJobLockingTest = methods()
+            .that().areDeclaredIn(AbstractJob.class).and().haveName("lock")
+            .should().onlyBeCalled().byMethodsThat(annotatedWith(LockingJob.class));
 
     @ArchTest
     ArchRule jobRunrDependenciesTest = classes()
@@ -113,13 +122,6 @@ class PackageDependenciesTest {
                             .or(assignableFrom(BackgroundJobServer.class))
                             .or(assignableFrom(BackgroundJobServerConfiguration.class)));
 
-    @ArchTest
-    ArchRule jobRunrStorageElasticSearchClassesDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.storage.nosql.elasticsearch..")
-            .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "co.elastic..", "org.elasticsearch.client..", "org.apache.http..", "jakarta.json..", "org.slf4j..", "java..")
-                            .or(are(equivalentTo(JobRunrException.class)))
-            );
 
     @ArchTest
     ArchRule jobRunrStorageMongoClassesDependenciesTest = classes()
@@ -129,18 +131,6 @@ class PackageDependenciesTest {
                             .or(are(equivalentTo(JobRunrException.class)))
                             .or(assignableFrom(BackgroundJobServer.class))
             ); // see https://github.com/TNG/ArchUnit/issues/519
-
-    @ArchTest
-    ArchRule jobRunrStorageRedisJedisClassesDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.storage.nosql.redis..")
-            .and().haveSimpleNameStartingWith("Jedis")
-            .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "redis.clients..", "org.slf4j..", "java..");
-
-    @ArchTest
-    ArchRule jobRunrStorageRedisLettuceClassesDependenciesTest = classes()
-            .that().resideInAPackage("org.jobrunr.storage.nosql.redis..")
-            .and().haveSimpleNameStartingWith("Lettuce")
-            .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "io.lettuce..", "org.apache.commons.pool2..", "org.slf4j..", "java..");
 
     @ArchTest
     ArchRule jobRunrStorageSqlClassesDependenciesTest = classes()

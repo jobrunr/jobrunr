@@ -32,15 +32,18 @@ import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
+import org.jobrunr.quarkus.autoconfigure.dashboard.JobRunrDashboardProducer;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
+import org.jobrunr.quarkus.autoconfigure.server.JobRunrBackgroundJobServerProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
 import org.jobrunr.utils.GraalVMUtils;
 
 import java.util.Collection;
@@ -82,9 +85,32 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
+    AdditionalBeanBuildItem addBackgroundJobServer(JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
+        if (jobRunrBuildTimeConfiguration.backgroundJobServer().included()) {
+            return AdditionalBeanBuildItem.builder()
+                    .setUnremovable()
+                    .addBeanClasses(JobRunrBackgroundJobServerProducer.class)
+                    .build();
+        }
+        return null;
+    }
+
+    @BuildStep
+    AdditionalBeanBuildItem addDashboard(JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
+        if (jobRunrBuildTimeConfiguration.dashboard().included()) {
+            return AdditionalBeanBuildItem.builder()
+                    .setUnremovable()
+                    .addBeanClasses(JobRunrDashboardProducer.class)
+                    .build();
+        }
+        return null;
+    }
+
+    @BuildStep
     public void registerRuntimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> producer) {
         // Classes using java.util.Random, which need to be runtime initialized
         producer.produce(new RuntimeInitializedClassBuildItem(Job.class.getName()));
+        producer.produce(new RuntimeInitializedClassBuildItem(NoSqlDatabaseCreator.class.getName()));
     }
 
     @BuildStep
@@ -95,7 +121,7 @@ class JobRunrExtensionProcessor {
                     .addBeanClasses(JobRunrMetricsStarter.class)
                     .addBeanClasses(JobRunrMetricsProducer.StorageProviderMetricsProducer.class);
 
-            if (jobRunrBuildTimeConfiguration.backgroundJobServer().enabled()) {
+            if (jobRunrBuildTimeConfiguration.backgroundJobServer().included()) {
                 additionalBeanBuildItemBuilder.addBeanClasses(JobRunrMetricsProducer.BackgroundJobServerMetricsProducer.class);
             }
             return additionalBeanBuildItemBuilder
@@ -106,15 +132,13 @@ class JobRunrExtensionProcessor {
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) throws NoSuchMethodException {
-        if (jobRunrBuildTimeConfiguration.jobScheduler().enabled()) {
-            new RecurringJobsFinder(recorderContext, index, beanContainer, recorder).findRecurringJobsAndScheduleThem();
-        }
+    void findRecurringJobAnnotationsAndScheduleThem(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, JobRunrRecurringJobRecorder recorder) throws NoSuchMethodException {
+        new RecurringJobsFinder(recorderContext, index, beanContainer, recorder).findRecurringJobsAndScheduleThem();
     }
 
     @BuildStep
     HealthBuildItem addHealthCheck(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
-        if (capabilities.isPresent(Capability.SMALLRYE_HEALTH)) {
+        if (capabilities.isPresent(Capability.SMALLRYE_HEALTH) && jobRunrBuildTimeConfiguration.backgroundJobServer().included()) {
             return new HealthBuildItem(JobRunrHealthCheck.class.getName(), jobRunrBuildTimeConfiguration.healthEnabled());
         }
         return null;
@@ -163,7 +187,7 @@ class JobRunrExtensionProcessor {
             BuildProducer<NativeImageResourceDirectoryBuildItem> nativeImageResourceDirectoryProducer,
             JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration
     ) {
-        if (jobRunrBuildTimeConfiguration.dashboard().enabled()) {
+        if (jobRunrBuildTimeConfiguration.dashboard().included()) {
             nativeImageResourceDirectoryProducer.produce(new NativeImageResourceDirectoryBuildItem("org/jobrunr/dashboard/frontend/build"));
         }
 
@@ -215,9 +239,10 @@ class JobRunrExtensionProcessor {
             return asSet(JobRunrMongoDBStorageProviderProducer.class);
         } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
             return asSet(JobRunrDocumentDBStorageProviderProducer.class);
-        } else {
+        } else if ("mem".equalsIgnoreCase(databaseType)) {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }
+        return Set.of();
     }
 
     private static boolean isCapabilityPresentAndConfigured(Capabilities capabilities, String capability, String requestedDatabaseType, String databaseType) {

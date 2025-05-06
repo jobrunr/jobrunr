@@ -2,9 +2,9 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -20,8 +20,8 @@ import java.lang.reflect.Method;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactoryAware, EmbeddedValueResolverAware, InitializingBean {
@@ -76,8 +76,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
             String id = getId(recurringAnnotation);
             String cron = resolveStringValue(recurringAnnotation.cron());
             String interval = resolveStringValue(recurringAnnotation.interval());
-
-            String scheduleExpression = getScheduleExpression(cron, interval);
+            String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(cron, interval);
 
             if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
                 if (id == null) {
@@ -88,16 +87,11 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
             } else {
                 JobDetails jobDetails = getJobDetails(method);
                 ZoneId zoneId = getZoneId(recurringAnnotation);
-                beanFactory.getBean(JobScheduler.class).scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), zoneId);
-            }
-        }
+                Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
 
-        private static String getScheduleExpression(String cron, String interval) {
-            List<String> validScheduleExpressions = Stream.of(cron, interval).filter(StringUtils::isNotNullOrEmpty).toList();
-            int count = validScheduleExpressions.size();
-            if (count == 0) throw new IllegalArgumentException("Either cron or interval attribute is required.");
-            if (count > 1) throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
-            return validScheduleExpressions.get(0);
+                RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, ANNOTATION);
+                beanFactory.getBean(JobScheduler.class).scheduleRecurrently(recurringJob);
+            }
         }
 
         private boolean hasParametersOutsideOfJobContext(Method method) {

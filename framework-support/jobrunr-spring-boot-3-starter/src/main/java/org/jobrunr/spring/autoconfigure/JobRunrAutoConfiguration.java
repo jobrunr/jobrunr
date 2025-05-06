@@ -8,12 +8,14 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.scheduling.AsyncJobPostProcessor;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.scheduling.RecurringJobPostProcessor;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
@@ -25,6 +27,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -40,6 +43,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -77,6 +82,11 @@ public class JobRunrAutoConfiguration {
     }
 
     @Bean
+    public JobRunrStarter jobRunrStarter(Optional<BackgroundJobServer> backgroundJobServer, Optional<JobRunrDashboardWebServer> webServer) {
+        return new JobRunrStarter(backgroundJobServer, webServer);
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
@@ -91,7 +101,7 @@ public class JobRunrAutoConfiguration {
         return new JobRequestScheduler(storageProvider, emptyList());
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true")
     public BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration, JobRunrProperties properties, CarbonAwareJobManager carbonAwareJobManager) {
@@ -122,6 +132,7 @@ public class JobRunrAutoConfiguration {
 
         map.from(backgroundJobServerProperties::getName).whenNonNull().to(backgroundJobServerConfiguration::andName);
         map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
+        map.from(backgroundJobServerProperties::getServerTimeoutPollIntervalMultiplicand).to(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
         map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         map.from(backgroundJobServerProperties::getScheduledJobsRequestSize).to(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
@@ -133,7 +144,7 @@ public class JobRunrAutoConfiguration {
         return backgroundJobServerConfiguration;
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "org.jobrunr.dashboard", name = "enabled", havingValue = "true")
     public JobRunrDashboardWebServer dashboardWebServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration) {
@@ -153,7 +164,16 @@ public class JobRunrAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JobActivator jobActivator(ApplicationContext applicationContext) {
-        return applicationContext::getBean;
+        return new JobActivator() {
+            @Override
+            public <T> T activateJob(Class<T> type) throws JobActivatorShutdownException {
+                try {
+                    return applicationContext.getBean(type);
+                } catch (BeanCreationNotAllowedException e) {
+                    throw new JobActivatorShutdownException("Spring IoC container is shutting down", e);
+                }
+            }
+        };
     }
 
     @Bean
@@ -166,6 +186,12 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnBean(JobScheduler.class)
     public static RecurringJobPostProcessor recurringJobPostProcessor() {
         return new RecurringJobPostProcessor();
+    }
+
+    @Bean
+    @ConditionalOnBean(JobScheduler.class)
+    public static AsyncJobPostProcessor asyncJobPostProcessor() {
+        return new AsyncJobPostProcessor();
     }
 
     @Configuration

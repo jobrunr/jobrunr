@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling.cron;
 
+import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -61,8 +62,8 @@ class CronExpressionTest {
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
 
-    // GitHub issue 31
     @Test
+    @Because("github issue 31")
     void dailyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
         int hour = localDateTime.getHour();
@@ -80,8 +81,8 @@ class CronExpressionTest {
                 .isEqualTo(expectedNextRun);
     }
 
-    // GitHub issue 31
     @Test
+    @Because("github issue 31")
     void minutelyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
         LocalDateTime localDateTime = LocalDateTime.now();
         int nextMinute = localDateTime.plusMinutes(1).getMinute();
@@ -90,8 +91,8 @@ class CronExpressionTest {
         assertThat(nextRun).isAfter(Instant.now());
     }
 
-    // GitHub issue 75
     @Test
+    @Because("github issue 75")
     void cronExpressionCanBeUsedWithNegativeOffsetTimeZones() {
         OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("America/New_York"));
         int nextMinute = offsetDateTime.plusMinutes(1).getMinute();
@@ -130,6 +131,18 @@ class CronExpressionTest {
         Instant expectedNextInstant = now().plusMinutes(1).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
+    }
+
+    @Test
+    @Because("github issue 1145")
+    void cronExpressionsReturnTimeAfterCurrentInstantDuringDST() {
+        Instant from = Instant.parse("2024-10-27T01:00:15.660199Z");
+        Instant actualNextInstant = CronExpression.create("0 5 2 * * *").next(Instant.parse("2024-10-27T00:58:19.509707Z"), from, ZoneId.of("Europe/Brussels"));
+
+        assertThat(actualNextInstant)
+                .isNotNull()
+                .isEqualTo("2024-10-28T01:05:00.000Z")
+                .isAfter(from);
     }
 
     @Test

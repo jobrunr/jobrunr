@@ -1,7 +1,6 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
-import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
@@ -20,16 +19,6 @@ public interface JobRunrBuildTimeConfiguration {
     DatabaseConfiguration database();
 
     /**
-     * Allows to configure JobRunr job related settings
-     */
-    JobsConfiguration jobs();
-
-    /**
-     * Allows to configure JobRunr JobScheduler related settings
-     */
-    JobSchedulerConfiguration jobScheduler();
-
-    /**
      * Allows to configure JobRunr BackgroundJobServer related settings
      */
     BackgroundJobServerConfiguration backgroundJobServer();
@@ -40,7 +29,7 @@ public interface JobRunrBuildTimeConfiguration {
     DashboardConfiguration dashboard();
 
     /**
-     * Whether or not an health check is published in case the smallrye-health extension is present.
+     * Whether a health check is published in case the smallrye-health extension is present.
      */
     @WithParentName
     @ConfigDocMapKey("health.enabled")
@@ -50,59 +39,27 @@ public interface JobRunrBuildTimeConfiguration {
     interface DatabaseConfiguration {
         /**
          * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
+         * Valid values are 'sql', 'mongodb', 'documentdb' and 'mem'.
          */
         Optional<String> type();
-    }
-
-    interface JobsConfiguration {
-
-        /**
-         * Configures MicroMeter metrics related to jobs
-         */
-        MetricsConfiguration metrics();
-    }
-
-    @ConfigGroup
-    interface JobSchedulerConfiguration {
-
-        /**
-         * Enables the scheduling of jobs.
-         */
-        @WithDefault("true")
-        boolean enabled();
     }
 
     interface BackgroundJobServerConfiguration {
 
         /**
-         * Enables the background processing of jobs.
+         * Includes the necessary resources to start the background job processing servers.
          */
-        @WithDefault("false")
-        boolean enabled();
-
-        /**
-         * Configures MicroMeter metrics related to the background job server
-         */
-        MetricsConfiguration metrics();
+        @WithDefault("true")
+        boolean included();
     }
 
     interface DashboardConfiguration {
 
         /**
-         * Enables the JobRunr dashboard.
+         * Includes the necessary resources to start the dashboard webserver.
          */
-        @WithDefault("false")
-        boolean enabled();
-    }
-
-    interface MetricsConfiguration {
-
-        /**
-         * Configures whether metrics are reported to MicroMeter.
-         */
-        @WithDefault("false")
-        boolean enabled();
+        @WithDefault("true")
+        boolean included();
     }
 }
 

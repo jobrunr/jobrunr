@@ -1,8 +1,8 @@
 import {useState} from "react";
 import {styled} from "@mui/material/styles";
 import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
-import TimeAgo from "react-timeago/lib";
 import {JobState} from "./job-state";
+import {SuffixFreeTimeAgo} from "../../utils/time-ago";
 
 const Console = styled("div")(() => ({
     boxSizing: 'border-box',
@@ -85,11 +85,7 @@ const Processing = ({index, job, jobState}) => {
                     {logs.map((log) => (
                         <dl key={log.logInstant} className={log.level}>
                             <dt>
-                                <TimeAgo
-                                    date={new Date(log.logInstant)} now={() => new Date(jobState.createdAt)}
-                                    live="false"
-                                    formatter={(a, b, c) => a > 1 ? `+${a} ${b}s` : `+${a} ${b}`}
-                                />
+                                <SuffixFreeTimeAgo date={new Date(log.logInstant)} now={() => new Date(jobState.createdAt)} live="false"/>
                             </dt>
                             <dd>{log.logMessage}</dd>
                         </dl>

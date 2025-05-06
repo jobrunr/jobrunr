@@ -12,11 +12,9 @@ sourceSets {
         resources {
             exclude '**/node_modules/'
             exclude '**/dependency-check-bin/'
-            exclude '**/cypress/'
             exclude '**/public/'
             exclude '**/src/'
             exclude '**/jsconfig.json'
-            exclude '**/cypress.config.js'
             exclude '**/package.json'
             exclude '**/package-lock.json'
         }
@@ -50,10 +48,7 @@ dependencies {
     compileOnly 'io.micrometer:micrometer-core'
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
-    compileOnly 'redis.clients:jedis'
-    compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'co.elastic.clients:elasticsearch-java'
 
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -67,10 +62,9 @@ dependencies {
     testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.testcontainers:mssqlserver'
     testImplementation 'org.testcontainers:mysql'
-    testImplementation 'org.testcontainers:oracle-xe'
+    testImplementation 'org.testcontainers:oracle-free'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:db2'
-    testImplementation 'org.testcontainers:elasticsearch'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'
@@ -84,10 +78,7 @@ dependencies {
     testImplementation 'org.apache.commons:commons-dbcp2'
     testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
-    testImplementation 'redis.clients:jedis'
-    testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'co.elastic.clients:elasticsearch-java'
     testImplementation 'com.github.tomakehurst:wiremock-jre8'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
@@ -162,12 +153,14 @@ jar {
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
+        attributes 'Implementation-Title': 'JobRunr'
         attributes 'Implementation-Version': project.version
         attributes 'Bundle-Version': project.version
         attributes 'Created-By': "Gradle ${gradle.gradleVersion}"
         attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
         attributes 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
         attributes 'Minimum-ASM-Version': "${asmVersion}"
+        attributes 'Git-Branch': getGitBranch()
     }
 }
 
@@ -232,4 +225,13 @@ signing {
         useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
         sign publishing.publications.mavenJava
     }
+}
+
+def getGitBranch() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
 }

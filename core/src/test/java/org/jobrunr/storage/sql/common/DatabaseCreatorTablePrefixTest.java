@@ -52,6 +52,8 @@ class DatabaseCreatorTablePrefixTest {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        when(connection.getMetaData()).thenReturn(databaseMetaData);
+        when(connection.getMetaData().getTables(null, null, "%", null)).thenReturn(resultSet);
         when(preparedStatement.executeUpdate()).thenReturn(1);
     }
 

@@ -387,7 +387,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      */
     public String scheduleRecurrently(String id, String cron, ZoneId zoneId, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
-        return scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(cron), zoneId);
+        return scheduleRecurrently(id, jobDetails, ScheduleExpressionType.createScheduleFromString(cron), zoneId);
     }
 
     /**

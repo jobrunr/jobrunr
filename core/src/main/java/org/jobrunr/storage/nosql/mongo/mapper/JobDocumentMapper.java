@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import static java.time.temporal.ChronoUnit.MICROS;
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 
 public class JobDocumentMapper {
     private final JobMapper jobMapper;
@@ -94,9 +95,5 @@ public class JobDocumentMapper {
 
     public RecurringJob toRecurringJob(Document document) {
         return jobMapper.deserializeRecurringJob(document.get(RecurringJobs.FIELD_JOB_AS_JSON).toString());
-    }
-
-    private long toMicroSeconds(Instant instant) {
-        return MICROS.between(Instant.EPOCH, instant);
     }
 }

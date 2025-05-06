@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
+import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -40,6 +41,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.jobs.states.StateName.getStateNames;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
@@ -262,25 +264,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        return jobQueue.values().stream()
-                .anyMatch(job ->
-                        asList(getStateNames(states)).contains(job.getState())
-                                && job.getRecurringJobId()
-                                .map(actualRecurringJobId -> actualRecurringJobId.equals(recurringJobId))
-                                .orElse(false));
-    }
-
-    @Override
-    public long countRecurringJobInstances(String recurringJobId, StateName... states) {
         if (states.length == 0) {
             return jobQueue.values().stream()
-                    .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                    .count();
+                    .anyMatch(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)));
         }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                .filter(job -> asList(getStateNames(states)).contains(job.getState()))
-                .count();
+                .anyMatch(job -> asList(getStateNames(states)).contains(job.getState()));
     }
 
     @Override
@@ -290,7 +280,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .collect(toMap(
                         job -> job.getRecurringJobId().get(),
                         job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")),
-                        BinaryOperator.maxBy(Instant::compareTo)
+                        maxBy(Instant::compareTo)
                 ));
     }
 
@@ -303,7 +293,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public RecurringJobsResult getRecurringJobs() {
-        return new RecurringJobsResult(recurringJobs);
+        return new RecurringJobsResult(recurringJobs.stream().map(this::deepClone).collect(toList()));
     }
 
     @Override
@@ -314,8 +304,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public int deleteRecurringJob(String id) {
-        recurringJobs.removeIf(job -> id.equals(job.getId()));
-        return 0;
+        boolean removed = recurringJobs.removeIf(job -> id.equals(job.getId()));
+        return removed ? 1 : 0;
     }
 
     @Override
@@ -342,6 +332,12 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
     }
 
+    public void clear() {
+        jobQueue.clear();
+        recurringJobs.clear();
+        metadata.keySet().removeIf(x -> !(x.endsWith(METADATA_OWNER_CLUSTER)));
+    }
+
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
                 .sorted(getJobComparator(amountRequest));
@@ -356,6 +352,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
         setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
+        return result;
+    }
+
+    private RecurringJob deepClone(RecurringJob recurringJob) {
+        final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
+        final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
         return result;
     }
 

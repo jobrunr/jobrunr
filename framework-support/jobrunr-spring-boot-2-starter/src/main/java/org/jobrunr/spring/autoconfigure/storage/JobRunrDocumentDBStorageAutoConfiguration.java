@@ -25,7 +25,7 @@ public class JobRunrDocumentDBStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")
     @ConditionalOnMissingBean
-    public StorageProvider mongoDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper, JobRunrProperties properties) {
+    public StorageProvider documentDBStorageProvider(MongoClient mongoClient, JobMapper jobMapper, JobRunrProperties properties) {
         String databaseName = properties.getDatabase().getDatabaseName();
         String tablePrefix = properties.getDatabase().getTablePrefix();
         DatabaseOptions databaseOptions = properties.getDatabase().isSkipCreate() ? DatabaseOptions.SKIP_CREATE : DatabaseOptions.CREATE;

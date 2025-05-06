@@ -21,6 +21,8 @@ public class Interval extends Schedule {
 
     @Override
     public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
+        if (createdAtInstant.isAfter(currentInstant)) return createdAtInstant;
+        
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();
         return createdAtInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));

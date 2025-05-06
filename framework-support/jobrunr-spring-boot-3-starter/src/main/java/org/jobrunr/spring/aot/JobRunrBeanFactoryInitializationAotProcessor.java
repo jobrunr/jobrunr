@@ -4,17 +4,12 @@ import org.jobrunr.dashboard.ui.model.problems.Problem;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.common.migrations.NoSqlMigrationProvider;
-import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
-import org.jobrunr.storage.nosql.elasticsearch.migrations.ElasticSearchMigration;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.mongo.migrations.MongoMigration;
-import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
-import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
-import org.jobrunr.storage.nosql.redis.migrations.JedisRedisMigration;
-import org.jobrunr.storage.nosql.redis.migrations.LettuceRedisMigration;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.utils.GraalVMUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
@@ -116,14 +111,12 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
         registerRequiredResources(hints);
 
         registerAllAssignableTypesOf(hints, Problem.class);
+        registerAllAssignableTypesOf(hints, InMemoryStorageProvider.class);
         registerAllAssignableTypesOf(hints, SqlStorageProvider.class);
         registerAllAssignableTypesOf(hints, NoSqlMigration.class);
         registerAllAssignableTypesOf(hints, NoSqlMigrationProvider.class);
 
-        registerNoSqlStorageProvider(hints, ElasticSearchStorageProvider.class, ElasticSearchMigration.class, "org/jobrunr/storage/nosql/elasticsearch/migrations/*");
         registerNoSqlStorageProvider(hints, MongoDBStorageProvider.class, MongoMigration.class, "org/jobrunr/storage/nosql/mongo/migrations/*");
-        registerNoSqlStorageProvider(hints, JedisRedisStorageProvider.class, JedisRedisMigration.class, "org/jobrunr/storage/nosql/redis/migrations/*");
-        registerNoSqlStorageProvider(hints, LettuceRedisStorageProvider.class, LettuceRedisMigration.class, "org/jobrunr/storage/nosql/redis/migrations/*");
     }
 
     private static void registerRequiredJobRunrClasses(RuntimeHints hints) {

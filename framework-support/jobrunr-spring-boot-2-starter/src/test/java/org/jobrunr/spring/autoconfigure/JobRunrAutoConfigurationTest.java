@@ -1,10 +1,8 @@
 package org.jobrunr.spring.autoconfigure;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
-import io.lettuce.core.RedisClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -12,58 +10,61 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
-import org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration;
-import org.jobrunr.spring.autoconfigure.storage.JobRunrJedisStorageAutoConfiguration;
-import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceRedisClientStorageAutoConfiguration;
-import org.jobrunr.spring.autoconfigure.storage.JobRunrLettuceSpringDataConnectionFactoryStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.nosql.elasticsearch.ElasticSearchStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
-import org.jobrunr.storage.nosql.redis.JedisRedisStorageProvider;
-import org.jobrunr.storage.nosql.redis.LettuceRedisStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import redis.clients.jedis.JedisPool;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
+import static org.mockito.Mockito.doThrow;
 
 public class JobRunrAutoConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
                     JobRunrAutoConfiguration.class,
-                    JobRunrElasticSearchStorageAutoConfiguration.class,
-                    JobRunrJedisStorageAutoConfiguration.class,
-                    JobRunrLettuceRedisClientStorageAutoConfiguration.class,
-                    JobRunrLettuceSpringDataConnectionFactoryStorageAutoConfiguration.class,
                     JobRunrMongoDBStorageAutoConfiguration.class,
                     JobRunrSqlStorageAutoConfiguration.class
             ));
+
+    @Test
+    void onSpringShutdownInitiatedJobActivatorThrowsJobActivatorShutdownException() {
+        ApplicationContext applicationContextMock = Mockito.mock(ApplicationContext.class);
+        JobActivator jobActivator = new JobRunrAutoConfiguration().jobActivator(applicationContextMock);
+
+        doThrow(new BeanCreationNotAllowedException("TestService", "Boem")).when(applicationContextMock).getBean(TestService.class);
+        assertThatCode(() -> jobActivator.activateJob(TestService.class)).isInstanceOf(JobActivatorShutdownException.class);
+    }
 
     @Test
     void gsonIsIgnoredIfLibraryIsNotPresent() {
@@ -182,9 +183,22 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("org.jobrunr.background-job-server.thread-type=PlatformThreads")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
-                    assertThat(context.getBean(BackgroundJobServer.class));
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasWorkerCount(4);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesPollIntervalInSecondsAndServerTimeoutPollIntervalMultiplicand() {
+        this.contextRunner
+                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("org.jobrunr.background-job-server.poll-interval-in-seconds=5")
+                .withPropertyValues("org.jobrunr.background-job-server.server-timeout-poll-interval-multiplicand=10")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    assertThat(context.getBean(BackgroundJobServerConfiguration.class))
+                            .hasPollIntervalInSeconds(5)
+                            .hasServerTimeoutPollIntervalMultiplicand(10);
                 });
     }
 
@@ -263,49 +277,13 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void elasticSearchStorageProviderAutoConfiguration() {
-        this.contextRunner.withUserConfiguration(ElasticSearchStorageProviderConfiguration.class).run((context) -> {
-            assertThat(context).hasSingleBean(ElasticSearchStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("documentMapper").isNotNull();
-            assertThat(context).hasSingleBean(JobScheduler.class);
-        });
-    }
-
-    @Test
-    void jedisStorageProviderAutoConfiguration() {
-        this.contextRunner.withUserConfiguration(JedisStorageProviderConfiguration.class).run((context) -> {
-            assertThat(context).hasSingleBean(JedisRedisStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
-            assertThat(context).hasSingleBean(JobScheduler.class);
-        });
-    }
-
-    @Test
-    void lettuceRedisClientStorageProviderAutoConfiguration() {
-        this.contextRunner.withUserConfiguration(LettuceRedisClientStorageProviderConfiguration.class).run((context) -> {
-            assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
-            assertThat(context).hasSingleBean(JobScheduler.class);
-        });
-    }
-
-    @Test
-    void lettuceConnectionFactoryStorageProviderAutoConfiguration() {
-        this.contextRunner.withUserConfiguration(LettuceSpringDataConnectionFactoryStorageProviderConfiguration.class).run((context) -> {
-            assertThat(context).hasSingleBean(LettuceRedisStorageProvider.class);
-            assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
-            assertThat(context).hasSingleBean(JobScheduler.class);
-        });
-    }
-
-    @Test
     void jobRunrDoesNotFailIfMultipleDatabasesAvailableAndValueConfigured() {
         this.contextRunner
                 .withPropertyValues(
                         "org.jobrunr.database.skip-create=true",
                         "org.jobrunr.database.type=sql"
                 )
-                .withUserConfiguration(SqlDataSourceConfiguration.class, ElasticSearchStorageProviderConfiguration.class).run((context) -> {
+                .withUserConfiguration(SqlDataSourceConfiguration.class, MongoDBStorageProviderConfiguration.class).run((context) -> {
                     assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
                     assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
                     assertThat(context).hasSingleBean(JobScheduler.class);
@@ -354,42 +332,6 @@ public class JobRunrAutoConfigurationTest {
         @Bean
         public MongoClient mongoClient() {
             return Mocks.mongoClient();
-        }
-    }
-
-    @Configuration
-    static class ElasticSearchStorageProviderConfiguration {
-
-        @Bean
-        public ElasticsearchClient elasticsearchClient() throws IOException {
-            return Mocks.elasticsearchClient();
-        }
-    }
-
-    @Configuration
-    static class JedisStorageProviderConfiguration {
-
-        @Bean
-        public JedisPool jedisPool() {
-            return Mocks.jedisPool();
-        }
-    }
-
-    @Configuration
-    static class LettuceRedisClientStorageProviderConfiguration {
-
-        @Bean
-        public RedisClient redisClient() {
-            return Mocks.redisClient();
-        }
-    }
-
-    @Configuration
-    static class LettuceSpringDataConnectionFactoryStorageProviderConfiguration {
-
-        @Bean
-        public LettuceConnectionFactory lettuceConnectionFactory() {
-            return Mocks.lettuceConnectionFactory();
         }
     }
 

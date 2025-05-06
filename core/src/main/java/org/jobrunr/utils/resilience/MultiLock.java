@@ -15,7 +15,7 @@ public class MultiLock implements Closeable {
     }
 
     public MultiLock(Collection<? extends Lockable> lockables) {
-        this.locks = lockables.parallelStream().map(Lockable::lock).collect(toList());
+        this.locks = lockables.stream().map(Lockable::lock).collect(toList());
     }
 
     public void unlock() {

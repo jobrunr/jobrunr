@@ -90,8 +90,8 @@ public interface JobRunrConfiguration {
         Optional<String> getDatasource();
 
         /**
-         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'redis-lettuce', 'redis-jedis' and 'elasticsearch'.
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and a MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql' and 'mongodb' and 'mem'.
          */
         Optional<String> getType();
     }
@@ -143,6 +143,11 @@ public interface JobRunrConfiguration {
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
          */
         Optional<Integer> getPollIntervalInSeconds();
+
+        /**
+         * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
+         */
+        Optional<Integer> getServerTimeoutPollIntervalMultiplicand();
 
         /**
          * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.

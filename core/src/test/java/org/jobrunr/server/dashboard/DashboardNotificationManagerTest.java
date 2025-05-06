@@ -2,6 +2,7 @@ package org.jobrunr.server.dashboard;
 
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,11 +13,15 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.SevereJobRunrException.DiagnosticsAware;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,6 +73,15 @@ class DashboardNotificationManagerTest {
                 .hasName(CpuAllocationIrregularityNotification.class.getSimpleName())
                 .hasOwner("BackgroundJobServer " + backgroundJobServerId.toString())
                 .valueContains("11");
+    }
+
+    @Test
+    void noExceptionIsThrownForConcurrentSlowRunNotification() {
+        doThrow(new StorageException("a storage exception"))
+                .when(storageProviderMock).saveMetadata(any(JobRunrMetadata.class));
+
+        assertThatCode(() -> dashboardNotificationManager.notify(new PollIntervalInSecondsTimeBoxIsTooSmallNotification(1, 5, Instant.now(), 6)))
+                .doesNotThrowAnyException();
     }
 
     private static class SomeException extends Exception implements DiagnosticsAware {

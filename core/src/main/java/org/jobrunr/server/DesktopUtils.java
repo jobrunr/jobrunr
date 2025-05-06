@@ -37,7 +37,7 @@ public class DesktopUtils {
     }
 
     public static boolean hasSystemSleptRecently() {
-        return hasSystemSleptRecently(Duration.ofMinutes(1));
+        return hasSystemSleptRecently(Duration.ofMinutes(5));
     }
 
     public static boolean hasSystemSleptRecently(Duration duration) {

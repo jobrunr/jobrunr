@@ -11,14 +11,14 @@ public class CommonsDbcpH2StorageProviderTest extends SqlStorageProviderTest {
     private static BasicDataSource dataSource;
 
     @Override
-    protected BasicDataSource getDataSource() {
+    public BasicDataSource getDataSource() {
         return getDataSource(true);
     }
 
     protected BasicDataSource getDataSource(boolean autoCommit) {
         if (dataSource == null) {
             dataSource = new BasicDataSource();
-            dataSource.setUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
+            dataSource.setUrl("jdbc:h2:mem:test-commons-db;DB_CLOSE_DELAY=-1");
             dataSource.setUsername("sa");
             dataSource.setPassword("sa");
             dataSource.setDefaultAutoCommit(autoCommit);

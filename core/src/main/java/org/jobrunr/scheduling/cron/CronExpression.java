@@ -247,10 +247,12 @@ public class CronExpression extends Schedule {
                 hour = this.hours.nextSetBit(0);
             }
             day = candidateDay;
-            return LocalDateTime
+            Instant possibleNextRun = LocalDateTime
                     .of(year, month, day, hour, minute, second)
                     .atZone(zoneId)
                     .toInstant();
+            if (possibleNextRun.isAfter(currentInstant)) return possibleNextRun;
+            return next(createdAtInstant, possibleNextRun, zoneId);
         }
     }
 

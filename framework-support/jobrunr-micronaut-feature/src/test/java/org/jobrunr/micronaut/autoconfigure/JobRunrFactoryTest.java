@@ -24,6 +24,7 @@ import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @MicronautTest(rebuildContext = true)
+@Property(name = "jobrunr.database.type", value = "mem")
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class JobRunrFactoryTest {
 
@@ -107,6 +108,17 @@ class JobRunrFactoryTest {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
         assertThat(backgroundJobServer)
                 .hasName("test");
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.poll-interval-in-seconds", value = "5")
+    @Property(name = "jobrunr.background-job-server.server-timeout-poll-interval-multiplicand", value = "10")
+    void backgroundJobServerAutoConfigurationTakesIntoPollIntervalAndServerTimeoutPollIntervalMultiplicand() {
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+        assertThat(backgroundJobServerConfiguration)
+                .hasPollIntervalInSeconds(5)
+                .hasServerTimeoutPollIntervalMultiplicand(10);
     }
 
     @Test

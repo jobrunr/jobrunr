@@ -3,6 +3,7 @@ package org.jobrunr.scheduling;
 import io.micronaut.inject.ExecutableMethod;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.StringUtils;
@@ -14,6 +15,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 
 public class JobRunrRecurringJobScheduler {
 
@@ -33,8 +36,7 @@ public class JobRunrRecurringJobScheduler {
         String id = getId(method);
         String cron = getCron(method);
         String interval = getInterval(method);
-
-        String scheduleExpression = getScheduleExpression(cron, interval);
+        String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(cron, interval);
 
         if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
             if (id == null) {
@@ -45,17 +47,11 @@ public class JobRunrRecurringJobScheduler {
         } else {
             JobDetails jobDetails = getJobDetails(method);
             ZoneId zoneId = getZoneId(method);
+            Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
 
-            jobScheduler.scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), zoneId);
+            RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, ANNOTATION);
+            jobScheduler.scheduleRecurrently(recurringJob);
         }
-    }
-
-    private static String getScheduleExpression(String cron, String interval) {
-        List<String> validScheduleExpressions = Stream.of(cron, interval).filter(StringUtils::isNotNullOrEmpty).toList();
-        int count = validScheduleExpressions.size();
-        if (count == 0) throw new IllegalArgumentException("Either cron or interval attribute is required.");
-        if (count > 1) throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
-        return validScheduleExpressions.get(0);
     }
 
     private boolean hasParametersOutsideOfJobContext(Method method) {

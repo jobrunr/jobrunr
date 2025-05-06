@@ -12,8 +12,7 @@ const Failed = ({jobState}) => {
                 {jobState.exceptionType}
             </Typography>
             <Typography component={'pre'} style={{
-                whiteSpace: "pre-wrap",
-                wordWrap: "break-word",
+                overflowX: "auto",
                 fontFamily: "monospace",
                 fontSize: "1em"
             }}>

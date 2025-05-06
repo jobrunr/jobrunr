@@ -32,9 +32,8 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderAssert;
 
 import javax.sql.DataSource;
+import java.io.InputStream;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class JobRunrAssertions extends Assertions {
@@ -104,8 +103,10 @@ public class JobRunrAssertions extends Assertions {
     }
 
     public static String contentOfResource(String resourceName) {
-        try {
-            return Files.readString(Paths.get(JobRunrAssertions.class.getResource(resourceName).toURI()));
+        try (InputStream inputStream = JobRunrAssertions.class.getResourceAsStream(resourceName)) {
+			assert inputStream != null;
+
+			return new String(inputStream.readAllBytes());
         } catch (Exception e) {
             throw new AssertionError(e);
         }

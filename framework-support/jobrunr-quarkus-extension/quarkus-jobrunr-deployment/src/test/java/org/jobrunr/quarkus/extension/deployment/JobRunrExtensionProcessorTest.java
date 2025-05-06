@@ -11,14 +11,13 @@ import io.quarkus.runtime.metrics.MetricsFactory;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import org.jboss.jandex.IndexView;
 import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.DatabaseConfiguration;
-import org.jobrunr.quarkus.autoconfigure.JobRunrBuildTimeConfiguration.JobSchedulerConfiguration;
 import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.quarkus.autoconfigure.JobRunrStarter;
+import org.jobrunr.quarkus.autoconfigure.dashboard.JobRunrDashboardProducer;
 import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
+import org.jobrunr.quarkus.autoconfigure.server.JobRunrBackgroundJobServerProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
@@ -39,7 +38,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,15 +48,12 @@ class JobRunrExtensionProcessorTest {
 
     @Mock
     JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration;
-
     @Mock
-    JobSchedulerConfiguration jobSchedulerConfiguration;
-
+    JobRunrBuildTimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
     @Mock
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
-
+    JobRunrBuildTimeConfiguration.DashboardConfiguration dashboardConfiguration;
     @Mock
-    DatabaseConfiguration databaseConfiguration;
+    JobRunrBuildTimeConfiguration.DatabaseConfiguration databaseConfiguration;
 
     JobRunrExtensionProcessor jobRunrExtensionProcessor;
 
@@ -66,8 +61,9 @@ class JobRunrExtensionProcessorTest {
     void setUpExtensionProcessor() {
         jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
         lenient().when(jobRunrBuildTimeConfiguration.database()).thenReturn(databaseConfiguration);
-        lenient().when(jobRunrBuildTimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
+        lenient().when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
+
         lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(true);
     }
 
@@ -79,38 +75,55 @@ class JobRunrExtensionProcessorTest {
                 .containsOnly(
                         JobRunrProducer.class.getName(),
                         JobRunrStarter.class.getName(),
-                        JobRunrInMemoryStorageProviderProducer.class.getName(),
                         JobRunrProducer.JobRunrJsonBJsonMapperProducer.class.getName()
                 );
     }
 
     @Test
-    void producesJobRunrRecurringJobsFinderIfJobSchedulerIsEnabled() throws NoSuchMethodException {
+    void producesBackgroundJobServerWhenIncluded() {
+        when(backgroundJobServerConfiguration.included()).thenReturn(true);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.addBackgroundJobServer(jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrBackgroundJobServerProducer.class.getName());
+    }
+
+    @Test
+    void producesNoBackgroundJobServerWhenNotIncluded() {
+        when(backgroundJobServerConfiguration.included()).thenReturn(false);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.addBackgroundJobServer(jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem).isNull();
+    }
+
+    @Test
+    void producesDashboardWhenIncluded() {
+        when(dashboardConfiguration.included()).thenReturn(true);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.addDashboard(jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrDashboardProducer.class.getName());
+    }
+
+    @Test
+    void producesNoDashboardWhenNotIncluded() {
+        when(dashboardConfiguration.included()).thenReturn(false);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.addDashboard(jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem).isNull();
+    }
+
+    @Test
+    void producesJobRunrRecurringJobsFinder() throws NoSuchMethodException {
         RecorderContext recorderContext = mock(RecorderContext.class);
         CombinedIndexBuildItem combinedIndex = mock(CombinedIndexBuildItem.class);
         when(combinedIndex.getIndex()).thenReturn(mock(IndexView.class));
         BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
         JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
 
-        when(jobSchedulerConfiguration.enabled()).thenReturn(true);
-
-        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
+        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder);
 
         verify(recorderContext, times(2)).registerNonDefaultConstructor(any(), any());
-    }
-
-    @Test
-    void producesNoJobRunrRecurringJobsFinderIfJobSchedulerIsNotEnabled() throws NoSuchMethodException {
-        RecorderContext recorderContext = mock(RecorderContext.class);
-        CombinedIndexBuildItem combinedIndex = mock(CombinedIndexBuildItem.class);
-        BeanContainerBuildItem beanContainer = mock(BeanContainerBuildItem.class);
-        JobRunrRecurringJobRecorder recurringJobRecorder = mock(JobRunrRecurringJobRecorder.class);
-
-        when(jobSchedulerConfiguration.enabled()).thenReturn(false);
-
-        jobRunrExtensionProcessor.findRecurringJobAnnotationsAndScheduleThem(recorderContext, combinedIndex, beanContainer, recurringJobRecorder, jobRunrBuildTimeConfiguration);
-
-        verifyNoInteractions(recorderContext);
     }
 
     @Test
@@ -164,12 +177,31 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
-    void addHealthCheckAddsHealthBuildItemIfSmallRyeHealthCapabilityIsPresent() {
-        lenient().when(capabilities.isPresent(Capability.SMALLRYE_HEALTH)).thenReturn(true);
+    void jobRunrProducerUsesInMemoryStorageProviderIfDatabaseTypeIsEqualToMem() {
+        when(databaseConfiguration.type()).thenReturn(Optional.of("mem"));
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrInMemoryStorageProviderProducer.class.getName());
+    }
+
+    @Test
+    void addHealthCheckAddsHealthBuildItemIfSmallRyeHealthCapabilityIsPresentAndBackgroundJobServerIsIncluded() {
+        when(capabilities.isPresent(Capability.SMALLRYE_HEALTH)).thenReturn(true);
+        when(backgroundJobServerConfiguration.included()).thenReturn(true);
         final HealthBuildItem healthBuildItem = jobRunrExtensionProcessor.addHealthCheck(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(healthBuildItem.getHealthCheckClass())
                 .isEqualTo(JobRunrHealthCheck.class.getName());
+    }
+
+    @Test
+    void addHealthCheckDoesNotAddHealthBuildItemIfSmallRyeHealthCapabilityIsPresentButBackgroundJobServerIsNotIncluded() {
+        when(capabilities.isPresent(Capability.SMALLRYE_HEALTH)).thenReturn(true);
+        when(backgroundJobServerConfiguration.included()).thenReturn(false);
+        final HealthBuildItem healthBuildItem = jobRunrExtensionProcessor.addHealthCheck(capabilities, jobRunrBuildTimeConfiguration);
+
+        assertThat(healthBuildItem).isNull();
     }
 
     @Test
@@ -206,7 +238,7 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void addMetricsDoesAddStorageProviderAndBackgroundJobServerMetricsIfEnabledAndMicroMeterSupport() {
-        when(backgroundJobServerConfiguration.enabled()).thenReturn(true);
+        when(backgroundJobServerConfiguration.included()).thenReturn(true);
 
         final AdditionalBeanBuildItem metricsBeanBuildItem = jobRunrExtensionProcessor.addMetrics(Optional.of(new MetricsCapabilityBuildItem(toSupport -> toSupport.equals(MetricsFactory.MICROMETER))), jobRunrBuildTimeConfiguration);
 

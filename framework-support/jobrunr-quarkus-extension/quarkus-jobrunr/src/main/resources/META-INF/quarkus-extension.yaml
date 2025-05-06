@@ -14,6 +14,7 @@ metadata:
   categories:
     - "miscellaneous"
   status: "stable"
+  scm-url: "https://github.com/jobrunr/jobrunr"
   extension-dependencies:
     - "io.quarkus:quarkus-arc"
     - "io.quarkus:quarkus-core"

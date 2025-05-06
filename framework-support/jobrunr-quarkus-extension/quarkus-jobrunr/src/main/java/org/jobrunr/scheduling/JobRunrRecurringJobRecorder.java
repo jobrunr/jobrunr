@@ -8,7 +8,9 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
+import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.ZoneId;
@@ -17,6 +19,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
@@ -25,7 +28,15 @@ public class JobRunrRecurringJobRecorder {
 
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
+    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
+    public JobRunrRecurringJobRecorder(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    }
+
     public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
+        if (!jobRunrRuntimeConfiguration.jobScheduler().enabled()) return;
+
         JobScheduler scheduler = container.beanInstance(JobScheduler.class);
         String jobId = getId(id);
         String optionalCronExpression = getCronExpression(cron);
@@ -42,7 +53,9 @@ public class JobRunrRecurringJobRecorder {
         } else {
             JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);
             jobDetails.setCacheable(true);
-            scheduler.scheduleRecurrently(id, jobDetails, ScheduleExpressionType.getSchedule(scheduleExpression), getZoneId(zoneId));
+            Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
+            RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, getZoneId(zoneId), ANNOTATION);
+            scheduler.scheduleRecurrently(recurringJob);
         }
     }
 
