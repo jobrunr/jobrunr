@@ -50,7 +50,7 @@ public class StorageProviderMetricsBinder implements JobStatsChangeListener, Aut
     }
 
     private void registerGauge(String stateName, AtomicLong number) {
-        meterRegistry.gauge("jobrunr.jobs." + stateName.toLowerCase(), Tags.of("state", stateName), number);
+        meterRegistry.gauge("jobrunr.jobs.by-state", Tags.of("state", stateName), number);
     }
 
     @Override
