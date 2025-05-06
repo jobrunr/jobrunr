@@ -56,7 +56,7 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
     }
 
     private String sanitizeRequestUri(String requestUri) {
-        if (requestUri.contains(".")) {
+        if (requestUri.contains("/static/")) {
             return requestUri;
         } else if (singlePageApp) {
             return contextPath + "/index.html";
