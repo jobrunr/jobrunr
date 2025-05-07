@@ -40,8 +40,8 @@ public class BackgroundJobServerMetricsBinder implements AutoCloseable {
         meters.add(registerGauge("process-free-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getProcessFreeMemory()));
         meters.add(registerGauge("system-free-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getSystemFreeMemory()));
         meters.add(registerGauge("system-total-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getSystemTotalMemory()));
-        meters.add(registerGauge("first-heartbeat", bgJobServerStatus -> (double) bgJobServerStatus.get().getFirstHeartbeat().getEpochSecond()));
-        meters.add(registerGauge("last-heartbeat", bgJobServerStatus -> (double) bgJobServerStatus.get().getLastHeartbeat().getEpochSecond()));
+        meters.add(registerGauge("first-heartbeat", this::getFirstHeartbeatAsEpochSeconds));
+        meters.add(registerGauge("last-heartbeat", this::getLastHeartbeatAsEpochSeconds));
         meters.add(registerGauge("system-cpu-load", bgJobServerStatus -> bgJobServerStatus.get().getSystemCpuLoad()));
         meters.add(registerGauge("process-cpu-load", bgJobServerStatus -> bgJobServerStatus.get().getProcessCpuLoad()));
     }
@@ -56,6 +56,16 @@ public class BackgroundJobServerMetricsBinder implements AutoCloseable {
 
     private String toMicroMeterName(String name) {
         return "jobrunr.background-job-server." + name;
+    }
+
+    private double getFirstHeartbeatAsEpochSeconds(CachedValue<BackgroundJobServerStatus> cache) {
+        BackgroundJobServerStatus status = cache.get();
+        return status.isRunning() ? status.getFirstHeartbeat().getEpochSecond() : -1;
+    }
+
+    private double getLastHeartbeatAsEpochSeconds(CachedValue<BackgroundJobServerStatus> cache) {
+        BackgroundJobServerStatus status = cache.get();
+        return status.isRunning() ? status.getLastHeartbeat().getEpochSecond() : -1;
     }
 
     @Override

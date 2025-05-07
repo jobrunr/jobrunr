@@ -3,6 +3,8 @@ package org.jobrunr;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.instrument.MeterAssert;
+import io.micrometer.core.instrument.Meter;
 import net.javacrumbs.jsonunit.assertj.JsonAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
@@ -75,6 +77,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static JsonAssert.ConfigurableJsonAssert assertThatJson(String json) {
         return JsonAssertions.assertThatJson(json);
+    }
+
+    public static MeterAssert assertThat(Meter meter) {
+        return MeterAssert.assertThat(meter);
     }
 
     public static LoggerAssert assertThat(ListAppender<ILoggingEvent> listAppender) {
