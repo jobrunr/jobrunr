@@ -43,6 +43,15 @@ class StaticFileHttpHandlerTest {
     }
 
     @Test
+    void servesIndexEvenIfRequestParamsContainDot() throws IOException {
+        when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/jobs?state=FAILED&jobSignature=java.lang.System.out.println(java.lang.String)"));
+
+        staticFileHttpHandler.handle(httpExchange);
+
+        verify(httpExchange).sendResponseHeaders(200, 0);
+    }
+
+    @Test
     void servesRequestedFile() throws IOException {
         when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/test.html"));
 
@@ -52,8 +61,8 @@ class StaticFileHttpHandlerTest {
     }
 
     @Test
-    void returns404IfFileNotFound() throws IOException {
-        when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/404.html"));
+    void returns404IfStaticFileNotFound() throws IOException {
+        when(httpExchange.getRequestURI()).thenReturn(URI.create("/static/unknownimg.jpg"));
 
         staticFileHttpHandler.handle(httpExchange);
 
