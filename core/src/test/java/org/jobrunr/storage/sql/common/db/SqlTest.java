@@ -37,11 +37,13 @@ class SqlTest {
         Dialect dialect = new H2Dialect();
 
         try (Connection connection = dataSource.getConnection()) {
-            TestSql testSqlWithoutPrefix = new TestSql(connection, dialect, null);
+            TestSql testSqlWithoutPrefix = new TestSql(connection, dialect, "prefix_a_");
             assertThat(testSqlWithoutPrefix.aCachedSelectStatementThatReturnsTheCount()).isEqualTo(1L);
+            assertThat(testSqlWithoutPrefix.parseStatementCounter).isEqualTo(1L);
 
-            TestSql testSqlWithPrefix = new TestSql(connection, dialect, "prefix_");
+            TestSql testSqlWithPrefix = new TestSql(connection, dialect, "prefix_b_");
             assertThat(testSqlWithPrefix.aCachedSelectStatementThatReturnsTheCount()).isEqualTo(0L);
+            assertThat(testSqlWithPrefix.parseStatementCounter).isEqualTo(1L);
         }
     }
 
@@ -58,10 +60,11 @@ class SqlTest {
         }
 
         @Override
-        protected String parseStatement(String query) {
+        protected SqlStatement parseStatement(String query) {
             parseStatementCounter++;
             return super.parseStatement(query);
         }
+
     }
 
     protected DataSource getH2DataSource(String name) throws SQLException {
@@ -73,7 +76,9 @@ class SqlTest {
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             statement.execute("create table jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
             statement.execute("insert into jobrunr_jobs (ID, jobSignature) values (1, 'Not important')");
-            statement.execute("create table prefix_jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
+            statement.execute("create table prefix_a_jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
+            statement.execute("insert into prefix_a_jobrunr_jobs (ID, jobSignature) values (1, 'Not important')");
+            statement.execute("create table prefix_b_jobrunr_jobs (ID int primary key, jobSignature varchar(50))");
         }
 
         return dataSource;

@@ -1,10 +1,11 @@
 package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.StorageException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Spliterator;
@@ -12,20 +13,14 @@ import java.util.function.Consumer;
 
 public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SqlSpliterator.class);
-
-    private final Connection connection;
-    private final String sqlStatement;
-    private final Consumer<PreparedStatement> paramsSetter;
+    private final ThrowingSqlSupplier<PreparedStatement> preparedStatementCreator;
     private PreparedStatement ps;
     private ResultSet rs;
     private List<String> columns;
     private boolean hasMore;
 
-    public SqlSpliterator(Connection connection, String sqlStatement, Consumer<PreparedStatement> paramsSetter) {
-        this.connection = connection;
-        this.sqlStatement = sqlStatement;
-        this.paramsSetter = paramsSetter;
+    public SqlSpliterator(ThrowingSqlSupplier<PreparedStatement> preparedStatementCreator) {
+        this.preparedStatementCreator = preparedStatementCreator;
     }
 
     @Override
@@ -55,9 +50,8 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
 
     private void init() {
         try {
-            ps = connection.prepareStatement(sqlStatement, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            ps.setFetchSize(100);
-            paramsSetter.accept(ps);
+            ps = this.preparedStatementCreator.get();
+            ps.setFetchSize(128);
             rs = ps.executeQuery();
         } catch (SQLException e) {
             close();
@@ -76,9 +70,6 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
             closeable.close();
         } catch (Exception e) {
             //nothing we can do here
-            if (closeable instanceof Connection) {
-                LOGGER.error("Could not close connection", e);
-            }
         }
     }
 
@@ -102,8 +93,13 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
         result.add(null); // SQL in Java is 1 based
         final ResultSetMetaData metaData = resultSet.getMetaData();
         for (int i = 1; i <= metaData.getColumnCount(); i++) {
-            result.add(metaData.getColumnName(i).toLowerCase());
+            result.add(metaData.getColumnLabel(i).toLowerCase());
         }
         return result;
+    }
+
+    @FunctionalInterface
+    public interface ThrowingSqlSupplier<T> {
+        T get() throws SQLException;
     }
 }
