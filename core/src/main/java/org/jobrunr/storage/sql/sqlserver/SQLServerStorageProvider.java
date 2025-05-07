@@ -16,7 +16,7 @@ public class SQLServerStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public SQLServerStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        super(dataSource, new SQLServerDialect(), databaseOptions);
+        this(dataSource, null, databaseOptions);
     }
 
     public SQLServerStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {

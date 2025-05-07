@@ -2,7 +2,6 @@ package org.jobrunr.storage.sql.db2;
 
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
-import org.jobrunr.storage.sql.common.db.AnsiDialect;
 
 import javax.sql.DataSource;
 
@@ -17,11 +16,11 @@ public class DB2StorageProvider extends DefaultSqlStorageProvider {
     }
 
     public DB2StorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        super(dataSource, new AnsiDialect(), databaseOptions);
+        this(dataSource, null, databaseOptions);
     }
 
     public DB2StorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        super(dataSource, new AnsiDialect(), tablePrefix, databaseOptions);
+        super(dataSource, new DB2Dialect(), tablePrefix, databaseOptions);
     }
 
 }
