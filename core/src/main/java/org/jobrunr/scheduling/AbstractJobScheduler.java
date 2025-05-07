@@ -16,18 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.time.ZoneId.systemDefault;
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
+import static org.jobrunr.utils.InstantUtils.toInstant;
 
 public abstract class AbstractJobScheduler {
 
@@ -126,7 +122,7 @@ public abstract class AbstractJobScheduler {
     }
 
     JobId schedule(UUID id, Temporal scheduleAt, JobDetails jobDetails) {
-        Instant scheduleInstant = toInstant(scheduleAt).orElseThrow(() -> new IllegalArgumentException("Job scheduling failed: the Temporal type '" + scheduleAt.getClass().getName() + "' is not supported. Please provide either an Instant, a LocalDateTime, a ZonedDateTime or an OffsetDateTime."));
+        Instant scheduleInstant = toInstant(scheduleAt);
         return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleInstant)));
     }
 
@@ -164,13 +160,5 @@ public abstract class AbstractJobScheduler {
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);
         return savedJobs;
-    }
-
-    private Optional<Instant> toInstant(Temporal temporal) {
-        if (temporal instanceof Instant) return Optional.of((Instant) temporal);
-        if (temporal instanceof LocalDateTime) return Optional.of(((LocalDateTime) temporal).atZone(systemDefault()).toInstant());
-        if (temporal instanceof OffsetDateTime) return Optional.of(((OffsetDateTime) temporal).toInstant());
-        if (temporal instanceof ZonedDateTime) return Optional.of(((ZonedDateTime) temporal).toInstant());
-        return Optional.empty();
     }
 }

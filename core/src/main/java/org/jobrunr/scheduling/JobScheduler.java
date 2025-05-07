@@ -195,41 +195,22 @@ public class JobScheduler extends AbstractJobScheduler {
                 .map(Job::new)
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
-    
+
     /**
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time.
-     * <h5>Supported Temporal types:</h5>
+     *
+     * <h5>Supported Temporal Types:</h5>
      * <ul>
      *     <li>{@link Instant}</li>
-     *     <li>{@link LocalDateTime}: converted to {@link Instant} using systemDefault ZoneId</li>
+     *     <li>{@link LocalDateTime}: converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link OffsetDateTime}</li>
      *     <li>{@link ZonedDateTime}</li>
      * </ul>
      *
-     * <h5>Examples:</h5>
-     *
-     * <h6>With Instant</h6>
+     * <h5>An Example with Instant:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
      *      jobScheduler.schedule(Instant.now().plusHours(5), () -> service.doWork());
-     * }</pre>
-     *
-     * <h6>With LocalDateTime</h6>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.schedule(LocalDateTime.now().plusHours(5), () -> service.doWork());
-     * }</pre>
-     *
-     * <h6>With OffsetDateTime</h6>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.schedule(OffsetDateTime.now().plusHours(5), () -> service.doWork());
-     * }</pre>
-     *
-     * <h6>With ZonedDateTime</h6>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.schedule(ZonedDateTime.now().plusHours(5), () -> service.doWork());
      * }</pre>
      *
      * @param scheduleAt the moment in time at which the job will be enqueued.
@@ -244,38 +225,18 @@ public class JobScheduler extends AbstractJobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time.
      * If a job with that id already exists, JobRunr will not save it again.
      *
-     * <h5>Supported Temporal types:</h5>
+     * <h5>Supported Temporal Types:</h5>
      * <ul>
      *     <li>{@link Instant}</li>
-     *     <li>{@link LocalDateTime}: converted to {@link Instant} using systemDefault ZoneId</li>
+     *     <li>{@link LocalDateTime}: converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link OffsetDateTime}</li>
      *     <li>{@link ZonedDateTime}</li>
      * </ul>
      *
-     * <h5>Examples:</h5>
-     *
-     * <h6>With Instant</h6>
+     * <h5>An Example with Instant:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
      *      jobScheduler.schedule(id, Instant.now().plusHours(5), () -> service.doWork());
-     * }</pre>
-     *
-     * <h6>With LocalDateTime</h6>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.schedule(id, LocalDateTime.now().plusHours(5), () -> service.doWork());
-     * }</pre>
-     *
-     * <h6>With OffsetDateTime</h6>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.schedule(id, OffsetDateTime.now().plusHours(5), () -> service.doWork());
-     * }</pre>
-     *
-     * <h6>With ZonedDateTime</h6>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.schedule(id, ZonedDateTime.now().plusHours(5), () -> service.doWork());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
@@ -291,33 +252,17 @@ public class JobScheduler extends AbstractJobScheduler {
     /**
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      *
-     * <h5>Supported Temporal types:</h5>
+     * <h5>Supported Temporal Types:</h5>
      * <ul>
      *     <li>{@link Instant}</li>
-     *     <li>{@link LocalDateTime}: converted to {@link Instant} using systemDefault ZoneId</li>
+     *     <li>{@link LocalDateTime}: converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link OffsetDateTime}</li>
      *     <li>{@link ZonedDateTime}</li>
      * </ul>
      *
-     * <h5>Examples:</h5>
-     * <h6>With Instant</h6>
+     * <h5>An example with Instant:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>schedule(id, Instant.now().plusHours(5), x -> x.doWork());
-     * }</pre>
-     *
-     * <h6>With LocalDateTime</h6>
-     * <pre>{@code
-     *      jobScheduler.<MyService>schedule(LocalDateTime.now().plusHours(5), x -> x.doWork());
-     * }</pre>
-     *
-     * <h6>With OffsetDateTime</h6>
-     * <pre>{@code
-     *      jobScheduler.<MyService>schedule(OffsetDateTime.now().plusHours(5), x -> x.doWork());
-     * }</pre>
-     *
-     * <h6>With ZonedDateTime</h6>
-     * <pre>{@code
-     *      jobScheduler.<MyService>schedule(ZonedDateTime.now().plusHours(5), x -> x.doWork());
      * }</pre>
      *
      * @param scheduleAt the moment in time at which the job will be enqueued.
@@ -335,30 +280,14 @@ public class JobScheduler extends AbstractJobScheduler {
      * <h5>Supported Temporal types:</h5>
      * <ul>
      *     <li>{@link Instant}</li>
-     *     <li>{@link LocalDateTime}: converted to {@link Instant} using systemDefault ZoneId</li>
+     *     <li>{@link LocalDateTime}: converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link OffsetDateTime}</li>
      *     <li>{@link ZonedDateTime}</li>
      * </ul>
      *
-     * <h5>Examples:</h5>
-     * <h6>With Instant</h6>
+     * <h5>An Example with Instant:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>schedule(id, Instant.now().plusHours(5), x -> x.doWork());
-     * }</pre>
-     *
-     * <h6>With LocalDateTime</h6>
-     * <pre>{@code
-     *      jobScheduler.<MyService>schedule(LocalDateTime.now().plusHours(5), x -> x.doWork());
-     * }</pre>
-     *
-     * <h6>With OffsetDateTime</h6>
-     * <pre>{@code
-     *      jobScheduler.<MyService>schedule(id, OffsetDateTime.now().plusHours(5), x -> x.doWork());
-     * }</pre>
-     *
-     * <h6>With ZonedDateTime</h6>
-     * <pre>{@code
-     *      jobScheduler.<MyService>schedule(id, ZonedDateTime.now().plusHours(5), x -> x.doWork());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
