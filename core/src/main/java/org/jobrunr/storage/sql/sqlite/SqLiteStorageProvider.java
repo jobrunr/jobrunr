@@ -22,7 +22,7 @@ public class SqLiteStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public SqLiteStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        super(dataSource, new AnsiDialect(), databaseOptions);
+        this(dataSource, null, databaseOptions);
     }
 
     public SqLiteStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {

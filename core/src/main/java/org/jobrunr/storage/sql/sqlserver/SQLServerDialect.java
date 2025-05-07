@@ -2,6 +2,9 @@ package org.jobrunr.storage.sql.sqlserver;
 
 import org.jobrunr.storage.sql.common.db.Dialect;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 public class SQLServerDialect implements Dialect {
 
     @Override
@@ -26,5 +29,10 @@ public class SQLServerDialect implements Dialect {
     @Override
     public String selectForUpdateSkipLocked() {
         return " SELECTFORUPDATE";
+    }
+
+    @Override
+    public void setNull(PreparedStatement ps, int i, String paramName) throws SQLException {
+        ps.setObject(i, null);
     }
 }

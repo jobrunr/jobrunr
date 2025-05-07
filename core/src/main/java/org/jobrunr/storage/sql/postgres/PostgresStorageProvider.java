@@ -16,7 +16,7 @@ public class PostgresStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public PostgresStorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        super(dataSource, new PostgresDialect(), databaseOptions);
+        this(dataSource, null, databaseOptions);
     }
 
     public PostgresStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {

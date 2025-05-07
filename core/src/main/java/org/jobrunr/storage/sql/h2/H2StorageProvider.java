@@ -16,7 +16,7 @@ public class H2StorageProvider extends DefaultSqlStorageProvider {
     }
 
     public H2StorageProvider(DataSource dataSource, DatabaseOptions databaseOptions) {
-        super(dataSource, new H2Dialect(), databaseOptions);
+        this(dataSource, null, databaseOptions);
     }
 
     public H2StorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {

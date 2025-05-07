@@ -35,7 +35,7 @@ public class JobRunrFunctionalityTest {
         assertThat(response)
                 .hasStatusCode(200)
                 .hasBodyContaining("id=my-recurring-job", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'")
-                .hasBodyContaining( "id=another-recurring-job-with-jobContext", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'");
+                .hasBodyContaining("id=another-recurring-job-with-jobContext", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'");
 //                .hasJsonBody(json -> json.inPath("[1].id").isEqualTo("another-recurring-job-with-jobContext"))
 //                .hasJsonBody(json -> json.inPath("[1].name").isEqualTo("Doing some work with the job context"))
 //                .hasJsonBody(json -> json.inPath("[1].scheduleExpression").isEqualTo("PT10M"))
@@ -58,7 +58,7 @@ public class JobRunrFunctionalityTest {
         final HttpResponse<String> response = restApi.get("/q/metrics");
         assertThat(response)
                 .hasStatusCode(200)
-                .hasBodyContaining("jobrunr_jobs_succeeded")
-                .hasBodyContaining("jobrunr_jobs_enqueued");
+                .hasBodyContaining("jobrunr_jobs_by_state{state=\"ENQUEUED\"}")
+                .hasBodyContaining("jobrunr_jobs_by_state{state=\"SUCCEEDED\"}");
     }
 }
