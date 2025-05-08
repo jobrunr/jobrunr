@@ -35,6 +35,15 @@ public class CarbonAwareConfiguration {
     }
 
     /**
+     * This returns the carbon aware configuration that has the carbon aware functionality disabled.
+     *
+     * @return the disabled CarbonAware configuration
+     */
+    public static CarbonAwareConfiguration usingDisabledCarbonAwareConfiguration() {
+        return new CarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(false);
+    }
+
+    /**
      * Allows to enable or disable carbon aware scheduling.
      *
      * @param enabled the status of carbon aware scheduling

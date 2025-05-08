@@ -8,7 +8,7 @@ import java.time.Instant;
 import static java.lang.String.format;
 import static java.time.Instant.now;
 
-public class CarbonAwareAwaitingState extends AbstractJobState {
+public class CarbonAwareAwaitingState extends AbstractJobState implements Schedulable {
     private final Instant preferredInstant;
     private final Instant from;
     private final Instant to;
@@ -83,5 +83,10 @@ public class CarbonAwareAwaitingState extends AbstractJobState {
                 ", from=" + from +
                 ", to=" + to +
                 '}';
+    }
+
+    @Override
+    public Instant getScheduledAt() {
+        return preferredInstant == null ? from : preferredInstant;
     }
 }

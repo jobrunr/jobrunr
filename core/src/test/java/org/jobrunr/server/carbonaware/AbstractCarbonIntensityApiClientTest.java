@@ -16,7 +16,7 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     protected abstract JsonMapper getJsonMapper();
 
     @Test
-    void testFetchCarbonIntensityForecast() {
+    void fetchCarbonIntensityForecast() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
@@ -34,7 +34,7 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     }
 
     @Test
-    void testFetchCarbonIntensityForecastReturnsNotOkApiResponseStatusWhenApiResponseIsResponseIsAreaNotFoundError() {
+    void fetchCarbonIntensityForecastReturnsNotOkWhenAreaNotFoundError() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("UNKNOWN");
         mockResponseWhenRequestingAreaCode("UNKNOWN", CarbonApiMockResponses.UNKNOWN_AREA);
@@ -53,7 +53,7 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     }
 
     @Test
-    void testFetchCarbonIntensityForecastReturnsNotOkApiResponseStatusWhenApiResponseIsForecastNotAvailableError() {
+    void fetchCarbonIntensityForecastReturnsNotOWhenForecastNotAvailableError() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("DE");
         mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
@@ -72,7 +72,7 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     }
 
     @Test
-    void testFetchCarbonIntensityForecastSetsMissingFieldsToNull() {
+    void fetchCarbonIntensityForecastSetsMissingFieldsToNull() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
         mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_FIELDS);
@@ -89,10 +89,10 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     }
 
     @Test
-    void testFetchCarbonIntensityForecastReturnsEmptyCarbonIntensityForecastWhenParsingResponseWithExtraFields() {
+    void fetchCarbonIntensityForecastReturnsEmptyForecastWhenParsingOfResponseFails() {
         // GIVEN
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.EXTRA_FIELD);
+        mockResponseWhenRequestingAreaCode("BE", "{ someUnKnownKey: 'someValue' }");
 
         // WHEN
         CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();

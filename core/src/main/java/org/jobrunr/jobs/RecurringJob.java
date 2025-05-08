@@ -107,16 +107,20 @@ public class RecurringJob extends AbstractJob {
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(ScheduledState.fromRecurringJob(nextRun, this)));
+            jobs.add(toJob(getNextState(nextRun)));
             nextRun = getNextRun(nextRun);
         }
 
         if (jobs.isEmpty()) {
             Instant nextRunAtAheadOfTime = getNextRun(upTo);
-            jobs.add(toJob(ScheduledState.fromRecurringJobAheadOfTime(nextRunAtAheadOfTime, this)));
+            jobs.add(toJob(getNextState(nextRunAtAheadOfTime)));
         }
 
         return jobs;
+    }
+
+    private Schedule getSchedule() {
+        return ScheduleExpressionType.createScheduleFromString(scheduleExpression);
     }
 
     public Job toEnqueuedJob() {
@@ -140,8 +144,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun(Instant sinceInstant) {
-        return ScheduleExpressionType
-                .createScheduleFromString(scheduleExpression)
+        return getSchedule()
                 .next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
@@ -158,6 +161,19 @@ public class RecurringJob extends AbstractJob {
         }
 
         return result;
+    }
+
+    private JobState getNextState(Instant nextRun) {
+        Schedule schedule = getSchedule();
+        if (schedule.isCarbonAware()) {
+            return schedule.getCarbonAwareScheduleMargin().toCarbonAwareAwaitingState(nextRun);
+        }
+        // TODO missing ScheduledState.fromRecurringJobAheadOfTime() info now and feels painful to add a bool param
+        // can we make a ScheduledAheadOfTimeState?
+        // do we really need this extra string?
+        // do we need the reason (aot "started state") on the carbon awaiting state?
+        // can we rename CarbonAwareAwaitingState to AwaitingState?
+        return ScheduledState.fromRecurringJob(nextRun, this);
     }
 
     private Job toJob(JobState jobState) {
@@ -182,7 +198,7 @@ public class RecurringJob extends AbstractJob {
 
     public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
-        Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
+        Schedule schedule = getSchedule();
         Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
         Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
         return between(run1, run2);

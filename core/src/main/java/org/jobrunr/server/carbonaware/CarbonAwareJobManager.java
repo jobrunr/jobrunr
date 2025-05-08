@@ -38,13 +38,10 @@ public class CarbonAwareJobManager {
 
     public void updateCarbonIntensityForecastIfNecessary() {
         if (carbonAwareConfiguration.isEnabled() && isInstantBeforeOrEqualTo(nextRefreshTime, Instant.now())) {
-            try {
-                LOGGER.trace("Updating carbon intensity forecast.");
-                updateCarbonIntensityForecast();
-            } finally {
-                updateNextRefreshTime();
-                LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
-            }
+            LOGGER.trace("Updating carbon intensity forecast.");
+            updateCarbonIntensityForecast();
+            updateNextRefreshTime();
+            LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
         }
     }
 
@@ -95,8 +92,7 @@ public class CarbonAwareJobManager {
     }
 
     private void scheduleJobAtPreferredInstant(Job job, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
-        Instant scheduleAt = carbonAwareAwaitingState.getPreferredInstant() == null ? carbonAwareAwaitingState.getFrom() : carbonAwareAwaitingState.getPreferredInstant();
-        carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
+        carbonAwareAwaitingState.moveToNextState(job, carbonAwareAwaitingState.getScheduledAt(), reason);
     }
 
     private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {

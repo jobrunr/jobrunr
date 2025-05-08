@@ -9,6 +9,7 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestJobContextJobRequest;
@@ -19,9 +20,11 @@ import org.jobrunr.stubs.TestJobRequestThatTakesLong;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
 import org.jobrunr.stubs.TestMDCJobRequest;
 import org.jobrunr.utils.annotations.Because;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.slf4j.MDC;
 
 import java.time.Duration;
@@ -60,6 +63,8 @@ import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingDisabledCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BackgroundJobByJobRequestTest {
@@ -79,6 +84,7 @@ public class BackgroundJobByJobRequestTest {
         JobRunr.configure()
                 .useJobActivator(jobActivator)
                 .useStorageProvider(storageProvider)
+                .useCarbonAwareScheduling(usingDisabledCarbonAwareConfiguration())
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
@@ -220,6 +226,8 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testScheduleCarbonAware() {
+        enableCarbonAwareConfiguration();
+
         JobId jobId = BackgroundJobRequest.scheduleCarbonAware(before(now().plus(1, DAYS)), new TestJobRequest("from testScheduleCarbonAware"));
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
@@ -386,6 +394,10 @@ public class BackgroundJobByJobRequestTest {
 
     Condition<Map<String, Object>> allValuesAre(UUID id) {
         return new Condition<>(s -> new HashSet<>(s.values()).size() == 2 && new HashSet<>(s.values()).contains(id), "a value matches %s", id);
+    }
+
+    private void enableCarbonAwareConfiguration() {
+        Whitebox.setInternalState(backgroundJobServer, "carbonAwareJobManager", new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper()));
     }
 
     private Stream<JobRequest> jobRequestStream() {
