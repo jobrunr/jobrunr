@@ -8,21 +8,14 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
+import org.jobrunr.utils.InstantUtils;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
 import java.time.chrono.HijrahDate;
-import java.time.chrono.JapaneseDate;
-import java.time.chrono.ThaiBuddhistDate;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -35,37 +28,18 @@ class AbstractJobSchedulerTest {
     @Test
     void scheduleValidatesTemporalType() {
         var storageProvider = new InMemoryStorageProvider();
-        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        AbstractJobScheduler jobScheduler = jobScheduler(storageProvider);
-        assertThatCode(() -> jobScheduler.schedule(null, Instant.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
-        assertThatCode(() -> jobScheduler.schedule(null, LocalDateTime.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
-        assertThatCode(() -> jobScheduler.schedule(null, OffsetDateTime.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
-        assertThatCode(() -> jobScheduler.schedule(null, ZonedDateTime.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
+        try (var mockedInstantUtils = Mockito.mockStatic(InstantUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+            AbstractJobScheduler jobScheduler = jobScheduler(storageProvider);
 
-        assertThatCode(() -> jobScheduler.schedule(null, HijrahDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.chrono.HijrahDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, JapaneseDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.chrono.JapaneseDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, ThaiBuddhistDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.chrono.ThaiBuddhistDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, LocalTime.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.LocalTime. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, LocalDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.LocalDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, Year.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.Year. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, YearMonth.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.YearMonth. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
-        assertThatCode(() -> jobScheduler.schedule(null, OffsetTime.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.OffsetTime. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+            assertThatCode(() -> jobScheduler.schedule(null, Instant.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
+
+            assertThatCode(() -> jobScheduler.schedule(null, HijrahDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("JobRunr does not support Temporal type: java.time.chrono.HijrahDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+
+            mockedInstantUtils.verify(() -> InstantUtils.toInstant(ArgumentMatchers.any()), Mockito.times(2));
+        }
     }
 
     @Test

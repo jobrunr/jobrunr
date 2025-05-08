@@ -18,6 +18,8 @@ public class InstantUtils {
         if (temporal instanceof LocalDateTime) return ((LocalDateTime) temporal).atZone(systemDefault()).toInstant();
         if (temporal instanceof OffsetDateTime) return ((OffsetDateTime) temporal).toInstant();
         if (temporal instanceof ZonedDateTime) return ((ZonedDateTime) temporal).toInstant();
-        throw new IllegalArgumentException("JobRunr does not support Temporal type: " + temporal.getClass() + ". Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+
+        String unsupportedTemporalType = temporal == null ? "null" : temporal.getClass().getCanonicalName();
+        throw new IllegalArgumentException("JobRunr does not support Temporal type: " + unsupportedTemporalType + ". Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
     }
 }

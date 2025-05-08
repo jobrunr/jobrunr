@@ -35,27 +35,30 @@ class InstantUtilsTest {
 
         assertThatCode(() -> InstantUtils.toInstant(HijrahDate.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.chrono.HijrahDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.chrono.HijrahDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(JapaneseDate.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.chrono.JapaneseDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.chrono.JapaneseDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(ThaiBuddhistDate.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.chrono.ThaiBuddhistDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.chrono.ThaiBuddhistDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(LocalTime.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.LocalTime. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.LocalTime. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(LocalDate.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.LocalDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.LocalDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(Year.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.Year. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.Year. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(YearMonth.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.YearMonth. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.YearMonth. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(OffsetTime.now()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("JobRunr does not support Temporal type: class java.time.OffsetTime. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                .hasMessage("JobRunr does not support Temporal type: java.time.OffsetTime. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+        assertThatCode(() -> InstantUtils.toInstant(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("JobRunr does not support Temporal type: null. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
     }
 }
