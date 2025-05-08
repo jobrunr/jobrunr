@@ -72,6 +72,15 @@ public class FrontEndDevelopment {
                     .build());
         }
 
+        for (int i = 0; i < 1; i++) {
+            storageProvider.saveRecurringJob(aDefaultRecurringJob()
+                    .withId("every-1-h-" + i)
+                    .withName("Every 1 hour")
+                    .withCronExpression(Cron.hourly())
+                    .withJobDetails(() -> new TestService().doWork())
+                    .build());
+        }
+
         storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
         storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());

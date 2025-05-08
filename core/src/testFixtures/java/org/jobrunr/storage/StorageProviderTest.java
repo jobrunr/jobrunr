@@ -845,6 +845,38 @@ public abstract class StorageProviderTest {
         assertThat(deletedForNonExistingJob).isEqualTo(0);
     }
 
+    @Test
+    void testDeleteRecurringJobDeletesScheduledJobs() {
+        RecurringJob recurringJob1 = aDefaultRecurringJob().withId("rj1").withCronExpression(Cron.daily()).build();
+        RecurringJob recurringJob2 = aDefaultRecurringJob().withId("rj2").withCronExpression(Cron.daily()).build();
+
+        storageProvider.saveRecurringJob(recurringJob1);
+        storageProvider.saveRecurringJob(recurringJob2);
+
+        Job scheduledJobOfRj1 = aScheduledJob().withRecurringJobId(recurringJob1.getId()).build();
+        Job enqueuedJobOfRj1 = anEnqueuedJob().withRecurringJobId(recurringJob1.getId()).build();
+        Job succeededJobOfRj1 = aSucceededJob().withRecurringJobId(recurringJob1.getId()).build();
+        Job scheduledJobOfRj2 = aScheduledJob().withRecurringJobId(recurringJob2.getId()).build();
+        Job processingJobOfRj2 = aJobInProgress().withRecurringJobId(recurringJob2.getId()).build();
+
+        storageProvider.save(List.of(scheduledJobOfRj1, enqueuedJobOfRj1, succeededJobOfRj1, scheduledJobOfRj2, processingJobOfRj2));
+
+        assertThat(storageProvider.recurringJobExists(recurringJob1.getId(), SCHEDULED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob1.getId(), ENQUEUED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob1.getId(), SUCCEEDED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob2.getId(), SCHEDULED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob2.getId(), PROCESSING)).isTrue();
+
+        int status = storageProvider.deleteRecurringJob(recurringJob1.getId());
+        assertThat(status).isEqualTo(1);
+
+        assertThat(storageProvider.recurringJobExists(recurringJob1.getId(), SCHEDULED)).isFalse();
+        assertThat(storageProvider.recurringJobExists(recurringJob1.getId(), ENQUEUED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob1.getId(), SUCCEEDED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob2.getId(), SCHEDULED)).isTrue();
+        assertThat(storageProvider.recurringJobExists(recurringJob2.getId(), PROCESSING)).isTrue();
+    }
+
     @RepeatedIfExceptionsTest(repeats = 3)
     void testOnChangeListenerForSaveAndDeleteJob() {
         final SimpleJobStorageOnChangeListener onChangeListener = new SimpleJobStorageOnChangeListener();

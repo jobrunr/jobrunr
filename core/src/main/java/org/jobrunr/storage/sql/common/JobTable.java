@@ -85,6 +85,11 @@ public class JobTable extends Sql<Job> {
         return this;
     }
 
+    public JobTable withRecurringJobId(String recurringJobId) {
+        with("recurringJobId", recurringJobId);
+        return this;
+    }
+
     public JobTable with(String columnName, String sqlName, String value) {
         if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT).contains(columnName)) {
             with(sqlName, Instant.parse(value));
@@ -172,11 +177,17 @@ public class JobTable extends Sql<Job> {
 
     public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
         if (states.length < 1) {
-            return with(FIELD_RECURRING_JOB_ID, recurringJobId)
+            return withRecurringJobId(recurringJobId)
                     .selectExists("from jobrunr_jobs where recurringJobId = :recurringJobId");
         }
-        return with(FIELD_RECURRING_JOB_ID, recurringJobId)
+        return withRecurringJobId(recurringJobId)
                 .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+    }
+
+    public List<Job> getScheduledJobsOfRecurringJob(String recurringJobId) {
+        return withRecurringJobId(recurringJobId)
+                .selectJobs("jobAsJson FROM jobrunr_jobs where state = 'SCHEDULED' AND recurringJobId = :recurringJobId")
+                .collect(toList());
     }
 
     public Map<String, Instant> getRecurringJobsLatestScheduledRun() {

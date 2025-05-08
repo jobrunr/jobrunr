@@ -252,12 +252,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public boolean recurringJobExists(String recurringJobId, StateName... states) {
         if (states.length == 0) {
-            return jobQueue.values().stream()
-                    .anyMatch(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)));
+            return findJobsWithRecurringJobId(recurringJobId).findAny().isPresent();
         }
-        return jobQueue.values().stream()
-                .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                .anyMatch(job -> asList(getStateNames(states)).contains(job.getState()));
+        return findJobsWithRecurringJobId(recurringJobId, states).findAny().isPresent();
     }
 
     @Override
@@ -292,7 +289,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public int deleteRecurringJob(String id) {
         boolean removed = recurringJobs.removeIf(job -> id.equals(job.getId()));
+        if (removed) deleteScheduledJobsOfRecurringJobIfNecessary(id);
         return removed ? 1 : 0;
+    }
+
+    private void deleteScheduledJobsOfRecurringJobIfNecessary(String recurringJobId) {
+        List<Job> jobsToDelete = findJobsWithRecurringJobId(recurringJobId, SCHEDULED)
+                .map(job -> job.delete("RecurringJob with id '" + recurringJobId + "' has been deleted"))
+                .collect(toList());
+
+        save(jobsToDelete);
     }
 
     @Override
@@ -332,6 +338,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Stream<Job> getJobsStream(StateName state) {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state));
+    }
+
+    private Stream<Job> findJobsWithRecurringJobId(String recurringJobId) {
+        return jobQueue.values().stream()
+                .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)));
+    }
+
+    private Stream<Job> findJobsWithRecurringJobId(String recurringJobId, StateName... states) {
+        return findJobsWithRecurringJobId(recurringJobId)
+                .filter(job -> asList(getStateNames(states)).contains(job.getState()));
     }
 
     private Job deepClone(Job job) {

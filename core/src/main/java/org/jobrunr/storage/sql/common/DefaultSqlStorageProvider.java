@@ -372,6 +372,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     public int deleteRecurringJob(String id) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final int deletedRecurringJobCount = recurringJobTable(conn).deleteById(id);
+            if (deletedRecurringJobCount > 0) deleteScheduledJobsOfRecurringJobIfNecessary(id, jobTable(conn));
             transaction.commit();
             return deletedRecurringJobCount;
         } catch (SQLException e) {
@@ -420,5 +421,13 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     protected JobStatsView jobStatsView(Connection connection) {
         return new JobStatsView(connection, dialect, tablePrefix);
+    }
+
+    private void deleteScheduledJobsOfRecurringJobIfNecessary(String recurringJobId, JobTable jobTable) {
+        List<Job> deletedJobs = jobTable.getScheduledJobsOfRecurringJob(recurringJobId).stream()
+                .map(j -> j.delete("RecurringJob with id '" + recurringJobId + "' has been deleted"))
+                .collect(toList());
+
+        save(deletedJobs);
     }
 }

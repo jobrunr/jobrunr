@@ -442,6 +442,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public int deleteRecurringJob(String id) {
         final DeleteResult deleteResult = recurringJobCollection.deleteOne(eq(toMongoId(RecurringJobs.FIELD_ID), id));
+        if (deleteResult.getDeletedCount() > 0) deleteScheduledJobsOfRecurringJobIfNecessary(id);
         return (int) deleteResult.getDeletedCount();
     }
 
@@ -509,6 +510,14 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                 .projection(include(Jobs.FIELD_JOB_AS_JSON))
                 .map(jobDocumentMapper::toJob)
                 .into(new ArrayList<>());
+    }
+
+    private void deleteScheduledJobsOfRecurringJobIfNecessary(String recurringJobId) {
+        List<Job> jobsToDelete = jobCollection.find(and(eq(Jobs.FIELD_STATE, SCHEDULED.name()), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)))
+                .map(jobDocumentMapper::toJob)
+                .map(job -> job.delete("RecurringJob with id '" + recurringJobId + "' has been deleted"))
+                .into(new ArrayList<>());
+        save(jobsToDelete);
     }
 
     private void validateMongoClient(MongoClient mongoClient) {
