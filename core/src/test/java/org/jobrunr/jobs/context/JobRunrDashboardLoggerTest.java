@@ -89,6 +89,17 @@ class JobRunrDashboardLoggerTest {
     }
 
     @Test
+    void testInfoLoggingWithJobMarkerAndFormattingMultipleArguments() {
+        final Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
+
+        jobRunrDashboardLogger.info(marker, "simple message {} {} {}", "hello", "again", "there");
+
+        verify(slfLogger).info(marker, "simple message {} {} {}", "hello", "again", "there");
+        assertThat(job).hasMetadata(InfoLog.withMessage("[some marker] simple message hello again there"));
+    }
+
+    @Test
     void testWarnLoggingWithoutJob() {
         jobRunrDashboardLogger.warn("simple message");
 
@@ -129,6 +140,17 @@ class JobRunrDashboardLoggerTest {
     }
 
     @Test
+    void testWarnLoggingWithJobMarkerAndFormattingMultipleArguments() {
+        final Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
+
+        jobRunrDashboardLogger.warn(marker, "simple message {} {} {}", "hello", "again", "there");
+
+        verify(slfLogger).warn(marker, "simple message {} {} {}", "hello", "again", "there");
+        assertThat(job).hasMetadata(WarnLog.withMessage("[some marker] simple message hello again there"));
+    }
+
+    @Test
     void testErrorLoggingWithoutJob() {
         jobRunrDashboardLogger.error("simple message");
 
@@ -166,6 +188,32 @@ class JobRunrDashboardLoggerTest {
 
         verify(slfLogger).error("simple message {} {} {}", "hello", "again", "there");
         assertThat(job).hasMetadata(ErrorLog.withMessage("simple message hello again there"));
+    }
+
+    @Test
+    void testErrorLoggingWithJobMarkerAndFormattingMultipleArguments() {
+        final Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
+
+        jobRunrDashboardLogger.error(marker, "simple message {} {} {}", "hello", "again", "there");
+
+        verify(slfLogger).error(marker, "simple message {} {} {}", "hello", "again", "there");
+        assertThat(job).hasMetadata(ErrorLog.withMessage("[some marker] simple message hello again there"));
+    }
+
+    @Test
+    void testErrorLoggingWithJobMultipleMarkersAndFormattingMultipleArguments() {
+        Marker givenMarker = MarkerFactory.getMarker("given-marker");
+        givenMarker.add(MarkerFactory.getMarker("some other marker a"));
+        givenMarker.add(MarkerFactory.getMarker("some other marker b"));
+
+        final Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
+
+        jobRunrDashboardLogger.error(givenMarker, "simple message {} {} {}", "hello", "again", "there");
+
+        verify(slfLogger).error(givenMarker, "simple message {} {} {}", "hello", "again", "there");
+        assertThat(job).hasMetadata(ErrorLog.withMessage("[given-marker (some other marker a, some other marker b)] simple message hello again there"));
     }
 
     @Test
