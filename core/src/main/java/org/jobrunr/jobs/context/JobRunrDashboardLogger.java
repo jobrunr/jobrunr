@@ -8,6 +8,8 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.Iterator;
+
 public class JobRunrDashboardLogger implements Logger {
 
     private static final ThreadLocal<JobDashboardLogger> jobDashboardLoggerThreadLocal = new ThreadLocal<>();
@@ -199,31 +201,31 @@ public class JobRunrDashboardLogger implements Logger {
     @Override
     public void info(Marker marker, String msg) {
         logger.info(marker, msg);
-        logInfoToJobDashboard(msg);
+        logInfoToJobDashboard(marker, msg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg) {
         logger.info(marker, format, arg);
-        logInfoToJobDashboard(format, arg);
+        logInfoToJobDashboard(marker, format, arg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg1, Object arg2) {
         logger.info(marker, format, arg1, arg2);
-        logInfoToJobDashboard(format, arg1, arg2);
+        logInfoToJobDashboard(marker, format, arg1, arg2);
     }
 
     @Override
     public void info(Marker marker, String format, Object... arguments) {
         logger.info(marker, format, arguments);
-        logInfoToJobDashboard(format, arguments);
+        logInfoToJobDashboard(marker, format, arguments);
     }
 
     @Override
     public void info(Marker marker, String msg, Throwable t) {
         logger.info(marker, msg, t);
-        logInfoToJobDashboard(msg);
+        logInfoToJobDashboard(marker, msg);
     }
 
     @Override
@@ -269,31 +271,31 @@ public class JobRunrDashboardLogger implements Logger {
     @Override
     public void warn(Marker marker, String msg) {
         logger.warn(marker, msg);
-        logWarnToJobDashboard(msg);
+        logWarnToJobDashboard(marker, msg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg) {
         logger.warn(marker, format, arg);
-        logWarnToJobDashboard(format, arg);
+        logWarnToJobDashboard(marker, format, arg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg1, Object arg2) {
         logger.warn(marker, format, arg1, arg2);
-        logWarnToJobDashboard(format, arg1, arg2);
+        logWarnToJobDashboard(marker, format, arg1, arg2);
     }
 
     @Override
     public void warn(Marker marker, String format, Object... arguments) {
         logger.warn(marker, format, arguments);
-        logWarnToJobDashboard(format, arguments);
+        logWarnToJobDashboard(marker, format, arguments);
     }
 
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
         logger.warn(marker, msg, t);
-        logWarnToJobDashboard(msg);
+        logWarnToJobDashboard(marker, msg);
     }
 
     @Override
@@ -339,73 +341,118 @@ public class JobRunrDashboardLogger implements Logger {
     @Override
     public void error(Marker marker, String msg) {
         logger.error(marker, msg);
-        logErrorToJobDashboard(msg);
+        logErrorToJobDashboard(marker, msg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg) {
         logger.error(marker, format, arg);
-        logErrorToJobDashboard(format, arg);
+        logErrorToJobDashboard(marker, format, arg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg1, Object arg2) {
         logger.error(marker, format, arg1, arg2);
-        logErrorToJobDashboard(format, arg1, arg2);
+        logErrorToJobDashboard(marker, format, arg1, arg2);
     }
 
     @Override
     public void error(Marker marker, String format, Object... arguments) {
         logger.error(marker, format, arguments);
-        logErrorToJobDashboard(format, arguments);
+        logErrorToJobDashboard(marker, format, arguments);
     }
 
     @Override
     public void error(Marker marker, String msg, Throwable t) {
         logger.error(marker, msg, t);
-        logErrorToJobDashboard(msg);
+        logErrorToJobDashboard(marker, msg);
     }
 
     private void logInfoToJobDashboard(String message) {
+        logInfoToJobDashboard(null, message);
+    }
+
+    private void logInfoToJobDashboard(Marker marker, String message) {
         if (threshold.compareTo(Level.INFO) > 0) return;
         if (jobDashboardLoggerThreadLocal.get() != null) {
-            jobDashboardLoggerThreadLocal.get().info(message);
+            jobDashboardLoggerThreadLocal.get().info(formatMarker(marker) + message);
         }
     }
 
     private void logInfoToJobDashboard(String format, Object... args) {
+        logInfoToJobDashboard(null, format, args);
+    }
+
+    private void logInfoToJobDashboard(Marker marker, String format, Object... args) {
         if (threshold.compareTo(Level.INFO) > 0) return;
         if (jobDashboardLoggerThreadLocal.get() != null) {
             FormattingTuple tp = MessageFormatter.arrayFormat(format, args);
-            jobDashboardLoggerThreadLocal.get().info(tp.getMessage());
+            jobDashboardLoggerThreadLocal.get().info(formatMarker(marker) + tp.getMessage());
         }
     }
 
     private void logWarnToJobDashboard(String message) {
+        logWarnToJobDashboard(null, message);
+    }
+
+    private void logWarnToJobDashboard(Marker marker, String message) {
         if (threshold.compareTo(Level.WARN) > 0) return;
         if (jobDashboardLoggerThreadLocal.get() != null) {
-            jobDashboardLoggerThreadLocal.get().warn(message);
+            jobDashboardLoggerThreadLocal.get().warn(formatMarker(marker) + message);
         }
     }
 
     private void logWarnToJobDashboard(String format, Object... args) {
+        logWarnToJobDashboard(null, format, args);
+    }
+
+    private void logWarnToJobDashboard(Marker marker, String format, Object... args) {
         if (threshold.compareTo(Level.WARN) > 0) return;
         if (jobDashboardLoggerThreadLocal.get() != null) {
             FormattingTuple tp = MessageFormatter.arrayFormat(format, args);
-            jobDashboardLoggerThreadLocal.get().warn(tp.getMessage());
+            jobDashboardLoggerThreadLocal.get().warn(formatMarker(marker) + tp.getMessage());
         }
     }
 
     private void logErrorToJobDashboard(String message) {
+        logErrorToJobDashboard(null, message);
+    }
+
+    private void logErrorToJobDashboard(Marker marker, String message) {
         if (jobDashboardLoggerThreadLocal.get() != null) {
-            jobDashboardLoggerThreadLocal.get().error(message);
+            jobDashboardLoggerThreadLocal.get().error(formatMarker(marker) + message);
         }
     }
 
     private void logErrorToJobDashboard(String format, Object... args) {
+        logErrorToJobDashboard(null, format, args);
+    }
+
+    private void logErrorToJobDashboard(Marker marker, String format, Object... args) {
         if (jobDashboardLoggerThreadLocal.get() != null) {
             FormattingTuple tp = MessageFormatter.arrayFormat(format, args);
-            jobDashboardLoggerThreadLocal.get().error(tp.getMessage());
+            jobDashboardLoggerThreadLocal.get().error(formatMarker(marker) + tp.getMessage());
         }
+    }
+
+    private String formatMarker(Marker marker) {
+        if (marker == null) return "";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append(marker.getName());
+        if (marker.hasReferences()) {
+            Iterator<Marker> iterator = marker.iterator();
+            sb.append(" (");
+            while (iterator.hasNext()) {
+                sb.append(iterator.next().getName());
+                if (iterator.hasNext()) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")");
+        }
+        sb.append("] ");
+        return sb.toString();
     }
 }
