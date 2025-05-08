@@ -34,13 +34,13 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 @ExtendWith(MockitoExtension.class)
-abstract class JobMapperTest {
+public abstract class JobMapperTest {
 
     private BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
 
     private TestService testService;
 
-    private JobMapper jobMapper;
+    protected JobMapper jobMapper;
 
     @BeforeEach
     void setUp() {
@@ -49,7 +49,7 @@ abstract class JobMapperTest {
     }
 
     protected abstract JsonMapper getJsonMapper();
-    
+
     @Test
     void testValidateJsonMapper() {
         assertThatCode(() -> JsonMapperValidator.validateJsonMapper(getJsonMapper()))

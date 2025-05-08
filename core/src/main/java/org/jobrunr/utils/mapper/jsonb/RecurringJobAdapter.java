@@ -18,6 +18,8 @@ import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeSerializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
 
+import java.time.Instant;
+
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 
 public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObject> {
@@ -67,7 +69,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 jsonObject.getString("scheduleExpression"),
                 jsonObject.getString("zoneId"),
                 CreatedBy.valueOf(createdBy),
-                jsonObject.getString("createdAt")
+                Instant.parse(jsonObject.getString("createdAt"))
         );
         recurringJob.setJobName(jsonObject.getString("jobName"));
         recurringJob.setLabels(jobLabelsAdapter.adaptFromJson(jsonObject.getJsonArray("labels")));

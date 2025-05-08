@@ -29,11 +29,11 @@ public class ScheduledState extends AbstractJobState {
     }
 
     protected ScheduledState(Instant scheduledAt, String reason, String recurringJobId) {
-        this(Instant.now(), scheduledAt, reason, recurringJobId);
+        this(scheduledAt, reason, recurringJobId, Instant.now());
     }
 
-    public ScheduledState(Instant createdAt, Instant scheduledAt, String reason, String recurringJobId) {
-        super(createdAt, StateName.SCHEDULED);
+    public ScheduledState(Instant scheduledAt, String reason, String recurringJobId, Instant createdAt) {
+        super(StateName.SCHEDULED, createdAt);
         this.scheduledAt = scheduledAt;
         this.reason = reason;
         this.recurringJobId = recurringJobId;

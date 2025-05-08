@@ -1,68 +1,78 @@
 package org.jobrunr.kotlin.serialization.utils
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.json.*
 
 object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
-	@OptIn(InternalSerializationApi::class)
-	override val descriptor = buildClassSerialDescriptor(ClassDiscriminatedContextualSerializer::class.qualifiedName!!) {
-		element("@class", String.serializer().descriptor)
-		element(
-			"value",
-			buildSerialDescriptor("AnyContextual", SerialKind.CONTEXTUAL)
-		)
-	}
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor = buildSerialDescriptor(Any::class.qualifiedName!!, SerialKind.CONTEXTUAL) {}
 
-	val anySerializer = AnySerializer<Any>()
+    override fun serialize(encoder: Encoder, value: Any) {
+        require(encoder is JsonEncoder)
 
-	override fun serialize(encoder: Encoder, value: Any) {
-		val serializer = encoder.serializersModule.serializer(value::class)
-		@Suppress("UNCHECKED_CAST")
-		fun <T : Any> serialize() = ((serializer ?: anySerializer) as KSerializer<T>)
-			.serialize(encoder, value as T)
-		
-		serialize<Any>()
-	}
+        val serializer = encoder.serializersModule.serializer(value::class) as KSerializer<Any>
+        when (val jsonElement = encoder.json.encodeToJsonElement(serializer, value)) {
+            is JsonObject -> {
+                val jsonMap = jsonElement.jsonObject.toMutableMap()
+                jsonMap["@class"] = JsonPrimitive(value::class.java.name)
+                encoder.encodeSerializableValue(JsonObject.serializer(), JsonObject(jsonMap))
+            }
 
-	override fun deserialize(decoder: Decoder): Any = decoder.decodeStructure(descriptor) {
-		lateinit var type: String
+            is JsonArray -> {
+                val jsonArray = mutableListOf<JsonElement>()
+                jsonArray.add(0, JsonPrimitive(value::class.java.name))
+                jsonArray.add(1, jsonElement)
+                encoder.encodeSerializableValue(JsonArray.serializer(), JsonArray(jsonArray))
+            }
 
-		while (true) {
-			when (val index = decodeElementIndex(descriptor)) {
-				CompositeDecoder.DECODE_DONE -> break
-				0 -> {
-					type = decodeStringElement(descriptor, 0)
-					
-					val serializer = decoder.serializersModule.serializer(Class.forName(type).kotlin)
-						?: anySerializer
-					
-					if (serializer is PolymorphicContinuationDeserializer) {
-						return@decodeStructure with (serializer) {
-							continueDecode()
-						}
-					}
-				}
-				else -> error("Unexpected index $index")
-			}
-		}
+            else -> {
+                encoder.encodeJsonElement(jsonElement)
+            }
+        }
+    }
 
-		error("Unexpected end of input for type $type")
-	}
+    override fun deserialize(decoder: Decoder): Any {
+        require(decoder is JsonDecoder)
 
-	interface PolymorphicContinuationSerializer<T> {
-		fun CompositeEncoder.continueEncode(value: T)
-	}
-	
-	interface PolymorphicContinuationDeserializer {
-		fun CompositeDecoder.continueDecode(): Any
-	}
+        val jsonElement = decoder.decodeJsonElement()
+
+        if (jsonElement is JsonObject && "@class" in jsonElement) {
+            val serializer = decoder.serializersModule.serializer(Class.forName(jsonElement["@class"]!!.jsonPrimitive.content).kotlin)
+            val elementToDecode = if ("value" in jsonElement) jsonElement["value"]!! else jsonElement
+
+            return decoder.json.decodeFromJsonElement(serializer as DeserializationStrategy<Any>, elementToDecode)
+        } else if (jsonElement is JsonArray) {
+            val serializer = decoder.serializersModule.serializer(Class.forName(jsonElement[0].jsonPrimitive.content).kotlin)
+
+            return decoder.json.decodeFromJsonElement(serializer as DeserializationStrategy<Any>, jsonElement[1])
+        } else if (jsonElement is JsonPrimitive) {
+            return when {
+                jsonElement.isString -> jsonElement.content
+                jsonElement.intOrNull != null -> jsonElement.int
+                jsonElement.longOrNull != null -> jsonElement.long
+                // why no float? double is the standard and float is almost never used
+                jsonElement.doubleOrNull != null -> jsonElement.double
+                jsonElement.booleanOrNull != null -> jsonElement.boolean
+                else -> error("Unexpected json element found")
+            }
+        }
+
+        error("Unexpected json element found")
+    }
+
+    interface PolymorphicContinuationSerializer<T> {
+        fun CompositeEncoder.continueEncode(value: T)
+    }
+
+    interface PolymorphicContinuationDeserializer {
+        fun CompositeDecoder.continueDecode(): Any
+    }
 }
