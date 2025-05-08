@@ -2,6 +2,8 @@ package org.jobrunr.jobs.states;
 
 import java.time.Instant;
 
+import static java.util.Optional.ofNullable;
+
 @SuppressWarnings({"FieldMayBeFinal", "CanBeFinal"}) // because of JSON-B
 public abstract class AbstractJobState implements JobState {
 
@@ -9,12 +11,12 @@ public abstract class AbstractJobState implements JobState {
     private Instant createdAt;
 
     protected AbstractJobState(StateName state) {
-        this(Instant.now(), state);
+        this(state, Instant.now());
     }
 
-    protected AbstractJobState(Instant createdAt, StateName state) {
-        this.createdAt = createdAt;
+    protected AbstractJobState(StateName state, Instant createdAt) {
         this.state = state;
+        this.createdAt = ofNullable(createdAt).orElse(Instant.now());
     }
 
     @Override

@@ -5,7 +5,10 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.utils.resilience.CachedValue;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
@@ -15,38 +18,54 @@ public class BackgroundJobServerMetricsBinder implements AutoCloseable {
     private final BackgroundJobServer backgroundJobServer;
     private final MeterRegistry meterRegistry;
     private final List<Meter> meters;
+    private final CachedValue<BackgroundJobServerStatus> backgroundJobServerStatusCachedValue;
 
     public BackgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
+        this(backgroundJobServer, meterRegistry, Duration.ofSeconds(1));
+    }
+
+    public BackgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry, Duration serverStatusTTL) {
         this.backgroundJobServer = backgroundJobServer;
         this.meterRegistry = meterRegistry;
         this.meters = new ArrayList<>();
+        this.backgroundJobServerStatusCachedValue = new CachedValue<>(backgroundJobServer::getServerStatus, serverStatusTTL);
         registerBackgroundJobServerMetrics();
     }
 
     public void registerBackgroundJobServerMetrics() {
-        meters.add(registerFunction("poll-interval-in-seconds", bgJobServer -> (double) bgJobServer.getServerStatus().getPollIntervalInSeconds()));
-        meters.add(registerFunction("worker-pool-size", bgJobServer -> (double) bgJobServer.getServerStatus().getWorkerPoolSize()));
+        meters.add(registerFunction("poll-interval-in-seconds", bgJobServerStatus -> (double) bgJobServerStatus.get().getPollIntervalInSeconds()));
+        meters.add(registerFunction("worker-pool-size", bgJobServerStatus -> (double) bgJobServerStatus.get().getWorkerPoolSize()));
 
-        meters.add(registerGauge("process-all-located-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getProcessAllocatedMemory()));
-        meters.add(registerGauge("process-free-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getProcessFreeMemory()));
-        meters.add(registerGauge("system-free-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getSystemFreeMemory()));
-        meters.add(registerGauge("system-total-memory", bgJobServer -> (double) bgJobServer.getServerStatus().getSystemTotalMemory()));
-        meters.add(registerGauge("first-heartbeat", bgJobServer -> (double) bgJobServer.getServerStatus().getFirstHeartbeat().getEpochSecond()));
-        meters.add(registerGauge("last-heartbeat", bgJobServer -> (double) bgJobServer.getServerStatus().getLastHeartbeat().getEpochSecond()));
-        meters.add(registerGauge("system-cpu-load", bgJobServer -> bgJobServer.getServerStatus().getSystemCpuLoad()));
-        meters.add(registerGauge("process-cpu-load", bgJobServer -> bgJobServer.getServerStatus().getProcessCpuLoad()));
+        meters.add(registerGauge("process-all-located-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getProcessAllocatedMemory()));
+        meters.add(registerGauge("process-free-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getProcessFreeMemory()));
+        meters.add(registerGauge("system-free-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getSystemFreeMemory()));
+        meters.add(registerGauge("system-total-memory", bgJobServerStatus -> (double) bgJobServerStatus.get().getSystemTotalMemory()));
+        meters.add(registerGauge("first-heartbeat", this::getFirstHeartbeatAsEpochSeconds));
+        meters.add(registerGauge("last-heartbeat", this::getLastHeartbeatAsEpochSeconds));
+        meters.add(registerGauge("system-cpu-load", bgJobServerStatus -> bgJobServerStatus.get().getSystemCpuLoad()));
+        meters.add(registerGauge("process-cpu-load", bgJobServerStatus -> bgJobServerStatus.get().getProcessCpuLoad()));
     }
 
-    private FunctionCounter registerFunction(String name, ToDoubleFunction<BackgroundJobServer> func) {
-        return FunctionCounter.builder(toMicroMeterName(name), this.backgroundJobServer, func).tag("id", this.backgroundJobServer.getId().toString()).register(meterRegistry);
+    private FunctionCounter registerFunction(String name, ToDoubleFunction<CachedValue<BackgroundJobServerStatus>> func) {
+        return FunctionCounter.builder(toMicroMeterName(name), this.backgroundJobServerStatusCachedValue, func).tag("id", this.backgroundJobServer.getId().toString()).register(meterRegistry);
     }
 
-    private Gauge registerGauge(String name, ToDoubleFunction<BackgroundJobServer> func) {
-        return Gauge.builder(toMicroMeterName(name), this.backgroundJobServer, func).tag("id", this.backgroundJobServer.getId().toString()).register(meterRegistry);
+    private Gauge registerGauge(String name, ToDoubleFunction<CachedValue<BackgroundJobServerStatus>> func) {
+        return Gauge.builder(toMicroMeterName(name), this.backgroundJobServerStatusCachedValue, func).tag("id", this.backgroundJobServer.getId().toString()).register(meterRegistry);
     }
 
     private String toMicroMeterName(String name) {
         return "jobrunr.background-job-server." + name;
+    }
+
+    private double getFirstHeartbeatAsEpochSeconds(CachedValue<BackgroundJobServerStatus> cache) {
+        BackgroundJobServerStatus status = cache.get();
+        return status.isRunning() ? status.getFirstHeartbeat().getEpochSecond() : -1;
+    }
+
+    private double getLastHeartbeatAsEpochSeconds(CachedValue<BackgroundJobServerStatus> cache) {
+        BackgroundJobServerStatus status = cache.get();
+        return status.isRunning() ? status.getLastHeartbeat().getEpochSecond() : -1;
     }
 
     @Override

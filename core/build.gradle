@@ -89,6 +89,7 @@ dependencies {
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
+    testFixturesApi 'io.micrometer:micrometer-core'
 }
 
 java {

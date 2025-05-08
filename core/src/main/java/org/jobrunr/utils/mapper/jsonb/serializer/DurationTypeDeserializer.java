@@ -5,6 +5,7 @@ import jakarta.json.JsonValue;
 import jakarta.json.bind.serializer.DeserializationContext;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.stream.JsonParser;
+import org.jobrunr.utils.DurationUtils;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -20,10 +21,7 @@ public class DurationTypeDeserializer implements JsonbDeserializer<Duration> {
                 return Duration.parse(jsonParser.getString());
             } else {
                 final BigDecimal durationAsSecAndNanoSec = jsonParser.getBigDecimal();
-                return Duration.ofSeconds(
-                        durationAsSecAndNanoSec.longValue(),
-                        durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(durationAsSecAndNanoSec.scale()).abs().longValue()
-                );
+                return DurationUtils.fromBigDecimal(durationAsSecAndNanoSec);
             }
         }
         return null;

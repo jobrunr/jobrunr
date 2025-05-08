@@ -180,6 +180,14 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    void testSerializeAndDeserializeSucceededJobWithJobParameterThatDoesNotExistAnymore() {
+        final String jobAsString = contentOfResource("/org/jobrunr/utils/mapper/succeeded-job-with-job-parameter-that-does-not-exist.json");
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isNotNull();
+    }
+
+    @Test
     void testSerializeAndDeserializeSucceededJob() {
         Job job = aSucceededJob().build();
 
@@ -280,7 +288,7 @@ public abstract class AbstractJsonMapperTest {
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/282")
     void testCanSerializeCollections() {
-        Long value = 1L;
+        Long value = Integer.MAX_VALUE + 2L;
         Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCollection(singleton(value))).build();
 
         String jobAsString = jsonMapper.serialize(job);

@@ -42,10 +42,15 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobTable extends Sql<Job> {
+
+    protected static final String INSERT_STATEMENT = "into jobrunr_jobs (id, version, jobAsJson, jobSignature, state, createdAt, updatedAt, scheduledAt, recurringJobId, deadline) " +
+            "values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId, :deadline)";
+    private static final String UPDATE_STATEMENT = "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt, deadline = :deadline WHERE id = :id and version = :previousVersion";
 
     private final JobMapper jobMapper;
     private final SqlJobPageRequestMapper pageRequestMapper;
@@ -210,11 +215,25 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertOneJob(Job jobToSave) throws SQLException {
-        insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId, :deadline)");
+        try {
+            insert(jobToSave, INSERT_STATEMENT);
+        } catch (SQLException e) {
+            if (dialect.isUniqueConstraintException(e)) {
+                throw concurrentDatabaseModificationException(jobToSave, 0);
+            }
+            throw e;
+        }
     }
 
     void updateOneJob(Job jobToSave) throws SQLException {
-        update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt, deadline = :deadline WHERE id = :id and version = :previousVersion");
+        try {
+            update(jobToSave, UPDATE_STATEMENT);
+        } catch (SQLException e) {
+            if (dialect.isUniqueConstraintException(e)) {
+                throw concurrentDatabaseModificationException(jobToSave, 0);
+            }
+            throw e;
+        }
     }
 
     void insertAllJobs(List<Job> jobs) throws SQLException {
