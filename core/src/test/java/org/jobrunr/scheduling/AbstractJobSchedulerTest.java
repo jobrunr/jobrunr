@@ -36,7 +36,7 @@ class AbstractJobSchedulerTest {
 
             assertThatCode(() -> jobScheduler.schedule(null, HijrahDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("JobRunr does not support Temporal type: java.time.chrono.HijrahDate. Supported types are Instant, LocalDateTime, OffsetDateTime and ZonedDateTime.");
+                    .hasMessage("JobRunr does not support Temporal type: java.time.chrono.HijrahDate. Supported types are Instant, ChronoLocalDateTime (e.g., LocalDateTime), ChronoZonedDateTime (e.g., ZonedDateTime) and OffsetDateTime.");
 
             mockedInstantUtils.verify(() -> InstantUtils.toInstant(ArgumentMatchers.any()), Mockito.times(2));
         }

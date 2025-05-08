@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.UUID;
@@ -127,7 +129,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
                 .map(Job::new)
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
-    
+
     /**
      * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
@@ -135,9 +137,9 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * <h5>Supported Temporal Types:</h5>
      * <ul>
      *     <li>{@link Instant}</li>
-     *     <li>{@link LocalDateTime}: converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
-     *     <li>{@link ZonedDateTime}</li>
      * </ul>
      *
      * <h5>An Example with Instant:</h5>
@@ -161,9 +163,9 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * <h5>Supported Temporal Types:</h5>
      * <ul>
      *     <li>{@link Instant}</li>
-     *     <li>{@link LocalDateTime}: converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
-     *     <li>{@link ZonedDateTime}</li>
      * </ul>
      *
      * <h5>An Example with Instant:</h5>
