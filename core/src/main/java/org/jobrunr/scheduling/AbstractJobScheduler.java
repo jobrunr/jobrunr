@@ -17,11 +17,13 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
+import static org.jobrunr.utils.InstantUtils.toInstant;
 
 public abstract class AbstractJobScheduler {
 
@@ -119,8 +121,9 @@ public abstract class AbstractJobScheduler {
         return saveJob(new Job(id, jobDetails));
     }
 
-    JobId schedule(UUID id, Instant scheduleAt, JobDetails jobDetails) {
-        return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
+    JobId schedule(UUID id, Temporal scheduleAt, JobDetails jobDetails) {
+        Instant scheduleInstant = toInstant(scheduleAt);
+        return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleInstant)));
     }
 
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
