@@ -37,7 +37,7 @@ public class CarbonAwareJobManager {
     }
 
     public void updateCarbonIntensityForecastIfNecessary() {
-        if (carbonAwareConfiguration.isEnabled() && isInstantBeforeOrEqualTo(nextRefreshTime, Instant.now())) {
+        if (isInstantBeforeOrEqualTo(nextRefreshTime, Instant.now())) {
             LOGGER.trace("Updating carbon intensity forecast.");
             updateCarbonIntensityForecast();
             updateNextRefreshTime();
@@ -45,12 +45,13 @@ public class CarbonAwareJobManager {
         }
     }
 
+    public boolean isEnabled() {
+        return carbonAwareConfiguration.isEnabled();
+    }
+
     public Instant getAvailableForecastEndTime() {
-        if (carbonAwareConfiguration.isEnabled()) {
-            Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
-            return (forecastEndPeriod != null && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
-        }
-        return Instant.now().plus(365, DAYS);
+        Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
+        return (forecastEndPeriod != null && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
     }
 
     public void moveToNextState(Job job) {
@@ -59,23 +60,17 @@ public class CarbonAwareJobManager {
         }
 
         CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
-        if (carbonAwareConfiguration.isEnabled()) {
-            LOGGER.trace("Determining the best moment to schedule Job(id={}, jobName='{}') to minimize carbon impact", job.getId(), job.getJobName());
+        LOGGER.trace("Determining the best moment to schedule Job(id={}, jobName='{}') to minimize carbon impact", job.getId(), job.getJobName());
 
-            if (isDeadlinePassed(carbonAwareAwaitingState)) {
-                scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
-            } else if (hasTooSmallScheduleMargin(carbonAwareAwaitingState)) {
-                Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
-                scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job does not have enough margin (" + carbonAwareMarginDuration + ") to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
-            } else if (carbonIntensityForecast.hasNoForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
-                scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, getReasonForMissingForecast(carbonAwareAwaitingState));
-            } else {
-                scheduleJobAtOptimalTime(job, carbonAwareAwaitingState);
-            }
+        if (isDeadlinePassed(carbonAwareAwaitingState)) {
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
+        } else if (hasTooSmallScheduleMargin(carbonAwareAwaitingState)) {
+            Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Job does not have enough margin (" + carbonAwareMarginDuration + ") to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
+        } else if (carbonIntensityForecast.hasNoForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
+            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, getReasonForMissingForecast(carbonAwareAwaitingState));
         } else {
-            LOGGER.trace("Carbon aware scheduling is not enabled. Job(id={}, jobName='{}') will be scheduled at pre-defined preferred instant.", job.getId(), job.getJobName());
-
-            scheduleJobAtPreferredInstant(job, carbonAwareAwaitingState, "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
+            scheduleJobAtOptimalTime(job, carbonAwareAwaitingState);
         }
     }
 
