@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @AutoConfigureBefore(JobRunrAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "mem")
+@ConditionalOnProperty(prefix = "jobrunr.database", name = "type", havingValue = "mem")
 public class JobRunrInMemoryStorageAutoConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrInMemoryStorageAutoConfiguration.class);
 
