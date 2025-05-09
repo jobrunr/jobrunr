@@ -41,6 +41,16 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     }
 
     @Test
+    void canNavigateToAwaitingJobs() {
+        assertThat(awaitingMenuBtn()).containsText("0");
+        awaitingMenuBtn().click();
+        assertThat(title("Pending jobs")).isVisible();
+
+        assertThat(noJobsFoundMessage()).isVisible();
+        assertThat(jobTable()).not().isVisible();
+    }
+
+    @Test
     void canNavigateToScheduledJobs() {
         assertThat(scheduledMenuBtn()).containsText("1");
         scheduledMenuBtn().click();

@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
@@ -45,9 +46,14 @@ class JobRunrBackgroundJobServerProducerTest {
     JobRunrRuntimeConfiguration.DashboardConfiguration dashboardRunTimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration.MiscellaneousConfiguration miscellaneousRunTimeConfiguration;
+    @Mock
+    JobRunrRuntimeConfiguration.CarbonAwareConfiguration carbonAwareRunTimeConfiguration;
 
     @Mock
     StorageProvider storageProvider;
+
+    @Mock
+    CarbonAwareJobManager carbonAwareJobManager;
 
     @Mock
     JsonMapper jsonMapper;
@@ -62,6 +68,7 @@ class JobRunrBackgroundJobServerProducerTest {
         lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
 
         jobRunrBackgroundJobServerProducer = new JobRunrBackgroundJobServerProducer();
         setInternalState(jobRunrBackgroundJobServerProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
@@ -116,13 +123,13 @@ class JobRunrBackgroundJobServerProducerTest {
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
         when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
 
-        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
+        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
         when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
 
-        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
+        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
     }
 }

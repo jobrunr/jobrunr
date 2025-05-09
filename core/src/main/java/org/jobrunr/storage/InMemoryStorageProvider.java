@@ -5,6 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -22,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
@@ -31,6 +33,7 @@ import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -161,6 +164,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state, amountRequest)
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return getJobsStream(AWAITING, amountRequest)
+                .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState && ((CarbonAwareAwaitingState) job.getJobState()).getTo().isBefore(deadlineBefore))
                 .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
                 .limit(amountRequest.getLimit())
                 .map(this::deepClone)
@@ -300,6 +313,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         return new JobStats(
                 Instant.now(),
                 (long) jobQueue.size(),
+                getJobsStream(AWAITING).count(),
                 getJobsStream(SCHEDULED).count(),
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),

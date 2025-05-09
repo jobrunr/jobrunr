@@ -4,6 +4,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
@@ -49,7 +50,7 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithIoCJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .<TestService>withDetails(x -> x.doWork())
+                .<TestService>withDetails(TestService::doWork)
                 .withCron(every5Seconds)
                 .build(jobDetailsGenerator);
 
@@ -171,6 +172,18 @@ class RecurringJobBuilderTest {
     }
 
     @Test
+    void testWithScheduleExpression() {
+        RecurringJob recurringJob = aRecurringJob()
+                .withScheduleExpression(CarbonAware.dailyBefore(7))
+                .withDetails(() -> testService.doWork())
+                .build(jobDetailsGenerator);
+
+        assertThat(recurringJob)
+                .hasId()
+                .hasScheduleExpression("0 0 * * * [PT0S/PT7H]");
+    }
+
+    @Test
     void testWithZoneId() {
         RecurringJob recurringJob = aRecurringJob()
                 .withZoneId(ZoneId.of("Europe/Brussels"))
@@ -248,6 +261,14 @@ class RecurringJobBuilderTest {
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
+                        .withDuration(Duration.ofMinutes(1))
+                        .withCron(every5Seconds)
+                        .withJobRequest(jobRequest)
+                        .build());
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> aRecurringJob()
+                        .withScheduleExpression(CarbonAware.dailyBefore(10))
                         .withDuration(Duration.ofMinutes(1))
                         .withCron(every5Seconds)
                         .withJobRequest(jobRequest)

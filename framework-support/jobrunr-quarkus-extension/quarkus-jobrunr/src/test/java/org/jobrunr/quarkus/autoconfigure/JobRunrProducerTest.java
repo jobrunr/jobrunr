@@ -1,31 +1,47 @@
 package org.jobrunr.quarkus.autoconfigure;
 
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
+import java.util.Optional;
+
+import static org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrProducerTest {
 
     JobRunrProducer jobRunrProducer;
-
+    @Mock
+    JobRunrRuntimeConfiguration.JobsConfiguration jobsRunTimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration.JobSchedulerConfiguration jobSchedulerRunTimeConfiguration;
     @Mock
     StorageProvider storageProvider;
+    @Mock
+    JobRunrRuntimeConfiguration.CarbonAwareConfiguration carbonAwareRunTimeConfiguration;
+    @Mock
+    JsonMapper jsonMapper;
 
     @BeforeEach
     void setUp() {
-        when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
 
         jobRunrProducer = new JobRunrProducer();
         setInternalState(jobRunrProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
@@ -58,4 +74,21 @@ class JobRunrProducerTest {
 
         assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
     }
+
+    @Test
+    void carbonAwareJobManagerIsSetupWhenConfigured() {
+        when(carbonAwareRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
+        when(carbonAwareRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
+        when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
+
+        CarbonAwareJobManager carbonAwareJobManager = jobRunrProducer.carbonAwareJobManager(jsonMapper);
+        CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
+
+        assertThat(carbonAwareConfiguration).
+                hasAreaCode("DE")
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(1000));
+    }
+
+
 }

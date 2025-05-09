@@ -15,7 +15,8 @@ public class Interval extends Schedule {
     }
 
     public Interval(String durationExpression) {
-        this.duration = Duration.parse(durationExpression);
+        super(durationExpression);
+        this.duration = Duration.parse(getExpression());
     }
 
     @Override

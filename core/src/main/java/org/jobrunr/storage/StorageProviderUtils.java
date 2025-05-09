@@ -51,6 +51,7 @@ public class StorageProviderUtils {
         public static final String FIELD_UPDATED_AT = "updatedAt";
         public static final String FIELD_SCHEDULED_AT = "scheduledAt";
         public static final String FIELD_RECURRING_JOB_ID = "recurringJobId";
+        public static final String FIELD_DEADLINE = "deadline";
     }
 
     public static class RecurringJobs {
@@ -96,6 +97,7 @@ public class StorageProviderUtils {
         public static final String NAME = "jobs_stats";
 
         public static final String FIELD_TOTAL = "total";
+        public static final String FIELD_AWAITING = "awaiting";
         public static final String FIELD_SCHEDULED = "scheduled";
         public static final String FIELD_ENQUEUED = "enqueued";
         public static final String FIELD_PROCESSING = "processing";

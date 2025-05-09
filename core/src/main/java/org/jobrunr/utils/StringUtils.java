@@ -53,6 +53,21 @@ public class StringUtils {
     }
 
     /**
+     * Returns the last matched String between the given open and close String.
+     *
+     * @param s     the String containing the substring, may be null
+     * @param open  the String before the substring, may not be null
+     * @param close the String after the substring, may not be null
+     * @return Returns the last matched String between the given open and close String when possible or null.
+     */
+    public static String lastMatchedSubstringBetween(String s, String open, String close) {
+        if (s.contains(open) && s.contains(close)) {
+            return substringBefore(substringAfterLast(s, open), close);
+        }
+        return null;
+    }
+
+    /**
      * Returns the String between the given open and close String. If the closing String is not present, it will return everything after the opening String.
      *
      * @param s     the String containing the substring, may be null
