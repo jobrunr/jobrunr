@@ -1,6 +1,5 @@
-package io.instrument;
+package io.micrometer.core.instrument;
 
-import io.micrometer.core.instrument.Meter;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 

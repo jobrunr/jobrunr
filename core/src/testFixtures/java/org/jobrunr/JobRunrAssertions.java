@@ -3,8 +3,8 @@ package org.jobrunr;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.instrument.MeterAssert;
 import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.MeterAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
@@ -93,9 +93,9 @@ public class JobRunrAssertions extends Assertions {
 
     public static String contentOfResource(String resourceName) {
         try (InputStream inputStream = JobRunrAssertions.class.getResourceAsStream(resourceName)) {
-			assert inputStream != null;
+            assert inputStream != null;
 
-			return new String(inputStream.readAllBytes());
+            return new String(inputStream.readAllBytes());
         } catch (Exception e) {
             throw new AssertionError(e);
         }
