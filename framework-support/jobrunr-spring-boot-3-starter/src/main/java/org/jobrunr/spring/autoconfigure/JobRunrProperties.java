@@ -12,7 +12,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
-@ConfigurationProperties(prefix = "org.jobrunr")
+@ConfigurationProperties(prefix = "jobrunr")
 public class JobRunrProperties {
 
     private Database database = new Database();

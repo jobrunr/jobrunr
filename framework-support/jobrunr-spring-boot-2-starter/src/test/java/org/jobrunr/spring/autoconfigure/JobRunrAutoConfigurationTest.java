@@ -84,7 +84,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void jobSchedulerEnabledAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.job-scheduler.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+        this.contextRunner.withPropertyValues("jobrunr.job-scheduler.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobScheduler.class);
             assertThat(context).hasSingleBean(JobRequestScheduler.class);
             assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
@@ -94,7 +94,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void jobSchedulerDisabledAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.job-scheduler.enabled=false").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+        this.contextRunner.withPropertyValues("jobrunr.job-scheduler.enabled=false").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).doesNotHaveBean(JobScheduler.class);
             assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
             assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
@@ -103,7 +103,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void dashboardAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.dashboard.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+        this.contextRunner.withPropertyValues("jobrunr.dashboard.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
             assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
         });
@@ -113,8 +113,8 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void dashboardAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageDefaultTrue() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.dashboard.enabled=true")
-                .withPropertyValues("org.jobrunr.miscellaneous.allow-anonymous-data-usage=true")
+                .withPropertyValues("jobrunr.dashboard.enabled=true")
+                .withPropertyValues("jobrunr.miscellaneous.allow-anonymous-data-usage=true")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
                     assertThat(context.getBean(JobRunrDashboardWebServer.class))
@@ -125,8 +125,8 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void dashboardAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageFalse() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.dashboard.enabled=true")
-                .withPropertyValues("org.jobrunr.miscellaneous.allow-anonymous-data-usage=false")
+                .withPropertyValues("jobrunr.dashboard.enabled=true")
+                .withPropertyValues("jobrunr.miscellaneous.allow-anonymous-data-usage=false")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
                     assertThat(context.getBean(JobRunrDashboardWebServer.class))
@@ -156,7 +156,7 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfiguration() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
@@ -166,8 +166,8 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.name=test")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.name=test")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServer.class))
@@ -178,9 +178,9 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoThreadTypeAndWorkerCount() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.worker-count=4")
-                .withPropertyValues("org.jobrunr.background-job-server.thread-type=PlatformThreads")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.worker-count=4")
+                .withPropertyValues("jobrunr.background-job-server.thread-type=PlatformThreads")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
@@ -191,9 +191,9 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesPollIntervalInSecondsAndServerTimeoutPollIntervalMultiplicand() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.poll-interval-in-seconds=5")
-                .withPropertyValues("org.jobrunr.background-job-server.server-timeout-poll-interval-multiplicand=10")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.poll-interval-in-seconds=5")
+                .withPropertyValues("jobrunr.background-job-server.server-timeout-poll-interval-multiplicand=10")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
@@ -205,8 +205,8 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.jobs.default-number-of-retries=3")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.jobs.default-number-of-retries=3")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServer.class))
@@ -217,10 +217,10 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountAllJobsRequestSizes() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.scheduled-jobs-request-size=1")
-                .withPropertyValues("org.jobrunr.background-job-server.orphaned-jobs-request-size=2")
-                .withPropertyValues("org.jobrunr.background-job-server.succeeded-jobs-request-size=3")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.scheduled-jobs-request-size=1")
+                .withPropertyValues("jobrunr.background-job-server.orphaned-jobs-request-size=2")
+                .withPropertyValues("jobrunr.background-job-server.succeeded-jobs-request-size=3")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasScheduledJobRequestSize(1)
@@ -232,8 +232,8 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.interrupt_jobs_await_duration_on_stop=20")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
@@ -243,7 +243,7 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountCustomBackgroundJobServerWorkerPolicy() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withUserConfiguration(BackgroundJobServerConfigurationWithCustomWorkerPolicy.class, InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class);
@@ -260,7 +260,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void sqlStorageProviderAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.database.skip-create=true").withUserConfiguration(SqlDataSourceConfiguration.class).run((context) -> {
+        this.contextRunner.withPropertyValues("jobrunr.database.skip-create=true").withUserConfiguration(SqlDataSourceConfiguration.class).run((context) -> {
             assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
             assertThat(context.getBean("storageProvider")).extracting("jobMapper").isNotNull();
             assertThat(context).hasSingleBean(JobScheduler.class);
@@ -280,8 +280,8 @@ public class JobRunrAutoConfigurationTest {
     void jobRunrDoesNotFailIfMultipleDatabasesAvailableAndValueConfigured() {
         this.contextRunner
                 .withPropertyValues(
-                        "org.jobrunr.database.skip-create=true",
-                        "org.jobrunr.database.type=sql"
+                        "jobrunr.database.skip-create=true",
+                        "jobrunr.database.type=sql"
                 )
                 .withUserConfiguration(SqlDataSourceConfiguration.class, MongoDBStorageProviderConfiguration.class).run((context) -> {
                     assertThat(context).hasSingleBean(DefaultSqlStorageProvider.class);
@@ -292,7 +292,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void jobRunrHealthIndicatorAutoConfiguration() {
-        this.contextRunner.withPropertyValues("org.jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+        this.contextRunner.withPropertyValues("jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
             assertThat(context).hasSingleBean(JobRunrHealthIndicator.class);
             assertThat(context.getBean(JobRunrHealthIndicator.class).health().getStatus()).isEqualTo(Status.UP);
         });
@@ -302,7 +302,7 @@ public class JobRunrAutoConfigurationTest {
     void jobRunrHealthIndicatorAutoConfigurationHealthIndicatorDisabled() {
         this.contextRunner
                 .withPropertyValues(
-                        "org.jobrunr.background-job-server.enabled=true",
+                        "jobrunr.background-job-server.enabled=true",
                         "management.health.jobrunr.enabled=false"
                 )
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
