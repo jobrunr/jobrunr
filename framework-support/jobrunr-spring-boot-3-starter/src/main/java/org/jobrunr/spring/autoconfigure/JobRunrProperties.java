@@ -9,7 +9,7 @@ import org.springframework.boot.convert.DurationUnit;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-@ConfigurationProperties(prefix = "org.jobrunr")
+@ConfigurationProperties(prefix = "jobrunr")
 public class JobRunrProperties {
 
     private Database database = new Database();
