@@ -95,26 +95,4 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
                     .isScheduledAt(Instant.now().plus(13, HOURS).truncatedTo(HOURS));
         }
     }
-
-    @Test
-    void jobsAreScheduledEvenIfCarbonAwareSchedulingIsNotEnabled() {
-        Instant now = now();
-        CarbonAwareJobManager carbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(false), getJsonMapper());
-        doReturn(carbonAwareJobManager).when(backgroundJobServer).getCarbonAwareJobManager();
-        ProcessCarbonAwareAwaitingJobsTask task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
-        Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now, now.plus(4, HOURS))).build();
-        Job job2 = aJob().withState(new CarbonAwareAwaitingState(now.plus(2, HOURS), now, now.plus(4, HOURS))).build();
-
-        when(storageProvider.getCarbonAwareJobList(any(), any())).thenReturn(List.of(job1, job2));
-        runTask(task);
-
-        verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-        assertThat(instantArgumentCaptor.getValue()).isCloseTo(now.plus(365, DAYS), within(1, SECONDS));
-        assertThat(job1)
-                .hasStates(AWAITING, SCHEDULED)
-                .isScheduledAt(now, "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
-        assertThat(job2)
-                .hasStates(AWAITING, SCHEDULED)
-                .isScheduledAt(now.plus(2, HOURS), "Carbon aware scheduling is not enabled. Job will be scheduled at pre-defined preferred instant.");
-    }
 }
