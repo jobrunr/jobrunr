@@ -3,6 +3,9 @@ kind: pipeline
 type: docker
 name: default
 
+workspace:
+  path: /drone/jobrunr/src
+
 trigger:
   branch:
     - master
@@ -33,6 +36,9 @@ steps:
 kind: pipeline
 type: docker
 name: sonar
+
+workspace:
+  path: /drone/jobrunr/src
 
 trigger:
   event:
@@ -72,6 +78,9 @@ steps:
 kind: pipeline
 type: docker
 name: release
+
+workspace:
+  path: /drone/jobrunr/src
 
 trigger:
   event:
