@@ -46,9 +46,6 @@ steps:
     image: plugins/docker
     commands:
       - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4 .
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
 
   - name: build
     image: jobrunr.io/build-container:1.4
@@ -61,23 +58,6 @@ steps:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
-      - name: gradle-cache
-        path: /root/.gradle
-      - name: gradle-project-cache
-        path: /drone/src/.gradle
-      - name: frontend-node-modules-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
-      - name: frontend-build-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
-      - name: maven-local
-        path: /root/.m2
-      - name: reports
-        path: /tmp/reports
-      - name: playwright
-        path: /root/.cache/ms-playwright
 
 #  - name: slack
 #    image: plugins/slack
@@ -87,33 +67,6 @@ steps:
 #      channel: drone
 #    when:
 #      status: [ success, failure ]
-
-volumes:
-  - name: dockersock
-    host:
-      path: /var/run/docker.sock
-  - name: maven-local
-    host:
-      path: /drone-work-dir/m2/cache
-  - name: gradle-cache
-    host:
-      path: /drone-work-dir/gradle/cache
-  - name: gradle-project-cache
-    host:
-      path: /drone-work-dir/jobrunr/cache/gradle-project
-  - name: frontend-node-modules-cache
-    host:
-      path: /drone-work-dir/jobrunr/cache/frontend-node-modules
-  - name: frontend-build-cache
-    host:
-      path: /drone-work-dir/jobrunr/cache/frontend-build
-  - name: reports
-    host:
-      path: /drone-work-dir/jobrunr/reports
-  - name: playwright
-    host:
-      path: /drone-work-dir/playwright/cache
-
 
 ---
 kind: pipeline
@@ -142,23 +95,6 @@ steps:
         from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
       ORG_GRADLE_PROJECT_sonatypePassword:
         from_secret: ORG_GRADLE_PROJECT_sonatypePassword
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
-      - name: gradle-cache
-        path: /root/.gradle
-      - name: gradle-project-cache
-        path: /drone/src/.gradle
-      - name: frontend-node-modules-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/node_modules
-      - name: frontend-build-cache
-        path: /drone/src/core/src/main/resources/org/jobrunr/dashboard/frontend/build
-      - name: maven-local
-        path: /root/.m2
-      - name: reports
-        path: /tmp/reports
-      - name: playwright
-        path: /root/.cache/ms-playwright
   
   #  - name: upload-to-github
   #    image: plugins/github-release
@@ -192,30 +128,3 @@ steps:
 #      channel: drone
 #    when:
 #      status: [ success, failure ]
-
-volumes:
-  - name: dockersock
-    host:
-      path: /var/run/docker.sock
-  - name: maven-local
-    host:
-      path: /drone-work-dir/m2/cache
-  - name: gradle-cache
-    host:
-      path: /drone-work-dir/gradle/cache
-  - name: gradle-project-cache
-    host:
-      path: /drone-work-dir/jobrunr/cache/gradle-project
-  - name: frontend-node-modules-cache
-    host:
-      path: /drone-work-dir/jobrunr/cache/frontend-node-modules
-  - name: frontend-build-cache
-    host:
-      path: /drone-work-dir/jobrunr/cache/frontend-build
-  - name: reports
-    host:
-      path: /drone-work-dir/jobrunr/reports
-  - name: playwright
-    host:
-      path: /drone-work-dir/playwright/cache
-
