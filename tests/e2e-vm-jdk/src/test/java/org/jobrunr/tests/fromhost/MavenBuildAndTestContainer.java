@@ -26,8 +26,6 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
                 ));
         if (exists(Paths.get("/drone"))) {
             LOGGER.info("Running inside CI / Drone Build Container");
-            this
-                    .withFileSystemBind("/volume2/docker/jobrunr-services/drone-work-dir/m2/cache", "/root/.m2", BindMode.READ_WRITE);
         } else {
             LOGGER.info("Running on developer machine");
             this
@@ -36,6 +34,7 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
 
         this
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
+                //.withCommand("sleep", "5m")
                 .withCommand("./mvnw", "clean", "install")
                 .waitingFor(Wait.forLogMessage(".*BUILD SUCCESS.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*|.*BUILD FAILURE.*", 1));
     }
