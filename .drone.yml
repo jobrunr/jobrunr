@@ -28,7 +28,7 @@ steps:
     commands:
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
-      - find /drone/src/.gradle -name "*.lock" -type f -delete
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - ./gradlew -Djib.console=plain --no-daemon -i clean build test --fail-fast
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
 
@@ -58,7 +58,7 @@ steps:
     commands:
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
-      - find /drone/src/.gradle -name "*.lock" -type f -delete
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - ./gradlew --continue -Djib.console=plain --no-daemon -i clean build jacocoTestReport sonar
     environment:
       SONAR_TOKEN:
