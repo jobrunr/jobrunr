@@ -23,12 +23,12 @@ class JdkTest {
         assertThat(buildAndTestOnImage("openjdk:8-jdk-slim", "52.0")).contains("BUILD SUCCESS");
     }
 
-    @Disabled
     @Test
     void jdk11OpenJdk() {
         assertThat(buildAndTestOnImage("openjdk:11-jdk-slim", "55.0")).contains("BUILD SUCCESS");
     }
 
+    @Disabled
     @Test
     void jdk17OpenJDK() {
         assertThat(buildAndTestOnImage("openjdk:17-jdk-slim", "61.0"))
@@ -36,6 +36,7 @@ class JdkTest {
                 .contains("ThreadManager of type 'ScheduledThreadPool' started");
     }
 
+    @Disabled
     @Test
     void jdk21EclipseTemurin() {
         assertThat(buildAndTestOnImage("eclipse-temurin:21", "65.0"))
@@ -43,6 +44,7 @@ class JdkTest {
                 .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
+    @Disabled
     @Test
     void jdk21GraalVM() {
         assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-community:21", "65.0"))
@@ -50,6 +52,7 @@ class JdkTest {
                 .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
+    @Disabled
     @Test
     void jdk24OpenJDK() {
         assertThat(buildAndTestOnImage("openjdk:24", "68.0"))

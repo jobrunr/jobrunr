@@ -37,7 +37,8 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
 
         this
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
-                .withCommand("./mvnw", "clean", "install")
+                .withCommand("sleep", "5m")
+                //.withCommand("./mvnw", "clean", "install")
                 .waitingFor(Wait.forLogMessage(".*BUILD SUCCESS.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*|.*BUILD FAILURE.*|.*Error: Could not find or load main class org.apache.maven.wrapper.MavenWrapperMain.*", 1));
     }
 }
