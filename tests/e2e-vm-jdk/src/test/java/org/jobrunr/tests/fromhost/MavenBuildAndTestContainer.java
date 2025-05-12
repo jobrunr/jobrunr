@@ -11,8 +11,6 @@ import org.testcontainers.utility.MountableFile;
 import java.nio.file.Paths;
 
 import static java.nio.file.Files.exists;
-import static java.util.Arrays.stream;
-import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
 public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTestContainer> {
 
@@ -28,15 +26,9 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
                 ));
 
         if (exists(Paths.get("/drone"))) {
-            LOGGER.info("Running inside CI / Drone Build Container");
-            String droneRunnerVolumes = System.getenv("DRONE_RUNNER_VOLUMES");
-            if (isNotNullOrEmpty(droneRunnerVolumes)) {
-                stream(droneRunnerVolumes.split(","))
-                        .filter(x -> x.contains("m2/cache"))
-                        .findFirst()
-                        .map(x -> x.split(":"))
-                        .ifPresent(volumeMapping -> this.withFileSystemBind(volumeMapping[0], volumeMapping[1], BindMode.READ_WRITE));
-            }
+            LOGGER.info("Running inside CI / Drone Build Container (DRONE_WORK_DIR={})", System.getenv("DRONE_WORK_DIR"));
+            this
+                    .withFileSystemBind(System.getenv("DRONE_WORK_DIR") + "/m2/cache", "/root/.m2", BindMode.READ_WRITE);
         } else {
             LOGGER.info("Running on developer machine");
             this
