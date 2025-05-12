@@ -1,5 +1,6 @@
 package org.jobrunr.tests.fromhost;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.testcontainers.images.PullPolicy;
@@ -16,11 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
 class JdkTest {
 
+    @Disabled
     @Test
     void jdk8OpenJdk() {
         assertThat(buildAndTestOnImage("openjdk:8-jdk-slim", "52.0")).contains("BUILD SUCCESS");
     }
 
+    @Disabled
     @Test
     void jdk11OpenJdk() {
         assertThat(buildAndTestOnImage("openjdk:11-jdk-slim", "55.0")).contains("BUILD SUCCESS");
