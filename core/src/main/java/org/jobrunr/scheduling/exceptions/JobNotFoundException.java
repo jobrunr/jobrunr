@@ -2,7 +2,7 @@ package org.jobrunr.scheduling.exceptions;
 
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 
 import java.util.stream.Stream;
 
@@ -31,8 +31,8 @@ public class JobNotFoundException extends RuntimeException {
     }
 
     private static String toJobParameterClassName(JobParameter jobParameter) {
-        if(jobParameter.getObject() instanceof JobParameterNotDeserializableException) {
-            return ((JobParameterNotDeserializableException)jobParameter.getObject()).getClassName();
+        if (jobParameter.getObject() instanceof JobParameterNotDeserializableException) {
+            return ((JobParameterNotDeserializableException) jobParameter.getObject()).getClassName();
         }
         return jobParameter.getClassName();
     }

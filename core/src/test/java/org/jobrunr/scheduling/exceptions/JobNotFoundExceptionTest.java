@@ -1,11 +1,14 @@
 package org.jobrunr.scheduling.exceptions;
 
-import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.*;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 
 class JobNotFoundExceptionTest {
 
