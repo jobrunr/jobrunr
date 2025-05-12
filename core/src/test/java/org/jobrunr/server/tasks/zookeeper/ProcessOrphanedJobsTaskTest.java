@@ -2,6 +2,7 @@ package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
+import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,9 +47,14 @@ class ProcessOrphanedJobsTaskTest extends AbstractTaskTest {
         runTask(task);
 
         verify(storageProvider).save(jobsToSaveArgumentCaptor.capture());
-        assertThat(jobsToSaveArgumentCaptor.getValue().get(0)).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
+        var job = jobsToSaveArgumentCaptor.getValue().get(0);
+        assertThat(job).hasStates(ENQUEUED, PROCESSING, FAILED, SCHEDULED);
         assertThat(logAllStateChangesFilter.getStateChanges(orphanedJob)).containsExactly("PROCESSING->FAILED", "FAILED->SCHEDULED");
         assertThat(logAllStateChangesFilter.onProcessingFailedIsCalled(orphanedJob)).isTrue();
+
+        var failedState = job.getLastJobStateOfType(FailedState.class).orElseThrow();
+        assertThat(failedState.getStackTrace()).isNotEmpty();
+        assertThat(failedState.getStackTrace()).isEqualTo("org.jobrunr.jobs.exceptions.IllegalJobThreadStateException: Job was too long in PROCESSING state without being updated.\n");
     }
 
 }

@@ -80,9 +80,9 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void taskDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+    void taskDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessing() {
         Instant now = now();
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
@@ -99,7 +99,6 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
                     .allMatch(job -> job.hasState(SCHEDULED))
                     .allMatch(job -> recurringJob.getId().equals(job.getRecurringJobId().orElse(null)));
         }
-
 
         // SECOND RUN - the 1 job scheduled in the first run is still active.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
@@ -139,7 +138,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void ifJobIsScheduledAheadOfTimeTaskDoesNotCheckIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+    void ifJobIsScheduledAheadOfTimeTaskDoesNotCheckIfItIsAlreadyScheduledEnqueuedOrProcessing() {
         RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT24H").build();
 
         Instant lastScheduledAt = now().plus(10, HOURS);
@@ -156,19 +155,45 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
     @Test
     void taskSkipsAlreadyScheduledRecurringJobsOnStartup() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
+        Instant now = now();
+        RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT1H").build();
 
-        Instant lastScheduledAt = now().plus(pollInterval());
+        Instant lastScheduledAt = now().plusSeconds(6);
         when(storageProvider.getRecurringJobsLatestScheduledRun()).thenReturn(Map.of(recurringJob.getId(), lastScheduledAt));
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
-
         ProcessRecurringJobsTask task = new ProcessRecurringJobsTask(backgroundJobServer);
 
-        runTask(task);
+        // FIRST RUN - 1 job is already scheduled
+        try (MockedStatic<Instant> ignored = mockTime(now)) {
+            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
-        verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
-        verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+            runTask(task);
+
+            verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+        }
+
+        // SECOND RUN - the job is still scheduled but will be moved to enqueued.
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
+            clearInvocations(storageProvider);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+
+            runTask(task);
+
+            verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+            verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+            assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range");
+        }
+
+        // THIRD RUN - the 1 scheduled job is no longer active
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
+            clearInvocations(storageProvider);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+
+            runTask(task);
+
+            verify(storageProvider, times(1)).save(jobsToSaveArgumentCaptor.capture());
+        }
     }
 
     @Test
@@ -200,7 +225,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void taskDoesNotLogInfoMessageIfJobIsAlreadyScheduledEnqueuedOrProcessing() {
+    void taskDoesNotLogInfoMessageIfJobIsScheduledButYetToPassTheScheduledInstant() {
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression(Cron.minutely()).build();
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
