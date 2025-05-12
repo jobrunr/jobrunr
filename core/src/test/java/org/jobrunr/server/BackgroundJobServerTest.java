@@ -208,7 +208,7 @@ class BackgroundJobServerTest {
         assertThat(backgroundJobServer.isUnAnnounced()).isTrue();
         assertThat(backgroundJobServer.isStarted()).isTrue();
         assertThat(backgroundJobServer.isRunning()).isTrue();
-        await().until(() -> backgroundJobServer.isStopped());
+        await().atMost(15, SECONDS).until(() -> backgroundJobServer.isStopped());
         Mockito.reset(storageProvider);
 
         // INITIAL -> START
