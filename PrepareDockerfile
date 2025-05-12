@@ -1,9 +1,7 @@
 FROM openjdk:21-slim@sha256:7072053847a8a05d7f3a14ebc778a90b38c50ce7e8f199382128a53385160688
 
 RUN apt-get update
-RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io\
-    # Specific dependencies for Playwright
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libasound2 libcups2 libpango-1.0-0 libcairo2
+RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 RUN source /root/.bashrc
