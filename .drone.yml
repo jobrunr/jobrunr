@@ -14,9 +14,6 @@ trigger:
     - push
     - pull_request
 
-concurrency:
-  limit: 1
-
 steps:
   - name: prepare
     image: plugins/docker
