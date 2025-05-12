@@ -60,7 +60,7 @@ class JdkTest {
             buildAndTestContainer
                     .withImagePullPolicy(PullPolicy.ageBased(Duration.ofDays(14)))
                     .withEnv("JAVA_CLASS_VERSION", javaClassVersion)
-                    .withStartupTimeout(Duration.ofMinutes(5))
+                    .withStartupTimeout(Duration.ofMinutes(2))
                     .start();
         } finally {
             String logs = buildAndTestContainer.getLogs();
