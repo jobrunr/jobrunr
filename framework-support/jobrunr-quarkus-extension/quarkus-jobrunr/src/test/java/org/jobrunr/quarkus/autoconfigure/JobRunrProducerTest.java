@@ -77,18 +77,33 @@ class JobRunrProducerTest {
 
     @Test
     void carbonAwareJobManagerIsSetupWhenConfigured() {
+        when(carbonAwareRunTimeConfiguration.isEnabled()).thenReturn(true);
         when(carbonAwareRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
+        when(carbonAwareRunTimeConfiguration.carbonIntensityApiUrl()).thenReturn(Optional.of("http://carbon.be"));
         when(carbonAwareRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
         when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
 
         CarbonAwareJobManager carbonAwareJobManager = jobRunrProducer.carbonAwareJobManager(jsonMapper);
         CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
 
-        assertThat(carbonAwareConfiguration).
-                hasAreaCode("DE")
+        assertThat(carbonAwareConfiguration)
+                .hasAreaCode("DE")
+                .hasCarbonAwareApiUrl("http://carbon.be")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
                 .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }
 
+    @Test
+    void carbonAwareJobManagerIsSetupWhenConfiguredWithExternalCode() {
+        when(carbonAwareRunTimeConfiguration.isEnabled()).thenReturn(true);
+        when(carbonAwareRunTimeConfiguration.externalCode()).thenReturn(Optional.of("external"));
+        when(carbonAwareRunTimeConfiguration.dataProvider()).thenReturn(Optional.of("provider"));
 
+        CarbonAwareJobManager carbonAwareJobManager = jobRunrProducer.carbonAwareJobManager(jsonMapper);
+        CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
+
+        assertThat(carbonAwareConfiguration)
+                .hasExternalCode("external")
+                .hasDataProvider("provider");
+    }
 }

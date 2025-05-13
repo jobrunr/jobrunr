@@ -43,9 +43,15 @@ public class JobRunrFactory {
     private JobRunrConfiguration configuration;
 
     @Singleton
+    @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
     public CarbonAwareJobManager carbonAwareJobManager(JsonMapper jobRunrJsonMapper) {
-        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();
+        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+                .andCarbonAwareSchedulingEnabled(configuration.getJobs().getCarbonAwareConfiguration().isEnabled());
         configuration.getJobs().getCarbonAwareConfiguration().getAreaCode().ifPresent(carbonAwareConfiguration::andAreaCode);
+        configuration.getJobs().getCarbonAwareConfiguration().getDataProvider().ifPresent(carbonAwareConfiguration::andDataProvider);
+        configuration.getJobs().getCarbonAwareConfiguration().getExternalCode().ifPresent(carbonAwareConfiguration::andExternalCode);
+        configuration.getJobs().getCarbonAwareConfiguration().getExternalIdentifier().ifPresent(carbonAwareConfiguration::andExternalIdentifier);
+        configuration.getJobs().getCarbonAwareConfiguration().getCarbonIntensityApiUrl().ifPresent(carbonAwareConfiguration::andCarbonIntensityApiUrl);
         configuration.getJobs().getCarbonAwareConfiguration().getApiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
         configuration.getJobs().getCarbonAwareConfiguration().getApiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
         return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
@@ -53,14 +59,14 @@ public class JobRunrFactory {
 
     @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
-    public JobScheduler jobScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+    public JobScheduler jobScheduler(StorageProvider storageProvider) {
         final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
     @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
-    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager) {
+    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
         return new JobRequestScheduler(storageProvider, emptyList());
     }
 

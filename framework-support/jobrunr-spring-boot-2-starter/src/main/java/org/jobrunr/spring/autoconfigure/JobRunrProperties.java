@@ -373,7 +373,6 @@ public class JobRunrProperties {
             return carbonAwaitingJobsRequestSize;
         }
 
-
         public BackgroundJobServer setScheduledJobsRequestSize(Integer scheduledJobsRequestSize) {
             this.scheduledJobsRequestSize = scheduledJobsRequestSize;
             return this;
@@ -531,7 +530,7 @@ public class JobRunrProperties {
         /**
          * Enables carbon aware scheduling.
          */
-        boolean enabled = true;
+        boolean enabled = false;
 
         /**
          * Sets your preferred carbon intensity forecast dataProvider.

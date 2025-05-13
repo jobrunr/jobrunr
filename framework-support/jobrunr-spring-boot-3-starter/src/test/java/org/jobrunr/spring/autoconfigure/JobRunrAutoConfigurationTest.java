@@ -136,10 +136,11 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void carbonAwareManagerAutoconfiguration() {
         this.contextRunner
-                .withPropertyValues("org.jobrunr.job-scheduler.enabled=true")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.area-code=FR")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-connect-timeout=500")
-                .withPropertyValues("org.jobrunr.jobs.carbon-aware.api-client-read-timeout=300")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.enabled=true")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.area-code=FR")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.api-client-connect-timeout=500")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.api-client-read-timeout=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
                     CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);

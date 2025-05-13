@@ -64,7 +64,7 @@ public class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "jobrunr.background-job-server", name = "enabled", havingValue = "true", matchIfMissing = true)
     public CarbonAwareJobManager carbonAwareJobManager(JobRunrProperties properties, JsonMapper jobRunrJsonMapper) {
         PropertyMapper map = PropertyMapper.get();
         CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration();

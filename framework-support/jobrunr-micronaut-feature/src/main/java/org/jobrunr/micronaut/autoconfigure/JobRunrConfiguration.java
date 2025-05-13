@@ -57,7 +57,21 @@ public interface JobRunrConfiguration {
 
         @ConfigurationProperties("carbonAware")
         interface CarbonAwareConfiguration {
+            /**
+             * Enables the carbon aware configuration to schedule jobs optimally.
+             */
+            @Bindable(defaultValue = "false")
+            boolean isEnabled();
+
             Optional<String> getAreaCode();
+
+            Optional<String> getDataProvider();
+
+            Optional<String> getExternalIdentifier();
+
+            Optional<String> getCarbonIntensityApiUrl();
+
+            Optional<String> getExternalCode();
 
             Optional<Integer> getApiClientConnectTimeoutMs();
 

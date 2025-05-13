@@ -222,10 +222,24 @@ public interface JobRunrRuntimeConfiguration {
 
     interface CarbonAwareConfiguration {
         /**
+         * Enables the carbon aware configuration to schedule jobs optimally.
+         */
+        @WithDefault("false")
+        boolean isEnabled();
+
+        /**
          * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
          * areaCode is a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
          */
         Optional<String> areaCode();
+
+        Optional<String> dataProvider();
+
+        Optional<String> externalIdentifier();
+
+        Optional<String> carbonIntensityApiUrl();
+
+        Optional<String> externalCode();
 
         /**
          * Allows to set the connect timeout for the carbon api client
