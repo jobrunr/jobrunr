@@ -26,7 +26,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,6 +44,7 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.utils.StringUtils.isNullEmptyOrBlank;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseCreator {
@@ -197,10 +197,11 @@ public class DatabaseCreator {
         return migration.getMigrationSql().startsWith("-- Empty migration");
     }
 
-
     protected void runMigrationStatement(Connection connection, SqlMigration migration) throws IOException, SQLException {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";")) {
+            if (isNullEmptyOrBlank(statement)) continue;
+
             try (final Statement stmt = connection.createStatement()) {
                 String updatedStatement = tablePrefixStatementUpdater.updateStatement(statement).trim();
                 stmt.execute(updatedStatement);
