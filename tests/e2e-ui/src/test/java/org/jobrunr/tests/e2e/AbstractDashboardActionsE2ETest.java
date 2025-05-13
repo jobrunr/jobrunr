@@ -145,7 +145,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         recurringJobsTabBtn().click();
         page.waitForLoadState();
 
-        assertThat(recurringJobsTabBtn()).containsText("2");
+        assertThat(recurringJobsTabBtn()).containsText("3");
     }
 
     @Test
