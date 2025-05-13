@@ -13,15 +13,22 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 
 class CarbonAwareAwaitingStateTest {
-    
+
     @Test
-    void testCarbonAwareJobsOnCreationAcceptsDeadlineIfEqualTo3HoursInTheFuture() {
+    void creatingAwaitingState_InvalidPeriods_ThrowsException() {
+        assertThatCode(() -> new CarbonAwareAwaitingState(Instant.now().plusSeconds(12), Instant.now())).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> new CarbonAwareAwaitingState(null, Instant.now())).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> new CarbonAwareAwaitingState(Instant.now(), null)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void carbonAwareJobsOnCreationAcceptsDeadlineIfEqualTo3HoursInTheFuture() {
         assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(3, HOURS).plusMillis(1000))).build())
                 .doesNotThrowAnyException();
     }
 
     @Test
-    void testCarbonAwareJobsOnCreationAcceptsDeadlineIfMoreThan3HoursInTheFuture() {
+    void carbonAwareJobsOnCreationAcceptsDeadlineIfMoreThan3HoursInTheFuture() {
         assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now().plus(4, HOURS))).build())
                 .doesNotThrowAnyException();
 
@@ -30,7 +37,7 @@ class CarbonAwareAwaitingStateTest {
     }
 
     @Test
-    void testMoveToNextStateMovesJobToScheduledStateAtIdealMoment() {
+    void moveToNextStateMovesJobToScheduledStateAtIdealMoment() {
         // GIVEN
         CarbonAwareAwaitingState state = new CarbonAwareAwaitingState(now().plus(1, DAYS));
         Job carbonAwareJob = aJob().withState(state).build();

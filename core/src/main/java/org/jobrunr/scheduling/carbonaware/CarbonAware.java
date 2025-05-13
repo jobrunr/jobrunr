@@ -51,6 +51,9 @@ public class CarbonAware {
             throw new IllegalArgumentException(format("Expected both 'from' (=%s) and 'until' (=%s) to be in 24-hour format", fromHour, untilHour));
         }
         int marginAfter = untilHour - fromHour;
+        if(marginAfter <= 0) {
+            throw new IllegalArgumentException("Expected the hours provided to be within the same day. Use using() and provide own margins instead.");
+        }
         return CarbonAwareScheduleMargin.after(Duration.ofHours(marginAfter)).toScheduleExpression(Cron.daily(fromHour));
     }
 
