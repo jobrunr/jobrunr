@@ -8,10 +8,11 @@ import java.time.Instant;
 import static java.lang.String.format;
 import static java.time.Instant.now;
 
+@SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class CarbonAwareAwaitingState extends AbstractJobState implements Schedulable {
-    private final Instant preferredInstant;
-    private final Instant from;
-    private final Instant to;
+    private Instant preferredInstant;
+    private Instant from;
+    private Instant to;
 
     protected CarbonAwareAwaitingState() { // for json deserialization
         super(StateName.AWAITING);
@@ -32,12 +33,17 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
         this(null, from, to);
     }
 
-    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to) {
-        super(StateName.AWAITING);
+    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to, Instant createdAt) {
+        // for json deserialization
+        super(StateName.AWAITING, createdAt);
         this.preferredInstant = preferredInstant;
         this.from = from;
         this.to = to;
         validateCarbonAwarePeriod(from, to);
+    }
+
+    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to) {
+        this(preferredInstant, from, to, Instant.now());
     }
 
     public Instant getPreferredInstant() {

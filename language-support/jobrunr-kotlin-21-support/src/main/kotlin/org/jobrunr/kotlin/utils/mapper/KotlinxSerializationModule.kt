@@ -36,6 +36,7 @@ internal val jobRunrSerializersModule = SerializersModule {
         subclass(KEnqueuedState.Serializer)
         subclass(KFailedState.Serializer)
         subclass(KProcessingState.Serializer)
+        subclass(KCarbonAwareAwaitingState.Serializer)
         subclass(KScheduledState.Serializer)
         subclass(KSucceededState.Serializer)
     }

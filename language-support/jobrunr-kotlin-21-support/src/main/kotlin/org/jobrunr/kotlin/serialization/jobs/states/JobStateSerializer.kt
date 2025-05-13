@@ -62,11 +62,36 @@ data class KDeletedState(
 }
 
 @Serializable
+data class KCarbonAwareAwaitingState(
+    val state: StateName = StateName.AWAITING,
+    @Serializable(with = InstantSerializer::class) val preferredInstant: Instant? = null,
+    @Serializable(with = InstantSerializer::class) val from: Instant? = null,
+    @Serializable(with = InstantSerializer::class) val to: Instant? = null,
+    @Serializable(with = InstantSerializer::class) val createdAt: Instant,
+) {
+    object Serializer : DTOSerializer<CarbonAwareAwaitingState, KCarbonAwareAwaitingState>(CarbonAwareAwaitingState::class, serializer()) {
+        override fun CarbonAwareAwaitingState.toDTO() = KCarbonAwareAwaitingState(
+            preferredInstant = preferredInstant,
+            from = from,
+            to = to,
+            createdAt = createdAt,
+        )
+
+        override fun KCarbonAwareAwaitingState.fromDTO() = CarbonAwareAwaitingState(
+            preferredInstant,
+            from,
+            to,
+            createdAt
+        )
+    }
+}
+
+@Serializable
 data class KScheduledState(
     val state: StateName = StateName.SCHEDULED,
     @Serializable(with = InstantSerializer::class) val scheduledAt: Instant,
-    val reason: String? = null,
     val recurringJobId: String? = null,
+    val reason: String? = null,
     @Serializable(with = InstantSerializer::class) val createdAt: Instant,
 ) {
     object Serializer : DTOSerializer<ScheduledState, KScheduledState>(ScheduledState::class, serializer()) {

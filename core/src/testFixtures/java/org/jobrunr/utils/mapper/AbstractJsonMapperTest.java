@@ -5,6 +5,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Task;
@@ -20,6 +21,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -318,6 +320,7 @@ public abstract class AbstractJsonMapperTest {
                 .withJobDetails(() -> testService.doWorkWithEnum(Task.PROGRAMMING))
                 .withProcessingState()
                 .withFailedState()
+                .withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(10, HOURS)))
                 .withScheduledState()
                 .withEnqueuedState(Instant.now())
                 .withProcessingState()
