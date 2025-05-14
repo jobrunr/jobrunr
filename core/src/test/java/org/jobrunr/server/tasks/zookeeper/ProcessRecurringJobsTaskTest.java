@@ -19,6 +19,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
@@ -89,7 +90,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - No Jobs scheduled yet.
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
             runTask(task);
 
@@ -104,7 +105,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the 1 job scheduled in the first run is still active.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearInvocations(storageProvider);
-            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
             runTask(task);
 
@@ -114,7 +115,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearInvocations(storageProvider);
-            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
             runTask(task);
 
@@ -177,7 +178,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
-        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
             runTask(task);
@@ -213,7 +214,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             clearInvocations(storageProvider);
         }
 
-        when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+        when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE)) {
             runTask(task);
 
@@ -225,7 +226,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             runTask(task);
 
             verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
-            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:00.500Z - 2022-12-14T08:36:05.500Z (PT5S) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.");
+            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:00.500Z - 2022-12-14T08:36:05.500Z (PT5S) but it is already either AWAITING/SCHEDULED/ENQUEUED or PROCESSING and taking longer than given CronExpression or Interval. Run will be skipped.");
         }
     }
 
