@@ -1,7 +1,7 @@
 package org.jobrunr.scheduling.carbonaware;
 
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.scheduling.Schedule.CarbonAwareScheduleMargin;
+import org.jobrunr.scheduling.CarbonAwareScheduleMargin;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;

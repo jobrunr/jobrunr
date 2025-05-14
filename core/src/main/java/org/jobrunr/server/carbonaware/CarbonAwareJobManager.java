@@ -49,6 +49,10 @@ public class CarbonAwareJobManager {
         return carbonAwareConfiguration.isEnabled();
     }
 
+    public boolean isDisabled() {
+        return !isEnabled();
+    }
+
     public Instant getAvailableForecastEndTime() {
         Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
         return (forecastEndPeriod != null && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;

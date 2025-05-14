@@ -3,6 +3,8 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,21 +19,18 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static java.time.Instant.now;
-import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.InstantMocker.mockTime;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +45,21 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     void setUp() {
         task = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer);
         carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
+    }
+
+    @Test
+    void runTaskWithCarbonAwareDisabledDoesNothing() {
+        CarbonAwareJobManager carbonAwareJobManagerMock = mock(CarbonAwareJobManager.class);
+        when(carbonAwareJobManagerMock.isDisabled()).thenReturn(true);
+
+        BackgroundJobServer backgroundJobServerMock = mock(BackgroundJobServer.class);
+        when(backgroundJobServerMock.getCarbonAwareJobManager()).thenReturn(carbonAwareJobManagerMock);
+        when(backgroundJobServerMock.getConfiguration()).thenReturn(new BackgroundJobServerConfigurationReader(usingStandardBackgroundJobServerConfiguration()));
+
+        ProcessCarbonAwareAwaitingJobsTask taskWithoutCarbonAware = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServerMock);
+        taskWithoutCarbonAware.runTask();
+
+        verify(carbonAwareJobManager, times(0)).updateCarbonIntensityForecastIfNecessary();
     }
 
     @Test
@@ -74,7 +88,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
             assertThat(instantArgumentCaptor.getValue()).isEqualTo(toEndOfNextDay(currentTime));
 
             Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(4, HOURS))).build();
-            Job job2 = aJob().withState(new CarbonAwareAwaitingState(Instant.now().plus(2, HOURS), Instant.now(), Instant.now().plus(4, HOURS))).build();
+            Job job2 = aJob().withState(new CarbonAwareAwaitingState(Instant.now().plus(2, HOURS), Instant.now(), Instant.now().plus(4, HOURS), "reason")).build();
             Job job3 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now().plus(4, HOURS), Instant.now().plus(8, HOURS))).build();
             Job job4 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now().plus(12, HOURS), Instant.now().plus(16, HOURS))).build();
 

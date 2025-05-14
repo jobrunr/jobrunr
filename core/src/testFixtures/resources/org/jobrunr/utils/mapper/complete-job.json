@@ -45,7 +45,8 @@
       "state" : "AWAITING",
       "createdAt" : "${json-unit.ignore}",
       "from" : "${json-unit.ignore}",
-      "to" : "${json-unit.ignore}"
+      "to" : "${json-unit.ignore}",
+      "reason": "carbon state for job test builder"
     },
     {
       "@class": "org.jobrunr.jobs.states.ScheduledState",

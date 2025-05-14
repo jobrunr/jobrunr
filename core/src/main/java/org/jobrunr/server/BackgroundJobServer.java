@@ -22,7 +22,6 @@ import org.jobrunr.server.tasks.startup.ShutdownExecutorServiceTask;
 import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
-import org.jobrunr.server.tasks.zookeeper.NoOpZooKeeperTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessCarbonAwareAwaitingJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessOrphanedJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask;
@@ -46,7 +45,6 @@ import java.util.Spliterator;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.Integer.compare;
@@ -306,9 +304,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private void startJobZooKeepers() {
         long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
         JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this,
-                new ProcessRecurringJobsTask(this),
-                carbonAwareJobManager.isEnabled() ? new ProcessCarbonAwareAwaitingJobsTask(this) : new NoOpZooKeeperTask(this),
-                new ProcessScheduledJobsTask(this));
+                new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);

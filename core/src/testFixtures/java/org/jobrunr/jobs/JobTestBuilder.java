@@ -269,7 +269,7 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withCarbonAwareAwaitingState(CarbonAwarePeriod period) {
-        return withState(new CarbonAwareAwaitingState(period));
+        return withState(new CarbonAwareAwaitingState(null, period.getFrom(), period.getTo(), "carbon state for job test builder"));
     }
 
     public JobTestBuilder withScheduledState() {

@@ -27,6 +27,8 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @Override
     protected void runTask() {
+        if(carbonAwareJobManager.isDisabled()) return;
+
         carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,

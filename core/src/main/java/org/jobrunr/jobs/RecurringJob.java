@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -113,7 +114,7 @@ public class RecurringJob extends AbstractJob {
 
         if (jobs.isEmpty()) {
             Instant nextRunAtAheadOfTime = getNextRun(upTo);
-            jobs.add(toJob(getNextState(nextRunAtAheadOfTime)));
+            jobs.add(toJob(getNextStateAheadOfTime(nextRunAtAheadOfTime)));
         }
 
         return jobs;
@@ -166,14 +167,17 @@ public class RecurringJob extends AbstractJob {
     private JobState getNextState(Instant nextRun) {
         Schedule schedule = getSchedule();
         if (schedule.isCarbonAware()) {
-            return schedule.getCarbonAwareScheduleMargin().toCarbonAwareAwaitingState(nextRun);
+            return CarbonAwareAwaitingState.fromRecurringJob(schedule.getCarbonAwareScheduleMargin(), nextRun, this);
         }
-        // TODO missing ScheduledState.fromRecurringJobAheadOfTime() info now and feels painful to add a bool param
-        // can we make a ScheduledAheadOfTimeState?
-        // do we really need this extra string?
-        // do we need the reason (aot "started state") on the carbon awaiting state?
-        // can we rename CarbonAwareAwaitingState to AwaitingState?
         return ScheduledState.fromRecurringJob(nextRun, this);
+    }
+
+    private JobState getNextStateAheadOfTime(Instant nextRun) {
+        Schedule schedule = getSchedule();
+        if (schedule.isCarbonAware()) {
+            return CarbonAwareAwaitingState.fromRecurringJobAheadOfTime(schedule.getCarbonAwareScheduleMargin(), nextRun, this);
+        }
+        return ScheduledState.fromRecurringJobAheadOfTime(nextRun, this);
     }
 
     private Job toJob(JobState jobState) {

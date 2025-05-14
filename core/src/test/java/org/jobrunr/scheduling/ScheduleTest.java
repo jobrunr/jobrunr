@@ -1,6 +1,5 @@
 package org.jobrunr.scheduling;
 
-import org.jobrunr.scheduling.Schedule.CarbonAwareScheduleMargin;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;

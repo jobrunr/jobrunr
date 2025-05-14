@@ -4,11 +4,11 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
-import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
@@ -62,14 +62,14 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(10, 12), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(10, 13), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-2", CarbonAware.dailyBefore(7), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-3", CarbonAware.using(Cron.daily(4), Duration.ofHours(2), Duration.ofHours(1)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-4", CarbonAware.using(Cron.daily(4), Duration.ofHours(4), Duration.ZERO), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-5", "0 0 1 * * [P2DT6H/P10DT12H4M29.45S]", x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
-//        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
 
 //        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
 //        new Timer().schedule(new TimerTask() {
