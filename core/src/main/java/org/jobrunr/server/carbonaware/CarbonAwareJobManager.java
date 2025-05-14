@@ -78,6 +78,10 @@ public class CarbonAwareJobManager {
         }
     }
 
+    public boolean hasCarbonIntensityForecastError() {
+        return carbonIntensityForecast.hasError();
+    }
+
     private String getReasonForMissingForecast(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         if (carbonIntensityForecast.hasError()) {
             return format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage());

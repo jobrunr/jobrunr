@@ -31,7 +31,7 @@ public class CarbonIntensityApiClient {
             return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);
         } catch (Exception e) {
             LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareConfiguration.getAreaCode(), e);
-            return new CarbonIntensityForecast();
+            return CarbonIntensityForecast.fromException(e);
         }
     }
 

@@ -8,14 +8,23 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class CarbonIntensityForecastTest {
+
+    @Test
+    void fromExceptionHasError() {
+        var forecast = CarbonIntensityForecast.fromException(new IllegalArgumentException("whoopsie"));
+        assertThat(forecast.hasError()).isTrue();
+        assertThatCode(() -> forecast.hasNoForecastForPeriod(Instant.now(), Instant.now().plus(1, HOURS))).doesNotThrowAnyException();
+    }
 
     @Test
     void lowestCarbonIntensityInstantReturnsTheLowestCarbonIntensityInstantBeforeDeadline() {

@@ -3,6 +3,8 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +20,12 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private final CarbonAwareJobManager carbonAwareJobManager;
     private final int pageRequestSize;
+    private final DashboardNotificationManager dashboardNotificationManager;
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
         this.carbonAwareJobManager = backgroundJobServer.getCarbonAwareJobManager();
+        this.dashboardNotificationManager = backgroundJobServer.getDashboardNotificationManager();
         this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareAwaitingJobsRequestSize();
     }
 
@@ -30,6 +34,10 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         if(carbonAwareJobManager.isDisabled()) return;
 
         carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
+        if(carbonAwareJobManager.hasCarbonIntensityForecastError()) {
+            dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
+        }
+
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
                 amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
