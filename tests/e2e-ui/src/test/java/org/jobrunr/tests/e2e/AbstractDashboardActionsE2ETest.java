@@ -137,7 +137,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobHistoryPanelItems()).hasCount(44);
         assertThat(jobHistoryPanelItems().first()).containsText("Job scheduled");
         jobHistorySortDescBtn().click();
-        assertThat(jobHistoryPanelItems().first()).containsText("Job processing failed");
+        assertThat(jobHistoryPanelItems().first()).containsText("Job Processing Failed");
     }
 
     @Test
