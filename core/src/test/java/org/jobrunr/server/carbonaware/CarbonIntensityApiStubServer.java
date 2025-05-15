@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.time.ZoneId.systemDefault;
+
 public class CarbonIntensityApiStubServer {
 
     private WebServer webServer;
@@ -34,7 +36,7 @@ public class CarbonIntensityApiStubServer {
         }
 
         private int getHour() {
-            return start.atZone(ZoneOffset.UTC).getHour();
+            return start.atZone(systemDefault()).getHour();
         }
 
         private IntensityMoment(Instant start, int rank) {
@@ -72,11 +74,12 @@ public class CarbonIntensityApiStubServer {
         return this;
     }
 
-    public CarbonIntensityApiStubServer andBestIntensityMomentTodayAt(int hourInUtc) {
+    public CarbonIntensityApiStubServer andBestIntensityMomentTodayAt(int hourInLocalTime) {
         intensityMoments = new ArrayList<>();
+
         for(int i = 0; i < 24; i++) {
             IntensityMoment intensityMoment = new IntensityMoment(i);
-            intensityMoment.rank = intensityMoment.getHour() == hourInUtc ? CARBON_LOW : CARBON_HIGH;
+            intensityMoment.rank = intensityMoment.getHour() == hourInLocalTime ? CARBON_LOW : CARBON_HIGH;
             intensityMoments.add(intensityMoment);
         }
         return this;
