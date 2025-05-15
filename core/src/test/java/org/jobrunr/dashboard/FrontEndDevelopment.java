@@ -48,10 +48,10 @@ public class FrontEndDevelopment {
         storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
         storageProvider.save(anEnqueuedJob().withEnqueuedState(now()).withName("A job").build());
 
-//        var stubServer = new CarbonIntensityApiStubServer()
-//                .andPort(10000)
-//                .andBestIntensityMomentTodayAt(11)
-//                .start();
+        var stubServer = new CarbonIntensityApiStubServer()
+                .andPort(10000)
+                .andBestIntensityMomentTodayAt(16)
+                .start();
 
         JobRunr
                 .configure()
@@ -64,7 +64,7 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(10, 13), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(15, 18), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-2", CarbonAware.dailyBefore(7), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-3", CarbonAware.using(Cron.daily(4), Duration.ofHours(2), Duration.ofHours(1)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
@@ -72,10 +72,8 @@ public class FrontEndDevelopment {
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-5", "0 0 1 * * [P2DT6H/P10DT12H4M29.45S]", x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
-        BackgroundJob.scheduleCarbonAware(CarbonAwarePeriod.before(Instant.now().plus(1, ChronoUnit.HOURS)), () -> {});
-
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
-        BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(40));
 
 //        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
 //        new Timer().schedule(new TimerTask() {
@@ -89,7 +87,7 @@ public class FrontEndDevelopment {
 //                30000
 //        );
 
-//        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
         Thread.currentThread().join();

@@ -64,19 +64,17 @@ public class CarbonAwareJobManager {
             throw new IllegalStateException("Only jobs in CarbonAwaitingState can move to a next state");
         }
 
-        CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
+        CarbonAwareAwaitingState state = job.getJobState();
         LOGGER.trace("Determining the best moment to schedule Job(id={}, jobName='{}') to minimize carbon impact", job.getId(), job.getJobName());
 
-        if (isDeadlinePassed(carbonAwareAwaitingState)) {
-            scheduleJobAt(job, now(), carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
-        } else if (hasTooSmallScheduleMargin(carbonAwareAwaitingState)) {
-            Duration margin = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
-            scheduleJobAt(job, fallbackInstant(carbonAwareAwaitingState), carbonAwareAwaitingState, "Job does not have enough margin (" + margin + ") to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
-        } else if (carbonIntensityForecast.hasNoForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
-            scheduleJobAt(job, fallbackInstant(carbonAwareAwaitingState), carbonAwareAwaitingState, getReasonForMissingForecast(carbonAwareAwaitingState));
+        if (isDeadlinePassed(state)) {
+            scheduleJobAt(job, now(), state, "Passed its deadline, scheduling now.");
+        } else if (hasTooSmallScheduleMargin(state)) {
+            scheduleJobAt(job, state.getFallbackInstant(), state, "Not enough margin (" + state.getMarginDuration() + ") to be scheduled carbon aware.");
+        } else if (carbonIntensityForecast.hasNoForecastForPeriod(state.getFrom(), state.getTo())) {
+            scheduleJobAt(job, state.getFallbackInstant(), state, getReasonForMissingForecast(state));
         } else {
-            Instant idealMoment = idealMoment(carbonAwareAwaitingState);
-            scheduleJobAt(job, idealMoment, carbonAwareAwaitingState, "Job scheduled at " + idealMoment + " to minimize carbon impact.");
+            scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact.");
         }
     }
 
@@ -84,24 +82,24 @@ public class CarbonAwareJobManager {
         return carbonIntensityForecast.hasError();
     }
 
-    private String getReasonForMissingForecast(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+    private String getReasonForMissingForecast(CarbonAwareAwaitingState state) {
         if (carbonIntensityForecast.hasError()) {
             return format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage());
         }
-        return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
+        return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), state.getFrom(), state.getTo());
     }
 
-    private void scheduleJobAt(Job job, Instant scheduleAt, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
-        carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
+    private void scheduleJobAt(Job job, Instant scheduleAt, CarbonAwareAwaitingState state, String reason) {
+        state.moveToNextState(job, scheduleAt, reason);
     }
 
-    private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        return now().isAfter(carbonAwareAwaitingState.getTo());
+    private boolean isDeadlinePassed(CarbonAwareAwaitingState state) {
+        return now().isAfter(state.getTo());
     }
 
-    private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState carbonAwareAwaitingState) {
+    private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState state) {
         if (carbonIntensityForecast.hasNoForecast()) return false;
-        Duration margin = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
+        Duration margin = state.getMarginDuration();
         return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
     }
 
@@ -132,17 +130,8 @@ public class CarbonAwareJobManager {
         }
     }
 
-    private static Duration getCarbonAwareMarginDuration(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        return Duration.between(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
-    }
-
     private Instant idealMoment(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         return carbonIntensityForecast.lowestCarbonIntensityInstant(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
-    }
-
-    private static Instant fallbackInstant(CarbonAwareAwaitingState carbonAwareAwaitingState) {
-        if(carbonAwareAwaitingState.getPreferredInstant() != null) return carbonAwareAwaitingState.getPreferredInstant();
-        return carbonAwareAwaitingState.getFrom();
     }
 
     @VisibleFor("testing")

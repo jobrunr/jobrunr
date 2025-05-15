@@ -169,7 +169,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             assertThat(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(now(), "Job has passed its deadline, scheduling job now");
+                    .isScheduledAt(now(), "Passed its deadline, scheduling now.");
         }
     }
 
@@ -185,7 +185,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             assertThat(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(now(), "Job does not have enough margin (PT5M) to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
+                    .isScheduledAt(now(), "Not enough margin (PT5M) to be scheduled carbon aware.");
         }
     }
 

@@ -5,6 +5,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.scheduling.CarbonAwareScheduleMargin;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static java.lang.String.format;
@@ -59,6 +60,14 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
 
     public static JobState fromRecurringJobAheadOfTime(CarbonAwareScheduleMargin margin, Instant scheduleAt, RecurringJob recurringJob) {
         return new CarbonAwareAwaitingState(scheduleAt, margin, "Awaiting ahead of time by recurring job '" + recurringJob.getJobName() + "'");
+    }
+
+    public Duration getMarginDuration() {
+        return Duration.between(from, to);
+    }
+
+    public Instant getFallbackInstant() {
+        return preferredInstant != null ? preferredInstant : from;
     }
 
     public Instant getPreferredInstant() {
