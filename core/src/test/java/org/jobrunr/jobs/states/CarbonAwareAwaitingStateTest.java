@@ -50,13 +50,13 @@ class CarbonAwareAwaitingStateTest {
 
         // WHEN
         Instant idealMoment = now().plus(14, HOURS);
-        state.moveToNextState(carbonAwareJob, idealMoment);
+        state.moveToNextState(carbonAwareJob, idealMoment, "reason");
 
         // THEN
         assertThat(carbonAwareJob).hasState(StateName.SCHEDULED);
         ScheduledState scheduledState = carbonAwareJob.getJobState();
         assertThat(scheduledState.getScheduledAt()).isEqualTo(idealMoment);
-        assertThat(scheduledState.getReason()).isEqualTo("Job scheduled at " + idealMoment + " to minimize carbon impact.");
+        assertThat(scheduledState.getReason()).isEqualTo("reason");
     }
 
     @Test
@@ -66,7 +66,7 @@ class CarbonAwareAwaitingStateTest {
         CarbonAwareAwaitingState carbonAwareAwaitingState = new CarbonAwareAwaitingState();
         Job notCarbonAwareJob = aJob().withState(new ScheduledState()).build();
 
-        assertThatCode(() -> carbonAwareAwaitingState.moveToNextState(notCarbonAwareJob, idealMoment))
+        assertThatCode(() -> carbonAwareAwaitingState.moveToNextState(notCarbonAwareJob, idealMoment, "reason"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only jobs in CarbonAwaitingState can move to a next state");
     }

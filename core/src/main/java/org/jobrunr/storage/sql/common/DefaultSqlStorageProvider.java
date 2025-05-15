@@ -34,7 +34,9 @@ import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
@@ -256,7 +258,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectCarbonAwareJobsWithDeadlineBefore(deadlineBefore, amountRequest);
+            return jobTable(conn).selectJobsWithStateBefore(AWAITING, deadlineBefore, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -265,7 +267,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsScheduledBefore(scheduledBefore, amountRequest);
+            return jobTable(conn).selectJobsWithStateBefore(SCHEDULED, scheduledBefore, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

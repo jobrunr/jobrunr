@@ -784,15 +784,15 @@ public abstract class StorageProviderTest {
         );
         storageProvider.save(jobs);
 
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(3, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(3, HOURS), AmountBasedList.ascOnScheduledAt(100)))
                 .hasSize(0);
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(5, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(5, HOURS), AmountBasedList.ascOnScheduledAt(100)))
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(100)))
                 .hasSize(4)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(1)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(1)))
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
 
@@ -802,7 +802,7 @@ public abstract class StorageProviderTest {
         aCarbonAwareJob.scheduleAt(Instant.now(), "test");
         storageProvider.save(aCarbonAwareJob);
 
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(100)))
                 .hasSize(4)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
     }

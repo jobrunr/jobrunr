@@ -51,7 +51,6 @@ public class StorageProviderUtils {
         public static final String FIELD_UPDATED_AT = "updatedAt";
         public static final String FIELD_SCHEDULED_AT = "scheduledAt";
         public static final String FIELD_RECURRING_JOB_ID = "recurringJobId";
-        public static final String FIELD_DEADLINE = "deadline";
     }
 
     public static class RecurringJobs {

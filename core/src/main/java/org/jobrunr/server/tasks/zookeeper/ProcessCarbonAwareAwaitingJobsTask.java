@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCarbonAwareDeadline;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnScheduledAt;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 
@@ -45,7 +45,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
-        return storageProvider.getCarbonAwareJobList(getDeadlineBeforeWhichToQueryCarbonAwareJobs(), ascOnCarbonAwareDeadline(pageRequestSize));
+        return storageProvider.getCarbonAwareJobList(getDeadlineBeforeWhichToQueryCarbonAwareJobs(), ascOnScheduledAt(pageRequestSize));
     }
 
     private void moveCarbonAwareJobToNextState(Job job) {

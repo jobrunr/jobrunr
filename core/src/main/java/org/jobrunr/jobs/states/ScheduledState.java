@@ -5,7 +5,7 @@ import org.jobrunr.jobs.RecurringJob;
 import java.time.Instant;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
-public class ScheduledState extends AbstractJobState implements Schedulable {
+public class ScheduledState extends AbstractJobState implements SchedulableState {
 
     private Instant scheduledAt;
     private String recurringJobId;

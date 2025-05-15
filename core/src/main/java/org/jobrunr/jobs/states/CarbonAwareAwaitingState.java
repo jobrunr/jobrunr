@@ -10,7 +10,7 @@ import java.time.Instant;
 import static java.lang.String.format;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
-public class CarbonAwareAwaitingState extends AbstractJobState implements Schedulable {
+public class CarbonAwareAwaitingState extends AbstractJobState implements SchedulableState {
     private Instant preferredInstant;
     private Instant from;
     private Instant to;
@@ -81,10 +81,6 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
         return reason;
     }
 
-    public void moveToNextState(Job job, Instant idealMoment) {
-        moveToNextState(job, idealMoment, "Job scheduled at " + idealMoment + " to minimize carbon impact.");
-    }
-
     public void moveToNextState(Job job, Instant idealMoment, String reason) {
         if (!(job.getJobState() instanceof CarbonAwareAwaitingState)) {
             throw new IllegalStateException("Only jobs in CarbonAwaitingState can move to a next state");
@@ -112,6 +108,8 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
 
     @Override
     public Instant getScheduledAt() {
-        return preferredInstant == null ? from : preferredInstant;
+        // why: this acts as a deadline for the awaiting state interval.
+        // PreferredInstant can be null if not triggered from a recurring job.
+        return to;
     }
 }

@@ -2,10 +2,13 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.data.Offset;
 import org.jobrunr.jobs.context.JobDashboardLogger;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.stubs.Mocks;
@@ -13,22 +16,41 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.UUID;
+
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 
 @ExtendWith(MockitoExtension.class)
 class JobTest {
 
     private final BackgroundJobServer backgroundJobServer = Mocks.ofBackgroundJobServer();
+
+    @Test
+    void getLastJobStateOfType() {
+        Job scheduledJob = aScheduledJob().build();
+        assertThat(scheduledJob.getLastJobStateOfType(SchedulableState.class).get()).isInstanceOf(ScheduledState.class);
+        Job awaitingJob = aCarbonAwaitingJob().build();
+        assertThat(awaitingJob.getLastJobStateOfType(SchedulableState.class).get()).isInstanceOf(CarbonAwareAwaitingState.class);
+        Job processingCarbonAwareJob = aJob()
+                .withState(new CarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minusSeconds(200), now().plus(10, HOURS))))
+                .withState(new ScheduledState(now().minusSeconds(1)))
+                .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
+                .build();
+        assertThat(processingCarbonAwareJob.getLastJobStateOfType(SchedulableState.class).get()).isInstanceOf(ScheduledState.class);
+    }
 
     @Test
     void ifIdIsNullAnIdIsCreated() {

@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
@@ -20,6 +21,8 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -45,10 +48,10 @@ public class FrontEndDevelopment {
         storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
         storageProvider.save(anEnqueuedJob().withEnqueuedState(now()).withName("A job").build());
 
-        var stubServer = new CarbonIntensityApiStubServer()
-                .andPort(10000)
-                .andBestIntensityMomentTodayAt(11)
-                .start();
+//        var stubServer = new CarbonIntensityApiStubServer()
+//                .andPort(10000)
+//                .andBestIntensityMomentTodayAt(11)
+//                .start();
 
         JobRunr
                 .configure()
@@ -69,6 +72,8 @@ public class FrontEndDevelopment {
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-5", "0 0 1 * * [P2DT6H/P10DT12H4M29.45S]", x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
+        BackgroundJob.scheduleCarbonAware(CarbonAwarePeriod.before(Instant.now().plus(1, ChronoUnit.HOURS)), () -> {});
+
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
         BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(JobContext.Null));
 
@@ -84,7 +89,7 @@ public class FrontEndDevelopment {
 //                30000
 //        );
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
+//        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
         Thread.currentThread().join();

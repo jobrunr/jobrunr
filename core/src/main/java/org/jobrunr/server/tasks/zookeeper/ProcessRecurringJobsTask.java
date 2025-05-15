@@ -2,7 +2,7 @@ package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.states.Schedulable;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
 
@@ -76,7 +76,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil, List<Job> scheduledJobs) {
-        Instant instant = findLast(scheduledJobs).map(x -> ((Schedulable) x.getJobState()).getScheduledAt()).orElse(upUntil);
+        Instant instant = findLast(scheduledJobs).map(x -> ((SchedulableState) x.getJobState()).getScheduledAt()).orElse(upUntil);
         recurringJobRuns.put(recurringJob.getId(), instant);
     }
 }
