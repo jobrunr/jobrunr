@@ -10,7 +10,8 @@ import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonUnquotedLiteral
 import kotlinx.serialization.json.jsonPrimitive
-import java.math.BigDecimal
+import org.jobrunr.utils.DurationUtils.fromBigDecimal
+import org.jobrunr.utils.DurationUtils.toBigDecimal
 import java.time.Duration
 
 object DurationSerializer : KSerializer<Duration> {
@@ -18,15 +19,11 @@ object DurationSerializer : KSerializer<Duration> {
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun serialize(encoder: Encoder, value: Duration) {
-        val valueFormatted = "${value.seconds}.${"%09d".format(value.nano)}"
-        (encoder as JsonEncoder).encodeJsonElement(JsonUnquotedLiteral(valueFormatted))
+        (encoder as JsonEncoder).encodeJsonElement(JsonUnquotedLiteral(toBigDecimal(value).toString()))
     }
 
     override fun deserialize(decoder: Decoder): Duration {
         val durationAsSecAndNanoSec = (decoder as JsonDecoder).decodeJsonElement().jsonPrimitive.content.toBigDecimal()
-        return Duration.ofSeconds(
-            durationAsSecAndNanoSec.toLong(),
-            durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(9).abs().toLong()
-        )
+        return fromBigDecimal(durationAsSecAndNanoSec)
     }
 }

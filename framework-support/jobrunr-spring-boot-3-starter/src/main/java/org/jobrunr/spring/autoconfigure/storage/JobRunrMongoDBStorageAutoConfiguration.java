@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration(after = MongoAutoConfiguration.class, before = JobRunrAutoConfiguration.class)
 @ConditionalOnBean(MongoClient.class)
-@ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "mongodb", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "jobrunr.database", name = "type", havingValue = "mongodb", matchIfMissing = true)
 public class JobRunrMongoDBStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")

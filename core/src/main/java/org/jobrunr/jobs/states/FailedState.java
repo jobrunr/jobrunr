@@ -20,25 +20,25 @@ public class FailedState extends AbstractJobState {
     private boolean doNotRetry;
 
     protected FailedState() { // for json deserialization
-        this(null, null, null, null, null, null, null, false);
+        this(null, null, null, null, null, null, false, Instant.now());
     }
 
     public FailedState(String message, Exception exception) {
         this(
-            Instant.now(),
-            message,
-            exception.getClass().getName(),
-            exception.getMessage(),
-            hasCause(exception) ? exception.getCause().getClass().getName() : null,
-            hasCause(exception) ? exception.getCause().getMessage() : null,
-            getStackTraceAsString(exception),
-            isProblematicAndDoNotRetry(exception)
+                message,
+                exception.getClass().getName(),
+                exception.getMessage(),
+                hasCause(exception) ? exception.getCause().getClass().getName() : null,
+                hasCause(exception) ? exception.getCause().getMessage() : null,
+                getStackTraceAsString(exception),
+                isProblematicAndDoNotRetry(exception),
+                Instant.now()
         );
         this.exception = exception;
     }
 
-    public FailedState(Instant createdAt, String message, String exceptionType, String exceptionMessage, String exceptionCauseType, String exceptionCauseMessage, String stackTrace, boolean doNotRetry) {
-        super(createdAt, StateName.FAILED);
+    public FailedState(String message, String exceptionType, String exceptionMessage, String exceptionCauseType, String exceptionCauseMessage, String stackTrace, boolean doNotRetry, Instant createdAt) {
+        super(StateName.FAILED, createdAt);
         this.message = message;
         this.exceptionType = exceptionType;
         this.exceptionMessage = exceptionMessage;

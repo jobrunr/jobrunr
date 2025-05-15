@@ -25,7 +25,7 @@ import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 @ConditionalOnBean(DataSource.class)
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
 @AutoConfigureBefore(JobRunrAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "org.jobrunr.database", name = "type", havingValue = "sql", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "jobrunr.database", name = "type", havingValue = "sql", matchIfMissing = true)
 public class JobRunrSqlStorageAutoConfiguration {
 
     @Bean(name = "storageProvider", destroyMethod = "close")

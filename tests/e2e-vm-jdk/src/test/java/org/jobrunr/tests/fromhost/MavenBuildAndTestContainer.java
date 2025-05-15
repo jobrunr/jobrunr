@@ -24,10 +24,11 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
                                 .workDir("/app/jobrunr")
                                 .env("JDK_TEST", "true")
                 ));
+
         if (exists(Paths.get("/drone"))) {
-            LOGGER.info("Running inside CI / Drone Build Container");
+            LOGGER.info("Running inside CI / Drone Build Container (DRONE_WORK_DIR={})", System.getenv("DRONE_WORK_DIR"));
             this
-                    .withFileSystemBind("/volume2/docker/jobrunr-services/drone-work-dir/m2/cache", "/root/.m2", BindMode.READ_WRITE);
+                    .withFileSystemBind(System.getenv("DRONE_WORK_DIR") + "/m2/cache", "/root/.m2", BindMode.READ_WRITE);
         } else {
             LOGGER.info("Running on developer machine");
             this
@@ -37,6 +38,6 @@ public class MavenBuildAndTestContainer extends GenericContainer<MavenBuildAndTe
         this
                 .withCopyFileToContainer(MountableFile.forHostPath(Paths.get(".")), "/app/jobrunr")
                 .withCommand("./mvnw", "clean", "install")
-                .waitingFor(Wait.forLogMessage(".*BUILD SUCCESS.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*|.*BUILD FAILURE.*", 1));
+                .waitingFor(Wait.forLogMessage(".*BUILD SUCCESS.*|.*BUILD FAILED.*|.*FAILURE: Build failed.*|.*BUILD FAILURE.*|.*Error: Could not find or load main class org.apache.maven.wrapper.MavenWrapperMain.*", 1));
     }
 }

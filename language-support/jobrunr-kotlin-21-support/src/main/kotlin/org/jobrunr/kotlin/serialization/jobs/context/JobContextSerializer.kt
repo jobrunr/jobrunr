@@ -9,11 +9,11 @@ import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.jobs.context.JobContext
 
 object JobContextSerializer : KSerializer<JobContext> {
-	override val descriptor = buildClassSerialDescriptor("org.jobrunr.jobs.context.JobContext")
+    override val descriptor = buildClassSerialDescriptor(JobContext::class.qualifiedName!!) {}
 
-	override fun serialize(encoder: Encoder, value: JobContext) = encoder.encodeStructure(descriptor) {}
+    override fun serialize(encoder: Encoder, value: JobContext) = encoder.encodeStructure(descriptor) {}
 
-	override fun deserialize(decoder: Decoder): JobContext = decoder.decodeStructure(descriptor) {
-		JobContext.Null
-	}
+    override fun deserialize(decoder: Decoder): JobContext = decoder.decodeStructure(descriptor) {
+        JobContext.Null
+    }
 }

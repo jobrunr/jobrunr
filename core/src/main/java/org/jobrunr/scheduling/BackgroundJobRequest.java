@@ -3,7 +3,15 @@ package org.jobrunr.scheduling;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.lambdas.JobRequest;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.ChronoZonedDateTime;
+import java.time.temporal.Temporal;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -24,6 +32,7 @@ public class BackgroundJobRequest {
 
     /**
      * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     *
      * @param jobBuilder the jobBuilder with all the details of the job
      * @return the id of the job
      */
@@ -92,145 +101,55 @@ public class BackgroundJobRequest {
     /**
      * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      BackgroundJobRequest.schedule(ZonedDateTime.now().plusHours(5), new MyJobRequest());
-     * }</pre>
      *
-     * @param zonedDateTime the moment in time at which the job will be enqueued.
-     * @param jobRequest    the jobRequest which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(ZonedDateTime zonedDateTime, JobRequest jobRequest) {
-        verifyJobScheduler();
-        return jobRequestScheduler.schedule(zonedDateTime.toInstant(), jobRequest);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * If a job with that id already exists, JobRunr will not save it again.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      BackgroundJobRequest.schedule(id, ZonedDateTime.now().plusHours(5), new MyJobRequest());
-     * }</pre>
+     * <h5>Supported Temporal Types:</h5>
+     * <ul>
+     *     <li>{@link Instant}</li>
+     *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link OffsetDateTime}</li>
+     * </ul>
      *
-     * @param id            the uuid with which to save the job
-     * @param zonedDateTime the moment in time at which the job will be enqueued.
-     * @param jobRequest    the jobRequest which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(UUID id, ZonedDateTime zonedDateTime, JobRequest jobRequest) {
-        verifyJobScheduler();
-        return jobRequestScheduler.schedule(id, zonedDateTime.toInstant(), jobRequest);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      BackgroundJobRequest.schedule(OffsetDateTime.now().plusHours(5), new MyJobRequest());
-     * }</pre>
-     *
-     * @param offsetDateTime the moment in time at which the job will be enqueued.
-     * @param jobRequest     the jobRequest which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(OffsetDateTime offsetDateTime, JobRequest jobRequest) {
-        verifyJobScheduler();
-        return jobRequestScheduler.schedule(offsetDateTime.toInstant(), jobRequest);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * If a job with that id already exists, JobRunr will not save it again.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      BackgroundJobRequest.schedule(id, OffsetDateTime.now().plusHours(5), new MyJobRequest());
-     * }</pre>
-     *
-     * @param id             the uuid with which to save the job
-     * @param offsetDateTime the moment in time at which the job will be enqueued.
-     * @param jobRequest     the jobRequest which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(UUID id, OffsetDateTime offsetDateTime, JobRequest jobRequest) {
-        verifyJobScheduler();
-        return jobRequestScheduler.schedule(id, offsetDateTime.toInstant(), jobRequest);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      BackgroundJobRequest.schedule(LocalDateTime.now().plusHours(5), new MyJobRequest());
-     * }</pre>
-     *
-     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
-     * @param jobRequest    the jobRequest which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(LocalDateTime localDateTime, JobRequest jobRequest) {
-        verifyJobScheduler();
-        return jobRequestScheduler.schedule(localDateTime.atZone(systemDefault()).toInstant(), jobRequest);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * If a job with that id already exists, JobRunr will not save it again.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      BackgroundJobRequest.schedule(id, LocalDateTime.now().plusHours(5), new MyJobRequest());
-     * }</pre>
-     *
-     * @param id            the uuid with which to save the job
-     * @param localDateTime the moment in time at which the job will be enqueued. It will use the systemDefault ZoneId to transform it to an UTC Instant
-     * @param jobRequest    the jobRequest which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(UUID id, LocalDateTime localDateTime, JobRequest jobRequest) {
-        verifyJobScheduler();
-        return jobRequestScheduler.schedule(id, localDateTime.atZone(systemDefault()).toInstant(), jobRequest);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * <h5>An example:</h5>
+     * <h5>An Example with Instant:</h5>
      * <pre>{@code
      *      BackgroundJobRequest.schedule(Instant.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
-     * @param instant    the moment in time at which the job will be enqueued.
+     * @param scheduleAt the moment in time at which the job will be enqueued.
      * @param jobRequest the lambda which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public static JobId schedule(Instant instant, JobRequest jobRequest) {
+    public static JobId schedule(Temporal scheduleAt, JobRequest jobRequest) {
         verifyJobScheduler();
-        return jobRequestScheduler.schedule(instant, jobRequest);
+        return jobRequestScheduler.schedule(scheduleAt, jobRequest);
     }
 
     /**
      * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * If a job with that id already exists, JobRunr will not save it again.
-     * <h5>An example:</h5>
+     *
+     * <h5>Supported Temporal Types:</h5>
+     * <ul>
+     *     <li>{@link Instant}</li>
+     *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link OffsetDateTime}</li>
+     * </ul>
+     *
+     * <h5>An Example with Instant:</h5>
      * <pre>{@code
      *      BackgroundJobRequest.schedule(id, Instant.now().plusHours(5), new MyJobRequest());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
-     * @param instant    the moment in time at which the job will be enqueued.
+     * @param scheduleAt the moment in time at which the job will be enqueued.
      * @param jobRequest the jobRequest which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public static JobId schedule(UUID id, Instant instant, JobRequest jobRequest) {
+    public static JobId schedule(UUID id, Temporal scheduleAt, JobRequest jobRequest) {
         verifyJobScheduler();
-        return jobRequestScheduler.schedule(id, instant, jobRequest);
+        return jobRequestScheduler.schedule(id, scheduleAt, jobRequest);
     }
 
     /**
@@ -315,7 +234,7 @@ public class BackgroundJobRequest {
      *      BackgroundJob.scheduleRecurrently(Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
-     * @param duration the duration defining the time between each instance of this recurring job
+     * @param duration   the duration defining the time between each instance of this recurring job
      * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      */
@@ -332,8 +251,8 @@ public class BackgroundJobRequest {
      *      BackgroundJob.scheduleRecurrently("my-recurring-job", Duration.parse("P5D"), () -> service.doWork());
      * }</pre>
      *
-     * @param id       the id of this recurring job which can be used to alter or delete it
-     * @param duration the duration defining the time between each instance of this recurring job
+     * @param id         the id of this recurring job which can be used to alter or delete it
+     * @param duration   the duration defining the time between each instance of this recurring job
      * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      */

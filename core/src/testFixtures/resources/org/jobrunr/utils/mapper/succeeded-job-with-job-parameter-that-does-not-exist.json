@@ -1,0 +1,53 @@
+{
+  "id": "67936c40-7915-41e0-9960-edfff7759219",
+  "version": 0,
+  "jobSignature": "java.lang.System.out.println(java.lang.String)",
+  "jobName": "a succeeded job",
+  "jobDetails": {
+    "cacheable": true,
+    "className": "java.lang.System",
+    "staticFieldName": "out",
+    "methodName": "println",
+    "jobParameters": [
+      {
+        "className": "org.jobrunr.utils.mapper.AbstractJsonMapperTest$SomeCustomObjectThatDoesNotExist",
+        "actualClassName": "org.jobrunr.utils.mapper.AbstractJsonMapperTest$SomeCustomObjectThatDoesNotExist",
+        "object": {
+          "now": "2020-01-01T00:00:00Z",
+          "someId": "072da403-f87b-4529-8af2-0c78c395ec5f",
+          "someList": [
+            "a",
+            "b",
+            "c"
+          ],
+          "someString": "some string"
+        }
+      }
+    ]
+  },
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "2021-09-03T11:25:30.00Z"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "updatedAt": "2021-09-03T11:25:35.00Z",
+      "state": "PROCESSING",
+      "createdAt": "2021-09-03T11:25:35.00Z",
+      "serverId": "67936c40-7915-41e0-9960-edfff7759aaa"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.SucceededState",
+      "state": "SUCCEEDED",
+      "createdAt": "2021-09-03T11:25:40.00Z",
+      "latencyDuration": 230.000000000,
+      "processDuration": 10.000007345
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  },
+  "recurringJobId": null
+}
