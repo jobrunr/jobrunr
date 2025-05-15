@@ -169,7 +169,7 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             assertThat(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(now().minus(8, HOURS), "Job has passed its deadline, scheduling job now");
+                    .isScheduledAt(now(), "Job has passed its deadline, scheduling job now");
         }
     }
 

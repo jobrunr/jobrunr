@@ -70,8 +70,8 @@ public class CarbonAwareJobManager {
         if (isDeadlinePassed(carbonAwareAwaitingState)) {
             scheduleJobAt(job, now(), carbonAwareAwaitingState, "Job has passed its deadline, scheduling job now");
         } else if (hasTooSmallScheduleMargin(carbonAwareAwaitingState)) {
-            Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
-            scheduleJobAt(job, fallbackInstant(carbonAwareAwaitingState), carbonAwareAwaitingState, "Job does not have enough margin (" + carbonAwareMarginDuration + ") to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
+            Duration margin = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
+            scheduleJobAt(job, fallbackInstant(carbonAwareAwaitingState), carbonAwareAwaitingState, "Job does not have enough margin (" + margin + ") to be scheduled carbon aware, scheduling job at start of CarbonAwarePeriod");
         } else if (carbonIntensityForecast.hasNoForecastForPeriod(carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo())) {
             scheduleJobAt(job, fallbackInstant(carbonAwareAwaitingState), carbonAwareAwaitingState, getReasonForMissingForecast(carbonAwareAwaitingState));
         } else {
@@ -91,8 +91,8 @@ public class CarbonAwareJobManager {
         return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), carbonAwareAwaitingState.getFrom(), carbonAwareAwaitingState.getTo());
     }
 
-    private void scheduleJobAt(Job job, Instant instant, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
-        carbonAwareAwaitingState.moveToNextState(job, instant, reason);
+    private void scheduleJobAt(Job job, Instant scheduleAt, CarbonAwareAwaitingState carbonAwareAwaitingState, String reason) {
+        carbonAwareAwaitingState.moveToNextState(job, scheduleAt, reason);
     }
 
     private boolean isDeadlinePassed(CarbonAwareAwaitingState carbonAwareAwaitingState) {
@@ -101,8 +101,8 @@ public class CarbonAwareJobManager {
 
     private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState carbonAwareAwaitingState) {
         if (carbonIntensityForecast.hasNoForecast()) return false;
-        Duration carbonAwareMarginDuration = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
-        return carbonAwareMarginDuration.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
+        Duration margin = getCarbonAwareMarginDuration(carbonAwareAwaitingState);
+        return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
     }
 
     private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {

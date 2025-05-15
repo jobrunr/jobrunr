@@ -81,11 +81,11 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
         return reason;
     }
 
-    public void moveToNextState(Job job, Instant idealMoment, String reason) {
+    public void moveToNextState(Job job, Instant scheduleAt, String reason) {
         if (!(job.getJobState() instanceof CarbonAwareAwaitingState)) {
             throw new IllegalStateException("Only jobs in CarbonAwaitingState can move to a next state");
         }
-        job.scheduleAt(idealMoment, reason);
+        job.scheduleAt(scheduleAt, reason);
     }
 
     private static void validateCarbonAwarePeriod(Instant from, Instant to) {
