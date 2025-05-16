@@ -18,10 +18,10 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4 .
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
 
   - name: build
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
@@ -48,10 +48,10 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4 .
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
 
   - name: build
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -rf /tmp/reports/*
       - find /root/.gradle -name "*.lock" -type f -delete
@@ -85,7 +85,7 @@ trigger:
 
 steps:
   - name: build-and-upload-to-maven-central
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
@@ -112,7 +112,7 @@ steps:
   #      event: tag
 
   - name: update and push readme
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     environment:
       GITHUB_PAT:
         from_secret: GITHUB_TOKEN
