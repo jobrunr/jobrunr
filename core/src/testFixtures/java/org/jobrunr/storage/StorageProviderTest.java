@@ -544,7 +544,7 @@ public abstract class StorageProviderTest {
     }
 
     @Test
-    void testRecurringJobExists() {
+    void testGetRecurringJobScheduledInstants() {
         JobDetails jobDetails = defaultJobDetails().build();
         RecurringJob recurringJob = aDefaultRecurringJob().withJobDetails(jobDetails).build();
         Job scheduledJob = recurringJob.toScheduledJob();
@@ -554,17 +554,17 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId())).isEqualTo(List.of(scheduledAt));
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED)).isEqualTo(List.of(scheduledAt));
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED, PROCESSING, SUCCEEDED)).isEmpty();
 
         scheduledJob.enqueue();
         storageProvider.save(scheduledJob);
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED)).isEqualTo(List.of(scheduledAt));
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEmpty();
 
         scheduledJob.delete("For test");
         storageProvider.save(scheduledJob);
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEmpty();
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED, DELETED)).isEqualTo(List.of(scheduledAt));
 
         storageProvider.deletePermanently(scheduledJob.getId());
