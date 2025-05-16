@@ -77,7 +77,7 @@ public class FrontEndDevelopment {
         storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
 
         storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
-        storageProvider.save(anEnqueuedJob().withEnqueuedState(Instant.now()).withName("A job").build());
+        storageProvider.save(anEnqueuedJob().withName("A job").build());
 
         JobRunr
                 .configure()

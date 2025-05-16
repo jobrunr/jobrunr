@@ -180,7 +180,7 @@ public class JobTable extends Sql<Job> {
     }
 
     public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
-        String statement = "recurringJobId, MAX(scheduledAt) as latestScheduledAt FROM jobrunr_jobs WHERE recurringJobId IS NOT NULL GROUP BY recurringJobId";
+        String statement = "recurringJobId, MAX(scheduledAt) as latestScheduledAt FROM jobrunr_jobs WHERE state = 'SCHEDULED' AND recurringJobId IS NOT NULL GROUP BY recurringJobId";
         return select(statement).collect(toMap(rs -> rs.asString("recurringJobId"), rs -> rs.asInstant("latestScheduledAt")));
     }
 

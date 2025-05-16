@@ -263,10 +263,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
         return jobQueue.values().stream()
-                .filter(job -> job.getRecurringJobId().isPresent())
+                .filter(job -> job.getRecurringJobId().isPresent() && job.getJobState() instanceof ScheduledState)
                 .collect(toMap(
                         job -> job.getRecurringJobId().get(),
-                        job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")),
+                        job -> ((ScheduledState) job.getJobState()).getScheduledAt(),
                         maxBy(Instant::compareTo)
                 ));
     }
