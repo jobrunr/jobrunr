@@ -1,8 +1,5 @@
 FROM openjdk:21-slim@sha256:7072053847a8a05d7f3a14ebc778a90b38c50ce7e8f199382128a53385160688
 
-# disable SVE so ld-linux on arm64 doesn't segfault
-ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
-
 RUN apt-get update
 RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
 SHELL ["/bin/bash", "--login", "-i", "-c"]
@@ -15,6 +12,9 @@ RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npx /usr/bin/npx
 RUN npx playwright install-deps
 RUN npx playwright install
+
+# disable SVE so ld-linux on arm64 doesn't segfault
+ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
 
 ENV GRADLE_VERSION 8.5
 COPY gradle /home/gradle/gradle
