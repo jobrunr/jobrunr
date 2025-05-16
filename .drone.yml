@@ -18,15 +18,15 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4 .
+      - echo "Running on ${DRONE_STAGE_MACHINE:-<not set>} - ${DRONE_STAGE_OS:-<not set>}"
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
 
   - name: build
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -rf /tmp/reports/*
-      - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
-      - ./gradlew -Djib.console=plain --no-daemon -i clean build test --fail-fast
+      - ./gradlew --no-daemon -Djib.console=plain --no-daemon -i clean build test --fail-fast
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
 
 ---
@@ -48,15 +48,14 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4 .
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
 
   - name: build
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -rf /tmp/reports/*
-      - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
-      - ./gradlew --continue -Djib.console=plain --no-daemon -i clean build jacocoTestReport sonar
+      - ./gradlew --no-daemon --continue -Djib.console=plain --no-daemon -i clean build jacocoTestReport sonar
     environment:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
@@ -85,11 +84,10 @@ trigger:
 
 steps:
   - name: build-and-upload-to-maven-central
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
-      - find /root/.gradle -name "*.lock" -type f -delete
       - find /drone/src/.gradle -name "*.lock" -type f -delete
       - ./gradlew --no-daemon -i clean assemble publishToSonatype
     environment:
@@ -112,7 +110,7 @@ steps:
   #      event: tag
 
   - name: update and push readme
-    image: jobrunr.io/build-container:1.4
+    image: jobrunr.io/build-container:1.4.1
     environment:
       GITHUB_PAT:
         from_secret: GITHUB_TOKEN
