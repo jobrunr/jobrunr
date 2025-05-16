@@ -1,4 +1,4 @@
-FROM openjdk:21-slim@sha256:7072053847a8a05d7f3a14ebc778a90b38c50ce7e8f199382128a53385160688
+FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
 
 RUN apt-get update
 RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
