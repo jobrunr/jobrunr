@@ -622,9 +622,8 @@ public abstract class StorageProviderTest {
         storageProvider.save(asList(job1RJ1, job1RJ2));
 
         Map<String, Instant> latestScheduledRun3 = storageProvider.getRecurringJobsLatestScheduledRun();
-        assertThat(latestScheduledRun3).hasSize(2);
+        assertThat(latestScheduledRun3).hasSize(1);
         assertThat(latestScheduledRun3.get(recurringJob1.getId())).isCloseTo(now.plus(10, MINUTES), within(500, MILLIS));
-        assertThat(latestScheduledRun3.get(recurringJob2.getId())).isCloseTo(now, within(500, MILLIS));
     }
 
     @Test

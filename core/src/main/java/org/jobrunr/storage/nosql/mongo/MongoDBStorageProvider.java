@@ -407,7 +407,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         Map<String, Instant> lastRuns = new HashMap<>();
 
         jobCollection.aggregate(asList(
-                match(ne(Jobs.FIELD_RECURRING_JOB_ID, null)),
+                match(and(eq(Jobs.FIELD_STATE, SCHEDULED.name()), ne(Jobs.FIELD_RECURRING_JOB_ID, null))),
                 group("$" + Jobs.FIELD_RECURRING_JOB_ID, max("latestScheduledAt", "$" + Jobs.FIELD_SCHEDULED_AT))
         )).forEach(doc -> lastRuns.put(doc.getString("_id"), fromMicroseconds(doc.getLong("latestScheduledAt"))));
 
