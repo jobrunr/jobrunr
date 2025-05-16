@@ -63,7 +63,6 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static com.mongodb.client.model.Accumulators.max;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.match;
@@ -395,23 +394,17 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public boolean recurringJobExists(String recurringJobId, StateName... states) {
+    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
         if (states.length < 1) {
-            return jobCollection.countDocuments(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)) > 0;
+            return jobCollection.find(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))
+                    .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
+                    .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
+                    .into(new ArrayList<>());
         }
-        return jobCollection.countDocuments(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))) > 0;
-    }
-
-    @Override
-    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
-        Map<String, Instant> lastRuns = new HashMap<>();
-
-        jobCollection.aggregate(asList(
-                match(and(eq(Jobs.FIELD_STATE, SCHEDULED.name()), ne(Jobs.FIELD_RECURRING_JOB_ID, null))),
-                group("$" + Jobs.FIELD_RECURRING_JOB_ID, max("latestScheduledAt", "$" + Jobs.FIELD_SCHEDULED_AT))
-        )).forEach(doc -> lastRuns.put(doc.getString("_id"), fromMicroseconds(doc.getLong("latestScheduledAt"))));
-
-        return lastRuns;
+        return jobCollection.find(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)))
+                .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
+                .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
+                .into(new ArrayList<>());
     }
 
     @Override

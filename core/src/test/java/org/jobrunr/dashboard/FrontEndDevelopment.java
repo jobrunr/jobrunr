@@ -54,20 +54,20 @@ public class FrontEndDevelopment {
 //                .withLabels("tenant: JobRunr", "a second label", "123")
 //                .build());
 
-        for (int i = 0; i < 1; i++) {
+//        for (int i = 0; i < 1; i++) {
+//            storageProvider.saveRecurringJob(aDefaultRecurringJob()
+//                    .withId("every-3-m-" + i)
+//                    .withName("Every 3 minutes")
+//                    .withCronExpression("*/3 * * * *")
+//                    .withJobDetails(() -> new TestService().doWork())
+//                    .build());
+//        }
+
+        for (int i = 0; i < 1000; i++) {
             storageProvider.saveRecurringJob(aDefaultRecurringJob()
                     .withId("every-3-m-" + i)
-                    .withName("Every 3 minutes")
-                    .withCronExpression("*/3 * * * *")
-                    .withJobDetails(() -> new TestService().doWork())
-                    .build());
-        }
-
-        for (int i = 0; i < 1; i++) {
-            storageProvider.saveRecurringJob(aDefaultRecurringJob()
-                    .withId("every-1-m-" + i)
-                    .withName("Every 1 minute")
-                    .withCronExpression(Cron.minutely())
+                    .withName("Every 3 minute")
+                    .withIntervalExpression("PT3M")
                     .withJobDetails(() -> new TestService().doWork())
                     .build());
         }
