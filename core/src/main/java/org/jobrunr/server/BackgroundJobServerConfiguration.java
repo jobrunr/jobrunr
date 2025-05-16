@@ -24,7 +24,7 @@ public class BackgroundJobServerConfiguration {
     public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = Duration.ofHours(36);
     public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = Duration.ofHours(72);
     public static final Duration DEFAULT_INTERRUPT_JOBS_AWAIT_DURATION_ON_STOP_BACKGROUND_JOB_SERVER = Duration.ofSeconds(10);
-
+    int carbonAwareAwaitingJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
@@ -147,6 +147,17 @@ public class BackgroundJobServerConfiguration {
     }
 
     /**
+     * Allows to set the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
+     *
+     * @param awaitingJobRequestSize maximum number of jobs to update per database round-trip
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andCarbonAwaitingJobsRequestSize(int awaitingJobRequestSize) {
+        this.carbonAwareAwaitingJobsRequestSize = awaitingJobRequestSize;
+        return this;
+    }
+
+    /**
      * Allows to set the query size for misfired jobs per database round-trip (to retry them).
      *
      * @param orphanedJobsRequestSize maximum number of misfired jobs to check per database round-trip
@@ -214,7 +225,6 @@ public class BackgroundJobServerConfiguration {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
         return this;
     }
-
 
     private static String getHostName() {
         try {

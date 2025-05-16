@@ -2,7 +2,7 @@ package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
 
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
@@ -57,8 +58,8 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
         if (jobsToSchedule.size() > 1) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}). This means either its schedule is smaller than the pollInterval, your server was down or a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
-        } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
-            LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
+        } else if (isAlreadyInOneOfTheScheduledStates(recurringJob)) {
+            LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already either AWAITING/SCHEDULED/ENQUEUED or PROCESSING and taking longer than given CronExpression or Interval. Run will be skipped.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
             jobsToSchedule.clear();
         } else if (jobsToSchedule.size() == 1) {
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
@@ -73,12 +74,12 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         return recurringJob.toScheduledJobs(lastRun, upUntil);
     }
 
-    private boolean isAlreadyScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
-        return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+    private boolean isAlreadyInOneOfTheScheduledStates(RecurringJob recurringJob) {
+        return storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil, List<Job> scheduledJobs) {
-        Instant instant = findLast(scheduledJobs).map(x -> ((ScheduledState) x.getJobState()).getScheduledAt()).orElse(upUntil);
+        Instant instant = findLast(scheduledJobs).map(x -> ((SchedulableState) x.getJobState()).getScheduledAt()).orElse(upUntil);
         recurringJobRuns.put(recurringJob.getId(), instant);
     }
 }

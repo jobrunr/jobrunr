@@ -50,6 +50,33 @@ public interface JobRunrConfiguration {
          */
         @NotNull
         MetricsConfiguration getMetrics();
+
+        @NotNull
+        CarbonAwareConfiguration getCarbonAwareConfiguration();
+
+
+        @ConfigurationProperties("carbonAware")
+        interface CarbonAwareConfiguration {
+            /**
+             * Enables the carbon aware configuration to schedule jobs optimally.
+             */
+            @Bindable(defaultValue = "false")
+            boolean isEnabled();
+
+            Optional<String> getAreaCode();
+
+            Optional<String> getDataProvider();
+
+            Optional<String> getExternalIdentifier();
+
+            Optional<String> getCarbonIntensityApiUrl();
+
+            Optional<String> getExternalCode();
+
+            Optional<Integer> getApiClientConnectTimeoutMs();
+
+            Optional<Integer> getApiClientReadTimeoutMs();
+        }
     }
 
     @ConfigurationProperties("database")
@@ -135,6 +162,11 @@ public interface JobRunrConfiguration {
          * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
          */
         Optional<Integer> getServerTimeoutPollIntervalMultiplicand();
+
+        /**
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
+         */
+        Optional<Integer> getCarbonAwaitingJobsRequestSize();
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.

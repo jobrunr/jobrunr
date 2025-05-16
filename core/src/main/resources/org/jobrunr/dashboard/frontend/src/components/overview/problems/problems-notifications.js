@@ -8,6 +8,7 @@ import NewJobRunrVersionAvailable from "./new-jobrunr-version-available";
 import PollIntervalInSecondsIsTooSmallProblem from "./poll-interval-timebox-is-too-small-problem";
 import {ProblemsContext} from "../../../ProblemsContext";
 import JobRunrApiNotification from "./jobrunr-api-notification";
+import CarbonIntensityApiErrorProblem from "./carbon-intensity-api-error-problem";
 
 const problemTypeOrder = {
     "api-notification": 0, "severe-jobrunr-exception": 1, "jobs-not-found": 2, "cpu-allocation-irregularity": 3,
@@ -40,6 +41,10 @@ const Problems = () => {
                 : <Grid container>
                     {sortedProblems.map((problem) => {
                         switch (problem.type) {
+                            case "carbon-intensity-api-error":
+                                return <Grid item xs={12} key={problem.type}>
+                                    <CarbonIntensityApiErrorProblem problem={problem} refresh={reload}/>
+                                </Grid>
                             case "api-notification":
                                 return <Grid item xs={12} key={problem.type}><JobRunrApiNotification problem={problem}/></Grid>
                             case 'jobs-not-found':
