@@ -18,6 +18,7 @@ steps:
   - name: prepare
     image: plugins/docker
     commands:
+      - echo "Running on ${DRONE_STAGE_MACHINE:-<not set>} - ${DRONE_STAGE_OS:-<not set>}"
       - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
 
   - name: build
