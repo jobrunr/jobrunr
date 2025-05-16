@@ -8,7 +8,12 @@ import org.jobrunr.dashboard.ui.model.problems.ProblemsManager;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.*;
+import org.jobrunr.storage.JobNotFoundException;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.storage.Page;
+import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.utils.mapper.JsonMapper;
 
@@ -109,9 +114,9 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler deleteRecurringJob() {
         return (request, response) -> {
-             String jobId = request.param(":id");
+            String jobId = request.param(":id");
             int deleted = storageProvider.deleteRecurringJob(jobId);
-            if(deleted == 0) {
+            if (deleted == 0) {
                 throw new JobNotFoundException(jobId);
             }
             response.statusCode(204);
