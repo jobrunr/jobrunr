@@ -17,10 +17,8 @@ import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,20 +52,20 @@ public class FrontEndDevelopment {
 //                .withLabels("tenant: JobRunr", "a second label", "123")
 //                .build());
 
-//        for (int i = 0; i < 1; i++) {
-//            storageProvider.saveRecurringJob(aDefaultRecurringJob()
-//                    .withId("every-3-m-" + i)
-//                    .withName("Every 3 minutes")
-//                    .withCronExpression("*/3 * * * *")
-//                    .withJobDetails(() -> new TestService().doWork())
-//                    .build());
-//        }
-
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1; i++) {
             storageProvider.saveRecurringJob(aDefaultRecurringJob()
                     .withId("every-3-m-" + i)
-                    .withName("Every 3 minute")
-                    .withIntervalExpression("PT3M")
+                    .withName("Every 3 minutes")
+                    .withCronExpression("*/3 * * * *")
+                    .withJobDetails(() -> new TestService().doWork())
+                    .build());
+        }
+
+        for (int i = 0; i < 1; i++) {
+            storageProvider.saveRecurringJob(aDefaultRecurringJob()
+                    .withId("every-1-m-" + i)
+                    .withName("Every 1 minute")
+                    .withCronExpression(Cron.minutely())
                     .withJobDetails(() -> new TestService().doWork())
                     .build());
         }
@@ -129,13 +127,13 @@ public class FrontEndDevelopment {
         }
     }
 
-    private static StorageProvider inMemoryStorageProvider() throws SQLException {
+    private static StorageProvider inMemoryStorageProvider() {
         StorageProvider storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         return storageProvider;
     }
 
-    private static StorageProvider db2StorageProvider() throws SQLException {
+    private static StorageProvider db2StorageProvider() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:db2://127.0.0.1:53759/test");
         config.setUsername("db2inst1");
@@ -151,7 +149,7 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider mariaDBStorageProvider() throws SQLException {
+    private static StorageProvider mariaDBStorageProvider() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mariadb://localhost:3306/mysql?rewriteBatchedStatements=true&useBulkStmts=false");
         config.setUsername("root");
@@ -159,7 +157,7 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider mysqlStorageProvider() throws SQLException {
+    private static StorageProvider mysqlStorageProvider() {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("com.mysql.jdbc.Driver");
         config.setJdbcUrl("jdbc:mysql://127.0.0.1:50516/test?rewriteBatchedStatements=true&useSSL=false");
@@ -168,7 +166,7 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider oracleStorageProvider() throws SQLException {
+    private static StorageProvider oracleStorageProvider() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:oracle:thin:@127.0.0.1:54076/xepdb1");
         config.setUsername("test");
@@ -176,22 +174,21 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider postgresStorageProvider() throws SQLException {
-        PGSimpleDataSource dataSource = new PGSimpleDataSource();
-        dataSource.setURL("jdbc:postgresql://127.0.0.1:5432/postgres");
-        dataSource.setUser("postgres");
-        dataSource.setPassword("postgres");
-        dataSource.setProperty("socketTimeout", "10");
-        return toStorageProvider(dataSource);
+    private static StorageProvider postgresStorageProvider() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:postgresql://127.0.0.1:5432/postgres");
+        config.setUsername("postgres");
+        config.setPassword("postgres");
+        return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider sqliteStorageProvider() throws SQLException {
+    private static StorageProvider sqliteStorageProvider() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlite:/tmp/jobrunr-frontend.db");
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider sqlServerStorageProvider() throws SQLException {
+    private static StorageProvider sqlServerStorageProvider() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlserver://localhost:1433;databaseName=tempdb;encrypt=true;trustServerCertificate=true;");
         config.setUsername("sa");
