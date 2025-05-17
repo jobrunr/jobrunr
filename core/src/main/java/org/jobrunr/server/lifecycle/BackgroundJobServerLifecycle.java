@@ -1,11 +1,14 @@
 package org.jobrunr.server.lifecycle;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class BackgroundJobServerLifecycle {
 
-    final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
+    final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    final Condition readWriteFinished = readWriteLock.writeLock().newCondition();
     volatile BackgroundJobServerLifecycleEvent lifecycleEvent;
     volatile boolean isRunning = false;
 
@@ -18,11 +21,20 @@ public class BackgroundJobServerLifecycle {
     }
 
     public boolean isTransitioning() {
-        return reentrantReadWriteLock.isWriteLocked();
+        return readWriteLock.isWriteLocked();
     }
 
     public boolean isTransitioningTo(BackgroundJobServerLifecycleEvent event) {
-        return isTransitioning() && Objects.equals(event, lifecycleEvent);
+        if (!isTransitioning()) return false;
+
+        try {
+            if (event == null) {
+                readWriteFinished.await(10, TimeUnit.MILLISECONDS);
+            }
+            return Objects.equals(event, lifecycleEvent);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean isRunning() {

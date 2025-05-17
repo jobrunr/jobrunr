@@ -25,6 +25,6 @@ public abstract class AbstractLifecycleLock implements AutoCloseable {
     }
 
     private ReentrantReadWriteLock readWriteLock(BackgroundJobServerLifecycle backgroundJobServerLifecycle) {
-        return backgroundJobServerLifecycle.reentrantReadWriteLock;
+        return backgroundJobServerLifecycle.readWriteLock;
     }
 }

@@ -7,6 +7,7 @@ public class LifecycleChangeLock extends AbstractLifecycleLock {
     public LifecycleChangeLock(BackgroundJobServerLifecycle backgroundJobServerLifecycle, BackgroundJobServerLifecycleEvent lifecycleEvent) {
         super(backgroundJobServerLifecycle);
         backgroundJobServerLifecycle.lifecycleEvent = lifecycleEvent;
+        backgroundJobServerLifecycle.readWriteFinished.signalAll();
     }
 
     public void succeeded() {
