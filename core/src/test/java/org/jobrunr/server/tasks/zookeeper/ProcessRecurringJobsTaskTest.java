@@ -152,7 +152,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         runTask(task);
 
         verify(storageProvider, never()).save(anyList());
-        verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+        verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
     }
 
     @Test
@@ -168,7 +168,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - 1 job is already scheduled
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
             runTask(task);
 
@@ -178,19 +178,19 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the job is still scheduled but will be moved to enqueued.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearInvocations(storageProvider);
-            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(true);
 
             runTask(task);
 
             verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
-            verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+            verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
             assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range");
         }
 
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearInvocations(storageProvider);
-            when(storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
+            when(storageProvider.recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(false);
 
             runTask(task);
 
