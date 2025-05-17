@@ -1,9 +1,11 @@
 FROM eclipse-temurin:21-jdk-alpine@sha256:2f2f553ce09d25e2d2f0f521ab94cd73f70c9b21327a29149c23a2b63b8e29a0
 
+RUN apk add -U curl bash ca-certificates openssl ncurses coreutils python3 make gcc g++ libgcc linux-headers grep util-linux binutils findutils
+
 COPY --from=docker:20.10 /usr/local/bin/docker /usr/local/bin/
 
 SHELL ["/bin/bash", "--login", "-i", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 RUN source /root/.bashrc
 RUN nvm install 18.17.1
 RUN npm -v
