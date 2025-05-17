@@ -1,7 +1,9 @@
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
 
-RUN printf 'APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\n' > /etc/apt/apt.conf.d/99no-recommends
-RUN apt-get update && apt-get install -y git ca-certificates curl gnupg lsb-release && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git ca-certificates curl gnupg lsb-release \
+    libnss3 libxss1 libasound2 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libxkbfile1 \
+    libpangocairo-1.0-0 libpango-1.0-0 libgtk-3-0 libgbm1 libnotify-dev \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=docker:20.10 /usr/local/bin/docker /usr/local/bin/
 
 SHELL ["/bin/bash", "--login", "-i", "-c"]
