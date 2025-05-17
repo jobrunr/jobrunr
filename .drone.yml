@@ -32,6 +32,11 @@ steps:
           ./gradlew --no-daemon -Djib.console=plain --info clean build test --fail-fast \
             | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\.)"
         '
+    environment:
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
 
 ---
 kind: pipeline
@@ -68,6 +73,10 @@ steps:
     environment:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
       #- gradle assemble :tests:e2e-ui-gson:test :tests:e2e-ui-jackson:test  --tests org.jobrunr.tests.e2e.**
 
 #  - name: slack
@@ -105,6 +114,10 @@ steps:
             | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\.)"
         '
     environment:
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
       SIGNING_KEY:
         from_secret: SIGNING_KEY
       SIGNING_PASSWORD:
