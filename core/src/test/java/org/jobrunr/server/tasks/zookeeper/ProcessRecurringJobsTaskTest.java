@@ -82,7 +82,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     @Test
     void taskDoesNotScheduleSameJobIfItIsAlreadyScheduledEnqueuedOrProcessed() {
         Instant now = now();
-        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/15 * * * * *").build();
+        RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
