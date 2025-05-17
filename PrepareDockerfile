@@ -1,6 +1,7 @@
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
 
-RUN apt-get update && apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release
+RUN apt-get update && apt-get purge -y --auto-remove systemd systemd-sysv libpam-systemd systemd-container && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common git ca-certificates curl gnupg lsb-release  && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 RUN echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
