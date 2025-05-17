@@ -1,6 +1,6 @@
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
 
-RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common git ca-certificates curl gnupg lsb-release && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates curl gnupg lsb-release && rm -rf /var/lib/apt/lists/*
 COPY --from=docker:20.10 /usr/local/bin/docker /usr/local/bin/
 
 SHELL ["/bin/bash", "--login", "-i", "-c"]
