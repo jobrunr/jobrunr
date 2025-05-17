@@ -59,7 +59,12 @@ steps:
     commands:
       - rm -rf /tmp/reports/*
       - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
-      - ./gradlew --no-daemon --continue -Djib.console=plain --no-daemon -i clean build jacocoTestReport sonar | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing.)"
+      - |
+        bash -lc '
+          set -e -o pipefail
+          ./gradlew --no-daemon -Djib.console=plain --info clean build jacocoTestReport sonar \
+            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\.)"
+        '
     environment:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
@@ -93,7 +98,12 @@ steps:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
       - find /drone/src/.gradle -name "*.lock" -type f -delete
-      - ./gradlew --no-daemon -i clean assemble publishToSonatype  | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing.)"
+      - |
+        bash -lc '
+          set -e -o pipefail
+          ./gradlew --no-daemon -Djib.console=plain --info clean assemble publishToSonatype \
+            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\.)"
+        '
     environment:
       SIGNING_KEY:
         from_secret: SIGNING_KEY

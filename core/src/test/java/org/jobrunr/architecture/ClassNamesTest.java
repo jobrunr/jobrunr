@@ -5,17 +5,11 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @AnalyzeClasses(packages = "org.jobrunr", importOptions = {ImportOption.DoNotIncludeTests.class, PackageDependenciesTest.DoNotIncludeTestFixtures.class})
 public class ClassNamesTest {
-
-    @Test
-    void makeBuildFail() {
-        throw new RuntimeException("should fail build");
-    }
 
     @ArchTest
     ArchRule classesNamedAbstractShouldBeAbstractAsWell = classes()
