@@ -8,6 +8,23 @@ pluginManagement {
     }
 }
 
+buildCache {
+    local {
+        enabled = true
+    }
+
+    // (B) remote cache
+    remote(HttpBuildCache) {
+        url = uri("http://192.168.129.102:5071/cache/")
+        push = true
+        allowInsecureProtocol = true
+        credentials {
+            username = System.getenv('BUILD_CACHE_USER')
+            password = System.getenv('BUILD_CACHE_PASSWORD')
+        }
+    }
+}
+
 rootProject.name = 'JobRunr'
 include ':platform'
 include ':core'

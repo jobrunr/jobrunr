@@ -50,10 +50,13 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     List<Job> toScheduledJobs(RecurringJob recurringJob, Instant from, Instant upUntil) {
-        List<Job> jobsToSchedule = getJobsToSchedule(recurringJob, from, upUntil);
+        List<Job> jobsToSchedule = createJobsToSchedule(recurringJob, from, upUntil);
         if (jobsToSchedule.isEmpty()) {
             LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
-        } else if (jobsToSchedule.size() > 1) {
+            return emptyList();
+        }
+
+        if (jobsToSchedule.size() > 1) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}). This means either its schedule is smaller than the pollInterval, your server was down or a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
         } else if (isAlreadyInOneOfTheScheduledStates(recurringJob)) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already either AWAITING/SCHEDULED/ENQUEUED or PROCESSING and taking longer than given CronExpression or Interval. Run will be skipped.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
@@ -65,7 +68,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         return jobsToSchedule;
     }
 
-    private List<Job> getJobsToSchedule(RecurringJob recurringJob, Instant runStartTime, Instant upUntil) {
+    private List<Job> createJobsToSchedule(RecurringJob recurringJob, Instant runStartTime, Instant upUntil) {
         Instant lastRun = recurringJobRuns.getOrDefault(recurringJob.getId(), runStartTime);
         if (lastRun.isAfter(runStartTime)) return emptyList(); // already scheduled ahead of time
         return recurringJob.toScheduledJobs(lastRun, upUntil);
