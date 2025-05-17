@@ -11,6 +11,9 @@ RUN npm -v
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npm /usr/bin/npm
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npx /usr/bin/npx
+
+# Make *all* apt installs skip Recommends & Suggests
+RUN printf 'APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\n' > /etc/apt/apt.conf.d/99no-recommends
 RUN npx playwright install-deps
 RUN npx playwright install
 
