@@ -15,9 +15,9 @@ buildCache {
 
     // (B) remote cache
     remote(HttpBuildCache) {
-        url = uri("http://192.168.129.102:5071/")
-        push = true               // allow storing new entries
-        allowInsecureProtocol = true  // if you’re not using HTTPS
+        url = uri("http://192.168.129.102:5071/cache/")
+        push = true
+        allowInsecureProtocol = true
         credentials {
             username = System.getenv('BUILD_CACHE_USER')
             password = System.getenv('BUILD_CACHE_PASSWORD')
