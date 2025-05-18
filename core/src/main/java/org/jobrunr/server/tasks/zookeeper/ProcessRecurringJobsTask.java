@@ -25,7 +25,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
-        this.recurringJobRuns = new HashMap<>(storageProvider.getRecurringJobsLatestScheduledRun());
+        this.recurringJobRuns = new HashMap<>();
         this.recurringJobs = new RecurringJobsResult();
     }
 
@@ -55,15 +55,23 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
             return emptyList();
         }
 
+        Instant scheduledAtOfLastJobToSchedule = getScheduledAtOfLastScheduledJob(jobsToSchedule);
+        Instant scheduledAtOfLatestJobInStorageProvider = getLatestScheduledAtOfJobsInStorageProvider(recurringJob);
+
+        if (hasJobInQueueOrProcessing(scheduledAtOfLatestJobInStorageProvider)) {
+            if (recurringJobIsTakingTooLong(upUntil, scheduledAtOfLastJobToSchedule)) {
+                LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
+            }
+            jobsToSchedule.clear();
+            scheduledAtOfLastJobToSchedule = recurringJobIsTakingTooLong(scheduledAtOfLatestJobInStorageProvider, upUntil) ? scheduledAtOfLatestJobInStorageProvider : upUntil;
+        }
+
         if (jobsToSchedule.size() > 1) {
             LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}). This means either its schedule is smaller than the pollInterval, your server was down or a long GC happened and JobRunr is catching up.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
-        } else if (isAlreadyScheduledEnqueuedOrProcessing(recurringJob)) {
-            LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
-            jobsToSchedule.clear();
         } else if (jobsToSchedule.size() == 1) {
             LOGGER.debug("Recurring job '{}' resulted in 1 scheduled job.", recurringJob.getJobName());
         }
-        registerRecurringJobRun(recurringJob, upUntil, jobsToSchedule);
+        registerRecurringJobRun(recurringJob, scheduledAtOfLastJobToSchedule);
         return jobsToSchedule;
     }
 
@@ -73,12 +81,26 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         return recurringJob.toScheduledJobs(lastRun, upUntil);
     }
 
-    private boolean isAlreadyScheduledEnqueuedOrProcessing(RecurringJob recurringJob) {
-        return storageProvider.recurringJobExists(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+    private boolean hasJobInQueueOrProcessing(Instant latestScheduledAt) {
+        return latestScheduledAt != null;
     }
 
-    private void registerRecurringJobRun(RecurringJob recurringJob, Instant upUntil, List<Job> scheduledJobs) {
-        Instant instant = findLast(scheduledJobs).map(x -> ((ScheduledState) x.getJobState()).getScheduledAt()).orElse(upUntil);
+    private static boolean recurringJobIsTakingTooLong(Instant upUntil, Instant scheduledAtOfLastJobToSchedule) {
+        return scheduledAtOfLastJobToSchedule.isBefore(upUntil);
+    }
+
+    private Instant getLatestScheduledAtOfJobsInStorageProvider(RecurringJob recurringJob) {
+        List<Instant> scheduledInstants = storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+        return scheduledInstants.stream().max(Instant::compareTo).orElse(null);
+    }
+
+    private void registerRecurringJobRun(RecurringJob recurringJob, Instant instant) {
         recurringJobRuns.put(recurringJob.getId(), instant);
+    }
+
+    private Instant getScheduledAtOfLastScheduledJob(List<Job> jobsToSchedule) {
+        return findLast(jobsToSchedule)
+                .map(x -> ((ScheduledState) x.getJobState()).getScheduledAt())
+                .orElseThrow(() -> new IllegalArgumentException("jobsToSchedule must not be empty."));
     }
 }
