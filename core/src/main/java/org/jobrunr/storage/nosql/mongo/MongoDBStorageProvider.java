@@ -90,6 +90,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.areAllStateNames;
 import static org.jobrunr.storage.JobRunrMetadata.toId;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -395,7 +396,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
-        if (states.length < 1) {
+        if (areAllStateNames(states)) {
             return jobCollection.find(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))
                     .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
                     .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))

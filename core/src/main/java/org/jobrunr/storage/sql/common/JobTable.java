@@ -30,6 +30,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.areAllStateNames;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
@@ -169,14 +170,14 @@ public class JobTable extends Sql<Job> {
     }
 
     public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) throws SQLException {
-        if (states.length < 1) {
+        if (areAllStateNames(states)) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
                     .select("scheduledAt from jobrunr_jobs where recurringJobId = :recurringJobId")
                     .map(rs -> rs.asInstant("scheduledAt"))
                     .collect(toList());
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .select("scheduledAt from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId")
+                .select("scheduledAt FROM jobrunr_jobs WHERE recurringJobId = :recurringJobId AND state IN (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")")
                 .map(rs -> rs.asInstant("scheduledAt"))
                 .collect(toList());
     }

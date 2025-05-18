@@ -35,6 +35,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.areAllStateNames;
 import static org.jobrunr.jobs.states.StateName.getStateNames;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
@@ -249,7 +250,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
-        if (states.length == 0) {
+        if (areAllStateNames(states)) {
             return jobQueue.values().stream()
                     .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
                     .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
