@@ -50,7 +50,7 @@ public class FrontEndDevelopment {
 
         var stubServer = new CarbonIntensityApiStubServer()
                 .andPort(10000)
-                .andBestIntensityMomentTodayAt(16)
+                .andBestIntensityMomentTodayAt(12)
                 .start();
 
         JobRunr
@@ -64,7 +64,7 @@ public class FrontEndDevelopment {
                 .useBackgroundJobServer()
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(15, 18), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(12, 18), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-2", CarbonAware.dailyBefore(7), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 //        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-3", CarbonAware.using(Cron.daily(4), Duration.ofHours(2), Duration.ofHours(1)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));

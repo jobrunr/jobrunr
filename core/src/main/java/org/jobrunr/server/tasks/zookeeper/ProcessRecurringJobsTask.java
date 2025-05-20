@@ -2,6 +2,7 @@ package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
@@ -60,7 +62,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
         if (hasJobInQueueOrProcessing(scheduledAtOfLatestJobInStorageProvider)) {
             if (recurringJobIsTakingTooLong(upUntil, scheduledAtOfLastJobToSchedule)) {
-                LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
+                LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already AWAITING, SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
             }
             jobsToSchedule.clear();
             scheduledAtOfLastJobToSchedule = recurringJobIsTakingTooLong(scheduledAtOfLatestJobInStorageProvider, upUntil) ? scheduledAtOfLatestJobInStorageProvider : upUntil;
@@ -90,7 +92,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private Instant getLatestScheduledAtOfJobsInStorageProvider(RecurringJob recurringJob) {
-        List<Instant> scheduledInstants = storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+        List<Instant> scheduledInstants = storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
         return scheduledInstants.stream().max(Instant::compareTo).orElse(null);
     }
 
@@ -100,7 +102,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private Instant getScheduledAtOfLastScheduledJob(List<Job> jobsToSchedule) {
         return findLast(jobsToSchedule)
-                .map(x -> ((ScheduledState) x.getJobState()).getScheduledAt())
+                .map(x -> ((SchedulableState) x.getJobState()).getScheduledAt())
                 .orElseThrow(() -> new IllegalArgumentException("jobsToSchedule must not be empty."));
     }
 }

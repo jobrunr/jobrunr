@@ -155,7 +155,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - 1 job is already scheduled
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
 
             runTask(task);
 
@@ -165,19 +165,19 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the job is still scheduled but will be moved to enqueued.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearInvocations(storageProvider);
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
 
             runTask(task);
 
             verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
-            verify(storageProvider, never()).getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+            verify(storageProvider, never()).getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
             assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range");
         }
 
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearInvocations(storageProvider);
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
 
             runTask(task);
 
@@ -246,7 +246,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             runTask(task);
 
             verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
-            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:55.500Z - 2022-12-14T08:37:00.500Z (PT5S) but it is already SCHEDULED, ENQUEUED or PROCESSING.");
+            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:55.500Z - 2022-12-14T08:37:00.500Z (PT5S) but it is already AWAITING, SCHEDULED, ENQUEUED or PROCESSING.");
         }
     }
 
