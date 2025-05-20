@@ -29,9 +29,7 @@ import java.util.stream.Stream;
 import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
-import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
@@ -40,6 +38,7 @@ import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.jobs.states.StateName.areAllStateNames;
 import static org.jobrunr.jobs.states.StateName.getStateNames;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
@@ -263,25 +262,18 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        if (states.length == 0) {
+    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
+        if (areAllStateNames(states)) {
             return jobQueue.values().stream()
-                    .anyMatch(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)));
+                    .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
+                    .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
+                    .collect(toList());
         }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                .anyMatch(job -> asList(getStateNames(states)).contains(job.getState()));
-    }
-
-    @Override
-    public Map<String, Instant> getRecurringJobsLatestScheduledRun() {
-        return jobQueue.values().stream()
-                .filter(job -> job.getRecurringJobId().isPresent())
-                .collect(toMap(
-                        job -> job.getRecurringJobId().get(),
-                        job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")),
-                        maxBy(Instant::compareTo)
-                ));
+                .filter(job -> asList(getStateNames(states)).contains(job.getState()))
+                .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
+                .collect(toList());
     }
 
     @Override

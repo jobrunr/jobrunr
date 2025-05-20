@@ -16,7 +16,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -206,15 +205,13 @@ public interface StorageProvider extends AutoCloseable {
     Set<String> getDistinctJobSignatures(StateName... states);
 
     /**
-     * Returns true when a {@link Job} created by the {@link RecurringJob} with the given id exists with one of the given states.
+     * Returns the scheduled instants of the {@link Job Jobs} created by the {@link RecurringJob} with the given recurringJobId.
      *
-     * @param recurringJobId the id of the RecurringJob for which the check whether a Job exists
-     * @param states         the possible states for the Job (can be empty)
-     * @return true if a Job exists created by a RecurringJob with the given id.
+     * @param recurringJobId the id of the RecurringJob for which to get the scheduled instants
+     * @param states         the possible states for the {@link Job} (can be empty)
+     * @return a list of the scheduled instants of the matched {@link Job Jobs}
      */
-    boolean recurringJobExists(String recurringJobId, StateName... states);
-
-    Map<String, Instant> getRecurringJobsLatestScheduledRun();
+    List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states);
 
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten

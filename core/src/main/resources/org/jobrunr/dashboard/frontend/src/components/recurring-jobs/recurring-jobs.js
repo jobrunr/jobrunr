@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
 import Checkbox from '@mui/material/Checkbox';
@@ -15,7 +15,7 @@ import Tooltip from '@mui/material/Tooltip';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
-import {Snackbar} from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogTitle, Snackbar} from "@mui/material";
 import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
@@ -61,6 +61,9 @@ const RecurringJobs = () => {
     const [recurringJobPage, setRecurringJobPage] = useState({total: 0, limit: 20, currentPage: 0, items: []});
     const [recurringJobs, setRecurringJobs] = useState([{}]);
     const [apiStatus, setApiStatus] = useState(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+    const amountOfSelectedRecurringJobs = useMemo(() => recurringJobs.filter(recurringJob => recurringJob.selected).length, [recurringJobs])
 
     useEffect(() => {
         getRecurringJobs();
@@ -105,7 +108,7 @@ const RecurringJobs = () => {
         }))
     };
 
-    const handleCloseAlert = (event, reason) => {
+    const handleCloseAlert = () => {
         setApiStatus(null);
     };
 
@@ -126,7 +129,9 @@ const RecurringJobs = () => {
                     message: 'Error deleting recurring jobs - please refresh the page'
                 });
             }
-        })
+        }).finally(() => {
+            setShowDeleteDialog(false);
+        });
     };
 
     const triggerSelectedRecurringJobs = () => {
@@ -151,6 +156,10 @@ const RecurringJobs = () => {
             }
         })
     };
+
+    const toggleDeleteDialog = () => {
+        setShowDeleteDialog(prev => !prev);
+    }
 
     return (
         <div>
@@ -180,7 +189,7 @@ const RecurringJobs = () => {
                                             Trigger
                                         </Button>
                                         <Button variant="outlined" color="primary"
-                                                onClick={deleteSelectedRecurringJobs}>
+                                                onClick={toggleDeleteDialog}>
                                             Delete
                                         </Button>
                                     </ButtonGroup>
@@ -256,6 +265,24 @@ const RecurringJobs = () => {
                     </Alert>
                 </Snackbar>
             }
+            <Dialog fullWidth maxWidth="sm" scroll="paper" onClose={toggleDeleteDialog}
+                    aria-labelledby="customized-dialog-title" open={showDeleteDialog}>
+                <DialogTitle id="customized-dialog-title">
+                    Delete selected recurrent jobs?
+                </DialogTitle>
+                <DialogContent dividers>
+                    <p>Are you sure you want to delete {amountOfSelectedRecurringJobs} recurrent job(s)?</p>
+                    <p><b>Note:</b> The recurring jobs may have scheduled jobs, they'll be processed by JobRunr unless deleted manually.</p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={toggleDeleteDialog} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={deleteSelectedRecurringJobs} color="primary">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     )
 };
