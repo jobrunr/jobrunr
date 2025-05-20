@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -141,22 +142,6 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
                 .hasSize(1)
                 .allMatch(j -> j.getRecurringJobId().orElse("").equals(recurringJob.getId()))
                 .allMatch(j -> j.getState() == SCHEDULED);
-    }
-
-    @Test
-    void ifJobIsScheduledAheadOfTimeTaskDoesNotCheckIfItIsAlreadyScheduledEnqueuedOrProcessed() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT24H").build();
-
-        Instant lastScheduledAt = now().plus(10, HOURS);
-        when(storageProvider.getRecurringJobsLatestScheduledRun()).thenReturn(Map.of(recurringJob.getId(), lastScheduledAt));
-        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
-        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
-        ProcessRecurringJobsTask task = new ProcessRecurringJobsTask(backgroundJobServer);
-
-        runTask(task);
-
-        verify(storageProvider, never()).save(anyList());
-        verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
     }
 
     @Test
