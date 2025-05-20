@@ -27,6 +27,7 @@ import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_2024
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PARTIAL_2024_07_11_FULL_2024_07_12;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PARTIAL_2024_07_12;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
+import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.ITALY_2025_05_20_PT15M;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.UNKNOWN_AREA;
 import static org.mockito.DatetimeMocker.mockZonedDateTime;
 import static org.mockito.InstantMocker.mockTime;
@@ -142,6 +143,22 @@ public class CarbonAwareJobManagerTest extends AbstractCarbonAwareWiremockTest {
 
             assertThat(carbonAwareJobManager.getNextRefreshTime())
                     .isCloseTo(dateTime.plusDays(1).withHour(19).toInstant(), within(30, MINUTES));
+        }
+    }
+
+    @Test
+    void testMoveToNextStateAlsoWorksForPT15MIntensityIntervals() {
+        mockResponseWhenRequestingAreaCode("IT", ITALY_2025_05_20_PT15M);
+        CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("IT");
+        carbonAwareJobManager.updateCarbonIntensityForecast();
+        try (MockedStatic<Instant> ignored = mockTime(Instant.parse("2025-05-20T13:00:00.000Z"))) {
+            Job job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minus(1, HOURS), now().plus(3, HOURS))).build();
+
+            carbonAwareJobManager.moveToNextState(job);
+
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(Instant.parse("2025-05-20T12:00:00.000Z"), "At the best moment to minimize carbon impact.");
         }
     }
 
