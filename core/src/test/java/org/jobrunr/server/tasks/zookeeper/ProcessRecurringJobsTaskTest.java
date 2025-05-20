@@ -144,6 +144,22 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    void ifJobIsScheduledAheadOfTimeTaskDoesNotCheckIfItIsAlreadyScheduledEnqueuedOrProcessed() {
+        RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT24H").build();
+
+        Instant lastScheduledAt = now().plus(10, HOURS);
+        when(storageProvider.getRecurringJobsLatestScheduledRun()).thenReturn(Map.of(recurringJob.getId(), lastScheduledAt));
+        when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
+        when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
+        ProcessRecurringJobsTask task = new ProcessRecurringJobsTask(backgroundJobServer);
+
+        runTask(task);
+
+        verify(storageProvider, never()).save(anyList());
+        verify(storageProvider, never()).recurringJobExists(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
+    }
+
+    @Test
     void taskSkipsAlreadyScheduledRecurringJobsOnStartup() {
         Instant now = now();
         RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT1H").build();
