@@ -11,7 +11,7 @@ import java.time.Instant;
 import static java.lang.String.format;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
-public class CarbonAwareAwaitingState extends AbstractJobState implements SchedulableState {
+public class CarbonAwareAwaitingState extends AbstractJobState {
     private Instant preferredInstant;
     private Instant from;
     private Instant to;
@@ -82,6 +82,10 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
         return to;
     }
 
+    public Instant getDeadline() {
+        return to;
+    }
+
     public CarbonAwarePeriod getPeriod() {
         return CarbonAwarePeriod.between(from, to);
     }
@@ -113,12 +117,5 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
                 ", from=" + from +
                 ", to=" + to +
                 '}';
-    }
-
-    @Override
-    public Instant getScheduledAt() {
-        // why: this acts as a deadline for the awaiting state interval.
-        // PreferredInstant can be null if not triggered from a recurring job.
-        return to;
     }
 }

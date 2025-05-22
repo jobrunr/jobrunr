@@ -47,6 +47,7 @@ import org.jobrunr.storage.nosql.mongo.mapper.BackgroundJobServerStatusDocumentM
 import org.jobrunr.storage.nosql.mongo.mapper.JobDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MetadataDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MongoDBAmountRequestMapper;
+import org.jobrunr.utils.InstantUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.lang.reflect.InvocationTargetException;
@@ -339,7 +340,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
-        return findJobs(and(eq(Jobs.FIELD_STATE, AWAITING), lt(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(deadlineBefore))), amountRequest);
+        return findJobs(and(eq(Jobs.FIELD_STATE, AWAITING), lt(Jobs.FIELD_DEADLINE, toMicroSeconds(deadlineBefore))), amountRequest);
     }
 
     @Override
@@ -403,14 +404,22 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
         if (areAllStateNames(states)) {
-            return jobCollection.find(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))
-                    .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
-                    .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
-                    .into(new ArrayList<>());
+            return getRecurringJobScheduledInstantsForAllStates(recurringJobId);
         }
+        return getRecurringJobScheduledInstantsForSelectStates(recurringJobId, states);
+    }
+
+    private ArrayList<Instant> getRecurringJobScheduledInstantsForSelectStates(String recurringJobId, StateName[] states) {
         return jobCollection.find(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)))
-                .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
-                .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
+                .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT, Jobs.FIELD_DEADLINE)))
+                .map(r -> InstantUtils.max(fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)), fromMicroseconds(r.getLong(Jobs.FIELD_DEADLINE))))
+                .into(new ArrayList<>());
+    }
+
+    private ArrayList<Instant> getRecurringJobScheduledInstantsForAllStates(String recurringJobId) {
+        return jobCollection.find(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))
+                .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT, Jobs.FIELD_DEADLINE)))
+                .map(r -> InstantUtils.max(fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)), fromMicroseconds(r.getLong(Jobs.FIELD_DEADLINE))))
                 .into(new ArrayList<>());
     }
 

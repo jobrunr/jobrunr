@@ -24,6 +24,10 @@ public class Paging {
         public static AmountRequest ascOnScheduledAt(int amount) {
             return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":ASC", amount);
         }
+
+        public static AmountRequest ascOnCarbonAwareDeadline(int amount) {
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_DEADLINE + ":ASC", amount);
+        }
     }
 
     public static class OffsetBasedPage {

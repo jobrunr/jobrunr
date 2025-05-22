@@ -12,6 +12,7 @@ import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.navigation.OrderTerm;
+import org.jobrunr.utils.InstantUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
@@ -263,16 +264,12 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
-        if (areAllStateNames(states)) {
-            return jobQueue.values().stream()
-                    .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                    .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
-                    .collect(toList());
-        }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
                 .filter(job -> asList(getStateNames(states)).contains(job.getState()))
-                .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
+                .map(job -> InstantUtils.max(
+                    job.getLastJobStateOfType(CarbonAwareAwaitingState.class).map(st -> st.getDeadline()),
+                        job.getLastJobStateOfType(ScheduledState.class).map(st -> st.getScheduledAt())))
                 .collect(toList());
     }
 

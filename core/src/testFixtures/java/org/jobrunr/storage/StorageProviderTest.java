@@ -3,9 +3,9 @@ package org.jobrunr.storage;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.cron.Cron;
@@ -38,8 +38,6 @@ import java.util.stream.IntStream;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.asList;
@@ -53,7 +51,6 @@ import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.JobRunrAssertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.failedJob;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
@@ -552,29 +549,33 @@ public abstract class StorageProviderTest {
 
     @Test
     void testGetRecurringJobScheduledInstants() {
-        JobDetails jobDetails = defaultJobDetails().build();
-        RecurringJob recurringJob = aDefaultRecurringJob().withJobDetails(jobDetails).build();
-        Job scheduledJob = recurringJob.toScheduledJobs(now(), now().plusSeconds(15)).get(0);
-        Instant scheduledAt = ((ScheduledState) scheduledJob.getJobState()).getScheduledAt();
+        RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 10 * * * [PT2H/PT2H]")
+                .build();
+        Job job = recurringJob.toScheduledJobs(now(), now().plusSeconds(15)).get(0);
+        CarbonAwareAwaitingState state = job.getJobState();
+        Instant initialScheduledAt = state.getDeadline();
+        // This will overwrite the scheduledAt, but we test for max(scheduledAt, deadline)
+        state.moveToNextState(job, state.getFrom().plus(1, HOURS), "lowest carbon at 9 but before preferred (10) or deadline (12)");
 
-        storageProvider.save(scheduledJob);
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId())).isEqualTo(List.of(scheduledAt));
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED)).isEqualTo(List.of(scheduledAt));
+        storageProvider.save(job);
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId())).isEqualTo(List.of(initialScheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(initialScheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED)).isEqualTo(List.of(initialScheduledAt));
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED, PROCESSING, SUCCEEDED)).isEmpty();
 
-        scheduledJob.enqueue();
-        storageProvider.save(scheduledJob);
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(scheduledAt));
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED)).isEqualTo(List.of(scheduledAt));
+        job.enqueue();
+        storageProvider.save(job);
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED)).isEqualTo(List.of(initialScheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED)).isEqualTo(List.of(initialScheduledAt));
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEmpty();
 
-        scheduledJob.delete("For test");
-        storageProvider.save(scheduledJob);
+        job.delete("For test");
+        storageProvider.save(job);
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, PROCESSING, SUCCEEDED)).isEmpty();
-        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED, DELETED)).isEqualTo(List.of(scheduledAt));
+        assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), ENQUEUED, DELETED)).isEqualTo(List.of(initialScheduledAt));
 
-        storageProvider.deletePermanently(scheduledJob.getId());
+        storageProvider.deletePermanently(job.getId());
         assertThat(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId())).isEmpty();
     }
 
@@ -730,15 +731,15 @@ public abstract class StorageProviderTest {
         );
         storageProvider.save(jobs);
 
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(3, HOURS), AmountBasedList.ascOnScheduledAt(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(3, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
                 .hasSize(0);
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(5, HOURS), AmountBasedList.ascOnScheduledAt(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(5, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
                 .hasSize(4)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(1)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(1)))
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
 
@@ -748,7 +749,7 @@ public abstract class StorageProviderTest {
         aCarbonAwareJob.scheduleAt(Instant.now(), "test");
         storageProvider.save(aCarbonAwareJob);
 
-        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(100)))
+        assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnCarbonAwareDeadline(100)))
                 .hasSize(4)
                 .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
     }

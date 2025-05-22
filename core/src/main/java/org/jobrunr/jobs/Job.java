@@ -9,7 +9,6 @@ import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.jobs.states.SucceededState;
@@ -41,6 +40,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_DEADLINE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -61,7 +61,8 @@ public class Job extends AbstractJob {
     static {
         ALLOWED_SORT_COLUMNS.put(FIELD_CREATED_AT, Job::getCreatedAt);
         ALLOWED_SORT_COLUMNS.put(FIELD_UPDATED_AT, Job::getUpdatedAt);
-        ALLOWED_SORT_COLUMNS.put(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof SchedulableState ? ((SchedulableState) job.getJobState()).getScheduledAt() : null);
+        ALLOWED_SORT_COLUMNS.put(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof ScheduledState ? ((ScheduledState) job.getJobState()).getScheduledAt() : null);
+        ALLOWED_SORT_COLUMNS.put(FIELD_DEADLINE, job -> job.getJobState() instanceof CarbonAwareAwaitingState ? ((CarbonAwareAwaitingState) job.getJobState()).getDeadline() : null);
     }
 
     private static final UUIDv7Factory UUID_FACTORY = UUIDv7Factory.builder().withIncrementPlus1().build();

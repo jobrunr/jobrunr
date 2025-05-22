@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static java.time.Instant.now;
@@ -22,8 +23,8 @@ public class ProcessScheduledJobsTask extends AbstractJobZooKeeperTask {
     @Override
     protected void runTask() {
         LOGGER.trace("Looking for scheduled jobs... ");
-        Instant scheduledBefore = now().plus(backgroundJobServerConfiguration().getPollInterval());
-        processManyJobs(previousResults -> getJobsToSchedule(scheduledBefore, previousResults),
+        //Instant scheduledBefore = now().plus(backgroundJobServerConfiguration().getPollInterval());
+        processManyJobs(previousResults -> getJobsToSchedule(now().plus(20, ChronoUnit.HOURS), previousResults),
                 Job::enqueue,
                 totalAmountOfEnqueuedJobs -> LOGGER.debug("Found {} scheduled jobs to enqueue.", totalAmountOfEnqueuedJobs));
     }

@@ -8,12 +8,17 @@ import org.bson.conversions.Bson;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.SchedulableState;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
+import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
@@ -34,9 +39,8 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_CREATED_AT, toMicroSeconds(job.getCreatedAt()));
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
-        if (job.getJobState() instanceof SchedulableState) {
-            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((SchedulableState) job.getJobState()).getScheduledAt()));
-        }
+        setIfStateIsPresent(document, Jobs.FIELD_DEADLINE, job, CarbonAwareAwaitingState.class, (state) -> state.getDeadline());
+        setIfStateIsPresent(document, Jobs.FIELD_SCHEDULED_AT, job, ScheduledState.class, (state) -> state.getScheduledAt());
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return document;
     }
@@ -47,9 +51,8 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
-        if (job.getJobState() instanceof SchedulableState) {
-            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((SchedulableState) job.getJobState()).getScheduledAt()));
-        }
+        setIfStateIsPresent(document, Jobs.FIELD_DEADLINE, job, CarbonAwareAwaitingState.class, (state) -> state.getDeadline());
+        setIfStateIsPresent(document, Jobs.FIELD_SCHEDULED_AT, job, ScheduledState.class, (state) -> state.getScheduledAt());
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return new Document("$set", document);
     }
@@ -89,4 +92,12 @@ public class JobDocumentMapper {
     public RecurringJob toRecurringJob(Document document) {
         return jobMapper.deserializeRecurringJob(document.get(RecurringJobs.FIELD_JOB_AS_JSON).toString());
     }
+
+    private <T extends JobState> void setIfStateIsPresent(Document document, String field, Job job, Class<T> stateClass, Function<T, Instant> instantFn) {
+        Optional<T> possibleState = job.getLastJobStateOfType(stateClass);
+        if(possibleState.isPresent()) {
+            document.put(field, toMicroSeconds(instantFn.apply(possibleState.get())));
+        }
+    }
+
 }
