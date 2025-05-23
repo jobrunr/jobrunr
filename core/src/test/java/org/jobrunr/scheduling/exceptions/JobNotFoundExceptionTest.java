@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling.exceptions;
 
+import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
@@ -39,11 +40,12 @@ class JobNotFoundExceptionTest {
                 jobDetails()
                         .withClassName(TestService.class)
                         .withMethodName("doWork")
-                        .withJobParameter(new JobParameterNotDeserializableException("i.dont.exist.Class", "Class not found"))
+                        .withJobParameter(new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(new ClassNotFoundException("Class not found"))))
                         .build());
 
-        assertThat(jobNotFoundException).hasMessage("org.jobrunr.stubs.TestService.doWork(i.dont.exist.Class)\n" +
-                "\tcaused by: one of the JobParameters is not deserializable anymore");
+        assertThat(jobNotFoundException).hasMessage("org.jobrunr.stubs.TestService.doWork(java.lang.Integer)" +
+                "\nCaused by: JobParameterNotDeserializableException: one of the JobParameters is not deserializable anymore" +
+                "\nCaused by: java.lang.ClassNotFoundException: Class not found");
     }
 
 }

@@ -4,7 +4,6 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.runner.RunnerJobContext;
@@ -176,16 +175,14 @@ public abstract class JobMapperTest {
         assertThat(actualJob.getJobDetails())
                 .hasClassName(TestService.class.getName())
                 .hasMethodName("doWork")
-                .hasArg(arg -> arg instanceof JobParameterNotDeserializableException
-                        && ((JobParameterNotDeserializableException) arg).getClassName().equals("i.dont.exist.Class"));
+                .hasNotDeserializableException("java.lang.IllegalArgumentException", "Class not found: i.dont.exist.Class");
 
         String jobAsJsonAfterDeserialization = jobMapper.serializeJob(actualJob);
         Job actualJobAfterDeserialization = jobMapper.deserializeJob(jobAsJsonAfterDeserialization);
         assertThat(actualJobAfterDeserialization.getJobDetails())
                 .hasClassName(TestService.class.getName())
                 .hasMethodName("doWork")
-                .hasArg(arg -> arg instanceof JobParameterNotDeserializableException
-                        && ((JobParameterNotDeserializableException) arg).getClassName().equals("i.dont.exist.Class"));
+                .hasNotDeserializableException("java.lang.IllegalArgumentException", "Class not found: i.dont.exist.Class");
     }
 
     public static class TestMetadata implements JobContext.Metadata {

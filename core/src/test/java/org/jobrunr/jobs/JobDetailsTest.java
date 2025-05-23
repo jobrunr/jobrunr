@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
@@ -56,6 +57,26 @@ class JobDetailsTest {
 
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{});
         assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{});
+    }
+
+    @Test
+    void testGetJobParameterTypesWithNotDeserializableParameter() {
+        JobDetails jobDetails = jobDetails()
+                .withClassName(TestService.class)
+                .withMethodName("doWork")
+                .withJobParameter(new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(new IllegalAccessException("Boom"))))
+                .build();
+
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasStaticFieldName(null)
+                .hasMethodName("doWork")
+                .hasArgs(2)
+                .hasNotDeserializableException(IllegalAccessException.class.getName(), "Boom")
+                .isNotCacheable();
+
+        assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{JobParameterNotDeserializableException.class});
+        assertThat(jobDetails.getJobParameterValues()).isEqualTo(new Object[]{2});
     }
 
     @Test

@@ -9,6 +9,10 @@ public class JobParameterNotDeserializableException {
         // used for deserialization, protected for JSONB
     }
 
+    public JobParameterNotDeserializableException(Exception e) {
+        this(e.getClass().getName(), e.getMessage());
+    }
+
     public JobParameterNotDeserializableException(String className, String exceptionMessage) {
         this.className = className;
         this.exceptionMessage = exceptionMessage;
@@ -20,6 +24,11 @@ public class JobParameterNotDeserializableException {
 
     public String getExceptionMessage() {
         return exceptionMessage;
+    }
+
+    public String getStackTrace() {
+        return "JobParameterNotDeserializableException: one of the JobParameters is not deserializable anymore"
+                + "\nCaused by: " + className + ": " + exceptionMessage;
     }
 
     @Override

@@ -185,6 +185,10 @@ public abstract class AbstractJsonMapperTest {
 
         final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isNotNull();
+        assertThat(actualJob.getJobDetails())
+                .hasArgSize(1)
+                .hasArgComparingStringFormat("{\"now\":\"2020-01-01T00:00:00Z\",\"someId\":\"072da403-f87b-4529-8af2-0c78c395ec5f\",\"someList\":[\"a\",\"b\",\"c\"],\"someString\":\"some string\"}")
+                .hasNotDeserializableException("java.lang.IllegalArgumentException", "Class not found: org.jobrunr.utils.mapper.AbstractJsonMapperTest$SomeCustomObjectThatDoesNotExist");
     }
 
     @Test

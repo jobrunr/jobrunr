@@ -83,7 +83,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
                     result.add(new JobParameter(methodClassName, object));
                 }
             } catch (Exception e) {
-                result.add(new JobParameter(new JobParameterNotDeserializableException(getActualClassName(methodClassName, actualClassName), e.getMessage())));
+                result.add(new JobParameter(methodClassName, actualClassName, jsonObject.get("object"), new JobParameterNotDeserializableException(e)));
             }
         }
         return result;
